@@ -37,7 +37,6 @@ from pathlib import Path
 from typing import Any, Dict, Generator, List, Set
 
 import yaml
-
 from aea.configurations.base import PackageId, PackageType, PublicId
 from aea.configurations.constants import (
     AGENTS,

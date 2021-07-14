@@ -41,7 +41,6 @@ from pathlib import Path
 from typing import Collection, Dict, List, Optional, Tuple, Type, cast
 
 import ipfshttpclient
-
 from aea.configurations.base import (
     AgentConfig,
     ConnectionConfig,
@@ -89,18 +88,6 @@ def _get_all_packages() -> List[Tuple[PackageType, Path]]:
         item_type_singular = item_type_plural[:-1]
         return PackageType(item_type_singular), package_path
 
-    CORE_PACKAGES = list(
-        map(
-            package_type_and_path,
-            [
-                CORE_PATH / "protocols" / "scaffold",
-                CORE_PATH / "connections" / "scaffold",
-                CORE_PATH / "contracts" / "scaffold",
-                CORE_PATH / "skills" / "scaffold",
-            ],
-        )
-    )
-
     PACKAGES = list(
         map(
             package_type_and_path,
@@ -108,18 +95,7 @@ def _get_all_packages() -> List[Tuple[PackageType, Path]]:
         )
     )
 
-    TEST_PACKAGES = [
-        (PackageType.AGENT, TEST_PATH / "dummy_aea"),
-        (PackageType.CONNECTION, TEST_PATH / "dummy_connection"),
-        (PackageType.CONTRACT, TEST_PATH / "dummy_contract"),
-        (PackageType.PROTOCOL, TEST_PATH / "generator" / "t_protocol"),
-        (PackageType.PROTOCOL, TEST_PATH / "generator" / "t_protocol_no_ct"),
-        (PackageType.SKILL, TEST_PATH / "dependencies_skill"),
-        (PackageType.SKILL, TEST_PATH / "exception_skill"),
-        (PackageType.SKILL, TEST_PATH / "dummy_skill"),
-    ]
-
-    ALL_PACKAGES = CORE_PACKAGES + PACKAGES + TEST_PACKAGES
+    ALL_PACKAGES = PACKAGES
     return ALL_PACKAGES
 
 

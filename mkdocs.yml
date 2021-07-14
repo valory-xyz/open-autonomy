@@ -4,12 +4,7 @@ site_description: Consensus algorithms implemetned with the AEA framework.
 repo_url: https://github.com/valory-xyz/consensus-algorithms
 site_author: developer@valory.xyz
 
-theme:
-  name: 'material'
-  logo:
-    icon: code
-  feature:
-    tabs: true
+theme: 'material'
 
 strict: true
 

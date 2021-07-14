@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 aea = {version = "<2.0.0,>=1.0.0", extras = ["all"]}
+mkdocs-mermaid-plugin = {git = "https://github.com/pugong/mkdocs-mermaid-plugin.git"}
 
 [dev-packages]
 ipfshttpclient = "==0.6.1"
@@ -31,6 +32,8 @@ safety = "==1.10.3"
 vulture = "==2.3"
 darglint = "==1.8.0"
 tox = "==3.23.1"
+markdown-include = "==0.6.0"
+types-pyyaml = "*"
 
 [requires]
 python_version = "3.8"
