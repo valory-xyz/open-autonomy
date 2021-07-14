@@ -26,6 +26,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run:  pip install tox
+    - name: Security checks
+      run: |
+        tox -e bandit
+        tox -e safety
     - name: Pylint
       run: tox -e pylint
     - name: Code style check
@@ -39,7 +43,3 @@ jobs:
       run: tox -e mypy
     - name: Check copyright
       run: tox -e check-copyright
-    - name: Misc checks
-      run: |
-        tox -e bandit
-        tox -e safety

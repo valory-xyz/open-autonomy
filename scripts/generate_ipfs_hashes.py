@@ -187,7 +187,7 @@ class IPFSDaemon:
         res = shutil.which("ipfs")
         if res is None:
             raise Exception("Please install IPFS first!")
-        process = subprocess.Popen(  # nosec
+        process = subprocess.Popen(  # nosec  # pylint: disable=R1732
             ["ipfs", "--version"],
             stdout=subprocess.PIPE,
             env=os.environ.copy(),
@@ -509,7 +509,9 @@ def check_hashes(timeout: float = 15.0) -> int:
 def clean_directory() -> None:
     """Clean the directory."""
     clean_command = ["make", "clean"]
-    process = subprocess.Popen(clean_command, stdout=subprocess.PIPE)  # nosec
+    process = subprocess.Popen(  # nosec  # pylint: disable=R1732
+        clean_command, stdout=subprocess.PIPE
+    )
     _, _ = process.communicate()
 
 
