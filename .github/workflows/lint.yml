@@ -1,0 +1,45 @@
+name: lint
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+
+jobs:
+  run:
+    continue-on-error: True
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run:  pip install tox
+    - name: Pylint
+      run: tox -e pylint
+    - name: Code style check
+      run: |
+        tox -e black-check
+        tox -e isort-check
+        tox -e flake8
+        tox -e vulture
+        tox -e darglint
+    - name: Static type check
+      run: tox -e mypy
+    - name: Check copyright
+      run: tox -e check-copyright
+    - name: Misc checks
+      run: |
+        tox -e bandit
+        tox -e safety

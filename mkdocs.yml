@@ -1,0 +1,31 @@
+site_name: aea_consensus_algorithm
+site_url: https://valory.xyz/
+site_description: Consensus algorithms implemetned with the AEA framework.
+repo_url: https://github.com/valory-xyz/consensus-algorithms
+site_author: developer@valory.xyz
+
+theme:
+  name: 'material'
+  logo:
+    icon: code
+  feature:
+    tabs: true
+
+strict: true
+
+nav:
+  - Home: 'index.md'
+
+plugins:
+    - markdownmermaid
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - admonition
+
+#extra_css:
+#    - css/my-styles.css
+
+extra_javascript:
+    - https://unpkg.com/mermaid@8.10.1/dist/mermaid.min.js
