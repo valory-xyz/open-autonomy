@@ -1,6 +1,6 @@
 site_name: aea_consensus_algorithm
 site_url: https://valory.xyz/
-site_description: Consensus algorithms implemetned with the AEA framework.
+site_description: Consensus algorithms implemented with the AEA framework.
 repo_url: https://github.com/valory-xyz/consensus-algorithms
 site_author: developer@valory.xyz
 
