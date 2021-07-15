@@ -30,6 +30,10 @@ jobs:
       run: |
         tox -e bandit
         tox -e safety
+    - name: Check copyright
+      run: tox -e check-copyright
+    - name: Check packages
+      run: tox -e check-packages
     - name: Pylint
       run: tox -e pylint
     - name: Code style check
@@ -41,5 +45,3 @@ jobs:
         tox -e darglint
     - name: Static type check
       run: tox -e mypy
-    - name: Check copyright
-      run: tox -e check-copyright
