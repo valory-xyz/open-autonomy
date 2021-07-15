@@ -31,6 +31,7 @@ Run this script from the root of the project directory:
 """
 import pprint
 import sys
+from abc import abstractmethod
 from functools import partial
 from itertools import chain
 from pathlib import Path
@@ -48,6 +49,8 @@ from aea.configurations.constants import (
 )
 
 
+VALORY = "valory"
+
 DEFAULT_CONFIG_FILE_PATHS = []  # type: List[Path]
 
 CONFIG_FILE_NAMES = [
@@ -59,7 +62,15 @@ CONFIG_FILE_NAMES = [
 ]  # type: List[str]
 
 
-class DependencyNotFound(Exception):
+class CustomException(Exception):
+    """A custom exception class for this script."""
+
+    @abstractmethod
+    def print_error(self) -> None:
+        """Print the error message."""
+
+
+class DependencyNotFound(CustomException):
     """Custom exception for dependencies not found."""
 
     def __init__(
@@ -82,6 +93,16 @@ class DependencyNotFound(Exception):
         self.expected_dependencies = expected_deps
         self.missing_dependencies = missing_dependencies
 
+    def print_error(self) -> None:
+        """Print the error message."""
+        sorted_expected = list(map(str, sorted(self.expected_dependencies)))
+        sorted_missing = list(map(str, sorted(self.missing_dependencies)))
+        print("=" * 50)
+        print(f"Package {self.configuration_file}:")
+        print(f"Expected: {pprint.pformat(sorted_expected)}")
+        print(f"Missing: {pprint.pformat(sorted_missing)}")
+        print("=" * 50)
+
 
 class EmptyPackageDescription(Exception):
     """Custom exception for empty description field."""
@@ -99,6 +120,45 @@ class EmptyPackageDescription(Exception):
         """
         super().__init__(*args)
         self.configuration_file = configuration_file
+
+    def print_error(self) -> None:
+        """Print the error message."""
+        print("=" * 50)
+        print(f"Package '{self.configuration_file}' has empty description field.")
+        print("=" * 50)
+
+
+class UnexpectedAuthorError(Exception):
+    """Custom exception for unexpected author value."""
+
+    def __init__(
+        self,
+        configuration_file: Path,
+        expected_author: str,
+        actual_author: str,
+        *args: Any,
+    ):
+        """
+        Initialize the exception.
+
+        :param configuration_file: the file to the configuration that raised the error.
+        :param expected_author: the expected author.
+        :param actual_author: the actual author.
+        :param args: other positional arguments.
+        """
+        super().__init__(*args)
+        self.configuration_file = configuration_file
+        self.expected_author = expected_author
+        self.actual_author = actual_author
+
+    def print_error(self) -> None:
+        """Print the error message."""
+        print("=" * 50)
+        print(
+            f"Package '{self.configuration_file}' has an unexpected author value: "
+            f"expected {self.expected_author}, found '{self.actual_author}'."
+        )
+        print("=" * 50)
 
 
 def find_all_configuration_files() -> List:
@@ -151,24 +211,6 @@ def find_all_packages_ids() -> Set[PackageId]:
         package_ids.add(package_id)
 
     return package_ids
-
-
-def handle_dependency_not_found(exception: DependencyNotFound) -> None:
-    """Handle PackageIdNotFound errors."""
-    sorted_expected = list(map(str, sorted(exception.expected_dependencies)))
-    sorted_missing = list(map(str, sorted(exception.missing_dependencies)))
-    print("=" * 50)
-    print(f"Package {exception.configuration_file}:")
-    print(f"Expected: {pprint.pformat(sorted_expected)}")
-    print(f"Missing: {pprint.pformat(sorted_missing)}")
-    print("=" * 50)
-
-
-def handle_empty_package_description(exception: EmptyPackageDescription) -> None:
-    """Handle EmptyPackageDescription errors."""
-    print("=" * 50)
-    print(f"Package '{exception.configuration_file}' has empty description field.")
-    print("=" * 50)
 
 
 def unified_yaml_load(configuration_file: Path) -> Dict:
@@ -228,6 +270,14 @@ def check_description(configuration_file: Path) -> None:
         raise EmptyPackageDescription(configuration_file)
 
 
+def check_author(configuration_file: Path, expected_author: str):
+    """Check the author matches a certain desired value."""
+    yaml_object = unified_yaml_load(configuration_file)
+    actual_author = yaml_object.get("author")
+    if actual_author == expected_author:
+        raise UnexpectedAuthorError(configuration_file, expected_author, actual_author)
+
+
 def main():
     """Execute the script."""
     all_packages_ids_ = find_all_packages_ids()
@@ -235,13 +285,11 @@ def main():
     for file in find_all_configuration_files():
         try:
             print("Processing " + str(file))
+            check_author(file, VALORY)
             check_dependencies(file, all_packages_ids_)
             check_description(file)
-        except DependencyNotFound as exception:
-            handle_dependency_not_found(exception)
-            failed = True
-        except EmptyPackageDescription as exception:
-            handle_empty_package_description(exception)
+        except CustomException as exception:
+            exception.print_error()
             failed = True
 
     if failed:
@@ -250,3 +298,7 @@ def main():
     else:
         print("OK!")
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
