@@ -88,15 +88,14 @@ def _get_all_packages() -> List[Tuple[PackageType, Path]]:
         item_type_singular = item_type_plural[:-1]
         return PackageType(item_type_singular), package_path
 
-    PACKAGES = list(
+    packages = list(
         map(
             package_type_and_path,
             filter(operator.methodcaller("is_dir"), Path("packages").glob("*/*/*/")),
         )
     )
 
-    ALL_PACKAGES = PACKAGES
-    return ALL_PACKAGES
+    return packages
 
 
 def sort_configuration_file(config: PackageConfiguration) -> None:
@@ -237,8 +236,8 @@ def load_configuration(
     )
 
     loader = ConfigLoaders.from_package_type(package_type)
-    with configuration_filepath.open() as fp:
-        configuration_obj = loader.load(fp)
+    with configuration_filepath.open() as file_obj:
+        configuration_obj = loader.load(file_obj)
     configuration_obj._directory = package_path  # pylint: disable=protected-access
     return cast(PackageConfiguration, configuration_obj)
 
@@ -277,8 +276,9 @@ def _replace_fingerprint_non_invasive(
     :return: the updated content of the configuration file.
     """
 
-    def to_row(x: Tuple[str, str]) -> str:
-        return x[0] + ": " + x[1]
+    def to_row(name_hash_pair: Tuple[str, str]) -> str:
+        name, hash_ = name_hash_pair
+        return name + ": " + hash_
 
     replacement = "\nfingerprint:\n  {}\n".format(
         "\n  ".join(map(to_row, sorted(fingerprint_dict.items())))
@@ -296,7 +296,8 @@ def compute_fingerprint(  # pylint: disable=unsubscriptable-object
 
     :param package_path: path to the package.
     :param fingerprint_ignore_patterns: filename patterns whose matches will be ignored.
-    :param client: the IPFS Client. It is used to compare our implementation with the true implementation of IPFS hashing.
+    :param client: the IPFS Client. It is used to compare our implementation
+        with the true implementation of IPFS hashing.
     :return: the fingerprint
     """
     fingerprint = _compute_fingerprint(
@@ -314,7 +315,8 @@ def update_fingerprint(
     Update the fingerprint of a package.
 
     :param configuration: the configuration object.
-    :param client: the IPFS Client. It is used to compare our implementation with the true implementation of IPFS hashing.
+    :param client: the IPFS Client. It is used to compare our implementation
+        with the true implementation of IPFS hashing.
     :return: None
     """
     # we don't process agent configurations
@@ -339,7 +341,8 @@ def check_fingerprint(
     Check the fingerprint of a package, given the loaded configuration file.
 
     :param configuration: the configuration object.
-    :param client: the IPFS Client. It is used to compare our implementation with the true implementation of IPFS hashing.
+    :param client: the IPFS Client. It is used to compare our implementation
+        with the true implementation of IPFS hashing.
     :return: True if the fingerprint match, False otherwise.
     """
     # we don't process agent configurations
@@ -390,7 +393,7 @@ def update_hashes(timeout: float = 15.0) -> int:
     :param timeout: timeout to the update.
     :return: exit code. 0 for success, 1 if an exception occurred.
     """
-    return_code_ = 0
+    return_code = 0
     package_hashes = {}  # type: Dict[str, str]
     test_package_hashes = {}  # type: Dict[str, str]
     # run the ipfs daemon
@@ -426,9 +429,9 @@ def update_hashes(timeout: float = 15.0) -> int:
             print("Done!")
         except Exception:  # pylint: disable=broad-except
             traceback.print_exc()
-            return_code_ = 1
+            return_code = 1
 
-    return return_code_
+    return return_code
 
 
 def check_same_ipfs_hash(
@@ -472,9 +475,10 @@ def check_hashes(timeout: float = 15.0) -> int:
     Check fingerprints and outer hash of all AEA packages.
 
     :param timeout: timeout to the check.
-    :return: exit code. 1 if some fingerprint/hash don't match or if an exception occurs, 0 in case of success.
+    :return: exit code. 1 if some fingerprint/hash don't match
+        or if an exception occurs, 0 in case of success.
     """
-    return_code_ = 0
+    return_code = 0
     failed = False
     expected_package_hashes = from_csv(PACKAGE_HASHES_PATH)  # type: Dict[str, str]
     expected_test_package_hashes = from_csv(
@@ -499,11 +503,11 @@ def check_hashes(timeout: float = 15.0) -> int:
             failed = True
 
     if failed:
-        return_code_ = 1
+        return_code = 1
     else:
         print("OK!")
 
-    return return_code_
+    return return_code
 
 
 def clean_directory() -> None:
@@ -515,7 +519,8 @@ def clean_directory() -> None:
     _, _ = process.communicate()
 
 
-if __name__ == "__main__":
+def main():
+    """Execute the script."""
     arguments = parse_arguments()
     if arguments.check:
         return_code = check_hashes(arguments.timeout)
@@ -524,3 +529,7 @@ if __name__ == "__main__":
         return_code = update_hashes(arguments.timeout)
 
     sys.exit(return_code)
+
+
+if __name__ == "__main__":
+    main()

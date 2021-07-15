@@ -153,21 +153,21 @@ def find_all_packages_ids() -> Set[PackageId]:
     return package_ids
 
 
-def handle_dependency_not_found(e: DependencyNotFound) -> None:
+def handle_dependency_not_found(exception: DependencyNotFound) -> None:
     """Handle PackageIdNotFound errors."""
-    sorted_expected = list(map(str, sorted(e.expected_dependencies)))
-    sorted_missing = list(map(str, sorted(e.missing_dependencies)))
+    sorted_expected = list(map(str, sorted(exception.expected_dependencies)))
+    sorted_missing = list(map(str, sorted(exception.missing_dependencies)))
     print("=" * 50)
-    print(f"Package {e.configuration_file}:")
+    print(f"Package {exception.configuration_file}:")
     print(f"Expected: {pprint.pformat(sorted_expected)}")
     print(f"Missing: {pprint.pformat(sorted_missing)}")
     print("=" * 50)
 
 
-def handle_empty_package_description(e: EmptyPackageDescription) -> None:
+def handle_empty_package_description(exception: EmptyPackageDescription) -> None:
     """Handle EmptyPackageDescription errors."""
     print("=" * 50)
-    print(f"Package '{e.configuration_file}' has empty description field.")
+    print(f"Package '{exception.configuration_file}' has empty description field.")
     print("=" * 50)
 
 
@@ -179,13 +179,13 @@ def unified_yaml_load(configuration_file: Path) -> Dict:
     :return: the data.
     """
     package_type = configuration_file.parent.parent.name
-    with configuration_file.open() as fp:
+    with configuration_file.open() as file_obj:
         if package_type != AGENTS:
-            return yaml.safe_load(fp)
+            return yaml.safe_load(file_obj)
         # when it is an agent configuration file,
         # we are interested only in the first page of the YAML,
         # because the dependencies are contained only there.
-        data = yaml.safe_load_all(fp)
+        data = yaml.safe_load_all(file_obj)
         return list(data)[0]
 
 
@@ -228,7 +228,8 @@ def check_description(configuration_file: Path) -> None:
         raise EmptyPackageDescription(configuration_file)
 
 
-if __name__ == "__main__":
+def main():
+    """Execute the script."""
     all_packages_ids_ = find_all_packages_ids()
     failed: bool = False
     for file in find_all_configuration_files():
@@ -236,11 +237,11 @@ if __name__ == "__main__":
             print("Processing " + str(file))
             check_dependencies(file, all_packages_ids_)
             check_description(file)
-        except DependencyNotFound as e_:
-            handle_dependency_not_found(e_)
+        except DependencyNotFound as exception:
+            handle_dependency_not_found(exception)
             failed = True
-        except EmptyPackageDescription as e_:
-            handle_empty_package_description(e_)
+        except EmptyPackageDescription as exception:
+            handle_empty_package_description(exception)
             failed = True
 
     if failed:
