@@ -508,7 +508,7 @@ def clean_directory() -> None:
     _, _ = process.communicate()
 
 
-def main():
+def main() -> None:
     """Execute the script."""
     arguments = parse_arguments()
     if arguments.check:

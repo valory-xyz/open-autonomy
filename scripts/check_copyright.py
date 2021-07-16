@@ -29,7 +29,6 @@ In particular:
 It is assumed the script is run from the repository root.
 """
 
-import argparse
 import itertools
 import re
 import sys
@@ -73,14 +72,6 @@ def check_copyright(file: Path) -> bool:
     """
     content = file.read_text()
     return re.match(HEADER_REGEX, content) is not None
-
-
-def parse_args():
-    """Parse arguments."""
-    parser = argparse.ArgumentParser("check_copyright_notice")
-    parser.add_argument(
-        "--directory", type=str, default=".", help="The path to the repository root."
-    )
 
 
 if __name__ == "__main__":

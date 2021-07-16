@@ -276,15 +276,15 @@ def check_description(configuration_file: Path) -> None:
         raise EmptyPackageDescription(configuration_file)
 
 
-def check_author(configuration_file: Path, expected_author: str):
+def check_author(configuration_file: Path, expected_author: str) -> None:
     """Check the author matches a certain desired value."""
     yaml_object = unified_yaml_load(configuration_file)
-    actual_author = yaml_object.get("author")
+    actual_author = yaml_object.get("author", "")
     if actual_author != expected_author:
         raise UnexpectedAuthorError(configuration_file, expected_author, actual_author)
 
 
-def main():
+def main() -> None:
     """Execute the script."""
     all_packages_ids_ = find_all_packages_ids()
     failed: bool = False
