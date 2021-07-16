@@ -274,7 +274,7 @@ def check_author(configuration_file: Path, expected_author: str):
     """Check the author matches a certain desired value."""
     yaml_object = unified_yaml_load(configuration_file)
     actual_author = yaml_object.get("author")
-    if actual_author == expected_author:
+    if actual_author != expected_author:
         raise UnexpectedAuthorError(configuration_file, expected_author, actual_author)
 
 
