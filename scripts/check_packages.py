@@ -248,14 +248,20 @@ def check_dependencies(
     def _get_package_ids(
         package_type: PackageType, public_ids: Set[PublicId]
     ) -> Set[PackageId]:
-        return set(map(partial(_add_package_type, package_type), public_ids))
+        # take only the dependencies whose author is Valory.
+        expected_author_public_ids = filter(
+            lambda pid: pid.author == VALORY, public_ids
+        )
+        # add the package type, so to return PackageId objects.
+        return set(
+            map(partial(_add_package_type, package_type), expected_author_public_ids)
+        )
 
-    dependencies: Set[PackageId] = set.union(
-        *[
-            _get_package_ids(package_type, data.get(package_type.to_plural(), set()))
-            for package_type in list(PackageType)
-        ]
-    )
+    dependencies: Set[PackageId] = set()
+    for package_type in list(PackageType):
+        public_ids_str = data.get(package_type.to_plural(), set())
+        public_ids = set(map(PublicId.from_str, public_ids_str))
+        dependencies.update(_get_package_ids(package_type, public_ids))
 
     diff = dependencies.difference(all_packages_ids)
     if len(diff) > 0:
