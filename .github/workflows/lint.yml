@@ -34,6 +34,8 @@ jobs:
       run: tox -e check-copyright
     - name: Check packages
       run: tox -e check-packages
+    - name: Check hash
+      run: tox -e check-hash
     - name: Pylint
       run: tox -e pylint
     - name: Code style check
