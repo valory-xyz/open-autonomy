@@ -1,0 +1,24 @@
+name: abci
+author: valory
+version: 0.1.0
+type: connection
+description: connection to wrap communication with an ABCI server.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmU3bXGHMWqnFqWq6kJQB8qyUwYWHxLgaAsrpkHFWgtbrD
+  connection.py: QmcxaPLtLNNLmKGjvnb9R2pRRGnfM5KBcBvGDt4yq1eWjD
+  readme.md: QmY84Kw2PQX4pmohsCbPRwL4kryQxCHk5awWSKrTMhtdxr
+fingerprint_ignore_patterns: []
+connections:
+- fetchai/http_client:0.22.0
+protocols: []
+class_name: ABCIConnection
+config:
+  host: 127.0.0.1
+  port: 26657
+excluded_protocols: []
+restricted_to_protocols: []
+dependencies: {}
+is_abstract: false
+cert_requests: []
