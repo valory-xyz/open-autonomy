@@ -6,7 +6,7 @@ description: connection to wrap communication with an ABCI server.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmU3bXGHMWqnFqWq6kJQB8qyUwYWHxLgaAsrpkHFWgtbrD
+  __init__.py: QmdcyANC7j6fteqzBoFLBg9NfHBAxryY1ykfywzeSpp8iC
   connection.py: QmcxaPLtLNNLmKGjvnb9R2pRRGnfM5KBcBvGDt4yq1eWjD
   readme.md: QmY84Kw2PQX4pmohsCbPRwL4kryQxCHk5awWSKrTMhtdxr
 fingerprint_ignore_patterns: []

@@ -74,7 +74,7 @@ common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
-	pytest -rfE --doctest-modules aea_consensus_algorithms packages tests/ --cov=aea_consensus_algorithms --cov-report=html --cov-report=xml --cov-report=term-missing --cov-report=term --cov-config=.coveragerc
+	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc {posargs}
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: test-all
