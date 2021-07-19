@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package aea.valory.abci.v0_1_0;
+
+message AbciMessage{
+
+  // Custom Types
+  message Timestamp{
+    // Represents seconds of UTC time since Unix epoch
+    // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+    // 9999-12-31T23:59:59Z inclusive.
+    int64 seconds = 1;
+    // Non-negative fractions of a second at nanosecond resolution. Negative
+    // second values with fractions must still have non-negative nanos values
+    // that count forward in time. Must be from 0 to 999,999,999
+    // inclusive.
+    int32 nanos = 2;
+  }
+
+
+  // Performatives and contents
+  message Request_Echo_Performative{
+    string message = 1;
+  }
+
+  message Request_Flush_Performative{
+  }
+
+  message Request_Info_Performative{
+    string version = 1;
+    int32 block_version = 2;
+    int32 p2p_version = 3;
+  }
+
+  message Request_Init_Chain_Performative{
+    Timestamp time = 1;
+  }
+
+  message Response_Exception_Performative{
+  }
+
+  message Response_Echo_Performative{
+    string message = 1;
+  }
+
+  message Response_Flush_Performative{
+  }
+
+  message Response_Info_Performative{
+    string data = 1;
+    string version = 2;
+    int32 app_version = 3;
+    int32 last_block_height = 4;
+    bytes last_block_app_hash = 5;
+  }
+
+  message Response_Init_Chain_Performative{
+  }
+
+
+  oneof performative{
+    Request_Echo_Performative request_echo = 5;
+    Request_Flush_Performative request_flush = 6;
+    Request_Info_Performative request_info = 7;
+    Request_Init_Chain_Performative request_init_chain = 8;
+    Response_Echo_Performative response_echo = 9;
+    Response_Exception_Performative response_exception = 10;
+    Response_Flush_Performative response_flush = 11;
+    Response_Info_Performative response_info = 12;
+    Response_Init_Chain_Performative response_init_chain = 13;
+  }
+}
