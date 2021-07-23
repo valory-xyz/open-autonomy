@@ -21,7 +21,7 @@
 
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,too-many-branches,not-an-iterable,unidiomatic-typecheck,unsubscriptable-object
 import logging
-from typing import Any, Set, Tuple, cast
+from typing import Any, Dict, Set, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.exceptions import AEAEnforceError, enforce
@@ -75,10 +75,15 @@ class AbciMessage(Message):
 
     class _SlotsCls:
         __slots__ = (
+            "app_hash",
+            "app_state_bytes",
             "app_version",
             "block_version",
+            "chain_id",
+            "consensus_params",
             "data",
             "dialogue_reference",
+            "initial_height",
             "last_block_app_hash",
             "last_block_height",
             "message",
@@ -87,6 +92,7 @@ class AbciMessage(Message):
             "performative",
             "target",
             "time",
+            "validators",
             "version",
         )
 
@@ -144,6 +150,18 @@ class AbciMessage(Message):
         return cast(int, self.get("target"))
 
     @property
+    def app_hash(self) -> bytes:
+        """Get the 'app_hash' content from the message."""
+        enforce(self.is_set("app_hash"), "'app_hash' content is not set.")
+        return cast(bytes, self.get("app_hash"))
+
+    @property
+    def app_state_bytes(self) -> bytes:
+        """Get the 'app_state_bytes' content from the message."""
+        enforce(self.is_set("app_state_bytes"), "'app_state_bytes' content is not set.")
+        return cast(bytes, self.get("app_state_bytes"))
+
+    @property
     def app_version(self) -> int:
         """Get the 'app_version' content from the message."""
         enforce(self.is_set("app_version"), "'app_version' content is not set.")
@@ -156,10 +174,30 @@ class AbciMessage(Message):
         return cast(int, self.get("block_version"))
 
     @property
+    def chain_id(self) -> str:
+        """Get the 'chain_id' content from the message."""
+        enforce(self.is_set("chain_id"), "'chain_id' content is not set.")
+        return cast(str, self.get("chain_id"))
+
+    @property
+    def consensus_params(self) -> Dict[str, str]:
+        """Get the 'consensus_params' content from the message."""
+        enforce(
+            self.is_set("consensus_params"), "'consensus_params' content is not set."
+        )
+        return cast(Dict[str, str], self.get("consensus_params"))
+
+    @property
     def data(self) -> str:
         """Get the 'data' content from the message."""
         enforce(self.is_set("data"), "'data' content is not set.")
         return cast(str, self.get("data"))
+
+    @property
+    def initial_height(self) -> str:
+        """Get the 'initial_height' content from the message."""
+        enforce(self.is_set("initial_height"), "'initial_height' content is not set.")
+        return cast(str, self.get("initial_height"))
 
     @property
     def last_block_app_hash(self) -> bytes:
@@ -195,6 +233,12 @@ class AbciMessage(Message):
         """Get the 'time' content from the message."""
         enforce(self.is_set("time"), "'time' content is not set.")
         return cast(CustomTimestamp, self.get("time"))
+
+    @property
+    def validators(self) -> Dict[str, str]:
+        """Get the 'validators' content from the message."""
+        enforce(self.is_set("validators"), "'validators' content is not set.")
+        return cast(Dict[str, str], self.get("validators"))
 
     @property
     def version(self) -> str:
@@ -279,11 +323,70 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.REQUEST_INIT_CHAIN:
-                expected_nb_of_contents = 1
+                expected_nb_of_contents = 6
                 enforce(
                     isinstance(self.time, CustomTimestamp),
                     "Invalid type for content 'time'. Expected 'Timestamp'. Found '{}'.".format(
                         type(self.time)
+                    ),
+                )
+                enforce(
+                    isinstance(self.chain_id, str),
+                    "Invalid type for content 'chain_id'. Expected 'str'. Found '{}'.".format(
+                        type(self.chain_id)
+                    ),
+                )
+                enforce(
+                    isinstance(self.consensus_params, dict),
+                    "Invalid type for content 'consensus_params'. Expected 'dict'. Found '{}'.".format(
+                        type(self.consensus_params)
+                    ),
+                )
+                for (
+                    key_of_consensus_params,
+                    value_of_consensus_params,
+                ) in self.consensus_params.items():
+                    enforce(
+                        isinstance(key_of_consensus_params, str),
+                        "Invalid type for dictionary keys in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
+                            type(key_of_consensus_params)
+                        ),
+                    )
+                    enforce(
+                        isinstance(value_of_consensus_params, str),
+                        "Invalid type for dictionary values in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
+                            type(value_of_consensus_params)
+                        ),
+                    )
+                enforce(
+                    isinstance(self.validators, dict),
+                    "Invalid type for content 'validators'. Expected 'dict'. Found '{}'.".format(
+                        type(self.validators)
+                    ),
+                )
+                for key_of_validators, value_of_validators in self.validators.items():
+                    enforce(
+                        isinstance(key_of_validators, str),
+                        "Invalid type for dictionary keys in content 'validators'. Expected 'str'. Found '{}'.".format(
+                            type(key_of_validators)
+                        ),
+                    )
+                    enforce(
+                        isinstance(value_of_validators, str),
+                        "Invalid type for dictionary values in content 'validators'. Expected 'str'. Found '{}'.".format(
+                            type(value_of_validators)
+                        ),
+                    )
+                enforce(
+                    isinstance(self.app_state_bytes, bytes),
+                    "Invalid type for content 'app_state_bytes'. Expected 'bytes'. Found '{}'.".format(
+                        type(self.app_state_bytes)
+                    ),
+                )
+                enforce(
+                    isinstance(self.initial_height, str),
+                    "Invalid type for content 'initial_height'. Expected 'str'. Found '{}'.".format(
+                        type(self.initial_height)
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_EXCEPTION:
@@ -331,7 +434,54 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
-                expected_nb_of_contents = 0
+                expected_nb_of_contents = 3
+                enforce(
+                    isinstance(self.consensus_params, dict),
+                    "Invalid type for content 'consensus_params'. Expected 'dict'. Found '{}'.".format(
+                        type(self.consensus_params)
+                    ),
+                )
+                for (
+                    key_of_consensus_params,
+                    value_of_consensus_params,
+                ) in self.consensus_params.items():
+                    enforce(
+                        isinstance(key_of_consensus_params, str),
+                        "Invalid type for dictionary keys in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
+                            type(key_of_consensus_params)
+                        ),
+                    )
+                    enforce(
+                        isinstance(value_of_consensus_params, str),
+                        "Invalid type for dictionary values in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
+                            type(value_of_consensus_params)
+                        ),
+                    )
+                enforce(
+                    isinstance(self.validators, dict),
+                    "Invalid type for content 'validators'. Expected 'dict'. Found '{}'.".format(
+                        type(self.validators)
+                    ),
+                )
+                for key_of_validators, value_of_validators in self.validators.items():
+                    enforce(
+                        isinstance(key_of_validators, str),
+                        "Invalid type for dictionary keys in content 'validators'. Expected 'str'. Found '{}'.".format(
+                            type(key_of_validators)
+                        ),
+                    )
+                    enforce(
+                        isinstance(value_of_validators, str),
+                        "Invalid type for dictionary values in content 'validators'. Expected 'str'. Found '{}'.".format(
+                            type(value_of_validators)
+                        ),
+                    )
+                enforce(
+                    isinstance(self.app_hash, bytes),
+                    "Invalid type for content 'app_hash'. Expected 'bytes'. Found '{}'.".format(
+                        type(self.app_hash)
+                    ),
+                )
 
             # Check correct content count
             enforce(

@@ -34,6 +34,7 @@ darglint = "==1.8.0"
 tox = "==3.23.1"
 markdown-include = "==0.6.0"
 types-pyyaml = "*"
+types-protobuf = "*"
 
 [requires]
 python_version = "3.8"

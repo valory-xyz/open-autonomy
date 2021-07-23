@@ -34,6 +34,11 @@ message AbciMessage{
 
   message Request_Init_Chain_Performative{
     Timestamp time = 1;
+    string chain_id = 2;
+    map<string, string> consensus_params = 3;
+    map<string, string> validators = 4;
+    bytes app_state_bytes = 5;
+    string initial_height = 6;
   }
 
   message Response_Exception_Performative{
@@ -55,6 +60,9 @@ message AbciMessage{
   }
 
   message Response_Init_Chain_Performative{
+    map<string, string> consensus_params = 1;
+    map<string, string> validators = 2;
+    bytes app_hash = 3;
   }
 
 

@@ -29,21 +29,21 @@ speech_acts:
       p2p_version: pt:int
     request_init_chain:
       time: ct:Timestamp
-#      chain_id: pt:str
-#      consensus_params: ct:ConsensusParams
-#      validators: ct:ValidatorUpdates
-#      app_state_bytes: pt:str
-#      initial_height: pt:str
-#    request_query: []
-#    request_begin_block: []
-#    request_check_tx: []
-#    request_deliver_tx: []
-#    request_end_block: []
-#    request_commit: []
-#    request_list_snapshots: []
-#    request_offer_snapshot: []
-#    request_load_snapshot_chunk: []
-#    request_apply_snapshot_chunk: []
+      chain_id: pt:str
+      consensus_params: pt:dict[pt:str,pt:str]
+      validators: pt:dict[pt:str,pt:str]
+      app_state_bytes: pt:bytes
+      initial_height: pt:str
+#    request_query: {}
+#    request_begin_block: {}
+#    request_check_tx: {}
+#    request_deliver_tx: {}
+#    request_end_block: {}
+#    request_commit: {}
+#    request_list_snapshots: {}
+#    request_offer_snapshot: {}
+#    request_load_snapshot_chunk: {}
+#    request_apply_snapshot_chunk: {}
 # responses
     response_exception: {}
     response_echo:
@@ -55,20 +55,20 @@ speech_acts:
       app_version: pt:int
       last_block_height: pt:int
       last_block_app_hash: pt:bytes
-    response_init_chain: {}
-#      consensus_params: ct:ConsensusParams
-#      validators: ct:ValidatorUpdates
-#      app_hash: pt:bytes
-#    response_query: []
-#    response_begin_block: []
-#    response_check_tx: []
-#    response_deliver_tx: []
-#    response_end_block: []
-#    response_commit: []
-#    response_list_snapshots: []
-#    response_offer_snapshot: []
-#    response_load_snapshot_chunk: []
-#    response_apply_snapshot_chunk: []
+    response_init_chain:
+      consensus_params: pt:dict[pt:str,pt:str]
+      validators: pt:dict[pt:str,pt:str]
+      app_hash: pt:bytes
+    #    response_query: {}
+    #    response_begin_block: {}
+    #    response_check_tx: {}
+    #    response_deliver_tx: {}
+    #    response_end_block: {}
+    #    response_commit: {}
+    #    response_list_snapshots: {}
+    #    response_offer_snapshot: {}
+    #    response_load_snapshot_chunk: {}
+    #    response_apply_snapshot_chunk: {}
 ...
 ---
 # google.protobuf.Duration
@@ -96,29 +96,6 @@ ct:Timestamp: |
   // that count forward in time. Must be from 0 to 999,999,999
   // inclusive.
   int32 nanos = 2;
-#ct:ConsensusParams: |
-#  BlockParams     block     = 1;
-#  EvidenceParams  evidence  = 2;
-#  ValidatorParams validator = 3;
-#  VersionParams   version   = 4;
-#ct:BlockParams: |
-#  // Note: must be greater than 0
-#  int64 max_bytes = 1;
-#  // Note: must be greater or equal to -1
-#  int64 max_gas = 2;
-#ct:EvidenceParams: |
-#  int64 max_age_num_blocks = 1;
-#  Duration max_age_duration = 2;
-#  int64 max_bytes = 3;
-#ct:ValidatorParams: |
-#  repeated string pub_key_types = 1;
-#ct:VersionParams: |
-#  int64 app_version = 1;
-#ct:ValidatorUpdates: |
-#  repeated ValidatorUpdate validator_updates = 1;
-#ct:ValidatorUpdate: |
-#  bytes pub_key = 1;
-#  int64 power = 2;
 ...
 ---
 initiation: [request_echo, request_flush]

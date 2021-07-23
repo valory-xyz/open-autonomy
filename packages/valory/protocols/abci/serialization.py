@@ -75,6 +75,16 @@ class AbciSerializer(Serializer):
             performative = abci_pb2.AbciMessage.Request_Init_Chain_Performative()  # type: ignore
             time = msg.time
             Timestamp.encode(performative.time, time)
+            chain_id = msg.chain_id
+            performative.chain_id = chain_id
+            consensus_params = msg.consensus_params
+            performative.consensus_params.update(consensus_params)
+            validators = msg.validators
+            performative.validators.update(validators)
+            app_state_bytes = msg.app_state_bytes
+            performative.app_state_bytes = app_state_bytes
+            initial_height = msg.initial_height
+            performative.initial_height = initial_height
             abci_msg.request_init_chain.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             performative = abci_pb2.AbciMessage.Response_Exception_Performative()  # type: ignore
@@ -102,6 +112,12 @@ class AbciSerializer(Serializer):
             abci_msg.response_info.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
             performative = abci_pb2.AbciMessage.Response_Init_Chain_Performative()  # type: ignore
+            consensus_params = msg.consensus_params
+            performative.consensus_params.update(consensus_params)
+            validators = msg.validators
+            performative.validators.update(validators)
+            app_hash = msg.app_hash
+            performative.app_hash = app_hash
             abci_msg.response_init_chain.CopyFrom(performative)
         else:
             raise ValueError("Performative not valid: {}".format(performative_id))
@@ -150,6 +166,18 @@ class AbciSerializer(Serializer):
             pb2_time = abci_pb.request_init_chain.time
             time = Timestamp.decode(pb2_time)
             performative_content["time"] = time
+            chain_id = abci_pb.request_init_chain.chain_id
+            performative_content["chain_id"] = chain_id
+            consensus_params = abci_pb.request_init_chain.consensus_params
+            consensus_params_dict = dict(consensus_params)
+            performative_content["consensus_params"] = consensus_params_dict
+            validators = abci_pb.request_init_chain.validators
+            validators_dict = dict(validators)
+            performative_content["validators"] = validators_dict
+            app_state_bytes = abci_pb.request_init_chain.app_state_bytes
+            performative_content["app_state_bytes"] = app_state_bytes
+            initial_height = abci_pb.request_init_chain.initial_height
+            performative_content["initial_height"] = initial_height
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             pass
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
@@ -169,7 +197,14 @@ class AbciSerializer(Serializer):
             last_block_app_hash = abci_pb.response_info.last_block_app_hash
             performative_content["last_block_app_hash"] = last_block_app_hash
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
-            pass
+            consensus_params = abci_pb.response_init_chain.consensus_params
+            consensus_params_dict = dict(consensus_params)
+            performative_content["consensus_params"] = consensus_params_dict
+            validators = abci_pb.response_init_chain.validators
+            validators_dict = dict(validators)
+            performative_content["validators"] = validators_dict
+            app_hash = abci_pb.response_init_chain.app_hash
+            performative_content["app_hash"] = app_hash
         else:
             raise ValueError("Performative not valid: {}.".format(performative_id))
 
