@@ -39,8 +39,8 @@ PACKAGES_DIR = Path("packages")
 
 def setup_logger(name: str) -> logging.Logger:
     """Set up the logger."""
-    FORMAT = "[%(asctime)s][%(levelname)s] %(message)s"
-    logging.basicConfig(format=FORMAT)
+    format_ = "[%(asctime)s][%(levelname)s] %(message)s"
+    logging.basicConfig(format=format_)
     logger_ = logging.getLogger(name)
     logger_.setLevel(logging.INFO)
     return logger_
@@ -81,7 +81,7 @@ def load_protocol_specification_from_string(
 
 def get_protocol_specification_from_readme(package_path: Path) -> str:
     """Get the protocol specification from the package README."""
-    logger.info(f"Get protocol specification from README {package_path}")
+    logger.info("Get protocol specification from README %s", package_path)
     readme = package_path / "README.md"
     readme_content = readme.read_text()
     enforce(

@@ -67,7 +67,10 @@ README_FILENAME = "README.md"
 PACKAGES_DIR = Path("packages")
 PROTOCOLS_PLURALS = "protocols"
 ROOT_DIR = Path(".").absolute()
-PROTOCOL_GENERATOR_DOCSTRING_REGEX = "It was created with protocol buffer compiler version `libprotoc .*` and aea version `.*`."
+PROTOCOL_GENERATOR_DOCSTRING_REGEX = (
+    "It was created with protocol buffer "
+    "compiler version `libprotoc .*` and aea version `.*`."
+)
 
 
 def subdirs(path: Path) -> Iterator[Path]:
@@ -318,7 +321,8 @@ def _process_packages_protocol(
     It assumes the working directory is an AEA project.
 
     :param package_path: path to the package.
-    :param preserve_generator_docstring: if True, the protocol generator docstring is preserved (see above).
+    :param preserve_generator_docstring: if True, the protocol generator
+        docstring is preserved (see above).
     """
     if preserve_generator_docstring:
         # save the old protocol generator docstring
@@ -378,7 +382,10 @@ def _process_test_protocol(specification: Path, package_path: Path) -> None:
 
 def download_package(package_id: PackageId, destination_path: str) -> None:
     """Download a package into a directory."""
-    api_path = f"/{package_id.package_type.to_plural()}/{package_id.author}/{package_id.name}/{package_id.public_id.LATEST_VERSION}"
+    api_path = (
+        f"/{package_id.package_type.to_plural()}/{package_id.author}/"
+        f"{package_id.name}/{package_id.public_id.LATEST_VERSION}"
+    )
     resp = cast(JSONLike, request_api("GET", api_path))
     file_url = cast(str, resp["file"])
     filepath = download_file(file_url, destination_path)
@@ -446,7 +453,9 @@ def _bump_protocol_specification_id_if_needed(package_path: Path) -> None:
     content_is_different = current_specification_content != old_specification_content
     if public_id_version_is_newer and content_is_different:
         log(
-            f"Bumping protocol specification id from '{old_configuration.protocol_specification_id}' to '{configuration.protocol_specification_id}'"
+            f"Bumping protocol specification id from "
+            f"'{old_configuration.protocol_specification_id}' "
+            f"to '{configuration.protocol_specification_id}'"
         )
         _bump_protocol_specification_id(package_path, configuration)
         return
