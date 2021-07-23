@@ -80,7 +80,9 @@ if __name__ == "__main__":
         lambda x: x not in exclude_files,
         itertools.chain(
             Path("aea_consensus_algorithm").glob("**/*.py"),
-            Path("packages").glob("**/*.py"),
+            Path("packages", "valory", "agents").glob("**/*.py"),
+            Path("packages", "valory", "connections").glob("**/*.py"),
+            Path("packages", "valory", "contracts").glob("**/*.py"),
             Path("tests").glob("**/*.py"),
             Path("scripts").glob("**/*.py"),
         ),
