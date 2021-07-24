@@ -77,10 +77,30 @@ class AbciSerializer(Serializer):
             Timestamp.encode(performative.time, time)
             chain_id = msg.chain_id
             performative.chain_id = chain_id
-            consensus_params = msg.consensus_params
-            performative.consensus_params.update(consensus_params)
-            validators = msg.validators
-            performative.validators.update(validators)
+            block_max_bytes = msg.block_max_bytes
+            performative.block_max_bytes = block_max_bytes
+            block_max_gas = msg.block_max_gas
+            performative.block_max_gas = block_max_gas
+            evidence_max_age_num_blocks = msg.evidence_max_age_num_blocks
+            performative.evidence_max_age_num_blocks = evidence_max_age_num_blocks
+            evidence_max_age_duration_seconds = msg.evidence_max_age_duration_seconds
+            performative.evidence_max_age_duration_seconds = (
+                evidence_max_age_duration_seconds
+            )
+            evidence_max_age_duration_nanos = msg.evidence_max_age_duration_nanos
+            performative.evidence_max_age_duration_nanos = (
+                evidence_max_age_duration_nanos
+            )
+            evidence_max_bytes = msg.evidence_max_bytes
+            performative.evidence_max_bytes = evidence_max_bytes
+            validator_pub_key_types = msg.validator_pub_key_types
+            performative.validator_pub_key_types.extend(validator_pub_key_types)
+            version_app_version = msg.version_app_version
+            performative.version_app_version = version_app_version
+            validators_updates_pub_key = msg.validators_updates_pub_key
+            performative.validators_updates_pub_key.extend(validators_updates_pub_key)
+            validators_power = msg.validators_power
+            performative.validators_power.extend(validators_power)
             app_state_bytes = msg.app_state_bytes
             performative.app_state_bytes = app_state_bytes
             initial_height = msg.initial_height
@@ -112,10 +132,30 @@ class AbciSerializer(Serializer):
             abci_msg.response_info.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
             performative = abci_pb2.AbciMessage.Response_Init_Chain_Performative()  # type: ignore
-            consensus_params = msg.consensus_params
-            performative.consensus_params.update(consensus_params)
-            validators = msg.validators
-            performative.validators.update(validators)
+            block_max_bytes = msg.block_max_bytes
+            performative.block_max_bytes = block_max_bytes
+            block_max_gas = msg.block_max_gas
+            performative.block_max_gas = block_max_gas
+            evidence_max_age_num_blocks = msg.evidence_max_age_num_blocks
+            performative.evidence_max_age_num_blocks = evidence_max_age_num_blocks
+            evidence_max_age_duration_seconds = msg.evidence_max_age_duration_seconds
+            performative.evidence_max_age_duration_seconds = (
+                evidence_max_age_duration_seconds
+            )
+            evidence_max_age_duration_nanos = msg.evidence_max_age_duration_nanos
+            performative.evidence_max_age_duration_nanos = (
+                evidence_max_age_duration_nanos
+            )
+            evidence_max_bytes = msg.evidence_max_bytes
+            performative.evidence_max_bytes = evidence_max_bytes
+            validator_pub_key_types = msg.validator_pub_key_types
+            performative.validator_pub_key_types.extend(validator_pub_key_types)
+            version_app_version = msg.version_app_version
+            performative.version_app_version = version_app_version
+            validators_updates_pub_key = msg.validators_updates_pub_key
+            performative.validators_updates_pub_key.extend(validators_updates_pub_key)
+            validators_power = msg.validators_power
+            performative.validators_power.extend(validators_power)
             app_hash = msg.app_hash
             performative.app_hash = app_hash
             abci_msg.response_init_chain.CopyFrom(performative)
@@ -168,12 +208,47 @@ class AbciSerializer(Serializer):
             performative_content["time"] = time
             chain_id = abci_pb.request_init_chain.chain_id
             performative_content["chain_id"] = chain_id
-            consensus_params = abci_pb.request_init_chain.consensus_params
-            consensus_params_dict = dict(consensus_params)
-            performative_content["consensus_params"] = consensus_params_dict
-            validators = abci_pb.request_init_chain.validators
-            validators_dict = dict(validators)
-            performative_content["validators"] = validators_dict
+            block_max_bytes = abci_pb.request_init_chain.block_max_bytes
+            performative_content["block_max_bytes"] = block_max_bytes
+            block_max_gas = abci_pb.request_init_chain.block_max_gas
+            performative_content["block_max_gas"] = block_max_gas
+            evidence_max_age_num_blocks = (
+                abci_pb.request_init_chain.evidence_max_age_num_blocks
+            )
+            performative_content[
+                "evidence_max_age_num_blocks"
+            ] = evidence_max_age_num_blocks
+            evidence_max_age_duration_seconds = (
+                abci_pb.request_init_chain.evidence_max_age_duration_seconds
+            )
+            performative_content[
+                "evidence_max_age_duration_seconds"
+            ] = evidence_max_age_duration_seconds
+            evidence_max_age_duration_nanos = (
+                abci_pb.request_init_chain.evidence_max_age_duration_nanos
+            )
+            performative_content[
+                "evidence_max_age_duration_nanos"
+            ] = evidence_max_age_duration_nanos
+            evidence_max_bytes = abci_pb.request_init_chain.evidence_max_bytes
+            performative_content["evidence_max_bytes"] = evidence_max_bytes
+            validator_pub_key_types = abci_pb.request_init_chain.validator_pub_key_types
+            validator_pub_key_types_tuple = tuple(validator_pub_key_types)
+            performative_content[
+                "validator_pub_key_types"
+            ] = validator_pub_key_types_tuple
+            version_app_version = abci_pb.request_init_chain.version_app_version
+            performative_content["version_app_version"] = version_app_version
+            validators_updates_pub_key = (
+                abci_pb.request_init_chain.validators_updates_pub_key
+            )
+            validators_updates_pub_key_tuple = tuple(validators_updates_pub_key)
+            performative_content[
+                "validators_updates_pub_key"
+            ] = validators_updates_pub_key_tuple
+            validators_power = abci_pb.request_init_chain.validators_power
+            validators_power_tuple = tuple(validators_power)
+            performative_content["validators_power"] = validators_power_tuple
             app_state_bytes = abci_pb.request_init_chain.app_state_bytes
             performative_content["app_state_bytes"] = app_state_bytes
             initial_height = abci_pb.request_init_chain.initial_height
@@ -197,12 +272,49 @@ class AbciSerializer(Serializer):
             last_block_app_hash = abci_pb.response_info.last_block_app_hash
             performative_content["last_block_app_hash"] = last_block_app_hash
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
-            consensus_params = abci_pb.response_init_chain.consensus_params
-            consensus_params_dict = dict(consensus_params)
-            performative_content["consensus_params"] = consensus_params_dict
-            validators = abci_pb.response_init_chain.validators
-            validators_dict = dict(validators)
-            performative_content["validators"] = validators_dict
+            block_max_bytes = abci_pb.response_init_chain.block_max_bytes
+            performative_content["block_max_bytes"] = block_max_bytes
+            block_max_gas = abci_pb.response_init_chain.block_max_gas
+            performative_content["block_max_gas"] = block_max_gas
+            evidence_max_age_num_blocks = (
+                abci_pb.response_init_chain.evidence_max_age_num_blocks
+            )
+            performative_content[
+                "evidence_max_age_num_blocks"
+            ] = evidence_max_age_num_blocks
+            evidence_max_age_duration_seconds = (
+                abci_pb.response_init_chain.evidence_max_age_duration_seconds
+            )
+            performative_content[
+                "evidence_max_age_duration_seconds"
+            ] = evidence_max_age_duration_seconds
+            evidence_max_age_duration_nanos = (
+                abci_pb.response_init_chain.evidence_max_age_duration_nanos
+            )
+            performative_content[
+                "evidence_max_age_duration_nanos"
+            ] = evidence_max_age_duration_nanos
+            evidence_max_bytes = abci_pb.response_init_chain.evidence_max_bytes
+            performative_content["evidence_max_bytes"] = evidence_max_bytes
+            validator_pub_key_types = (
+                abci_pb.response_init_chain.validator_pub_key_types
+            )
+            validator_pub_key_types_tuple = tuple(validator_pub_key_types)
+            performative_content[
+                "validator_pub_key_types"
+            ] = validator_pub_key_types_tuple
+            version_app_version = abci_pb.response_init_chain.version_app_version
+            performative_content["version_app_version"] = version_app_version
+            validators_updates_pub_key = (
+                abci_pb.response_init_chain.validators_updates_pub_key
+            )
+            validators_updates_pub_key_tuple = tuple(validators_updates_pub_key)
+            performative_content[
+                "validators_updates_pub_key"
+            ] = validators_updates_pub_key_tuple
+            validators_power = abci_pb.response_init_chain.validators_power
+            validators_power_tuple = tuple(validators_power)
+            performative_content["validators_power"] = validators_power_tuple
             app_hash = abci_pb.response_init_chain.app_hash
             performative_content["app_hash"] = app_hash
         else:

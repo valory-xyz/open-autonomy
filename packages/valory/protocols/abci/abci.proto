@@ -35,10 +35,18 @@ message AbciMessage{
   message Request_Init_Chain_Performative{
     Timestamp time = 1;
     string chain_id = 2;
-    map<string, string> consensus_params = 3;
-    map<string, string> validators = 4;
-    bytes app_state_bytes = 5;
-    string initial_height = 6;
+    int32 block_max_bytes = 3;
+    int32 block_max_gas = 4;
+    int32 evidence_max_age_num_blocks = 5;
+    int32 evidence_max_age_duration_seconds = 6;
+    int32 evidence_max_age_duration_nanos = 7;
+    int32 evidence_max_bytes = 8;
+    repeated string validator_pub_key_types = 9;
+    int32 version_app_version = 10;
+    repeated bytes validators_updates_pub_key = 11;
+    repeated int32 validators_power = 12;
+    bytes app_state_bytes = 13;
+    string initial_height = 14;
   }
 
   message Response_Exception_Performative{
@@ -60,9 +68,17 @@ message AbciMessage{
   }
 
   message Response_Init_Chain_Performative{
-    map<string, string> consensus_params = 1;
-    map<string, string> validators = 2;
-    bytes app_hash = 3;
+    int32 block_max_bytes = 1;
+    int32 block_max_gas = 2;
+    int32 evidence_max_age_num_blocks = 3;
+    int32 evidence_max_age_duration_seconds = 4;
+    int32 evidence_max_age_duration_nanos = 5;
+    int32 evidence_max_bytes = 6;
+    repeated string validator_pub_key_types = 7;
+    int32 version_app_version = 8;
+    repeated bytes validators_updates_pub_key = 9;
+    repeated int32 validators_power = 10;
+    bytes app_hash = 11;
   }
 
 

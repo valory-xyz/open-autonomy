@@ -21,7 +21,7 @@
 
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,too-many-branches,not-an-iterable,unidiomatic-typecheck,unsubscriptable-object
 import logging
-from typing import Any, Dict, Set, Tuple, cast
+from typing import Any, Set, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.exceptions import AEAEnforceError, enforce
@@ -78,11 +78,16 @@ class AbciMessage(Message):
             "app_hash",
             "app_state_bytes",
             "app_version",
+            "block_max_bytes",
+            "block_max_gas",
             "block_version",
             "chain_id",
-            "consensus_params",
             "data",
             "dialogue_reference",
+            "evidence_max_age_duration_nanos",
+            "evidence_max_age_duration_seconds",
+            "evidence_max_age_num_blocks",
+            "evidence_max_bytes",
             "initial_height",
             "last_block_app_hash",
             "last_block_height",
@@ -92,8 +97,11 @@ class AbciMessage(Message):
             "performative",
             "target",
             "time",
-            "validators",
+            "validator_pub_key_types",
+            "validators_power",
+            "validators_updates_pub_key",
             "version",
+            "version_app_version",
         )
 
     def __init__(
@@ -168,6 +176,18 @@ class AbciMessage(Message):
         return cast(int, self.get("app_version"))
 
     @property
+    def block_max_bytes(self) -> int:
+        """Get the 'block_max_bytes' content from the message."""
+        enforce(self.is_set("block_max_bytes"), "'block_max_bytes' content is not set.")
+        return cast(int, self.get("block_max_bytes"))
+
+    @property
+    def block_max_gas(self) -> int:
+        """Get the 'block_max_gas' content from the message."""
+        enforce(self.is_set("block_max_gas"), "'block_max_gas' content is not set.")
+        return cast(int, self.get("block_max_gas"))
+
+    @property
     def block_version(self) -> int:
         """Get the 'block_version' content from the message."""
         enforce(self.is_set("block_version"), "'block_version' content is not set.")
@@ -180,18 +200,46 @@ class AbciMessage(Message):
         return cast(str, self.get("chain_id"))
 
     @property
-    def consensus_params(self) -> Dict[str, str]:
-        """Get the 'consensus_params' content from the message."""
-        enforce(
-            self.is_set("consensus_params"), "'consensus_params' content is not set."
-        )
-        return cast(Dict[str, str], self.get("consensus_params"))
-
-    @property
     def data(self) -> str:
         """Get the 'data' content from the message."""
         enforce(self.is_set("data"), "'data' content is not set.")
         return cast(str, self.get("data"))
+
+    @property
+    def evidence_max_age_duration_nanos(self) -> int:
+        """Get the 'evidence_max_age_duration_nanos' content from the message."""
+        enforce(
+            self.is_set("evidence_max_age_duration_nanos"),
+            "'evidence_max_age_duration_nanos' content is not set.",
+        )
+        return cast(int, self.get("evidence_max_age_duration_nanos"))
+
+    @property
+    def evidence_max_age_duration_seconds(self) -> int:
+        """Get the 'evidence_max_age_duration_seconds' content from the message."""
+        enforce(
+            self.is_set("evidence_max_age_duration_seconds"),
+            "'evidence_max_age_duration_seconds' content is not set.",
+        )
+        return cast(int, self.get("evidence_max_age_duration_seconds"))
+
+    @property
+    def evidence_max_age_num_blocks(self) -> int:
+        """Get the 'evidence_max_age_num_blocks' content from the message."""
+        enforce(
+            self.is_set("evidence_max_age_num_blocks"),
+            "'evidence_max_age_num_blocks' content is not set.",
+        )
+        return cast(int, self.get("evidence_max_age_num_blocks"))
+
+    @property
+    def evidence_max_bytes(self) -> int:
+        """Get the 'evidence_max_bytes' content from the message."""
+        enforce(
+            self.is_set("evidence_max_bytes"),
+            "'evidence_max_bytes' content is not set.",
+        )
+        return cast(int, self.get("evidence_max_bytes"))
 
     @property
     def initial_height(self) -> str:
@@ -235,16 +283,45 @@ class AbciMessage(Message):
         return cast(CustomTimestamp, self.get("time"))
 
     @property
-    def validators(self) -> Dict[str, str]:
-        """Get the 'validators' content from the message."""
-        enforce(self.is_set("validators"), "'validators' content is not set.")
-        return cast(Dict[str, str], self.get("validators"))
+    def validator_pub_key_types(self) -> Tuple[str, ...]:
+        """Get the 'validator_pub_key_types' content from the message."""
+        enforce(
+            self.is_set("validator_pub_key_types"),
+            "'validator_pub_key_types' content is not set.",
+        )
+        return cast(Tuple[str, ...], self.get("validator_pub_key_types"))
+
+    @property
+    def validators_power(self) -> Tuple[int, ...]:
+        """Get the 'validators_power' content from the message."""
+        enforce(
+            self.is_set("validators_power"), "'validators_power' content is not set."
+        )
+        return cast(Tuple[int, ...], self.get("validators_power"))
+
+    @property
+    def validators_updates_pub_key(self) -> Tuple[bytes, ...]:
+        """Get the 'validators_updates_pub_key' content from the message."""
+        enforce(
+            self.is_set("validators_updates_pub_key"),
+            "'validators_updates_pub_key' content is not set.",
+        )
+        return cast(Tuple[bytes, ...], self.get("validators_updates_pub_key"))
 
     @property
     def version(self) -> str:
         """Get the 'version' content from the message."""
         enforce(self.is_set("version"), "'version' content is not set.")
         return cast(str, self.get("version"))
+
+    @property
+    def version_app_version(self) -> int:
+        """Get the 'version_app_version' content from the message."""
+        enforce(
+            self.is_set("version_app_version"),
+            "'version_app_version' content is not set.",
+        )
+        return cast(int, self.get("version_app_version"))
 
     def _is_consistent(self) -> bool:
         """Check that the message follows the abci protocol."""
@@ -323,7 +400,7 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.REQUEST_INIT_CHAIN:
-                expected_nb_of_contents = 6
+                expected_nb_of_contents = 14
                 enforce(
                     isinstance(self.time, CustomTimestamp),
                     "Invalid type for content 'time'. Expected 'Timestamp'. Found '{}'.".format(
@@ -337,46 +414,83 @@ class AbciMessage(Message):
                     ),
                 )
                 enforce(
-                    isinstance(self.consensus_params, dict),
-                    "Invalid type for content 'consensus_params'. Expected 'dict'. Found '{}'.".format(
-                        type(self.consensus_params)
+                    type(self.block_max_bytes) is int,
+                    "Invalid type for content 'block_max_bytes'. Expected 'int'. Found '{}'.".format(
+                        type(self.block_max_bytes)
                     ),
                 )
-                for (
-                    key_of_consensus_params,
-                    value_of_consensus_params,
-                ) in self.consensus_params.items():
-                    enforce(
-                        isinstance(key_of_consensus_params, str),
-                        "Invalid type for dictionary keys in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
-                            type(key_of_consensus_params)
-                        ),
-                    )
-                    enforce(
-                        isinstance(value_of_consensus_params, str),
-                        "Invalid type for dictionary values in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
-                            type(value_of_consensus_params)
-                        ),
-                    )
                 enforce(
-                    isinstance(self.validators, dict),
-                    "Invalid type for content 'validators'. Expected 'dict'. Found '{}'.".format(
-                        type(self.validators)
+                    type(self.block_max_gas) is int,
+                    "Invalid type for content 'block_max_gas'. Expected 'int'. Found '{}'.".format(
+                        type(self.block_max_gas)
                     ),
                 )
-                for key_of_validators, value_of_validators in self.validators.items():
-                    enforce(
-                        isinstance(key_of_validators, str),
-                        "Invalid type for dictionary keys in content 'validators'. Expected 'str'. Found '{}'.".format(
-                            type(key_of_validators)
-                        ),
-                    )
-                    enforce(
-                        isinstance(value_of_validators, str),
-                        "Invalid type for dictionary values in content 'validators'. Expected 'str'. Found '{}'.".format(
-                            type(value_of_validators)
-                        ),
-                    )
+                enforce(
+                    type(self.evidence_max_age_num_blocks) is int,
+                    "Invalid type for content 'evidence_max_age_num_blocks'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_age_num_blocks)
+                    ),
+                )
+                enforce(
+                    type(self.evidence_max_age_duration_seconds) is int,
+                    "Invalid type for content 'evidence_max_age_duration_seconds'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_age_duration_seconds)
+                    ),
+                )
+                enforce(
+                    type(self.evidence_max_age_duration_nanos) is int,
+                    "Invalid type for content 'evidence_max_age_duration_nanos'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_age_duration_nanos)
+                    ),
+                )
+                enforce(
+                    type(self.evidence_max_bytes) is int,
+                    "Invalid type for content 'evidence_max_bytes'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_bytes)
+                    ),
+                )
+                enforce(
+                    isinstance(self.validator_pub_key_types, tuple),
+                    "Invalid type for content 'validator_pub_key_types'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.validator_pub_key_types)
+                    ),
+                )
+                enforce(
+                    all(
+                        isinstance(element, str)
+                        for element in self.validator_pub_key_types
+                    ),
+                    "Invalid type for tuple elements in content 'validator_pub_key_types'. Expected 'str'.",
+                )
+                enforce(
+                    type(self.version_app_version) is int,
+                    "Invalid type for content 'version_app_version'. Expected 'int'. Found '{}'.".format(
+                        type(self.version_app_version)
+                    ),
+                )
+                enforce(
+                    isinstance(self.validators_updates_pub_key, tuple),
+                    "Invalid type for content 'validators_updates_pub_key'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.validators_updates_pub_key)
+                    ),
+                )
+                enforce(
+                    all(
+                        isinstance(element, bytes)
+                        for element in self.validators_updates_pub_key
+                    ),
+                    "Invalid type for tuple elements in content 'validators_updates_pub_key'. Expected 'bytes'.",
+                )
+                enforce(
+                    isinstance(self.validators_power, tuple),
+                    "Invalid type for content 'validators_power'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.validators_power)
+                    ),
+                )
+                enforce(
+                    all(type(element) is int for element in self.validators_power),
+                    "Invalid type for tuple elements in content 'validators_power'. Expected 'int'.",
+                )
                 enforce(
                     isinstance(self.app_state_bytes, bytes),
                     "Invalid type for content 'app_state_bytes'. Expected 'bytes'. Found '{}'.".format(
@@ -434,48 +548,85 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
-                expected_nb_of_contents = 3
+                expected_nb_of_contents = 11
                 enforce(
-                    isinstance(self.consensus_params, dict),
-                    "Invalid type for content 'consensus_params'. Expected 'dict'. Found '{}'.".format(
-                        type(self.consensus_params)
+                    type(self.block_max_bytes) is int,
+                    "Invalid type for content 'block_max_bytes'. Expected 'int'. Found '{}'.".format(
+                        type(self.block_max_bytes)
                     ),
                 )
-                for (
-                    key_of_consensus_params,
-                    value_of_consensus_params,
-                ) in self.consensus_params.items():
-                    enforce(
-                        isinstance(key_of_consensus_params, str),
-                        "Invalid type for dictionary keys in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
-                            type(key_of_consensus_params)
-                        ),
-                    )
-                    enforce(
-                        isinstance(value_of_consensus_params, str),
-                        "Invalid type for dictionary values in content 'consensus_params'. Expected 'str'. Found '{}'.".format(
-                            type(value_of_consensus_params)
-                        ),
-                    )
                 enforce(
-                    isinstance(self.validators, dict),
-                    "Invalid type for content 'validators'. Expected 'dict'. Found '{}'.".format(
-                        type(self.validators)
+                    type(self.block_max_gas) is int,
+                    "Invalid type for content 'block_max_gas'. Expected 'int'. Found '{}'.".format(
+                        type(self.block_max_gas)
                     ),
                 )
-                for key_of_validators, value_of_validators in self.validators.items():
-                    enforce(
-                        isinstance(key_of_validators, str),
-                        "Invalid type for dictionary keys in content 'validators'. Expected 'str'. Found '{}'.".format(
-                            type(key_of_validators)
-                        ),
-                    )
-                    enforce(
-                        isinstance(value_of_validators, str),
-                        "Invalid type for dictionary values in content 'validators'. Expected 'str'. Found '{}'.".format(
-                            type(value_of_validators)
-                        ),
-                    )
+                enforce(
+                    type(self.evidence_max_age_num_blocks) is int,
+                    "Invalid type for content 'evidence_max_age_num_blocks'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_age_num_blocks)
+                    ),
+                )
+                enforce(
+                    type(self.evidence_max_age_duration_seconds) is int,
+                    "Invalid type for content 'evidence_max_age_duration_seconds'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_age_duration_seconds)
+                    ),
+                )
+                enforce(
+                    type(self.evidence_max_age_duration_nanos) is int,
+                    "Invalid type for content 'evidence_max_age_duration_nanos'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_age_duration_nanos)
+                    ),
+                )
+                enforce(
+                    type(self.evidence_max_bytes) is int,
+                    "Invalid type for content 'evidence_max_bytes'. Expected 'int'. Found '{}'.".format(
+                        type(self.evidence_max_bytes)
+                    ),
+                )
+                enforce(
+                    isinstance(self.validator_pub_key_types, tuple),
+                    "Invalid type for content 'validator_pub_key_types'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.validator_pub_key_types)
+                    ),
+                )
+                enforce(
+                    all(
+                        isinstance(element, str)
+                        for element in self.validator_pub_key_types
+                    ),
+                    "Invalid type for tuple elements in content 'validator_pub_key_types'. Expected 'str'.",
+                )
+                enforce(
+                    type(self.version_app_version) is int,
+                    "Invalid type for content 'version_app_version'. Expected 'int'. Found '{}'.".format(
+                        type(self.version_app_version)
+                    ),
+                )
+                enforce(
+                    isinstance(self.validators_updates_pub_key, tuple),
+                    "Invalid type for content 'validators_updates_pub_key'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.validators_updates_pub_key)
+                    ),
+                )
+                enforce(
+                    all(
+                        isinstance(element, bytes)
+                        for element in self.validators_updates_pub_key
+                    ),
+                    "Invalid type for tuple elements in content 'validators_updates_pub_key'. Expected 'bytes'.",
+                )
+                enforce(
+                    isinstance(self.validators_power, tuple),
+                    "Invalid type for content 'validators_power'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.validators_power)
+                    ),
+                )
+                enforce(
+                    all(type(element) is int for element in self.validators_power),
+                    "Invalid type for tuple elements in content 'validators_power'. Expected 'int'.",
+                )
                 enforce(
                     isinstance(self.app_hash, bytes),
                     "Invalid type for content 'app_hash'. Expected 'bytes'. Found '{}'.".format(

@@ -30,8 +30,28 @@ speech_acts:
     request_init_chain:
       time: ct:Timestamp
       chain_id: pt:str
-      consensus_params: pt:dict[pt:str,pt:str]
-      validators: pt:dict[pt:str,pt:str]
+      # begin ConsensusParams
+      # BlocksParams
+      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L291
+      # Note, must be greater than 0
+      block_max_bytes: pt:int
+      # Note, must be greater or equal to -1
+      block_max_gas: pt:int
+      # EvidenceParams
+      evidence_max_age_num_blocks: pt:int
+      evidence_max_age_duration_seconds: pt:int
+      evidence_max_age_duration_nanos: pt:int
+      evidence_max_bytes: pt:int
+      # ValidatorParams
+      validator_pub_key_types: pt:list[pt:str]
+      # VersionParams
+      version_app_version: pt:int
+      # end ConsensusParams
+      # ValidatorUpdates
+      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L342
+      validators_updates_pub_key: pt:list[pt:bytes]
+      validators_power: pt:list[pt:int]
+      
       app_state_bytes: pt:bytes
       initial_height: pt:str
 #    request_query: {}
@@ -56,8 +76,28 @@ speech_acts:
       last_block_height: pt:int
       last_block_app_hash: pt:bytes
     response_init_chain:
-      consensus_params: pt:dict[pt:str,pt:str]
-      validators: pt:dict[pt:str,pt:str]
+      # begin ConsensusParams
+      # BlocksParams
+      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L291
+      # Note, must be greater than 0
+      block_max_bytes: pt:int
+      # Note, must be greater or equal to -1
+      block_max_gas: pt:int
+      # EvidenceParams
+      evidence_max_age_num_blocks: pt:int
+      evidence_max_age_duration_seconds: pt:int
+      evidence_max_age_duration_nanos: pt:int
+      evidence_max_bytes: pt:int
+      # ValidatorParams
+      validator_pub_key_types: pt:list[pt:str]
+      # VersionParams
+      version_app_version: pt:int
+      # end ConsensusParams
+      # ValidatorUpdates
+      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L342
+      validators_updates_pub_key: pt:list[pt:bytes]
+      validators_power: pt:list[pt:int]
+
       app_hash: pt:bytes
     #    response_query: {}
     #    response_begin_block: {}
@@ -71,21 +111,6 @@ speech_acts:
     #    response_apply_snapshot_chunk: {}
 ...
 ---
-# google.protobuf.Duration
-#ct:Duration: |
-#  // Signed seconds of the span of time. Must be from -315,576,000,000
-#  // to +315,576,000,000 inclusive. Note: these bounds are computed from:
-#  // 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years
-#  int64 seconds = 1;
-#
-#  // Signed fractions of a second at nanosecond resolution of the span
-#  // of time. Durations less than one second are represented with a 0
-#  // `seconds` field and a positive or negative `nanos` field. For durations
-#  // of one second or more, a non-zero value for the `nanos` field must be
-#  // of the same sign as the `seconds` field. Must be from -999,999,999
-#  // to +999,999,999 inclusive.
-#  int32 nanos = 2;
-# google.protobuf.Timestamp
 ct:Timestamp: |
   // Represents seconds of UTC time since Unix epoch
   // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
