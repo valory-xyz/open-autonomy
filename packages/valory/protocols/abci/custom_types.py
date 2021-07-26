@@ -20,6 +20,44 @@
 """This module contains class representations corresponding to every custom type in the protocol specification."""
 
 
+class ConsensusParams:
+    """This class represents an instance of ConsensusParams."""
+
+    def __init__(self):
+        """Initialise an instance of ConsensusParams."""
+        raise NotImplementedError
+
+    @staticmethod
+    def encode(
+        consensus_params_protobuf_object, consensus_params_object: "ConsensusParams"
+    ) -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the consensus_params_protobuf_object argument is matched with the instance of this class in the 'consensus_params_object' argument.
+
+        :param consensus_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param consensus_params_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def decode(cls, consensus_params_protobuf_object) -> "ConsensusParams":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'consensus_params_protobuf_object' argument.
+
+        :param consensus_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'consensus_params_protobuf_object' argument.
+        """
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        raise NotImplementedError
+
+
 class Timestamp:
     """This class represents an instance of Timestamp."""
 
@@ -49,6 +87,44 @@ class Timestamp:
 
         :param timestamp_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'timestamp_protobuf_object' argument.
+        """
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        raise NotImplementedError
+
+
+class ValidatorUpdates:
+    """This class represents an instance of ValidatorUpdates."""
+
+    def __init__(self):
+        """Initialise an instance of ValidatorUpdates."""
+        raise NotImplementedError
+
+    @staticmethod
+    def encode(
+        validator_updates_protobuf_object, validator_updates_object: "ValidatorUpdates"
+    ) -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the validator_updates_protobuf_object argument is matched with the instance of this class in the 'validator_updates_object' argument.
+
+        :param validator_updates_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param validator_updates_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def decode(cls, validator_updates_protobuf_object) -> "ValidatorUpdates":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'validator_updates_protobuf_object' argument.
+
+        :param validator_updates_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'validator_updates_protobuf_object' argument.
         """
         raise NotImplementedError
 

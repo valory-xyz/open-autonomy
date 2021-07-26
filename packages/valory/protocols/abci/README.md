@@ -30,28 +30,8 @@ speech_acts:
     request_init_chain:
       time: ct:Timestamp
       chain_id: pt:str
-      # begin ConsensusParams
-      # BlocksParams
-      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L291
-      # Note, must be greater than 0
-      block_max_bytes: pt:int
-      # Note, must be greater or equal to -1
-      block_max_gas: pt:int
-      # EvidenceParams
-      evidence_max_age_num_blocks: pt:int
-      evidence_max_age_duration_seconds: pt:int
-      evidence_max_age_duration_nanos: pt:int
-      evidence_max_bytes: pt:int
-      # ValidatorParams
-      validator_pub_key_types: pt:list[pt:str]
-      # VersionParams
-      version_app_version: pt:int
-      # end ConsensusParams
-      # ValidatorUpdates
-      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L342
-      validators_updates_pub_key: pt:list[pt:bytes]
-      validators_power: pt:list[pt:int]
-      
+      consensus_params: ct:ConsensusParams
+      validators: ct:ValidatorUpdates      
       app_state_bytes: pt:bytes
       initial_height: pt:str
 #    request_query: {}
@@ -76,28 +56,8 @@ speech_acts:
       last_block_height: pt:int
       last_block_app_hash: pt:bytes
     response_init_chain:
-      # begin ConsensusParams
-      # BlocksParams
-      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L291
-      # Note, must be greater than 0
-      block_max_bytes: pt:int
-      # Note, must be greater or equal to -1
-      block_max_gas: pt:int
-      # EvidenceParams
-      evidence_max_age_num_blocks: pt:int
-      evidence_max_age_duration_seconds: pt:int
-      evidence_max_age_duration_nanos: pt:int
-      evidence_max_bytes: pt:int
-      # ValidatorParams
-      validator_pub_key_types: pt:list[pt:str]
-      # VersionParams
-      version_app_version: pt:int
-      # end ConsensusParams
-      # ValidatorUpdates
-      # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L342
-      validators_updates_pub_key: pt:list[pt:bytes]
-      validators_power: pt:list[pt:int]
-
+      consensus_params: ct:ConsensusParams
+      validators: ct:ValidatorUpdates      
       app_hash: pt:bytes
     #    response_query: {}
     #    response_begin_block: {}
@@ -111,6 +71,36 @@ speech_acts:
     #    response_apply_snapshot_chunk: {}
 ...
 ---
+ct:ConsensusParams: |
+  message Duration {
+    int64 seconds = 1;
+    int32 nanos = 2;
+  }
+  message BlockParams {
+      int64 max_bytes = 1;
+      int64 max_gas = 2;
+  }
+  message EvidenceParams {
+    int64 max_age_num_blocks = 1;
+    Duration max_age_duration = 2;
+    int64 max_bytes = 3;
+  }
+  message ValidatorParams {
+    repeated string pub_key_types = 1;
+  }
+  message VersionParams {
+    uint64 app_version = 1;
+  }
+  BlockParams block = 1;
+  EvidenceParams evidence = 2;
+  ValidatorParams validator = 3;
+  VersionParams version = 4;
+ct:ValidatorUpdates: |
+  message ValidatorUpdate {
+    bytes pub_key = 1;
+    int64 power = 2;
+  }
+  repeated ValidatorUpdate validators = 1;
 ct:Timestamp: |
   // Represents seconds of UTC time since Unix epoch
   // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to

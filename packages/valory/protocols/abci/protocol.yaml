@@ -7,14 +7,14 @@ description: A protocol for ABCI requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmUJrSpc2596zrKCd4Mypst68NkL8StfLP2UKU53VxEd1i
+  README.md: QmQdXu7cqftin2735XcNhBHYoWiAfq69VZzjnUXpJfXxWc
   __init__.py: Qme5CNMEQmPNXUqBJdWVtP8uYz8rS7ajy49tvHEwR6ZJmK
-  abci.proto: QmXuS4LN9y6iYC5E37bTNapXMgsKLxRmNYBSHiVxRqfkFV
-  abci_pb2.py: Qmaf5tPHsbKcU4pxjo2g9R8wW2CYrBqy1eV5N2GrYaQYjA
-  custom_types.py: QmYbDuoxJFAnXLtAdNBonVd4jMVyzKTfWs9SpwVHRu1ZkQ
+  abci.proto: QmZGqNcrQFU5hCMcA1knLs1u691aPgFdSRz23gRgzfE6Vr
+  abci_pb2.py: QmXCSEim7fLj55NiGb4m8JJPNJ41uFRBFbzmiaxBXRaZi7
+  custom_types.py: QmbArmNJwFnxH9wFUiSMnRJZkZxronUtt3mPbqU5jXpUgu
   dialogues.py: QmXDPbYuU3RHy3dgwndwnzh3ZXu7yWfJKyvjgidkFAr4JR
-  message.py: QmY8etAXJ2BkJXxUgr4amZgcfvaH94DDSENK4H5KGJ1TrZ
-  serialization.py: QmSagSfY8oEnEazcdGHPZGE98RUD41xrUmpx7zm6dBytFH
+  message.py: QmX8GmjxkzGKo2U7BXmdVecdoDkzW6iC8tpKG3QJXS4ACc
+  serialization.py: QmT6MKut7Yf5TcpAfJZYdzZR2vFoaU4SBYhJ48Xu6kUvvV
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

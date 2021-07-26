@@ -5,6 +5,32 @@ package aea.valory.abci.v0_1_0;
 message AbciMessage{
 
   // Custom Types
+  message ConsensusParams{
+    message Duration {
+      int64 seconds = 1;
+      int32 nanos = 2;
+    }
+    message BlockParams {
+      int64 max_bytes = 1;
+      int64 max_gas = 2;
+    }
+    message EvidenceParams {
+      int64 max_age_num_blocks = 1;
+      Duration max_age_duration = 2;
+      int64 max_bytes = 3;
+    }
+    message ValidatorParams {
+      repeated string pub_key_types = 1;
+    }
+    message VersionParams {
+      uint64 app_version = 1;
+    }
+    BlockParams block = 1;
+    EvidenceParams evidence = 2;
+    ValidatorParams validator = 3;
+    VersionParams version = 4;
+  }
+
   message Timestamp{
     // Represents seconds of UTC time since Unix epoch
     // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
@@ -15,6 +41,14 @@ message AbciMessage{
     // that count forward in time. Must be from 0 to 999,999,999
     // inclusive.
     int32 nanos = 2;
+  }
+
+  message ValidatorUpdates{
+    message ValidatorUpdate {
+      bytes pub_key = 1;
+      int64 power = 2;
+    }
+    repeated ValidatorUpdate validators = 1;
   }
 
 
@@ -35,18 +69,10 @@ message AbciMessage{
   message Request_Init_Chain_Performative{
     Timestamp time = 1;
     string chain_id = 2;
-    int32 block_max_bytes = 3;
-    int32 block_max_gas = 4;
-    int32 evidence_max_age_num_blocks = 5;
-    int32 evidence_max_age_duration_seconds = 6;
-    int32 evidence_max_age_duration_nanos = 7;
-    int32 evidence_max_bytes = 8;
-    repeated string validator_pub_key_types = 9;
-    int32 version_app_version = 10;
-    repeated bytes validators_updates_pub_key = 11;
-    repeated int32 validators_power = 12;
-    bytes app_state_bytes = 13;
-    string initial_height = 14;
+    ConsensusParams consensus_params = 3;
+    ValidatorUpdates validators = 4;
+    bytes app_state_bytes = 5;
+    string initial_height = 6;
   }
 
   message Response_Exception_Performative{
@@ -68,17 +94,9 @@ message AbciMessage{
   }
 
   message Response_Init_Chain_Performative{
-    int32 block_max_bytes = 1;
-    int32 block_max_gas = 2;
-    int32 evidence_max_age_num_blocks = 3;
-    int32 evidence_max_age_duration_seconds = 4;
-    int32 evidence_max_age_duration_nanos = 5;
-    int32 evidence_max_bytes = 6;
-    repeated string validator_pub_key_types = 7;
-    int32 version_app_version = 8;
-    repeated bytes validators_updates_pub_key = 9;
-    repeated int32 validators_power = 10;
-    bytes app_hash = 11;
+    ConsensusParams consensus_params = 1;
+    ValidatorUpdates validators = 2;
+    bytes app_hash = 3;
   }
 
 

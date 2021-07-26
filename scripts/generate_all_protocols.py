@@ -212,7 +212,8 @@ def replace_in_directory(name: str, replacement_pairs: List[Tuple[str, str]]) ->
             submodule.write_text(submodule.read_text().replace(to_replace, replacement))
 
 
-def _fix_generated_protocol(package_path: Path) -> None:
+def _fix_generated_protocol(package_path: Path,
+                            overwrite_custom_types: bool = False) -> None:
     """
     Fix the generated protocol.
 
@@ -222,10 +223,11 @@ def _fix_generated_protocol(package_path: Path) -> None:
     - copy the README, if any.
 
     :param package_path: path to the protocol package. Used also to recover the protocol name.
+    :param overwrite_custom_types: if True, custom_types.py is overwritten.
     """
     log(f"Restore original custom types in {package_path}")
     custom_types_module = package_path / CUSTOM_TYPE_MODULE_NAME
-    if custom_types_module.exists():
+    if not overwrite_custom_types and custom_types_module.exists():
         file_to_replace = Path(
             PROTOCOLS_PLURALS, package_path.name, CUSTOM_TYPE_MODULE_NAME
         )
@@ -300,7 +302,8 @@ def _replace_generator_docstring(package_path: Path, replacement: str) -> None:
 
 
 def _process_packages_protocol(
-    package_path: Path, preserve_generator_docstring: bool = False
+    package_path: Path, preserve_generator_docstring: bool = False,
+    overwrite_custom_types: bool = False
 ) -> None:
     """
     Process protocol package from local registry.
@@ -323,6 +326,7 @@ def _process_packages_protocol(
     :param package_path: path to the package.
     :param preserve_generator_docstring: if True, the protocol generator
         docstring is preserved (see above).
+    :param overwrite_custom_types: if True, custom_types.py is overwritten.
     """
     if preserve_generator_docstring:
         # save the old protocol generator docstring
@@ -330,7 +334,7 @@ def _process_packages_protocol(
     specification_content = get_protocol_specification_from_readme(package_path)
     _save_specification_in_temporary_file(package_path.name, specification_content)
     _generate_protocol(package_path)
-    _fix_generated_protocol(package_path)
+    _fix_generated_protocol(package_path, overwrite_custom_types)
     if preserve_generator_docstring:
         _replace_generator_docstring(package_path, old_protocol_generator_docstring)
     run_isort_and_black(Path(PROTOCOLS_PLURALS, package_path.name), cwd=str(ROOT_DIR))
@@ -464,11 +468,12 @@ def _bump_protocol_specification_id_if_needed(package_path: Path) -> None:
     )
 
 
-def main(no_bump: bool = False) -> None:
+def main(no_bump: bool = False, overwrite_custom_types: bool = False) -> None:
     """
     Run the script.
 
-    :param no_bump: if True, the (default: False)
+    :param no_bump: if True, version is not bumped (default: False)
+    :param overwrite_custom_types: if True, the custom_types modules is overwritten (default: False)
     """
     _check_preliminaries()
 
@@ -482,7 +487,7 @@ def main(no_bump: bool = False) -> None:
                 _bump_protocol_specification_id_if_needed(package_path)
             # no_bump implies to ignore the docstring:
             #  'It was created with protocol buffer compiler ... and aea version ...'
-            _process_packages_protocol(package_path, no_bump)
+            _process_packages_protocol(package_path, no_bump, overwrite_custom_types)
 
 
 if __name__ == "__main__":
@@ -491,9 +496,10 @@ if __name__ == "__main__":
         "--check-clean", action="store_true", help="Check if the working tree is clean."
     )
     parser.add_argument("--no-bump", action="store_true", help="Prevent version bump.")
+    parser.add_argument("--overwrite-custom-types", action="store_true", help="Overwrite custom_types module.")
     arguments = parser.parse_args()
 
-    main(arguments.no_bump)
+    main(arguments.no_bump, arguments.overwrite_custom_types)
 
     if arguments.check_clean:
         check_working_tree_is_dirty()
