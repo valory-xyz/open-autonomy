@@ -18,40 +18,156 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'valory/abci' protocol."""
+from abc import abstractmethod
+
 from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.abci.custom_types import (
+    BlockParams,
+    ConsensusParams,
+    Duration,
+    EvidenceParams,
+    Timestamp,
+    ValidatorParams,
+    ValidatorUpdate,
+    ValidatorUpdates,
+    VersionParams,
+)
 
 
-def test_request_echo():
+class BaseTestMessageConstruction:
+    """Base class to test message construction for the ABCI protocol."""
+
+    @abstractmethod
+    def build_message(self) -> AbciMessage:
+        """Build the message to be used for testing."""
+
+    def test_run(self):
+        """Run the test."""
+        actual_message = self.build_message()
+        expected_message = actual_message.decode(actual_message.encode())
+        assert expected_message == actual_message
+
+
+class TestRequestEcho(BaseTestMessageConstruction):
     """Test ABCI request echo."""
-    actual_message = AbciMessage(
-        performative=AbciMessage.Performative.REQUEST_ECHO, message="hello"
-    )
-    expected_message = actual_message.decode(actual_message.encode())
-    assert expected_message == actual_message
+
+    def build_message(self):
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_ECHO, message="hello"
+        )
 
 
-def test_response_echo():
+class TestResponseEcho(BaseTestMessageConstruction):
     """Test ABCI response echo."""
-    actual_message = AbciMessage(
-        performative=AbciMessage.Performative.RESPONSE_ECHO, message="hello"
-    )
-    expected_message = actual_message.decode(actual_message.encode())
-    assert expected_message == actual_message
+
+    def build_message(self):
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_ECHO, message="hello"
+        )
 
 
-def test_request_flush():
+class TestRequestFlush(BaseTestMessageConstruction):
     """Test ABCI request flush."""
-    actual_message = AbciMessage(
-        performative=AbciMessage.Performative.REQUEST_FLUSH,
-    )
-    expected_message = actual_message.decode(actual_message.encode())
-    assert expected_message == actual_message
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_FLUSH,
+        )
 
 
-def test_response_flush():
+class TestResponseFlush(BaseTestMessageConstruction):
     """Test ABCI response flush."""
-    actual_message = AbciMessage(
-        performative=AbciMessage.Performative.RESPONSE_FLUSH,
-    )
-    expected_message = actual_message.decode(actual_message.encode())
-    assert expected_message == actual_message
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_FLUSH,
+        )
+
+
+class TestRequestInfo(BaseTestMessageConstruction):
+    """Test ABCI request info."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_INFO,
+            version="0.1.0",
+            block_version=1,
+            p2p_version=1,
+        )
+
+
+class TestResponseInfo(BaseTestMessageConstruction):
+    """Test ABCI response info."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_INFO,
+            info_data="info",
+            version="0.1.0",
+            app_version=1,
+            last_block_height=1,
+            last_block_app_hash=b"bytes",
+        )
+
+
+class TestRequestInitChain(BaseTestMessageConstruction):
+    """Test ABCI request init chain."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        consensus_params = ConsensusParams(
+            BlockParams(0, 0),
+            EvidenceParams(0, Duration(0, 0), 0),
+            ValidatorParams(["pub_key"]),
+            VersionParams(0),
+        )
+
+        validators = ValidatorUpdates(
+            [
+                ValidatorUpdate(b"pub_key_bytes", 1),
+                ValidatorUpdate(b"pub_key_bytes", 2),
+            ]
+        )
+
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
+            time=Timestamp(0, 0),
+            chain_id="1",
+            consensus_params=consensus_params,
+            validators=validators,
+            app_state_bytes=b"bytes",
+            initial_height="height",
+        )
+
+
+class TestResponseInitChain(BaseTestMessageConstruction):
+    """Test ABCI response init chain."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        consensus_params = ConsensusParams(
+            BlockParams(0, 0),
+            EvidenceParams(0, Duration(0, 0), 0),
+            ValidatorParams(["pub_key"]),
+            VersionParams(0),
+        )
+
+        validators = ValidatorUpdates(
+            [
+                ValidatorUpdate(b"pub_key_bytes", 1),
+                ValidatorUpdate(b"pub_key_bytes", 2),
+            ]
+        )
+
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            consensus_params=consensus_params,
+            validators=validators,
+            app_hash=b"app_hash",
+        )
