@@ -29,6 +29,11 @@ from aea.protocols.base import Message, Serializer
 from packages.valory.protocols.abci import abci_pb2
 from packages.valory.protocols.abci.custom_types import (
     ConsensusParams,
+    Events,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    ProofOps,
     Timestamp,
     ValidatorUpdates,
 )
@@ -90,6 +95,48 @@ class AbciSerializer(Serializer):
             initial_height = msg.initial_height
             performative.initial_height = initial_height
             abci_msg.request_init_chain.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_QUERY:
+            performative = abci_pb2.AbciMessage.Request_Query_Performative()  # type: ignore
+            query_data = msg.query_data
+            performative.query_data = query_data
+            path = msg.path
+            performative.path = path
+            height = msg.height
+            performative.height = height
+            prove = msg.prove
+            performative.prove = prove
+            abci_msg.request_query.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_BEGIN_BLOCK:
+            performative = abci_pb2.AbciMessage.Request_Begin_Block_Performative()  # type: ignore
+            hash = msg.hash
+            performative.hash = hash
+            header = msg.header
+            Header.encode(performative.header, header)
+            last_commit_info = msg.last_commit_info
+            LastCommitInfo.encode(performative.last_commit_info, last_commit_info)
+            byzantine_validators = msg.byzantine_validators
+            Evidences.encode(performative.byzantine_validators, byzantine_validators)
+            abci_msg.request_begin_block.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_CHECK_TX:
+            performative = abci_pb2.AbciMessage.Request_Check_Tx_Performative()  # type: ignore
+            tx = msg.tx
+            performative.tx = tx
+            type = msg.type
+            performative.type = type
+            abci_msg.request_check_tx.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_DELIVER_TX:
+            performative = abci_pb2.AbciMessage.Request_Deliver_Tx_Performative()  # type: ignore
+            tx = msg.tx
+            performative.tx = tx
+            abci_msg.request_deliver_tx.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_END_BLOCK:
+            performative = abci_pb2.AbciMessage.Request_End_Block_Performative()  # type: ignore
+            height = msg.height
+            performative.height = height
+            abci_msg.request_end_block.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_COMMIT:
+            performative = abci_pb2.AbciMessage.Request_Commit_Performative()  # type: ignore
+            abci_msg.request_commit.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             performative = abci_pb2.AbciMessage.Response_Exception_Performative()  # type: ignore
             abci_msg.response_exception.CopyFrom(performative)
@@ -103,8 +150,8 @@ class AbciSerializer(Serializer):
             abci_msg.response_flush.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_INFO:
             performative = abci_pb2.AbciMessage.Response_Info_Performative()  # type: ignore
-            data = msg.data
-            performative.data = data
+            info_data = msg.info_data
+            performative.info_data = info_data
             version = msg.version
             performative.version = version
             app_version = msg.app_version
@@ -123,6 +170,88 @@ class AbciSerializer(Serializer):
             app_hash = msg.app_hash
             performative.app_hash = app_hash
             abci_msg.response_init_chain.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_QUERY:
+            performative = abci_pb2.AbciMessage.Response_Query_Performative()  # type: ignore
+            code = msg.code
+            performative.code = code
+            log = msg.log
+            performative.log = log
+            info = msg.info
+            performative.info = info
+            index = msg.index
+            performative.index = index
+            key = msg.key
+            performative.key = key
+            value = msg.value
+            performative.value = value
+            proof_ops = msg.proof_ops
+            ProofOps.encode(performative.proof_ops, proof_ops)
+            height = msg.height
+            performative.height = height
+            codespace = msg.codespace
+            performative.codespace = codespace
+            abci_msg.response_query.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_BEGIN_BLOCK:
+            performative = abci_pb2.AbciMessage.Response_Begin_Block_Performative()  # type: ignore
+            events = msg.events
+            Events.encode(performative.events, events)
+            abci_msg.response_begin_block.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_CHECK_TX:
+            performative = abci_pb2.AbciMessage.Response_Check_Tx_Performative()  # type: ignore
+            code = msg.code
+            performative.code = code
+            data = msg.data
+            performative.data = data
+            log = msg.log
+            performative.log = log
+            info = msg.info
+            performative.info = info
+            gas_wanted = msg.gas_wanted
+            performative.gas_wanted = gas_wanted
+            gas_used = msg.gas_used
+            performative.gas_used = gas_used
+            events = msg.events
+            Events.encode(performative.events, events)
+            codespace = msg.codespace
+            performative.codespace = codespace
+            abci_msg.response_check_tx.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_DELIVER_TX:
+            performative = abci_pb2.AbciMessage.Response_Deliver_Tx_Performative()  # type: ignore
+            code = msg.code
+            performative.code = code
+            data = msg.data
+            performative.data = data
+            log = msg.log
+            performative.log = log
+            info = msg.info
+            performative.info = info
+            gas_wanted = msg.gas_wanted
+            performative.gas_wanted = gas_wanted
+            gas_used = msg.gas_used
+            performative.gas_used = gas_used
+            events = msg.events
+            Events.encode(performative.events, events)
+            codespace = msg.codespace
+            performative.codespace = codespace
+            abci_msg.response_deliver_tx.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_END_BLOCK:
+            performative = abci_pb2.AbciMessage.Response_End_Block_Performative()  # type: ignore
+            validator_updates = msg.validator_updates
+            ValidatorUpdates.encode(performative.validator_updates, validator_updates)
+            consensus_param_updates = msg.consensus_param_updates
+            ConsensusParams.encode(
+                performative.consensus_param_updates, consensus_param_updates
+            )
+            events = msg.events
+            Events.encode(performative.events, events)
+            abci_msg.response_end_block.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_COMMIT:
+            performative = abci_pb2.AbciMessage.Response_Commit_Performative()  # type: ignore
+            data = msg.data
+            performative.data = data
+            retain_height = msg.retain_height
+            performative.retain_height = retain_height
+            abci_msg.response_commit.CopyFrom(performative)
         else:
             raise ValueError("Performative not valid: {}".format(performative_id))
 
@@ -182,6 +311,40 @@ class AbciSerializer(Serializer):
             performative_content["app_state_bytes"] = app_state_bytes
             initial_height = abci_pb.request_init_chain.initial_height
             performative_content["initial_height"] = initial_height
+        elif performative_id == AbciMessage.Performative.REQUEST_QUERY:
+            query_data = abci_pb.request_query.query_data
+            performative_content["query_data"] = query_data
+            path = abci_pb.request_query.path
+            performative_content["path"] = path
+            height = abci_pb.request_query.height
+            performative_content["height"] = height
+            prove = abci_pb.request_query.prove
+            performative_content["prove"] = prove
+        elif performative_id == AbciMessage.Performative.REQUEST_BEGIN_BLOCK:
+            hash = abci_pb.request_begin_block.hash
+            performative_content["hash"] = hash
+            pb2_header = abci_pb.request_begin_block.header
+            header = Header.decode(pb2_header)
+            performative_content["header"] = header
+            pb2_last_commit_info = abci_pb.request_begin_block.last_commit_info
+            last_commit_info = LastCommitInfo.decode(pb2_last_commit_info)
+            performative_content["last_commit_info"] = last_commit_info
+            pb2_byzantine_validators = abci_pb.request_begin_block.byzantine_validators
+            byzantine_validators = Evidences.decode(pb2_byzantine_validators)
+            performative_content["byzantine_validators"] = byzantine_validators
+        elif performative_id == AbciMessage.Performative.REQUEST_CHECK_TX:
+            tx = abci_pb.request_check_tx.tx
+            performative_content["tx"] = tx
+            type = abci_pb.request_check_tx.type
+            performative_content["type"] = type
+        elif performative_id == AbciMessage.Performative.REQUEST_DELIVER_TX:
+            tx = abci_pb.request_deliver_tx.tx
+            performative_content["tx"] = tx
+        elif performative_id == AbciMessage.Performative.REQUEST_END_BLOCK:
+            height = abci_pb.request_end_block.height
+            performative_content["height"] = height
+        elif performative_id == AbciMessage.Performative.REQUEST_COMMIT:
+            pass
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             pass
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
@@ -190,8 +353,8 @@ class AbciSerializer(Serializer):
         elif performative_id == AbciMessage.Performative.RESPONSE_FLUSH:
             pass
         elif performative_id == AbciMessage.Performative.RESPONSE_INFO:
-            data = abci_pb.response_info.data
-            performative_content["data"] = data
+            info_data = abci_pb.response_info.info_data
+            performative_content["info_data"] = info_data
             version = abci_pb.response_info.version
             performative_content["version"] = version
             app_version = abci_pb.response_info.app_version
@@ -209,6 +372,85 @@ class AbciSerializer(Serializer):
             performative_content["validators"] = validators
             app_hash = abci_pb.response_init_chain.app_hash
             performative_content["app_hash"] = app_hash
+        elif performative_id == AbciMessage.Performative.RESPONSE_QUERY:
+            code = abci_pb.response_query.code
+            performative_content["code"] = code
+            log = abci_pb.response_query.log
+            performative_content["log"] = log
+            info = abci_pb.response_query.info
+            performative_content["info"] = info
+            index = abci_pb.response_query.index
+            performative_content["index"] = index
+            key = abci_pb.response_query.key
+            performative_content["key"] = key
+            value = abci_pb.response_query.value
+            performative_content["value"] = value
+            pb2_proof_ops = abci_pb.response_query.proof_ops
+            proof_ops = ProofOps.decode(pb2_proof_ops)
+            performative_content["proof_ops"] = proof_ops
+            height = abci_pb.response_query.height
+            performative_content["height"] = height
+            codespace = abci_pb.response_query.codespace
+            performative_content["codespace"] = codespace
+        elif performative_id == AbciMessage.Performative.RESPONSE_BEGIN_BLOCK:
+            pb2_events = abci_pb.response_begin_block.events
+            events = Events.decode(pb2_events)
+            performative_content["events"] = events
+        elif performative_id == AbciMessage.Performative.RESPONSE_CHECK_TX:
+            code = abci_pb.response_check_tx.code
+            performative_content["code"] = code
+            data = abci_pb.response_check_tx.data
+            performative_content["data"] = data
+            log = abci_pb.response_check_tx.log
+            performative_content["log"] = log
+            info = abci_pb.response_check_tx.info
+            performative_content["info"] = info
+            gas_wanted = abci_pb.response_check_tx.gas_wanted
+            performative_content["gas_wanted"] = gas_wanted
+            gas_used = abci_pb.response_check_tx.gas_used
+            performative_content["gas_used"] = gas_used
+            pb2_events = abci_pb.response_check_tx.events
+            events = Events.decode(pb2_events)
+            performative_content["events"] = events
+            codespace = abci_pb.response_check_tx.codespace
+            performative_content["codespace"] = codespace
+        elif performative_id == AbciMessage.Performative.RESPONSE_DELIVER_TX:
+            code = abci_pb.response_deliver_tx.code
+            performative_content["code"] = code
+            data = abci_pb.response_deliver_tx.data
+            performative_content["data"] = data
+            log = abci_pb.response_deliver_tx.log
+            performative_content["log"] = log
+            info = abci_pb.response_deliver_tx.info
+            performative_content["info"] = info
+            gas_wanted = abci_pb.response_deliver_tx.gas_wanted
+            performative_content["gas_wanted"] = gas_wanted
+            gas_used = abci_pb.response_deliver_tx.gas_used
+            performative_content["gas_used"] = gas_used
+            pb2_events = abci_pb.response_deliver_tx.events
+            events = Events.decode(pb2_events)
+            performative_content["events"] = events
+            codespace = abci_pb.response_deliver_tx.codespace
+            performative_content["codespace"] = codespace
+        elif performative_id == AbciMessage.Performative.RESPONSE_END_BLOCK:
+            pb2_validator_updates = abci_pb.response_end_block.validator_updates
+            validator_updates = ValidatorUpdates.decode(pb2_validator_updates)
+            performative_content["validator_updates"] = validator_updates
+            pb2_consensus_param_updates = (
+                abci_pb.response_end_block.consensus_param_updates
+            )
+            consensus_param_updates = ConsensusParams.decode(
+                pb2_consensus_param_updates
+            )
+            performative_content["consensus_param_updates"] = consensus_param_updates
+            pb2_events = abci_pb.response_end_block.events
+            events = Events.decode(pb2_events)
+            performative_content["events"] = events
+        elif performative_id == AbciMessage.Performative.RESPONSE_COMMIT:
+            data = abci_pb.response_commit.data
+            performative_content["data"] = data
+            retain_height = abci_pb.response_commit.retain_height
+            performative_content["retain_height"] = retain_height
         else:
             raise ValueError("Performative not valid: {}.".format(performative_id))
 

@@ -19,58 +19,119 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 protocol_specification_id: valory/abci:0.1.0
 speech_acts:
-#  requests
-    request_echo:
-      message: pt:str
-    request_flush: {}
-    request_info:
-      version: pt:str
-      block_version: pt:int
-      p2p_version: pt:int
-    request_init_chain:
-      time: ct:Timestamp
-      chain_id: pt:str
-      consensus_params: ct:ConsensusParams
-      validators: ct:ValidatorUpdates      
-      app_state_bytes: pt:bytes
-      initial_height: pt:str
-#    request_query: {}
-#    request_begin_block: {}
-#    request_check_tx: {}
-#    request_deliver_tx: {}
-#    request_end_block: {}
-#    request_commit: {}
-#    request_list_snapshots: {}
-#    request_offer_snapshot: {}
-#    request_load_snapshot_chunk: {}
-#    request_apply_snapshot_chunk: {}
-# responses
-    response_exception: {}
-    response_echo:
-      message: pt:str
-    response_flush: {}
-    response_info:
-      data: pt:str
-      version: pt:str
-      app_version: pt:int
-      last_block_height: pt:int
-      last_block_app_hash: pt:bytes
-    response_init_chain:
-      consensus_params: ct:ConsensusParams
-      validators: ct:ValidatorUpdates      
-      app_hash: pt:bytes
-    #    response_query: {}
-    #    response_begin_block: {}
-    #    response_check_tx: {}
-    #    response_deliver_tx: {}
-    #    response_end_block: {}
-    #    response_commit: {}
-    #    response_list_snapshots: {}
-    #    response_offer_snapshot: {}
-    #    response_load_snapshot_chunk: {}
-    #    response_apply_snapshot_chunk: {}
+  request_echo:
+    message: pt:str
+  request_flush: {}
+  request_info:
+    version: pt:str
+    block_version: pt:int
+    p2p_version: pt:int
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L60
+  request_init_chain:
+    time: ct:Timestamp
+    chain_id: pt:str
+    consensus_params: ct:ConsensusParams
+    validators: ct:ValidatorUpdates      
+    app_state_bytes: pt:bytes
+    initial_height: pt:str
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L70
+  request_query:
+    query_data: pt:bytes
+    path: pt:str
+    height: pt:int
+    prove: pt:bool
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L77
+  request_begin_block:
+    hash: pt:bytes
+    header: ct:Header
+    last_commit_info: ct:LastCommitInfo
+    byzantine_validators: ct:Evidences
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L89
+  request_check_tx:
+    tx: pt:bytes
+    # Enum: NEW = 0, RECHECK = 1
+    type: pt:int   
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L94
+  request_deliver_tx:
+    tx: pt:bytes
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L98
+  request_end_block:
+    height: pt:int
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L102
+  request_commit: {}
+  #    request_list_snapshots: {}
+  #    request_offer_snapshot: {}
+  #    request_load_snapshot_chunk: {}
+  #    request_apply_snapshot_chunk: {}
+  # responses
+  response_exception: {}
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L157
+  response_echo:
+    message: pt:str
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L161
+  response_flush: {}
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L163
+  response_info:
+    info_data: pt:str
+    version: pt:str
+    app_version: pt:int
+    last_block_height: pt:int
+    last_block_app_hash: pt:bytes
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L181
+  response_init_chain:
+    consensus_params: ct:ConsensusParams
+    validators: ct:ValidatorUpdates      
+    app_hash: pt:bytes
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L187
+  response_query:
+    code: pt:int
+    log: pt:str
+    info: pt:str
+    index: pt:int
+    key: pt:bytes
+    value: pt:bytes
+    proof_ops: ct:ProofOps
+    height: pt:int
+    codespace: pt:str
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L200
+  response_begin_block:
+    events: ct:Events
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L205
+  response_check_tx:
+    code: pt:int
+    data: pt:bytes
+    log: pt:str
+    info: pt:str
+    gas_wanted: pt:int
+    gas_used: pt:int
+    events: ct:Events
+    codespace: pt:str
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L217
+  response_deliver_tx:
+    code: pt:int
+    data: pt:bytes
+    log: pt:str
+    info: pt:str
+    gas_wanted: pt:int
+    gas_used: pt:int
+    events: ct:Events
+    codespace: pt:str
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L229
+  response_end_block:
+    validator_updates: ct:ValidatorUpdates
+    consensus_param_updates: ct:ConsensusParams
+    events: ct:Events
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L237
+  response_commit:
+    data: pt:bytes
+    retain_height: pt:int
+#  response_list_snapshots: {}
+#  response_offer_snapshot: {}
+#  response_load_snapshot_chunk: {}
+#  response_apply_snapshot_chunk: {}
 ...
 ---
+# https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L284
 ct:ConsensusParams: |
   message Duration {
     int64 seconds = 1;
@@ -101,6 +162,7 @@ ct:ValidatorUpdates: |
     int64 power = 2;
   }
   repeated ValidatorUpdate validators = 1;
+# google.protobuf.Timestamp
 ct:Timestamp: |
   // Represents seconds of UTC time since Unix epoch
   // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
@@ -111,9 +173,104 @@ ct:Timestamp: |
   // that count forward in time. Must be from 0 to 999,999,999
   // inclusive.
   int32 nanos = 2;
+ct:ProofOps: |
+  message ProofOp {
+    string type = 1;
+    bytes  key  = 2;
+    bytes  data = 3;
+  }
+  repeated ProofOp ops = 1;
+# https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/types/types.proto#L58
+ct:Header: |
+  message ConsensusVersion {
+    uint64 block = 1;
+    uint64 app   = 2;
+  }
+  message BlockID {
+    bytes         hash            = 1;
+    PartSetHeader part_set_header = 2;
+  }
+  message PartSetHeader {
+    uint32 total = 1;
+    bytes  hash  = 2;
+  }
+  ConsensusVersion             version  = 1;
+  string                       chain_id = 2;
+  int64                        height   = 3;
+  Timestamp                    time     = 4;
+
+  // prev block info
+  BlockID last_block_id = 5;
+
+  // hashes of block data
+  bytes last_commit_hash = 6;  // commit from validators from the last block
+  bytes data_hash        = 7;  // transactions
+
+  // hashes from the app output from the prev block
+  bytes validators_hash      = 8;   // validators for the current block
+  bytes next_validators_hash = 9;   // validators for the next block
+  bytes consensus_hash       = 10;  // consensus params for current block
+  bytes app_hash             = 11;  // state after txs from the previous block
+  bytes last_results_hash    = 12;  // root hash of all results from the txs from the previous block
+
+  // consensus info
+  bytes evidence_hash    = 13;  // evidence included in the block
+  bytes proposer_address = 14;  // original proposer of the block
+ct:LastCommitInfo: |
+  message Validator {
+    bytes address = 1;  // The first 20 bytes of SHA256(public key)
+    // PubKey pub_key = 2 [(gogoproto.nullable)=false];
+    int64 power = 3;  // The voting power
+  }
+  message VoteInfo {
+    Validator validator         = 1;
+    bool      signed_last_block = 2;
+  }
+  int32             round = 1;
+  repeated VoteInfo votes = 2;
+ct:Evidences: |
+  message Evidence {
+    enum EvidenceType {
+      UNKNOWN             = 0;
+      DUPLICATE_VOTE      = 1;
+      LIGHT_CLIENT_ATTACK = 2;
+    }
+    EvidenceType type = 1;
+    // The offending validator
+    LastCommitInfo.Validator validator = 2;
+    // The height when the offense occurred
+    int64 height = 3;
+    // The corresponding time where the offense occurred
+    Timestamp time = 4;
+    // Total voting power of the validator set in case the ABCI application does
+    // not store historical validators.
+    // https://github.com/tendermint/tendermint/issues/4581
+    int64 total_voting_power = 5;
+  }
+  repeated Evidence byzantine_validators = 1;
+ct:Events: |
+  message EventAttribute {
+    bytes key   = 1;
+    bytes value = 2;
+    bool  index = 3;  // nondeterministic
+  }
+  message Event {
+    string                  type       = 1;
+    repeated EventAttribute attributes = 2;
+  }
+  repeated Event events = 1;
 ...
 ---
-initiation: [request_echo, request_flush]
+initiation:
+- request_echo
+- request_flush
+- request_init_chain
+- request_query
+- request_begin_block
+- request_check_tx
+- request_deliver_tx
+- request_end_block
+- request_commit
 reply:
   request_echo: [response_echo, response_exception]
   response_echo: []
@@ -124,7 +281,30 @@ reply:
   response_info: []
   request_init_chain: [response_init_chain, response_exception]
   response_init_chain: []
-termination: [response_exception, response_echo, response_flush, response_info, response_init_chain]
+  request_query: [response_query, response_exception]
+  response_query: []
+  request_begin_block: [response_begin_block, response_exception]
+  response_begin_block: []
+  request_check_tx: [response_check_tx, response_exception]
+  response_check_tx: []
+  request_deliver_tx: [response_deliver_tx, response_exception]
+  response_deliver_tx: []
+  request_end_block: [response_end_block, response_exception]
+  response_end_block: []
+  request_commit: [response_commit, response_exception]
+  response_commit: []
+termination:
+  - response_exception
+  - response_echo
+  - response_flush
+  - response_info
+  - response_init_chain
+  - response_query
+  - response_begin_block
+  - response_check_tx
+  - response_deliver_tx
+  - response_end_block
+  - response_commit
 roles: {client, server}
 end_states: [successful]
 keep_terminal_state_dialogues: false

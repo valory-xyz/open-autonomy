@@ -18,8 +18,36 @@ DESCRIPTOR = _descriptor.FileDescriptor(
     package="aea.valory.abci.v0_1_0",
     syntax="proto3",
     serialized_options=None,
-    serialized_pb=b'\n\nabci.proto\x12\x16\x61\x65\x61.valory.abci.v0_1_0"\x89\x15\n\x0b\x41\x62\x63iMessage\x12U\n\x0crequest_echo\x18\x05 \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Echo_PerformativeH\x00\x12W\n\rrequest_flush\x18\x06 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Flush_PerformativeH\x00\x12U\n\x0crequest_info\x18\x07 \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Info_PerformativeH\x00\x12\x61\n\x12request_init_chain\x18\x08 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_PerformativeH\x00\x12W\n\rresponse_echo\x18\t \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Echo_PerformativeH\x00\x12\x61\n\x12response_exception\x18\n \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_Exception_PerformativeH\x00\x12Y\n\x0eresponse_flush\x18\x0b \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Flush_PerformativeH\x00\x12W\n\rresponse_info\x18\x0c \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Info_PerformativeH\x00\x12\x63\n\x13response_init_chain\x18\r \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_PerformativeH\x00\x1a\xac\x05\n\x0f\x43onsensusParams\x12N\n\x05\x62lock\x18\x01 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.BlockParams\x12T\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.EvidenceParams\x12V\n\tvalidator\x18\x03 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.ValidatorParams\x12R\n\x07version\x18\x04 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.VersionParams\x1a*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x31\n\x0b\x42lockParams\x12\x11\n\tmax_bytes\x18\x01 \x01(\x03\x12\x0f\n\x07max_gas\x18\x02 \x01(\x03\x1a\x97\x01\n\x0e\x45videnceParams\x12\x1a\n\x12max_age_num_blocks\x18\x01 \x01(\x03\x12V\n\x10max_age_duration\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.Duration\x12\x11\n\tmax_bytes\x18\x03 \x01(\x03\x1a(\n\x0fValidatorParams\x12\x15\n\rpub_key_types\x18\x01 \x03(\t\x1a$\n\rVersionParams\x12\x13\n\x0b\x61pp_version\x18\x01 \x01(\x04\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x9f\x01\n\x10ValidatorUpdates\x12X\n\nvalidators\x18\x01 \x03(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.ValidatorUpdate\x1a\x31\n\x0fValidatorUpdate\x12\x0f\n\x07pub_key\x18\x01 \x01(\x0c\x12\r\n\x05power\x18\x02 \x01(\x03\x1a,\n\x19Request_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1c\n\x1aRequest_Flush_Performative\x1aX\n\x19Request_Info_Performative\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x15\n\rblock_version\x18\x02 \x01(\x05\x12\x13\n\x0bp2p_version\x18\x03 \x01(\x05\x1a\xba\x02\n\x1fRequest_Init_Chain_Performative\x12;\n\x04time\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12M\n\x10\x63onsensus_params\x18\x03 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12H\n\nvalidators\x18\x04 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x17\n\x0f\x61pp_state_bytes\x18\x05 \x01(\x0c\x12\x16\n\x0einitial_height\x18\x06 \x01(\t\x1a!\n\x1fResponse_Exception_Performative\x1a-\n\x1aResponse_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1d\n\x1bResponse_Flush_Performative\x1a\x88\x01\n\x1aResponse_Info_Performative\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x03 \x01(\x05\x12\x19\n\x11last_block_height\x18\x04 \x01(\x05\x12\x1b\n\x13last_block_app_hash\x18\x05 \x01(\x0c\x1a\xcd\x01\n Response_Init_Chain_Performative\x12M\n\x10\x63onsensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12H\n\nvalidators\x18\x02 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x10\n\x08\x61pp_hash\x18\x03 \x01(\x0c\x42\x0e\n\x0cperformativeb\x06proto3',
+    serialized_pb=b'\n\nabci.proto\x12\x16\x61\x65\x61.valory.abci.v0_1_0"\xd1\x38\n\x0b\x41\x62\x63iMessage\x12\x63\n\x13request_begin_block\x18\x05 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_PerformativeH\x00\x12]\n\x10request_check_tx\x18\x06 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_PerformativeH\x00\x12Y\n\x0erequest_commit\x18\x07 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_PerformativeH\x00\x12\x61\n\x12request_deliver_tx\x18\x08 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_PerformativeH\x00\x12U\n\x0crequest_echo\x18\t \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Echo_PerformativeH\x00\x12_\n\x11request_end_block\x18\n \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_PerformativeH\x00\x12W\n\rrequest_flush\x18\x0b \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Flush_PerformativeH\x00\x12U\n\x0crequest_info\x18\x0c \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Info_PerformativeH\x00\x12\x61\n\x12request_init_chain\x18\r \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_PerformativeH\x00\x12W\n\rrequest_query\x18\x0e \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Query_PerformativeH\x00\x12\x65\n\x14response_begin_block\x18\x0f \x01(\x0b\x32\x45.aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_PerformativeH\x00\x12_\n\x11response_check_tx\x18\x10 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_PerformativeH\x00\x12[\n\x0fresponse_commit\x18\x11 \x01(\x0b\x32@.aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_PerformativeH\x00\x12\x63\n\x13response_deliver_tx\x18\x12 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_PerformativeH\x00\x12W\n\rresponse_echo\x18\x13 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Echo_PerformativeH\x00\x12\x61\n\x12response_end_block\x18\x14 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_PerformativeH\x00\x12\x61\n\x12response_exception\x18\x15 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_Exception_PerformativeH\x00\x12Y\n\x0eresponse_flush\x18\x16 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Flush_PerformativeH\x00\x12W\n\rresponse_info\x18\x17 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Info_PerformativeH\x00\x12\x63\n\x13response_init_chain\x18\x18 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_PerformativeH\x00\x12Y\n\x0eresponse_query\x18\x19 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Query_PerformativeH\x00\x1a\xac\x05\n\x0f\x43onsensusParams\x12N\n\x05\x62lock\x18\x01 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.BlockParams\x12T\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.EvidenceParams\x12V\n\tvalidator\x18\x03 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.ValidatorParams\x12R\n\x07version\x18\x04 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.VersionParams\x1a*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x31\n\x0b\x42lockParams\x12\x11\n\tmax_bytes\x18\x01 \x01(\x03\x12\x0f\n\x07max_gas\x18\x02 \x01(\x03\x1a\x97\x01\n\x0e\x45videnceParams\x12\x1a\n\x12max_age_num_blocks\x18\x01 \x01(\x03\x12V\n\x10max_age_duration\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.Duration\x12\x11\n\tmax_bytes\x18\x03 \x01(\x03\x1a(\n\x0fValidatorParams\x12\x15\n\rpub_key_types\x18\x01 \x03(\t\x1a$\n\rVersionParams\x12\x13\n\x0b\x61pp_version\x18\x01 \x01(\x04\x1a\xed\x01\n\x06\x45vents\x12@\n\x06\x65vents\x18\x01 \x03(\x0b\x32\x30.aea.valory.abci.v0_1_0.AbciMessage.Events.Event\x1a;\n\x0e\x45ventAttribute\x12\x0b\n\x03key\x18\x01 \x01(\x0c\x12\r\n\x05value\x18\x02 \x01(\x0c\x12\r\n\x05index\x18\x03 \x01(\x08\x1a\x64\n\x05\x45vent\x12\x0c\n\x04type\x18\x01 \x01(\t\x12M\n\nattributes\x18\x02 \x03(\x0b\x32\x39.aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute\x1a\xc5\x03\n\tEvidences\x12T\n\x14\x62yzantine_validators\x18\x01 \x03(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence\x1a\xe1\x02\n\x08\x45vidence\x12Q\n\x04type\x18\x01 \x01(\x0e\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.EvidenceType\x12O\n\tvalidator\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x1a\n\x12total_voting_power\x18\x05 \x01(\x03"H\n\x0c\x45videnceType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x12\n\x0e\x44UPLICATE_VOTE\x10\x01\x12\x17\n\x13LIGHT_CLIENT_ATTACK\x10\x02\x1a\xa4\x05\n\x06Header\x12L\n\x07version\x18\x01 \x01(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12I\n\rlast_block_id\x18\x05 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID\x12\x18\n\x10last_commit_hash\x18\x06 \x01(\x0c\x12\x11\n\tdata_hash\x18\x07 \x01(\x0c\x12\x17\n\x0fvalidators_hash\x18\x08 \x01(\x0c\x12\x1c\n\x14next_validators_hash\x18\t \x01(\x0c\x12\x16\n\x0e\x63onsensus_hash\x18\n \x01(\x0c\x12\x10\n\x08\x61pp_hash\x18\x0b \x01(\x0c\x12\x19\n\x11last_results_hash\x18\x0c \x01(\x0c\x12\x15\n\revidence_hash\x18\r \x01(\x0c\x12\x18\n\x10proposer_address\x18\x0e \x01(\x0c\x1a.\n\x10\x43onsensusVersion\x12\r\n\x05\x62lock\x18\x01 \x01(\x04\x12\x0b\n\x03\x61pp\x18\x02 \x01(\x04\x1aj\n\x07\x42lockID\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12Q\n\x0fpart_set_header\x18\x02 \x01(\x0b\x32\x38.aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader\x1a,\n\rPartSetHeader\x12\r\n\x05total\x18\x01 \x01(\r\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\x1a\x90\x02\n\x0eLastCommitInfo\x12\r\n\x05round\x18\x01 \x01(\x05\x12J\n\x05votes\x18\x02 \x03(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo\x1a+\n\tValidator\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\r\n\x05power\x18\x03 \x01(\x03\x1av\n\x08VoteInfo\x12O\n\tvalidator\x18\x01 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x19\n\x11signed_last_block\x18\x02 \x01(\x08\x1a\x81\x01\n\x08ProofOps\x12\x41\n\x03ops\x18\x01 \x03(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp\x1a\x32\n\x07ProofOp\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x9f\x01\n\x10ValidatorUpdates\x12X\n\nvalidators\x18\x01 \x03(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.ValidatorUpdate\x1a\x31\n\x0fValidatorUpdate\x12\x0f\n\x07pub_key\x18\x01 \x01(\x0c\x12\r\n\x05power\x18\x02 \x01(\x03\x1a,\n\x19Request_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1c\n\x1aRequest_Flush_Performative\x1aX\n\x19Request_Info_Performative\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x15\n\rblock_version\x18\x02 \x01(\x05\x12\x13\n\x0bp2p_version\x18\x03 \x01(\x05\x1a\xba\x02\n\x1fRequest_Init_Chain_Performative\x12;\n\x04time\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12M\n\x10\x63onsensus_params\x18\x03 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12H\n\nvalidators\x18\x04 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x17\n\x0f\x61pp_state_bytes\x18\x05 \x01(\x0c\x12\x16\n\x0einitial_height\x18\x06 \x01(\t\x1a]\n\x1aRequest_Query_Performative\x12\x12\n\nquery_data\x18\x01 \x01(\x0c\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12\r\n\x05prove\x18\x04 \x01(\x08\x1a\x87\x02\n Request_Begin_Block_Performative\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12:\n\x06header\x18\x02 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Header\x12L\n\x10last_commit_info\x18\x03 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo\x12K\n\x14\x62yzantine_validators\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Evidences\x1a\x39\n\x1dRequest_Check_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x12\x0c\n\x04type\x18\x02 \x01(\x05\x1a-\n\x1fRequest_Deliver_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x1a\x30\n\x1eRequest_End_Block_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x1a\x1d\n\x1bRequest_Commit_Performative\x1a!\n\x1fResponse_Exception_Performative\x1a-\n\x1aResponse_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1d\n\x1bResponse_Flush_Performative\x1a\x8d\x01\n\x1aResponse_Info_Performative\x12\x11\n\tinfo_data\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x03 \x01(\x05\x12\x19\n\x11last_block_height\x18\x04 \x01(\x05\x12\x1b\n\x13last_block_app_hash\x18\x05 \x01(\x0c\x1a\xcd\x01\n Response_Init_Chain_Performative\x12M\n\x10\x63onsensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12H\n\nvalidators\x18\x02 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x10\n\x08\x61pp_hash\x18\x03 \x01(\x0c\x1a\xd5\x01\n\x1bResponse_Query_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0b\n\x03log\x18\x02 \x01(\t\x12\x0c\n\x04info\x18\x03 \x01(\t\x12\r\n\x05index\x18\x04 \x01(\x05\x12\x0b\n\x03key\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12?\n\tproof_ops\x18\x07 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.ProofOps\x12\x0e\n\x06height\x18\x08 \x01(\x05\x12\x11\n\tcodespace\x18\t \x01(\t\x1a_\n!Response_Begin_Block_Performative\x12:\n\x06\x65vents\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\xcc\x01\n\x1eResponse_Check_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\xce\x01\n Response_Deliver_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\x84\x02\n\x1fResponse_End_Block_Performative\x12O\n\x11validator_updates\x18\x01 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12T\n\x17\x63onsensus_param_updates\x18\x02 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12:\n\x06\x65vents\x18\x03 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\x43\n\x1cResponse_Commit_Performative\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x15\n\rretain_height\x18\x02 \x01(\x05\x42\x0e\n\x0cperformativeb\x06proto3',
 )
+
+
+_ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE = _descriptor.EnumDescriptor(
+    name="EvidenceType",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.EvidenceType",
+    filename=None,
+    file=DESCRIPTOR,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name="UNKNOWN", index=0, number=0, serialized_options=None, type=None
+        ),
+        _descriptor.EnumValueDescriptor(
+            name="DUPLICATE_VOTE", index=1, number=1, serialized_options=None, type=None
+        ),
+        _descriptor.EnumValueDescriptor(
+            name="LIGHT_CLIENT_ATTACK",
+            index=2,
+            number=2,
+            serialized_options=None,
+            type=None,
+        ),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=3350,
+    serialized_end=3422,
+)
+_sym_db.RegisterEnumDescriptor(_ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE)
 
 
 _ABCIMESSAGE_CONSENSUSPARAMS_DURATION = _descriptor.Descriptor(
@@ -74,8 +102,8 @@ _ABCIMESSAGE_CONSENSUSPARAMS_DURATION = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1243,
-    serialized_end=1285,
+    serialized_start=2399,
+    serialized_end=2441,
 )
 
 _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS = _descriptor.Descriptor(
@@ -130,8 +158,8 @@ _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1287,
-    serialized_end=1336,
+    serialized_start=2443,
+    serialized_end=2492,
 )
 
 _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS = _descriptor.Descriptor(
@@ -204,8 +232,8 @@ _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1339,
-    serialized_end=1490,
+    serialized_start=2495,
+    serialized_end=2646,
 )
 
 _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS = _descriptor.Descriptor(
@@ -242,8 +270,8 @@ _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1492,
-    serialized_end=1532,
+    serialized_start=2648,
+    serialized_end=2688,
 )
 
 _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS = _descriptor.Descriptor(
@@ -280,8 +308,8 @@ _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1534,
-    serialized_end=1570,
+    serialized_start=2690,
+    serialized_end=2726,
 )
 
 _ABCIMESSAGE_CONSENSUSPARAMS = _descriptor.Descriptor(
@@ -378,8 +406,1060 @@ _ABCIMESSAGE_CONSENSUSPARAMS = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=886,
-    serialized_end=1570,
+    serialized_start=2042,
+    serialized_end=2726,
+)
+
+_ABCIMESSAGE_EVENTS_EVENTATTRIBUTE = _descriptor.Descriptor(
+    name="EventAttribute",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="key",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute.key",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="value",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute.value",
+            index=1,
+            number=2,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="index",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute.index",
+            index=2,
+            number=3,
+            type=8,
+            cpp_type=7,
+            label=1,
+            has_default_value=False,
+            default_value=False,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=2805,
+    serialized_end=2864,
+)
+
+_ABCIMESSAGE_EVENTS_EVENT = _descriptor.Descriptor(
+    name="Event",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.Event",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="type",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.Event.type",
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="attributes",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.Event.attributes",
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=2866,
+    serialized_end=2966,
+)
+
+_ABCIMESSAGE_EVENTS = _descriptor.Descriptor(
+    name="Events",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Events",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="events",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Events.events",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[
+        _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE,
+        _ABCIMESSAGE_EVENTS_EVENT,
+    ],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=2729,
+    serialized_end=2966,
+)
+
+_ABCIMESSAGE_EVIDENCES_EVIDENCE = _descriptor.Descriptor(
+    name="Evidence",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="type",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.type",
+            index=0,
+            number=1,
+            type=14,
+            cpp_type=8,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="validator",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.validator",
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="height",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.height",
+            index=2,
+            number=3,
+            type=3,
+            cpp_type=2,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="time",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.time",
+            index=3,
+            number=4,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="total_voting_power",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.total_voting_power",
+            index=4,
+            number=5,
+            type=3,
+            cpp_type=2,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[
+        _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE,
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=3069,
+    serialized_end=3422,
+)
+
+_ABCIMESSAGE_EVIDENCES = _descriptor.Descriptor(
+    name="Evidences",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="byzantine_validators",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Evidences.byzantine_validators",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[
+        _ABCIMESSAGE_EVIDENCES_EVIDENCE,
+    ],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=2969,
+    serialized_end=3422,
+)
+
+_ABCIMESSAGE_HEADER_CONSENSUSVERSION = _descriptor.Descriptor(
+    name="ConsensusVersion",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="block",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion.block",
+            index=0,
+            number=1,
+            type=4,
+            cpp_type=4,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="app",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion.app",
+            index=1,
+            number=2,
+            type=4,
+            cpp_type=4,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=3901,
+    serialized_end=3947,
+)
+
+_ABCIMESSAGE_HEADER_BLOCKID = _descriptor.Descriptor(
+    name="BlockID",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID.hash",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="part_set_header",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID.part_set_header",
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=3949,
+    serialized_end=4055,
+)
+
+_ABCIMESSAGE_HEADER_PARTSETHEADER = _descriptor.Descriptor(
+    name="PartSetHeader",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="total",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader.total",
+            index=0,
+            number=1,
+            type=13,
+            cpp_type=3,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader.hash",
+            index=1,
+            number=2,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=4057,
+    serialized_end=4101,
+)
+
+_ABCIMESSAGE_HEADER = _descriptor.Descriptor(
+    name="Header",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Header",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="version",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.version",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="chain_id",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.chain_id",
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="height",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.height",
+            index=2,
+            number=3,
+            type=3,
+            cpp_type=2,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="time",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.time",
+            index=3,
+            number=4,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="last_block_id",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.last_block_id",
+            index=4,
+            number=5,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="last_commit_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.last_commit_hash",
+            index=5,
+            number=6,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="data_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.data_hash",
+            index=6,
+            number=7,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="validators_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.validators_hash",
+            index=7,
+            number=8,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="next_validators_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.next_validators_hash",
+            index=8,
+            number=9,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="consensus_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.consensus_hash",
+            index=9,
+            number=10,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="app_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.app_hash",
+            index=10,
+            number=11,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="last_results_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.last_results_hash",
+            index=11,
+            number=12,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="evidence_hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.evidence_hash",
+            index=12,
+            number=13,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="proposer_address",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Header.proposer_address",
+            index=13,
+            number=14,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[
+        _ABCIMESSAGE_HEADER_CONSENSUSVERSION,
+        _ABCIMESSAGE_HEADER_BLOCKID,
+        _ABCIMESSAGE_HEADER_PARTSETHEADER,
+    ],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=3425,
+    serialized_end=4101,
+)
+
+_ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR = _descriptor.Descriptor(
+    name="Validator",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="address",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator.address",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="power",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator.power",
+            index=1,
+            number=3,
+            type=3,
+            cpp_type=2,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=4213,
+    serialized_end=4256,
+)
+
+_ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO = _descriptor.Descriptor(
+    name="VoteInfo",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="validator",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo.validator",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="signed_last_block",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo.signed_last_block",
+            index=1,
+            number=2,
+            type=8,
+            cpp_type=7,
+            label=1,
+            has_default_value=False,
+            default_value=False,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=4258,
+    serialized_end=4376,
+)
+
+_ABCIMESSAGE_LASTCOMMITINFO = _descriptor.Descriptor(
+    name="LastCommitInfo",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="round",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.round",
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="votes",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.votes",
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[
+        _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR,
+        _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO,
+    ],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=4104,
+    serialized_end=4376,
+)
+
+_ABCIMESSAGE_PROOFOPS_PROOFOP = _descriptor.Descriptor(
+    name="ProofOp",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="type",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp.type",
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="key",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp.key",
+            index=1,
+            number=2,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="data",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp.data",
+            index=2,
+            number=3,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=4458,
+    serialized_end=4508,
+)
+
+_ABCIMESSAGE_PROOFOPS = _descriptor.Descriptor(
+    name="ProofOps",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.ProofOps",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="ops",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ops",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[
+        _ABCIMESSAGE_PROOFOPS_PROOFOP,
+    ],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=4379,
+    serialized_end=4508,
 )
 
 _ABCIMESSAGE_TIMESTAMP = _descriptor.Descriptor(
@@ -434,8 +1514,8 @@ _ABCIMESSAGE_TIMESTAMP = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1572,
-    serialized_end=1615,
+    serialized_start=4510,
+    serialized_end=4553,
 )
 
 _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE = _descriptor.Descriptor(
@@ -490,8 +1570,8 @@ _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1728,
-    serialized_end=1777,
+    serialized_start=4666,
+    serialized_end=4715,
 )
 
 _ABCIMESSAGE_VALIDATORUPDATES = _descriptor.Descriptor(
@@ -530,8 +1610,8 @@ _ABCIMESSAGE_VALIDATORUPDATES = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1618,
-    serialized_end=1777,
+    serialized_start=4556,
+    serialized_end=4715,
 )
 
 _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE = _descriptor.Descriptor(
@@ -568,8 +1648,8 @@ _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1779,
-    serialized_end=1823,
+    serialized_start=4717,
+    serialized_end=4761,
 )
 
 _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE = _descriptor.Descriptor(
@@ -587,8 +1667,8 @@ _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1825,
-    serialized_end=1853,
+    serialized_start=4763,
+    serialized_end=4791,
 )
 
 _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE = _descriptor.Descriptor(
@@ -661,8 +1741,8 @@ _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1855,
-    serialized_end=1943,
+    serialized_start=4793,
+    serialized_end=4881,
 )
 
 _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE = _descriptor.Descriptor(
@@ -789,8 +1869,343 @@ _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=1946,
-    serialized_end=2260,
+    serialized_start=4884,
+    serialized_end=5198,
+)
+
+_ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE = _descriptor.Descriptor(
+    name="Request_Query_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="query_data",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative.query_data",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="path",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative.path",
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="height",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative.height",
+            index=2,
+            number=3,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="prove",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative.prove",
+            index=3,
+            number=4,
+            type=8,
+            cpp_type=7,
+            label=1,
+            has_default_value=False,
+            default_value=False,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=5200,
+    serialized_end=5293,
+)
+
+_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE = _descriptor.Descriptor(
+    name="Request_Begin_Block_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="hash",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative.hash",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="header",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative.header",
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="last_commit_info",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative.last_commit_info",
+            index=2,
+            number=3,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="byzantine_validators",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative.byzantine_validators",
+            index=3,
+            number=4,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=5296,
+    serialized_end=5559,
+)
+
+_ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE = _descriptor.Descriptor(
+    name="Request_Check_Tx_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="tx",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_Performative.tx",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="type",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_Performative.type",
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=5561,
+    serialized_end=5618,
+)
+
+_ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE = _descriptor.Descriptor(
+    name="Request_Deliver_Tx_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="tx",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_Performative.tx",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=5620,
+    serialized_end=5665,
+)
+
+_ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE = _descriptor.Descriptor(
+    name="Request_End_Block_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="height",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_Performative.height",
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=5667,
+    serialized_end=5715,
+)
+
+_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE = _descriptor.Descriptor(
+    name="Request_Commit_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=5717,
+    serialized_end=5746,
 )
 
 _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE = _descriptor.Descriptor(
@@ -808,8 +2223,8 @@ _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=2262,
-    serialized_end=2295,
+    serialized_start=5748,
+    serialized_end=5781,
 )
 
 _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE = _descriptor.Descriptor(
@@ -846,8 +2261,8 @@ _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=2297,
-    serialized_end=2342,
+    serialized_start=5783,
+    serialized_end=5828,
 )
 
 _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE = _descriptor.Descriptor(
@@ -865,8 +2280,8 @@ _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=2344,
-    serialized_end=2373,
+    serialized_start=5830,
+    serialized_end=5859,
 )
 
 _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE = _descriptor.Descriptor(
@@ -877,8 +2292,8 @@ _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE = _descriptor.Descriptor(
     containing_type=None,
     fields=[
         _descriptor.FieldDescriptor(
-            name="data",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Info_Performative.data",
+            name="info_data",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Info_Performative.info_data",
             index=0,
             number=1,
             type=9,
@@ -975,8 +2390,8 @@ _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=2376,
-    serialized_end=2512,
+    serialized_start=5862,
+    serialized_end=6003,
 )
 
 _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE = _descriptor.Descriptor(
@@ -1049,8 +2464,686 @@ _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE = _descriptor.Descriptor(
     syntax="proto3",
     extension_ranges=[],
     oneofs=[],
-    serialized_start=2515,
-    serialized_end=2720,
+    serialized_start=6006,
+    serialized_end=6211,
+)
+
+_ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE = _descriptor.Descriptor(
+    name="Response_Query_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="code",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.code",
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="log",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.log",
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="info",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.info",
+            index=2,
+            number=3,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="index",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.index",
+            index=3,
+            number=4,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="key",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.key",
+            index=4,
+            number=5,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="value",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.value",
+            index=5,
+            number=6,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="proof_ops",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.proof_ops",
+            index=6,
+            number=7,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="height",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.height",
+            index=7,
+            number=8,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="codespace",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative.codespace",
+            index=8,
+            number=9,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=6214,
+    serialized_end=6427,
+)
+
+_ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE = _descriptor.Descriptor(
+    name="Response_Begin_Block_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="events",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_Performative.events",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=6429,
+    serialized_end=6524,
+)
+
+_ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE = _descriptor.Descriptor(
+    name="Response_Check_Tx_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="code",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.code",
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="data",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.data",
+            index=1,
+            number=2,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="log",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.log",
+            index=2,
+            number=3,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="info",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.info",
+            index=3,
+            number=4,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="gas_wanted",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.gas_wanted",
+            index=4,
+            number=5,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="gas_used",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.gas_used",
+            index=5,
+            number=6,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="events",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.events",
+            index=6,
+            number=7,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="codespace",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative.codespace",
+            index=7,
+            number=8,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=6527,
+    serialized_end=6731,
+)
+
+_ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE = _descriptor.Descriptor(
+    name="Response_Deliver_Tx_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="code",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.code",
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="data",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.data",
+            index=1,
+            number=2,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="log",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.log",
+            index=2,
+            number=3,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="info",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.info",
+            index=3,
+            number=4,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="gas_wanted",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.gas_wanted",
+            index=4,
+            number=5,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="gas_used",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.gas_used",
+            index=5,
+            number=6,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="events",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.events",
+            index=6,
+            number=7,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="codespace",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative.codespace",
+            index=7,
+            number=8,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=6734,
+    serialized_end=6940,
+)
+
+_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE = _descriptor.Descriptor(
+    name="Response_End_Block_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="validator_updates",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_Performative.validator_updates",
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="consensus_param_updates",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_Performative.consensus_param_updates",
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="events",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_Performative.events",
+            index=2,
+            number=3,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=6943,
+    serialized_end=7203,
+)
+
+_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE = _descriptor.Descriptor(
+    name="Response_Commit_Performative",
+    full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_Performative",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="data",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_Performative.data",
+            index=0,
+            number=1,
+            type=12,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"",
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="retain_height",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_Performative.retain_height",
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=7205,
+    serialized_end=7272,
 )
 
 _ABCIMESSAGE = _descriptor.Descriptor(
@@ -1061,8 +3154,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
     containing_type=None,
     fields=[
         _descriptor.FieldDescriptor(
-            name="request_echo",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_echo",
+            name="request_begin_block",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_begin_block",
             index=0,
             number=5,
             type=11,
@@ -1079,8 +3172,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="request_flush",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_flush",
+            name="request_check_tx",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_check_tx",
             index=1,
             number=6,
             type=11,
@@ -1097,8 +3190,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="request_info",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_info",
+            name="request_commit",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_commit",
             index=2,
             number=7,
             type=11,
@@ -1115,8 +3208,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="request_init_chain",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_init_chain",
+            name="request_deliver_tx",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_deliver_tx",
             index=3,
             number=8,
             type=11,
@@ -1133,8 +3226,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="response_echo",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_echo",
+            name="request_echo",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_echo",
             index=4,
             number=9,
             type=11,
@@ -1151,8 +3244,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="response_exception",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_exception",
+            name="request_end_block",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_end_block",
             index=5,
             number=10,
             type=11,
@@ -1169,8 +3262,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="response_flush",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_flush",
+            name="request_flush",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_flush",
             index=6,
             number=11,
             type=11,
@@ -1187,8 +3280,8 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="response_info",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_info",
+            name="request_info",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_info",
             index=7,
             number=12,
             type=11,
@@ -1205,10 +3298,226 @@ _ABCIMESSAGE = _descriptor.Descriptor(
             file=DESCRIPTOR,
         ),
         _descriptor.FieldDescriptor(
-            name="response_init_chain",
-            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_init_chain",
+            name="request_init_chain",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_init_chain",
             index=8,
             number=13,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="request_query",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.request_query",
+            index=9,
+            number=14,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_begin_block",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_begin_block",
+            index=10,
+            number=15,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_check_tx",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_check_tx",
+            index=11,
+            number=16,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_commit",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_commit",
+            index=12,
+            number=17,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_deliver_tx",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_deliver_tx",
+            index=13,
+            number=18,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_echo",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_echo",
+            index=14,
+            number=19,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_end_block",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_end_block",
+            index=15,
+            number=20,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_exception",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_exception",
+            index=16,
+            number=21,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_flush",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_flush",
+            index=17,
+            number=22,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_info",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_info",
+            index=18,
+            number=23,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_init_chain",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_init_chain",
+            index=19,
+            number=24,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name="response_query",
+            full_name="aea.valory.abci.v0_1_0.AbciMessage.response_query",
+            index=20,
+            number=25,
             type=11,
             cpp_type=10,
             label=1,
@@ -1226,17 +3535,34 @@ _ABCIMESSAGE = _descriptor.Descriptor(
     extensions=[],
     nested_types=[
         _ABCIMESSAGE_CONSENSUSPARAMS,
+        _ABCIMESSAGE_EVENTS,
+        _ABCIMESSAGE_EVIDENCES,
+        _ABCIMESSAGE_HEADER,
+        _ABCIMESSAGE_LASTCOMMITINFO,
+        _ABCIMESSAGE_PROOFOPS,
         _ABCIMESSAGE_TIMESTAMP,
         _ABCIMESSAGE_VALIDATORUPDATES,
         _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE,
         _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE,
         _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE,
         _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE,
+        _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE,
+        _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE,
+        _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE,
+        _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE,
+        _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE,
+        _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE,
         _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE,
         _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE,
         _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE,
         _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE,
         _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE,
+        _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE,
+        _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE,
+        _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE,
+        _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE,
+        _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE,
+        _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE,
     ],
     enum_types=[],
     serialized_options=None,
@@ -1253,7 +3579,7 @@ _ABCIMESSAGE = _descriptor.Descriptor(
         ),
     ],
     serialized_start=39,
-    serialized_end=2736,
+    serialized_end=7288,
 )
 
 _ABCIMESSAGE_CONSENSUSPARAMS_DURATION.containing_type = _ABCIMESSAGE_CONSENSUSPARAMS
@@ -1283,6 +3609,56 @@ _ABCIMESSAGE_CONSENSUSPARAMS.fields_by_name[
     "version"
 ].message_type = _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS
 _ABCIMESSAGE_CONSENSUSPARAMS.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_EVENTS_EVENTATTRIBUTE.containing_type = _ABCIMESSAGE_EVENTS
+_ABCIMESSAGE_EVENTS_EVENT.fields_by_name[
+    "attributes"
+].message_type = _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE
+_ABCIMESSAGE_EVENTS_EVENT.containing_type = _ABCIMESSAGE_EVENTS
+_ABCIMESSAGE_EVENTS.fields_by_name["events"].message_type = _ABCIMESSAGE_EVENTS_EVENT
+_ABCIMESSAGE_EVENTS.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_EVIDENCES_EVIDENCE.fields_by_name[
+    "type"
+].enum_type = _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE
+_ABCIMESSAGE_EVIDENCES_EVIDENCE.fields_by_name[
+    "validator"
+].message_type = _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR
+_ABCIMESSAGE_EVIDENCES_EVIDENCE.fields_by_name[
+    "time"
+].message_type = _ABCIMESSAGE_TIMESTAMP
+_ABCIMESSAGE_EVIDENCES_EVIDENCE.containing_type = _ABCIMESSAGE_EVIDENCES
+_ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE.containing_type = (
+    _ABCIMESSAGE_EVIDENCES_EVIDENCE
+)
+_ABCIMESSAGE_EVIDENCES.fields_by_name[
+    "byzantine_validators"
+].message_type = _ABCIMESSAGE_EVIDENCES_EVIDENCE
+_ABCIMESSAGE_EVIDENCES.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_HEADER_CONSENSUSVERSION.containing_type = _ABCIMESSAGE_HEADER
+_ABCIMESSAGE_HEADER_BLOCKID.fields_by_name[
+    "part_set_header"
+].message_type = _ABCIMESSAGE_HEADER_PARTSETHEADER
+_ABCIMESSAGE_HEADER_BLOCKID.containing_type = _ABCIMESSAGE_HEADER
+_ABCIMESSAGE_HEADER_PARTSETHEADER.containing_type = _ABCIMESSAGE_HEADER
+_ABCIMESSAGE_HEADER.fields_by_name[
+    "version"
+].message_type = _ABCIMESSAGE_HEADER_CONSENSUSVERSION
+_ABCIMESSAGE_HEADER.fields_by_name["time"].message_type = _ABCIMESSAGE_TIMESTAMP
+_ABCIMESSAGE_HEADER.fields_by_name[
+    "last_block_id"
+].message_type = _ABCIMESSAGE_HEADER_BLOCKID
+_ABCIMESSAGE_HEADER.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR.containing_type = _ABCIMESSAGE_LASTCOMMITINFO
+_ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO.fields_by_name[
+    "validator"
+].message_type = _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR
+_ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO.containing_type = _ABCIMESSAGE_LASTCOMMITINFO
+_ABCIMESSAGE_LASTCOMMITINFO.fields_by_name[
+    "votes"
+].message_type = _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO
+_ABCIMESSAGE_LASTCOMMITINFO.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_PROOFOPS_PROOFOP.containing_type = _ABCIMESSAGE_PROOFOPS
+_ABCIMESSAGE_PROOFOPS.fields_by_name["ops"].message_type = _ABCIMESSAGE_PROOFOPS_PROOFOP
+_ABCIMESSAGE_PROOFOPS.containing_type = _ABCIMESSAGE
 _ABCIMESSAGE_TIMESTAMP.containing_type = _ABCIMESSAGE
 _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE.containing_type = (
     _ABCIMESSAGE_VALIDATORUPDATES
@@ -1304,6 +3680,21 @@ _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE.fields_by_name[
     "validators"
 ].message_type = _ABCIMESSAGE_VALIDATORUPDATES
 _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE.fields_by_name[
+    "header"
+].message_type = _ABCIMESSAGE_HEADER
+_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE.fields_by_name[
+    "last_commit_info"
+].message_type = _ABCIMESSAGE_LASTCOMMITINFO
+_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE.fields_by_name[
+    "byzantine_validators"
+].message_type = _ABCIMESSAGE_EVIDENCES
+_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE.containing_type = _ABCIMESSAGE
 _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE.containing_type = _ABCIMESSAGE
 _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE.containing_type = _ABCIMESSAGE
 _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE.containing_type = _ABCIMESSAGE
@@ -1315,9 +3706,51 @@ _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE.fields_by_name[
     "validators"
 ].message_type = _ABCIMESSAGE_VALIDATORUPDATES
 _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE.fields_by_name[
+    "proof_ops"
+].message_type = _ABCIMESSAGE_PROOFOPS
+_ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE.fields_by_name[
+    "events"
+].message_type = _ABCIMESSAGE_EVENTS
+_ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE.fields_by_name[
+    "events"
+].message_type = _ABCIMESSAGE_EVENTS
+_ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE.fields_by_name[
+    "events"
+].message_type = _ABCIMESSAGE_EVENTS
+_ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE.fields_by_name[
+    "validator_updates"
+].message_type = _ABCIMESSAGE_VALIDATORUPDATES
+_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE.fields_by_name[
+    "consensus_param_updates"
+].message_type = _ABCIMESSAGE_CONSENSUSPARAMS
+_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE.fields_by_name[
+    "events"
+].message_type = _ABCIMESSAGE_EVENTS
+_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE.containing_type = _ABCIMESSAGE
+_ABCIMESSAGE.fields_by_name[
+    "request_begin_block"
+].message_type = _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "request_check_tx"
+].message_type = _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "request_commit"
+].message_type = _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "request_deliver_tx"
+].message_type = _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE
 _ABCIMESSAGE.fields_by_name[
     "request_echo"
 ].message_type = _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "request_end_block"
+].message_type = _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE
 _ABCIMESSAGE.fields_by_name[
     "request_flush"
 ].message_type = _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE
@@ -1328,8 +3761,26 @@ _ABCIMESSAGE.fields_by_name[
     "request_init_chain"
 ].message_type = _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE
 _ABCIMESSAGE.fields_by_name[
+    "request_query"
+].message_type = _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "response_begin_block"
+].message_type = _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "response_check_tx"
+].message_type = _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "response_commit"
+].message_type = _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "response_deliver_tx"
+].message_type = _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
     "response_echo"
 ].message_type = _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "response_end_block"
+].message_type = _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE
 _ABCIMESSAGE.fields_by_name[
     "response_exception"
 ].message_type = _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE
@@ -1342,11 +3793,44 @@ _ABCIMESSAGE.fields_by_name[
 _ABCIMESSAGE.fields_by_name[
     "response_init_chain"
 ].message_type = _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE
+_ABCIMESSAGE.fields_by_name[
+    "response_query"
+].message_type = _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["request_begin_block"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "request_begin_block"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["request_check_tx"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "request_check_tx"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["request_commit"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "request_commit"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["request_deliver_tx"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "request_deliver_tx"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
 _ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
     _ABCIMESSAGE.fields_by_name["request_echo"]
 )
 _ABCIMESSAGE.fields_by_name[
     "request_echo"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["request_end_block"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "request_end_block"
 ].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
 _ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
     _ABCIMESSAGE.fields_by_name["request_flush"]
@@ -1367,10 +3851,46 @@ _ABCIMESSAGE.fields_by_name[
     "request_init_chain"
 ].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
 _ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["request_query"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "request_query"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["response_begin_block"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "response_begin_block"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["response_check_tx"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "response_check_tx"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["response_commit"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "response_commit"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["response_deliver_tx"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "response_deliver_tx"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
     _ABCIMESSAGE.fields_by_name["response_echo"]
 )
 _ABCIMESSAGE.fields_by_name[
     "response_echo"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["response_end_block"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "response_end_block"
 ].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
 _ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
     _ABCIMESSAGE.fields_by_name["response_exception"]
@@ -1395,6 +3915,12 @@ _ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
 )
 _ABCIMESSAGE.fields_by_name[
     "response_init_chain"
+].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
+_ABCIMESSAGE.oneofs_by_name["performative"].fields.append(
+    _ABCIMESSAGE.fields_by_name["response_query"]
+)
+_ABCIMESSAGE.fields_by_name[
+    "response_query"
 ].containing_oneof = _ABCIMESSAGE.oneofs_by_name["performative"]
 DESCRIPTOR.message_types_by_name["AbciMessage"] = _ABCIMESSAGE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -1455,6 +3981,132 @@ AbciMessage = _reflection.GeneratedProtocolMessageType(
                 "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS,
                 "__module__": "abci_pb2"
                 # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams)
+            },
+        ),
+        "Events": _reflection.GeneratedProtocolMessageType(
+            "Events",
+            (_message.Message,),
+            {
+                "EventAttribute": _reflection.GeneratedProtocolMessageType(
+                    "EventAttribute",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute)
+                    },
+                ),
+                "Event": _reflection.GeneratedProtocolMessageType(
+                    "Event",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_EVENTS_EVENT,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Events.Event)
+                    },
+                ),
+                "DESCRIPTOR": _ABCIMESSAGE_EVENTS,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Events)
+            },
+        ),
+        "Evidences": _reflection.GeneratedProtocolMessageType(
+            "Evidences",
+            (_message.Message,),
+            {
+                "Evidence": _reflection.GeneratedProtocolMessageType(
+                    "Evidence",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_EVIDENCES_EVIDENCE,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence)
+                    },
+                ),
+                "DESCRIPTOR": _ABCIMESSAGE_EVIDENCES,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Evidences)
+            },
+        ),
+        "Header": _reflection.GeneratedProtocolMessageType(
+            "Header",
+            (_message.Message,),
+            {
+                "ConsensusVersion": _reflection.GeneratedProtocolMessageType(
+                    "ConsensusVersion",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_HEADER_CONSENSUSVERSION,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion)
+                    },
+                ),
+                "BlockID": _reflection.GeneratedProtocolMessageType(
+                    "BlockID",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_HEADER_BLOCKID,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID)
+                    },
+                ),
+                "PartSetHeader": _reflection.GeneratedProtocolMessageType(
+                    "PartSetHeader",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_HEADER_PARTSETHEADER,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader)
+                    },
+                ),
+                "DESCRIPTOR": _ABCIMESSAGE_HEADER,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header)
+            },
+        ),
+        "LastCommitInfo": _reflection.GeneratedProtocolMessageType(
+            "LastCommitInfo",
+            (_message.Message,),
+            {
+                "Validator": _reflection.GeneratedProtocolMessageType(
+                    "Validator",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator)
+                    },
+                ),
+                "VoteInfo": _reflection.GeneratedProtocolMessageType(
+                    "VoteInfo",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo)
+                    },
+                ),
+                "DESCRIPTOR": _ABCIMESSAGE_LASTCOMMITINFO,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo)
+            },
+        ),
+        "ProofOps": _reflection.GeneratedProtocolMessageType(
+            "ProofOps",
+            (_message.Message,),
+            {
+                "ProofOp": _reflection.GeneratedProtocolMessageType(
+                    "ProofOp",
+                    (_message.Message,),
+                    {
+                        "DESCRIPTOR": _ABCIMESSAGE_PROOFOPS_PROOFOP,
+                        "__module__": "abci_pb2"
+                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp)
+                    },
+                ),
+                "DESCRIPTOR": _ABCIMESSAGE_PROOFOPS,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ProofOps)
             },
         ),
         "Timestamp": _reflection.GeneratedProtocolMessageType(
@@ -1520,6 +4172,60 @@ AbciMessage = _reflection.GeneratedProtocolMessageType(
                 # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_Performative)
             },
         ),
+        "Request_Query_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Query_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative)
+            },
+        ),
+        "Request_Begin_Block_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Begin_Block_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative)
+            },
+        ),
+        "Request_Check_Tx_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Check_Tx_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_Performative)
+            },
+        ),
+        "Request_Deliver_Tx_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Deliver_Tx_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_Performative)
+            },
+        ),
+        "Request_End_Block_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_End_Block_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_Performative)
+            },
+        ),
+        "Request_Commit_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Commit_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_Performative)
+            },
+        ),
         "Response_Exception_Performative": _reflection.GeneratedProtocolMessageType(
             "Response_Exception_Performative",
             (_message.Message,),
@@ -1565,6 +4271,60 @@ AbciMessage = _reflection.GeneratedProtocolMessageType(
                 # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_Performative)
             },
         ),
+        "Response_Query_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Query_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative)
+            },
+        ),
+        "Response_Begin_Block_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Begin_Block_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_Performative)
+            },
+        ),
+        "Response_Check_Tx_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Check_Tx_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative)
+            },
+        ),
+        "Response_Deliver_Tx_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Deliver_Tx_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative)
+            },
+        ),
+        "Response_End_Block_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_End_Block_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_Performative)
+            },
+        ),
+        "Response_Commit_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Commit_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE,
+                "__module__": "abci_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_Performative)
+            },
+        ),
         "DESCRIPTOR": _ABCIMESSAGE,
         "__module__": "abci_pb2"
         # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage)
@@ -1577,6 +4337,20 @@ _sym_db.RegisterMessage(AbciMessage.ConsensusParams.BlockParams)
 _sym_db.RegisterMessage(AbciMessage.ConsensusParams.EvidenceParams)
 _sym_db.RegisterMessage(AbciMessage.ConsensusParams.ValidatorParams)
 _sym_db.RegisterMessage(AbciMessage.ConsensusParams.VersionParams)
+_sym_db.RegisterMessage(AbciMessage.Events)
+_sym_db.RegisterMessage(AbciMessage.Events.EventAttribute)
+_sym_db.RegisterMessage(AbciMessage.Events.Event)
+_sym_db.RegisterMessage(AbciMessage.Evidences)
+_sym_db.RegisterMessage(AbciMessage.Evidences.Evidence)
+_sym_db.RegisterMessage(AbciMessage.Header)
+_sym_db.RegisterMessage(AbciMessage.Header.ConsensusVersion)
+_sym_db.RegisterMessage(AbciMessage.Header.BlockID)
+_sym_db.RegisterMessage(AbciMessage.Header.PartSetHeader)
+_sym_db.RegisterMessage(AbciMessage.LastCommitInfo)
+_sym_db.RegisterMessage(AbciMessage.LastCommitInfo.Validator)
+_sym_db.RegisterMessage(AbciMessage.LastCommitInfo.VoteInfo)
+_sym_db.RegisterMessage(AbciMessage.ProofOps)
+_sym_db.RegisterMessage(AbciMessage.ProofOps.ProofOp)
 _sym_db.RegisterMessage(AbciMessage.Timestamp)
 _sym_db.RegisterMessage(AbciMessage.ValidatorUpdates)
 _sym_db.RegisterMessage(AbciMessage.ValidatorUpdates.ValidatorUpdate)
@@ -1584,11 +4358,23 @@ _sym_db.RegisterMessage(AbciMessage.Request_Echo_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Flush_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Info_Performative)
 _sym_db.RegisterMessage(AbciMessage.Request_Init_Chain_Performative)
+_sym_db.RegisterMessage(AbciMessage.Request_Query_Performative)
+_sym_db.RegisterMessage(AbciMessage.Request_Begin_Block_Performative)
+_sym_db.RegisterMessage(AbciMessage.Request_Check_Tx_Performative)
+_sym_db.RegisterMessage(AbciMessage.Request_Deliver_Tx_Performative)
+_sym_db.RegisterMessage(AbciMessage.Request_End_Block_Performative)
+_sym_db.RegisterMessage(AbciMessage.Request_Commit_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Exception_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Echo_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Flush_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Info_Performative)
 _sym_db.RegisterMessage(AbciMessage.Response_Init_Chain_Performative)
+_sym_db.RegisterMessage(AbciMessage.Response_Query_Performative)
+_sym_db.RegisterMessage(AbciMessage.Response_Begin_Block_Performative)
+_sym_db.RegisterMessage(AbciMessage.Response_Check_Tx_Performative)
+_sym_db.RegisterMessage(AbciMessage.Response_Deliver_Tx_Performative)
+_sym_db.RegisterMessage(AbciMessage.Response_End_Block_Performative)
+_sym_db.RegisterMessage(AbciMessage.Response_Commit_Performative)
 
 
 # @@protoc_insertion_point(module_scope)

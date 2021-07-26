@@ -31,6 +31,101 @@ message AbciMessage{
     VersionParams version = 4;
   }
 
+  message Events{
+    message EventAttribute {
+      bytes key   = 1;
+      bytes value = 2;
+      bool  index = 3;  // nondeterministic
+    }
+    message Event {
+      string                  type       = 1;
+      repeated EventAttribute attributes = 2;
+    }
+    repeated Event events = 1;
+  }
+
+  message Evidences{
+    message Evidence {
+      enum EvidenceType {
+        UNKNOWN             = 0;
+        DUPLICATE_VOTE      = 1;
+        LIGHT_CLIENT_ATTACK = 2;
+      }
+      EvidenceType type = 1;
+      // The offending validator
+      LastCommitInfo.Validator validator = 2;
+      // The height when the offense occurred
+      int64 height = 3;
+      // The corresponding time where the offense occurred
+      Timestamp time = 4;
+      // Total voting power of the validator set in case the ABCI application does
+      // not store historical validators.
+      // https://github.com/tendermint/tendermint/issues/4581
+      int64 total_voting_power = 5;
+    }
+    repeated Evidence byzantine_validators = 1;
+  }
+
+  message Header{
+    message ConsensusVersion {
+      uint64 block = 1;
+      uint64 app   = 2;
+    }
+    message BlockID {
+      bytes         hash            = 1;
+      PartSetHeader part_set_header = 2;
+    }
+    message PartSetHeader {
+      uint32 total = 1;
+      bytes  hash  = 2;
+    }
+    ConsensusVersion             version  = 1;
+    string                       chain_id = 2;
+    int64                        height   = 3;
+    Timestamp                    time     = 4;
+        
+    // prev block info
+    BlockID last_block_id = 5;
+        
+    // hashes of block data
+    bytes last_commit_hash = 6;  // commit from validators from the last block
+    bytes data_hash        = 7;  // transactions
+        
+    // hashes from the app output from the prev block
+    bytes validators_hash      = 8;   // validators for the current block
+    bytes next_validators_hash = 9;   // validators for the next block
+    bytes consensus_hash       = 10;  // consensus params for current block
+    bytes app_hash             = 11;  // state after txs from the previous block
+    bytes last_results_hash    = 12;  // root hash of all results from the txs from the previous block
+        
+    // consensus info
+    bytes evidence_hash    = 13;  // evidence included in the block
+    bytes proposer_address = 14;  // original proposer of the block
+  }
+
+  message LastCommitInfo{
+    message Validator {
+      bytes address = 1;  // The first 20 bytes of SHA256(public key)
+      // PubKey pub_key = 2 [(gogoproto.nullable)=false];
+      int64 power = 3;  // The voting power
+    }
+    message VoteInfo {
+      Validator validator         = 1;
+      bool      signed_last_block = 2;
+    }
+    int32             round = 1;
+    repeated VoteInfo votes = 2;
+  }
+
+  message ProofOps{
+    message ProofOp {
+      string type = 1;
+      bytes  key  = 2;
+      bytes  data = 3;
+    }
+    repeated ProofOp ops = 1;
+  }
+
   message Timestamp{
     // Represents seconds of UTC time since Unix epoch
     // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
@@ -75,6 +170,36 @@ message AbciMessage{
     string initial_height = 6;
   }
 
+  message Request_Query_Performative{
+    bytes query_data = 1;
+    string path = 2;
+    int32 height = 3;
+    bool prove = 4;
+  }
+
+  message Request_Begin_Block_Performative{
+    bytes hash = 1;
+    Header header = 2;
+    LastCommitInfo last_commit_info = 3;
+    Evidences byzantine_validators = 4;
+  }
+
+  message Request_Check_Tx_Performative{
+    bytes tx = 1;
+    int32 type = 2;
+  }
+
+  message Request_Deliver_Tx_Performative{
+    bytes tx = 1;
+  }
+
+  message Request_End_Block_Performative{
+    int32 height = 1;
+  }
+
+  message Request_Commit_Performative{
+  }
+
   message Response_Exception_Performative{
   }
 
@@ -86,7 +211,7 @@ message AbciMessage{
   }
 
   message Response_Info_Performative{
-    string data = 1;
+    string info_data = 1;
     string version = 2;
     int32 app_version = 3;
     int32 last_block_height = 4;
@@ -99,16 +224,77 @@ message AbciMessage{
     bytes app_hash = 3;
   }
 
+  message Response_Query_Performative{
+    int32 code = 1;
+    string log = 2;
+    string info = 3;
+    int32 index = 4;
+    bytes key = 5;
+    bytes value = 6;
+    ProofOps proof_ops = 7;
+    int32 height = 8;
+    string codespace = 9;
+  }
+
+  message Response_Begin_Block_Performative{
+    Events events = 1;
+  }
+
+  message Response_Check_Tx_Performative{
+    int32 code = 1;
+    bytes data = 2;
+    string log = 3;
+    string info = 4;
+    int32 gas_wanted = 5;
+    int32 gas_used = 6;
+    Events events = 7;
+    string codespace = 8;
+  }
+
+  message Response_Deliver_Tx_Performative{
+    int32 code = 1;
+    bytes data = 2;
+    string log = 3;
+    string info = 4;
+    int32 gas_wanted = 5;
+    int32 gas_used = 6;
+    Events events = 7;
+    string codespace = 8;
+  }
+
+  message Response_End_Block_Performative{
+    ValidatorUpdates validator_updates = 1;
+    ConsensusParams consensus_param_updates = 2;
+    Events events = 3;
+  }
+
+  message Response_Commit_Performative{
+    bytes data = 1;
+    int32 retain_height = 2;
+  }
+
 
   oneof performative{
-    Request_Echo_Performative request_echo = 5;
-    Request_Flush_Performative request_flush = 6;
-    Request_Info_Performative request_info = 7;
-    Request_Init_Chain_Performative request_init_chain = 8;
-    Response_Echo_Performative response_echo = 9;
-    Response_Exception_Performative response_exception = 10;
-    Response_Flush_Performative response_flush = 11;
-    Response_Info_Performative response_info = 12;
-    Response_Init_Chain_Performative response_init_chain = 13;
+    Request_Begin_Block_Performative request_begin_block = 5;
+    Request_Check_Tx_Performative request_check_tx = 6;
+    Request_Commit_Performative request_commit = 7;
+    Request_Deliver_Tx_Performative request_deliver_tx = 8;
+    Request_Echo_Performative request_echo = 9;
+    Request_End_Block_Performative request_end_block = 10;
+    Request_Flush_Performative request_flush = 11;
+    Request_Info_Performative request_info = 12;
+    Request_Init_Chain_Performative request_init_chain = 13;
+    Request_Query_Performative request_query = 14;
+    Response_Begin_Block_Performative response_begin_block = 15;
+    Response_Check_Tx_Performative response_check_tx = 16;
+    Response_Commit_Performative response_commit = 17;
+    Response_Deliver_Tx_Performative response_deliver_tx = 18;
+    Response_Echo_Performative response_echo = 19;
+    Response_End_Block_Performative response_end_block = 20;
+    Response_Exception_Performative response_exception = 21;
+    Response_Flush_Performative response_flush = 22;
+    Response_Info_Performative response_info = 23;
+    Response_Init_Chain_Performative response_init_chain = 24;
+    Response_Query_Performative response_query = 25;
   }
 }

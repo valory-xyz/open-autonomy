@@ -212,8 +212,9 @@ def replace_in_directory(name: str, replacement_pairs: List[Tuple[str, str]]) ->
             submodule.write_text(submodule.read_text().replace(to_replace, replacement))
 
 
-def _fix_generated_protocol(package_path: Path,
-                            overwrite_custom_types: bool = False) -> None:
+def _fix_generated_protocol(
+    package_path: Path, overwrite_custom_types: bool = False
+) -> None:
     """
     Fix the generated protocol.
 
@@ -302,8 +303,9 @@ def _replace_generator_docstring(package_path: Path, replacement: str) -> None:
 
 
 def _process_packages_protocol(
-    package_path: Path, preserve_generator_docstring: bool = False,
-    overwrite_custom_types: bool = False
+    package_path: Path,
+    preserve_generator_docstring: bool = False,
+    overwrite_custom_types: bool = False,
 ) -> None:
     """
     Process protocol package from local registry.
@@ -496,7 +498,11 @@ if __name__ == "__main__":
         "--check-clean", action="store_true", help="Check if the working tree is clean."
     )
     parser.add_argument("--no-bump", action="store_true", help="Prevent version bump.")
-    parser.add_argument("--overwrite-custom-types", action="store_true", help="Overwrite custom_types module.")
+    parser.add_argument(
+        "--overwrite-custom-types",
+        action="store_true",
+        help="Overwrite custom_types module.",
+    )
     arguments = parser.parse_args()
 
     main(arguments.no_bump, arguments.overwrite_custom_types)

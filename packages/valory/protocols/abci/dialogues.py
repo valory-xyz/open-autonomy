@@ -38,7 +38,17 @@ class AbciDialogue(Dialogue):
     """The abci dialogue class maintains state of a dialogue and manages it."""
 
     INITIAL_PERFORMATIVES = frozenset(
-        {AbciMessage.Performative.REQUEST_ECHO, AbciMessage.Performative.REQUEST_FLUSH}
+        {
+            AbciMessage.Performative.REQUEST_ECHO,
+            AbciMessage.Performative.REQUEST_FLUSH,
+            AbciMessage.Performative.REQUEST_INIT_CHAIN,
+            AbciMessage.Performative.REQUEST_QUERY,
+            AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
+            AbciMessage.Performative.REQUEST_CHECK_TX,
+            AbciMessage.Performative.REQUEST_DELIVER_TX,
+            AbciMessage.Performative.REQUEST_END_BLOCK,
+            AbciMessage.Performative.REQUEST_COMMIT,
+        }
     )
     TERMINAL_PERFORMATIVES = frozenset(
         {
@@ -47,12 +57,48 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.RESPONSE_FLUSH,
             AbciMessage.Performative.RESPONSE_INFO,
             AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            AbciMessage.Performative.RESPONSE_QUERY,
+            AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
+            AbciMessage.Performative.RESPONSE_CHECK_TX,
+            AbciMessage.Performative.RESPONSE_DELIVER_TX,
+            AbciMessage.Performative.RESPONSE_END_BLOCK,
+            AbciMessage.Performative.RESPONSE_COMMIT,
         }
     )
     VALID_REPLIES = {
+        AbciMessage.Performative.REQUEST_BEGIN_BLOCK: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.REQUEST_CHECK_TX: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_CHECK_TX,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.REQUEST_COMMIT: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_COMMIT,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.REQUEST_DELIVER_TX: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_DELIVER_TX,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
         AbciMessage.Performative.REQUEST_ECHO: frozenset(
             {
                 AbciMessage.Performative.RESPONSE_ECHO,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.REQUEST_END_BLOCK: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_END_BLOCK,
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),
@@ -74,11 +120,23 @@ class AbciDialogue(Dialogue):
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),
+        AbciMessage.Performative.REQUEST_QUERY: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_QUERY,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.RESPONSE_BEGIN_BLOCK: frozenset(),
+        AbciMessage.Performative.RESPONSE_CHECK_TX: frozenset(),
+        AbciMessage.Performative.RESPONSE_COMMIT: frozenset(),
+        AbciMessage.Performative.RESPONSE_DELIVER_TX: frozenset(),
         AbciMessage.Performative.RESPONSE_ECHO: frozenset(),
+        AbciMessage.Performative.RESPONSE_END_BLOCK: frozenset(),
         AbciMessage.Performative.RESPONSE_EXCEPTION: frozenset(),
         AbciMessage.Performative.RESPONSE_FLUSH: frozenset(),
         AbciMessage.Performative.RESPONSE_INFO: frozenset(),
         AbciMessage.Performative.RESPONSE_INIT_CHAIN: frozenset(),
+        AbciMessage.Performative.RESPONSE_QUERY: frozenset(),
     }
 
     class Role(Dialogue.Role):
