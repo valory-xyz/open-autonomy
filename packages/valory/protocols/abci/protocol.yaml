@@ -7,7 +7,7 @@ description: A protocol for ABCI requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmTcbKTzvTvoaV2f6JuHg81akj2P7vTTNxEPmzJnkJJSFx
+  README.md: QmViQr9qnXyaubNxC9LVX7n81rEQftinaaxvi9zdjsyK2x
   __init__.py: Qme5CNMEQmPNXUqBJdWVtP8uYz8rS7ajy49tvHEwR6ZJmK
   abci.proto: QmdDTnNxhtR1fLAntZ1MYPVTzkVZBgo5Bn3jTYgqpP94kz
   abci_pb2.py: QmeJi5cxjV82VuqvFdCH7aNztj16vaBjRSKjDb6afdMisq
