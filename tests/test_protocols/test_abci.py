@@ -26,6 +26,8 @@ from packages.valory.protocols.abci.custom_types import (
     ConsensusParams,
     Duration,
     EvidenceParams,
+    ProofOp,
+    ProofOps,
     Timestamp,
     ValidatorParams,
     ValidatorUpdate,
@@ -170,4 +172,42 @@ class TestResponseInitChain(BaseTestMessageConstruction):
             consensus_params=consensus_params,
             validators=validators,
             app_hash=b"app_hash",
+        )
+
+
+class TestRequestQuery(BaseTestMessageConstruction):
+    """Test ABCI response query."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_QUERY,
+            query_data=b"bytes",
+            path="",
+            height=0,
+            prove=False,
+        )
+
+
+class TestResponseQuery(BaseTestMessageConstruction):
+    """Test ABCI response query."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_QUERY,
+            code=0,
+            log="log",
+            info="info",
+            index=0,
+            key=b"key",
+            value=b"value",
+            proof_ops=ProofOps(
+                [
+                    ProofOp("type", b"key", b"data"),
+                    ProofOp("type", b"key", b"data"),
+                ]
+            ),
+            height=0,
+            codespace="",
         )

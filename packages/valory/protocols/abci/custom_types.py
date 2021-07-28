@@ -445,6 +445,45 @@ class Evidences:
         raise NotImplementedError
 
 
+class ConsensusVersion:
+    """This class represents an instance of ConsensusVersion."""
+
+    def __init__(self, block: int, app: int):
+        """Initialise an instance of ConsensusVersion."""
+        self.block = block
+        self.app = app
+
+    @staticmethod
+    def encode(
+        consensus_version_protobuf_object, consensus_version_object: "ConsensusVersion"
+    ) -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the consensus_version_protobuf_object argument is matched with the instance of this class in the 'consensus_version_object' argument.
+
+        :param consensus_version_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param consensus_version_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def decode(cls, consensus_version_protobuf_object) -> "ConsensusVersion":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'consensus_version_protobuf_object' argument.
+
+        :param consensus_version_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'consensus_version_protobuf_object' argument.
+        """
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        raise NotImplementedError
+
+
 class Header:
     """This class represents an instance of Header."""
 
@@ -519,12 +558,76 @@ class LastCommitInfo:
         raise NotImplementedError
 
 
+class ProofOp:
+    """This class represents an instance of ProofOp."""
+
+    def __init__(self, type_: str, key: bytes, data: bytes):
+        """
+        Initialise an instance of ProofOp.
+
+        ProofOp defines an operation used for calculating Merkle root
+        The data could be arbitrary format, providing necessary data
+        for example neighbouring node hash.
+
+        :param type_: the type
+        :param key: the key
+        :param data: the data
+        """
+        self.type_ = type_
+        self.key = key
+        self.data = data
+
+    @staticmethod
+    def encode(proof_op_protobuf_object, proof_op_object: "ProofOp") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the proof_op_protobuf_object argument is matched with the instance of this class in the 'proof_op_object' argument.
+
+        :param proof_op_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param proof_op_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        proof_op_protobuf_object.type = proof_op_object.type_
+        proof_op_protobuf_object.key = proof_op_object.key
+        proof_op_protobuf_object.data = proof_op_object.data
+
+    @classmethod
+    def decode(cls, proof_op_protobuf_object) -> "ProofOp":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'proof_op_protobuf_object' argument.
+
+        :param proof_op_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'proof_op_protobuf_object' argument.
+        """
+        return ProofOp(
+            proof_op_protobuf_object.type,
+            proof_op_protobuf_object.key,
+            proof_op_protobuf_object.data,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, ProofOp)
+            and self.type_ == other.type_
+            and self.key == other.key
+            and self.data == other.data
+        )
+
+
 class ProofOps:
     """This class represents an instance of ProofOps."""
 
-    def __init__(self):
-        """Initialise an instance of ProofOps."""
-        raise NotImplementedError
+    def __init__(self, proof_ops: List[ProofOp]):
+        """
+        Initialise an instance of ProofOps.
+
+        :param proof_ops: a list of ProofOp instances.
+        """
+        self.proof_ops = proof_ops
 
     @staticmethod
     def encode(proof_ops_protobuf_object, proof_ops_object: "ProofOps") -> None:
@@ -537,7 +640,12 @@ class ProofOps:
         :param proof_ops_object: an instance of this class to be encoded in the protocol buffer object.
         :return: None
         """
-        raise NotImplementedError
+        proof_ops_protobuf_objects = []
+        for proof_op in proof_ops_object.proof_ops:
+            proof_op_protobuf_object = abci_pb2.AbciMessage.ProofOps.ProofOp()
+            ProofOp.encode(proof_op_protobuf_object, proof_op)
+            proof_ops_protobuf_objects.append(proof_op_protobuf_object)
+        proof_ops_protobuf_object.ops.extend(proof_ops_protobuf_objects)
 
     @classmethod
     def decode(cls, proof_ops_protobuf_object) -> "ProofOps":
@@ -549,10 +657,14 @@ class ProofOps:
         :param proof_ops_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'proof_ops_protobuf_object' argument.
         """
-        raise NotImplementedError
+        proof_ops_objects = []
+        for proof_op_protobuf_object in list(proof_ops_protobuf_object.ops):
+            proof_ops_objects.append(ProofOp.decode(proof_op_protobuf_object))
+        return ProofOps(proof_ops_objects)
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Compare with another object."""
+        return isinstance(other, ProofOps) and self.proof_ops == other.proof_ops
 
 
 class Timestamp:
