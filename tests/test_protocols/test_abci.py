@@ -22,17 +22,30 @@ from abc import abstractmethod
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
+    BlockID,
     BlockParams,
     ConsensusParams,
+    ConsensusVersion,
     Duration,
+    Event,
+    EventAttribute,
+    Events,
+    Evidence,
     EvidenceParams,
+    EvidenceType,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    PartSetHeader,
     ProofOp,
     ProofOps,
     Timestamp,
+    Validator,
     ValidatorParams,
     ValidatorUpdate,
     ValidatorUpdates,
     VersionParams,
+    VoteInfo,
 )
 
 
@@ -210,4 +223,61 @@ class TestResponseQuery(BaseTestMessageConstruction):
             ),
             height=0,
             codespace="",
+        )
+
+
+class TestRequestBeginBlock(BaseTestMessageConstruction):
+    """Test ABCI request begin block."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        header = Header(
+            ConsensusVersion(0, 0),
+            "chain_id",
+            0,
+            Timestamp(0, 0),
+            BlockID(b"hash", PartSetHeader(0, b"hash")),
+            b"last_commit_hash",
+            b"data_hash",
+            b"validators_hash",
+            b"next_validators_hash",
+            b"consensus_hash",
+            b"app_hash",
+            b"last_results_hash",
+        )
+
+        validator = Validator(b"address", 0)
+        last_commit_info = LastCommitInfo(
+            0,
+            [
+                VoteInfo(validator, True),
+                VoteInfo(validator, False),
+            ],
+        )
+
+        evidences = Evidences(
+            [
+                Evidence(EvidenceType.UNKNOWN, validator, 0, Timestamp(0, 0), 0),
+                Evidence(EvidenceType.DUPLICATE_VOTE, validator, 0, Timestamp(0, 0), 0),
+            ]
+        )
+
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
+            hash=b"hash",
+            header=header,
+            last_commit_info=last_commit_info,
+            byzantine_validators=evidences,
+        )
+
+
+class TestResponseBeginBlock(BaseTestMessageConstruction):
+    """Test ABCI response begin block."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        event = Event("type", [EventAttribute(b"key", b"value", True)])
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
+            events=Events([event, event]),
         )

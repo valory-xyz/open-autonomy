@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains class representations corresponding to every custom type in the protocol specification."""
-from copy import copy
+from enum import Enum
 from typing import List
 
 from packages.valory.protocols.abci import abci_pb2
@@ -205,7 +205,7 @@ class ValidatorParams:
 
     def __init__(self, pub_key_types: List[str]):
         """Initialise an instance of BlockParams."""
-        self.pub_key_types = copy(pub_key_types)
+        self.pub_key_types = pub_key_types
 
     @staticmethod
     def encode(
@@ -373,12 +373,122 @@ class ConsensusParams:
         )
 
 
+class EventAttribute:
+    """This class represents an instance of EventAttribute."""
+
+    def __init__(self, key: bytes, value: bytes, index: bool):
+        """Initialise an instance of EventAttribute."""
+        self.key = key
+        self.value = value
+        self.index = index
+
+    @staticmethod
+    def encode(
+        event_attribute_protobuf_object, event_attribute_object: "EventAttribute"
+    ) -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the event_attribute_protobuf_object argument is matched with the instance of this class in the 'event_attribute_object' argument.
+
+        :param event_attribute_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param event_attribute_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        event_attribute_protobuf_object.key = event_attribute_object.key
+        event_attribute_protobuf_object.value = event_attribute_object.value
+        event_attribute_protobuf_object.index = event_attribute_object.index
+
+    @classmethod
+    def decode(cls, event_attribute_protobuf_object) -> "EventAttribute":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'event_attribute_protobuf_object' argument.
+
+        :param event_attribute_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'event_attribute_protobuf_object' argument.
+        """
+        return EventAttribute(
+            event_attribute_protobuf_object.key,
+            event_attribute_protobuf_object.value,
+            event_attribute_protobuf_object.index,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, EventAttribute)
+            and self.key == other.key
+            and self.value == other.value
+            and self.index == other.index
+        )
+
+
+class Event:
+    """This class represents an instance of Event."""
+
+    def __init__(self, type_: str, attributes: List[EventAttribute]):
+        """Initialise an instance of Event."""
+        self.type_ = type_
+        self.attributes = attributes
+
+    @staticmethod
+    def encode(event_protobuf_object, event_object: "Event") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the event_protobuf_object argument is matched with the instance of this class in the 'event_object' argument.
+
+        :param event_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param event_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        event_protobuf_object.type = event_object.type_
+
+        event_attribute_protobuf_objects = []
+        for event_attribute_object in event_object.attributes:
+            event_attribute_protobuf_object = (
+                abci_pb2.AbciMessage.Events.EventAttribute()
+            )
+            EventAttribute.encode(
+                event_attribute_protobuf_object, event_attribute_object
+            )
+            event_attribute_protobuf_objects.append(event_attribute_protobuf_object)
+
+        event_protobuf_object.attributes.extend(event_attribute_protobuf_objects)
+
+    @classmethod
+    def decode(cls, event_protobuf_object) -> "Event":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'event_protobuf_object' argument.
+
+        :param event_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'event_protobuf_object' argument.
+        """
+        attributes = []
+        for event_attribute_protobuf_object in list(event_protobuf_object.attributes):
+            attribute = EventAttribute.decode(event_attribute_protobuf_object)
+            attributes.append(attribute)
+        return Event(event_protobuf_object.type, attributes)
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, Event)
+            and self.type_ == other.type_
+            and self.attributes == other.attributes
+        )
+
+
 class Events:
     """This class represents an instance of Events."""
 
-    def __init__(self):
+    def __init__(self, events: List[Event]):
         """Initialise an instance of Events."""
-        raise NotImplementedError
+        self.events = events
 
     @staticmethod
     def encode(events_protobuf_object, events_object: "Events") -> None:
@@ -391,7 +501,12 @@ class Events:
         :param events_object: an instance of this class to be encoded in the protocol buffer object.
         :return: None
         """
-        raise NotImplementedError
+        event_protobuf_objects = []
+        for event_object in events_object.events:
+            event_protobuf_object = abci_pb2.AbciMessage.Events.Event()
+            Event.encode(event_protobuf_object, event_object)
+            event_protobuf_objects.append(event_protobuf_object)
+        events_protobuf_object.events.extend(event_protobuf_objects)
 
     @classmethod
     def decode(cls, events_protobuf_object) -> "Events":
@@ -403,18 +518,103 @@ class Events:
         :param events_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'events_protobuf_object' argument.
         """
-        raise NotImplementedError
+        event_objects = []
+        for event_protobuf_object in list(events_protobuf_object.events):
+            event_object = Event.decode(event_protobuf_object)
+            event_objects.append(event_object)
+        return Events(event_objects)
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Compare with another object."""
+        return isinstance(other, Events) and self.events == other.events
+
+
+class EvidenceType(Enum):
+    """This class represent an instance of EvidenceType."""
+
+    UNKNOWN = 0
+    DUPLICATE_VOTE = 1
+    LIGHT_CLIENT_ATTACK = 2
+
+
+class Evidence:
+    """This class represent an instance of Evidence."""
+
+    def __init__(
+        self,
+        evidence_type: EvidenceType,
+        validator: "Validator",
+        height: int,
+        time: "Timestamp",
+        total_voting_power: int,
+    ):
+        """Initialise an instance of Evidences."""
+        self.evidence_type = evidence_type
+        self.validator = validator
+        self.height = height
+        self.time = time
+        self.total_voting_power = total_voting_power
+
+    @staticmethod
+    def encode(evidence_protobuf_object, evidence_object: "Evidence") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the evidence_protobuf_object argument is matched with the instance of this class in the 'evidence_object' argument.
+
+        :param evidence_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param evidence_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        evidence_protobuf_object.type = evidence_object.evidence_type.value
+
+        validator_protobuf_object = abci_pb2.AbciMessage.LastCommitInfo.Validator()
+        Validator.encode(validator_protobuf_object, evidence_object.validator)
+        evidence_protobuf_object.validator.CopyFrom(validator_protobuf_object)
+
+        evidence_protobuf_object.height = evidence_object.height
+
+        timestamp_protobuf_object = abci_pb2.AbciMessage.Timestamp()
+        Timestamp.encode(timestamp_protobuf_object, evidence_object.time)
+        evidence_protobuf_object.time.CopyFrom(timestamp_protobuf_object)
+
+        evidence_protobuf_object.total_voting_power = evidence_object.total_voting_power
+
+    @classmethod
+    def decode(cls, evidence_protobuf_object) -> "Evidence":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'evidence_protobuf_object' argument.
+
+        :param evidence_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'evidence_protobuf_object' argument.
+        """
+        evidence_type = EvidenceType(evidence_protobuf_object.type)
+        validator = Validator.decode(evidence_protobuf_object.validator)
+        height = evidence_protobuf_object.height
+        time = Timestamp.decode(evidence_protobuf_object.time)
+        total_voting_power = evidence_protobuf_object.total_voting_power
+        return Evidence(evidence_type, validator, height, time, total_voting_power)
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, Evidence)
+            and self.evidence_type == other.evidence_type
+            and self.validator == other.validator
+            and self.height == other.height
+            and self.time == other.time
+            and self.total_voting_power == other.total_voting_power
+        )
 
 
 class Evidences:
     """This class represents an instance of Evidences."""
 
-    def __init__(self):
+    def __init__(self, byzantine_validators: List[Evidence]):
         """Initialise an instance of Evidences."""
-        raise NotImplementedError
+        self.byzantine_validators = byzantine_validators
 
     @staticmethod
     def encode(evidences_protobuf_object, evidences_object: "Evidences") -> None:
@@ -427,7 +627,14 @@ class Evidences:
         :param evidences_object: an instance of this class to be encoded in the protocol buffer object.
         :return: None
         """
-        raise NotImplementedError
+        validators_protobuf_objects = []
+        for validator in evidences_object.byzantine_validators:
+            evidence_protobuf_object = abci_pb2.AbciMessage.Evidences.Evidence()
+            Evidence.encode(evidence_protobuf_object, validator)
+            validators_protobuf_objects.append(evidence_protobuf_object)
+        evidences_protobuf_object.byzantine_validators.extend(
+            validators_protobuf_objects
+        )
 
     @classmethod
     def decode(cls, evidences_protobuf_object) -> "Evidences":
@@ -439,10 +646,20 @@ class Evidences:
         :param evidences_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'evidences_protobuf_object' argument.
         """
-        raise NotImplementedError
+        validator_objects = []
+        for validator_protobuf_object in list(
+            evidences_protobuf_object.byzantine_validators
+        ):
+            validator_object = Evidence.decode(validator_protobuf_object)
+            validator_objects.append(validator_object)
+        return Evidences(validator_objects)
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Compare with another object."""
+        return (
+            isinstance(other, Evidences)
+            and self.byzantine_validators == other.byzantine_validators
+        )
 
 
 class ConsensusVersion:
@@ -466,7 +683,8 @@ class ConsensusVersion:
         :param consensus_version_object: an instance of this class to be encoded in the protocol buffer object.
         :return: None
         """
-        raise NotImplementedError
+        consensus_version_protobuf_object.block = consensus_version_object.block
+        consensus_version_protobuf_object.app = consensus_version_object.app
 
     @classmethod
     def decode(cls, consensus_version_protobuf_object) -> "ConsensusVersion":
@@ -478,18 +696,152 @@ class ConsensusVersion:
         :param consensus_version_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'consensus_version_protobuf_object' argument.
         """
-        raise NotImplementedError
+        return ConsensusVersion(
+            consensus_version_protobuf_object.block,
+            consensus_version_protobuf_object.app,
+        )
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Compare with another object."""
+        return (
+            isinstance(other, ConsensusVersion)
+            and self.block == other.block
+            and self.app == other.app
+        )
+
+
+class PartSetHeader:
+    """This class represents an instance of PartSetHeader."""
+
+    def __init__(self, total: int, hash_: bytes):
+        """Initialise an instance of PartSetHeader."""
+        self.total = total
+        self.hash_ = hash_
+
+    @staticmethod
+    def encode(
+        part_set_header_protobuf_object, part_set_header_object: "PartSetHeader"
+    ) -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the part_set_header_protobuf_object argument is matched with the instance of this class in the 'part_set_header_object' argument.
+
+        :param part_set_header_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param part_set_header_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        part_set_header_protobuf_object.total = part_set_header_object.total
+        part_set_header_protobuf_object.hash = part_set_header_object.hash_
+
+    @classmethod
+    def decode(cls, part_set_header_protobuf_object) -> "PartSetHeader":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'part_set_header_protobuf_object' argument.
+
+        :param part_set_header_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'part_set_header_protobuf_object' argument.
+        """
+        return PartSetHeader(
+            part_set_header_protobuf_object.total,
+            part_set_header_protobuf_object.hash,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, PartSetHeader)
+            and self.total == other.total
+            and self.hash_ == other.hash_
+        )
+
+
+class BlockID:
+    """This class represents an instance of BlockID."""
+
+    def __init__(self, hash_: bytes, part_set_header: PartSetHeader):
+        """Initialise an instance of BlockID."""
+        self.hash_ = hash_
+        self.part_set_header = part_set_header
+
+    @staticmethod
+    def encode(block_id_protobuf_object, block_id_object: "BlockID") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the block_id_protobuf_object argument is matched with the instance of this class in the 'block_id_object' argument.
+
+        :param block_id_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param block_id_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        block_id_protobuf_object.hash = block_id_object.hash_
+        part_set_header_protobuf_object = abci_pb2.AbciMessage.Header.PartSetHeader()
+        PartSetHeader.encode(
+            part_set_header_protobuf_object, block_id_object.part_set_header
+        )
+        block_id_protobuf_object.part_set_header.CopyFrom(
+            part_set_header_protobuf_object
+        )
+
+    @classmethod
+    def decode(cls, block_id_protobuf_object) -> "BlockID":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'block_id_protobuf_object' argument.
+
+        :param block_id_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'block_id_protobuf_object' argument.
+        """
+        part_set_header = PartSetHeader.decode(block_id_protobuf_object.part_set_header)
+        return BlockID(
+            block_id_protobuf_object.hash,
+            part_set_header,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, BlockID)
+            and self.hash_ == other.hash_
+            and self.part_set_header == other.part_set_header
+        )
 
 
 class Header:
     """This class represents an instance of Header."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        version: ConsensusVersion,
+        chain_id: str,
+        height: int,
+        time: "Timestamp",
+        last_block_id: BlockID,
+        last_commit_hash: bytes,
+        data_hash: bytes,
+        validators_hash: bytes,
+        next_validators_hash: bytes,
+        consensus_hash: bytes,
+        app_hash: bytes,
+        last_results_hash: bytes,
+    ):
         """Initialise an instance of Header."""
-        raise NotImplementedError
+        self.version = version
+        self.chain_id = chain_id
+        self.height = height
+        self.time = time
+        self.last_block_id = last_block_id
+        self.last_commit_hash = last_commit_hash
+        self.data_hash = data_hash
+        self.validators_hash = validators_hash
+        self.next_validators_hash = next_validators_hash
+        self.consensus_hash = consensus_hash
+        self.app_hash = app_hash
+        self.last_results_hash = last_results_hash
 
     @staticmethod
     def encode(header_protobuf_object, header_object: "Header") -> None:
@@ -502,7 +854,28 @@ class Header:
         :param header_object: an instance of this class to be encoded in the protocol buffer object.
         :return: None
         """
-        raise NotImplementedError
+        consensus_version_protobuf_obj = abci_pb2.AbciMessage.Header.ConsensusVersion()
+        ConsensusVersion.encode(consensus_version_protobuf_obj, header_object.version)
+        header_protobuf_object.version.CopyFrom(consensus_version_protobuf_obj)
+
+        header_protobuf_object.chain_id = header_object.chain_id
+        header_protobuf_object.height = header_object.height
+
+        timestamp_protobuf_obj = abci_pb2.AbciMessage.Timestamp()
+        Timestamp.encode(timestamp_protobuf_obj, header_object.time)
+        header_protobuf_object.time.CopyFrom(timestamp_protobuf_obj)
+
+        last_block_id_protobuf_obj = abci_pb2.AbciMessage.Header.BlockID()
+        BlockID.encode(last_block_id_protobuf_obj, header_object.last_block_id)
+        header_protobuf_object.last_block_id.CopyFrom(last_block_id_protobuf_obj)
+
+        header_protobuf_object.last_commit_hash = header_object.last_commit_hash
+        header_protobuf_object.data_hash = header_object.data_hash
+        header_protobuf_object.validators_hash = header_object.validators_hash
+        header_protobuf_object.next_validators_hash = header_object.next_validators_hash
+        header_protobuf_object.consensus_hash = header_object.consensus_hash
+        header_protobuf_object.app_hash = header_object.app_hash
+        header_protobuf_object.last_results_hash = header_object.last_results_hash
 
     @classmethod
     def decode(cls, header_protobuf_object) -> "Header":
@@ -514,18 +887,157 @@ class Header:
         :param header_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'header_protobuf_object' argument.
         """
-        raise NotImplementedError
+        consensus_version_obj = ConsensusVersion.decode(header_protobuf_object.version)
+        chain_id = header_protobuf_object.chain_id
+        height = header_protobuf_object.height
+        time = Timestamp.decode(header_protobuf_object.time)
+
+        last_block_id = BlockID.decode(header_protobuf_object.last_block_id)
+
+        last_commit_hash = header_protobuf_object.last_commit_hash
+        data_hash = header_protobuf_object.data_hash
+        validators_hash = header_protobuf_object.validators_hash
+        next_validators_hash = header_protobuf_object.next_validators_hash
+        consensus_hash = header_protobuf_object.consensus_hash
+        app_hash = header_protobuf_object.app_hash
+        last_results_hash = header_protobuf_object.last_results_hash
+        return Header(
+            consensus_version_obj,
+            chain_id,
+            height,
+            time,
+            last_block_id,
+            last_commit_hash,
+            data_hash,
+            validators_hash,
+            next_validators_hash,
+            consensus_hash,
+            app_hash,
+            last_results_hash,
+        )
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Compare with another object."""
+        return (
+            isinstance(other, Header)
+            and self.version == other.version
+            and self.chain_id == other.chain_id
+            and self.height == other.height
+            and self.time == other.time
+            and self.last_block_id == other.last_block_id
+            and self.last_commit_hash == other.last_commit_hash
+            and self.data_hash == other.data_hash
+            and self.validators_hash == other.validators_hash
+            and self.next_validators_hash == other.next_validators_hash
+            and self.consensus_hash == other.consensus_hash
+            and self.app_hash == other.app_hash
+            and self.last_results_hash == other.last_results_hash
+        )
+
+
+class Validator:
+    """This class represents an instance of Validator."""
+
+    def __init__(self, address: bytes, power: int):
+        """Initialise an instance of Validator."""
+        self.address = address
+        self.power = power
+
+    @staticmethod
+    def encode(validator_protobuf_object, validator_object: "Validator") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the validator_protobuf_object argument is matched with the instance of this class in the 'validator_object' argument.
+
+        :param validator_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param validator_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        validator_protobuf_object.address = validator_object.address
+        validator_protobuf_object.power = validator_object.power
+
+    @classmethod
+    def decode(cls, validator_protobuf_object) -> "Validator":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'validator_protobuf_object' argument.
+
+        :param validator_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'validator_protobuf_object' argument.
+        """
+        return Validator(
+            validator_protobuf_object.address,
+            validator_protobuf_object.power,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, Validator)
+            and self.address == other.address
+            and self.power == other.power
+        )
+
+
+class VoteInfo:
+    """This class represents an instance of VoteInfo."""
+
+    def __init__(self, validator: Validator, signed_last_block: bool):
+        """Initialise an instance of Validator."""
+        self.validator = validator
+        self.signed_last_block = signed_last_block
+
+    @staticmethod
+    def encode(vote_info_protobuf_object, vote_info_object: "VoteInfo") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the vote_info_protobuf_object argument is matched with the instance of this class in the 'vote_info_object' argument.
+
+        :param vote_info_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param vote_info_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        validator_protobuf_object = abci_pb2.AbciMessage.LastCommitInfo.Validator()
+        Validator.encode(validator_protobuf_object, vote_info_object.validator)
+        vote_info_protobuf_object.validator.CopyFrom(validator_protobuf_object)
+
+        vote_info_protobuf_object.signed_last_block = vote_info_object.signed_last_block
+
+    @classmethod
+    def decode(cls, vote_info_protobuf_object) -> "VoteInfo":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'vote_info_protobuf_object' argument.
+
+        :param vote_info_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'vote_info_protobuf_object' argument.
+        """
+        validator = Validator.decode(vote_info_protobuf_object.validator)
+        return VoteInfo(
+            validator,
+            vote_info_protobuf_object.signed_last_block,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, VoteInfo)
+            and self.validator == other.validator
+            and self.signed_last_block == other.signed_last_block
+        )
 
 
 class LastCommitInfo:
     """This class represents an instance of LastCommitInfo."""
 
-    def __init__(self):
+    def __init__(self, round_: int, votes: List[VoteInfo]):
         """Initialise an instance of LastCommitInfo."""
-        raise NotImplementedError
+        self.round_ = round_
+        self.votes = votes
 
     @staticmethod
     def encode(
@@ -540,7 +1052,14 @@ class LastCommitInfo:
         :param last_commit_info_object: an instance of this class to be encoded in the protocol buffer object.
         :return: None
         """
-        raise NotImplementedError
+        last_commit_info_protobuf_object.round = last_commit_info_object.round_
+
+        votes_protobuf_objects = []
+        for vote_info in last_commit_info_object.votes:
+            vote_info_protobuf_object = abci_pb2.AbciMessage.LastCommitInfo.VoteInfo()
+            VoteInfo.encode(vote_info_protobuf_object, vote_info)
+            votes_protobuf_objects.append(vote_info_protobuf_object)
+        last_commit_info_protobuf_object.votes.extend(votes_protobuf_objects)
 
     @classmethod
     def decode(cls, last_commit_info_protobuf_object) -> "LastCommitInfo":
@@ -552,10 +1071,20 @@ class LastCommitInfo:
         :param last_commit_info_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'last_commit_info_protobuf_object' argument.
         """
-        raise NotImplementedError
+        vote_info_objects = []
+        for vote_info_protobuf_object in list(last_commit_info_protobuf_object.votes):
+            vote_info = VoteInfo.decode(vote_info_protobuf_object)
+            vote_info_objects.append(vote_info)
+
+        return LastCommitInfo(last_commit_info_protobuf_object.round, vote_info_objects)
 
     def __eq__(self, other):
-        raise NotImplementedError
+        """Compare with another object."""
+        return (
+            isinstance(other, LastCommitInfo)
+            and self.round_ == other.round_
+            and self.votes == other.votes
+        )
 
 
 class ProofOp:
@@ -776,7 +1305,7 @@ class ValidatorUpdates:
 
     def __init__(self, validator_updates: List[ValidatorUpdate]):
         """Initialise an instance of ValidatorUpdates."""
-        self.validator_updates = copy(validator_updates)
+        self.validator_updates = validator_updates
 
     @staticmethod
     def encode(
