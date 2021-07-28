@@ -62,6 +62,15 @@ class BaseTestMessageConstruction:
         expected_message = actual_message.decode(actual_message.encode())
         assert expected_message == actual_message
 
+    def _make_consensus_params(self) -> ConsensusParams:
+        """Build a ConsensuParams object."""
+        return ConsensusParams(
+            BlockParams(0, 0),
+            EvidenceParams(0, Duration(0, 0), 0),
+            ValidatorParams(["pub_key"]),
+            VersionParams(0),
+        )
+
 
 class TestRequestEcho(BaseTestMessageConstruction):
     """Test ABCI request echo."""
@@ -136,12 +145,7 @@ class TestRequestInitChain(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        consensus_params = ConsensusParams(
-            BlockParams(0, 0),
-            EvidenceParams(0, Duration(0, 0), 0),
-            ValidatorParams(["pub_key"]),
-            VersionParams(0),
-        )
+        consensus_params = super()._make_consensus_params()
 
         validators = ValidatorUpdates(
             [
@@ -166,12 +170,7 @@ class TestResponseInitChain(BaseTestMessageConstruction):
 
     def build_message(self) -> AbciMessage:
         """Build the message."""
-        consensus_params = ConsensusParams(
-            BlockParams(0, 0),
-            EvidenceParams(0, Duration(0, 0), 0),
-            ValidatorParams(["pub_key"]),
-            VersionParams(0),
-        )
+        consensus_params = super()._make_consensus_params()
 
         validators = ValidatorUpdates(
             [
@@ -280,4 +279,120 @@ class TestResponseBeginBlock(BaseTestMessageConstruction):
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
             events=Events([event, event]),
+        )
+
+
+class TestRequestCheckTx(BaseTestMessageConstruction):
+    """Test ABCI request check tx."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        tx = b"bytes"
+        type_ = 0
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_CHECK_TX, tx=tx, type=type_
+        )
+
+
+class TestResponseCheckTx(BaseTestMessageConstruction):
+    """Test ABCI response check tx."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        attribute = EventAttribute(b"key", b"value", True)
+        event = Event("type", attributes=[attribute, attribute])
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            code=0,
+            data=b"data",
+            log="log",
+            info="info",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([event, event]),
+            codespace="codespace",
+        )
+
+
+class TestRequestDeliverTx(BaseTestMessageConstruction):
+    """Test ABCI request deliver tx."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+            tx=b"tx",
+        )
+
+
+class TestResponseDeliverTx(BaseTestMessageConstruction):
+    """Test ABCI response deliver tx."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        attribute = EventAttribute(b"key", b"value", True)
+        event = Event("type", attributes=[attribute, attribute])
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
+            code=0,
+            data=b"data",
+            log="log",
+            info="info",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([event, event]),
+            codespace="codespace",
+        )
+
+
+class TestRequestEndBlock(BaseTestMessageConstruction):
+    """Test ABCI request end block."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_END_BLOCK,
+            height=0,
+        )
+
+
+class TestResponseEndBlock(BaseTestMessageConstruction):
+    """Test ABCI response end block."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        attribute = EventAttribute(b"key", b"value", True)
+        event = Event("type", attributes=[attribute, attribute])
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
+            validator_updates=ValidatorUpdates(
+                [
+                    ValidatorUpdate(b"pub_key", 0),
+                    ValidatorUpdate(b"pub_key", 0),
+                ]
+            ),
+            consensus_param_updates=super()._make_consensus_params(),
+            events=Events([event, event]),
+        )
+
+
+class TestRequestCommit(BaseTestMessageConstruction):
+    """Test ABCI request commit."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_COMMIT,
+        )
+
+
+class TestResponseCommit(BaseTestMessageConstruction):
+    """Test ABCI response commit."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_COMMIT,
+            data=b"bytes",
+            retain_height=0,
         )
