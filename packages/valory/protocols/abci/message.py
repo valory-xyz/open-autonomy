@@ -37,6 +37,9 @@ from packages.valory.protocols.abci.custom_types import (
     LastCommitInfo as CustomLastCommitInfo,
 )
 from packages.valory.protocols.abci.custom_types import ProofOps as CustomProofOps
+from packages.valory.protocols.abci.custom_types import Result as CustomResult
+from packages.valory.protocols.abci.custom_types import SnapShots as CustomSnapShots
+from packages.valory.protocols.abci.custom_types import Snapshot as CustomSnapshot
 from packages.valory.protocols.abci.custom_types import Timestamp as CustomTimestamp
 from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdates as CustomValidatorUpdates,
@@ -66,6 +69,12 @@ class AbciMessage(Message):
 
     ProofOps = CustomProofOps
 
+    Result = CustomResult
+
+    SnapShots = CustomSnapShots
+
+    Snapshot = CustomSnapshot
+
     Timestamp = CustomTimestamp
 
     ValidatorUpdates = CustomValidatorUpdates
@@ -73,6 +82,7 @@ class AbciMessage(Message):
     class Performative(Message.Performative):
         """Performatives for the abci protocol."""
 
+        REQUEST_APPLY_SNAPSHOT_CHUNK = "request_apply_snapshot_chunk"
         REQUEST_BEGIN_BLOCK = "request_begin_block"
         REQUEST_CHECK_TX = "request_check_tx"
         REQUEST_COMMIT = "request_commit"
@@ -82,7 +92,11 @@ class AbciMessage(Message):
         REQUEST_FLUSH = "request_flush"
         REQUEST_INFO = "request_info"
         REQUEST_INIT_CHAIN = "request_init_chain"
+        REQUEST_LIST_SNAPSHOTS = "request_list_snapshots"
+        REQUEST_LOAD_SNAPSHOT_CHUNK = "request_load_snapshot_chunk"
+        REQUEST_OFFER_SNAPSHOT = "request_offer_snapshot"
         REQUEST_QUERY = "request_query"
+        RESPONSE_APPLY_SNAPSHOT_CHUNK = "response_apply_snapshot_chunk"
         RESPONSE_BEGIN_BLOCK = "response_begin_block"
         RESPONSE_CHECK_TX = "response_check_tx"
         RESPONSE_COMMIT = "response_commit"
@@ -93,6 +107,9 @@ class AbciMessage(Message):
         RESPONSE_FLUSH = "response_flush"
         RESPONSE_INFO = "response_info"
         RESPONSE_INIT_CHAIN = "response_init_chain"
+        RESPONSE_LIST_SNAPSHOTS = "response_list_snapshots"
+        RESPONSE_LOAD_SNAPSHOT_CHUNK = "response_load_snapshot_chunk"
+        RESPONSE_OFFER_SNAPSHOT = "response_offer_snapshot"
         RESPONSE_QUERY = "response_query"
 
         def __str__(self) -> str:
@@ -100,6 +117,7 @@ class AbciMessage(Message):
             return str(self.value)
 
     _performatives = {
+        "request_apply_snapshot_chunk",
         "request_begin_block",
         "request_check_tx",
         "request_commit",
@@ -109,7 +127,11 @@ class AbciMessage(Message):
         "request_flush",
         "request_info",
         "request_init_chain",
+        "request_list_snapshots",
+        "request_load_snapshot_chunk",
+        "request_offer_snapshot",
         "request_query",
+        "response_apply_snapshot_chunk",
         "response_begin_block",
         "response_check_tx",
         "response_commit",
@@ -120,6 +142,9 @@ class AbciMessage(Message):
         "response_flush",
         "response_info",
         "response_init_chain",
+        "response_list_snapshots",
+        "response_load_snapshot_chunk",
+        "response_offer_snapshot",
         "response_query",
     }
     __slots__: Tuple[str, ...] = tuple()
@@ -132,6 +157,8 @@ class AbciMessage(Message):
             "block_version",
             "byzantine_validators",
             "chain_id",
+            "chunk",
+            "chunk_index",
             "code",
             "codespace",
             "consensus_param_updates",
@@ -139,6 +166,7 @@ class AbciMessage(Message):
             "data",
             "dialogue_reference",
             "events",
+            "format",
             "gas_used",
             "gas_wanted",
             "hash",
@@ -161,7 +189,13 @@ class AbciMessage(Message):
             "proof_ops",
             "prove",
             "query_data",
+            "refetch_chunks",
+            "reject_senders",
+            "result",
             "retain_height",
+            "sender",
+            "snapshot",
+            "snapshots",
             "target",
             "time",
             "tx",
@@ -265,6 +299,18 @@ class AbciMessage(Message):
         return cast(str, self.get("chain_id"))
 
     @property
+    def chunk(self) -> bytes:
+        """Get the 'chunk' content from the message."""
+        enforce(self.is_set("chunk"), "'chunk' content is not set.")
+        return cast(bytes, self.get("chunk"))
+
+    @property
+    def chunk_index(self) -> int:
+        """Get the 'chunk_index' content from the message."""
+        enforce(self.is_set("chunk_index"), "'chunk_index' content is not set.")
+        return cast(int, self.get("chunk_index"))
+
+    @property
     def code(self) -> int:
         """Get the 'code' content from the message."""
         enforce(self.is_set("code"), "'code' content is not set.")
@@ -304,6 +350,12 @@ class AbciMessage(Message):
         """Get the 'events' content from the message."""
         enforce(self.is_set("events"), "'events' content is not set.")
         return cast(CustomEvents, self.get("events"))
+
+    @property
+    def format(self) -> int:
+        """Get the 'format' content from the message."""
+        enforce(self.is_set("format"), "'format' content is not set.")
+        return cast(int, self.get("format"))
 
     @property
     def gas_used(self) -> int:
@@ -433,10 +485,46 @@ class AbciMessage(Message):
         return cast(bytes, self.get("query_data"))
 
     @property
+    def refetch_chunks(self) -> Tuple[int, ...]:
+        """Get the 'refetch_chunks' content from the message."""
+        enforce(self.is_set("refetch_chunks"), "'refetch_chunks' content is not set.")
+        return cast(Tuple[int, ...], self.get("refetch_chunks"))
+
+    @property
+    def reject_senders(self) -> Tuple[str, ...]:
+        """Get the 'reject_senders' content from the message."""
+        enforce(self.is_set("reject_senders"), "'reject_senders' content is not set.")
+        return cast(Tuple[str, ...], self.get("reject_senders"))
+
+    @property
+    def result(self) -> CustomResult:
+        """Get the 'result' content from the message."""
+        enforce(self.is_set("result"), "'result' content is not set.")
+        return cast(CustomResult, self.get("result"))
+
+    @property
     def retain_height(self) -> int:
         """Get the 'retain_height' content from the message."""
         enforce(self.is_set("retain_height"), "'retain_height' content is not set.")
         return cast(int, self.get("retain_height"))
+
+    @property
+    def sender(self) -> str:
+        """Get the 'sender' content from the message."""
+        enforce(self.is_set("sender"), "'sender' content is not set.")
+        return cast(str, self.get("sender"))
+
+    @property
+    def snapshot(self) -> CustomSnapshot:
+        """Get the 'snapshot' content from the message."""
+        enforce(self.is_set("snapshot"), "'snapshot' content is not set.")
+        return cast(CustomSnapshot, self.get("snapshot"))
+
+    @property
+    def snapshots(self) -> CustomSnapShots:
+        """Get the 'snapshots' content from the message."""
+        enforce(self.is_set("snapshots"), "'snapshots' content is not set.")
+        return cast(CustomSnapShots, self.get("snapshots"))
 
     @property
     def time(self) -> CustomTimestamp:
@@ -680,6 +768,68 @@ class AbciMessage(Message):
                 )
             elif self.performative == AbciMessage.Performative.REQUEST_COMMIT:
                 expected_nb_of_contents = 0
+            elif self.performative == AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS:
+                expected_nb_of_contents = 0
+            elif self.performative == AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT:
+                expected_nb_of_contents = 2
+                enforce(
+                    isinstance(self.snapshot, CustomSnapshot),
+                    "Invalid type for content 'snapshot'. Expected 'Snapshot'. Found '{}'.".format(
+                        type(self.snapshot)
+                    ),
+                )
+                enforce(
+                    isinstance(self.app_hash, bytes),
+                    "Invalid type for content 'app_hash'. Expected 'bytes'. Found '{}'.".format(
+                        type(self.app_hash)
+                    ),
+                )
+            elif (
+                self.performative
+                == AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK
+            ):
+                expected_nb_of_contents = 3
+                enforce(
+                    type(self.height) is int,
+                    "Invalid type for content 'height'. Expected 'int'. Found '{}'.".format(
+                        type(self.height)
+                    ),
+                )
+                enforce(
+                    type(self.format) is int,
+                    "Invalid type for content 'format'. Expected 'int'. Found '{}'.".format(
+                        type(self.format)
+                    ),
+                )
+                enforce(
+                    type(self.chunk_index) is int,
+                    "Invalid type for content 'chunk_index'. Expected 'int'. Found '{}'.".format(
+                        type(self.chunk_index)
+                    ),
+                )
+            elif (
+                self.performative
+                == AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK
+            ):
+                expected_nb_of_contents = 3
+                enforce(
+                    type(self.index) is int,
+                    "Invalid type for content 'index'. Expected 'int'. Found '{}'.".format(
+                        type(self.index)
+                    ),
+                )
+                enforce(
+                    isinstance(self.chunk, bytes),
+                    "Invalid type for content 'chunk'. Expected 'bytes'. Found '{}'.".format(
+                        type(self.chunk)
+                    ),
+                )
+                enforce(
+                    isinstance(self.sender, str),
+                    "Invalid type for content 'sender'. Expected 'str'. Found '{}'.".format(
+                        type(self.sender)
+                    ),
+                )
             elif self.performative == AbciMessage.Performative.RESPONSE_EXCEPTION:
                 expected_nb_of_contents = 0
             elif self.performative == AbciMessage.Performative.RESPONSE_ECHO:
@@ -941,6 +1091,64 @@ class AbciMessage(Message):
                     "Invalid type for content 'retain_height'. Expected 'int'. Found '{}'.".format(
                         type(self.retain_height)
                     ),
+                )
+            elif self.performative == AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS:
+                expected_nb_of_contents = 1
+                enforce(
+                    isinstance(self.snapshots, CustomSnapShots),
+                    "Invalid type for content 'snapshots'. Expected 'SnapShots'. Found '{}'.".format(
+                        type(self.snapshots)
+                    ),
+                )
+            elif self.performative == AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT:
+                expected_nb_of_contents = 1
+                enforce(
+                    isinstance(self.result, CustomResult),
+                    "Invalid type for content 'result'. Expected 'Result'. Found '{}'.".format(
+                        type(self.result)
+                    ),
+                )
+            elif (
+                self.performative
+                == AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK
+            ):
+                expected_nb_of_contents = 1
+                enforce(
+                    isinstance(self.chunk, bytes),
+                    "Invalid type for content 'chunk'. Expected 'bytes'. Found '{}'.".format(
+                        type(self.chunk)
+                    ),
+                )
+            elif (
+                self.performative
+                == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK
+            ):
+                expected_nb_of_contents = 3
+                enforce(
+                    isinstance(self.result, CustomResult),
+                    "Invalid type for content 'result'. Expected 'Result'. Found '{}'.".format(
+                        type(self.result)
+                    ),
+                )
+                enforce(
+                    isinstance(self.refetch_chunks, tuple),
+                    "Invalid type for content 'refetch_chunks'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.refetch_chunks)
+                    ),
+                )
+                enforce(
+                    all(type(element) is int for element in self.refetch_chunks),
+                    "Invalid type for tuple elements in content 'refetch_chunks'. Expected 'int'.",
+                )
+                enforce(
+                    isinstance(self.reject_senders, tuple),
+                    "Invalid type for content 'reject_senders'. Expected 'tuple'. Found '{}'.".format(
+                        type(self.reject_senders)
+                    ),
+                )
+                enforce(
+                    all(isinstance(element, str) for element in self.reject_senders),
+                    "Invalid type for tuple elements in content 'reject_senders'. Expected 'str'.",
                 )
 
             # Check correct content count

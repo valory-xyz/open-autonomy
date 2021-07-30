@@ -48,6 +48,10 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.REQUEST_DELIVER_TX,
             AbciMessage.Performative.REQUEST_END_BLOCK,
             AbciMessage.Performative.REQUEST_COMMIT,
+            AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS,
+            AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
+            AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
+            AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,
         }
     )
     TERMINAL_PERFORMATIVES = frozenset(
@@ -63,9 +67,19 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.RESPONSE_DELIVER_TX,
             AbciMessage.Performative.RESPONSE_END_BLOCK,
             AbciMessage.Performative.RESPONSE_COMMIT,
+            AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,
+            AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+            AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
+            AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
         }
     )
     VALID_REPLIES = {
+        AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
         AbciMessage.Performative.REQUEST_BEGIN_BLOCK: frozenset(
             {
                 AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
@@ -120,12 +134,31 @@ class AbciDialogue(Dialogue):
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),
+        AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
+        AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
         AbciMessage.Performative.REQUEST_QUERY: frozenset(
             {
                 AbciMessage.Performative.RESPONSE_QUERY,
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),
+        AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK: frozenset(),
         AbciMessage.Performative.RESPONSE_BEGIN_BLOCK: frozenset(),
         AbciMessage.Performative.RESPONSE_CHECK_TX: frozenset(),
         AbciMessage.Performative.RESPONSE_COMMIT: frozenset(),
@@ -136,6 +169,9 @@ class AbciDialogue(Dialogue):
         AbciMessage.Performative.RESPONSE_FLUSH: frozenset(),
         AbciMessage.Performative.RESPONSE_INFO: frozenset(),
         AbciMessage.Performative.RESPONSE_INIT_CHAIN: frozenset(),
+        AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS: frozenset(),
+        AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK: frozenset(),
+        AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT: frozenset(),
         AbciMessage.Performative.RESPONSE_QUERY: frozenset(),
     }
 

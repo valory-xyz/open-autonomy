@@ -39,6 +39,10 @@ from packages.valory.protocols.abci.custom_types import (
     PartSetHeader,
     ProofOp,
     ProofOps,
+    Result,
+    ResultType,
+    SnapShots,
+    Snapshot,
     Timestamp,
     Validator,
     ValidatorParams,
@@ -62,7 +66,8 @@ class BaseTestMessageConstruction:
         expected_message = actual_message.decode(actual_message.encode())
         assert expected_message == actual_message
 
-    def _make_consensus_params(self) -> ConsensusParams:
+    @classmethod
+    def _make_consensus_params(cls) -> ConsensusParams:
         """Build a ConsensuParams object."""
         return ConsensusParams(
             BlockParams(0, 0),
@@ -70,6 +75,11 @@ class BaseTestMessageConstruction:
             ValidatorParams(["pub_key"]),
             VersionParams(0),
         )
+
+    @classmethod
+    def _make_snapshot(cls) -> Snapshot:
+        """Build a Snapshot object."""
+        return Snapshot(0, 0, 0, b"hash", b"metadata")
 
 
 class TestRequestEcho(BaseTestMessageConstruction):
@@ -395,4 +405,104 @@ class TestResponseCommit(BaseTestMessageConstruction):
             performative=AbciMessage.Performative.RESPONSE_COMMIT,
             data=b"bytes",
             retain_height=0,
+        )
+
+
+class TestRequestListSnapshots(BaseTestMessageConstruction):
+    """Test ABCI request list snapshots."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS,
+        )
+
+
+class TestResponseListSnapshots(BaseTestMessageConstruction):
+    """Test ABCI response list snapshots."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        snapshots = SnapShots(
+            [
+                super()._make_snapshot(),
+                super()._make_snapshot(),
+            ]
+        )
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,
+            snapshots=snapshots,
+        )
+
+
+class TestRequestOfferSnapshot(BaseTestMessageConstruction):
+    """Test ABCI request offer snapshot."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
+            snapshot=super()._make_snapshot(),
+            app_hash=b"app_hash",
+        )
+
+
+class TestResponseOfferSnapshot(BaseTestMessageConstruction):
+    """Test ABCI response offer snapshot."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+            result=Result(ResultType.UNKNOWN),
+        )
+
+
+class TestRequestLoadSnapshotChunk(BaseTestMessageConstruction):
+    """Test ABCI request load snapshot chunk."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,
+            height=0,
+            format=0,
+            chunk_index=0,
+        )
+
+
+class TestResponseLoadSnapshotChunk(BaseTestMessageConstruction):
+    """Test ABCI response load snapshot chunk."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
+            chunk=b"chunk",
+        )
+
+
+class TestRequestApplySnapshotChunk(BaseTestMessageConstruction):
+    """Test ABCI request load snapshot chunk."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
+            index=0,
+            chunk=b"chunk",
+            sender="sender",
+        )
+
+
+class TestResponseApplySnapshotChunk(BaseTestMessageConstruction):
+    """Test ABCI response apply snapshot chunk."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
+            result=Result(ResultType.REJECT),
+            refetch_chunks=(0, 1, 2),
+            reject_senders=("sender_1", "sender_2"),
         )

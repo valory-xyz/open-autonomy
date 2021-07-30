@@ -34,6 +34,9 @@ from packages.valory.protocols.abci.custom_types import (
     Header,
     LastCommitInfo,
     ProofOps,
+    Result,
+    SnapShots,
+    Snapshot,
     Timestamp,
     ValidatorUpdates,
 )
@@ -137,6 +140,34 @@ class AbciSerializer(Serializer):
         elif performative_id == AbciMessage.Performative.REQUEST_COMMIT:
             performative = abci_pb2.AbciMessage.Request_Commit_Performative()  # type: ignore
             abci_msg.request_commit.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS:
+            performative = abci_pb2.AbciMessage.Request_List_Snapshots_Performative()  # type: ignore
+            abci_msg.request_list_snapshots.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT:
+            performative = abci_pb2.AbciMessage.Request_Offer_Snapshot_Performative()  # type: ignore
+            snapshot = msg.snapshot
+            Snapshot.encode(performative.snapshot, snapshot)
+            app_hash = msg.app_hash
+            performative.app_hash = app_hash
+            abci_msg.request_offer_snapshot.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK:
+            performative = abci_pb2.AbciMessage.Request_Load_Snapshot_Chunk_Performative()  # type: ignore
+            height = msg.height
+            performative.height = height
+            format = msg.format
+            performative.format = format
+            chunk_index = msg.chunk_index
+            performative.chunk_index = chunk_index
+            abci_msg.request_load_snapshot_chunk.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK:
+            performative = abci_pb2.AbciMessage.Request_Apply_Snapshot_Chunk_Performative()  # type: ignore
+            index = msg.index
+            performative.index = index
+            chunk = msg.chunk
+            performative.chunk = chunk
+            sender = msg.sender
+            performative.sender = sender
+            abci_msg.request_apply_snapshot_chunk.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             performative = abci_pb2.AbciMessage.Response_Exception_Performative()  # type: ignore
             abci_msg.response_exception.CopyFrom(performative)
@@ -252,6 +283,30 @@ class AbciSerializer(Serializer):
             retain_height = msg.retain_height
             performative.retain_height = retain_height
             abci_msg.response_commit.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS:
+            performative = abci_pb2.AbciMessage.Response_List_Snapshots_Performative()  # type: ignore
+            snapshots = msg.snapshots
+            SnapShots.encode(performative.snapshots, snapshots)
+            abci_msg.response_list_snapshots.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT:
+            performative = abci_pb2.AbciMessage.Response_Offer_Snapshot_Performative()  # type: ignore
+            result = msg.result
+            Result.encode(performative.result, result)
+            abci_msg.response_offer_snapshot.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK:
+            performative = abci_pb2.AbciMessage.Response_Load_Snapshot_Chunk_Performative()  # type: ignore
+            chunk = msg.chunk
+            performative.chunk = chunk
+            abci_msg.response_load_snapshot_chunk.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK:
+            performative = abci_pb2.AbciMessage.Response_Apply_Snapshot_Chunk_Performative()  # type: ignore
+            result = msg.result
+            Result.encode(performative.result, result)
+            refetch_chunks = msg.refetch_chunks
+            performative.refetch_chunks.extend(refetch_chunks)
+            reject_senders = msg.reject_senders
+            performative.reject_senders.extend(reject_senders)
+            abci_msg.response_apply_snapshot_chunk.CopyFrom(performative)
         else:
             raise ValueError("Performative not valid: {}".format(performative_id))
 
@@ -345,6 +400,28 @@ class AbciSerializer(Serializer):
             performative_content["height"] = height
         elif performative_id == AbciMessage.Performative.REQUEST_COMMIT:
             pass
+        elif performative_id == AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS:
+            pass
+        elif performative_id == AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT:
+            pb2_snapshot = abci_pb.request_offer_snapshot.snapshot
+            snapshot = Snapshot.decode(pb2_snapshot)
+            performative_content["snapshot"] = snapshot
+            app_hash = abci_pb.request_offer_snapshot.app_hash
+            performative_content["app_hash"] = app_hash
+        elif performative_id == AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK:
+            height = abci_pb.request_load_snapshot_chunk.height
+            performative_content["height"] = height
+            format = abci_pb.request_load_snapshot_chunk.format
+            performative_content["format"] = format
+            chunk_index = abci_pb.request_load_snapshot_chunk.chunk_index
+            performative_content["chunk_index"] = chunk_index
+        elif performative_id == AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK:
+            index = abci_pb.request_apply_snapshot_chunk.index
+            performative_content["index"] = index
+            chunk = abci_pb.request_apply_snapshot_chunk.chunk
+            performative_content["chunk"] = chunk
+            sender = abci_pb.request_apply_snapshot_chunk.sender
+            performative_content["sender"] = sender
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             pass
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
@@ -451,6 +528,27 @@ class AbciSerializer(Serializer):
             performative_content["data"] = data
             retain_height = abci_pb.response_commit.retain_height
             performative_content["retain_height"] = retain_height
+        elif performative_id == AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS:
+            pb2_snapshots = abci_pb.response_list_snapshots.snapshots
+            snapshots = SnapShots.decode(pb2_snapshots)
+            performative_content["snapshots"] = snapshots
+        elif performative_id == AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT:
+            pb2_result = abci_pb.response_offer_snapshot.result
+            result = Result.decode(pb2_result)
+            performative_content["result"] = result
+        elif performative_id == AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK:
+            chunk = abci_pb.response_load_snapshot_chunk.chunk
+            performative_content["chunk"] = chunk
+        elif performative_id == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK:
+            pb2_result = abci_pb.response_apply_snapshot_chunk.result
+            result = Result.decode(pb2_result)
+            performative_content["result"] = result
+            refetch_chunks = abci_pb.response_apply_snapshot_chunk.refetch_chunks
+            refetch_chunks_tuple = tuple(refetch_chunks)
+            performative_content["refetch_chunks"] = refetch_chunks_tuple
+            reject_senders = abci_pb.response_apply_snapshot_chunk.reject_senders
+            reject_senders_tuple = tuple(reject_senders)
+            performative_content["reject_senders"] = reject_senders_tuple
         else:
             raise ValueError("Performative not valid: {}.".format(performative_id))
 

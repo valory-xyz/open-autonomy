@@ -59,10 +59,22 @@ speech_acts:
     height: pt:int
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L102
   request_commit: {}
-  #    request_list_snapshots: {}
-  #    request_offer_snapshot: {}
-  #    request_load_snapshot_chunk: {}
-  #    request_apply_snapshot_chunk: {}
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L105
+  request_list_snapshots: {}
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L109
+  request_offer_snapshot:
+    snapshot: ct:Snapshot  # snapshot offered by peers
+    app_hash: pt:bytes     # light client-verified app hash for snapshot height
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L115
+  request_load_snapshot_chunk:
+    height: pt:int
+    format: pt:int
+    chunk_index: pt:int
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L115
+  request_apply_snapshot_chunk:
+    index: pt:int
+    chunk: pt:bytes
+    sender: pt:str
   # responses
   response_exception: {}
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L157
@@ -125,10 +137,20 @@ speech_acts:
   response_commit:
     data: pt:bytes
     retain_height: pt:int
-#  response_list_snapshots: {}
-#  response_offer_snapshot: {}
-#  response_load_snapshot_chunk: {}
-#  response_apply_snapshot_chunk: {}
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L243
+  response_list_snapshots:
+    snapshots: ct:SnapShots
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L247
+  response_offer_snapshot:
+    result: ct:Result
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L260
+  response_load_snapshot_chunk:
+    chunk: pt:bytes
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L264
+  response_apply_snapshot_chunk:
+    result: ct:Result
+    refetch_chunks: pt:list[pt:int]  # Chunks to refetch and reapply
+    reject_senders: pt:list[pt:str]  # Chunk senders to reject and ban
 ...
 ---
 # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L284
@@ -259,6 +281,25 @@ ct:Events: |
     repeated EventAttribute attributes = 2;
   }
   repeated Event events = 1;
+ct:Result: |
+  enum ResultType {
+    UNKNOWN       = 0;  // Unknown result, abort all snapshot restoration
+    ACCEPT        = 1;  // Snapshot accepted, apply chunks
+    ABORT         = 2;  // Abort all snapshot restoration
+    REJECT        = 3;  // Reject this specific snapshot, try others
+    REJECT_FORMAT = 4;  // Reject all snapshots of this format, try others
+    REJECT_SENDER = 5;  // Reject all snapshots from the sender(s), try others
+  }
+  ResultType result_type = 1;
+ct:Snapshot: |
+  // State Sync Types
+  uint64 height   = 1;  // The height at which the snapshot was taken
+  uint32 format   = 2;  // The application-specific snapshot format
+  uint32 chunks   = 3;  // Number of chunks in the snapshot
+  bytes  hash     = 4;  // Arbitrary snapshot hash, equal only if identical
+  bytes  metadata = 5;  // Arbitrary application metadata
+ct:SnapShots: |
+  repeated Snapshot snapshots = 1;
 ...
 ---
 initiation:
@@ -271,6 +312,10 @@ initiation:
 - request_deliver_tx
 - request_end_block
 - request_commit
+- request_list_snapshots
+- request_offer_snapshot
+- request_apply_snapshot_chunk
+- request_load_snapshot_chunk
 reply:
   request_echo: [response_echo, response_exception]
   response_echo: []
@@ -293,6 +338,14 @@ reply:
   response_end_block: []
   request_commit: [response_commit, response_exception]
   response_commit: []
+  request_list_snapshots: [response_list_snapshots, response_exception]
+  response_list_snapshots: []
+  request_offer_snapshot: [response_offer_snapshot, response_exception]
+  response_offer_snapshot: []
+  request_apply_snapshot_chunk: [response_apply_snapshot_chunk, response_exception]
+  response_apply_snapshot_chunk: []
+  request_load_snapshot_chunk: [response_offer_snapshot, response_exception]
+  response_load_snapshot_chunk: []
 termination:
   - response_exception
   - response_echo
@@ -305,6 +358,10 @@ termination:
   - response_deliver_tx
   - response_end_block
   - response_commit
+  - response_list_snapshots
+  - response_offer_snapshot
+  - response_apply_snapshot_chunk
+  - response_load_snapshot_chunk
 roles: {client, server}
 end_states: [successful]
 keep_terminal_state_dialogues: false

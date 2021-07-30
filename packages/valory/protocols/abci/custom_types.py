@@ -1196,6 +1196,159 @@ class ProofOps:
         return isinstance(other, ProofOps) and self.proof_ops == other.proof_ops
 
 
+class ResultType(Enum):
+    """This class represents an instance of ResultType."""
+
+    UNKNOWN = 0  # Unknown result, abort all snapshot restoration
+    ACCEPT = 1  # Snapshot accepted, apply chunks
+    ABORT = 2  # Abort all snapshot restoration
+    REJECT = 3  # Reject this specific snapshot, try others
+    REJECT_FORMAT = 4  # Reject all snapshots of this format, try others
+    REJECT_SENDER = 5  # Reject all snapshots from the sender(s), try others
+
+
+class Result:
+    """This class represents an instance of Result."""
+
+    def __init__(self, result_type: ResultType):
+        """Initialise an instance of Result."""
+        self.result_type = result_type
+
+    @staticmethod
+    def encode(result_protobuf_object, result_object: "Result") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the result_protobuf_object argument is matched with the instance of this class in the 'result_object' argument.
+
+        :param result_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param result_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        result_protobuf_object.result_type = result_object.result_type.value
+
+    @classmethod
+    def decode(cls, result_protobuf_object) -> "Result":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'result_protobuf_object' argument.
+
+        :param result_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'result_protobuf_object' argument.
+        """
+        return Result(ResultType(result_protobuf_object.result_type))
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return isinstance(other, Result) and self.result_type == other.result_type
+
+
+class Snapshot:
+    """This class represents an instance of Snapshot."""
+
+    def __init__(
+        self, height: int, format_: int, chunks: int, hash_: bytes, metadata: bytes
+    ):
+        """Initialise an instance of Snapshot."""
+        self.height = height
+        self.format_ = format_
+        self.chunks = chunks
+        self.hash_ = hash_
+        self.metadata = metadata
+
+    @staticmethod
+    def encode(snapshot_protobuf_object, snapshot_object: "Snapshot") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the snapshot_protobuf_object argument is matched with the instance of this class in the 'snapshot_object' argument.
+
+        :param snapshot_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param snapshot_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        snapshot_protobuf_object.height = snapshot_object.height
+        snapshot_protobuf_object.format = snapshot_object.format_
+        snapshot_protobuf_object.chunks = snapshot_object.chunks
+        snapshot_protobuf_object.hash = snapshot_object.hash_
+        snapshot_protobuf_object.metadata = snapshot_object.metadata
+
+    @classmethod
+    def decode(cls, snapshot_protobuf_object) -> "Snapshot":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'snapshot_protobuf_object' argument.
+
+        :param snapshot_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'snapshot_protobuf_object' argument.
+        """
+        return Snapshot(
+            snapshot_protobuf_object.height,
+            snapshot_protobuf_object.format,
+            snapshot_protobuf_object.chunks,
+            snapshot_protobuf_object.hash,
+            snapshot_protobuf_object.metadata,
+        )
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, Snapshot)
+            and self.height == other.height
+            and self.format_ == other.format_
+            and self.chunks == other.chunks
+            and self.hash_ == other.hash_
+            and self.metadata == other.metadata
+        )
+
+
+class SnapShots:
+    """This class represents an instance of SnapShots."""
+
+    def __init__(self, snapshots: List[Snapshot]):
+        """Initialise an instance of SnapShots."""
+        self.snapshots = snapshots
+
+    @staticmethod
+    def encode(snapshots_protobuf_object, snapshots_object: "SnapShots") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the snapshots_protobuf_object argument is matched with the instance of this class in the 'snapshots_object' argument.
+
+        :param snapshots_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param snapshots_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        snapshot_protobuf_objects = []
+        for snapshot_object in snapshots_object.snapshots:
+            snapshot_protobuf_object = abci_pb2.AbciMessage.Snapshot()
+            Snapshot.encode(snapshot_protobuf_object, snapshot_object)
+            snapshot_protobuf_objects.append(snapshot_protobuf_object)
+        snapshots_protobuf_object.snapshots.extend(snapshot_protobuf_objects)
+
+    @classmethod
+    def decode(cls, snapshots_protobuf_object) -> "SnapShots":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'snapshots_protobuf_object' argument.
+
+        :param snapshots_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'snapshots_protobuf_object' argument.
+        """
+        snapshot_objects = []
+        for snapshot_protobuf_object in list(snapshots_protobuf_object.snapshots):
+            snapshot_objects.append(Snapshot.decode(snapshot_protobuf_object))
+        return SnapShots(snapshot_objects)
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return isinstance(other, SnapShots) and self.snapshots == other.snapshots
+
+
 class Timestamp:
     """This class represents an instance of Timestamp."""
 
