@@ -190,9 +190,10 @@ message AbciMessage{
     Timestamp time = 1;
     string chain_id = 2;
     ConsensusParams consensus_params = 3;
-    ValidatorUpdates validators = 4;
-    bytes app_state_bytes = 5;
-    string initial_height = 6;
+    bool consensus_params_is_set = 4;
+    ValidatorUpdates validators = 5;
+    bytes app_state_bytes = 6;
+    int32 initial_height = 7;
   }
 
   message Request_Query_Performative{
@@ -242,7 +243,7 @@ message AbciMessage{
   message Request_Apply_Snapshot_Chunk_Performative{
     int32 index = 1;
     bytes chunk = 2;
-    string sender = 3;
+    string chunk_sender = 3;
   }
 
   message Response_Exception_Performative{
@@ -265,8 +266,9 @@ message AbciMessage{
 
   message Response_Init_Chain_Performative{
     ConsensusParams consensus_params = 1;
-    ValidatorUpdates validators = 2;
-    bytes app_hash = 3;
+    bool consensus_params_is_set = 2;
+    ValidatorUpdates validators = 3;
+    bytes app_hash = 4;
   }
 
   message Response_Query_Performative{
@@ -310,7 +312,8 @@ message AbciMessage{
   message Response_End_Block_Performative{
     ValidatorUpdates validator_updates = 1;
     ConsensusParams consensus_param_updates = 2;
-    Events events = 3;
+    bool consensus_param_updates_is_set = 3;
+    Events events = 4;
   }
 
   message Response_Commit_Performative{
@@ -336,36 +339,41 @@ message AbciMessage{
     repeated string reject_senders = 3;
   }
 
+  message Dummy_Performative{
+    ConsensusParams dummy_consensus_params = 1;
+  }
+
 
   oneof performative{
-    Request_Apply_Snapshot_Chunk_Performative request_apply_snapshot_chunk = 5;
-    Request_Begin_Block_Performative request_begin_block = 6;
-    Request_Check_Tx_Performative request_check_tx = 7;
-    Request_Commit_Performative request_commit = 8;
-    Request_Deliver_Tx_Performative request_deliver_tx = 9;
-    Request_Echo_Performative request_echo = 10;
-    Request_End_Block_Performative request_end_block = 11;
-    Request_Flush_Performative request_flush = 12;
-    Request_Info_Performative request_info = 13;
-    Request_Init_Chain_Performative request_init_chain = 14;
-    Request_List_Snapshots_Performative request_list_snapshots = 15;
-    Request_Load_Snapshot_Chunk_Performative request_load_snapshot_chunk = 16;
-    Request_Offer_Snapshot_Performative request_offer_snapshot = 17;
-    Request_Query_Performative request_query = 18;
-    Response_Apply_Snapshot_Chunk_Performative response_apply_snapshot_chunk = 19;
-    Response_Begin_Block_Performative response_begin_block = 20;
-    Response_Check_Tx_Performative response_check_tx = 21;
-    Response_Commit_Performative response_commit = 22;
-    Response_Deliver_Tx_Performative response_deliver_tx = 23;
-    Response_Echo_Performative response_echo = 24;
-    Response_End_Block_Performative response_end_block = 25;
-    Response_Exception_Performative response_exception = 26;
-    Response_Flush_Performative response_flush = 27;
-    Response_Info_Performative response_info = 28;
-    Response_Init_Chain_Performative response_init_chain = 29;
-    Response_List_Snapshots_Performative response_list_snapshots = 30;
-    Response_Load_Snapshot_Chunk_Performative response_load_snapshot_chunk = 31;
-    Response_Offer_Snapshot_Performative response_offer_snapshot = 32;
-    Response_Query_Performative response_query = 33;
+    Dummy_Performative dummy = 5;
+    Request_Apply_Snapshot_Chunk_Performative request_apply_snapshot_chunk = 6;
+    Request_Begin_Block_Performative request_begin_block = 7;
+    Request_Check_Tx_Performative request_check_tx = 8;
+    Request_Commit_Performative request_commit = 9;
+    Request_Deliver_Tx_Performative request_deliver_tx = 10;
+    Request_Echo_Performative request_echo = 11;
+    Request_End_Block_Performative request_end_block = 12;
+    Request_Flush_Performative request_flush = 13;
+    Request_Info_Performative request_info = 14;
+    Request_Init_Chain_Performative request_init_chain = 15;
+    Request_List_Snapshots_Performative request_list_snapshots = 16;
+    Request_Load_Snapshot_Chunk_Performative request_load_snapshot_chunk = 17;
+    Request_Offer_Snapshot_Performative request_offer_snapshot = 18;
+    Request_Query_Performative request_query = 19;
+    Response_Apply_Snapshot_Chunk_Performative response_apply_snapshot_chunk = 20;
+    Response_Begin_Block_Performative response_begin_block = 21;
+    Response_Check_Tx_Performative response_check_tx = 22;
+    Response_Commit_Performative response_commit = 23;
+    Response_Deliver_Tx_Performative response_deliver_tx = 24;
+    Response_Echo_Performative response_echo = 25;
+    Response_End_Block_Performative response_end_block = 26;
+    Response_Exception_Performative response_exception = 27;
+    Response_Flush_Performative response_flush = 28;
+    Response_Info_Performative response_info = 29;
+    Response_Init_Chain_Performative response_init_chain = 30;
+    Response_List_Snapshots_Performative response_list_snapshots = 31;
+    Response_Load_Snapshot_Chunk_Performative response_load_snapshot_chunk = 32;
+    Response_Offer_Snapshot_Performative response_offer_snapshot = 33;
+    Response_Query_Performative response_query = 34;
   }
 }

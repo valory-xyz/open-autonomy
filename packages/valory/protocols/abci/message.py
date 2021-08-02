@@ -21,7 +21,7 @@
 
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,too-many-branches,not-an-iterable,unidiomatic-typecheck,unsubscriptable-object
 import logging
-from typing import Any, Set, Tuple, cast
+from typing import Any, Optional, Set, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.exceptions import AEAEnforceError, enforce
@@ -82,6 +82,7 @@ class AbciMessage(Message):
     class Performative(Message.Performative):
         """Performatives for the abci protocol."""
 
+        DUMMY = "dummy"
         REQUEST_APPLY_SNAPSHOT_CHUNK = "request_apply_snapshot_chunk"
         REQUEST_BEGIN_BLOCK = "request_begin_block"
         REQUEST_CHECK_TX = "request_check_tx"
@@ -117,6 +118,7 @@ class AbciMessage(Message):
             return str(self.value)
 
     _performatives = {
+        "dummy",
         "request_apply_snapshot_chunk",
         "request_begin_block",
         "request_check_tx",
@@ -159,12 +161,14 @@ class AbciMessage(Message):
             "chain_id",
             "chunk",
             "chunk_index",
+            "chunk_sender",
             "code",
             "codespace",
             "consensus_param_updates",
             "consensus_params",
             "data",
             "dialogue_reference",
+            "dummy_consensus_params",
             "events",
             "format",
             "gas_used",
@@ -193,7 +197,6 @@ class AbciMessage(Message):
             "reject_senders",
             "result",
             "retain_height",
-            "sender",
             "snapshot",
             "snapshots",
             "target",
@@ -311,6 +314,12 @@ class AbciMessage(Message):
         return cast(int, self.get("chunk_index"))
 
     @property
+    def chunk_sender(self) -> str:
+        """Get the 'chunk_sender' content from the message."""
+        enforce(self.is_set("chunk_sender"), "'chunk_sender' content is not set.")
+        return cast(str, self.get("chunk_sender"))
+
+    @property
     def code(self) -> int:
         """Get the 'code' content from the message."""
         enforce(self.is_set("code"), "'code' content is not set.")
@@ -323,27 +332,31 @@ class AbciMessage(Message):
         return cast(str, self.get("codespace"))
 
     @property
-    def consensus_param_updates(self) -> CustomConsensusParams:
+    def consensus_param_updates(self) -> Optional[CustomConsensusParams]:
         """Get the 'consensus_param_updates' content from the message."""
-        enforce(
-            self.is_set("consensus_param_updates"),
-            "'consensus_param_updates' content is not set.",
+        return cast(
+            Optional[CustomConsensusParams], self.get("consensus_param_updates")
         )
-        return cast(CustomConsensusParams, self.get("consensus_param_updates"))
 
     @property
-    def consensus_params(self) -> CustomConsensusParams:
+    def consensus_params(self) -> Optional[CustomConsensusParams]:
         """Get the 'consensus_params' content from the message."""
-        enforce(
-            self.is_set("consensus_params"), "'consensus_params' content is not set."
-        )
-        return cast(CustomConsensusParams, self.get("consensus_params"))
+        return cast(Optional[CustomConsensusParams], self.get("consensus_params"))
 
     @property
     def data(self) -> bytes:
         """Get the 'data' content from the message."""
         enforce(self.is_set("data"), "'data' content is not set.")
         return cast(bytes, self.get("data"))
+
+    @property
+    def dummy_consensus_params(self) -> CustomConsensusParams:
+        """Get the 'dummy_consensus_params' content from the message."""
+        enforce(
+            self.is_set("dummy_consensus_params"),
+            "'dummy_consensus_params' content is not set.",
+        )
+        return cast(CustomConsensusParams, self.get("dummy_consensus_params"))
 
     @property
     def events(self) -> CustomEvents:
@@ -406,10 +419,10 @@ class AbciMessage(Message):
         return cast(str, self.get("info_data"))
 
     @property
-    def initial_height(self) -> str:
+    def initial_height(self) -> int:
         """Get the 'initial_height' content from the message."""
         enforce(self.is_set("initial_height"), "'initial_height' content is not set.")
-        return cast(str, self.get("initial_height"))
+        return cast(int, self.get("initial_height"))
 
     @property
     def key(self) -> bytes:
@@ -507,12 +520,6 @@ class AbciMessage(Message):
         """Get the 'retain_height' content from the message."""
         enforce(self.is_set("retain_height"), "'retain_height' content is not set.")
         return cast(int, self.get("retain_height"))
-
-    @property
-    def sender(self) -> str:
-        """Get the 'sender' content from the message."""
-        enforce(self.is_set("sender"), "'sender' content is not set.")
-        return cast(str, self.get("sender"))
 
     @property
     def snapshot(self) -> CustomSnapshot:
@@ -647,7 +654,7 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.REQUEST_INIT_CHAIN:
-                expected_nb_of_contents = 6
+                expected_nb_of_contents = 5
                 enforce(
                     isinstance(self.time, CustomTimestamp),
                     "Invalid type for content 'time'. Expected 'Timestamp'. Found '{}'.".format(
@@ -660,12 +667,17 @@ class AbciMessage(Message):
                         type(self.chain_id)
                     ),
                 )
-                enforce(
-                    isinstance(self.consensus_params, CustomConsensusParams),
-                    "Invalid type for content 'consensus_params'. Expected 'ConsensusParams'. Found '{}'.".format(
-                        type(self.consensus_params)
-                    ),
-                )
+                if self.is_set("consensus_params"):
+                    expected_nb_of_contents += 1
+                    consensus_params = cast(
+                        CustomConsensusParams, self.consensus_params
+                    )
+                    enforce(
+                        isinstance(consensus_params, CustomConsensusParams),
+                        "Invalid type for content 'consensus_params'. Expected 'ConsensusParams'. Found '{}'.".format(
+                            type(consensus_params)
+                        ),
+                    )
                 enforce(
                     isinstance(self.validators, CustomValidatorUpdates),
                     "Invalid type for content 'validators'. Expected 'ValidatorUpdates'. Found '{}'.".format(
@@ -679,8 +691,8 @@ class AbciMessage(Message):
                     ),
                 )
                 enforce(
-                    isinstance(self.initial_height, str),
-                    "Invalid type for content 'initial_height'. Expected 'str'. Found '{}'.".format(
+                    type(self.initial_height) is int,
+                    "Invalid type for content 'initial_height'. Expected 'int'. Found '{}'.".format(
                         type(self.initial_height)
                     ),
                 )
@@ -825,9 +837,9 @@ class AbciMessage(Message):
                     ),
                 )
                 enforce(
-                    isinstance(self.sender, str),
-                    "Invalid type for content 'sender'. Expected 'str'. Found '{}'.".format(
-                        type(self.sender)
+                    isinstance(self.chunk_sender, str),
+                    "Invalid type for content 'chunk_sender'. Expected 'str'. Found '{}'.".format(
+                        type(self.chunk_sender)
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_EXCEPTION:
@@ -875,13 +887,18 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
-                expected_nb_of_contents = 3
-                enforce(
-                    isinstance(self.consensus_params, CustomConsensusParams),
-                    "Invalid type for content 'consensus_params'. Expected 'ConsensusParams'. Found '{}'.".format(
-                        type(self.consensus_params)
-                    ),
-                )
+                expected_nb_of_contents = 2
+                if self.is_set("consensus_params"):
+                    expected_nb_of_contents += 1
+                    consensus_params = cast(
+                        CustomConsensusParams, self.consensus_params
+                    )
+                    enforce(
+                        isinstance(consensus_params, CustomConsensusParams),
+                        "Invalid type for content 'consensus_params'. Expected 'ConsensusParams'. Found '{}'.".format(
+                            type(consensus_params)
+                        ),
+                    )
                 enforce(
                     isinstance(self.validators, CustomValidatorUpdates),
                     "Invalid type for content 'validators'. Expected 'ValidatorUpdates'. Found '{}'.".format(
@@ -1059,19 +1076,24 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_END_BLOCK:
-                expected_nb_of_contents = 3
+                expected_nb_of_contents = 2
                 enforce(
                     isinstance(self.validator_updates, CustomValidatorUpdates),
                     "Invalid type for content 'validator_updates'. Expected 'ValidatorUpdates'. Found '{}'.".format(
                         type(self.validator_updates)
                     ),
                 )
-                enforce(
-                    isinstance(self.consensus_param_updates, CustomConsensusParams),
-                    "Invalid type for content 'consensus_param_updates'. Expected 'ConsensusParams'. Found '{}'.".format(
-                        type(self.consensus_param_updates)
-                    ),
-                )
+                if self.is_set("consensus_param_updates"):
+                    expected_nb_of_contents += 1
+                    consensus_param_updates = cast(
+                        CustomConsensusParams, self.consensus_param_updates
+                    )
+                    enforce(
+                        isinstance(consensus_param_updates, CustomConsensusParams),
+                        "Invalid type for content 'consensus_param_updates'. Expected 'ConsensusParams'. Found '{}'.".format(
+                            type(consensus_param_updates)
+                        ),
+                    )
                 enforce(
                     isinstance(self.events, CustomEvents),
                     "Invalid type for content 'events'. Expected 'Events'. Found '{}'.".format(
@@ -1149,6 +1171,14 @@ class AbciMessage(Message):
                 enforce(
                     all(isinstance(element, str) for element in self.reject_senders),
                     "Invalid type for tuple elements in content 'reject_senders'. Expected 'str'.",
+                )
+            elif self.performative == AbciMessage.Performative.DUMMY:
+                expected_nb_of_contents = 1
+                enforce(
+                    isinstance(self.dummy_consensus_params, CustomConsensusParams),
+                    "Invalid type for content 'dummy_consensus_params'. Expected 'ConsensusParams'. Found '{}'.".format(
+                        type(self.dummy_consensus_params)
+                    ),
                 )
 
             # Check correct content count

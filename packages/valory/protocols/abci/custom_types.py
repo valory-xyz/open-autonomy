@@ -21,6 +21,8 @@
 from enum import Enum
 from typing import List
 
+from google.protobuf.duration_pb2 import Duration as DurationPb
+
 from packages.valory.protocols.abci import abci_pb2
 
 
@@ -163,10 +165,12 @@ class EvidenceParams:
         evidence_params_protobuf_object.max_age_num_blocks = (
             evidence_params_object.max_age_num_blocks
         )
+        duration_pb = DurationPb()
         Duration.encode(
-            evidence_params_object.max_age_duration,
+            duration_pb,
             evidence_params_object.max_age_duration,
         )
+        evidence_params_protobuf_object.max_age_duration.CopyFrom(duration_pb)
         evidence_params_protobuf_object.max_bytes = evidence_params_object.max_bytes
 
     @classmethod
@@ -828,6 +832,8 @@ class Header:
         consensus_hash: bytes,
         app_hash: bytes,
         last_results_hash: bytes,
+        evidence_hash: bytes,
+        proposer_address: bytes,
     ):
         """Initialise an instance of Header."""
         self.version = version
@@ -842,6 +848,8 @@ class Header:
         self.consensus_hash = consensus_hash
         self.app_hash = app_hash
         self.last_results_hash = last_results_hash
+        self.evidence_hash = evidence_hash
+        self.proposer_address = proposer_address
 
     @staticmethod
     def encode(header_protobuf_object, header_object: "Header") -> None:
@@ -876,6 +884,8 @@ class Header:
         header_protobuf_object.consensus_hash = header_object.consensus_hash
         header_protobuf_object.app_hash = header_object.app_hash
         header_protobuf_object.last_results_hash = header_object.last_results_hash
+        header_protobuf_object.evidence_hash = header_object.evidence_hash
+        header_protobuf_object.proposer_address = header_object.proposer_address
 
     @classmethod
     def decode(cls, header_protobuf_object) -> "Header":
@@ -901,6 +911,8 @@ class Header:
         consensus_hash = header_protobuf_object.consensus_hash
         app_hash = header_protobuf_object.app_hash
         last_results_hash = header_protobuf_object.last_results_hash
+        evidence_hash = header_protobuf_object.evidence_hash
+        proposer_address = header_protobuf_object.proposer_address
         return Header(
             consensus_version_obj,
             chain_id,
@@ -914,6 +926,8 @@ class Header:
             consensus_hash,
             app_hash,
             last_results_hash,
+            evidence_hash,
+            proposer_address,
         )
 
     def __eq__(self, other):
@@ -932,6 +946,8 @@ class Header:
             and self.consensus_hash == other.consensus_hash
             and self.app_hash == other.app_hash
             and self.last_results_hash == other.last_results_hash
+            and self.evidence_hash == other.evidence_hash
+            and self.proposer_address == other.proposer_address
         )
 
 

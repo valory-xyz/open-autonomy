@@ -253,6 +253,8 @@ class TestRequestBeginBlock(BaseTestMessageConstruction):
             b"consensus_hash",
             b"app_hash",
             b"last_results_hash",
+            b"evidence_hash",
+            b"proposer_address",
         )
 
         validator = Validator(b"address", 0)
@@ -491,7 +493,7 @@ class TestRequestApplySnapshotChunk(BaseTestMessageConstruction):
             performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
             index=0,
             chunk=b"chunk",
-            sender="sender",
+            chunk_sender="sender",
         )
 
 

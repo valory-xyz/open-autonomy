@@ -52,6 +52,7 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
             AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
             AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,
+            AbciMessage.Performative.DUMMY,
         }
     )
     TERMINAL_PERFORMATIVES = frozenset(
@@ -71,9 +72,11 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
             AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
             AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
+            AbciMessage.Performative.DUMMY,
         }
     )
     VALID_REPLIES = {
+        AbciMessage.Performative.DUMMY: frozenset(),
         AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK: frozenset(
             {
                 AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,

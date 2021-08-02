@@ -30,10 +30,10 @@ speech_acts:
   request_init_chain:
     time: ct:Timestamp
     chain_id: pt:str
-    consensus_params: ct:ConsensusParams
+    consensus_params: pt:optional[ct:ConsensusParams]
     validators: ct:ValidatorUpdates      
     app_state_bytes: pt:bytes
-    initial_height: pt:str
+    initial_height: pt:int
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L70
   request_query:
     query_data: pt:bytes
@@ -74,7 +74,7 @@ speech_acts:
   request_apply_snapshot_chunk:
     index: pt:int
     chunk: pt:bytes
-    sender: pt:str
+    chunk_sender: pt:str  # 'sender' conflicts with the attribute of 'Message'
   # responses
   response_exception: {}
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L157
@@ -91,7 +91,7 @@ speech_acts:
     last_block_app_hash: pt:bytes
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L181
   response_init_chain:
-    consensus_params: ct:ConsensusParams
+    consensus_params: pt:optional[ct:ConsensusParams]
     validators: ct:ValidatorUpdates      
     app_hash: pt:bytes
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L187
@@ -131,7 +131,7 @@ speech_acts:
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L229
   response_end_block:
     validator_updates: ct:ValidatorUpdates
-    consensus_param_updates: ct:ConsensusParams
+    consensus_param_updates: pt:optional[ct:ConsensusParams]
     events: ct:Events
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L237
   response_commit:
@@ -151,6 +151,9 @@ speech_acts:
     result: ct:Result
     refetch_chunks: pt:list[pt:int]  # Chunks to refetch and reapply
     reject_senders: pt:list[pt:str]  # Chunk senders to reject and ban
+  # dummy performative to make custom types used at least once
+  dummy: 
+    dummy_consensus_params: ct:ConsensusParams
 ...
 ---
 # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L284
@@ -316,6 +319,7 @@ initiation:
 - request_offer_snapshot
 - request_apply_snapshot_chunk
 - request_load_snapshot_chunk
+- dummy
 reply:
   request_echo: [response_echo, response_exception]
   response_echo: []
@@ -346,6 +350,7 @@ reply:
   response_apply_snapshot_chunk: []
   request_load_snapshot_chunk: [response_offer_snapshot, response_exception]
   response_load_snapshot_chunk: []
+  dummy: []
 termination:
   - response_exception
   - response_echo
@@ -362,6 +367,7 @@ termination:
   - response_offer_snapshot
   - response_apply_snapshot_chunk
   - response_load_snapshot_chunk
+  - dummy
 roles: {client, server}
 end_states: [successful]
 keep_terminal_state_dialogues: false

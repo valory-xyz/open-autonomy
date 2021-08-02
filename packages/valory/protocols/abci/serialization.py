@@ -89,8 +89,10 @@ class AbciSerializer(Serializer):
             Timestamp.encode(performative.time, time)
             chain_id = msg.chain_id
             performative.chain_id = chain_id
-            consensus_params = msg.consensus_params
-            ConsensusParams.encode(performative.consensus_params, consensus_params)
+            if msg.is_set("consensus_params"):
+                performative.consensus_params_is_set = True
+                consensus_params = msg.consensus_params
+                ConsensusParams.encode(performative.consensus_params, consensus_params)
             validators = msg.validators
             ValidatorUpdates.encode(performative.validators, validators)
             app_state_bytes = msg.app_state_bytes
@@ -165,8 +167,8 @@ class AbciSerializer(Serializer):
             performative.index = index
             chunk = msg.chunk
             performative.chunk = chunk
-            sender = msg.sender
-            performative.sender = sender
+            chunk_sender = msg.chunk_sender
+            performative.chunk_sender = chunk_sender
             abci_msg.request_apply_snapshot_chunk.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             performative = abci_pb2.AbciMessage.Response_Exception_Performative()  # type: ignore
@@ -194,8 +196,10 @@ class AbciSerializer(Serializer):
             abci_msg.response_info.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
             performative = abci_pb2.AbciMessage.Response_Init_Chain_Performative()  # type: ignore
-            consensus_params = msg.consensus_params
-            ConsensusParams.encode(performative.consensus_params, consensus_params)
+            if msg.is_set("consensus_params"):
+                performative.consensus_params_is_set = True
+                consensus_params = msg.consensus_params
+                ConsensusParams.encode(performative.consensus_params, consensus_params)
             validators = msg.validators
             ValidatorUpdates.encode(performative.validators, validators)
             app_hash = msg.app_hash
@@ -269,10 +273,12 @@ class AbciSerializer(Serializer):
             performative = abci_pb2.AbciMessage.Response_End_Block_Performative()  # type: ignore
             validator_updates = msg.validator_updates
             ValidatorUpdates.encode(performative.validator_updates, validator_updates)
-            consensus_param_updates = msg.consensus_param_updates
-            ConsensusParams.encode(
-                performative.consensus_param_updates, consensus_param_updates
-            )
+            if msg.is_set("consensus_param_updates"):
+                performative.consensus_param_updates_is_set = True
+                consensus_param_updates = msg.consensus_param_updates
+                ConsensusParams.encode(
+                    performative.consensus_param_updates, consensus_param_updates
+                )
             events = msg.events
             Events.encode(performative.events, events)
             abci_msg.response_end_block.CopyFrom(performative)
@@ -307,6 +313,13 @@ class AbciSerializer(Serializer):
             reject_senders = msg.reject_senders
             performative.reject_senders.extend(reject_senders)
             abci_msg.response_apply_snapshot_chunk.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.DUMMY:
+            performative = abci_pb2.AbciMessage.Dummy_Performative()  # type: ignore
+            dummy_consensus_params = msg.dummy_consensus_params
+            ConsensusParams.encode(
+                performative.dummy_consensus_params, dummy_consensus_params
+            )
+            abci_msg.dummy.CopyFrom(performative)
         else:
             raise ValueError("Performative not valid: {}".format(performative_id))
 
@@ -356,9 +369,10 @@ class AbciSerializer(Serializer):
             performative_content["time"] = time
             chain_id = abci_pb.request_init_chain.chain_id
             performative_content["chain_id"] = chain_id
-            pb2_consensus_params = abci_pb.request_init_chain.consensus_params
-            consensus_params = ConsensusParams.decode(pb2_consensus_params)
-            performative_content["consensus_params"] = consensus_params
+            if abci_pb.request_init_chain.consensus_params_is_set:
+                pb2_consensus_params = abci_pb.request_init_chain.consensus_params
+                consensus_params = ConsensusParams.decode(pb2_consensus_params)
+                performative_content["consensus_params"] = consensus_params
             pb2_validators = abci_pb.request_init_chain.validators
             validators = ValidatorUpdates.decode(pb2_validators)
             performative_content["validators"] = validators
@@ -420,8 +434,8 @@ class AbciSerializer(Serializer):
             performative_content["index"] = index
             chunk = abci_pb.request_apply_snapshot_chunk.chunk
             performative_content["chunk"] = chunk
-            sender = abci_pb.request_apply_snapshot_chunk.sender
-            performative_content["sender"] = sender
+            chunk_sender = abci_pb.request_apply_snapshot_chunk.chunk_sender
+            performative_content["chunk_sender"] = chunk_sender
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             pass
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
@@ -441,9 +455,10 @@ class AbciSerializer(Serializer):
             last_block_app_hash = abci_pb.response_info.last_block_app_hash
             performative_content["last_block_app_hash"] = last_block_app_hash
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
-            pb2_consensus_params = abci_pb.response_init_chain.consensus_params
-            consensus_params = ConsensusParams.decode(pb2_consensus_params)
-            performative_content["consensus_params"] = consensus_params
+            if abci_pb.response_init_chain.consensus_params_is_set:
+                pb2_consensus_params = abci_pb.response_init_chain.consensus_params
+                consensus_params = ConsensusParams.decode(pb2_consensus_params)
+                performative_content["consensus_params"] = consensus_params
             pb2_validators = abci_pb.response_init_chain.validators
             validators = ValidatorUpdates.decode(pb2_validators)
             performative_content["validators"] = validators
@@ -513,13 +528,16 @@ class AbciSerializer(Serializer):
             pb2_validator_updates = abci_pb.response_end_block.validator_updates
             validator_updates = ValidatorUpdates.decode(pb2_validator_updates)
             performative_content["validator_updates"] = validator_updates
-            pb2_consensus_param_updates = (
-                abci_pb.response_end_block.consensus_param_updates
-            )
-            consensus_param_updates = ConsensusParams.decode(
-                pb2_consensus_param_updates
-            )
-            performative_content["consensus_param_updates"] = consensus_param_updates
+            if abci_pb.response_end_block.consensus_param_updates_is_set:
+                pb2_consensus_param_updates = (
+                    abci_pb.response_end_block.consensus_param_updates
+                )
+                consensus_param_updates = ConsensusParams.decode(
+                    pb2_consensus_param_updates
+                )
+                performative_content[
+                    "consensus_param_updates"
+                ] = consensus_param_updates
             pb2_events = abci_pb.response_end_block.events
             events = Events.decode(pb2_events)
             performative_content["events"] = events
@@ -549,6 +567,10 @@ class AbciSerializer(Serializer):
             reject_senders = abci_pb.response_apply_snapshot_chunk.reject_senders
             reject_senders_tuple = tuple(reject_senders)
             performative_content["reject_senders"] = reject_senders_tuple
+        elif performative_id == AbciMessage.Performative.DUMMY:
+            pb2_dummy_consensus_params = abci_pb.dummy.dummy_consensus_params
+            dummy_consensus_params = ConsensusParams.decode(pb2_dummy_consensus_params)
+            performative_content["dummy_consensus_params"] = dummy_consensus_params
         else:
             raise ValueError("Performative not valid: {}.".format(performative_id))
 
