@@ -21,8 +21,6 @@
 from enum import Enum
 from typing import List
 
-from google.protobuf.duration_pb2 import Duration as DurationPb
-
 from packages.valory.protocols.abci import abci_pb2
 
 
@@ -165,7 +163,7 @@ class EvidenceParams:
         evidence_params_protobuf_object.max_age_num_blocks = (
             evidence_params_object.max_age_num_blocks
         )
-        duration_pb = DurationPb()
+        duration_pb = abci_pb2.AbciMessage.ConsensusParams.Duration()
         Duration.encode(
             duration_pb,
             evidence_params_object.max_age_duration,

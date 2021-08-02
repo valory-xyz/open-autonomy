@@ -171,7 +171,7 @@ class TestRequestInitChain(BaseTestMessageConstruction):
             consensus_params=consensus_params,
             validators=validators,
             app_state_bytes=b"bytes",
-            initial_height="height",
+            initial_height=0,
         )
 
 

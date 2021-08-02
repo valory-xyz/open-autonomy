@@ -174,7 +174,6 @@ class TcpServerChannel:
         if self.is_stopped:
             return
         self._is_stopped = True
-        self._server_task.cancel()
         self._server.close()
         await self._server.wait_closed()
 
@@ -195,7 +194,7 @@ class TcpServerChannel:
         data = BytesIO()
         last_pos = 0
 
-        while True:
+        while not self.is_stopped:
             if last_pos == data.tell():
                 data = BytesIO()
                 last_pos = 0
@@ -219,6 +218,9 @@ class TcpServerChannel:
             # keep track of where we are in the byte stream and progress
             # based on the length encoding
             for message in _TendermintABCISerializer.read_messages(data, Request):
+                last_pos = data.tell()
+                if self.is_stopped:
+                    break
                 req_type = message.WhichOneof("value")
                 self.logger.debug(f"Received message of type: {req_type}")
                 response = _TendermintProtocolDecoder.process(req_type, message)
@@ -229,7 +231,6 @@ class TcpServerChannel:
                     await self.queue.put(envelope)
                 else:
                     self.logger.warning(f"Decoded request {req_type} was None.")
-                last_pos = data.tell()
 
     async def get_message(self):
         """Get a message from the queue."""
