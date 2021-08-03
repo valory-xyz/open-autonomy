@@ -27,6 +27,7 @@ from aea.configurations.base import PublicId
 from aea.exceptions import AEAEnforceError, enforce
 from aea.protocols.base import Message
 
+from packages.valory.protocols.abci.custom_types import CheckTxType as CustomCheckTxType
 from packages.valory.protocols.abci.custom_types import (
     ConsensusParams as CustomConsensusParams,
 )
@@ -56,6 +57,8 @@ class AbciMessage(Message):
 
     protocol_id = PublicId.from_str("valory/abci:0.1.0")
     protocol_specification_id = PublicId.from_str("valory/abci:0.1.0")
+
+    CheckTxType = CustomCheckTxType
 
     ConsensusParams = CustomConsensusParams
 
@@ -546,10 +549,10 @@ class AbciMessage(Message):
         return cast(bytes, self.get("tx"))
 
     @property
-    def type(self) -> int:
+    def type(self) -> CustomCheckTxType:
         """Get the 'type' content from the message."""
         enforce(self.is_set("type"), "'type' content is not set.")
-        return cast(int, self.get("type"))
+        return cast(CustomCheckTxType, self.get("type"))
 
     @property
     def validator_updates(self) -> CustomValidatorUpdates:
@@ -757,8 +760,8 @@ class AbciMessage(Message):
                     ),
                 )
                 enforce(
-                    type(self.type) is int,
-                    "Invalid type for content 'type'. Expected 'int'. Found '{}'.".format(
+                    isinstance(self.type, CustomCheckTxType),
+                    "Invalid type for content 'type'. Expected 'CheckTxType'. Found '{}'.".format(
                         type(self.type)
                     ),
                 )

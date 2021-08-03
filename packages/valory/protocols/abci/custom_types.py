@@ -664,6 +664,52 @@ class Evidences:
         )
 
 
+class CheckTxTypeEnum(Enum):
+    NEW = 0
+    RECHECK = 1
+
+
+class CheckTxType:
+    """This class represents an instance of CheckTxType."""
+
+    def __init__(self, check_tx_type: CheckTxTypeEnum):
+        """Initialise an instance of CheckTxType."""
+        self.check_tx_type = check_tx_type
+
+    @staticmethod
+    def encode(
+        check_tx_type_protobuf_object, check_tx_type_object: "CheckTxType"
+    ) -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the check_tx_type_protobuf_object argument is matched with the instance of this class in the 'check_tx_type_object' argument.
+
+        :param check_tx_type_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param check_tx_type_object: an instance of this class to be encoded in the protocol buffer object.
+        :return: None
+        """
+        check_tx_type_protobuf_object.type = check_tx_type_object.check_tx_type.value
+
+    @classmethod
+    def decode(cls, check_tx_type_protobuf_object) -> "CheckTxType":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'check_tx_type_protobuf_object' argument.
+
+        :param check_tx_type_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'check_tx_type_protobuf_object' argument.
+        """
+        return CheckTxType(CheckTxTypeEnum(check_tx_type_protobuf_object.type))
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, CheckTxType) and self.check_tx_type == other.check_tx_type
+        )
+
+
 class ConsensusVersion:
     """This class represents an instance of ConsensusVersion."""
 

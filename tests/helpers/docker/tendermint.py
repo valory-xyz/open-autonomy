@@ -30,7 +30,7 @@ from tests.helpers.docker.base import DockerImage
 DEFAULT_TENDERMINT_PORT = 26657
 DEFAULT_PROXY_APP = "tcp://0.0.0.0:26658"
 
-_SLEEP_TIME = 0.5
+_SLEEP_TIME = 1
 
 
 class TendermintDockerImage(DockerImage):

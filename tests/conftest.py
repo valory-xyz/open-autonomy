@@ -29,18 +29,28 @@ from tests.helpers.docker.tendermint import (
 )
 
 
+DEFAULT_ASYNC_TIMEOUT = 5.0
+HTTP_LOCALHOST = "http://localhost"
+
+
+@pytest.fixture()
+def tendermint_port() -> int:
+    """Get the Tendermint port"""
+    return DEFAULT_TENDERMINT_PORT
+
+
 @pytest.mark.integration
 @pytest.mark.ledger
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def tendermint(
-    port: int = DEFAULT_TENDERMINT_PORT,
+    tendermint_port,
     proxy_app: str = DEFAULT_PROXY_APP,
     timeout: float = 2.0,
     max_attempts: int = 10,
 ):
     """Launch the Ganache image."""
     client = docker.from_env()
-    image = TendermintDockerImage(client, port, proxy_app)
+    image = TendermintDockerImage(client, tendermint_port, proxy_app)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -49,5 +59,6 @@ class UseTendermint:
     """Inherit from this class to use Tendermint."""
 
     @pytest.fixture(autouse=True)
-    def _start_tendermint(self, tendermint):
+    def _start_tendermint(self, tendermint, tendermint_port):
         """Start a Tendermint image."""
+        self.tendermint_port = tendermint_port

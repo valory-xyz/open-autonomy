@@ -28,6 +28,7 @@ from aea.protocols.base import Message, Serializer
 
 from packages.valory.protocols.abci import abci_pb2
 from packages.valory.protocols.abci.custom_types import (
+    CheckTxType,
     ConsensusParams,
     Events,
     Evidences,
@@ -127,7 +128,7 @@ class AbciSerializer(Serializer):
             tx = msg.tx
             performative.tx = tx
             type = msg.type
-            performative.type = type
+            CheckTxType.encode(performative.type, type)
             abci_msg.request_check_tx.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.REQUEST_DELIVER_TX:
             performative = abci_pb2.AbciMessage.Request_Deliver_Tx_Performative()  # type: ignore
@@ -404,7 +405,8 @@ class AbciSerializer(Serializer):
         elif performative_id == AbciMessage.Performative.REQUEST_CHECK_TX:
             tx = abci_pb.request_check_tx.tx
             performative_content["tx"] = tx
-            type = abci_pb.request_check_tx.type
+            pb2_type = abci_pb.request_check_tx.type
+            type = CheckTxType.decode(pb2_type)
             performative_content["type"] = type
         elif performative_id == AbciMessage.Performative.REQUEST_DELIVER_TX:
             tx = abci_pb.request_deliver_tx.tx

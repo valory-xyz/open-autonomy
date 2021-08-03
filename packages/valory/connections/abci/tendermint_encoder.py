@@ -26,13 +26,17 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
     Request,
     Response,
     ResponseBeginBlock,
+    ResponseCheckTx,
     ResponseCommit,
+    ResponseDeliverTx,
     ResponseEndBlock,
     ResponseFlush,
     ResponseInfo,
     ResponseInitChain,
+    ResponseQuery,
     ValidatorUpdate,
 )
+from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import ProofOps
 from packages.valory.connections.abci.tendermint.types.params_pb2 import (
     EvidenceParams,
     ValidatorParams,
@@ -46,6 +50,7 @@ from packages.valory.protocols.abci.custom_types import Event as CustomEvent
 from packages.valory.protocols.abci.custom_types import (
     EvidenceParams as CustomEvidenceParams,
 )
+from packages.valory.protocols.abci.custom_types import ProofOps as CustomProofOps
 from packages.valory.protocols.abci.custom_types import (
     ValidatorParams as CustomValidatorParams,
 )
@@ -127,6 +132,82 @@ class _TendermintProtocolEncoder:
         return response
 
     @classmethod
+    def response_query(cls, message: AbciMessage) -> Response:
+        """
+        Process the response query.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        query = ResponseQuery()
+
+        query.code = message.code
+        query.log = message.log
+        query.info = message.info
+        query.index = message.index
+        query.key = message.key
+        query.value = message.value
+
+        proof_ops_pb = cls._encode_proof_ops(message.proof_ops)
+        query.proof_ops.CopyFrom(proof_ops_pb)
+
+        query.height = message.height
+        query.codespace = message.codespace
+
+        response = Response(query=query)
+        return response
+
+    @classmethod
+    def response_check_tx(cls, message: AbciMessage) -> Response:
+        """
+        Process the response check_tx.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        check_tx = ResponseCheckTx()
+
+        check_tx.code = message.code
+        check_tx.data = message.data
+        check_tx.log = message.log
+        check_tx.info = message.info
+        check_tx.gas_wanted = message.gas_wanted
+        check_tx.gas_used = message.gas_used
+
+        events_pb = [cls._encode_event(e) for e in message.events.events]
+        check_tx.events.extend(events_pb)
+
+        check_tx.codespace = message.codespace
+
+        response = Response(check_tx=check_tx)
+        return response
+
+    @classmethod
+    def response_deliver_tx(cls, message: AbciMessage) -> Response:
+        """
+        Process the response deliver_tx.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        deliver_tx = ResponseDeliverTx()
+
+        deliver_tx.code = message.code
+        deliver_tx.data = message.data
+        deliver_tx.log = message.log
+        deliver_tx.info = message.info
+        deliver_tx.gas_wanted = message.gas_wanted
+        deliver_tx.gas_used = message.gas_used
+
+        events_pb = [cls._encode_event(e) for e in message.events.events]
+        deliver_tx.events.extend(events_pb)
+
+        deliver_tx.codespace = message.codespace
+
+        response = Response(deliver_tx=deliver_tx)
+        return response
+
+    @classmethod
     def response_begin_block(cls, message: AbciMessage) -> Response:
         """
         Process the response begin_block.
@@ -191,34 +272,47 @@ class _TendermintProtocolEncoder:
     @classmethod
     def _encode_consensus_params(cls, consensus_params: CustomConsensusParams):
         consensus_params_pb = ConsensusParams()
-        return CustomConsensusParams.encode(consensus_params_pb, consensus_params)
+        CustomConsensusParams.encode(consensus_params_pb, consensus_params)
+        return consensus_params_pb
 
     @classmethod
     def _encode_block_params(cls, block_params: CustomBlockParams):
         block_params_pb = BlockParams()
-        return CustomBlockParams.encode(block_params_pb, block_params)
+        CustomBlockParams.encode(block_params_pb, block_params)
+        return block_params_pb
 
     @classmethod
     def _encode_evidence_params(cls, evidence_params: CustomEvidenceParams):
         evidence_params_pb = EvidenceParams()
-        return CustomEvidenceParams.encode(evidence_params_pb, evidence_params)
+        CustomEvidenceParams.encode(evidence_params_pb, evidence_params)
+        return evidence_params_pb
 
     @classmethod
     def _encode_validator_params(cls, validator_params: CustomValidatorParams):
         validator_params_pb = ValidatorParams()
-        return CustomValidatorParams.encode(validator_params_pb, validator_params)
+        CustomValidatorParams.encode(validator_params_pb, validator_params)
+        return validator_params_pb
 
     @classmethod
     def _encode_version_params(cls, version_params: CustomVersionParams):
         version_params_pb = ValidatorUpdate()
-        return CustomVersionParams.encode(version_params_pb, version_params)
+        CustomVersionParams.encode(version_params_pb, version_params)
+        return version_params_pb
 
     @classmethod
     def _encode_validator_update(cls, validator_update: CustomValidatorUpdate):
         validator_update_pb = ValidatorUpdate()
-        return CustomValidatorUpdate.encode(validator_update_pb, validator_update)
+        CustomValidatorUpdate.encode(validator_update_pb, validator_update)
+        return validator_update_pb
 
     @classmethod
     def _encode_event(cls, event: CustomEvent):
         event_pb = Event()
-        return CustomEvent.encode(event_pb, event)
+        CustomEvent.encode(event_pb, event)
+        return event_pb
+
+    @classmethod
+    def _encode_proof_ops(cls, proof_ops: CustomProofOps):
+        proof_ops_pb = ProofOps()
+        CustomProofOps.encode(proof_ops_pb, proof_ops)
+        return proof_ops_pb

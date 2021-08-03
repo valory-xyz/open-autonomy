@@ -49,8 +49,7 @@ speech_acts:
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L89
   request_check_tx:
     tx: pt:bytes
-    # Enum: NEW = 0, RECHECK = 1
-    type: pt:int   
+    type: ct:CheckTxType   
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L94
   request_deliver_tx:
     tx: pt:bytes
@@ -273,6 +272,12 @@ ct:Evidences: |
     int64 total_voting_power = 5;
   }
   repeated Evidence byzantine_validators = 1;
+ct:CheckTxType: |
+  enum _CheckTxType {
+    NEW            = 0;
+    RECHECK        = 1;
+  }
+  _CheckTxType type = 1;
 ct:Events: |
   message EventAttribute {
     bytes key   = 1;

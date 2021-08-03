@@ -24,6 +24,8 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
     BlockParams,
+    CheckTxType,
+    CheckTxTypeEnum,
     ConsensusParams,
     ConsensusVersion,
     Duration,
@@ -300,7 +302,7 @@ class TestRequestCheckTx(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         tx = b"bytes"
-        type_ = 0
+        type_ = CheckTxType(CheckTxTypeEnum.NEW)
         return AbciMessage(
             performative=AbciMessage.Performative.REQUEST_CHECK_TX, tx=tx, type=type_
         )

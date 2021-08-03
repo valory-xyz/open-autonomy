@@ -25,6 +25,8 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
     BlockParams,
+    CheckTxType,
+    CheckTxTypeEnum,
     ConsensusParams,
     Duration,
     Evidence,
@@ -125,10 +127,6 @@ class _TendermintProtocolDecoder:
         return result
 
     @classmethod
-    def request_query(cls, request: Request) -> AbciMessage:
-        raise NotImplementedError
-
-    @classmethod
     def request_begin_block(cls, request: Request) -> AbciMessage:
         """
         Decode a begin_block request.
@@ -158,8 +156,16 @@ class _TendermintProtocolDecoder:
         Decode a check_tx request.
 
         :param request: the request.
+        :return: the AbciMessage request.
         """
-        raise NotImplementedError
+        check_tx = request.check_tx
+        tx = check_tx.tx
+        check_tx_type = CheckTxType(CheckTxTypeEnum(check_tx.type))
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_CHECK_TX,
+            tx=tx,
+            type=check_tx_type,
+        )
 
     @classmethod
     def request_deliver_tx(cls, request: Request) -> AbciMessage:
@@ -167,8 +173,28 @@ class _TendermintProtocolDecoder:
         Decode a deliver_tx request.
 
         :param request: the request.
+        :return: the AbciMessage request.
         """
-        raise NotImplementedError
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+            tx=request.deliver_tx.tx,
+        )
+
+    @classmethod
+    def request_query(cls, request: Request) -> AbciMessage:
+        """
+        Decode a query request.
+
+        :param request: the request.
+        :return: the AbciMessage request.
+        """
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_QUERY,
+            query_data=request.query.data,
+            path=request.query.path,
+            height=request.query.height,
+            prove=request.query.prove,
+        )
 
     @classmethod
     def request_commit(cls, _request: Request) -> AbciMessage:

@@ -5,6 +5,14 @@ package aea.valory.abci.v0_1_0;
 message AbciMessage{
 
   // Custom Types
+  message CheckTxType{
+    enum _CheckTxType {
+      NEW            = 0;
+      RECHECK        = 1;
+    }
+    _CheckTxType type = 1;
+  }
+
   message ConsensusParams{
     message Duration {
       int64 seconds = 1;
@@ -212,7 +220,7 @@ message AbciMessage{
 
   message Request_Check_Tx_Performative{
     bytes tx = 1;
-    int32 type = 2;
+    CheckTxType type = 2;
   }
 
   message Request_Deliver_Tx_Performative{
