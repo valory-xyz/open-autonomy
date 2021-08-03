@@ -30,12 +30,13 @@ import subprocess
 import sys
 from distutils.spawn import find_executable
 from pathlib import Path
+from typing import cast
 
 
 PACKAGE_IMPORT_PATH_PREFIX = "packages.valory.connections.abci"
 
 
-def _find_protoc():
+def _find_protoc() -> str:
     """Find protoc binary."""
     if "PROTOC" in os.environ and os.path.exists(os.environ["PROTOC"]):
         protoc_bin = os.environ["PROTOC"]
@@ -48,8 +49,11 @@ def _find_protoc():
     elif os.path.exists("../vsprojects/Release/protoc.exe"):
         protoc_bin = "../vsprojects/Release/protoc.exe"
     else:
-        protoc_bin = find_executable("protoc")
-    return protoc_bin
+        which_protoc = find_executable("protoc")
+        if which_protoc is None:
+            raise ValueError("cannot find 'protoc' binary on the system.")
+        protoc_bin = which_protoc
+    return cast(str, protoc_bin)
 
 
 protoc = _find_protoc()

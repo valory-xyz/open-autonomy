@@ -313,6 +313,7 @@ ct:SnapShots: |
 initiation:
 - request_echo
 - request_flush
+- request_info
 - request_init_chain
 - request_query
 - request_begin_block

@@ -6,17 +6,41 @@ description: connection to wrap communication with an ABCI server.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmdcyANC7j6fteqzBoFLBg9NfHBAxryY1ykfywzeSpp8iC
-  connection.py: QmcxaPLtLNNLmKGjvnb9R2pRRGnfM5KBcBvGDt4yq1eWjD
+  Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
+  __init__.py: QmWustVbKTkibXp3YHaeM9VyuLHSJKQCEURpbz28MEjNNu
+  connection.py: QmQ6RicRiCihTUqD1SvxV84wvwLMMsYzTs1pVxFrHmsJ53
+  dialogues.py: QmW9qr1Ln6QkAUX5H3H4Cb26nTDEw1mSFwQDcZ5a9ZQLBH
+  gogoproto/__init__.py: QmeRBCDqJrzQWpVxxGwLYFcK9eiPoy1ZeWm5Hf5KEF1gKb
+  gogoproto/gogo_pb2.py: QmPJH9L58JXB66JAV7iWRmWFaB9n3PkswmHZVbA1npvhbb
+  protos/gogoproto/gogo.proto: QmecRGWQihe664KRJSozEfSLumVn8UiU79MvBJLj2X5mJW
+  protos/tendermint/abci/types.proto: QmbpqQwWkERBVfZcvuFiXB7n3MreCzb4KX2vhpEBT9u8ei
+  protos/tendermint/crypto/keys.proto: QmPYaNQC1NDh68pXBBwYSSXZ7P88QH8CVvzxFFgcDDfL3i
+  protos/tendermint/crypto/proof.proto: QmRsHfJ27QXXDTr3aPeENkyrgj9EeZqVgm2hvdezFYnv17
+  protos/tendermint/types/params.proto: QmeG2wQzMzx4CWzc2mstwt47vzhpQ9rfZou5Dr7K2PFTmv
+  protos/tendermint/types/types.proto: QmanUCGF3FQB8gjVBhu5eSddfBuwsnNsLMCmpaTQaTfxbv
+  protos/tendermint/types/validator.proto: QmdhmvmFwshWooyNJdPqTPvUKCh8qTAy8Hj1HJgaB1yWeN
+  protos/tendermint/version/types.proto: QmVvixZ8bXGrTGdVBbmyZruc8azvcZb6J9hno6UmbpR2uH
   readme.md: QmY84Kw2PQX4pmohsCbPRwL4kryQxCHk5awWSKrTMhtdxr
+  scripts/genproto.py: QmctTMj3UXh3tT2PJqVnWpAtfSRfVB1pqwhTYbKJ4M5Yuc
+  tendermint/__init__.py: Qme1XNxgCxmmEZLcjYXFLAh2wxLZvtjHh9j7dBbSN3Zbni
+  tendermint/abci/types_pb2.py: QmXVbazFhy63EqGzVMEfDn93tVxLqK8UXAM38JVj18T4Eh
+  tendermint/crypto/keys_pb2.py: QmWVvaZCKsJy14RV75AfDtPeyd7f9StxeaevbeAD3wgtUV
+  tendermint/crypto/proof_pb2.py: QmbNwtwCeB9KsNZ2FfmSA3fSyGiAaHmwV2uVTBUzuxwu5c
+  tendermint/types/params_pb2.py: QmQgoVJgLFQkZCbBbdvXKQp39bNH5jM6DBEVsYqypgMMRT
+  tendermint/types/types_pb2.py: QmQFgH9qQRf7Kghxod8uMXR2E22B6jE1M3rBJkWhoQFEF4
+  tendermint/types/validator_pb2.py: QmX2kaCCmAM2eVRxqMfcAeg4QMvU1NNQcXyGLqMsSRAGwt
+  tendermint/version/types_pb2.py: QmRArhcu1XukHVsQJQEBStV5S79mr7yK5nXRLMVmtPPjSf
+  tendermint_decoder.py: QmV11UDj79gf9D7WRYmYk5jwVHrd8FyUhbat4GvkcRi2ES
+  tendermint_encoder.py: QmUaicBa9HT3cvwGmxBKDN9VhhXsx1mJZfk2UDRcfwqRWN
+  version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
 fingerprint_ignore_patterns: []
-connections:
-- fetchai/http_client:0.22.0
+connections: []
 protocols: []
-class_name: ABCIConnection
+class_name: ABCIServerConnection
 config:
   host: 127.0.0.1
-  port: 26657
+  port: 26658
+  target_skill_id: null
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies: {}

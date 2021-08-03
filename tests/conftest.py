@@ -18,6 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+import inspect
+import os
+from pathlib import Path
+
 import docker
 import pytest
 
@@ -28,6 +32,9 @@ from tests.helpers.docker.tendermint import (
     TendermintDockerImage,
 )
 
+
+CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
+ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
 
 DEFAULT_ASYNC_TIMEOUT = 5.0
 HTTP_LOCALHOST = "http://localhost"

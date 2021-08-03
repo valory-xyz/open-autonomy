@@ -85,7 +85,7 @@ class BaseTestMessageConstruction:
 
 
 class TestRequestEcho(BaseTestMessageConstruction):
-    """Test ABCI request echo."""
+    """Test ABCI request abci."""
 
     def build_message(self):
         """Build the message."""
@@ -95,7 +95,7 @@ class TestRequestEcho(BaseTestMessageConstruction):
 
 
 class TestResponseEcho(BaseTestMessageConstruction):
-    """Test ABCI response echo."""
+    """Test ABCI response abci."""
 
     def build_message(self):
         """Build the message."""

@@ -19,8 +19,7 @@
 """Connection to interact with an ABCI server."""
 import asyncio
 from abc import ABC
-from asyncio import AbstractEventLoop, CancelledError, Task
-from asyncio.base_events import Server
+from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
 from typing import Any, Dict, Optional, Tuple, Type, cast
@@ -28,17 +27,24 @@ from typing import Any, Dict, Optional, Tuple, Type, cast
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
+from aea.protocols.dialogue.base import DialogueLabel
 
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import Request
+from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
+from packages.valory.connections.abci.dialogues import AbciDialogues
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
+    Request,
+    Response,
+)
 from packages.valory.connections.abci.tendermint_decoder import (
     _TendermintProtocolDecoder,
 )
 from packages.valory.connections.abci.tendermint_encoder import (
     _TendermintProtocolEncoder,
 )
+from packages.valory.protocols.abci import AbciMessage
 
 
-PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
+PUBLIC_ID = CONNECTION_PUBLIC_ID
 
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"
 DEFAULT_ABCI_PORT = 26658
@@ -49,7 +55,7 @@ class _TendermintABCISerializer:
     """(stateless) utility class to encode/decode messages for the communication with Tendermint."""
 
     @classmethod
-    def encode_varint(cls, number: int):
+    def encode_varint(cls, number: int) -> bytes:
         """Encode a number in varint coding."""
         # Shift to int64
         number = number << 1
@@ -65,7 +71,7 @@ class _TendermintABCISerializer:
         return buf
 
     @classmethod
-    def decode_varint(cls, buffer: BytesIO):
+    def decode_varint(cls, buffer: BytesIO) -> int:
         """Decode a number from its varint coding."""
         shift = 0
         result = 0
@@ -78,7 +84,7 @@ class _TendermintABCISerializer:
         return result
 
     @classmethod
-    def _read_one(cls, buffer: BytesIO):
+    def _read_one(cls, buffer: BytesIO) -> int:
         """Read one byte to decode a varint."""
         c = buffer.read(1)
         if c == b"":
@@ -86,7 +92,7 @@ class _TendermintABCISerializer:
         return ord(c)
 
     @classmethod
-    def write_message(cls, message):
+    def write_message(cls, message: Response) -> bytes:
         """Write a message in a buffer."""
         buffer = BytesIO(b"")
         bz = message.SerializeToString()
@@ -96,7 +102,7 @@ class _TendermintABCISerializer:
         return buffer.getvalue()
 
     @classmethod
-    def read_messages(cls, buffer: BytesIO, message: Type):
+    def read_messages(cls, buffer: BytesIO, message: Type) -> Request:
         """Return an iterator over the messages found in the `reader` buffer."""
         while True:
             try:
@@ -118,32 +124,42 @@ class TcpServerChannel:
     def __init__(
         self,
         connection_address: str,
+        target_skill_id: PublicId,
         address: str = DEFAULT_LISTEN_ADDRESS,
         port: int = DEFAULT_ABCI_PORT,
         logger: Optional[Logger] = None,
     ):
         """
-
         Initialize the TCP server.
 
         :param connection_address: the connection identity address.
+        :param target_skill_id: the public id of the target skill.
         :param address: the listen address.
         :param port: the port to listen from.
         :param logger: the logger.
         """
         self.connection_address = connection_address
+        self.target_skill_id = target_skill_id
         self.address = address
         self.port = port
         self.logger = logger
 
         # channel state
+        self._dialogues = AbciDialogues()
         self._is_stopped: bool = True
         self.queue: Optional[asyncio.Queue[Envelope]] = None
-        self._server: Optional[Server] = None
+        self._server: Optional[AbstractServer] = None
         self._server_task: Optional[Task] = None
+        # a single Tendermint opens four concurrent connections:
+        # https://docs.tendermint.com/master/spec/abci/apps.html
+        # this dictionary keeps track of the reader-writer stream pair
+        # by socket name (ip address and port)
         self._streams_by_socket: Dict[
             str, Tuple[asyncio.StreamReader, asyncio.StreamWriter]
         ] = {}
+        # this dictionary associates requests to socket name
+        # such that responses are sent to the right receiver
+        self._request_id_to_socket: Dict[DialogueLabel, str] = {}
 
     @property
     def is_stopped(self) -> bool:
@@ -174,6 +190,7 @@ class TcpServerChannel:
         if self.is_stopped:
             return
         self._is_stopped = True
+        self._server = cast(AbstractServer, self._server)
         self._server.close()
         await self._server.wait_closed()
 
@@ -181,23 +198,21 @@ class TcpServerChannel:
         self._server = None
         self._server_task = None
         self._streams_by_socket = {}
+        self._request_id_to_socket = {}
 
     async def receive_messages(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-    ):
+    ) -> None:
         """Receive incoming messages."""
+        self.logger = cast(Logger, self.logger)
+        self.queue = cast(asyncio.Queue, self.queue)
         ip, socket, *_ = writer.get_extra_info("peername")
         peer_name = f"{ip}:{socket}"
         self._streams_by_socket[peer_name] = (reader, writer)
         self.logger.info(f"Connection @ {peer_name}")
 
-        data = BytesIO()
-        last_pos = 0
-
         while not self.is_stopped:
-            if last_pos == data.tell():
-                data = BytesIO()
-                last_pos = 0
+            data = BytesIO()
 
             try:
                 bits = await reader.read(MAX_READ_IN_BYTES)
@@ -211,36 +226,49 @@ class TcpServerChannel:
 
             self.logger.debug(f"Received {len(bits)} bytes from connection {peer_name}")
             data.write(bits)
-            data.seek(last_pos)
+            data.seek(0)
 
             # Tendermint prefixes each serialized protobuf message
             # with varint encoded length. We use the 'data' buffer to
             # keep track of where we are in the byte stream and progress
             # based on the length encoding
             for message in _TendermintABCISerializer.read_messages(data, Request):
-                last_pos = data.tell()
                 if self.is_stopped:
                     break
                 req_type = message.WhichOneof("value")
                 self.logger.debug(f"Received message of type: {req_type}")
-                response = _TendermintProtocolDecoder.process(req_type, message)
-                if response is not None:
+                request, dialogue = _TendermintProtocolDecoder.process(
+                    message, self._dialogues, str(self.target_skill_id)
+                )
+                # associate request to peer, so we remember who to reply to
+                self._request_id_to_socket[
+                    dialogue.incomplete_dialogue_label
+                ] = peer_name
+                if request is not None:
                     envelope = Envelope(
-                        to=self.connection_address, sender=peer_name, message=response
+                        to=request.to, sender=request.sender, message=request
                     )
                     await self.queue.put(envelope)
                 else:
                     self.logger.warning(f"Decoded request {req_type} was None.")
 
-    async def get_message(self):
+    async def get_message(self) -> Envelope:
         """Get a message from the queue."""
-        return await self.queue.get()
+        return await cast(asyncio.Queue, self.queue).get()
 
-    async def send(self, envelope):
+    async def send(self, envelope: Envelope) -> None:
         """Send a message."""
-        message = envelope.message
-        to = envelope.to
-        _reader, writer = self._streams_by_socket[to]
+        self.logger = cast(Logger, self.logger)
+        message = cast(AbciMessage, envelope.message)
+        dialogue = self._dialogues.update(message)
+        if dialogue is None:
+            self.logger.warning(
+                "Could not create dialogue for message={}".format(message)
+            )
+            return
+
+        peer_name = self._request_id_to_socket[dialogue.incomplete_dialogue_label]
+        _reader, writer = self._streams_by_socket[peer_name]
         protobuf_message = _TendermintProtocolEncoder.process(message)
         data = _TendermintABCISerializer.write_message(protobuf_message)
         self.logger.debug(f"Writing {len(data)} bytes")
@@ -256,8 +284,6 @@ class BaseABCIConnection(Connection, ABC):
 class ABCIServerConnection(BaseABCIConnection):
     """ABCI server."""
 
-    connection_id = PUBLIC_ID
-
     def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the connection.
@@ -267,10 +293,20 @@ class ABCIServerConnection(BaseABCIConnection):
         super().__init__(**kwargs)  # pragma: no cover
         self.host = cast(str, self.configuration.config.get("host"))
         self.port = cast(int, self.configuration.config.get("port"))
-        if self.host is None or self.port is None:  # pragma: nocover
-            raise ValueError("host and port must be set!")
-
-        self.channel = TcpServerChannel(self.address, self.host, self.port)
+        target_skill_id_string = cast(
+            Optional[str], self.configuration.config.get("target_skill_id")
+        )
+        if (
+            self.host is None or self.port is None or target_skill_id_string is None
+        ):  # pragma: nocover
+            raise ValueError("host and port and target_skill_id must be set!")
+        target_skill_id = PublicId.try_from_str(target_skill_id_string)
+        if target_skill_id is None:  # pragma: nocover
+            raise ValueError("Provided target_skill_id is not a valid public id.")
+        self.target_skill_id = target_skill_id
+        self.channel = TcpServerChannel(
+            self.address, self.target_skill_id, address=self.host, port=self.port
+        )
 
     async def connect(self) -> None:
         """

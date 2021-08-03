@@ -17,30 +17,52 @@
 #
 # ------------------------------------------------------------------------------
 """Decode AEA messages from Tendermint protobuf messages."""
-from typing import Callable, Optional, Union
 
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import Request, Response
-from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import Proof
+# isort: skip_file  # noqa
+
+from typing import Callable, Tuple, cast
+
+from aea.exceptions import enforce
+from google.protobuf.timestamp_pb2 import Timestamp as TimestampPb
+
+from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogues
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
+    Evidence as EvidencePb,
+)
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
+    LastCommitInfo as LastCommitInfoPb,
+)
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import Request
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
+    Validator as ValidatorPb,
+)
+from packages.valory.connections.abci.tendermint.types.types_pb2 import (  # type: ignore
+    Header as HeaderPb,
+)
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
-    BlockParams,
     CheckTxType,
     CheckTxTypeEnum,
     ConsensusParams,
-    Duration,
     Evidence,
-    EvidenceParams,
     Evidences,
     Header,
     LastCommitInfo,
     PartSetHeader,
     Timestamp,
     Validator,
-    ValidatorParams,
     ValidatorUpdates,
-    VersionParams,
-    VoteInfo,
+)
+
+
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
+    ConsensusParams as ConsensusParamsPb,
+)
+
+
+from packages.valory.connections.abci.tendermint.types.types_pb2 import (  # type: ignore  # isort: skip
+    BlockID as BlockIDPb,
 )
 
 
@@ -53,53 +75,68 @@ class _TendermintProtocolDecoder:
 
     @classmethod
     def process(
-        cls, message_type: str, message: Union[Request, Response]
-    ) -> Optional[AbciMessage]:
+        cls, message: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Process an ABCI request or response."""
-        message_type = (
-            f"request_{message_type}"
-            if isinstance(message, Request)
-            else f"response_{message_type}"
-        )
-        handler: Callable[[Request], AbciMessage] = getattr(
-            cls, message_type, cls.no_match
-        )
-        return handler(message)
+        is_request = isinstance(message, Request)
+        enforce(is_request, "only Request messages are allowed")
+        message_type = f"request_{message.WhichOneof('value')}"
+        handler: Callable[
+            [Request, AbciDialogues, str], Tuple[AbciMessage, AbciDialogue]
+        ] = getattr(cls, message_type, cls.no_match)
+        abci_message, abci_dialogue = handler(message, dialogues, counterparty)
+        return abci_message, abci_dialogue
 
     @classmethod
-    def request_flush(cls, _request: Request) -> AbciMessage:
+    def request_flush(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a flush request.
 
-        :param _request: the request.
+        :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_FLUSH,
+            counterparty=counterparty,
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_info(cls, request: Request) -> AbciMessage:
+    def request_info(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a info request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
         info = request.info
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_INFO,
+            counterparty=counterparty,
             version=info.version,
             block_version=info.block_version,
             p2p_version=info.p2p_version,
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_init_chain(cls, request: Request) -> AbciMessage:
+    def request_init_chain(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a init_chain request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
         init_chain = request.init_chain
@@ -114,8 +151,9 @@ class _TendermintProtocolDecoder:
         app_state_bytes = init_chain.app_state_bytes
         initial_height = init_chain.initial_height
 
-        result = AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
+            counterparty=counterparty,
             time=timestamp,
             chain_id=chain_id,
             validators=validators,
@@ -123,15 +161,19 @@ class _TendermintProtocolDecoder:
             initial_height=initial_height,
         )
         if consensus_params is not None:
-            result.set("consensus_params", consensus_params)
-        return result
+            abci_message.set("consensus_params", consensus_params)
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_begin_block(cls, request: Request) -> AbciMessage:
+    def request_begin_block(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a begin_block request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
         begin_block = request.begin_block
@@ -142,105 +184,149 @@ class _TendermintProtocolDecoder:
             cls._decode_evidence(byzantine_validator)
             for byzantine_validator in list(begin_block.byzantine_validators)
         ]
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
+            counterparty=counterparty,
             hash=hash_,
             header=header,
             last_commit_info=last_commit_info,
             byzantine_validators=Evidences(evidences),
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_check_tx(cls, request: Request) -> AbciMessage:
+    def request_check_tx(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a check_tx request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
         check_tx = request.check_tx
         tx = check_tx.tx
         check_tx_type = CheckTxType(CheckTxTypeEnum(check_tx.type))
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_CHECK_TX,
+            counterparty=counterparty,
             tx=tx,
             type=check_tx_type,
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_deliver_tx(cls, request: Request) -> AbciMessage:
+    def request_deliver_tx(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a deliver_tx request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+            counterparty=counterparty,
             tx=request.deliver_tx.tx,
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_query(cls, request: Request) -> AbciMessage:
+    def request_query(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a query request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_QUERY,
+            counterparty=counterparty,
             query_data=request.query.data,
             path=request.query.path,
             height=request.query.height,
             prove=request.query.prove,
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_commit(cls, _request: Request) -> AbciMessage:
+    def request_commit(
+        cls, _request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a commit request.
 
         :param _request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
-        return AbciMessage(performative=AbciMessage.Performative.REQUEST_COMMIT)
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_COMMIT,
+            counterparty=counterparty,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_end_block(cls, request: Request) -> AbciMessage:
+    def request_end_block(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode an end_block request.
 
         :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
-        return AbciMessage(
+        abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_END_BLOCK,
+            counterparty=counterparty,
             height=request.end_block.height,
         )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
-    def request_list_snapshots(cls, request: Request) -> AbciMessage:
+    def request_list_snapshots(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         raise NotImplementedError
 
     @classmethod
-    def request_offer_snapshot(cls, request: Request) -> AbciMessage:
+    def request_offer_snapshot(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         raise NotImplementedError
 
     @classmethod
-    def request_load_snapshot_chunk(cls, request: Request) -> AbciMessage:
+    def request_load_snapshot_chunk(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         raise NotImplementedError
 
     @classmethod
-    def request_apply_snapshot_chunk(cls, request: Request) -> AbciMessage:
+    def request_apply_snapshot_chunk(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         raise NotImplementedError
 
     @classmethod
-    def no_match(cls, _request: Request) -> None:
+    def no_match(
+        cls, _request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> None:
         return None
 
     @classmethod
-    def _decode_timestamp(cls, timestamp_tendermint_pb) -> Timestamp:
+    def _decode_timestamp(cls, timestamp_tendermint_pb: TimestampPb) -> Timestamp:
         """Decode a timestamp object."""
         return Timestamp(
             timestamp_tendermint_pb.seconds,
@@ -249,18 +335,18 @@ class _TendermintProtocolDecoder:
 
     @classmethod
     def _decode_consensus_params(
-        cls, consensus_params_tendermint_pb
+        cls, consensus_params_tendermint_pb: ConsensusParamsPb
     ) -> ConsensusParams:
         """Decode a ConsensusParams object."""
         return ConsensusParams.decode(consensus_params_tendermint_pb)
 
     @classmethod
-    def _decode_header(cls, header_tendermint_pb) -> Header:
+    def _decode_header(cls, header_tendermint_pb: HeaderPb) -> Header:
         """Decode a Header object."""
         return Header.decode(header_tendermint_pb)
 
     @classmethod
-    def _decode_block_id(cls, block_id_pb) -> BlockID:
+    def _decode_block_id(cls, block_id_pb: BlockIDPb) -> BlockID:
         """Decode a Block ID object."""
         part_set_header_pb = block_id_pb.part_set_header
         part_set_header = PartSetHeader(
@@ -269,61 +355,18 @@ class _TendermintProtocolDecoder:
         return BlockID(block_id_pb.hash, part_set_header)
 
     @classmethod
-    def _decode_last_commit_info(cls, last_commit_info_tendermint_pb) -> LastCommitInfo:
+    def _decode_last_commit_info(
+        cls, last_commit_info_tendermint_pb: LastCommitInfoPb
+    ) -> LastCommitInfo:
         """Decode a LastCommitInfo object."""
         return LastCommitInfo.decode(last_commit_info_tendermint_pb)
 
     @classmethod
-    def _decode_proof(cls, proof_pb) -> Proof:
-        """Decode a Proof object."""
-        return Proof(
-            proof_pb.total,
-            proof_pb.index,
-            proof_pb.leaf_hash,
-            proof_pb.aunts,
-        )
-
-    @classmethod
-    def _decode_vote_info(cls, vote_pb) -> VoteInfo:
-        """Decode a VoteInfo object."""
-        validator = cls._decode_validator(vote_pb.validator)
-        signed_last_block = vote_pb.signed_last_block
-        return VoteInfo(validator, signed_last_block)
-
-    @classmethod
-    def _decode_validator(cls, validator_pb) -> Validator:
+    def _decode_validator(cls, validator_pb: ValidatorPb) -> Validator:
         """Decode a Validator object."""
         return Validator(validator_pb.address, validator_pb.power)
 
     @classmethod
-    def _decode_evidence(cls, evidence_pb):
+    def _decode_evidence(cls, evidence_pb: EvidencePb) -> Evidence:
         """Decode an Evidence object."""
         return Evidence.decode(evidence_pb)
-
-    @classmethod
-    def _decode_block_params(cls, block_params_tendermint_pb) -> BlockParams:
-        return BlockParams(
-            block_params_tendermint_pb.max_bytes, block_params_tendermint_pb.max_gas
-        )
-
-    @classmethod
-    def _decode_evidence_params(cls, evidence_params_tendermint_pb) -> EvidenceParams:
-        duration = Duration.decode(evidence_params_tendermint_pb.max_age_duration)
-        return EvidenceParams(
-            evidence_params_tendermint_pb.max_age_num_blocks,
-            duration,
-            evidence_params_tendermint_pb.max_bytes,
-        )
-
-    @classmethod
-    def _decode_validator_params(
-        cls, validator_params_tendermint_pb
-    ) -> ValidatorParams:
-        pub_key_types = list(validator_params_tendermint_pb.pub_key_types)
-        return ValidatorParams(
-            pub_key_types,
-        )
-
-    @classmethod
-    def _decode_version_params(cls, version_params_tendermint_pb) -> VersionParams:
-        pass

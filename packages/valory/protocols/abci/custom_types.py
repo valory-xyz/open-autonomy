@@ -19,7 +19,7 @@
 
 """This module contains class representations corresponding to every custom type in the protocol specification."""
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from packages.valory.protocols.abci import abci_pb2
 
@@ -315,7 +315,8 @@ class ConsensusParams:
 
     @staticmethod
     def encode(
-        consensus_params_protobuf_object, consensus_params_object: "ConsensusParams"
+        consensus_params_protobuf_object,
+        consensus_params_object: Optional["ConsensusParams"],
     ) -> None:
         """
         Encode an instance of this class into the protocol buffer object.

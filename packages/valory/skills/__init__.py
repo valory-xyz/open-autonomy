@@ -17,8 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Scaffold of a connection."""
-from aea.configurations.data_types import PublicId
-
-
-PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
+"""This module contains the skills packages authored by Valory AG."""

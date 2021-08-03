@@ -21,12 +21,16 @@
 import asyncio
 import logging
 import time
-from typing import Callable, cast
+from abc import ABC, abstractmethod
+from typing import Any, Callable, List, cast
 
+import pytest
 import requests
 from aea.configurations.base import ConnectionConfig
 from aea.identity.base import Identity
 from aea.mail.base import Envelope
+from aea.protocols.base import Address, Message
+from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
 from packages.valory.connections.abci.connection import (
     ABCIServerConnection,
@@ -37,8 +41,11 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     Events,
     ProofOps,
+    ValidatorUpdate,
     ValidatorUpdates,
 )
+from packages.valory.protocols.abci.dialogues import AbciDialogue
+from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
 from tests.conftest import HTTP_LOCALHOST, UseTendermint
 from tests.helpers.async_utils import (
@@ -51,7 +58,36 @@ from tests.helpers.async_utils import (
 class ABCIAppTest:
     """A dummy ABCI application for testing purposes."""
 
-    def process(self, request: AbciMessage) -> AbciMessage:
+    class AbciDialogues(BaseAbciDialogues):
+        """The dialogues class keeps track of all ABCI dialogues."""
+
+        def __init__(self, address) -> None:
+            """Initialize dialogues."""
+            self.address = address
+
+            def role_from_first_message(  # pylint: disable=unused-argument
+                message: Message, receiver_address: Address
+            ) -> BaseDialogue.Role:
+                """Infer the role of the agent from an incoming/outgoing first message
+
+                :param message: an incoming/outgoing first message
+                :param receiver_address: the address of the receiving agent
+                :return: The role of the agent
+                """
+                return AbciDialogue.Role.SERVER
+
+            BaseAbciDialogues.__init__(
+                self,
+                self_address=self.address,
+                role_from_first_message=role_from_first_message,
+                dialogue_class=AbciDialogue,
+            )
+
+    def __init__(self, address: str):
+        """Initialize."""
+        self._dialogues = ABCIAppTest.AbciDialogues(address)
+
+    def handle(self, request: AbciMessage) -> AbciMessage:
         """Process a request."""
         # check that it is not a response
         assert "request" in request.performative.value, "performative is not a Request"
@@ -62,15 +98,22 @@ class ABCIAppTest:
         )
         return handler(request)
 
+    def _update_dialogues(self, request: AbciMessage) -> AbciDialogue:
+        """Update dialogues."""
+        abci_dialogue = self._dialogues.update(request)
+        assert abci_dialogue is not None, "cannot update dialogue"
+        return cast(AbciDialogue, abci_dialogue)
+
     def info(self, request: AbciMessage) -> AbciMessage:
         """Process an info request."""
+        abci_dialogue = self._update_dialogues(request)
         assert request.performative == AbciMessage.Performative.REQUEST_INFO
         info_data = ""
         version = request.version
         app_version = 0
         last_block_height = 0
         last_block_app_hash = b""
-        return AbciMessage(
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INFO,
             info_data=info_data,
             version=version,
@@ -78,24 +121,32 @@ class ABCIAppTest:
             last_block_height=last_block_height,
             last_block_app_hash=last_block_app_hash,
         )
+        return cast(AbciMessage, response)
 
-    def flush(self, _request: AbciMessage):
+    def flush(self, request: AbciMessage):
         """Process a flush request."""
-        return AbciMessage(performative=AbciMessage.Performative.RESPONSE_FLUSH)
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_FLUSH
+        )
+        return cast(AbciMessage, response)
 
-    def init_chain(self, _request: AbciMessage):
+    def init_chain(self, request: AbciMessage):
         """Process an init_chain request."""
-        validators = []
+        abci_dialogue = self._update_dialogues(request)
+        validators: List[ValidatorUpdate] = []
         app_hash = b""
-        return AbciMessage(
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             validators=ValidatorUpdates(validators),
             app_hash=app_hash,
         )
+        return cast(AbciMessage, response)
 
-    def query(self, _request: AbciMessage) -> AbciMessage:
+    def query(self, request: AbciMessage) -> AbciMessage:
         """Process a query request."""
-        return AbciMessage(
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_QUERY,
             code=0,
             log="",
@@ -107,10 +158,12 @@ class ABCIAppTest:
             height=0,
             codespace="",
         )
+        return cast(AbciMessage, response)
 
     def check_tx(self, request: AbciMessage) -> AbciMessage:
         """Process a check_tx request."""
-        return AbciMessage(
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
             code=0,  # OK
             data=b"",
@@ -121,10 +174,12 @@ class ABCIAppTest:
             events=Events([]),
             codespace="",
         )
+        return cast(AbciMessage, response)
 
     def deliver_tx(self, request: AbciMessage) -> AbciMessage:
         """Process a deliver_tx request."""
-        return AbciMessage(
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
             code=0,  # OK
             data=b"",
@@ -135,29 +190,36 @@ class ABCIAppTest:
             events=Events([]),
             codespace="",
         )
+        return cast(AbciMessage, response)
 
-    def begin_block(self, _request: AbciMessage):
+    def begin_block(self, request: AbciMessage):
         """Process a begin_block request."""
-        return AbciMessage(
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
             events=Events([]),
         )
+        return cast(AbciMessage, response)
 
-    def end_block(self, _request: AbciMessage):
+    def end_block(self, request: AbciMessage):
         """Process an end_block request."""
-        return AbciMessage(
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
         )
+        return cast(AbciMessage, response)
 
-    def commit(self, _request: AbciMessage):
+    def commit(self, request: AbciMessage):
         """Process a commit request."""
-        return AbciMessage(
+        abci_dialogue = self._update_dialogues(request)
+        response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_COMMIT,
             data=b"",
             retain_height=0,
         )
+        return cast(AbciMessage, response)
 
     def no_match(self, request: AbciMessage):
         """No match."""
@@ -166,22 +228,42 @@ class ABCIAppTest:
         )
 
 
-class BaseTestABCIConnectionTendermintIntegration(BaseThreadedAsyncLoop, UseTendermint):
-    """Integration test between ABCI connection and Tendermint node."""
+class BaseABCITest:
+    """Base class for ABCI test."""
+
+    def make_app(self) -> ABCIAppTest:
+        """Make an ABCI app."""
+        return ABCIAppTest(self.TARGET_SKILL_ID)  # type: ignore
+
+
+@pytest.mark.integration
+class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, ABC):
+    """
+    Integration test between ABCI connection and Tendermint node.
+
+    To use this class:
+
+    - inherit from this class, and write test methods;
+    - overwrite the method "make_app". The app must implement a 'handle(message)' method.
+    """
+
+    TARGET_SKILL_ID = "dummy_author/dummy:0.1.0"
+    ADDRESS = "agent_address"
 
     def setup(self):
         """Set up the test."""
         super().setup()
-        self.agent_identity = Identity("name", address="some string")
+        self.agent_identity = Identity("name", address=self.ADDRESS)
         self.configuration = ConnectionConfig(
             host=DEFAULT_LISTEN_ADDRESS,
             port=DEFAULT_ABCI_PORT,
+            target_skill_id=self.TARGET_SKILL_ID,
             connection_id=ABCIServerConnection.connection_id,
         )
         self.connection = ABCIServerConnection(
             identity=self.agent_identity, configuration=self.configuration, data_dir=""
         )
-        self.app = ABCIAppTest()
+        self.app = self.make_app()
 
         self.execute(self.connection.connect())
 
@@ -191,7 +273,12 @@ class BaseTestABCIConnectionTendermintIntegration(BaseThreadedAsyncLoop, UseTend
         )
 
         # wait until tendermint node synchronized with abci
-        wait_for_condition(self.health_check, period=0.5)
+        wait_for_condition(self.health_check, period=0.5, timeout=1000000)
+
+    @abstractmethod
+    def make_app(self) -> Any:
+        """Make an ABCI app."""
+        raise NotImplementedError
 
     def health_check(self):
         """Do a health-check."""
@@ -222,7 +309,7 @@ class BaseTestABCIConnectionTendermintIntegration(BaseThreadedAsyncLoop, UseTend
                 break
             request_type = request_envelope.message.performative.value
             logging.debug(f"Received request {request_type}")
-            response = self.app.process(cast(AbciMessage, request_envelope.message))
+            response = self.app.handle(cast(AbciMessage, request_envelope.message))
             if response is not None:
                 response_envelope = Envelope(
                     to=request_envelope.sender,
@@ -234,7 +321,7 @@ class BaseTestABCIConnectionTendermintIntegration(BaseThreadedAsyncLoop, UseTend
                 logging.warning(f"Response to {request_type} was None.")
 
 
-class TestNoop(BaseTestABCIConnectionTendermintIntegration):
+class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration between ABCI connection and Tendermint, without txs."""
 
     SECONDS = 5
@@ -249,7 +336,7 @@ class TestNoop(BaseTestABCIConnectionTendermintIntegration):
         assert self.health_check()
 
 
-class TestQuery(BaseTestABCIConnectionTendermintIntegration):
+class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint with a query."""
 
     def test_run(self):
@@ -264,7 +351,7 @@ class TestQuery(BaseTestABCIConnectionTendermintIntegration):
         assert response.status_code == 200
 
 
-class TestTransaction(BaseTestABCIConnectionTendermintIntegration):
+class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint by sending a transaction."""
 
     def test_run(self):

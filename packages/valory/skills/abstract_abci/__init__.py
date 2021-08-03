@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2018-2019 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Scaffold of a connection."""
-from aea.configurations.data_types import PublicId
+"""This module contains an example of ABCI skill for an AEA."""
+
+from aea.configurations.base import PublicId
 
 
-PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/abstract_abci:0.1.0")

@@ -19,8 +19,7 @@
 """Encode AEA messages into Tendermint protobuf messages."""
 from typing import Callable, Optional, Union
 
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
-    BlockParams,
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     ConsensusParams,
     Event,
     Request,
@@ -36,29 +35,17 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
     ResponseQuery,
     ValidatorUpdate,
 )
-from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import ProofOps
-from packages.valory.connections.abci.tendermint.types.params_pb2 import (
-    EvidenceParams,
-    ValidatorParams,
+from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import (  # type: ignore
+    ProofOps,
 )
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import BlockParams as CustomBlockParams
 from packages.valory.protocols.abci.custom_types import (
-    ConsensusParams as CustomConsensusParams,
+    ConsensusParams as CustomConsensusParams,  # type: ignore
 )
 from packages.valory.protocols.abci.custom_types import Event as CustomEvent
-from packages.valory.protocols.abci.custom_types import (
-    EvidenceParams as CustomEvidenceParams,
-)
 from packages.valory.protocols.abci.custom_types import ProofOps as CustomProofOps
 from packages.valory.protocols.abci.custom_types import (
-    ValidatorParams as CustomValidatorParams,
-)
-from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdate as CustomValidatorUpdate,
-)
-from packages.valory.protocols.abci.custom_types import (
-    VersionParams as CustomVersionParams,
 )
 
 
@@ -270,49 +257,29 @@ class _TendermintProtocolEncoder:
         return None
 
     @classmethod
-    def _encode_consensus_params(cls, consensus_params: CustomConsensusParams):
+    def _encode_consensus_params(
+        cls, consensus_params: CustomConsensusParams
+    ) -> ConsensusParams:
         consensus_params_pb = ConsensusParams()
         CustomConsensusParams.encode(consensus_params_pb, consensus_params)
         return consensus_params_pb
 
     @classmethod
-    def _encode_block_params(cls, block_params: CustomBlockParams):
-        block_params_pb = BlockParams()
-        CustomBlockParams.encode(block_params_pb, block_params)
-        return block_params_pb
-
-    @classmethod
-    def _encode_evidence_params(cls, evidence_params: CustomEvidenceParams):
-        evidence_params_pb = EvidenceParams()
-        CustomEvidenceParams.encode(evidence_params_pb, evidence_params)
-        return evidence_params_pb
-
-    @classmethod
-    def _encode_validator_params(cls, validator_params: CustomValidatorParams):
-        validator_params_pb = ValidatorParams()
-        CustomValidatorParams.encode(validator_params_pb, validator_params)
-        return validator_params_pb
-
-    @classmethod
-    def _encode_version_params(cls, version_params: CustomVersionParams):
-        version_params_pb = ValidatorUpdate()
-        CustomVersionParams.encode(version_params_pb, version_params)
-        return version_params_pb
-
-    @classmethod
-    def _encode_validator_update(cls, validator_update: CustomValidatorUpdate):
+    def _encode_validator_update(
+        cls, validator_update: CustomValidatorUpdate
+    ) -> ValidatorUpdate:
         validator_update_pb = ValidatorUpdate()
         CustomValidatorUpdate.encode(validator_update_pb, validator_update)
         return validator_update_pb
 
     @classmethod
-    def _encode_event(cls, event: CustomEvent):
+    def _encode_event(cls, event: CustomEvent) -> Event:
         event_pb = Event()
         CustomEvent.encode(event_pb, event)
         return event_pb
 
     @classmethod
-    def _encode_proof_ops(cls, proof_ops: CustomProofOps):
+    def _encode_proof_ops(cls, proof_ops: CustomProofOps) -> ProofOps:
         proof_ops_pb = ProofOps()
         CustomProofOps.encode(proof_ops_pb, proof_ops)
         return proof_ops_pb

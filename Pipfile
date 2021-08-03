@@ -37,6 +37,7 @@ types-pyyaml = "*"
 types-protobuf = "*"
 docker = "==5.0.0"
 pytest-asyncio = "==0.15.1"
+types-requests = "*"
 
 [requires]
 python_version = "3.8"

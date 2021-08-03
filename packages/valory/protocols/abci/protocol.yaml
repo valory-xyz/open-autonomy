@@ -7,12 +7,12 @@ description: A protocol for ABCI requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmZod7cAHQL4MU1iYCZ6b3qS97xQ1pMVgWoeLTj7gEtoKx
+  README.md: QmWBggGZ1NEci2bCnYrJ6SQMEgD8iGwqjkVXtmGVH5Hx5f
   __init__.py: Qme5CNMEQmPNXUqBJdWVtP8uYz8rS7ajy49tvHEwR6ZJmK
   abci.proto: QmTXPRVNDiGw9K9U7NmTPp1kJ61utngtqXi23uyM3q6C7b
   abci_pb2.py: QmNsWkFfQBUUET1ucyAXSKnHTTTVh51ZWJbbxR3vMnExBf
-  custom_types.py: QmP4FMJuGkDmqBJmHY6uHS3dkZBAnXrJd38fvqbqiGU36B
-  dialogues.py: QmRPrWAbArSAcFTUHqKcVh9LYom5qZ5vJp3qBaVVX3VWag
+  custom_types.py: QmXQMjCRFujzE2v3n9vngDtRnVjt6hEKmwhzDUhSki767X
+  dialogues.py: QmRSumXGwfJWWPToYoGzi2bU3C5h5PPVDbhtzTxnVA8Pd3
   message.py: QmUA11n2fPrBu5Hbyv3QcKYs9JSFa8AKW6hpXq1TKKWZhB
   serialization.py: QmVCmr9s6SdH5Z6k3QYvuwhdkVE4KZm3sXoHAhqA9yBKrj
 fingerprint_ignore_patterns: []
