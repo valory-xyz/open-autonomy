@@ -52,7 +52,7 @@ pylint:
 security:
 	bandit -r aea_consensus_algorithms packages
 	bandit -s B101 -r tests scripts
-	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706
+	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706 -i 41002
 
 .PHONY: static
 static:

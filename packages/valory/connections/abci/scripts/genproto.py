@@ -26,7 +26,7 @@ NOTE: This code is adapted from the google protobuf Python library. Specifically
 
 import os
 import re
-import subprocess
+import subprocess  # nosec
 import sys
 from distutils.spawn import find_executable
 from pathlib import Path
@@ -96,7 +96,7 @@ def generate_proto(source: str) -> None:
             "--python_out=.",
             source,
         ]
-        if subprocess.call(protoc_command) != 0:
+        if subprocess.call(protoc_command) != 0:  # nosec
             sys.exit(-1)
 
         # prepend to all imports statement the AEA package import prefix path

@@ -46,7 +46,7 @@ from packages.valory.protocols.abci import AbciMessage
 
 PUBLIC_ID = CONNECTION_PUBLIC_ID
 
-DEFAULT_LISTEN_ADDRESS = "0.0.0.0"
+DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
 DEFAULT_ABCI_PORT = 26658
 MAX_READ_IN_BYTES = 64 * 1024  # Max we'll consume on a read stream
 
