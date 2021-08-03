@@ -34,7 +34,7 @@ from tests.conftest import ROOT_DIR
 class TestABCIHandler(BaseSkillTestCase):
     """Test ABCIHandler methods."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "abci")
+    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "abstract_abci")
 
     @classmethod
     def setup(cls):
