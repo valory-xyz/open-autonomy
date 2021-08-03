@@ -6,7 +6,7 @@ description: The abci skill provides a template of an ABCI application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmQFeR9wV7iyh89MZx9WwKLcQHAhGDzUiyRWzuDdFt1Ghf
+  README.md: QmVY6g2xBzqgPiMbrzxkrjB8SA58euTuD5okjNT974Vygu
   __init__.py: Qmf8cFpe1G5Azo28bUYR6J5oEL4bNcidPY5KZvQxGWnuNA
   dialogues.py: QmRJZngnoxUCUmbKMjmRR9j4i2FL1EX5N4JJyLKGeVq5n2
   handlers.py: QmXk1DAkquN8AWnw99n4hNEjfPgS8CNn6se2VYbx6jSkf7

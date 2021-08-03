@@ -11,9 +11,6 @@ No behaviours (the skill is purely reactive).
 
 ## Handlers
 
-* `echo`: handles `default` messages for echoing back the contents of any message received
-
-## Links
-
-* <a href="https://docs.fetch.ai/aea/quickstart/" target="_blank">Quick Start</a>
-* <a href="https://docs.fetch.ai/aea/build-aea-programmatically/" target="_blank">Programmatically Build an AEA</a>
+* `abci`: an abstract Handler that replies to ABCI requests with default responses.
+          In another skill, extend the class and override the request handlers 
+          to implement a custom behaviour.
