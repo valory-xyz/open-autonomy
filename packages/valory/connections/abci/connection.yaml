@@ -8,7 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
   __init__.py: QmWustVbKTkibXp3YHaeM9VyuLHSJKQCEURpbz28MEjNNu
-  connection.py: QmbWRaPq66DZYfV65DUFuy5uQ3bvQXBgjPv6WSkdqsxJVV
+  check_dependencies.py: QmSHhVz7ArdR6Lh95YND7MiqQ2goWok6cLD8avjTybbSiq
+  connection.py: QmZt3Bfi95kQdLWJywdKvEfsjNhpGRV4H83rDZHJJqYBJo
   dialogues.py: QmW9qr1Ln6QkAUX5H3H4Cb26nTDEw1mSFwQDcZ5a9ZQLBH
   gogoproto/__init__.py: QmeRBCDqJrzQWpVxxGwLYFcK9eiPoy1ZeWm5Hf5KEF1gKb
   gogoproto/gogo_pb2.py: QmPJH9L58JXB66JAV7iWRmWFaB9n3PkswmHZVbA1npvhbb
@@ -34,6 +35,7 @@ fingerprint:
   tendermint_encoder.py: QmQjSrFtHjGj4T6KnErhfDu9TyzLrpLECmhKGX36rqJsQv
   version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
 fingerprint_ignore_patterns: []
+build_entrypoint: check_dependencies.py
 connections: []
 protocols: []
 class_name: ABCIServerConnection
@@ -41,6 +43,13 @@ config:
   host: 127.0.0.1
   port: 26658
   target_skill_id: null
+  tendermint_config:
+    p2p_laddr: tcp://0.0.0.0:26656
+    p2p_seeds: []
+    rpc_laddr: tcp://0.0.0.0:26657
+    home: null
+    consensus_create_empty_blocks: true
+  use_tendermint: true
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies: {}

@@ -20,11 +20,13 @@
 """Integration tests for the valory/abstract_abci skill."""
 import time
 
+import pytest
 from aea.test_tools.test_cases import AEATestCaseEmpty
 
 from tests.conftest import UseTendermint
 
 
+@pytest.mark.integration
 class TestABCISkill(AEATestCaseEmpty, UseTendermint):
     """Test that the ABCI skill works together with Tendermint."""
 
@@ -36,10 +38,20 @@ class TestABCISkill(AEATestCaseEmpty, UseTendermint):
         self.generate_private_key()
         self.add_private_key()
         self.add_item("skill", "valory/abstract_abci:0.1.0")
+        # don't use 'abstract_abci' as abstract class; for the
+        # purposes of this test the default request handlers work well.
         self.set_config("vendor.valory.skills.abstract_abci.is_abstract", False)
+
+        # make 'abstract_abci' the target skill for 'valory/abci' connection
         self.set_config(
             "vendor.valory.connections.abci.config.target_skill_id",
             "valory/abstract_abci:0.1.0",
+        )
+
+        # we use Tendermint node from Docker, not the local one
+        self.set_config(
+            "vendor.valory.connections.abci.config.use_tendermint",
+            False,
         )
 
         process = self.run_agent()

@@ -255,10 +255,11 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
         super().setup()
         self.agent_identity = Identity("name", address=self.ADDRESS)
         self.configuration = ConnectionConfig(
+            connection_id=ABCIServerConnection.connection_id,
             host=DEFAULT_LISTEN_ADDRESS,
             port=DEFAULT_ABCI_PORT,
             target_skill_id=self.TARGET_SKILL_ID,
-            connection_id=ABCIServerConnection.connection_id,
+            use_tendermint=False,
         )
         self.connection = ABCIServerConnection(
             identity=self.agent_identity, configuration=self.configuration, data_dir=""
@@ -366,3 +367,26 @@ class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
             self.tendermint_url() + "/broadcast_tx_commit", params=dict(tx="0x01")
         )
         assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_connection_standalone_tendermint_setup():
+    """Test the setup of the connection configured with Tendermint."""
+    agent_identity = Identity("name", address="agent_address")
+    configuration = ConnectionConfig(
+        connection_id=ABCIServerConnection.connection_id,
+        host=DEFAULT_LISTEN_ADDRESS,
+        port=DEFAULT_ABCI_PORT,
+        target_skill_id="dummy_author/dummy:0.1.0",
+        use_tendermint=True,
+        rpc_laddr="0.0.0.0:26657",
+        p2p_laddr="0.0.0.0:26656",
+        p2p_seeds=[],
+    )
+    connection = ABCIServerConnection(
+        identity=agent_identity, configuration=configuration, data_dir=""
+    )
+
+    await connection.connect()
+    await asyncio.sleep(2.0)
+    await connection.disconnect()

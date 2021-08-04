@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 """Connection to interact with an ABCI server."""
 import asyncio
-from abc import ABC
+import logging
+import signal
+import subprocess
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
-from typing import Any, Dict, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
@@ -123,22 +125,19 @@ class TcpServerChannel:
 
     def __init__(
         self,
-        connection_address: str,
         target_skill_id: PublicId,
-        address: str = DEFAULT_LISTEN_ADDRESS,
-        port: int = DEFAULT_ABCI_PORT,
+        address: str,
+        port: int,
         logger: Optional[Logger] = None,
     ):
         """
         Initialize the TCP server.
 
-        :param connection_address: the connection identity address.
         :param target_skill_id: the public id of the target skill.
         :param address: the listen address.
         :param port: the port to listen from.
         :param logger: the logger.
         """
-        self.connection_address = connection_address
         self.target_skill_id = target_skill_id
         self.address = address
         self.port = port
@@ -275,14 +274,107 @@ class TcpServerChannel:
         writer.write(data)
 
 
-class BaseABCIConnection(Connection, ABC):
-    """Base ABCI connection."""
+class TendermintParams:
+    """Tendermint node parameters."""
+
+    def __init__(
+        self,
+        proxy_app: str,
+        rpc_laddr: str,
+        p2p_laddr: str,
+        p2p_seeds: List[str],
+        consensus_create_empty_blocks: bool,
+        home: Optional[str] = None,
+    ):
+        """
+        Initialize the parameters to the Tendermint node.
+
+        :param proxy_app: ABCI address.
+        :param rpc_laddr: RPC address.
+        :param p2p_laddr: P2P address.
+        :param p2p_seeds: P2P seeds.
+        :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
+        :param home: Tendermint's home directory.
+        """
+        self.proxy_app = proxy_app
+        self.rpc_laddr = rpc_laddr
+        self.p2p_laddr = p2p_laddr
+        self.p2p_seeds = p2p_seeds
+        self.consensus_create_empty_blocks = consensus_create_empty_blocks
+        self.home = home
+
+
+class TendermintNode:
+    """A class to manage a Tendermint node."""
+
+    def __init__(self, params: TendermintParams, logger: Optional[Logger] = None):
+        """
+        Initialize a Tendermint node.
+
+        :param params: the parameters.
+        :param logger: the logger.
+        """
+        self.params = params
+        self.logger = logger or logging.getLogger()
+
+        self._process: Optional[subprocess.Popen] = None
+
+    def _build_init_command(self) -> List[str]:
+        """Build the 'init' command."""
+        cmd = [
+            "tendermint",
+            "init",
+        ]
+        if self.params.home is not None:
+            cmd += ["--home", self.params.home]
+        return cmd
+
+    def _build_node_command(self) -> List[str]:
+        """Build the 'node' command."""
+        cmd = [
+            "tendermint",
+            "node",
+            f"--proxy_app={self.params.proxy_app}",
+            f"--rpc.laddr={self.params.rpc_laddr}",
+            f"--p2p.laddr={self.params.p2p_laddr}",
+            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
+            f"--consensus.create_empty_blocks={self.params.consensus_create_empty_blocks}",
+        ]
+        if self.params.home is not None:
+            cmd += ["--home", self.params.home]
+        return cmd
+
+    def init(self) -> None:
+        """Initialize Tendermint node."""
+        cmd = self._build_init_command()
+        subprocess.call(cmd)
+
+    def start(self) -> None:
+        """Start a Tendermint node process."""
+        if self._process is not None:
+            return
+        cmd = self._build_node_command()
+        self._process = subprocess.Popen(cmd)
+
+    def stop(self) -> None:
+        """Stop a Tendermint node process."""
+        if self._process is None:
+            return
+        self._process.send_signal(signal.SIGTERM)
+        self._process.wait(timeout=30)
+        poll = self._process.poll()
+        if poll is None:
+            self._process.terminate()
+            self._process.wait(2)
+        self._process = None
+
+
+class ABCIServerConnection(Connection):
+    """ABCI server."""
 
     connection_id = PUBLIC_ID
-
-
-class ABCIServerConnection(BaseABCIConnection):
-    """ABCI server."""
+    params: Optional[TendermintParams] = None
+    node: Optional[TendermintNode] = None
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -291,11 +383,25 @@ class ABCIServerConnection(BaseABCIConnection):
         :param kwargs: keyword arguments passed to component base
         """
         super().__init__(**kwargs)  # pragma: no cover
+
+        self._process_connection_params()
+        self._process_tendermint_params()
+
+    def _process_connection_params(self) -> None:
+        """
+        Process the connection parameters.
+
+        The parameters to process are:
+        - host
+        - port
+        - target_skill_id
+        """
         self.host = cast(str, self.configuration.config.get("host"))
         self.port = cast(int, self.configuration.config.get("port"))
         target_skill_id_string = cast(
             Optional[str], self.configuration.config.get("target_skill_id")
         )
+
         if (
             self.host is None or self.port is None or target_skill_id_string is None
         ):  # pragma: nocover
@@ -304,9 +410,44 @@ class ABCIServerConnection(BaseABCIConnection):
         if target_skill_id is None:  # pragma: nocover
             raise ValueError("Provided target_skill_id is not a valid public id.")
         self.target_skill_id = target_skill_id
+
         self.channel = TcpServerChannel(
-            self.address, self.target_skill_id, address=self.host, port=self.port
+            self.target_skill_id, address=self.host, port=self.port
         )
+
+    def _process_tendermint_params(self) -> None:
+        """
+        Process the Tendermint parameters.
+
+        In particular, if use_tendermint is False, do nothing.
+        Else, process the following parameters:
+        - rpc_laddr: the listening address for RPC communication
+        - p2p_laddr: the listening address for P2P communication
+        - p2p_seeds: a comma-separated list of IP addresses and ports
+        """
+        self.use_tendermint = cast(
+            bool, self.configuration.config.get("use_tendermint")
+        )
+        if not self.use_tendermint:
+            return
+        tendermint_config = self.configuration.config.get("tendermint_config", {})
+        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr"))
+        p2p_laddr = cast(str, tendermint_config.get("p2p_laddr"))
+        p2p_seeds = cast(List[str], tendermint_config.get("p2p_seeds"))
+        home = cast(str, tendermint_config.get("home"))
+        consensus_create_empty_blocks = cast(
+            bool, tendermint_config.get("consensus_create_empty_blocks")
+        )
+        proxy_app = f"tcp://{self.host}:{self.port}"
+        self.params = TendermintParams(
+            proxy_app,
+            rpc_laddr,
+            p2p_laddr,
+            p2p_seeds,
+            consensus_create_empty_blocks,
+            home,
+        )
+        self.node = TendermintNode(self.params, self.logger)
 
     async def connect(self) -> None:
         """
@@ -318,10 +459,15 @@ class ABCIServerConnection(BaseABCIConnection):
             return
 
         self.state = ConnectionStates.connecting
+        if self.use_tendermint:
+            self.node = cast(TendermintNode, self.node)
+            self.node.init()
+            self.node.start()
         self.channel.logger = self.logger
         await self.channel.connect(loop=self.loop)
         if self.channel.is_stopped:
             self.state = ConnectionStates.disconnected
+            return
         else:
             self.state = ConnectionStates.connected
 
@@ -336,6 +482,9 @@ class ABCIServerConnection(BaseABCIConnection):
 
         self.state = ConnectionStates.disconnecting
         await self.channel.disconnect()
+        if self.use_tendermint:
+            self.node = cast(TendermintNode, self.node)
+            self.node.stop()
         self.state = ConnectionStates.disconnected
 
     async def send(self, envelope: Envelope) -> None:
