@@ -1,0 +1,31 @@
+name: counter
+author: valory
+version: 0.1.0
+type: skill
+description: The ABCI Counter application example.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmWJQ3UTbXm6QD5qnHRezvAmp58ud4Tza8eMDPohSzqV4C
+  __init__.py: QmREbDZ7sc7oGnPtgSm2LoKMNDGybbEMg2qQnS6Avp3N92
+  dialogues.py: QmS3uVahNWg3D4bbWGY7uRKzcx4359No8GA9yHSYhjYFfy
+  handlers.py: QmPWZn3jja8QAR4qeWK5MdwyJ6yz7htWCcnkrgbmtfvxmA
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- valory/abci:0.1.0
+skills:
+- valory/abstract_abci:0.1.0
+behaviours: {}
+handlers:
+  abci:
+    args: {}
+    class_name: ABCICounterHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+dependencies: {}
+is_abstract: false
