@@ -1,8 +1,11 @@
 [MASTER]
 ignore-patterns=
-ignore=packages/valory/protocols/abci
+ignore=
+    packages/valory/protocols/abci,
+    packages/valory/connections/abci/gogoproto
 
 [MESSAGES CONTROL]
+disable=R0801
 # disable=C0103,C0201,C0301,C0302,W0105,W0707,W1202,W1203,R0801
 
 # See here for more options: https://www.codeac.io/documentation/pylint-configuration.html
@@ -41,3 +44,17 @@ ignored-modules=
 
 # List of comma separated words that should not be checked.
 spelling-ignore-words=nocover,pragma,params,noqa,kwargs,str,async,json,boolean,config,pytest,args,url,tx,jsonschema,traceback,api,nosec
+
+[SIMILARITIES]
+
+# Minimum lines number of a similarity.
+min-similarity-lines=10
+
+# Ignore comments when computing similarities.
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities.
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities.
+ignore-imports=no

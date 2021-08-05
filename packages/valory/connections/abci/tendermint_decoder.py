@@ -61,7 +61,7 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isor
 )
 
 
-from packages.valory.connections.abci.tendermint.types.types_pb2 import (  # type: ignore  # isort: skip
+from packages.valory.connections.abci.tendermint.types.types_pb2 import (  # type: ignore
     BlockID as BlockIDPb,
 )
 
@@ -89,12 +89,12 @@ class _TendermintProtocolDecoder:
 
     @classmethod
     def request_flush(
-        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+        cls, _request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
         """
         Decode a flush request.
 
-        :param request: the request.
+        :param _request: the request.
         :param dialogues: the dialogues object.
         :param counterparty: the counterparty.
         :return: the AbciMessage request.
@@ -207,12 +207,12 @@ class _TendermintProtocolDecoder:
         :return: the AbciMessage request.
         """
         check_tx = request.check_tx
-        tx = check_tx.tx
+        transaction = check_tx.tx
         check_tx_type = CheckTxType(CheckTxTypeEnum(check_tx.type))
         abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_CHECK_TX,
             counterparty=counterparty,
-            tx=tx,
+            tx=transaction,
             type=check_tx_type,
         )
         return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
@@ -299,30 +299,35 @@ class _TendermintProtocolDecoder:
     def request_list_snapshots(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
+        """Decode a list_snapshots request."""
         raise NotImplementedError
 
     @classmethod
     def request_offer_snapshot(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
+        """Decode a offer_snapshot request."""
         raise NotImplementedError
 
     @classmethod
     def request_load_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
+        """Decode a load_snapshot_chunk request."""
         raise NotImplementedError
 
     @classmethod
     def request_apply_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
+        """Decode a apply_snapshot_chunk request."""
         raise NotImplementedError
 
     @classmethod
     def no_match(
-        cls, _request: Request, dialogues: AbciDialogues, counterparty: str
+        cls, _request: Request, _dialogues: AbciDialogues, _counterparty: str
     ) -> None:
+        """Handle the case in which the request is not supported."""
         return None
 
     @classmethod

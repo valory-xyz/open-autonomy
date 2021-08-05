@@ -8,10 +8,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
   __init__.py: QmWustVbKTkibXp3YHaeM9VyuLHSJKQCEURpbz28MEjNNu
-  check_dependencies.py: QmSHhVz7ArdR6Lh95YND7MiqQ2goWok6cLD8avjTybbSiq
-  connection.py: QmUw9NrzpisHjnobEEx3j8Qf5DXuqUgLJuee4W4tekJhNx
+  check_dependencies.py: QmQJhmywbavB5SvUjYUfuKoa64XrWKp94B7LCi9n8rNDbb
+  connection.py: QmXo19kULgZaRgC2HfkptQF3CmSNAgXqtEd4XTzS83C7yr
   dialogues.py: QmW9qr1Ln6QkAUX5H3H4Cb26nTDEw1mSFwQDcZ5a9ZQLBH
-  gogoproto/__init__.py: QmeRBCDqJrzQWpVxxGwLYFcK9eiPoy1ZeWm5Hf5KEF1gKb
+  gogoproto/__init__.py: QmTS3DpP33BaeUMZRHRPbpTXq3TxC8aHERY1EDwEoYukT9
   gogoproto/gogo_pb2.py: QmPJH9L58JXB66JAV7iWRmWFaB9n3PkswmHZVbA1npvhbb
   protos/gogoproto/gogo.proto: QmecRGWQihe664KRJSozEfSLumVn8UiU79MvBJLj2X5mJW
   protos/tendermint/abci/types.proto: QmbpqQwWkERBVfZcvuFiXB7n3MreCzb4KX2vhpEBT9u8ei
@@ -22,7 +22,7 @@ fingerprint:
   protos/tendermint/types/validator.proto: QmdhmvmFwshWooyNJdPqTPvUKCh8qTAy8Hj1HJgaB1yWeN
   protos/tendermint/version/types.proto: QmVvixZ8bXGrTGdVBbmyZruc8azvcZb6J9hno6UmbpR2uH
   readme.md: QmY84Kw2PQX4pmohsCbPRwL4kryQxCHk5awWSKrTMhtdxr
-  scripts/genproto.py: QmZHNt1HRSAWvL1hPTrFUj7omNVZKdAUFfnFFg7vdzsYWd
+  scripts/genproto.py: QmSXcBiVGzjokqQrsvpBXkvSrtWDJNT15Y31cPWxHJbU4w
   tendermint/__init__.py: Qme1XNxgCxmmEZLcjYXFLAh2wxLZvtjHh9j7dBbSN3Zbni
   tendermint/abci/types_pb2.py: QmXVbazFhy63EqGzVMEfDn93tVxLqK8UXAM38JVj18T4Eh
   tendermint/crypto/keys_pb2.py: QmWVvaZCKsJy14RV75AfDtPeyd7f9StxeaevbeAD3wgtUV
@@ -31,8 +31,8 @@ fingerprint:
   tendermint/types/types_pb2.py: QmQFgH9qQRf7Kghxod8uMXR2E22B6jE1M3rBJkWhoQFEF4
   tendermint/types/validator_pb2.py: QmX2kaCCmAM2eVRxqMfcAeg4QMvU1NNQcXyGLqMsSRAGwt
   tendermint/version/types_pb2.py: QmRArhcu1XukHVsQJQEBStV5S79mr7yK5nXRLMVmtPPjSf
-  tendermint_decoder.py: Qmb4wBQ1faSnuy2JYvrFqo87MebzAVw449gVopaAwsFJKQ
-  tendermint_encoder.py: QmQjSrFtHjGj4T6KnErhfDu9TyzLrpLECmhKGX36rqJsQv
+  tendermint_decoder.py: QmP5qQYCykLaLBwafFN1upQaKwhqTMrKdduvncieNwuCDt
+  tendermint_encoder.py: QmUEXhqKu4qGpHP5G3SQUg7Xw97BF8FKWLEpPwY4VEZg8D
   version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py

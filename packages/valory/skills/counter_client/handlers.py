@@ -18,13 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handlers for the 'counter_client' skill."""
+# isort: skip_file # noqa
 from typing import Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
-from packages.fetchai.protocols.http import HttpMessage  # type: ignore
+from packages.fetchai.protocols.http import (  # type: ignore # pylint: disable=no-name-in-module,import-error
+    HttpMessage,
+)
 from packages.valory.skills.counter_client.dialogues import HttpDialogue, HttpDialogues
 from packages.valory.skills.counter_client.utils import curdatetime, decode_value
 
@@ -57,7 +60,8 @@ class HttpHandler(Handler):
             or http_message.status_code != 200
         ):
             self.context.logger.info(
-                f"response not valid: performative={http_message.performative}, status_code={http_message.status_code}"
+                f"response not valid: performative={http_message.performative}, "
+                f"status_code={http_message.status_code}"
             )
             return
 
@@ -81,7 +85,7 @@ class HttpHandler(Handler):
         if has_changed:
             self.context.state.count = value
 
-    def broadcast_tx_commit(self, message: HttpMessage) -> None:
+    def broadcast_tx_commit(self, _message: HttpMessage) -> None:
         """Handle broadcast_tx_commit responses."""
         self.context.logger.debug(f"[{curdatetime()}] Transaction completed.")
 

@@ -81,30 +81,30 @@ class _TendermintABCISerializer:
             i = cls._read_one(buffer)
             result |= (i & 0x7F) << shift
             shift += 7
-            if not (i & 0x80):
+            if not i & 0x80:
                 break
         return result
 
     @classmethod
     def _read_one(cls, buffer: BytesIO) -> int:
         """Read one byte to decode a varint."""
-        c = buffer.read(1)
-        if c == b"":
+        character = buffer.read(1)
+        if character == b"":
             raise EOFError("Unexpected EOF while reading bytes")
-        return ord(c)
+        return ord(character)
 
     @classmethod
     def write_message(cls, message: Response) -> bytes:
         """Write a message in a buffer."""
         buffer = BytesIO(b"")
-        bz = message.SerializeToString()
-        encoded = cls.encode_varint(len(bz))
+        protobuf_bytes = message.SerializeToString()
+        encoded = cls.encode_varint(len(protobuf_bytes))
         buffer.write(encoded)
-        buffer.write(bz)
+        buffer.write(protobuf_bytes)
         return buffer.getvalue()
 
     @classmethod
-    def read_messages(cls, buffer: BytesIO, message: Type) -> Request:
+    def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Request:
         """Return an iterator over the messages found in the `reader` buffer."""
         while True:
             try:
@@ -114,13 +114,13 @@ class _TendermintABCISerializer:
             data = buffer.read(length)
             if len(data) < length:
                 return
-            m = message()
-            m.ParseFromString(data)
+            message = message_cls()
+            message.ParseFromString(data)
 
-            yield m
+            yield message
 
 
-class TcpServerChannel:
+class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
     """TCP server channel to handle incoming communication from the Tendermint node."""
 
     def __init__(
@@ -144,9 +144,10 @@ class TcpServerChannel:
         self.logger = logger
 
         # channel state
+        self._loop: Optional[AbstractEventLoop] = None
         self._dialogues = AbciDialogues()
         self._is_stopped: bool = True
-        self.queue: Optional[asyncio.Queue[Envelope]] = None
+        self.queue: Optional[asyncio.Queue] = None
         self._server: Optional[AbstractServer] = None
         self._server_task: Optional[Task] = None
         # a single Tendermint opens four concurrent connections:
@@ -175,12 +176,11 @@ class TcpServerChannel:
         """
         if not self._is_stopped:
             return
+        self._loop = loop
         self._is_stopped = False
         self.queue = asyncio.Queue()
         self._server = await asyncio.start_server(
-            self.receive_messages,
-            host=self.address,
-            port=self.port,
+            self.receive_messages, host=self.address, port=self.port, loop=self._loop
         )
 
     async def disconnect(self) -> None:
@@ -203,8 +203,8 @@ class TcpServerChannel:
         """Receive incoming messages."""
         self.logger = cast(Logger, self.logger)
         self.queue = cast(asyncio.Queue, self.queue)
-        ip, socket, *_ = writer.get_extra_info("peername")
-        peer_name = f"{ip}:{socket}"
+        ip_address, socket, *_ = writer.get_extra_info("peername")
+        peer_name = f"{ip_address}:{socket}"
         self._streams_by_socket[peer_name] = (reader, writer)
         self.logger.info(f"Connection @ {peer_name}")
 
@@ -272,10 +272,10 @@ class TcpServerChannel:
         writer.write(data)
 
 
-class TendermintParams:
+class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         proxy_app: str,
         rpc_laddr: str,
@@ -352,7 +352,9 @@ class TendermintNode:
         if self._process is not None:
             return
         cmd = self._build_node_command()
-        self._process = subprocess.Popen(cmd)  # nosec
+        self._process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with
+            cmd
+        )
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
@@ -367,7 +369,7 @@ class TendermintNode:
         self._process = None
 
 
-class ABCIServerConnection(Connection):
+class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-attributes
     """ABCI server."""
 
     connection_id = PUBLIC_ID
@@ -466,8 +468,7 @@ class ABCIServerConnection(Connection):
         if self.channel.is_stopped:
             self.state = ConnectionStates.disconnected
             return
-        else:
-            self.state = ConnectionStates.connected
+        self.state = ConnectionStates.connected
 
     async def disconnect(self) -> None:
         """

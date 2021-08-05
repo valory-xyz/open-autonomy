@@ -60,19 +60,14 @@ class ABCICounterHandler(ABCIHandler):
         :param dialogue: the ABCI dialogue.
         :return: the response.
         """
-        info_data = ""
-        version = message.version
-        app_version = 0
-        last_block_height = 0
-        last_block_app_hash = b""
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INFO,
             target_message=message,
-            info_data=info_data,
-            version=version,
-            app_version=app_version,
-            last_block_height=last_block_height,
-            last_block_app_hash=last_block_app_hash,
+            info_data="",
+            version=message.version,
+            app_version=0,
+            last_block_height=0,
+            last_block_app_hash=b"",
         )
         return cast(AbciMessage, reply)
 
@@ -96,7 +91,7 @@ class ABCICounterHandler(ABCIHandler):
         :param dialogue: the ABCI dialogue.
         :return: the response.
         """
-        v = encode_number(self.tx_count)
+        value = encode_number(self.tx_count)
         log = f"value: {self.tx_count}"
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_QUERY,
@@ -105,7 +100,7 @@ class ABCICounterHandler(ABCIHandler):
             info="",
             index=0,
             key=b"",
-            value=v,
+            value=value,
             proof_ops=ProofOps([]),
             height=self.last_block_height,
             codespace="",

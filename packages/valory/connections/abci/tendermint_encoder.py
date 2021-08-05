@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """Encode AEA messages into Tendermint protobuf messages."""
+# pylint: disable=no-member
 from typing import Callable, Optional, Union
 
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
@@ -254,6 +255,7 @@ class _TendermintProtocolEncoder:
 
     @classmethod
     def no_match(cls, _request: Request) -> None:
+        """No match."""
         return None
 
     @classmethod

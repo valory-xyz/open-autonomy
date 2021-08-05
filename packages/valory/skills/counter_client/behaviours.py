@@ -25,10 +25,10 @@ from typing import Dict, Optional, cast
 from aea.skills.base import Behaviour
 from aea.skills.behaviours import TickerBehaviour
 
-from packages.fetchai.connections.http_client.connection import (  # type: ignore
+from packages.fetchai.connections.http_client.connection import (  # type: ignore # pylint: disable=no-name-in-module,import-error
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,  # type: ignore
 )
-from packages.fetchai.protocols.http import HttpMessage  # type: ignore
+from packages.fetchai.protocols.http import HttpMessage  # type: ignore # pylint: disable=no-name-in-module,import-error
 from packages.valory.skills.counter_client.dialogues import HttpDialogues
 from packages.valory.skills.counter_client.handlers import curdatetime
 
@@ -101,7 +101,7 @@ class MonitorBehaviour(TickerBehaviour, BaseBehaviour):
 class IncrementerBehaviour(TickerBehaviour, BaseBehaviour):
     """Send a transaction"""
 
-    def tx(self) -> None:
+    def send_transaction(self) -> None:
         """Send a query request."""
         next_count = self.context.state.count + 1
         self.context.logger.info(
@@ -115,7 +115,7 @@ class IncrementerBehaviour(TickerBehaviour, BaseBehaviour):
 
     def act(self) -> None:
         """Do the action."""
-        self.tx()
+        self.send_transaction()
 
     def setup(self) -> None:
         """Set up the behaviour."""

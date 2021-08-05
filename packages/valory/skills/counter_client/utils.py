@@ -18,12 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for the 'counter_client' skill."""
+# isort:skip_file # noqa
 import base64
 import datetime
 import json
 import struct
 
-from packages.fetchai.protocols.http import HttpMessage  # type: ignore
+from packages.fetchai.protocols.http import (  # type: ignore # pylint: disable=no-name-in-module,import-error
+    HttpMessage,
+)
 
 
 def decode_value(message: HttpMessage) -> int:

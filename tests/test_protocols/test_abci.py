@@ -90,7 +90,8 @@ class TestRequestEcho(BaseTestMessageConstruction):
     def build_message(self):
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_ECHO, message="hello"
+            performative=AbciMessage.Performative.REQUEST_ECHO,  # type: ignore
+            message="hello",
         )
 
 
@@ -100,7 +101,8 @@ class TestResponseEcho(BaseTestMessageConstruction):
     def build_message(self):
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_ECHO, message="hello"
+            performative=AbciMessage.Performative.RESPONSE_ECHO,  # type: ignore
+            message="hello",
         )
 
 
@@ -110,7 +112,7 @@ class TestRequestFlush(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_FLUSH,
+            performative=AbciMessage.Performative.REQUEST_FLUSH,  # type: ignore
         )
 
 
@@ -120,7 +122,7 @@ class TestResponseFlush(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_FLUSH,
+            performative=AbciMessage.Performative.RESPONSE_FLUSH,  # type: ignore
         )
 
 
@@ -130,7 +132,7 @@ class TestRequestInfo(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_INFO,
+            performative=AbciMessage.Performative.REQUEST_INFO,  # type: ignore
             version="0.1.0",
             block_version=1,
             p2p_version=1,
@@ -143,7 +145,7 @@ class TestResponseInfo(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_INFO,
+            performative=AbciMessage.Performative.RESPONSE_INFO,  # type: ignore
             info_data="info",
             version="0.1.0",
             app_version=1,
@@ -167,7 +169,7 @@ class TestRequestInitChain(BaseTestMessageConstruction):
         )
 
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
+            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,  # type: ignore
             time=Timestamp(0, 0),
             chain_id="1",
             consensus_params=consensus_params,
@@ -192,7 +194,7 @@ class TestResponseInitChain(BaseTestMessageConstruction):
         )
 
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,  # type: ignore
             consensus_params=consensus_params,
             validators=validators,
             app_hash=b"app_hash",
@@ -205,7 +207,7 @@ class TestRequestQuery(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_QUERY,
+            performative=AbciMessage.Performative.REQUEST_QUERY,  # type: ignore
             query_data=b"bytes",
             path="",
             height=0,
@@ -219,7 +221,7 @@ class TestResponseQuery(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_QUERY,
+            performative=AbciMessage.Performative.RESPONSE_QUERY,  # type: ignore
             code=0,
             log="log",
             info="info",
@@ -276,7 +278,7 @@ class TestRequestBeginBlock(BaseTestMessageConstruction):
         )
 
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
+            performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,  # type: ignore
             hash=b"hash",
             header=header,
             last_commit_info=last_commit_info,
@@ -291,7 +293,7 @@ class TestResponseBeginBlock(BaseTestMessageConstruction):
         """Build the message."""
         event = Event("type", [EventAttribute(b"key", b"value", True)])
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
+            performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,  # type: ignore
             events=Events([event, event]),
         )
 
@@ -304,7 +306,9 @@ class TestRequestCheckTx(BaseTestMessageConstruction):
         tx = b"bytes"
         type_ = CheckTxType(CheckTxTypeEnum.NEW)
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_CHECK_TX, tx=tx, type=type_
+            performative=AbciMessage.Performative.REQUEST_CHECK_TX,  # type: ignore
+            tx=tx,
+            type=type_,
         )
 
 
@@ -316,7 +320,7 @@ class TestResponseCheckTx(BaseTestMessageConstruction):
         attribute = EventAttribute(b"key", b"value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,  # type: ignore
             code=0,
             data=b"data",
             log="log",
@@ -334,7 +338,7 @@ class TestRequestDeliverTx(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,  # type: ignore
             tx=b"tx",
         )
 
@@ -347,7 +351,7 @@ class TestResponseDeliverTx(BaseTestMessageConstruction):
         attribute = EventAttribute(b"key", b"value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
+            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,  # type: ignore
             code=0,
             data=b"data",
             log="log",
@@ -365,7 +369,7 @@ class TestRequestEndBlock(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_END_BLOCK,
+            performative=AbciMessage.Performative.REQUEST_END_BLOCK,  # type: ignore
             height=0,
         )
 
@@ -378,7 +382,7 @@ class TestResponseEndBlock(BaseTestMessageConstruction):
         attribute = EventAttribute(b"key", b"value", True)
         event = Event("type", attributes=[attribute, attribute])
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
+            performative=AbciMessage.Performative.RESPONSE_END_BLOCK,  # type: ignore
             validator_updates=ValidatorUpdates(
                 [
                     ValidatorUpdate(b"pub_key", 0),
@@ -396,7 +400,7 @@ class TestRequestCommit(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_COMMIT,
+            performative=AbciMessage.Performative.REQUEST_COMMIT,  # type: ignore
         )
 
 
@@ -406,7 +410,7 @@ class TestResponseCommit(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_COMMIT,
+            performative=AbciMessage.Performative.RESPONSE_COMMIT,  # type: ignore
             data=b"bytes",
             retain_height=0,
         )
@@ -418,7 +422,7 @@ class TestRequestListSnapshots(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS,
+            performative=AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS,  # type: ignore
         )
 
 
@@ -434,7 +438,7 @@ class TestResponseListSnapshots(BaseTestMessageConstruction):
             ]
         )
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,
+            performative=AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,  # type: ignore
             snapshots=snapshots,
         )
 
@@ -445,7 +449,7 @@ class TestRequestOfferSnapshot(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
+            performative=AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,  # type: ignore
             snapshot=super()._make_snapshot(),
             app_hash=b"app_hash",
         )
@@ -457,7 +461,7 @@ class TestResponseOfferSnapshot(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+            performative=AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,  # type: ignore
             result=Result(ResultType.UNKNOWN),
         )
 
@@ -468,7 +472,7 @@ class TestRequestLoadSnapshotChunk(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,
+            performative=AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,  # type: ignore
             height=0,
             format=0,
             chunk_index=0,
@@ -481,7 +485,7 @@ class TestResponseLoadSnapshotChunk(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
+            performative=AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,  # type: ignore
             chunk=b"chunk",
         )
 
@@ -492,7 +496,7 @@ class TestRequestApplySnapshotChunk(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
+            performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,  # type: ignore
             index=0,
             chunk=b"chunk",
             chunk_sender="sender",
@@ -505,7 +509,7 @@ class TestResponseApplySnapshotChunk(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
+            performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,  # type: ignore
             result=Result(ResultType.REJECT),
             refetch_chunks=(0, 1, 2),
             reject_senders=("sender_1", "sender_2"),

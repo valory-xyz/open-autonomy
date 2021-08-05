@@ -99,7 +99,9 @@ class ABCIHandler(Handler):
         )
         self.context.outbox.put_message(message=reply)
 
-    def info(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def info(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_INFO performative.
 
@@ -123,7 +125,11 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def flush(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def flush(  # pylint: disable=no-self-use
+        self,
+        message: AbciMessage,
+        dialogue: AbciDialogue,  # pylint: disable=unused-argument
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_FLUSH performative.
 
@@ -131,10 +137,15 @@ class ABCIHandler(Handler):
         :param dialogue: the ABCI dialogue.
         :return: the response.
         """
-        reply = dialogue.reply(performative=AbciMessage.Performative.RESPONSE_FLUSH)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_FLUSH,
+            target_message=message,
+        )
         return cast(AbciMessage, reply)
 
-    def init_chain(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def init_chain(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_INIT_CHAIN performative.
 
@@ -146,12 +157,15 @@ class ABCIHandler(Handler):
         app_hash = b""
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+            target_message=message,
             validators=ValidatorUpdates(validators),
             app_hash=app_hash,
         )
         return cast(AbciMessage, reply)
 
-    def query(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def query(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_QUERY performative.
 
@@ -161,6 +175,7 @@ class ABCIHandler(Handler):
         """
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_QUERY,
+            target_message=message,
             code=0,
             log="",
             info="",
@@ -173,7 +188,9 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def check_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def check_tx(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_CHECK_TX performative.
 
@@ -183,6 +200,7 @@ class ABCIHandler(Handler):
         """
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            target_message=message,
             code=0,  # OK
             data=b"",
             log="",
@@ -194,7 +212,9 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def deliver_tx(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_DELIVER_TX performative.
 
@@ -204,6 +224,7 @@ class ABCIHandler(Handler):
         """
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
+            target_message=message,
             code=0,  # OK
             data=b"",
             log="",
@@ -215,7 +236,9 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def begin_block(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_BEGIN_BLOCK performative.
 
@@ -225,11 +248,14 @@ class ABCIHandler(Handler):
         """
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
+            target_message=message,
             events=Events([]),
         )
         return cast(AbciMessage, reply)
 
-    def end_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def end_block(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_END_BLOCK performative.
 
@@ -239,12 +265,15 @@ class ABCIHandler(Handler):
         """
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
+            target_message=message,
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
         )
         return cast(AbciMessage, reply)
 
-    def commit(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
+    def commit(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
         """
         Handle a message of REQUEST_COMMIT performative.
 
@@ -254,6 +283,7 @@ class ABCIHandler(Handler):
         """
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_COMMIT,
+            target_message=message,
             data=b"",
             retain_height=0,
         )

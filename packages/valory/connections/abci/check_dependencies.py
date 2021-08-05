@@ -42,8 +42,16 @@ except ImportError:  # pragma: nocover
         LIBP2P_NODE_MODULE_NAME,
     )
 
-ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND = "'{command}' is required by the libp2p connection, but it is not installed, or it is not accessible from the system path."
-ERROR_MESSAGE_TEMPLATE_VERSION_TOO_LOW = "The installed version of '{command}' is too low: expected at least {lower_bound}; found {actual_version}."
+ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND = (
+    "'{command}' is required by the "
+    "abci connection, but it is not installed, "
+    "or it is not accessible from the system path."
+)
+ERROR_MESSAGE_TEMPLATE_VERSION_TOO_LOW = (
+    "The installed version of '{command}' "
+    "is too low: expected at least {lower_bound}; "
+    "found {actual_version}."
+)
 
 # for the purposes of this script,
 # a version is a tuple of integers: (major, minor, patch)
@@ -51,9 +59,9 @@ VERSION = Tuple[int, int, int]
 MINIMUM_TENDERMINT_VERSION: VERSION = (0, 34, 11)
 
 
-def nth(iterable: Iterable, n: int, default: int = 0) -> int:
-    """Returns the nth item or a default value"""
-    return next(islice(iterable, n, None), default)
+def nth(iterable: Iterable, index: int, default: int = 0) -> int:
+    """Returns the item at position 'index' or a default value"""
+    return next(islice(iterable, index, None), default)
 
 
 def get_version(*args: int) -> VERSION:
@@ -92,7 +100,8 @@ def print_ok_message(
     :param version_lower_bound: the version lower bound.
     """
     print(
-        f"check '{binary_name}'>={version_to_string(version_lower_bound)}, found {version_to_string(actual_version)}"
+        f"check '{binary_name}'>={version_to_string(version_lower_bound)}, "
+        f"found {version_to_string(actual_version)}"
     )
 
 
@@ -125,7 +134,8 @@ def check_binary(
     version_match = version_regex.search(stdout)
     if version_match is None:
         print(
-            f"Warning: cannot parse '{binary_name}' version from command: {version_getter_command}. stdout: {stdout}"
+            f"Warning: cannot parse '{binary_name}' version "
+            f"from command: {version_getter_command}. stdout: {stdout}"
         )
         return
     actual_version: VERSION = get_version(*map(int, version_match.groups(default="0")))
