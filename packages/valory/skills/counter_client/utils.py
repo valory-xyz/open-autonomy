@@ -17,15 +17,26 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the classes required for dialogue management."""
+"""This module contains utilities for the 'counter_client' skill."""
+import base64
+import datetime
+import json
+import struct
 
-from packages.valory.skills.abstract_abci.dialogues import (
-    AbciDialogue as BaseAbciDialogue,
-)
-from packages.valory.skills.abstract_abci.dialogues import (
-    AbciDialogues as BaseAbciDialogues,
-)
+from packages.fetchai.protocols.http import HttpMessage
 
 
-AbciDialogue = BaseAbciDialogue
-AbciDialogues = BaseAbciDialogues
+def decode_value(message: HttpMessage) -> int:
+    """Decode the counter value."""
+    content_bytes = message.body
+    content = json.loads(content_bytes)
+    counter_value_base64 = content["result"]["response"]["value"].encode("ascii")
+    counter_value_bytes = base64.b64decode(counter_value_base64)
+    counter_value, *_ = struct.unpack(">I", counter_value_bytes)
+    return counter_value
+
+
+def curdatetime() -> str:
+    """Return current datetime in isoformat."""
+    datetime.datetime.utcnow()
+    return datetime.datetime.now().isoformat()

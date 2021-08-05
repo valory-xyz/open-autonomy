@@ -216,3 +216,79 @@ returns the updated counter value:
   }
 }
 ```
+
+## Interact through an AEA
+
+In this section we will see an example on 
+how to use an AEA to interact with the Tendermint network built above.
+
+First, open a terminal to the root of this repository, 
+and fetch the `counter_client` agent:
+
+```
+aea fetch valory/counter_client:0.1.0
+```
+
+This will copy the agent project in the `counter_client` directory.
+
+Then, enter into the project, and generate a private key:
+```
+cd counter_client
+aea generate-key fetchai
+```
+
+You can see the Tendermint node the skill is configured to interact with 
+using the following command:
+```
+aea config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
+```
+
+It will print `localhost:26657`, i.e. `node0`.
+
+Finally, run the agent:
+```
+aea run
+```
+
+The agent periodically checks the current value of the counter;
+this behaviour is implemented in the `MonitorBehaviour` of the
+`counter_client` skill.
+Moreover, it periodically sends a transaction to increment the 
+value of the counter; this behaviour is implemented in the 
+`IncrementerBehaviour` of the `counter_client` skill.
+
+The output of the run should be something like:
+
+```
+    _     _____     _                                                                                                                                                                                                                                                           
+   / \   | ____|   / \                                                                                                                                                                                                                                                          
+  / _ \  |  _|    / _ \                                                                                                                                                                                                                                                         
+ / ___ \ | |___  / ___ \                                                                                                                                                                                                                                                        
+/_/   \_\|_____|/_/   \_\                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                
+v1.0.2                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                
+Starting AEA 'counter_client' in 'async' mode...                                                                                                                                                                                                                                
+info: [counter_client] Start processing messages...                                                                                                                                                                                                                             
+info: [counter_client] [2021-08-05T20:00:05.783576] Sending transaction with new count: 1                                                                                                                                                                                       
+info: [counter_client] [2021-08-05T20:00:05.793780] The counter value is: 0                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:06.817543] The counter value is: 1                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:06.817852] Update current state: 1                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:07.816933] The counter value is: 1                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:08.784843] Sending transaction with new count: 2                                                                                                                                                                                       
+info: [counter_client] [2021-08-05T20:00:08.838607] The counter value is: 1                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:09.822670] The counter value is: 2                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:09.823049] Update current state: 2                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:10.823978] The counter value is: 2                                                                                                                                                                                                     
+info: [counter_client] [2021-08-05T20:00:11.785852] Sending transaction with new count: 3                                               
+info: [counter_client] [2021-08-05T20:00:11.830393] The counter value is: 2                                                             
+info: [counter_client] [2021-08-05T20:00:12.829347] The counter value is: 3                                                             
+info: [counter_client] [2021-08-05T20:00:12.829746] Update current state: 3                                                             
+info: [counter_client] [2021-08-05T20:00:13.826483] The counter value is: 3                                                             
+info: [counter_client] [2021-08-05T20:00:14.787033] Sending transaction with new count: 4                                               
+info: [counter_client] [2021-08-05T20:00:14.838130] The counter value is: 3                                                             
+info: [counter_client] [2021-08-05T20:00:15.826483] The counter value is: 4                                                             
+info: [counter_client] [2021-08-05T20:00:15.826825] Update current state: 4                                                             
+info: [counter_client] [2021-08-05T20:00:16.831485] The counter value is: 4
+...
+```

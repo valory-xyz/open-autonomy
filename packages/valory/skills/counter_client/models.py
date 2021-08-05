@@ -17,15 +17,28 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the classes required for dialogue management."""
+"""This module contains the model 'state' for the 'counter_client' skill."""
+from typing import Dict
 
-from packages.valory.skills.abstract_abci.dialogues import (
-    AbciDialogue as BaseAbciDialogue,
-)
-from packages.valory.skills.abstract_abci.dialogues import (
-    AbciDialogues as BaseAbciDialogues,
-)
+from aea.skills.base import Model
 
 
-AbciDialogue = BaseAbciDialogue
-AbciDialogues = BaseAbciDialogues
+class Params(Model):
+    """Parameters."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the parameters object."""
+        super().__init__(*args, **kwargs)
+        self.tendermint_url = kwargs.get("tendermint_url")
+
+
+class State(Model):
+    """Keep the current state."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the state."""
+        super().__init__(*args, **kwargs)
+        self.count = 0
+
+        # mapping from dialogue reference nonce to handler callback name
+        self.request_to_handler: Dict[str, str] = {}

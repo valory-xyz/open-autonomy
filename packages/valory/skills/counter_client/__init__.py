@@ -17,15 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the classes required for dialogue management."""
+"""This module contains an example of ABCI skill for an AEA."""
 
-from packages.valory.skills.abstract_abci.dialogues import (
-    AbciDialogue as BaseAbciDialogue,
-)
-from packages.valory.skills.abstract_abci.dialogues import (
-    AbciDialogues as BaseAbciDialogues,
-)
+from aea.configurations.base import PublicId
 
 
-AbciDialogue = BaseAbciDialogue
-AbciDialogues = BaseAbciDialogues
+PUBLIC_ID = PublicId.from_str("valory/counter_client:0.1.0")

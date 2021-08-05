@@ -25,15 +25,15 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.skills.base import Model
 
-from packages.valory.protocols.abci.dialogues import AbciDialogue as BaseAbciDialogue
-from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
+from packages.fetchai.protocols.http.dialogues import HttpDialogue as BaseHttpDialogue
+from packages.fetchai.protocols.http.dialogues import HttpDialogues as BaseHttpDialogues
 
 
-AbciDialogue = BaseAbciDialogue
+HttpDialogue = BaseHttpDialogue
 
 
-class AbciDialogues(Model, BaseAbciDialogues):
-    """The dialogues class keeps track of all dialogues."""
+class HttpDialogues(Model, BaseHttpDialogues):
+    """This class keeps track of all http dialogues."""
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -52,9 +52,9 @@ class AbciDialogues(Model, BaseAbciDialogues):
             :param receiver_address: the address of the receiving agent
             :return: The role of the agent
             """
-            return AbciDialogue.Role.CLIENT
+            return BaseHttpDialogue.Role.CLIENT
 
-        BaseAbciDialogues.__init__(
+        BaseHttpDialogues.__init__(
             self,
             self_address=str(self.skill_id),
             role_from_first_message=role_from_first_message,

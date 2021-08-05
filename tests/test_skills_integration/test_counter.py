@@ -162,6 +162,8 @@ class TestABCICounterSkillMany(AEATestCaseMany):
             "Received ABCI request of type commit",
             "Received ABCI request of type end_block",
             "Received ABCI request of type query",
+            "Received ABCI request of type check_tx",
+            "Received ABCI request of type deliver_tx",
         )
 
         # check that *each* AEA prints these messages
