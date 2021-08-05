@@ -51,8 +51,6 @@ jobs:
       run: tox -e check-packages
     - name: Check hash
       run: tox -e check-hash
-    - name: Pylint
-      run: tox -e pylint
     - name: Code style check
       run: |
         tox -e black-check
@@ -62,3 +60,5 @@ jobs:
         tox -e darglint
     - name: Static type check
       run: tox -e mypy
+    - name: Pylint
+      run: tox -e pylint

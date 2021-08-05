@@ -20,7 +20,7 @@
 import asyncio
 import logging
 import signal
-import subprocess
+import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
@@ -345,14 +345,14 @@ class TendermintNode:
     def init(self) -> None:
         """Initialize Tendermint node."""
         cmd = self._build_init_command()
-        subprocess.call(cmd)
+        subprocess.call(cmd)  # nosec
 
     def start(self) -> None:
         """Start a Tendermint node process."""
         if self._process is not None:
             return
         cmd = self._build_node_command()
-        self._process = subprocess.Popen(cmd)
+        self._process = subprocess.Popen(cmd)  # nosec
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""

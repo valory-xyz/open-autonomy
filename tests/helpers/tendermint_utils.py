@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Helpers for Tendermint."""
-import subprocess
+import subprocess  # nosec
 from pathlib import Path
 from typing import List
 
@@ -91,7 +91,7 @@ class TendermintLocalNetworkBuilder:
 
     def _create_testnet(self) -> None:
         """Create a testnet calling 'tendermint testnet'."""
-        subprocess.call(
+        subprocess.call(  # nosec
             [
                 "tendermint",
                 "testnet",
@@ -105,7 +105,7 @@ class TendermintLocalNetworkBuilder:
     def _get_node_id(self, i: int) -> str:
         """Get the node id."""
         node_name = f"node{i}"
-        process = subprocess.Popen(
+        process = subprocess.Popen(  # nosec
             ["tendermint", "--home", node_name, "show-node-id"], stdout=subprocess.PIPE
         )
         output, _ = process.communicate()

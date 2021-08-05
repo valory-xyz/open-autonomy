@@ -145,7 +145,7 @@ class TestABCICounterSkillMany(AEATestCaseMany):
         # send transactions to each node, randomly
         for tx_number in range(self.NB_TX):
             time.sleep(0.5)
-            agent_id = random.randint(0, self.NB_AGENTS - 1)
+            agent_id = random.randint(0, self.NB_AGENTS - 1)  # nosec
             new_value = tx_number + 1
             self._send_tx(new_value, agent_id, 200)
         # wait synchronization
