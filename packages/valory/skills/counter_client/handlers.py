@@ -24,7 +24,7 @@ from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
-from packages.fetchai.protocols.http import HttpMessage
+from packages.fetchai.protocols.http import HttpMessage  # type: ignore
 from packages.valory.skills.counter_client.dialogues import HttpDialogue, HttpDialogues
 from packages.valory.skills.counter_client.utils import curdatetime, decode_value
 
@@ -39,11 +39,13 @@ class HttpHandler(Handler):
 
     def handle(self, message: Message) -> None:
         """Handle a message."""
-        message = cast(HttpMessage, message)
+        http_message = cast(HttpMessage, message)
 
         # recover dialogue
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
-        http_dialogue = cast(Optional[HttpDialogue], http_dialogues.update(message))
+        http_dialogue = cast(
+            Optional[HttpDialogue], http_dialogues.update(http_message)
+        )
         if http_dialogue is None:
             self.context.logger.error(
                 "something went wrong when adding the incoming HTTP message to the dialogue."
@@ -51,11 +53,11 @@ class HttpHandler(Handler):
             return
 
         if (
-            message.performative != HttpMessage.Performative.RESPONSE
-            or message.status_code != 200
+            http_message.performative != HttpMessage.Performative.RESPONSE
+            or http_message.status_code != 200
         ):
             self.context.logger.info(
-                f"response not valid: performative={message.performative}, status_code={message.status_code}"
+                f"response not valid: performative={http_message.performative}, status_code={http_message.status_code}"
             )
             return
 
@@ -66,7 +68,7 @@ class HttpHandler(Handler):
         callback = getattr(self, callback_name, None)
         if callback is None:
             return
-        callback(message)
+        callback(http_message)
 
     def abci_query(self, message: HttpMessage) -> None:
         """Handle abci_query responses."""

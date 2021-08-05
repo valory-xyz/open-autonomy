@@ -40,7 +40,7 @@ HEADER_REGEX = re.compile(
 )?# -\*- coding: utf-8 -\*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021 (Valory AG|valory)
 #
 #   Licensed under the Apache License, Version 2\.0 \(the \"License\"\);
 #   you may not use this file except in compliance with the License\.
@@ -87,6 +87,7 @@ if __name__ == "__main__":
             Path("scripts").glob("**/*.py"),
         ),
     )
+    python_files = filter(lambda x: not str(x).endswith("_pb2.py"), python_files)
 
     bad_files = set()
     for path in python_files:

@@ -18,15 +18,19 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the classes required for dialogue management."""
-
+# isort:skip_file  # noqa
 from typing import Any
 
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.skills.base import Model
 
-from packages.fetchai.protocols.http.dialogues import HttpDialogue as BaseHttpDialogue
-from packages.fetchai.protocols.http.dialogues import HttpDialogues as BaseHttpDialogues
+from packages.fetchai.protocols.http.dialogues import (  # type: ignore
+    HttpDialogue as BaseHttpDialogue,  # type: ignore
+)
+from packages.fetchai.protocols.http.dialogues import (  # type: ignore
+    HttpDialogues as BaseHttpDialogues,  # type: ignore
+)
 
 
 HttpDialogue = BaseHttpDialogue

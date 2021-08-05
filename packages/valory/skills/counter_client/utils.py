@@ -23,7 +23,7 @@ import datetime
 import json
 import struct
 
-from packages.fetchai.protocols.http import HttpMessage
+from packages.fetchai.protocols.http import HttpMessage  # type: ignore
 
 
 def decode_value(message: HttpMessage) -> int:

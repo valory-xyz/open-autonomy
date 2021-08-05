@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """This module contains the behaviours for the 'counter_client' skill."""
+# isort:skip_file  # noqa
 import json
 from abc import ABC
 from typing import Dict, Optional, cast
@@ -24,10 +25,10 @@ from typing import Dict, Optional, cast
 from aea.skills.base import Behaviour
 from aea.skills.behaviours import TickerBehaviour
 
-from packages.fetchai.connections.http_client.connection import (
-    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
+from packages.fetchai.connections.http_client.connection import (  # type: ignore
+    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,  # type: ignore
 )
-from packages.fetchai.protocols.http import HttpMessage
+from packages.fetchai.protocols.http import HttpMessage  # type: ignore
 from packages.valory.skills.counter_client.dialogues import HttpDialogues
 from packages.valory.skills.counter_client.handlers import curdatetime
 

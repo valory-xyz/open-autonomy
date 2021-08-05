@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmQh2D2kBn4PVK3JqxEx3CRe7G3dq6KKdG2AGWjzofCehv
   __init__.py: QmVTA54qs69dNuFFaqEJzxpKs6LqPqsnsbxNgrLdriJpSu
-  behaviours.py: QmZbUSjZVvrWam1Buy7ZQzm47sRWJPvedyRWam91KcuKhy
-  dialogues.py: QmYyQJbRPNozbYZvkFAjfJHeNdJuhvE4juJeZF78rn11AH
-  handlers.py: QmYjqJqkXGn6mMvCyvVdsQMp67cNeQcBHiY29N96sUsKJh
-  models.py: QmULU9LB9vVJuiyFYotcnPnA7mUGsBwSNfnqVFbSA9q8cv
-  utils.py: QmUn1VBNuRCjCMgHTpjwj9N61L9GfBsG8HPwPZ6YFsc9CM
+  behaviours.py: Qmb5dVtPP4GEbRGwCjtF73PXD8oCsKnyGXA7Dgt2vPJBQH
+  dialogues.py: QmVFDBeS1wRmLWfpVgTSsTkE3MuBVx6Prez8fnFZpD5ibh
+  handlers.py: QmNQ6XDtwaphBCYVDVrhp4LW31btGtJtXJsRWKFzyKVy8D
+  models.py: QmbLMMqskEN1QpZDL9HjaZ2kMqJZJnK5FajqvU2U64esEf
+  utils.py: QmPBjj9RSE5CLxThfUcAfb6m5mi8cj8H8YFgapRuMZFnog
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0

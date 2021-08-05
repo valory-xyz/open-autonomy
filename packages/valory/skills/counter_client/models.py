@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the model 'state' for the 'counter_client' skill."""
-from typing import Dict
+from typing import Any, Dict
 
 from aea.skills.base import Model
 
@@ -26,7 +26,7 @@ from aea.skills.base import Model
 class Params(Model):
     """Parameters."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         super().__init__(*args, **kwargs)
         self.tendermint_url = kwargs.get("tendermint_url")
@@ -35,7 +35,7 @@ class Params(Model):
 class State(Model):
     """Keep the current state."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
         super().__init__(*args, **kwargs)
         self.count = 0
