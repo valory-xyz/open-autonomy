@@ -24,6 +24,7 @@ from typing import List
 
 
 _TCP = "tcp://"
+_HTTP = "http://"
 _LOCAL_ADDRESS = "0.0.0.0"  # nosec
 _STARTING_ABCI_PORT = 26658
 _STARTING_RPC_PORT = 26657
@@ -47,6 +48,10 @@ class TendermintNodeInfo:
     def rpc_laddr(self) -> str:
         """Get ith rpc_laddr."""
         return f"{_TCP}{_LOCAL_ADDRESS}:{self.rpc_port}"
+
+    def get_http_addr(self, host: str) -> str:
+        """Get ith HTTP RCP address, given the host."""
+        return f"{_HTTP}{host}:{self.rpc_port}"
 
     @property
     def p2p_laddr(self) -> str:
