@@ -182,7 +182,6 @@ class TcpServerChannel:
             host=self.address,
             port=self.port,
         )
-        self._server_task = loop.create_task(self._server.serve_forever())
 
     async def disconnect(self) -> None:
         """Disconnect the channel"""
@@ -195,7 +194,6 @@ class TcpServerChannel:
 
         self.queue = None
         self._server = None
-        self._server_task = None
         self._streams_by_socket = {}
         self._request_id_to_socket = {}
 

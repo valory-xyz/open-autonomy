@@ -379,9 +379,9 @@ async def test_connection_standalone_tendermint_setup():
         port=DEFAULT_ABCI_PORT,
         target_skill_id="dummy_author/dummy:0.1.0",
         use_tendermint=True,
-        rpc_laddr="0.0.0.0:26657",
-        p2p_laddr="0.0.0.0:26656",
-        p2p_seeds=[],
+        tendermint_config=dict(
+            rpc_laddr="0.0.0.0:26657", p2p_laddr="0.0.0.0:26656", p2p_seeds=[]
+        ),
     )
     connection = ABCIServerConnection(
         identity=agent_identity, configuration=configuration, data_dir=""
