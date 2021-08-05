@@ -41,6 +41,10 @@ jobs:
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
+        # install Tendermint
+        wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
+        tar -xf tendermint.tar.gz
+        sudo mv tendermint /usr/local/bin/tendermint
 #    # set up environment depending on the platform in use
 #    - if: matrix.os == 'ubuntu-latest'
 #      name: Install dependencies (ubuntu-latest)
