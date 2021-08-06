@@ -45,7 +45,6 @@ class BlockParams:
 
         :param block_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param block_params_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         block_params_protobuf_object.max_bytes = block_params_object.max_bytes
         block_params_protobuf_object.max_gas = block_params_object.max_gas
@@ -102,7 +101,6 @@ class Duration:
 
         :param duration_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param duration_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         duration_protobuf_object.seconds = duration_object.seconds
         duration_protobuf_object.nanos = duration_object.nanos
@@ -158,7 +156,6 @@ class EvidenceParams:
 
         :param evidence_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param evidence_params_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         evidence_params_protobuf_object.max_age_num_blocks = (
             evidence_params_object.max_age_num_blocks
@@ -220,7 +217,6 @@ class ValidatorParams:
 
         :param validator_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param validator_params_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         validator_params_protobuf_object.pub_key_types.extend(
             validator_params_object.pub_key_types
@@ -271,7 +267,6 @@ class VersionParams:
 
         :param version_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param version_params_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         version_params_protobuf_object.app_version = version_params_object.app_version
 
@@ -325,7 +320,6 @@ class ConsensusParams:
 
         :param consensus_params_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param consensus_params_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         BlockParams.encode(
             consensus_params_protobuf_object.block, consensus_params_object.block
@@ -396,7 +390,6 @@ class EventAttribute:
 
         :param event_attribute_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param event_attribute_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         event_attribute_protobuf_object.key = event_attribute_object.key
         event_attribute_protobuf_object.value = event_attribute_object.value
@@ -445,7 +438,6 @@ class Event:
 
         :param event_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param event_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         event_protobuf_object.type = event_object.type_
 
@@ -502,7 +494,6 @@ class Events:
 
         :param events_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param events_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         event_protobuf_objects = []
         for event_object in events_object.events:
@@ -567,7 +558,6 @@ class Evidence:
 
         :param evidence_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param evidence_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         evidence_protobuf_object.type = evidence_object.evidence_type.value
 
@@ -628,7 +618,6 @@ class Evidences:
 
         :param evidences_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param evidences_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         validators_protobuf_objects = []
         for validator in evidences_object.byzantine_validators:
@@ -688,7 +677,6 @@ class CheckTxType:
 
         :param check_tx_type_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param check_tx_type_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         check_tx_type_protobuf_object.type = check_tx_type_object.check_tx_type.value
 
@@ -730,7 +718,6 @@ class ConsensusVersion:
 
         :param consensus_version_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param consensus_version_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         consensus_version_protobuf_object.block = consensus_version_object.block
         consensus_version_protobuf_object.app = consensus_version_object.app
@@ -778,7 +765,6 @@ class PartSetHeader:
 
         :param part_set_header_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param part_set_header_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         part_set_header_protobuf_object.total = part_set_header_object.total
         part_set_header_protobuf_object.hash = part_set_header_object.hash_
@@ -824,7 +810,6 @@ class BlockID:
 
         :param block_id_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param block_id_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         block_id_protobuf_object.hash = block_id_object.hash_
         part_set_header_protobuf_object = abci_pb2.AbciMessage.Header.PartSetHeader()
@@ -905,7 +890,6 @@ class Header:
 
         :param header_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param header_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         consensus_version_protobuf_obj = abci_pb2.AbciMessage.Header.ConsensusVersion()
         ConsensusVersion.encode(consensus_version_protobuf_obj, header_object.version)
@@ -1013,7 +997,6 @@ class Validator:
 
         :param validator_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param validator_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         validator_protobuf_object.address = validator_object.address
         validator_protobuf_object.power = validator_object.power
@@ -1059,7 +1042,6 @@ class VoteInfo:
 
         :param vote_info_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param vote_info_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         validator_protobuf_object = abci_pb2.AbciMessage.LastCommitInfo.Validator()
         Validator.encode(validator_protobuf_object, vote_info_object.validator)
@@ -1111,7 +1093,6 @@ class LastCommitInfo:
 
         :param last_commit_info_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param last_commit_info_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         last_commit_info_protobuf_object.round = last_commit_info_object.round_
 
@@ -1176,7 +1157,6 @@ class ProofOp:
 
         :param proof_op_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param proof_op_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         proof_op_protobuf_object.type = proof_op_object.type_
         proof_op_protobuf_object.key = proof_op_object.key
@@ -1228,7 +1208,6 @@ class ProofOps:
 
         :param proof_ops_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param proof_ops_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         proof_ops_protobuf_objects = []
         for proof_op in proof_ops_object.proof_ops:
@@ -1284,7 +1263,6 @@ class Result:
 
         :param result_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param result_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         result_protobuf_object.result_type = result_object.result_type.value
 
@@ -1327,7 +1305,6 @@ class Snapshot:
 
         :param snapshot_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param snapshot_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         snapshot_protobuf_object.height = snapshot_object.height
         snapshot_protobuf_object.format = snapshot_object.format_
@@ -1381,7 +1358,6 @@ class SnapShots:
 
         :param snapshots_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param snapshots_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         snapshot_protobuf_objects = []
         for snapshot_object in snapshots_object.snapshots:
@@ -1438,7 +1414,6 @@ class Timestamp:
 
         :param timestamp_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param timestamp_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         timestamp_protobuf_object.seconds = timestamp_object.seconds
         timestamp_protobuf_object.nanos = timestamp_object.nanos
@@ -1485,7 +1460,6 @@ class ValidatorUpdate:
 
         :param validator_update_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param validator_update_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         validator_update_protobuf_object.pub_key = validator_update_object.pub_key
         validator_update_protobuf_object.power = validator_update_object.power
@@ -1532,7 +1506,6 @@ class ValidatorUpdates:
 
         :param validator_updates_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param validator_updates_object: an instance of this class to be encoded in the protocol buffer object.
-        :return: None
         """
         validator_updates = []
         for validator_update_object in validator_updates_object.validator_updates:

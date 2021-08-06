@@ -203,7 +203,7 @@ class AbciDialogue(Dialogue):
         :param dialogue_label: the identifier of the dialogue
         :param self_address: the address of the entity for whom this dialogue is maintained
         :param role: the role of the agent this dialogue is maintained for
-        :return: None
+        :param message_class: the message class
         """
         Dialogue.__init__(
             self,
@@ -231,7 +231,8 @@ class AbciDialogues(Dialogues, ABC):
         Initialize dialogues.
 
         :param self_address: the address of the entity for whom dialogues are maintained
-        :return: None
+        :param role_from_first_message: a callable that returns the role from first message.
+        :param dialogue_class: the class to instantiate the dialogue.
         """
         Dialogues.__init__(
             self,
