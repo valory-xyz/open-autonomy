@@ -17,18 +17,18 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/counter:0.1.0
-default_ledger: fetchai
+default_ledger: ethereum
 required_ledgers:
-- fetchai
+- ethereum
 default_routing: {}
 connection_private_key_paths: {}
 private_key_paths:
-  fetchai: fetchai_private_key.txt
+  ethereum: ethereum_private_key.txt
 logging_config:
   disable_existing_loggers: false
   version: 1
 dependencies:
-  aea-ledger-fetchai: {}
+  aea-ledger-ethereum: {}
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

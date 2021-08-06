@@ -234,7 +234,7 @@ This will copy the agent project in the `counter_client` directory.
 Then, enter into the project, and generate a private key:
 ```
 cd counter_client
-aea generate-key fetchai
+aea generate-key ethereum
 ```
 
 You can see the Tendermint node the skill is configured to interact with 
