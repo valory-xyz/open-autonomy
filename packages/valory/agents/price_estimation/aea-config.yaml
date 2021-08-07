@@ -1,0 +1,40 @@
+agent_name: price_estimation
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: 'ABCI Price Estimation Agent.'
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint: {}
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- fetchai/default:1.0.0
+- fetchai/signing:1.0.0
+- fetchai/state_update:1.0.0
+- valory/abci:0.1.0
+skills:
+- valory/abstract_abci:0.1.0
+- valory/price_estimation_abci:0.1.0
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths:
+  ethereum: ethereum_private_key.txt
+logging_config:
+  disable_existing_loggers: false
+  version: 1
+dependencies:
+  aea-ledger-ethereum: {}
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/price_estimation_abci:0.1.0
+  use_tendermint: true
+  tendermint_config:
+    consensus_create_empty_blocks: false

@@ -1,0 +1,33 @@
+name: price_estimation_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for cryptocurrency price estimation aggregating observations
+  from different sources.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmWQR6ZMF7FRkyex68qKVEF5XGXspgrQQfbY97zPLqoCjp
+  __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
+  dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
+  handlers.py: QmYqxE9wz9ujTc78xhCnLXVNTxbiaK3kazGWPiXt3kP2mf
+  models.py: QmPDsyvgG6aGiUhp2VCgwjZc64htCgGt6SjwNeUCXZovvc
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- valory/abci:0.1.0
+skills:
+- valory/abstract_abci:0.1.0
+behaviours: {}
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIPriceEstimationHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+dependencies: {}
+is_abstract: false
