@@ -35,8 +35,10 @@ class TestABCISkill(AEATestCaseEmpty, UseTendermint):
 
     def test_run(self):
         """Run the ABCI skill."""
-        self.generate_private_key()
-        self.add_private_key()
+        self.generate_private_key("ethereum")
+        self.add_private_key("ethereum", "ethereum_private_key.txt")
+        self.set_config("agent.default_ledger", "ethereum")
+        self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
         self.add_item("skill", "valory/abstract_abci:0.1.0")
         # don't use 'abstract_abci' as abstract class; for the
         # purposes of this test the default request handlers work well.

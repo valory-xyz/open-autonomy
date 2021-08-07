@@ -42,7 +42,7 @@ lint:
 	isort aea_consensus_algorithms packages scripts tests
 	flake8 aea_consensus_algorithms packages scripts tests
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages
+	darglint aea_consensus_algorithms scripts packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills
 
 .PHONY: pylint
 pylint:
@@ -52,7 +52,7 @@ pylint:
 security:
 	bandit -r aea_consensus_algorithms packages
 	bandit -s B101 -r tests scripts
-	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706 -i 41002
+	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706 -i 41002 -i 40622
 
 .PHONY: static
 static:
@@ -62,7 +62,6 @@ static:
 .PHONY: package_checks
 package_checks:
 	python scripts/generate_ipfs_hashes.py --check
-	python scripts/check_package_versions_in_docs.py
 	python scripts/check_packages.py
 
 .PHONY: docs
@@ -74,7 +73,7 @@ common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
-	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc {posargs}
+	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: test-all
@@ -114,7 +113,7 @@ new_env: clean
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
-		pipenv --python 3.7;\
+		pipenv --python 3.8;\
 		pipenv install --dev --skip-lock --clear;\
 		pipenv run pip install -e .[all];\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\

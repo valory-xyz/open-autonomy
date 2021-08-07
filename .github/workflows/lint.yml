@@ -8,7 +8,28 @@ on:
   pull_request:
 
 jobs:
-  run:
+  lock_check:
+    continue-on-error: False
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: 3.6
+      - name: Install dependencies (ubuntu-latest)
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install pipenv
+      - name: Pipenv install requirements and check it can be locked
+        run: |
+          pipenv install --dev --skip-lock --clear
+          pipenv run pip install -e .[all]
+          pipenv lock
+
+  linter_checks:
     continue-on-error: True
     runs-on: ${{ matrix.os }}
 

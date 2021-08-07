@@ -43,8 +43,10 @@ class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
 
     def test_run(self):
         """Run the ABCI skill."""
-        self.generate_private_key()
-        self.add_private_key()
+        self.generate_private_key("ethereum")
+        self.add_private_key("ethereum", "ethereum_private_key.txt")
+        self.set_config("agent.default_ledger", "ethereum")
+        self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
         self.add_item("skill", "valory/counter:0.1.0")
         self.set_config(
             "vendor.valory.connections.abci.config.target_skill_id",
@@ -97,8 +99,10 @@ class TestABCICounterSkillMany(AEATestCaseMany):
             logging.debug(f"Processing agent {agent_name}...")
             node = self.tendermint_net_builder.nodes[agent_id]
             self.set_agent_context(agent_name)
-            self.generate_private_key()
-            self.add_private_key()
+            self.generate_private_key("ethereum")
+            self.add_private_key("ethereum", "ethereum_private_key.txt")
+            self.set_config("agent.default_ledger", "ethereum")
+            self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
             self.add_item("skill", "valory/counter:0.1.0")
             self.set_config(
                 "vendor.valory.connections.abci.config.target_skill_id",

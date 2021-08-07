@@ -137,7 +137,7 @@ class AEAProject:
         self.temp_dir = tempfile.mkdtemp(dir=self.parent_dir)
         os.chdir(self.temp_dir)
 
-        run_aea("create", "--local", "--empty", self.name, "--author", "fetchai")
+        run_aea("create", "--local", "--empty", self.name, "--author", "valory")
         os.chdir(self.name)
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
@@ -376,7 +376,7 @@ def _process_test_protocol(specification: Path, package_path: Path) -> None:
     _fix_generated_protocol(package_path)
     replacements = [
         (
-            f"from packages.fetchai.protocols.{package_path.name}",
+            f"from packages.valory.protocols.{package_path.name}",
             f"from tests.data.generator.{package_path.name}",
         )
     ]
