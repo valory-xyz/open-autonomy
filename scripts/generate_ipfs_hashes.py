@@ -121,7 +121,7 @@ def ipfs_hashing(
     :param client: a connected IPFS client.
     :param configuration: the package configuration.
     :param package_type: the package type.
-    :return: the identifier of the hash (e.g. 'fetchai/protocols/default')
+    :return: the identifier of the hash (e.g. 'valory/protocols/default')
            | and the hash of the whole package.
     """
     # hash again to get outer hash (this time all files)
