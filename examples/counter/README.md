@@ -235,6 +235,7 @@ Then, enter into the project, and generate a private key:
 ```
 cd counter_client
 aea generate-key ethereum
+aea install
 ```
 
 You can see the Tendermint node the skill is configured to interact with 
