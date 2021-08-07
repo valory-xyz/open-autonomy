@@ -7,27 +7,57 @@ description: ABCI application for cryptocurrency price estimation aggregating ob
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmWQR6ZMF7FRkyex68qKVEF5XGXspgrQQfbY97zPLqoCjp
+  README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
-  handlers.py: QmYqxE9wz9ujTc78xhCnLXVNTxbiaK3kazGWPiXt3kP2mf
-  models.py: QmPDsyvgG6aGiUhp2VCgwjZc64htCgGt6SjwNeUCXZovvc
+  behaviours.py: QmUYoYvAhYCw7FtP2isyLb1s58qBQPa9Jpxxin31jWJLvp
+  behaviours_utils.py: QmX6R25UuY9Lk4sYNyZDo3vnNnFdFa4URidPbckjANyoJm
+  dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
+  handlers.py: QmWG8Hz9dgXML9YDc4YkFMg7ctHAmpUshJSeXjLTnLh9C5
+  models.py: QmdVgwQQAopUSR4FULigim3K3Y7PNPscLgj4z4ewRyBgcR
+  params.py: QmeQciRj9auD7QKpeZuhsB3q5AV8GHG7t11PNeet9fvz6m
+  shared_state.py: QmaEVRYawJTQbETh9uHUTPym9LsEeitkvhKYUmUcm8QU6t
+  tendermint_rpc.py: QmVkv4Nc7yFaFPXv8cRhwxGgbRNXGPRnY7mMZkFDjmo18G
+  utils.py: QmaZEG5ujmqU1pnAfGcRHY7gQyiBz8yQd1hSHSdcNfxf5a
 fingerprint_ignore_patterns: []
 connections:
+- fetchai/http_client:0.22.0
 - valory/abci:0.1.0
 contracts: []
 protocols:
+- fetchai/http:1.0.0
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
-behaviours: {}
+behaviours:
+  main:
+    args: {}
+    class_name: PriceEstimationConsensusBehaviour
 handlers:
   abci:
     args: {}
     class_name: ABCIPriceEstimationHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
 models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  params:
+    args:
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
 dependencies: {}
 is_abstract: false

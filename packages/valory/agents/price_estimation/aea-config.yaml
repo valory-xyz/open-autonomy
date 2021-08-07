@@ -35,6 +35,5 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/price_estimation_abci:0.1.0
-  use_tendermint: true
-  tendermint_config:
-    consensus_create_empty_blocks: false
+  use_tendermint: false
+

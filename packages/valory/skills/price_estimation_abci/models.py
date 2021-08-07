@@ -30,7 +30,10 @@ from packages.valory.protocols.abci.custom_types import Header
 
 
 class Round:  # pylint: disable=too-few-public-methods
-    """Class to represent the round."""
+    """Class to represent the round state."""
+
+    def __init__(self):
+        """Initialize the round."""
 
 
 class TransactionType(Enum):
@@ -58,7 +61,7 @@ class BaseTxPayload(ABC):
 
 
 class RegistrationPayload(BaseTxPayload):
-    """Initialize a transaction payload of type 'registration'."""
+    """Represent a transaction payload of type 'registration'."""
 
     def __init__(self) -> None:
         """Initialize a 'registration' transaction payload."""
@@ -66,7 +69,7 @@ class RegistrationPayload(BaseTxPayload):
 
 
 class CommitObservationPayload(BaseTxPayload):
-    """Initialize a transaction payload of type 'commit observation'."""
+    """Represent a transaction payload of type 'commit observation'."""
 
     def __init__(self) -> None:
         """Initialize a 'commit_observation' transaction payload."""
@@ -76,7 +79,7 @@ class CommitObservationPayload(BaseTxPayload):
 class Transaction(ABC):
     """Class to represent a transaction."""
 
-    def __init__(self, payload: BaseTxPayload, signature: Signature) -> None:
+    def __init__(self, payload: BaseTxPayload, signature: bytes) -> None:
         """Initialize a transaction object."""
         self.payload = payload
         self.signature = signature
@@ -98,8 +101,9 @@ class Transaction(ABC):
     def verify(self) -> None:
         """Verify the signature is correct."""
         payload_bytes = self.payload.encode()
-        public_key = self.signature.recover_public_key_from_msg(payload_bytes)
-        result = self.signature.verify_msg(payload_bytes, public_key)
+        signature = Signature(signature_bytes=self.signature)
+        public_key = signature.recover_public_key_from_msg(payload_bytes)
+        result = signature.verify_msg(payload_bytes, public_key)
         if not result:
             raise ValueError("signature not valid.")
 
