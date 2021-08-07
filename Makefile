@@ -42,7 +42,7 @@ lint:
 	isort aea_consensus_algorithms packages scripts tests
 	flake8 aea_consensus_algorithms packages scripts tests
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms packages scripts
+	darglint aea_consensus_algorithms scripts packages
 
 .PHONY: pylint
 pylint:
@@ -52,7 +52,7 @@ pylint:
 security:
 	bandit -r aea_consensus_algorithms packages
 	bandit -s B101 -r tests scripts
-	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706
+	safety check -i 37524 -i 38038 -i 37776 -i 38039 -i 39621 -i 40291 -i 39706 -i 41002
 
 .PHONY: static
 static:
@@ -74,7 +74,7 @@ common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
-	pytest -rfE --doctest-modules aea_consensus_algorithms packages tests/ --cov=aea_consensus_algorithms --cov-report=html --cov-report=xml --cov-report=term-missing --cov-report=term --cov-config=.coveragerc
+	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc {posargs}
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: test-all

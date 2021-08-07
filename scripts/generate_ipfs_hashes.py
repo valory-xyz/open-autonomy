@@ -55,11 +55,8 @@ from aea.configurations.loader import ConfigLoaders
 from aea.helpers.yaml_utils import yaml_dump, yaml_dump_all
 
 
-AUTHOR = "fetchai"
-CORE_PATH = Path("aea")
-TEST_PATH = Path("tests") / "data"
+AUTHOR = "valory"
 PACKAGE_HASHES_PATH = "packages/hashes.csv"
-TEST_PACKAGE_HASHES_PATH = "tests/data/hashes.csv"
 
 type_to_class_config = {
     PackageType.AGENT: AgentConfig,
@@ -395,7 +392,6 @@ def update_hashes(timeout: float = 15.0) -> int:
     """
     return_code = 0
     package_hashes = {}  # type: Dict[str, str]
-    test_package_hashes = {}  # type: Dict[str, str]
     # run the ipfs daemon
     with IPFSDaemon(timeout=timeout):
         try:
@@ -417,14 +413,10 @@ def update_hashes(timeout: float = 15.0) -> int:
                 key, package_hash, _ = ipfs_hashing(
                     client, configuration_obj, package_type
                 )
-                if TEST_PATH in package_path.parents:
-                    test_package_hashes[key] = package_hash
-                else:
-                    package_hashes[key] = package_hash
+                package_hashes[key] = package_hash
 
             # output the package hashes
             to_csv(package_hashes, PACKAGE_HASHES_PATH)
-            to_csv(test_package_hashes, TEST_PACKAGE_HASHES_PATH)
 
             print("Done!")
         except Exception:  # pylint: disable=broad-except
@@ -481,10 +473,7 @@ def check_hashes(timeout: float = 15.0) -> int:
     return_code = 0
     failed = False
     expected_package_hashes = from_csv(PACKAGE_HASHES_PATH)  # type: Dict[str, str]
-    expected_test_package_hashes = from_csv(
-        TEST_PACKAGE_HASHES_PATH
-    )  # type: Dict[str, str]
-    all_expected_hashes = {**expected_package_hashes, **expected_test_package_hashes}
+    all_expected_hashes = {**expected_package_hashes}
     with IPFSDaemon(timeout=timeout):
         try:
             # connect ipfs client
@@ -519,7 +508,7 @@ def clean_directory() -> None:
     _, _ = process.communicate()
 
 
-def main():
+def main() -> None:
     """Execute the script."""
     arguments = parse_arguments()
     if arguments.check:

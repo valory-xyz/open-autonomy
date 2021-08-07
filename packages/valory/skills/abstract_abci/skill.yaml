@@ -1,0 +1,30 @@
+name: abstract_abci
+author: valory
+version: 0.1.0
+type: skill
+description: The abci skill provides a template of an ABCI application.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmVY6g2xBzqgPiMbrzxkrjB8SA58euTuD5okjNT974Vygu
+  __init__.py: QmcujhbnYzRVJvd2HZeVQQ4rmDaDzZq5rmPSwwJHj9Vq1b
+  dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
+  handlers.py: QmS8eWo2jPW8C3tRQe8yuCbPBMZANXvp31ViQ24ReqDVZU
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- valory/abci:0.1.0
+skills: []
+behaviours: {}
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+dependencies: {}
+is_abstract: true

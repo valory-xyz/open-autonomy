@@ -242,20 +242,26 @@ def check_dependencies(
     """
     data = unified_yaml_load(configuration_file)
 
-    def _add_package_type(package_type: PackageType, public_id_str: str) -> PackageId:
-        return PackageId(package_type, PublicId.from_str(public_id_str))
+    def _add_package_type(package_type: PackageType, public_id: PublicId) -> PackageId:
+        return PackageId(package_type, public_id)
 
     def _get_package_ids(
         package_type: PackageType, public_ids: Set[PublicId]
     ) -> Set[PackageId]:
-        return set(map(partial(_add_package_type, package_type), public_ids))
+        # take only the dependencies whose author is Valory.
+        expected_author_public_ids = filter(
+            lambda pid: pid.author == VALORY, public_ids
+        )
+        # add the package type, so to return PackageId objects.
+        return set(
+            map(partial(_add_package_type, package_type), expected_author_public_ids)
+        )
 
-    dependencies: Set[PackageId] = set.union(
-        *[
-            _get_package_ids(package_type, data.get(package_type.to_plural(), set()))
-            for package_type in list(PackageType)
-        ]
-    )
+    dependencies: Set[PackageId] = set()
+    for package_type in list(PackageType):
+        public_ids_str = data.get(package_type.to_plural(), set())
+        public_ids = set(map(PublicId.from_str, public_ids_str))
+        dependencies.update(_get_package_ids(package_type, public_ids))
 
     diff = dependencies.difference(all_packages_ids)
     if len(diff) > 0:
@@ -270,15 +276,15 @@ def check_description(configuration_file: Path) -> None:
         raise EmptyPackageDescription(configuration_file)
 
 
-def check_author(configuration_file: Path, expected_author: str):
+def check_author(configuration_file: Path, expected_author: str) -> None:
     """Check the author matches a certain desired value."""
     yaml_object = unified_yaml_load(configuration_file)
-    actual_author = yaml_object.get("author")
-    if actual_author == expected_author:
+    actual_author = yaml_object.get("author", "")
+    if actual_author != expected_author:
         raise UnexpectedAuthorError(configuration_file, expected_author, actual_author)
 
 
-def main():
+def main() -> None:
     """Execute the script."""
     all_packages_ids_ = find_all_packages_ids()
     failed: bool = False

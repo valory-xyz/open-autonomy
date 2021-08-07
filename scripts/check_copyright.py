@@ -29,7 +29,6 @@ In particular:
 It is assumed the script is run from the repository root.
 """
 
-import argparse
 import itertools
 import re
 import sys
@@ -41,7 +40,7 @@ HEADER_REGEX = re.compile(
 )?# -\*- coding: utf-8 -\*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021 (Valory AG|valory)
 #
 #   Licensed under the Apache License, Version 2\.0 \(the \"License\"\);
 #   you may not use this file except in compliance with the License\.
@@ -75,25 +74,20 @@ def check_copyright(file: Path) -> bool:
     return re.match(HEADER_REGEX, content) is not None
 
 
-def parse_args():
-    """Parse arguments."""
-    parser = argparse.ArgumentParser("check_copyright_notice")
-    parser.add_argument(
-        "--directory", type=str, default=".", help="The path to the repository root."
-    )
-
-
 if __name__ == "__main__":
     exclude_files = {Path("scripts", "whitelist.py")}
     python_files = filter(
         lambda x: x not in exclude_files,
         itertools.chain(
             Path("aea_consensus_algorithm").glob("**/*.py"),
-            Path("packages").glob("**/*.py"),
+            Path("packages", "valory", "agents").glob("**/*.py"),
+            Path("packages", "valory", "connections").glob("**/*.py"),
+            Path("packages", "valory", "contracts").glob("**/*.py"),
             Path("tests").glob("**/*.py"),
             Path("scripts").glob("**/*.py"),
         ),
     )
+    python_files = filter(lambda x: not str(x).endswith("_pb2.py"), python_files)
 
     bad_files = set()
     for path in python_files:
