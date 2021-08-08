@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+import datetime
 from abc import ABC
+from functools import partial
 from typing import Any, cast
 
 from aea.skills.behaviours import FSMBehaviour, State
@@ -48,10 +50,11 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
 
     def setup(self) -> None:
         """Set up the behaviour."""
+        date = datetime.datetime.now() + datetime.timedelta(0, 5)
         self.register_state(
             "wait_tendermint",
             WaitForConditionBehaviour(
-                condition=self.wait_tendermint_rpc_is_ready,
+                condition=partial(self.wait_tendermint_rpc_is_ready, date),
                 name="wait_tendermint",
                 skill_context=self.context,
             ),
@@ -111,9 +114,9 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
-    def wait_tendermint_rpc_is_ready(self) -> bool:
+    def wait_tendermint_rpc_is_ready(self, expected_time: datetime.datetime) -> bool:
         """Wait Tendermint RPC server is up."""
-        return self.context.state.info_received
+        return datetime.datetime.now() > expected_time
 
     def wait_registration_threshold(self) -> bool:
         """Wait registration threshold is reached."""
@@ -252,6 +255,7 @@ class ObserveBehaviour(BaseState):
         )
         payload = ObservationPayload(self.context.agent_address, observation)
         yield from self._send_transaction(payload)
+        self.context.logger.info("ObserveBehaviour done")
         # set flag 'done' and event to "done"
         self._is_done = True
         self._event = DONE_EVENT
@@ -291,6 +295,7 @@ class EstimateBehaviour(BaseState):
         self.context.logger.info(f"Got estimate: {estimate}")
         payload = EstimatePayload(self.context.agent_address, estimate)
         yield from self._send_transaction(payload)
+        self.context.logger.info("EstimateBehaviour done")
         # set flag 'done' and event to "done"
         self._is_done = True
         self._event = DONE_EVENT

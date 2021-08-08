@@ -268,7 +268,9 @@ class RoundState:
     def estimate_threshold_reached(self) -> bool:
         """Check that the estimate threshold has been reached."""
         estimates_counter = Counter()
-        estimates_counter.update(self.participant_to_estimate.values())
+        estimates_counter.update(
+            payload.estimate for payload in self.participant_to_estimate.values()
+        )
         # check that a single estimate has at least 2/3 of votes
         two_thirds_n = self._consensus_params.two_thirds_threshold
         return any(count >= two_thirds_n for count in estimates_counter.values())

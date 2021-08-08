@@ -57,7 +57,6 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'info' request."""
-        self.context.state.info_received = True
         return super().info(message, dialogue)
 
     def begin_block(  # pylint: disable=no-self-use

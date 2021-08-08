@@ -35,9 +35,6 @@ class SharedState(Model):
         """Initialize the state."""
         super().__init__(*args, **kwargs)
 
-        # info request received from Tendermint
-        self.info_received: bool = False
-
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
 

@@ -25,23 +25,6 @@ from itertools import islice
 from typing import Iterable, List, Pattern, Tuple
 
 
-try:
-    # flake8: noqa
-    # pylint: disable=unused-import,ungrouped-imports
-    from .consts import (  # type: ignore
-        LIBP2P_NODE_DEPS_DOWNLOAD_TIMEOUT,
-        LIBP2P_NODE_MODULE,
-        LIBP2P_NODE_MODULE_NAME,
-    )
-except ImportError:  # pragma: nocover
-    # flake8: noqa
-    # pylint: disable=unused-import,ungrouped-imports
-    from consts import (  # type: ignore
-        LIBP2P_NODE_DEPS_DOWNLOAD_TIMEOUT,
-        LIBP2P_NODE_MODULE,
-        LIBP2P_NODE_MODULE_NAME,
-    )
-
 ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND = (
     "'{command}' is required by the "
     "abci connection, but it is not installed, "
@@ -110,6 +93,7 @@ def check_binary(
     args: List[str],
     version_regex: Pattern,
     version_lower_bound: VERSION,
+    only_warning: bool = False,
 ) -> None:
     """
     Check a binary is accessible from the terminal.
@@ -122,12 +106,15 @@ def check_binary(
     :param args: the arguments to provide to the binary to retrieve the version.
     :param version_regex: the regex used to extract the version from the output.
     :param version_lower_bound: the minimum required version.
+    :param only_warning: if True, don't raise error but print a warning message
     """
     path = shutil.which(binary_name)
     if not path:
-        raise ValueError(
-            ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND.format(command=binary_name)
-        )
+        message = ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND.format(command=binary_name)
+        if only_warning:
+            print("Warning: ", message)
+            return
+        raise ValueError(message)
 
     version_getter_command = [binary_name, *args]
     stdout = subprocess.check_output(version_getter_command).decode("utf-8")  # nosec
@@ -140,13 +127,15 @@ def check_binary(
         return
     actual_version: VERSION = get_version(*map(int, version_match.groups(default="0")))
     if actual_version < version_lower_bound:
-        raise ValueError(
-            ERROR_MESSAGE_TEMPLATE_VERSION_TOO_LOW.format(
-                command=binary_name,
-                lower_bound=version_to_string(version_lower_bound),
-                actual_version=version_to_string(actual_version),
-            )
+        message = ERROR_MESSAGE_TEMPLATE_VERSION_TOO_LOW.format(
+            command=binary_name,
+            lower_bound=version_to_string(version_lower_bound),
+            actual_version=version_to_string(actual_version),
         )
+        if only_warning:
+            print(f"Warning: {message}")
+            return
+        raise ValueError(message)
 
     print_ok_message(binary_name, actual_version, version_lower_bound)
 
@@ -158,6 +147,7 @@ def check_versions() -> None:
         ["version"],
         re.compile(r"([0-9]+)\.([0-9]+)\.([0-9]+)"),
         MINIMUM_TENDERMINT_VERSION,
+        only_warning=True,
     )
 
 

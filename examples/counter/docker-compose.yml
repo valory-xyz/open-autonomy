@@ -15,51 +15,51 @@ services:
     networks:
       localnet:
         ipv4_address: 192.167.10.2
-
-  node1:
-    container_name: node1
-    image: "tendermint/localnode"
-    ports:
-      - "26666-26667:26656-26657"
-    environment:
-      - ID=1
-      - LOG=${LOG:-tendermint.log}
-    volumes:
-      - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci1:26658
-    networks:
-      localnet:
-        ipv4_address: 192.167.10.3
-
-  node2:
-    container_name: node2
-    image: "tendermint/localnode"
-    environment:
-      - ID=2
-      - LOG=${LOG:-tendermint.log}
-    ports:
-      - "26676-26677:26656-26657"
-    volumes:
-      - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci2:26658
-    networks:
-      localnet:
-        ipv4_address: 192.167.10.4
-
-  node3:
-    container_name: node3
-    image: "tendermint/localnode"
-    environment:
-      - ID=3
-      - LOG=${LOG:-tendermint.log}
-    ports:
-      - "26686-26687:26656-26657"
-    volumes:
-      - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci3:26658
-    networks:
-      localnet:
-        ipv4_address: 192.167.10.5
+#
+#  node1:
+#    container_name: node1
+#    image: "tendermint/localnode"
+#    ports:
+#      - "26666-26667:26656-26657"
+#    environment:
+#      - ID=1
+#      - LOG=${LOG:-tendermint.log}
+#    volumes:
+#      - ./build:/tendermint:Z
+#    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci1:26658
+#    networks:
+#      localnet:
+#        ipv4_address: 192.167.10.3
+#
+#  node2:
+#    container_name: node2
+#    image: "tendermint/localnode"
+#    environment:
+#      - ID=2
+#      - LOG=${LOG:-tendermint.log}
+#    ports:
+#      - "26676-26677:26656-26657"
+#    volumes:
+#      - ./build:/tendermint:Z
+#    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci2:26658
+#    networks:
+#      localnet:
+#        ipv4_address: 192.167.10.4
+#
+#  node3:
+#    container_name: node3
+#    image: "tendermint/localnode"
+#    environment:
+#      - ID=3
+#      - LOG=${LOG:-tendermint.log}
+#    ports:
+#      - "26686-26687:26656-26657"
+#    volumes:
+#      - ./build:/tendermint:Z
+#    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci3:26658
+#    networks:
+#      localnet:
+#        ipv4_address: 192.167.10.5
 
   abci0:
     container_name: abci0
@@ -74,48 +74,48 @@ services:
     networks:
       localnet:
         ipv4_address: 192.167.10.6
-
-  abci1:
-    container_name: abci1
-    image: "abci-image"
-    build:
-      context: ../..
-      dockerfile: examples/counter/Dockerfile
-    volumes:
-      - ./:/home/ubuntu/build
-    entrypoint: python3
-    command: ["-m", "aea.cli", "run"]
-    networks:
-      localnet:
-        ipv4_address: 192.167.10.7
-
-  abci2:
-    container_name: abci2
-    image: "abci-image"
-    build:
-      context: ../..
-      dockerfile: examples/counter/Dockerfile
-    volumes:
-      - ./:/home/ubuntu/build
-    entrypoint: python3
-    command: ["-m", "aea.cli", "run"]
-    networks:
-      localnet:
-        ipv4_address: 192.167.10.8
-
-  abci3:
-    container_name: abci3
-    image: "abci-image"
-    build:
-      context: ../..
-      dockerfile: examples/counter/Dockerfile
-    volumes:
-      - ./:/home/ubuntu/build
-    entrypoint: python3
-    command: ["-m", "aea.cli", "run"]
-    networks:
-      localnet:
-        ipv4_address: 192.167.10.9
+#
+#  abci1:
+#    container_name: abci1
+#    image: "abci-image"
+#    build:
+#      context: ../..
+#      dockerfile: examples/counter/Dockerfile
+#    volumes:
+#      - ./:/home/ubuntu/build
+#    entrypoint: python3
+#    command: ["-m", "aea.cli", "run"]
+#    networks:
+#      localnet:
+#        ipv4_address: 192.167.10.7
+#
+#  abci2:
+#    container_name: abci2
+#    image: "abci-image"
+#    build:
+#      context: ../..
+#      dockerfile: examples/counter/Dockerfile
+#    volumes:
+#      - ./:/home/ubuntu/build
+#    entrypoint: python3
+#    command: ["-m", "aea.cli", "run"]
+#    networks:
+#      localnet:
+#        ipv4_address: 192.167.10.8
+#
+#  abci3:
+#    container_name: abci3
+#    image: "abci-image"
+#    build:
+#      context: ../..
+#      dockerfile: examples/counter/Dockerfile
+#    volumes:
+#      - ./:/home/ubuntu/build
+#    entrypoint: python3
+#    command: ["-m", "aea.cli", "run"]
+#    networks:
+#      localnet:
+#        ipv4_address: 192.167.10.9
 
 networks:
   localnet:

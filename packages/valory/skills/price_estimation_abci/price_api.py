@@ -79,7 +79,7 @@ class CoinMarketCapApiWrapper(ApiWrapper):
         """Get the price of a cryptocurrency."""
         currency_id, convert_id = Currency(currency_id), Currency(convert_id)
         url = self._URL
-        parameters = {"slug": currency_id.value, "convert": convert_id.value}
+        parameters = {"symbol": currency_id.value, "convert": convert_id.value}
         headers = {
             "Accepts": "application/json",
             "X-CMC_PRO_API_KEY": self.api_key,
@@ -92,7 +92,7 @@ class CoinMarketCapApiWrapper(ApiWrapper):
             response = session.get(url, params=parameters)
             data = json.loads(response.text)
             return data["data"][currency_id.value]["quote"][convert_id.value]["price"]
-        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
+        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError, KeyError):
             return None
 
 
@@ -133,7 +133,7 @@ class BinanceApiWrapper(ApiWrapper):
         try:
             response = requests.get(url, params=parameters)
             return float(response.json()["price"])
-        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
+        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError, KeyError):
             return None
 
 
