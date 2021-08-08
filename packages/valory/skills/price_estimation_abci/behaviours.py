@@ -34,6 +34,7 @@ from packages.valory.skills.price_estimation_abci.behaviours_utils import (
 )
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
 from packages.valory.skills.price_estimation_abci.models import (
+    ObservationPayload,
     RegistrationPayload,
     Transaction,
 )
@@ -73,7 +74,8 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
 
         self.register_transition("wait_tendermint", "register", DONE_EVENT)
         self.register_transition("register", "wait_registration_threshold", DONE_EVENT)
-        self.register_transition("wait_registration_threshold", "end", DONE_EVENT)
+        self.register_transition("wait_registration_threshold", "observe", DONE_EVENT)
+        self.register_transition("observe", "end", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -160,6 +162,28 @@ class RegistrationBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
         # set flag 'done' and event to "done"
         self._is_done = True
         self._event = DONE_EVENT
+
+
+class ObserveBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
+    """Observe price estimate."""
+
+    is_programmatically_defined = True
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the behaviour."""
+        AsyncBehaviour.__init__(self)
+        BaseState.__init__(self, **kwargs)
+        self._is_done: bool = False
+
+    def is_done(self) -> bool:
+        """Check whether the state is done."""
+        return self._is_done
+
+    def async_act(self) -> None:
+        """Do the action."""
+        # payload = ObservationPayload(self.context.agent_address)
+        # self._send_signing_request(payload.encode())
+        self._is_done = True
 
 
 class EndBehaviour(BaseState):

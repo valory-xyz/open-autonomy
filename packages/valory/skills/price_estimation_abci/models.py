@@ -323,13 +323,13 @@ class RoundState:
         """
         round_state_is_correct = self._type == RoundStateType.COLLECT_OBSERVATIONS
         sender_in_participant_set = payload.sender in self.participants
-        sender_has_already_sent_observation = (
+        sender_has_not_sent_yet_observation = (
             payload.sender not in self.participant_to_observations
         )
         return (
             round_state_is_correct
             and sender_in_participant_set
-            and sender_has_already_sent_observation
+            and sender_has_not_sent_yet_observation
         )
 
 

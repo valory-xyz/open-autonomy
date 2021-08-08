@@ -9,12 +9,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmQgwiauFUVEmeeiq1PVVxihZpsjAcrGTLiv2UCDNfXjeU
+  behaviours.py: QmdKYtzm7jNp2ozSUebgk2rK6D3jZhZ5J9wAWJ6UbGyjWW
   behaviours_utils.py: QmcSUHwcj9B9E5JWfphbuRpjzV2G9CSiePctEk7KDmxLay
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
   handlers.py: QmcBxJM4XmX2ickLbSafNX3LB9hfQMo3Xp79hUt4SUXvUG
-  models.py: QmbPg1TGcNxqcs5o6dzLNvTsRFykeANQvHBepPGCEX6mVJ
+  models.py: QmVEpkyDhzEyV5QaZF9LVcLyv4TkS3yJ9oBj6TUGzLLWtf
   params.py: QmYZShwFP7FX9LMyZ7eyThU95Cynuat4GNux7gRVQVz5tC
+  price_api.py: QmUjfzxZ819rAsYjUQqhpn2Ky6R7tDvb8VrBTsa1qg4T92
   shared_state.py: Qmd8k7vcDTZQJXr31QUwa3mi3xC724z9qhMsMv8s4Ffig6
   tendermint_rpc.py: QmYYmvcnY4xUhovhcjiFR4nNuAAsN1VnzzrTHZJhqLeKUv
 fingerprint_ignore_patterns: []
@@ -54,11 +55,24 @@ models:
         max_participants: 1
       tendermint_url: http://localhost:26657
     class_name: Params
+  price_api:
+    args:
+      api_key: null
+      source_id: coingecko
+    class_name: PriceApi
   signing_dialogues:
     args: {}
     class_name: SigningDialogues
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  ccxt:
+    version: ==1.54.60
+  coinmarketcap:
+    version: ==5.0.3
+  pycoingecko:
+    version: ==2.2.0
+  requests-cache:
+    version: ==0.4.13
 is_abstract: false
