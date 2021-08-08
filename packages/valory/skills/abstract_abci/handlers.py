@@ -68,7 +68,7 @@ class ABCIHandler(Handler):
 
         # handle message
         request_type = performative.replace("request_", "")
-        self.context.logger.info(f"Received ABCI request of type {request_type}")
+        self.context.logger.debug(f"Received ABCI request of type {request_type}")
         handler = getattr(self, request_type, None)
         if handler is None:
             self.context.logger.warning(
@@ -76,7 +76,7 @@ class ABCIHandler(Handler):
             )
             return
 
-        self.context.logger.info(
+        self.context.logger.debug(
             "ABCI Handler: message={}, sender={}".format(message, message.sender)
         )
         response = handler(message, abci_dialogue)
