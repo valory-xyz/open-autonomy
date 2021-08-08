@@ -20,7 +20,9 @@
 """This module contains the data classes for the price estimation ABCI application."""
 import pickle  # nosec
 from abc import ABC
+from collections import Counter
 from enum import Enum
+from operator import itemgetter
 from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple, cast
 
 from aea.exceptions import enforce
@@ -42,7 +44,8 @@ class RoundStateType(Enum):
 
     REGISTRATION = "registration"
     COLLECT_OBSERVATIONS = "collect_observation"
-    AVERAGE_CONSENSUS = "average_consensus"
+    CONSENSUS = "consensus"
+    CONSENSUS_REACHED = "consensus_reached"
 
 
 class TransactionType(Enum):
@@ -50,6 +53,7 @@ class TransactionType(Enum):
 
     REGISTRATION = "registration"
     OBSERVATION = "observation"
+    ESTIMATE = "estimate"
 
 
 class BaseTxPayload(ABC):
@@ -90,7 +94,7 @@ class RegistrationPayload(BaseTxPayload):
 class ObservationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'observation'."""
 
-    def __init__(self, sender: str, observation: int) -> None:
+    def __init__(self, sender: str, observation: float) -> None:
         """Initialize an 'observation' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -100,9 +104,27 @@ class ObservationPayload(BaseTxPayload):
         self._observation = observation
 
     @property
-    def observation(self) -> int:
+    def observation(self) -> float:
         """Get the observation."""
         return self._observation
+
+
+class EstimatePayload(BaseTxPayload):
+    """Represent a transaction payload of type 'estimate'."""
+
+    def __init__(self, sender: str, estimate: float) -> None:
+        """Initialize an 'estimate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param estimate: the estimate
+        """
+        super().__init__(TransactionType.ESTIMATE, sender)
+        self._estimate = estimate
+
+    @property
+    def estimate(self) -> float:
+        """Get the estimate."""
+        return self._estimate
 
 
 class Transaction(ABC):
@@ -227,6 +249,7 @@ class RoundState:
         self.participants: Set[str] = set()
 
         self.participant_to_observations: Dict[str, ObservationPayload] = {}
+        self.participant_to_estimate: Dict[str, EstimatePayload] = {}
 
     @property
     def registration_threshold_reached(self) -> bool:
@@ -236,7 +259,36 @@ class RoundState:
     @property
     def observation_threshold_reached(self) -> bool:
         """Check that the observation threshold has been reached."""
-        return set(self.participant_to_observations.keys()) == self.participants
+        return (
+            len(self.participants) > 0
+            and set(self.participant_to_observations.keys()) == self.participants
+        )
+
+    @property
+    def estimate_threshold_reached(self) -> bool:
+        """Check that the estimate threshold has been reached."""
+        estimates_counter = Counter()
+        estimates_counter.update(self.participant_to_estimate.values())
+        # check that a single estimate has at least 2/3 of votes
+        two_thirds_n = self._consensus_params.two_thirds_threshold
+        return any(count >= two_thirds_n for count in estimates_counter.values())
+
+    @property
+    def most_voted_estimate(self) -> float:
+        """Get the most voted estimate."""
+        estimates_counter = Counter()
+        estimates_counter.update(self.participant_to_estimate.values())
+        most_voted_estimate, max_votes = max(
+            estimates_counter.items(), key=itemgetter(1)
+        )
+        if max_votes < self._consensus_params.two_thirds_threshold:
+            raise ValueError("estimate has not enough votes")
+        return most_voted_estimate.estimate
+
+    @property
+    def observations(self) -> Tuple[ObservationPayload, ...]:
+        """Get the tuple of observations."""
+        return tuple(self.participant_to_observations.values())
 
     def add_transaction(self, transaction: Transaction):
         """Process a transaction."""
@@ -267,10 +319,10 @@ class RoundState:
 
     def registration(self, payload: RegistrationPayload) -> None:
         """Handle a registration payload."""
+        sender = payload.sender
         if self._type != RoundStateType.REGISTRATION:
             # too late to register
             return
-        sender = payload.sender
         # we don't care if it was already there
         self.participants.add(sender)
 
@@ -291,10 +343,10 @@ class RoundState:
 
     def observation(self, payload: ObservationPayload) -> None:
         """Handle an 'observation' payload."""
+        sender = payload.sender
         if self._type != RoundStateType.COLLECT_OBSERVATIONS:
             # not in the 'observation' phase
             return
-        sender = payload.sender
         if sender not in self.participants:
             # sender not in the set of participants.
             return
@@ -307,13 +359,13 @@ class RoundState:
 
         # if reached participant threshold, go to next state
         if self.observation_threshold_reached:
-            self._type = RoundStateType.COLLECT_OBSERVATIONS
+            self._type = RoundStateType.CONSENSUS
 
     def check_observation(self, payload: ObservationPayload) -> bool:
         """
         Check an observation payload can be applied to the current state.
 
-        An observation transaction can be appliaed only if:
+        An observation transaction can be applied only if:
         - the round is in the 'collect observation' state;
         - the sender belongs to the set of participants
         - the sender has not already sent its observation
@@ -323,13 +375,63 @@ class RoundState:
         """
         round_state_is_correct = self._type == RoundStateType.COLLECT_OBSERVATIONS
         sender_in_participant_set = payload.sender in self.participants
-        sender_has_not_sent_yet_observation = (
+        sender_has_not_sent_observation_yet = (
             payload.sender not in self.participant_to_observations
         )
         return (
             round_state_is_correct
             and sender_in_participant_set
-            and sender_has_not_sent_yet_observation
+            and sender_has_not_sent_observation_yet
+        )
+
+    def estimate(self, payload: EstimatePayload) -> None:
+        """Handle an 'estimate' payload."""
+        sender = payload.sender
+        if self._type != RoundStateType.CONSENSUS:
+            # not in the 'consensus' phase
+            return
+        if sender not in self.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender not in self.participant_to_observations:
+            # sender has NOT sent its observation
+            return
+
+        if sender in self.participant_to_estimate:
+            # sender has already sent its estimate
+            return
+
+        self.participant_to_estimate[sender] = payload
+
+        # if reached participant threshold, go to next state
+        if self.observation_threshold_reached:
+            self._type = RoundStateType.CONSENSUS_REACHED
+
+    def check_estimate(self, payload: EstimatePayload) -> bool:
+        """
+        Check an estimate payload can be applied to the current state.
+
+        An estimate transaction can be applied only if:
+        - the round is in the 'consensus' state;
+        - the sender belongs to the set of participants
+        - the sender has already sent an observation
+        - the sender has not sent its estimate yet
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        round_state_is_correct = self._type == RoundStateType.CONSENSUS
+        sender_in_participant_set = payload.sender in self.participants
+        sender_has_sent_observation = payload.sender in self.participant_to_observations
+        sender_has_not_sent_estimate_yet = (
+            payload.sender not in self.participant_to_estimate
+        )
+        return (
+            round_state_is_correct
+            and sender_in_participant_set
+            and sender_has_sent_observation
+            and sender_has_not_sent_estimate_yet
         )
 
 
@@ -399,3 +501,23 @@ class Round:
     def registration_threshold_reached(self) -> bool:
         """Check that the registration threshold has been reached."""
         return self._round_state.registration_threshold_reached
+
+    @property
+    def observation_threshold_reached(self) -> bool:
+        """Check that the observation threshold has been reached."""
+        return self._round_state.observation_threshold_reached
+
+    @property
+    def estimate_threshold_reached(self) -> bool:
+        """Check that the estimate threshold has been reached."""
+        return self._round_state.estimate_threshold_reached
+
+    @property
+    def observations(self) -> Tuple[ObservationPayload, ...]:
+        """Get the tuple of observations."""
+        return self._round_state.observations
+
+    @property
+    def most_voted_estimate(self) -> float:
+        """Get the most voted estimate."""
+        return self._round_state.most_voted_estimate

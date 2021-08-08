@@ -9,11 +9,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmZkeGv4GiDPiX5RuJChy9FyjdoNLLZPArQSW7b8f7n89k
+  behaviours.py: QmXB9p9VEkwJDsgnj4R7KiReiean8npsoi5b69fjjZVhW4
   behaviours_utils.py: QmcSUHwcj9B9E5JWfphbuRpjzV2G9CSiePctEk7KDmxLay
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
+  estimator.py: QmQ61qSxRssA3UAGi8LpCrRxgSckptQRywssTiS8jSTDhf
   handlers.py: QmcBxJM4XmX2ickLbSafNX3LB9hfQMo3Xp79hUt4SUXvUG
-  models.py: QmVEpkyDhzEyV5QaZF9LVcLyv4TkS3yJ9oBj6TUGzLLWtf
+  models.py: QmdWTtcAuE3NbyVTAeVAzMR1DnJPx4fyoB3USYs1JXespN
   params.py: QmSqUWWbpb9B3rAprC1d69Z9yjWgG6LyzCCrDJWtvyD3a8
   price_api.py: QmZefZvcTyuu8WmV6aQeBqxbmSb752eorQ9LRyUV6gfs3b
   shared_state.py: Qmd8k7vcDTZQJXr31QUwa3mi3xC724z9qhMsMv8s4Ffig6
@@ -46,6 +47,9 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  estimator:
+    args: {}
+    class_name: Estimator
   http_dialogues:
     args: {}
     class_name: HttpDialogues

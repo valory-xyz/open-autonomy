@@ -35,6 +35,7 @@ from packages.valory.skills.price_estimation_abci.behaviours_utils import (
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
 from packages.valory.skills.price_estimation_abci.models import (
     BaseTxPayload,
+    EstimatePayload,
     ObservationPayload,
     RegistrationPayload,
     Transaction,
@@ -72,6 +73,27 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             "observe",
             ObserveBehaviour(name="observe", skill_context=self.context),
         )
+        self.register_state(
+            "wait_observation_threshold",
+            WaitForConditionBehaviour(
+                condition=self.wait_observation_threshold,
+                name="wait_observation_threshold",
+                skill_context=self.context,
+            ),
+        )
+        self.register_state(
+            "estimate",
+            EstimateBehaviour(name="estimate", skill_context=self.context),
+        )
+
+        self.register_state(
+            "wait_estimate_threshold",
+            WaitForConditionBehaviour(
+                condition=self.wait_estimate_threshold,
+                name="wait_estimate_threshold",
+                skill_context=self.context,
+            ),
+        )
 
         self.register_state(
             "end",
@@ -81,7 +103,10 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         self.register_transition("wait_tendermint", "register", DONE_EVENT)
         self.register_transition("register", "wait_registration_threshold", DONE_EVENT)
         self.register_transition("wait_registration_threshold", "observe", DONE_EVENT)
-        self.register_transition("observe", "end", DONE_EVENT)
+        self.register_transition("observe", "wait_observation_threshold", DONE_EVENT)
+        self.register_transition("wait_observation_threshold", "estimate", DONE_EVENT)
+        self.register_transition("estimate", "wait_estimate_threshold", DONE_EVENT)
+        self.register_transition("wait_estimate_threshold", "end", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -93,6 +118,14 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
     def wait_registration_threshold(self) -> bool:
         """Wait registration threshold is reached."""
         return self.context.state.current_round.registration_threshold_reached
+
+    def wait_observation_threshold(self) -> bool:
+        """Wait observation threshold is reached."""
+        return self.context.state.current_round.observation_threshold_reached
+
+    def wait_estimate_threshold(self) -> bool:
+        """Wait estimate threshold is reached."""
+        return self.context.state.current_round.estimate_threshold_reached
 
 
 class BaseState(AsyncBehaviour, State, BehaviourUtils, ABC):
@@ -109,7 +142,18 @@ class BaseState(AsyncBehaviour, State, BehaviourUtils, ABC):
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
 
-    def _deliver_transaction(self, payload: BaseTxPayload):
+    def _send_transaction(self, payload: BaseTxPayload) -> None:
+        """
+        Send transaction and wait for the response.
+
+        Steps:
+        - Request the signature of the payload to the Decision Maker
+        - Send the transaction to the 'price-estimation' app via the Tendermint node,
+          and wait/repeat until the transaction is not mined.
+
+        :param: payload: the payload to send
+        :yield: the responses
+        """
         self._send_signing_request(payload.encode())
         signature = yield from self.wait_for_message()
         if signature is None:
@@ -164,13 +208,11 @@ class RegistrationBehaviour(BaseState):
 
         Steps:
         - Build a registration transaction
-        - Request the signature of the payload to the Decision Maker
-        - Request a registration transaction to the 'price-estimation' app,
-          until the transaction is not mined.
+        - Send the transaction and wait for it to be mined
         - Go to the next state.
         """
         payload = RegistrationPayload(self.context.agent_address)
-        yield from self._deliver_transaction(payload)
+        yield from self._send_transaction(payload)
         self.context.logger.info("Registration done.")
         # set flag 'done' and event to "done"
         self._is_done = True
@@ -192,7 +234,15 @@ class ObserveBehaviour(BaseState):
         return self._is_done
 
     def async_act(self) -> None:
-        """Do the action."""
+        """
+        Do the action.
+
+        Steps:
+        - Ask the configured API the price of a currency
+        - Build an observation transaction
+        - Send the transaction and wait for it to be mined
+        - Go to the next state.
+        """
         self.context.logger.info("act of ObserveBehaviour called")
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
@@ -201,7 +251,46 @@ class ObserveBehaviour(BaseState):
             f"Got {currency_id} price in {convert_id}: {observation}"
         )
         payload = ObservationPayload(self.context.agent_address, observation)
-        yield from self._deliver_transaction(payload)
+        yield from self._send_transaction(payload)
+        # set flag 'done' and event to "done"
+        self._is_done = True
+        self._event = DONE_EVENT
+
+
+class EstimateBehaviour(BaseState):
+    """Estimate price."""
+
+    is_programmatically_defined = True
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the behaviour."""
+        super().__init__(**kwargs)
+        self._is_done: bool = False
+
+    def is_done(self) -> bool:
+        """Check whether the state is done."""
+        return self._is_done
+
+    def async_act(self) -> None:
+        """
+        Do the action.
+
+        Steps:
+        - Run the script to compute the estimate starting from the shared observations
+        - Build an estimate transaction
+        - Send the transaction and wait for it to be mined
+        - Go to the next state.
+        """
+        self.context.logger.info("act of EstimateBehaviour called")
+        observation_payloads = self.context.state.current_round.observations
+        observations = [obs_payload.observation for obs_payload in observation_payloads]
+        self.context.logger.info(
+            f"Using observations {observations} to compute the estimate."
+        )
+        estimate = self.context.estimator.aggregate(observations)
+        self.context.logger.info(f"Got estimate: {estimate}")
+        payload = EstimatePayload(self.context.agent_address, estimate)
+        yield from self._send_transaction(payload)
         # set flag 'done' and event to "done"
         self._is_done = True
         self._event = DONE_EVENT
@@ -218,4 +307,5 @@ class EndBehaviour(State):
 
     def act(self) -> None:
         """Do the act."""
-        self.context.logger.info("The end.")
+        final_estimate = self.context.state.current_round.most_voted_estimate
+        self.context.logger.info(f"Consensus reached on estimate: {final_estimate}")
