@@ -9,14 +9,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmQGeELxswxPCTof9XVoHS7tJGxk2k1oqmSYQRT3zphdW9
+  behaviours.py: QmQgwiauFUVEmeeiq1PVVxihZpsjAcrGTLiv2UCDNfXjeU
   behaviours_utils.py: QmcSUHwcj9B9E5JWfphbuRpjzV2G9CSiePctEk7KDmxLay
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
-  handlers.py: QmU4aFKEZeJjmqvC7kBYaEAK6FRqEBVcuMEC913ZyicowC
-  models.py: Qme3ihLkXxU8ck9Q86N2xVTVxRbdM5J2r2JxVvHnJtLDM3
+  handlers.py: QmcBxJM4XmX2ickLbSafNX3LB9hfQMo3Xp79hUt4SUXvUG
+  models.py: QmbPg1TGcNxqcs5o6dzLNvTsRFykeANQvHBepPGCEX6mVJ
   params.py: QmYZShwFP7FX9LMyZ7eyThU95Cynuat4GNux7gRVQVz5tC
-  shared_state.py: QmVMjGr57nnZF9iqTrpH1bDxcBP5SdSsJd6bUNUCR7fB12
-  tendermint_rpc.py: QmdE4DiXXD2gT1FaexUF8Bt7x9q1psfrzEwV9TSdciCVsU
+  shared_state.py: Qmd8k7vcDTZQJXr31QUwa3mi3xC724z9qhMsMv8s4Ffig6
+  tendermint_rpc.py: QmYYmvcnY4xUhovhcjiFR4nNuAAsN1VnzzrTHZJhqLeKUv
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0

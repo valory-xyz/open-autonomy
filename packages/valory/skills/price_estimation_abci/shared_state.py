@@ -19,11 +19,11 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 from aea.skills.base import Model
 
-from packages.valory.skills.price_estimation_abci.models import Block, Round
+from packages.valory.skills.price_estimation_abci.models import Round
 
 
 class SharedState(Model):
@@ -40,9 +40,6 @@ class SharedState(Model):
 
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
-
-        # set on 'begin_block', populated on 'deliver_tx', unset and saved on 'end_block'
-        self.current_block: Optional[Block] = None
 
     def setup(self) -> None:
         """Set up the model."""

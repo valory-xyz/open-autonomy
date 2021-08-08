@@ -21,7 +21,7 @@
 import pickle  # nosec
 from abc import ABC
 from enum import Enum
-from typing import Callable, List, Set, Tuple, cast
+from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple, cast
 
 from aea.exceptions import enforce
 from eth_account import Account
@@ -41,14 +41,15 @@ class RoundStateType(Enum):
     """Enumeration of all the possible round state types."""
 
     REGISTRATION = "registration"
-    COMMIT_OBSERVATION = "commit_observation"
+    COLLECT_OBSERVATIONS = "collect_observation"
+    AVERAGE_CONSENSUS = "average_consensus"
 
 
 class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     REGISTRATION = "registration"
-    COMMIT_OBSERVATION = "commit_observation"
+    OBSERVATION = "observation"
 
 
 class BaseTxPayload(ABC):
@@ -86,15 +87,22 @@ class RegistrationPayload(BaseTxPayload):
         super().__init__(TransactionType.REGISTRATION, sender)
 
 
-class CommitObservationPayload(BaseTxPayload):
-    """Represent a transaction payload of type 'commit observation'."""
+class ObservationPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'observation'."""
 
-    def __init__(self, sender: str) -> None:
-        """Initialize a 'commit_observation' transaction payload.
+    def __init__(self, sender: str, observation: int) -> None:
+        """Initialize an 'observation' transaction payload.
 
         :param sender: the sender (Ethereum) address
+        :param observation: the observation
         """
-        super().__init__(TransactionType.COMMIT_OBSERVATION, sender)
+        super().__init__(TransactionType.OBSERVATION, sender)
+        self._observation = observation
+
+    @property
+    def observation(self) -> int:
+        """Get the observation."""
+        return self._observation
 
 
 class Transaction(ABC):
@@ -133,19 +141,32 @@ class Transaction(ABC):
 class Block:
     """Class to represent (a subset of) data of a Tendermint block."""
 
-    def __init__(self, header: Header) -> None:
+    def __init__(
+        self,
+        header: Header,
+        transactions: Sequence[Transaction],
+        valid_txs: Sequence[bool],
+    ) -> None:
         """Initialize the block."""
         self.header = header
-        self._transactions: List[Transaction] = []
+        self._transactions: Tuple[Transaction, ...] = tuple(transactions)
+
+        # remember which transaction are invalid.
+        # this can happen as check_tx is run independently
+        # with other transactions. The final validity
+        # can only be checked when actually executing the
+        # transactions in the order that they occur in the block.
+        self._valid_txs: Tuple[bool, ...] = tuple(valid_txs)
 
     @property
     def transactions(self) -> Tuple[Transaction, ...]:
         """Get the transactions."""
-        return tuple(self._transactions)
+        return self._transactions
 
-    def add_transaction(self, transaction: Transaction) -> None:
-        """Add transaction to the block."""
-        self._transactions.append(transaction)
+    @property
+    def valid_transactions(self) -> Tuple[bool, ...]:
+        """Get the bit-array to check whether a transaction is valid."""
+        return self._valid_txs
 
 
 class Blockchain:
@@ -196,17 +217,26 @@ class RoundState:
     - add a transaction to update the current state (if valid)
     """
 
-    def __init__(self):
+    def __init__(self, consensus_params: ConsensusParams):
         """Initialize the round state."""
+        self._consensus_params = consensus_params
+
         self._type = RoundStateType.REGISTRATION
 
         # a collection of addresses
         self.participants: Set[str] = set()
 
-    def add_block(self, block: Block):
-        """Process a block."""
-        for transaction in block.transactions:
-            self.add_transaction(transaction)
+        self.participant_to_observations: Dict[str, ObservationPayload] = {}
+
+    @property
+    def registration_threshold_reached(self) -> bool:
+        """Check that the registration threshold has been reached."""
+        return len(self.participants) == self._consensus_params.max_participants
+
+    @property
+    def observation_threshold_reached(self) -> bool:
+        """Check that the observation threshold has been reached."""
+        return set(self.participant_to_observations.keys()) == self.participants
 
     def add_transaction(self, transaction: Transaction):
         """Process a transaction."""
@@ -214,6 +244,8 @@ class RoundState:
         handler: Callable[[BaseTxPayload], None] = getattr(self, tx_type, None)
         if handler is None:
             raise ValueError("request not recognized")
+        if not self.check_transaction(transaction):
+            raise ValueError("transaction not valid")
         handler(transaction.payload)
 
     def check_transaction(self, transaction: Transaction) -> bool:
@@ -242,6 +274,10 @@ class RoundState:
         # we don't care if it was already there
         self.participants.add(sender)
 
+        # if reached participant threshold, go to next state
+        if self.registration_threshold_reached:
+            self._type = RoundStateType.COLLECT_OBSERVATIONS
+
     def check_registration(self, _payload: RegistrationPayload) -> bool:
         """
         Check a registration payload can be applied to the current state.
@@ -251,22 +287,103 @@ class RoundState:
         :param: _payload: the payload (not used).
         :return: True if a registration tx is allowed, False otherwise.
         """
-        return self._type != RoundStateType.REGISTRATION
+        return self._type == RoundStateType.REGISTRATION
+
+    def observation(self, payload: ObservationPayload) -> None:
+        """Handle an 'observation' payload."""
+        if self._type != RoundStateType.COLLECT_OBSERVATIONS:
+            # not in the 'observation' phase
+            return
+        sender = payload.sender
+        if sender not in self.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender in self.participant_to_observations:
+            # sender has already sent its observation
+            return
+
+        self.participant_to_observations[sender] = payload
+
+        # if reached participant threshold, go to next state
+        if self.observation_threshold_reached:
+            self._type = RoundStateType.COLLECT_OBSERVATIONS
+
+    def check_observation(self, payload: ObservationPayload) -> bool:
+        """
+        Check an observation payload can be applied to the current state.
+
+        An observation transaction can be appliaed only if:
+        - the round is in the 'collect observation' state;
+        - the sender belongs to the set of participants
+        - the sender has not already sent its observation
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        round_state_is_correct = self._type == RoundStateType.COLLECT_OBSERVATIONS
+        sender_in_participant_set = payload.sender in self.participants
+        sender_has_already_sent_observation = (
+            payload.sender not in self.participant_to_observations
+        )
+        return (
+            round_state_is_correct
+            and sender_in_participant_set
+            and sender_has_already_sent_observation
+        )
 
 
 class Round:
     """Class to represent a round."""
 
+    _current_header: Optional[Header]
+    _current_transactions: List[Transaction]
+    _current_valid_txs: List[bool]
+
     def __init__(self, consensus_params: ConsensusParams):
         """Initialize the round."""
-        self._consensus_params = consensus_params
         self._blockchain = Blockchain()
-        self._round_state = RoundState()
+        self._round_state = RoundState(consensus_params)
 
-    def add_block(self, block: Block) -> None:
-        """Add a block."""
+        self._reset()
+
+    def begin_block(self, header: Header):
+        """Begin block."""
+        self._current_header = header
+
+    def deliver_tx(self, transaction: Transaction) -> None:
+        """
+        Deliver a transaction.
+
+        It breaks down in:
+        - check the transaction is valid wrt the current state
+        - append the transaction to build the block on 'end_block' later
+        - if the transaction was valid, apply the changes to the state
+
+        :param transaction: the transaction.
+        """
+        is_valid = self.check_transaction(transaction)
+        self._current_transactions.append(transaction)
+        self._current_valid_txs.append(is_valid)
+        if is_valid:
+            self._round_state.add_transaction(transaction)
+
+    def end_block(self):
+        """End block."""
+        # add the block to the local copy of the blockchain
+        block = Block(
+            cast(Header, self._current_header),
+            self._current_transactions,
+            self._current_valid_txs,
+        )
         self._blockchain.add_block(block)
-        self._round_state.add_block(block)
+        self._reset()
+
+    def _reset(self):
+        """Reset the temporary data structures."""
+        self._current_header = None
+        self._current_transactions = []
+        self._current_valid_txs = []
 
     def check_transaction(self, transaction: Transaction) -> bool:
         """
@@ -281,7 +398,4 @@ class Round:
     @property
     def registration_threshold_reached(self) -> bool:
         """Check that the registration threshold has been reached."""
-        return (
-            len(self._round_state.participants)
-            == self._consensus_params.max_participants
-        )
+        return self._round_state.registration_threshold_reached

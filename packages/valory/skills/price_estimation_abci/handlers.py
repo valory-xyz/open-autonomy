@@ -21,7 +21,6 @@
 from typing import Optional, cast
 
 from aea.configurations.data_types import PublicId
-from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
@@ -41,11 +40,7 @@ from packages.valory.skills.price_estimation_abci.dialogues import (
     HttpDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.price_estimation_abci.models import (
-    Block,
-    ERROR_CODE,
-    Transaction,
-)
+from packages.valory.skills.price_estimation_abci.models import ERROR_CODE, Transaction
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -69,7 +64,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        self.context.state.current_block = Block(message.header)
+        self.context.state.current_round.begin_block(message.header)
         return super().begin_block(message, dialogue)
 
     def check_tx(  # pylint: disable=no-self-use
@@ -98,10 +93,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify()
-            enforce(
-                self.context.state.current_block is not None, "current_block is None"
-            )
-            cast(Block, self.context.state.current_block).add_transaction(transaction)
+            self.context.state.current_round.deliver_tx(transaction)
             # return deliver_tx success
             return super().deliver_tx(message, dialogue)
         except Exception as exception:  # pylint: disable=broad-except
@@ -113,9 +105,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
-        self.context.state.current_round.add_block(
-            cast(Block, self.context.state.current_block)
-        )
+        self.context.state.current_round.end_block()
         return super().end_block(message, dialogue)
 
     @classmethod
