@@ -34,6 +34,7 @@ from packages.valory.skills.price_estimation_abci.behaviours_utils import (
 )
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
 from packages.valory.skills.price_estimation_abci.models import (
+    BaseTxPayload,
     ObservationPayload,
     RegistrationPayload,
     Transaction,
@@ -68,6 +69,11 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             ),
         )
         self.register_state(
+            "observe",
+            ObserveBehaviour(name="observe", skill_context=self.context),
+        )
+
+        self.register_state(
             "end",
             EndBehaviour(name="end", skill_context=self.context),
         )
@@ -89,14 +95,35 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         return self.context.state.current_round.registration_threshold_reached
 
 
-class BaseState(State, ABC):
+class BaseState(AsyncBehaviour, State, BehaviourUtils, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
 
+    def __init__(self, **kwargs):
+        """Initialize a base state behaviour."""
+        AsyncBehaviour.__init__(self)
+        State.__init__(self, **kwargs)
+
     def handle_signing_failure(self):
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
+
+    def _deliver_transaction(self, payload: BaseTxPayload):
+        self._send_signing_request(payload.encode())
+        signature = yield from self.wait_for_message()
+        if signature is None:
+            self.handle_signing_failure()
+            return
+        signature_bytes = signature.body
+        transaction = Transaction(payload, signature_bytes)
+        while True:
+            response = yield from self.broadcast_tx_commit(transaction.encode())
+            response = cast(HttpMessage, response)
+            if self._check_transaction_delivered(response):
+                # done
+                break
+            # otherwise, repeat until done
 
     def _send_signing_request(self, raw_message: bytes):
         """Send a signing request."""
@@ -117,15 +144,14 @@ class BaseState(State, ABC):
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
 
-class RegistrationBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
+class RegistrationBehaviour(BaseState):
     """Register to the next round."""
 
     is_programmatically_defined = True
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
-        AsyncBehaviour.__init__(self)
-        BaseState.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self._is_done: bool = False
 
     def is_done(self) -> bool:
@@ -144,35 +170,21 @@ class RegistrationBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
         - Go to the next state.
         """
         payload = RegistrationPayload(self.context.agent_address)
-        self._send_signing_request(payload.encode())
-        signature = yield from self.wait_for_message()
-        if signature is None:
-            self.handle_signing_failure()
-            return
-        signature_bytes = signature.body
-        transaction = Transaction(payload, signature_bytes)
-        while True:
-            response = yield from self.broadcast_tx_commit(transaction.encode())
-            response = cast(HttpMessage, response)
-            if self._check_transaction_delivered(response):
-                # done
-                break
-            # otherwise, repeat until done
+        yield from self._deliver_transaction(payload)
         self.context.logger.info("Registration done.")
         # set flag 'done' and event to "done"
         self._is_done = True
         self._event = DONE_EVENT
 
 
-class ObserveBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
+class ObserveBehaviour(BaseState):
     """Observe price estimate."""
 
     is_programmatically_defined = True
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
-        AsyncBehaviour.__init__(self)
-        BaseState.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self._is_done: bool = False
 
     def is_done(self) -> bool:
@@ -181,12 +193,21 @@ class ObserveBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
 
     def async_act(self) -> None:
         """Do the action."""
-        # payload = ObservationPayload(self.context.agent_address)
-        # self._send_signing_request(payload.encode())
+        self.context.logger.info("act of ObserveBehaviour called")
+        currency_id = self.context.params.currency_id
+        convert_id = self.context.params.convert_id
+        observation = self.context.price_api.get_price(currency_id, convert_id)
+        self.context.logger.info(
+            f"Got {currency_id} price in {convert_id}: {observation}"
+        )
+        payload = ObservationPayload(self.context.agent_address, observation)
+        yield from self._deliver_transaction(payload)
+        # set flag 'done' and event to "done"
         self._is_done = True
+        self._event = DONE_EVENT
 
 
-class EndBehaviour(BaseState):
+class EndBehaviour(State):
     """Final state."""
 
     is_programmatically_defined = True

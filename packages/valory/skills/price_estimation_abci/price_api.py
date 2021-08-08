@@ -85,7 +85,7 @@ class CoinMarketCapApiWrapper(ApiWrapper):
             response = session.get(url, params=parameters)
             data = json.loads(response.text)
             return data["data"][currency_id.value]["quote"][convert_id.value]["price"]
-        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError) as e:
+        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
             return None
 
 
@@ -94,9 +94,9 @@ class CoinGeckoApiWrapper(ApiWrapper):
 
     api_id = "coingecko"
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object."""
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.cg = CoinGeckoAPI()
 
     def get_price(
@@ -131,11 +131,10 @@ class PriceApi(Model):
 
     def _get_api(self) -> ApiWrapper:
         """Get the ApiWrapper object."""
-        if self._source_id == CoinMarketCapApiWrapper.api_id:
-            return CoinMarketCapApiWrapper(self._api_key)
-        if self._source_id == CoinGeckoApiWrapper.api_id:
-            return CoinMarketCapApiWrapper(self._api_key)
-        raise ValueError(f"'{self._source_id}' is not a supported API identifier")
+        api_cls = self._api_id_to_cls.get(self._source_id)
+        if api_cls is None:
+            raise ValueError(f"'{self._source_id}' is not a supported API identifier")
+        return api_cls(self._api_key)
 
     def get_price(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
