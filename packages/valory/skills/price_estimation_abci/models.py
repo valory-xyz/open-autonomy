@@ -21,7 +21,7 @@
 import pickle  # nosec
 from abc import ABC
 from enum import Enum
-from typing import List, Tuple, cast
+from typing import List, Set, Tuple, cast
 
 from aea.exceptions import enforce
 from eth_account import Account
@@ -30,11 +30,16 @@ from eth_account.messages import encode_defunct
 from packages.valory.protocols.abci.custom_types import Header
 
 
-class Round:  # pylint: disable=too-few-public-methods
-    """Class to represent the round state."""
+# ABCI response code
+OK_CODE = 0
+ERROR_CODE = 1
 
-    def __init__(self):
-        """Initialize the round."""
+
+class RoundStateType(Enum):
+    """Enumeration of all the possible round state types."""
+
+    REGISTRATION = "registration"
+    COMMIT_OBSERVATION = "commit_observation"
 
 
 class TransactionType(Enum):
@@ -177,3 +182,57 @@ class Blockchain:
                 f"height {height} not valid, must be between {self.length} and 0"
             )
         return self._blocks[height]
+
+
+class RoundState:
+    """
+    Class to represent a round state.
+
+    It allows to:
+    - check whether a transaction is consistent wrt the current state
+      and it is considered valid;
+    - add a transaction to update the current state (if valid)
+    """
+
+    def __init__(self):
+        """Initialize the round state."""
+        self._type = RoundStateType.REGISTRATION
+
+        # a collection of addresses
+        self.participants: Set[str] = set()
+
+    def add_block(self, block: Block):
+        """Process a block."""
+        for transaction in block.transactions:
+            self.add_transaction(transaction)
+
+    def add_transaction(self, transaction: Transaction):
+        """Process a transaction."""
+        tx_type = transaction.payload.transaction_type.value
+        handler = getattr(self, tx_type, None)
+        if handler is None:
+            raise ValueError("request not recognized")
+        handler(transaction.payload)
+
+    def registration(self, payload: RegistrationPayload):
+        """Handle a registration payload."""
+        if self._type != RoundStateType.REGISTRATION:
+            # too late to register
+            return
+        sender = payload.sender
+        # we don't care if it was already there
+        self.participants.add(sender)
+
+
+class Round:
+    """Class to represent a round."""
+
+    def __init__(self):
+        """Initialize the round."""
+        self._blockchain = Blockchain()
+        self._round_state = RoundState()
+
+    def add_block(self, block: Block) -> None:
+        """Add a block."""
+        self._blockchain.add_block(block)
+        self._round_state.add_block(block)

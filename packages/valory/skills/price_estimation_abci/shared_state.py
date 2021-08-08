@@ -19,11 +19,11 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from aea.skills.base import Model
 
-from packages.valory.skills.price_estimation_abci.models import Block, Blockchain, Round
+from packages.valory.skills.price_estimation_abci.models import Block, Round
 
 
 class SharedState(Model):
@@ -36,11 +36,10 @@ class SharedState(Model):
         # info request received from Tendermint
         self.info_received: bool = False
 
-        # mapping from dialogue reference nonce to handler callback name
-        self.request_to_handler: Dict[str, str] = {}
+        # mapping from dialogue reference nonce to a callback
+        self.request_id_to_callback: Dict[str, Callable] = {}
 
         self.current_round = Round()
-        self.blockchain = Blockchain()
 
         # set on 'begin_block', populated on 'deliver_tx', unset and saved on 'end_block'
         self.current_block: Optional[Block] = None

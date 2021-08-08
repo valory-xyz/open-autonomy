@@ -41,11 +41,11 @@ from packages.valory.skills.price_estimation_abci.dialogues import (
     HttpDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.price_estimation_abci.models import Block, Transaction
-
-
-OK_CODE = 0
-ERROR_CODE = 1
+from packages.valory.skills.price_estimation_abci.models import (
+    Block,
+    ERROR_CODE,
+    Transaction,
+)
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -113,7 +113,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
-        self.context.state.blockchain.add_block(
+        self.context.state.current_round.add_block(
             cast(Block, self.context.state.current_block)
         )
         return super().end_block(message, dialogue)
@@ -194,23 +194,13 @@ class HttpHandler(Handler):
             return
 
         request_nonce = http_dialogue.dialogue_label.dialogue_reference[0]
-        callback_name = self.context.state.request_to_handler.pop(request_nonce, None)
-        if callback_name is None:
+        callback = self.context.state.request_id_to_callback.pop(request_nonce, None)
+        if callback is None:
             self.context.logger.warning(
                 f"callback not specified for request with nonce {request_nonce}"
             )
             return
-        callback = getattr(self, callback_name, None)
-        if callback is None:
-            self.context.logger.warning(
-                f"cannot find the callback {callback_name} associated to HTTP request with nonce: {request_nonce}"
-            )
-            return
         callback(http_message)
-
-    def broadcast_tx_commit(self, _message: HttpMessage) -> None:
-        """Handle broadcast_tx_commit responses."""
-        self.context.logger.debug(f"Transaction completed: {_message.body}")
 
 
 class SigningHandler(Handler):

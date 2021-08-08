@@ -23,6 +23,10 @@ from typing import Any, Callable, Generator, Optional
 from aea.skills.behaviours import State
 
 
+DONE_EVENT = "done"
+FAIL_EVENT = "fail"
+
+
 class AsyncBehaviour:
     """MixIn behaviour that support limited asynchronous programming."""
 
@@ -81,7 +85,7 @@ class WaitForConditionBehaviour(State):
 
     is_programmatically_defined = True
 
-    def __init__(self, condition: Callable, event: str = "done", **kwargs) -> None:
+    def __init__(self, condition: Callable, event: str = DONE_EVENT, **kwargs) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
         self.condition = condition

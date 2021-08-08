@@ -18,15 +18,19 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+from abc import ABC
 from typing import Any, cast
 
 from aea.skills.behaviours import FSMBehaviour, State
 from aea_ledger_ethereum import EthereumCrypto
 
+from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.fetchai.protocols.signing.custom_types import RawMessage, Terms
 from packages.valory.skills.price_estimation_abci.behaviours_utils import (
     AsyncBehaviour,
+    DONE_EVENT,
+    FAIL_EVENT,
     WaitForConditionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
@@ -34,9 +38,7 @@ from packages.valory.skills.price_estimation_abci.models import (
     RegistrationPayload,
     Transaction,
 )
-from packages.valory.skills.price_estimation_abci.tendermint_rpc import (
-    _send_broadcast_tx_commit,
-)
+from packages.valory.skills.price_estimation_abci.tendermint_rpc import BehaviourUtils
 
 
 class PriceEstimationConsensusBehaviour(FSMBehaviour):
@@ -57,16 +59,8 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             "register",
             RegistrationBehaviour(name="register", skill_context=self.context),
         )
-        self.register_state(
-            "wait_registration",
-            WaitForConditionBehaviour(
-                name="wait_registration",
-                skill_context=self.context,
-                condition=self.wait_registration_threshold,
-            ),
-        )
 
-        self.register_transition("wait_tendermint", "register", "done")
+        self.register_transition("wait_tendermint", "register", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -81,37 +75,10 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         return False
 
 
-class RegistrationBehaviour(AsyncBehaviour, State):
-    """Register to the next round."""
+class BaseState(State, ABC):
+    """Base class for FSM states."""
 
     is_programmatically_defined = True
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the behaviour."""
-        AsyncBehaviour.__init__(self)
-        State.__init__(self, **kwargs)
-        self._is_done: bool = False
-
-    def is_done(self) -> bool:
-        """Check whether the state is done."""
-        return self._is_done
-
-    def async_act(self) -> None:
-        """
-        Do the action.
-
-        Send a registration transaction to the 'price-estimation' app.
-        """
-        payload = RegistrationPayload(self.context.agent_address)
-        self._send_signing_request(payload.encode())
-        signature = yield from self.wait_for_message()
-        if signature is None:
-            self.handle_signing_failure()
-            return
-        signature_bytes = signature.body
-        transaction = Transaction(payload, signature_bytes)
-        _send_broadcast_tx_commit(self.context, transaction.encode())
-        self._is_done = True
 
     def handle_signing_failure(self):
         """Handle signing failure."""
@@ -134,3 +101,49 @@ class RegistrationBehaviour(AsyncBehaviour, State):
             ),
         )
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
+
+
+class RegistrationBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
+    """Register to the next round."""
+
+    is_programmatically_defined = True
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the behaviour."""
+        AsyncBehaviour.__init__(self)
+        BaseState.__init__(self, **kwargs)
+        self._is_done: bool = False
+
+    def is_done(self) -> bool:
+        """Check whether the state is done."""
+        return self._is_done
+
+    def async_act(self) -> None:
+        """
+        Do the action.
+
+        Steps:
+        - Build a registration transaction
+        - Request the signature of the payload to the Decision Maker
+        - Request a registration transaction to the 'price-estimation' app,
+          until the transaction is not mined.
+        - Go to the next state.
+        """
+        payload = RegistrationPayload(self.context.agent_address)
+        self._send_signing_request(payload.encode())
+        signature = yield from self.wait_for_message()
+        if signature is None:
+            self.handle_signing_failure()
+            return
+        signature_bytes = signature.body
+        transaction = Transaction(payload, signature_bytes)
+        while True:
+            response = yield from self.broadcast_tx_commit(transaction.encode())
+            response = cast(HttpMessage, response)
+            if self._check_transaction_delivered(response):
+                # done
+                break
+            # otherwise, repeat until done
+        self._is_done = True
+        self._event = DONE_EVENT
+        self.context.logger.info("Registration done.")

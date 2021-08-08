@@ -9,15 +9,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmVD7n6k6UZUesR1JiVdqHpDznbchR8J46wBroXF2mCLbS
-  behaviours_utils.py: QmZfjh2DYXhjvJvx2EiigJRyjpKtCT2Agni1WmzbMZzpDd
+  behaviours.py: QmNgwHDRWv3ZnL5YR8XqjVABSVsJJu91mAw5VN2zNUcuc2
+  behaviours_utils.py: QmcSUHwcj9B9E5JWfphbuRpjzV2G9CSiePctEk7KDmxLay
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
-  handlers.py: QmSmCy6MgaP7ohCNqj5t4WLXStsT3hWkMbjXMPqdQYNHTD
-  models.py: QmcTWKKDUkz2gUpnxcD8Z48MQ8nwx34AiHm2deikig4p8s
-  params.py: QmeQciRj9auD7QKpeZuhsB3q5AV8GHG7t11PNeet9fvz6m
-  shared_state.py: QmVfSSXsTR71bQt7dpeZ9GvNaeiVt1vKbi3nAPs6mgqBST
-  tendermint_rpc.py: QmVkv4Nc7yFaFPXv8cRhwxGgbRNXGPRnY7mMZkFDjmo18G
-  utils.py: QmaZEG5ujmqU1pnAfGcRHY7gQyiBz8yQd1hSHSdcNfxf5a
+  handlers.py: QmU4aFKEZeJjmqvC7kBYaEAK6FRqEBVcuMEC913ZyicowC
+  models.py: QmZe1waqwvHHaauzPdUfxG9PGj7CNGnSZFhPhY2s4Lxf9N
+  params.py: QmctydXCzZLCadBN22F6EpuxifPY4RJbjZqX1AbzoNSzDd
+  shared_state.py: QmVFehLdRzns4sD44ckpbguiB8ZpVg31a4YviVEiA15Chy
+  tendermint_rpc.py: QmdE4DiXXD2gT1FaexUF8Bt7x9q1psfrzEwV9TSdciCVsU
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
@@ -51,6 +50,8 @@ models:
     class_name: HttpDialogues
   params:
     args:
+      consensus:
+        max_participants: 1
       tendermint_url: http://localhost:26657
     class_name: Params
   signing_dialogues:
