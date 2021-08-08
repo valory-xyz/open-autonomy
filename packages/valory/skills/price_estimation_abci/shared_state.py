@@ -29,6 +29,8 @@ from packages.valory.skills.price_estimation_abci.models import Block, Round
 class SharedState(Model):
     """Keep the current shared state."""
 
+    current_round: Round
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
         super().__init__(*args, **kwargs)
@@ -39,7 +41,9 @@ class SharedState(Model):
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
 
-        self.current_round = Round()
-
         # set on 'begin_block', populated on 'deliver_tx', unset and saved on 'end_block'
         self.current_block: Optional[Block] = None
+
+    def setup(self) -> None:
+        """Set up the model."""
+        self.current_round = Round(self.context.params.consensus_params)

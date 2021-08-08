@@ -38,8 +38,8 @@ class ConsensusParams:
         return self._max_participants
 
     @property
-    def participants_threshold(self) -> int:
-        """Get the registration threshold."""
+    def two_thirds_threshold(self) -> int:
+        """Get the 2/3 threshold."""
         return ceil(self.max_participants * 2 / 3)
 
     @classmethod

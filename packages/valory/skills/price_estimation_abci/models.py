@@ -21,7 +21,7 @@
 import pickle  # nosec
 from abc import ABC
 from enum import Enum
-from typing import List, Set, Tuple, cast
+from typing import Callable, List, Set, Tuple, cast
 
 from aea.exceptions import enforce
 from eth_account import Account
@@ -29,8 +29,10 @@ from eth_account.messages import encode_defunct
 
 from packages.valory.protocols.abci.custom_types import Header
 
-
 # ABCI response code
+from packages.valory.skills.price_estimation_abci.params import ConsensusParams
+
+
 OK_CODE = 0
 ERROR_CODE = 1
 
@@ -209,12 +211,29 @@ class RoundState:
     def add_transaction(self, transaction: Transaction):
         """Process a transaction."""
         tx_type = transaction.payload.transaction_type.value
-        handler = getattr(self, tx_type, None)
+        handler: Callable[[BaseTxPayload], None] = getattr(self, tx_type, None)
         if handler is None:
             raise ValueError("request not recognized")
         handler(transaction.payload)
 
-    def registration(self, payload: RegistrationPayload):
+    def check_transaction(self, transaction: Transaction) -> bool:
+        """
+        Check transaction against the current state.
+
+        :param transaction: the transaction
+        :return: True if the transaction can be applied to the current
+            state, False otherwise.
+        """
+        tx_type = transaction.payload.transaction_type.value
+        handler: Callable[[BaseTxPayload], bool] = getattr(
+            self, "check_" + tx_type, None
+        )
+        if handler is None:
+            # request not recognized
+            return False
+        return handler(transaction.payload)
+
+    def registration(self, payload: RegistrationPayload) -> None:
         """Handle a registration payload."""
         if self._type != RoundStateType.REGISTRATION:
             # too late to register
@@ -223,12 +242,24 @@ class RoundState:
         # we don't care if it was already there
         self.participants.add(sender)
 
+    def check_registration(self, _payload: RegistrationPayload) -> bool:
+        """
+        Check a registration payload can be applied to the current state.
+
+        A registration can happen only when we are in the registration state.
+
+        :param: _payload: the payload (not used).
+        :return: True if a registration tx is allowed, False otherwise.
+        """
+        return self._type != RoundStateType.REGISTRATION
+
 
 class Round:
     """Class to represent a round."""
 
-    def __init__(self):
+    def __init__(self, consensus_params: ConsensusParams):
         """Initialize the round."""
+        self._consensus_params = consensus_params
         self._blockchain = Blockchain()
         self._round_state = RoundState()
 
@@ -236,3 +267,21 @@ class Round:
         """Add a block."""
         self._blockchain.add_block(block)
         self._round_state.add_block(block)
+
+    def check_transaction(self, transaction: Transaction) -> bool:
+        """
+        Check transaction against the current state.
+
+        :param transaction: the transaction
+        :return: True if the transaction can be applied to the current
+            state, False otherwise.
+        """
+        return self._round_state.check_transaction(transaction)
+
+    @property
+    def registration_threshold_reached(self) -> bool:
+        """Check that the registration threshold has been reached."""
+        return (
+            len(self._round_state.participants)
+            == self._consensus_params.max_participants
+        )

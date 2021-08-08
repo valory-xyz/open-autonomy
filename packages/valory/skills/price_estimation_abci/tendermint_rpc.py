@@ -50,6 +50,7 @@ class BehaviourUtils(Behaviour, ABC):
 
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
+        :yield: wait the response message
         :return: the response message
         """
         self.context.outbox.put_message(message=request_message)
@@ -91,6 +92,7 @@ class BehaviourUtils(Behaviour, ABC):
         :param method: the http request method (i.e. 'GET' or 'POST').
         :param url: the url to send the message to.
         :param content: the payload.
+        :return: the http message and the http dialogue
         """
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)

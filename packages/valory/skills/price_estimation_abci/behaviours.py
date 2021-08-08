@@ -30,7 +30,6 @@ from packages.fetchai.protocols.signing.custom_types import RawMessage, Terms
 from packages.valory.skills.price_estimation_abci.behaviours_utils import (
     AsyncBehaviour,
     DONE_EVENT,
-    FAIL_EVENT,
     WaitForConditionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
@@ -59,8 +58,22 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             "register",
             RegistrationBehaviour(name="register", skill_context=self.context),
         )
+        self.register_state(
+            "wait_registration_threshold",
+            WaitForConditionBehaviour(
+                condition=self.wait_registration_threshold,
+                name="wait_registration_threshold",
+                skill_context=self.context,
+            ),
+        )
+        self.register_state(
+            "end",
+            EndBehaviour(name="end", skill_context=self.context),
+        )
 
         self.register_transition("wait_tendermint", "register", DONE_EVENT)
+        self.register_transition("register", "wait_registration_threshold", DONE_EVENT)
+        self.register_transition("wait_registration_threshold", "end", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -71,8 +84,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
 
     def wait_registration_threshold(self) -> bool:
         """Wait registration threshold is reached."""
-        # TODO
-        return False
+        return self.context.state.current_round.registration_threshold_reached
 
 
 class BaseState(State, ABC):
@@ -144,6 +156,21 @@ class RegistrationBehaviour(AsyncBehaviour, BaseState, BehaviourUtils):
                 # done
                 break
             # otherwise, repeat until done
+        self.context.logger.info("Registration done.")
+        # set flag 'done' and event to "done"
         self._is_done = True
         self._event = DONE_EVENT
-        self.context.logger.info("Registration done.")
+
+
+class EndBehaviour(BaseState):
+    """Final state."""
+
+    is_programmatically_defined = True
+
+    def is_done(self) -> bool:
+        """Check if the behaviour is done."""
+        return True
+
+    def act(self) -> None:
+        """Do the act."""
+        self.context.logger.info("The end.")

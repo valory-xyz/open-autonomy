@@ -9,13 +9,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmNgwHDRWv3ZnL5YR8XqjVABSVsJJu91mAw5VN2zNUcuc2
+  behaviours.py: QmQGeELxswxPCTof9XVoHS7tJGxk2k1oqmSYQRT3zphdW9
   behaviours_utils.py: QmcSUHwcj9B9E5JWfphbuRpjzV2G9CSiePctEk7KDmxLay
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
   handlers.py: QmU4aFKEZeJjmqvC7kBYaEAK6FRqEBVcuMEC913ZyicowC
-  models.py: QmZe1waqwvHHaauzPdUfxG9PGj7CNGnSZFhPhY2s4Lxf9N
-  params.py: QmctydXCzZLCadBN22F6EpuxifPY4RJbjZqX1AbzoNSzDd
-  shared_state.py: QmVFehLdRzns4sD44ckpbguiB8ZpVg31a4YviVEiA15Chy
+  models.py: Qme3ihLkXxU8ck9Q86N2xVTVxRbdM5J2r2JxVvHnJtLDM3
+  params.py: QmYZShwFP7FX9LMyZ7eyThU95Cynuat4GNux7gRVQVz5tC
+  shared_state.py: QmVMjGr57nnZF9iqTrpH1bDxcBP5SdSsJd6bUNUCR7fB12
   tendermint_rpc.py: QmdE4DiXXD2gT1FaexUF8Bt7x9q1psfrzEwV9TSdciCVsU
 fingerprint_ignore_patterns: []
 connections:
