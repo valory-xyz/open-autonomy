@@ -61,16 +61,16 @@ services:
       localnet:
         ipv4_address: 192.167.11.5
 
-#  abci0:
-#    container_name: abci0
-#    image: "valory/price_estimation:0.1.0"
-#    volumes:
-#      - ./:/home/ubuntu/build
-#    entrypoint: /bin/sh
-#    command: ["../run.sh", "abci0"]
-#    networks:
-#      localnet:
-#        ipv4_address: 192.167.11.6
+  abci0:
+    container_name: abci0
+    image: "valory/price_estimation:0.1.0"
+    volumes:
+      - ./:/home/ubuntu/build
+    entrypoint: /bin/sh
+    command: ["../run.sh", "abci0"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.6
 
   abci1:
     container_name: abci1

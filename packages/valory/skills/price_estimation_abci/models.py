@@ -279,13 +279,15 @@ class RoundState:
     def most_voted_estimate(self) -> float:
         """Get the most voted estimate."""
         estimates_counter = Counter()
-        estimates_counter.update(self.participant_to_estimate.values())
+        estimates_counter.update(
+            payload.estimate for payload in self.participant_to_estimate.values()
+        )
         most_voted_estimate, max_votes = max(
             estimates_counter.items(), key=itemgetter(1)
         )
         if max_votes < self._consensus_params.two_thirds_threshold:
             raise ValueError("estimate has not enough votes")
-        return most_voted_estimate.estimate
+        return most_voted_estimate
 
     @property
     def observations(self) -> Tuple[ObservationPayload, ...]:
@@ -389,7 +391,10 @@ class RoundState:
     def estimate(self, payload: EstimatePayload) -> None:
         """Handle an 'estimate' payload."""
         sender = payload.sender
-        if self._type != RoundStateType.CONSENSUS:
+        if self._type not in {
+            RoundStateType.CONSENSUS,
+            RoundStateType.CONSENSUS_REACHED,
+        }:
             # not in the 'consensus' phase
             return
         if sender not in self.participants:
@@ -407,7 +412,7 @@ class RoundState:
         self.participant_to_estimate[sender] = payload
 
         # if reached participant threshold, go to next state
-        if self.observation_threshold_reached:
+        if self.estimate_threshold_reached:
             self._type = RoundStateType.CONSENSUS_REACHED
 
     def check_estimate(self, payload: EstimatePayload) -> bool:
@@ -423,7 +428,10 @@ class RoundState:
         :param: payload: the payload.
         :return: True if the observation tx is allowed, False otherwise.
         """
-        round_state_is_correct = self._type == RoundStateType.CONSENSUS
+        round_state_is_correct = self._type in {
+            RoundStateType.CONSENSUS,
+            RoundStateType.CONSENSUS_REACHED,
+        }
         sender_in_participant_set = payload.sender in self.participants
         sender_has_sent_observation = payload.sender in self.participant_to_observations
         sender_has_not_sent_estimate_yet = (
