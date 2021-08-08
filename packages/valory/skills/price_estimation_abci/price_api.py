@@ -23,6 +23,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional, Union
 
+import requests
 from aea.exceptions import AEAEnforceError
 from aea.skills.base import Model
 from pycoingecko import CoinGeckoAPI
@@ -35,11 +36,16 @@ class Currency(Enum):
 
     BITCOIN = "BTC"
     USD = "USD"
+    USDT = "USDT"
 
     @property
     def slug(self):
         """To slug."""
-        return {"BTC": "bitcoin", "USD": "usd"}[self.value]
+        return {
+            self.BITCOIN.value: "bitcoin",
+            self.USD.value: "usd",
+            self.USDT.value: "usdt",
+        }[self.value]
 
 
 CurrencyOrStr = Union[Currency, str]
@@ -65,13 +71,14 @@ class CoinMarketCapApiWrapper(ApiWrapper):
     """Wrap the CoinMarketCap's APIs."""
 
     api_id = "coinmarketcap"
+    _URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 
     def get_price(
         self, currency_id: Currency, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
         currency_id, convert_id = Currency(currency_id), Currency(convert_id)
-        url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+        url = self._URL
         parameters = {"slug": currency_id.value, "convert": convert_id.value}
         headers = {
             "Accepts": "application/json",
@@ -110,12 +117,55 @@ class CoinGeckoApiWrapper(ApiWrapper):
         return float(response[currency_id.slug][convert_id.slug])
 
 
+class BinanceApiWrapper(ApiWrapper):
+    """Wrap the Binance's APIs."""
+
+    api_id = "binance"
+    _URL = "https://api.binance.com/api/v3/ticker/price"
+
+    def get_price(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Optional[float]:
+        """Get the price of a cryptocurrency."""
+        currency_id, convert_id = Currency(currency_id), Currency(convert_id)
+        url = self._URL
+        parameters = {"symbol": currency_id.value + convert_id.value}
+        try:
+            response = requests.get(url, params=parameters)
+            return float(response.json()["price"])
+        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
+            return None
+
+
+class CoinbaseApiWrapper(ApiWrapper):
+    """Wrap the Coinbase's APIs."""
+
+    api_id = "coinbase"
+    _URL = "https://api.coinbase.com/v2/prices/{currency_id}-{convert_id}/buy"
+
+    def get_price(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Optional[float]:
+        """Get the price of a cryptocurrency."""
+        currency_id, convert_id = Currency(currency_id), Currency(convert_id)
+        url = self._URL.format(
+            currency_id=currency_id.value, convert_id=convert_id.value
+        )
+        try:
+            response = requests.get(url)
+            return float(response.json()["data"]["amount"])
+        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
+            return None
+
+
 class PriceApi(Model):
     """A model that wraps APIs to get cryptocurrency prices."""
 
     _api_id_to_cls = {
         CoinMarketCapApiWrapper.api_id: CoinMarketCapApiWrapper,
         CoinGeckoApiWrapper.api_id: CoinGeckoApiWrapper,
+        BinanceApiWrapper.api_id: BinanceApiWrapper,
+        CoinbaseApiWrapper.api_id: CoinbaseApiWrapper,
     }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

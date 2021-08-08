@@ -16,7 +16,7 @@ fingerprint:
   handlers.py: QmcBxJM4XmX2ickLbSafNX3LB9hfQMo3Xp79hUt4SUXvUG
   models.py: QmdWTtcAuE3NbyVTAeVAzMR1DnJPx4fyoB3USYs1JXespN
   params.py: QmSqUWWbpb9B3rAprC1d69Z9yjWgG6LyzCCrDJWtvyD3a8
-  price_api.py: QmZefZvcTyuu8WmV6aQeBqxbmSb752eorQ9LRyUV6gfs3b
+  price_api.py: QmYhhQkf3w6iuxjQvVJX8vbdcbgwtJZ76nDDy3hCZKarRX
   shared_state.py: Qmd8k7vcDTZQJXr31QUwa3mi3xC724z9qhMsMv8s4Ffig6
   tendermint_rpc.py: QmYYmvcnY4xUhovhcjiFR4nNuAAsN1VnzzrTHZJhqLeKUv
 fingerprint_ignore_patterns: []
