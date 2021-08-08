@@ -47,8 +47,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         self.register_state(
             "wait_tendermint",
             WaitForConditionBehaviour(
-                condition=self.wait_tendermint_rpc,
-                event="done",
+                condition=self.wait_tendermint_rpc_is_ready,
                 name="wait_tendermint",
                 skill_context=self.context,
             ),
@@ -58,15 +57,28 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             "register",
             RegistrationBehaviour(name="register", skill_context=self.context),
         )
+        self.register_state(
+            "wait_registration",
+            WaitForConditionBehaviour(
+                name="wait_registration",
+                skill_context=self.context,
+                condition=self.wait_registration_threshold,
+            ),
+        )
 
         self.register_transition("wait_tendermint", "register", "done")
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
-    def wait_tendermint_rpc(self) -> bool:
+    def wait_tendermint_rpc_is_ready(self) -> bool:
         """Wait Tendermint RPC server is up."""
         return self.context.state.info_received
+
+    def wait_registration_threshold(self) -> bool:
+        """Wait registration threshold is reached."""
+        # TODO
+        return False
 
 
 class RegistrationBehaviour(AsyncBehaviour, State):
@@ -90,13 +102,13 @@ class RegistrationBehaviour(AsyncBehaviour, State):
 
         Send a registration transaction to the 'price-estimation' app.
         """
-        payload = RegistrationPayload()
+        payload = RegistrationPayload(self.context.agent_address)
         self._send_signing_request(payload.encode())
         signature = yield from self.wait_for_message()
         if signature is None:
             self.handle_signing_failure()
             return
-        signature_bytes = signature.body[2:].encode()  # remove leading 0x
+        signature_bytes = signature.body
         transaction = Transaction(payload, signature_bytes)
         _send_broadcast_tx_commit(self.context, transaction.encode())
         self._is_done = True

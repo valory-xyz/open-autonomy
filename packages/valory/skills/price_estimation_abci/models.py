@@ -24,7 +24,8 @@ from enum import Enum
 from typing import List, Tuple, cast
 
 from aea.exceptions import enforce
-from eth_keys.datatypes import Signature  # type: ignore
+from eth_account import Account
+from eth_account.messages import encode_defunct
 
 from packages.valory.protocols.abci.custom_types import Header
 
@@ -46,9 +47,15 @@ class TransactionType(Enum):
 class BaseTxPayload(ABC):
     """This class represents a transaction payload."""
 
-    def __init__(self, transaction_type: TransactionType) -> None:
-        """Initialize a transaction payload."""
+    def __init__(self, transaction_type: TransactionType, sender: str) -> None:
+        """
+        Initialize a transaction payload.
+
+        :param transaction_type: the transaction type.
+        :param sender: the sender (Ethereum) address
+        """
         self.transaction_type = transaction_type
+        self.sender = sender
 
     def encode(self) -> bytes:
         """Encode the payload."""
@@ -63,23 +70,30 @@ class BaseTxPayload(ABC):
 class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 
-    def __init__(self) -> None:
-        """Initialize a 'registration' transaction payload."""
-        super().__init__(TransactionType.REGISTRATION)
+    def __init__(self, sender: str) -> None:
+        """
+        Initialize a 'registration' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        """
+        super().__init__(TransactionType.REGISTRATION, sender)
 
 
 class CommitObservationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'commit observation'."""
 
-    def __init__(self) -> None:
-        """Initialize a 'commit_observation' transaction payload."""
-        super().__init__(TransactionType.COMMIT_OBSERVATION)
+    def __init__(self, sender: str) -> None:
+        """Initialize a 'commit_observation' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        """
+        super().__init__(TransactionType.COMMIT_OBSERVATION, sender)
 
 
 class Transaction(ABC):
     """Class to represent a transaction."""
 
-    def __init__(self, payload: BaseTxPayload, signature: bytes) -> None:
+    def __init__(self, payload: BaseTxPayload, signature: str) -> None:
         """Initialize a transaction object."""
         self.payload = payload
         self.signature = signature
@@ -101,10 +115,11 @@ class Transaction(ABC):
     def verify(self) -> None:
         """Verify the signature is correct."""
         payload_bytes = self.payload.encode()
-        signature = Signature(signature_bytes=self.signature)
-        public_key = signature.recover_public_key_from_msg(payload_bytes)
-        result = signature.verify_msg(payload_bytes, public_key)
-        if not result:
+        encoded_payload_bytes = encode_defunct(payload_bytes)
+        public_key = Account.recover_message(
+            encoded_payload_bytes, signature=self.signature
+        )
+        if public_key != self.payload.sender:
             raise ValueError("signature not valid.")
 
 

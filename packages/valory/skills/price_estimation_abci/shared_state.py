@@ -22,7 +22,6 @@
 from typing import Any, Dict, Optional
 
 from aea.skills.base import Model
-from eth_keys.datatypes import Signature  # type: ignore
 
 from packages.valory.skills.price_estimation_abci.models import Block, Blockchain, Round
 

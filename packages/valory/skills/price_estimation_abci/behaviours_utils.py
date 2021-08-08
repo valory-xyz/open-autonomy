@@ -28,18 +28,25 @@ class AsyncBehaviour:
 
     async_act: Callable
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the async behaviour."""
         self._called_once: bool = False
         self._notified: bool = False
         self._message: Any = None
 
-        # self._condition = None
         self._condition: Callable = lambda message: True
         self._generator_act: Optional[Generator] = None
 
-    def try_send(self, message: Any):
-        """"""
+    def try_send(self, message: Any) -> None:
+        """
+        Try to send a message to a waiting behaviour.
+
+        It will be send only if:
+        - the behaviour is actually waiting, and
+        - the condition specified by the behaviour holds for the incoming message
+
+        :param message: a Python object.
+        """
         if self._called_once and self._condition(message):
             self._notified = True
             self._message = message
@@ -50,7 +57,7 @@ class AsyncBehaviour:
         message = yield
         return message
 
-    def act(self):
+    def act(self) -> None:
         """Do the act."""
         if not self._called_once:
             self._called_once = True
@@ -74,7 +81,7 @@ class WaitForConditionBehaviour(State):
 
     is_programmatically_defined = True
 
-    def __init__(self, condition: Callable, event: str = "done", **kwargs):
+    def __init__(self, condition: Callable, event: str = "done", **kwargs) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
         self.condition = condition
