@@ -181,6 +181,11 @@ class PriceApi(Model):
         self._api = self._get_api()
         super().__init__(*args, **kwargs)
 
+    @property
+    def api_id(self) -> str:
+        """Get API id."""
+        return self._api.api_id
+
     def _get_api(self) -> ApiWrapper:
         """Get the ApiWrapper object."""
         api_cls = self._api_id_to_cls.get(self._source_id)
