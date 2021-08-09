@@ -9,16 +9,16 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmZGVm8fSq7kex6s8kTjVsU4vZPqdcabTJZA4dUXA8tMhS
-  behaviours_utils.py: QmcSUHwcj9B9E5JWfphbuRpjzV2G9CSiePctEk7KDmxLay
+  behaviours.py: QmPY14458sub3rnfaMBwvX4XwBReSy9fAoxnHPy8h2zNGM
+  behaviours_utils.py: QmbiNqfucs13GZkDBn1e1WDS2Ez8T3VhnCC6GChbxyHBuM
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
-  estimator.py: QmQ61qSxRssA3UAGi8LpCrRxgSckptQRywssTiS8jSTDhf
-  handlers.py: QmeDkQb8HdhD6eTmTG7PBQDiJZmfBbQNY3ecjovK93gjSi
-  models.py: QmWTtEHPntAAP7K6zTJwxfVpHJ9MwuvjMs9mynjqmx59Fq
-  params.py: Qme33kWevmvbfZVnF7CrPWVw7uL7xr6PsuYJ75TFfjhwhX
-  price_api.py: QmTuB4HknDZd7bQpN8AcixnhtjbB4xNo7E7MbUEYwjA5wb
+  estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
+  handlers.py: QmTNxbWDUCnXNuKr2TE1uH4v9XWf6kq3SJ318ZJtYqWXqD
+  models.py: QmfUALCBCLzfRScndC7M1NeXTRixDKf9vCPWMLoWFpgpzD
+  params.py: QmQuC5m1CeUQWnNa4ci4HHviyb83ECoVMatNRbVV4vp9tj
+  price_api.py: Qmf5EqaqkMx1LqQW6k3i2B1jP5yJzDxamWthSTCHnMZtf1
   shared_state.py: QmcLy4EoSY94BGQqtxktYG7rwm4YSUNXEHRkZ3D8TE6tq7
-  tendermint_rpc.py: QmYYmvcnY4xUhovhcjiFR4nNuAAsN1VnzzrTHZJhqLeKUv
+  tendermint_rpc.py: QmNujd7L9CH8zR93SUAudp5d6epKcLLGVNr13CpBHZkv2b
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
