@@ -53,7 +53,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 
-    def info(  # pylint: disable=no-self-use
+    def info(  # pylint: disable=no-self-use,useless-super-delegation
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'info' request."""
@@ -232,10 +232,11 @@ class SigningHandler(Handler):
         self, signing_msg: SigningMessage, signing_dialogue: SigningDialogue
     ) -> None:
         self.context.logger.info("transaction signing was successful.")
+        self.context.logger.debug(f"signing success for {signing_dialogue}")
         fsm_behaviour = cast(
             PriceEstimationConsensusBehaviour, self.context.behaviours.main
         )
-        current_state_name = fsm_behaviour.current
+        current_state_name = cast(str, fsm_behaviour.current)
         registration_state = cast(
             RegistrationBehaviour, fsm_behaviour.get_state(current_state_name)
         )
@@ -279,7 +280,7 @@ class SigningHandler(Handler):
             fsm_behaviour = cast(
                 PriceEstimationConsensusBehaviour, self.context.behaviours.main
             )
-            current_state_name = fsm_behaviour.current
+            current_state_name = cast(str, fsm_behaviour.current)
             registration_state = cast(
                 RegistrationBehaviour, fsm_behaviour.get_state(current_state_name)
             )

@@ -27,6 +27,7 @@ from aea.skills.base import Model
 class Estimator(Model):
     """Estimator model."""
 
-    def aggregate(self, observations: Sequence[float]) -> float:
+    @staticmethod
+    def aggregate(observations: Sequence[float]) -> float:
         """Aggregate a list of observations."""
         return statistics.mean(observations)

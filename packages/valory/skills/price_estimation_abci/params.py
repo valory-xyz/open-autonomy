@@ -43,11 +43,11 @@ class ConsensusParams:
         return ceil(self.max_participants * 2 / 3)
 
     @classmethod
-    def from_json(cls, obj: Dict):
+    def from_json(cls, obj: Dict) -> "ConsensusParams":
         """Get from JSON."""
         max_participants = obj["max_participants"]
         enforce(
-            isinstance(max_participants, int) and 0 <= max_participants,
+            isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
 
@@ -63,7 +63,7 @@ class Params(Model):
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
         self.initial_delay = self._ensure("initial_delay", kwargs)
 
-        self.consensus_params = ConsensusParams.from_json(kwargs.get("consensus"))
+        self.consensus_params = ConsensusParams.from_json(kwargs.get("consensus", {}))
 
         self.currency_id = self._ensure("currency_id", kwargs)
         self.convert_id = self._ensure("convert_id", kwargs)

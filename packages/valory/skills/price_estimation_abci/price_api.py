@@ -28,7 +28,11 @@ from aea.exceptions import AEAEnforceError
 from aea.skills.base import Model
 from pycoingecko import CoinGeckoAPI
 from requests import Session
-from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+from requests.exceptions import (  # pylint: disable=redefined-builtin
+    ConnectionError,
+    Timeout,
+    TooManyRedirects,
+)
 
 
 class Currency(Enum):
@@ -39,7 +43,7 @@ class Currency(Enum):
     USDT = "USDT"
 
     @property
-    def slug(self):
+    def slug(self):  # type: ignore
         """To slug."""
         return {
             self.BITCOIN.value: "bitcoin",
@@ -51,14 +55,14 @@ class Currency(Enum):
 CurrencyOrStr = Union[Currency, str]
 
 
-class ApiWrapper(ABC):
+class ApiWrapper(ABC):  # pylint: disable=too-few-public-methods
     """Wrap an API library to access cryptocurrencies' prices."""
 
     api_id: str
 
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the API wrapper."""
-        self.api_key = api_key
+        self.api_key = api_key if api_key is not None else ""
 
     @abstractmethod
     def get_price(
@@ -67,14 +71,14 @@ class ApiWrapper(ABC):
         """Get the price of a cryptocurrency."""
 
 
-class CoinMarketCapApiWrapper(ApiWrapper):
+class CoinMarketCapApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     """Wrap the CoinMarketCap's APIs."""
 
     api_id = "coinmarketcap"
     _URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 
     def get_price(
-        self, currency_id: Currency, convert_id: CurrencyOrStr = Currency.USD
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
         currency_id, convert_id = Currency(currency_id), Currency(convert_id)
@@ -96,7 +100,7 @@ class CoinMarketCapApiWrapper(ApiWrapper):
             return None
 
 
-class CoinGeckoApiWrapper(ApiWrapper):
+class CoinGeckoApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     """Wrap the CoinGecko's APIs."""
 
     api_id = "coingecko"
@@ -104,20 +108,20 @@ class CoinGeckoApiWrapper(ApiWrapper):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object."""
         super().__init__(*args, **kwargs)
-        self.cg = CoinGeckoAPI()
+        self.api = CoinGeckoAPI()
 
     def get_price(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
         currency_id, convert_id = Currency(currency_id), Currency(convert_id)
-        response = self.cg.get_price(
+        response = self.api.get_price(
             ids=currency_id.slug, vs_currencies=convert_id.slug
         )
         return float(response[currency_id.slug][convert_id.slug])
 
 
-class BinanceApiWrapper(ApiWrapper):
+class BinanceApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     """Wrap the Binance's APIs."""
 
     api_id = "binance"
@@ -137,7 +141,7 @@ class BinanceApiWrapper(ApiWrapper):
             return None
 
 
-class CoinbaseApiWrapper(ApiWrapper):
+class CoinbaseApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     """Wrap the Coinbase's APIs."""
 
     api_id = "coinbase"

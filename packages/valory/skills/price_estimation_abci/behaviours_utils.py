@@ -41,6 +41,13 @@ class AsyncBehaviour:
         self._condition: Callable = lambda message: True
         self._generator_act: Optional[Generator] = None
 
+    @property
+    def generator_act(self) -> Generator:
+        """Get the _generator_act."""
+        if self._generator_act is None:
+            raise ValueError("Generator act not set!")
+        return self._generator_act
+
     def try_send(self, message: Any) -> None:
         """
         Try to send a message to a waiting behaviour.
@@ -66,11 +73,11 @@ class AsyncBehaviour:
         if not self._called_once:
             self._called_once = True
             self._generator_act = self.async_act()
-            self._generator_act.send(None)  # trigger first execution
+            self.generator_act.send(None)  # trigger first execution
             return
         if self._notified:
             try:
-                self._generator_act.send(self._message)
+                self.generator_act.send(self._message)
             except StopIteration:
                 # end of 'act' function -> reset state
                 self._called_once = False
@@ -85,7 +92,9 @@ class WaitForConditionBehaviour(State):
 
     is_programmatically_defined = True
 
-    def __init__(self, condition: Callable, event: str = DONE_EVENT, **kwargs) -> None:
+    def __init__(
+        self, condition: Callable, event: str = DONE_EVENT, **kwargs: Any
+    ) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
         self.condition = condition

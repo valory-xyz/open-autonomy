@@ -56,7 +56,7 @@ class BehaviourUtils(Behaviour, ABC):
         self.context.outbox.put_message(message=request_message)
         request_nonce = http_dialogue.dialogue_label.dialogue_reference[0]
 
-        def write_message(self_, message):
+        def write_message(self_: AsyncBehaviour, message: HttpMessage) -> None:
             self_ = cast(AsyncBehaviour, self_)
             self_.try_send(message)
 

@@ -21,7 +21,7 @@
 import datetime
 from abc import ABC
 from functools import partial
-from typing import Any, Callable, cast
+from typing import Any, Callable, Generator, cast
 
 from aea.skills.behaviours import FSMBehaviour, State
 from aea_ledger_ethereum import EthereumCrypto
@@ -125,7 +125,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         :return: the function used to wait.
         """
 
-        def _check_time(expected_time: datetime.datetime):
+        def _check_time(expected_time: datetime.datetime) -> bool:
             return datetime.datetime.now() > expected_time
 
         initial_delay = self.context.params.initial_delay
@@ -145,21 +145,23 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         return self.context.state.current_round.estimate_threshold_reached
 
 
-class BaseState(AsyncBehaviour, State, BehaviourUtils, ABC):
+class BaseState(
+    AsyncBehaviour, State, BehaviourUtils, ABC
+):  # pylint: disable=too-many-ancestors
     """Base class for FSM states."""
 
     is_programmatically_defined = True
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
         State.__init__(self, **kwargs)
 
-    def handle_signing_failure(self):
+    def handle_signing_failure(self) -> None:
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
 
-    def _send_transaction(self, payload: BaseTxPayload) -> None:
+    def _send_transaction(self, payload: BaseTxPayload) -> Generator:
         """
         Send transaction and wait for the response.
 
@@ -186,10 +188,10 @@ class BaseState(AsyncBehaviour, State, BehaviourUtils, ABC):
                 break
             # otherwise, repeat until done
 
-    def _send_signing_request(self, raw_message: bytes):
+    def _send_signing_request(self, raw_message: bytes) -> None:
         """Send a signing request."""
         signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
-        signing_msg, signing_dialogue = signing_dialogues.create(
+        signing_msg, _ = signing_dialogues.create(
             counterparty=self.context.decision_maker_address,
             performative=SigningMessage.Performative.SIGN_MESSAGE,
             raw_message=RawMessage(EthereumCrypto.identifier, raw_message),
@@ -205,7 +207,7 @@ class BaseState(AsyncBehaviour, State, BehaviourUtils, ABC):
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
 
-class RegistrationBehaviour(BaseState):
+class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Register to the next round."""
 
     is_programmatically_defined = True
@@ -219,7 +221,7 @@ class RegistrationBehaviour(BaseState):
         """Check whether the state is done."""
         return self._is_done
 
-    def async_act(self) -> None:
+    def async_act(self) -> None:  # type: ignore
         """
         Do the action.
 
@@ -237,7 +239,7 @@ class RegistrationBehaviour(BaseState):
         self._event = DONE_EVENT
 
 
-class ObserveBehaviour(BaseState):
+class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Observe price estimate."""
 
     is_programmatically_defined = True
@@ -251,7 +253,7 @@ class ObserveBehaviour(BaseState):
         """Check whether the state is done."""
         return self._is_done
 
-    def async_act(self) -> None:
+    def async_act(self) -> Generator:
         """
         Do the action.
 
@@ -276,7 +278,7 @@ class ObserveBehaviour(BaseState):
         self._event = DONE_EVENT
 
 
-class EstimateBehaviour(BaseState):
+class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Estimate price."""
 
     is_programmatically_defined = True
@@ -290,7 +292,7 @@ class EstimateBehaviour(BaseState):
         """Check whether the state is done."""
         return self._is_done
 
-    def async_act(self) -> None:
+    def async_act(self) -> Generator:
         """
         Do the action.
 

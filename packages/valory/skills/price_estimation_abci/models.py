@@ -153,7 +153,7 @@ class Transaction(ABC):
         """Verify the signature is correct."""
         payload_bytes = self.payload.encode()
         encoded_payload_bytes = encode_defunct(payload_bytes)
-        public_key = Account.recover_message(
+        public_key = Account.recover_message(  # pylint: disable=no-value-for-parameter
             encoded_payload_bytes, signature=self.signature
         )
         if public_key != self.payload.sender:
@@ -267,7 +267,7 @@ class RoundState:
     @property
     def estimate_threshold_reached(self) -> bool:
         """Check that the estimate threshold has been reached."""
-        estimates_counter = Counter()
+        estimates_counter = Counter()  # type: ignore
         estimates_counter.update(
             payload.estimate for payload in self.participant_to_estimate.values()
         )
@@ -278,7 +278,7 @@ class RoundState:
     @property
     def most_voted_estimate(self) -> float:
         """Get the most voted estimate."""
-        estimates_counter = Counter()
+        estimates_counter = Counter()  # type: ignore
         estimates_counter.update(
             payload.estimate for payload in self.participant_to_estimate.values()
         )
@@ -294,7 +294,7 @@ class RoundState:
         """Get the tuple of observations."""
         return tuple(self.participant_to_observations.values())
 
-    def add_transaction(self, transaction: Transaction):
+    def add_transaction(self, transaction: Transaction) -> None:
         """Process a transaction."""
         tx_type = transaction.payload.transaction_type.value
         handler: Callable[[BaseTxPayload], None] = getattr(self, tx_type, None)
@@ -459,7 +459,7 @@ class Round:
 
         self._reset()
 
-    def begin_block(self, header: Header):
+    def begin_block(self, header: Header) -> None:
         """Begin block."""
         self._current_header = header
 
@@ -480,7 +480,7 @@ class Round:
         if is_valid:
             self._round_state.add_transaction(transaction)
 
-    def end_block(self):
+    def end_block(self) -> None:
         """End block."""
         # add the block to the local copy of the blockchain
         block = Block(
@@ -491,7 +491,7 @@ class Round:
         self._blockchain.add_block(block)
         self._reset()
 
-    def _reset(self):
+    def _reset(self) -> None:
         """Reset the temporary data structures."""
         self._current_header = None
         self._current_transactions = []
