@@ -268,7 +268,7 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         convert_id = self.context.params.convert_id
         observation = self.context.price_api.get_price(currency_id, convert_id)
         self.context.logger.info(
-            f"Got observation of {currency_id} price in {convert_id}: {observation}"
+            f"Got observation of {currency_id} price in {convert_id} from {self.context.price_api}: {observation}"
         )
         payload = ObservationPayload(self.context.agent_address, observation)
         yield from self._send_transaction(payload)
