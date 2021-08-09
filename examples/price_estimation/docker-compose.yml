@@ -64,6 +64,9 @@ services:
   abci0:
     container_name: abci0
     image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/sh
@@ -75,6 +78,9 @@ services:
   abci1:
     container_name: abci1
     image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/sh
@@ -86,6 +92,9 @@ services:
   abci2:
     container_name: abci2
     image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/sh
@@ -97,6 +106,9 @@ services:
   abci3:
     container_name: abci3
     image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/sh

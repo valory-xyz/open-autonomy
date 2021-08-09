@@ -14,7 +14,7 @@ RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDER
     rm -fr tendermint.tar.gz
 
 
-VOLUME [ /tendermint ]
+VOLUME /tendermint
 WORKDIR /tendermint
 EXPOSE 26656 26657
 ENTRYPOINT ["/usr/bin/wrapper.sh"]
