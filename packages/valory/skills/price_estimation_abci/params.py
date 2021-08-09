@@ -59,18 +59,18 @@ class Params(Model):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        super().__init__(*args, **kwargs)
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
         self.initial_delay = self._ensure("initial_delay", kwargs)
 
-        self.consensus_params = ConsensusParams.from_json(kwargs.get("consensus", {}))
+        self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
 
         self.currency_id = self._ensure("currency_id", kwargs)
         self.convert_id = self._ensure("convert_id", kwargs)
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def _ensure(cls, key: str, kwargs: Dict) -> Any:
         """Get and ensure the configuration field is not None."""
-        value = kwargs.get(key)
+        value = kwargs.pop(key)
         enforce(value is not None, f"'{key}' required, but it is not set")
         return value

@@ -39,7 +39,7 @@ class ABCIHandler(Handler):
 
     def setup(self) -> None:
         """Set up the handler."""
-        self.context.logger.info("ABCI Handler: setup method called.")
+        self.context.logger.debug("ABCI Handler: setup method called.")
 
     def handle(self, message: Message) -> None:
         """
@@ -84,11 +84,11 @@ class ABCIHandler(Handler):
 
     def teardown(self) -> None:
         """Teardown the handler."""
-        self.context.logger.info("ABCI Handler: teardown method called.")
+        self.context.logger.debug("ABCI Handler: teardown method called.")
 
     def send_exception(self, message: AbciMessage, error_message: str) -> None:
         """Send a response exception."""
-        self.context.logger.info(
+        self.context.logger.error(
             f"Sending a response exception message with error message: {error_message}"
         )
         abci_dialogues = cast(AbciDialogues, self.context.abci_dialogues)

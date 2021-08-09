@@ -174,14 +174,12 @@ class PriceApi(Model):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the price API model."""
-        super().__init__(*args, **kwargs)
-
         self._source_id = kwargs.pop("source_id", None)
         if self._source_id is None:
             raise ValueError("'source_id' is a mandatory configuration")
         self._api_key = kwargs.pop("api_key", None)
-
         self._api = self._get_api()
+        super().__init__(*args, **kwargs)
 
     def _get_api(self) -> ApiWrapper:
         """Get the ApiWrapper object."""
