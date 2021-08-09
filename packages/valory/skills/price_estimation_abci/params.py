@@ -61,6 +61,7 @@ class Params(Model):
         """Initialize the parameters object."""
         super().__init__(*args, **kwargs)
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
+        self.initial_delay = self._ensure("initial_delay", kwargs)
 
         self.consensus_params = ConsensusParams.from_json(kwargs.get("consensus"))
 
