@@ -158,17 +158,7 @@ class TestABCICounterSkillMany(AEATestCaseMany):
         self._query_agents(self.NB_TX)
         # end test of the ABCI app
 
-        check_strings = (
-            "ABCI Handler: setup method called.",
-            "Received ABCI request of type info",
-            "Received ABCI request of type flush",
-            "Received ABCI request of type begin_block",
-            "Received ABCI request of type commit",
-            "Received ABCI request of type end_block",
-            "Received ABCI request of type query",
-            "Received ABCI request of type check_tx",
-            "Received ABCI request of type deliver_tx",
-        )
+        check_strings = (*[f"The new count is: {x + 1}" for x in range(self.NB_TX)],)
 
         # check that *each* AEA prints these messages
         for process in processes:
@@ -204,6 +194,7 @@ class TestABCICounterSkillMany(AEATestCaseMany):
         result = requests.get(
             node.get_http_addr("localhost") + "/broadcast_tx_commit",
             params=dict(tx=tx_arg),
+            timeout=5.0,
         )
         assert result.status_code == expected_status_code
 

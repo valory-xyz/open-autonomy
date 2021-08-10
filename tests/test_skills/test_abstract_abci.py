@@ -55,7 +55,7 @@ class TestABCIHandler(BaseSkillTestCase):
         # after
         self.assert_quantity_in_outbox(0)
 
-        mock_logger.assert_any_call(logging.INFO, "ABCI Handler: setup method called.")
+        mock_logger.assert_any_call(logging.DEBUG, "ABCI Handler: setup method called.")
 
     def test_teardown(self):
         """Test the teardown method of the echo handler."""
@@ -66,5 +66,5 @@ class TestABCIHandler(BaseSkillTestCase):
         self.assert_quantity_in_outbox(0)
 
         mock_logger.assert_any_call(
-            logging.INFO, "ABCI Handler: teardown method called."
+            logging.DEBUG, "ABCI Handler: teardown method called."
         )
