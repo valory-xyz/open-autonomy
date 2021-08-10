@@ -32,6 +32,7 @@ class TestABCISkill(AEATestCaseEmpty, UseTendermint):
 
     IS_LOCAL = False
     capture_log = True
+    cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
         """Run the ABCI skill."""
