@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  node0:
-    container_name: node0
+  counter_node0:
+    container_name: counter_node0
     image: "tendermint/localnode"
     ports:
       - "26656-26657:26656-26657"
@@ -11,13 +11,13 @@ services:
       - LOG=${LOG:-tendermint.log}
     volumes:
       - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci0:26658
+    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://counter_abci0:26658
     networks:
       localnet:
         ipv4_address: 192.167.10.2
 
-  node1:
-    container_name: node1
+  counter_node1:
+    container_name: counter_node1
     image: "tendermint/localnode"
     ports:
       - "26666-26667:26656-26657"
@@ -26,13 +26,13 @@ services:
       - LOG=${LOG:-tendermint.log}
     volumes:
       - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci1:26658
+    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://counter_abci1:26658
     networks:
       localnet:
         ipv4_address: 192.167.10.3
 
-  node2:
-    container_name: node2
+  counter_node2:
+    container_name: counter_node2
     image: "tendermint/localnode"
     environment:
       - ID=2
@@ -41,13 +41,13 @@ services:
       - "26676-26677:26656-26657"
     volumes:
       - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci2:26658
+    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://counter_abci2:26658
     networks:
       localnet:
         ipv4_address: 192.167.10.4
 
-  node3:
-    container_name: node3
+  counter_node3:
+    container_name: counter_node3
     image: "tendermint/localnode"
     environment:
       - ID=3
@@ -56,13 +56,13 @@ services:
       - "26686-26687:26656-26657"
     volumes:
       - ./build:/tendermint:Z
-    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci3:26658
+    command: node --consensus.create_empty_blocks=false --proxy_app=tcp://counter_abci3:26658
     networks:
       localnet:
         ipv4_address: 192.167.10.5
 
-  abci0:
-    container_name: abci0
+  counter_abci0:
+    container_name: counter_abci0
     image: "abci-image"
     build:
       context: ../..
@@ -75,8 +75,8 @@ services:
       localnet:
         ipv4_address: 192.167.10.6
 
-  abci1:
-    container_name: abci1
+  counter_abci1:
+    container_name: counter_abci1
     image: "abci-image"
     build:
       context: ../..
@@ -89,8 +89,8 @@ services:
       localnet:
         ipv4_address: 192.167.10.7
 
-  abci2:
-    container_name: abci2
+  counter_abci2:
+    container_name: counter_abci2
     image: "abci-image"
     build:
       context: ../..
@@ -103,8 +103,8 @@ services:
       localnet:
         ipv4_address: 192.167.10.8
 
-  abci3:
-    container_name: abci3
+  counter_abci3:
+    container_name: counter_abci3
     image: "abci-image"
     build:
       context: ../..

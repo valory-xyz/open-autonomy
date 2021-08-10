@@ -39,7 +39,7 @@ class ABCIHandler(Handler):
 
     def setup(self) -> None:
         """Set up the handler."""
-        self.context.logger.info("ABCI Handler: setup method called.")
+        self.context.logger.debug("ABCI Handler: setup method called.")
 
     def handle(self, message: Message) -> None:
         """
@@ -68,7 +68,7 @@ class ABCIHandler(Handler):
 
         # handle message
         request_type = performative.replace("request_", "")
-        self.context.logger.info(f"Received ABCI request of type {request_type}")
+        self.context.logger.debug(f"Received ABCI request of type {request_type}")
         handler = getattr(self, request_type, None)
         if handler is None:
             self.context.logger.warning(
@@ -76,7 +76,7 @@ class ABCIHandler(Handler):
             )
             return
 
-        self.context.logger.info(
+        self.context.logger.debug(
             "ABCI Handler: message={}, sender={}".format(message, message.sender)
         )
         response = handler(message, abci_dialogue)
@@ -84,11 +84,11 @@ class ABCIHandler(Handler):
 
     def teardown(self) -> None:
         """Teardown the handler."""
-        self.context.logger.info("ABCI Handler: teardown method called.")
+        self.context.logger.debug("ABCI Handler: teardown method called.")
 
     def send_exception(self, message: AbciMessage, error_message: str) -> None:
         """Send a response exception."""
-        self.context.logger.info(
+        self.context.logger.error(
             f"Sending a response exception message with error message: {error_message}"
         )
         abci_dialogues = cast(AbciDialogues, self.context.abci_dialogues)

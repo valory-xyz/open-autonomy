@@ -1,0 +1,85 @@
+name: price_estimation_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for cryptocurrency price estimation aggregating observations
+  from different sources.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
+  __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
+  behaviours.py: QmYEks7tgJzKw4DCvhYwbGZYmM3JWnStjnMHVfBRaLVhtQ
+  behaviours_utils.py: QmbiNqfucs13GZkDBn1e1WDS2Ez8T3VhnCC6GChbxyHBuM
+  dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
+  estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
+  handlers.py: QmTNxbWDUCnXNuKr2TE1uH4v9XWf6kq3SJ318ZJtYqWXqD
+  models.py: QmfUALCBCLzfRScndC7M1NeXTRixDKf9vCPWMLoWFpgpzD
+  params.py: QmPf5jHGZb86wsj8akNgtKPSUmWYw6PyAgdBf28JGj2RtB
+  price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
+  shared_state.py: QmcLy4EoSY94BGQqtxktYG7rwm4YSUNXEHRkZ3D8TE6tq7
+  tendermint_rpc.py: QmNujd7L9CH8zR93SUAudp5d6epKcLLGVNr13CpBHZkv2b
+fingerprint_ignore_patterns: []
+connections:
+- fetchai/http_client:0.22.0
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- fetchai/http:1.0.0
+- valory/abci:0.1.0
+skills:
+- valory/abstract_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: PriceEstimationConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIPriceEstimationHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  estimator:
+    args: {}
+    class_name: Estimator
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      convert_id: USD
+      currency_id: BTC
+      initial_delay: 5.0
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  price_api:
+    args:
+      api_key: null
+      source_id: coingecko
+    class_name: PriceApi
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies:
+  ccxt:
+    version: ==1.54.60
+  coinmarketcap:
+    version: ==5.0.3
+  pycoingecko:
+    version: ==2.2.0
+  requests-cache:
+    version: ==0.4.13
+is_abstract: false

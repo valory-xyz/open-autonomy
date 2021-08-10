@@ -147,6 +147,7 @@ class ABCICounterHandler(ABCIHandler):
         :return: the response.
         """
         self.tx_count += 1
+        self.context.logger.info(f"The new count is: {self.tx_count}")
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
             code=OK_CODE,

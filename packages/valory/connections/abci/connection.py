@@ -206,7 +206,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         ip_address, socket, *_ = writer.get_extra_info("peername")
         peer_name = f"{ip_address}:{socket}"
         self._streams_by_socket[peer_name] = (reader, writer)
-        self.logger.info(f"Connection @ {peer_name}")
+        self.logger.debug(f"Connection with Tendermint @ {peer_name}")
 
         while not self.is_stopped:
             data = BytesIO()

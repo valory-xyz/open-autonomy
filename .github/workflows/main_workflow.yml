@@ -1,0 +1,149 @@
+name: main_workflow
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+
+jobs:
+  lock_check:
+    continue-on-error: False
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: 3.6
+      - name: Install dependencies (ubuntu-latest)
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install pipenv
+      - name: Pipenv install requirements and check it can be locked
+        run: |
+          pipenv install --dev --skip-lock --clear
+          pipenv run pip install -e .[all]
+          pipenv lock
+
+  linter_checks:
+    continue-on-error: True
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run:  |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        pip install --user --upgrade setuptools
+        # install Protobuf compiler
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
+        unzip protoc-3.11.4-linux-x86_64.zip -d protoc
+        sudo mv protoc/bin/protoc /usr/local/bin/protoc
+        # install IPFS
+        sudo apt-get install -y wget
+        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+        tar xvfz go-ipfs.tar.gz
+        sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+        ipfs init
+    - name: Security checks
+      run: |
+        tox -e bandit
+        tox -e safety
+    - name: Check copyright
+      run: tox -e check-copyright
+    - name: Check packages
+      run: tox -e check-packages
+    - name: Check hash
+      run: tox -e check-hash
+    - name: Code style check
+      run: |
+        tox -e black-check
+        tox -e isort-check
+        tox -e flake8
+        tox -e vulture
+        tox -e darglint
+    - name: Static type check
+      run: tox -e mypy
+    - name: Pylint
+      run: tox -e pylint
+
+  test:
+    continue-on-error: True
+    needs:
+      - lock_check
+      - linter_checks
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ] # TODO add [macos-latest, windows-latest]
+        python-version: [ 3.7 ] # TODO add [3.6, 3.7, 3.8, 3.9]
+
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          pip install tox
+          pip install --user --upgrade setuptools
+          # install Protobuf compiler
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
+          unzip protoc-3.11.4-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/protoc /usr/local/bin/protoc
+          # install IPFS
+          sudo apt-get install -y wget
+          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+          tar xvfz go-ipfs.tar.gz
+          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+          ipfs init
+          # install Tendermint
+          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
+          tar -xf tendermint.tar.gz
+          sudo mv tendermint /usr/local/bin/tendermint
+      #    # set up environment depending on the platform in use
+      #    - if: matrix.os == 'ubuntu-latest'
+      #      name: Install dependencies (ubuntu-latest)
+      #      run: ...
+      #    - if: matrix.os == 'macos-latest'
+      #      name: Install dependencies (macos-latest)
+      #      run: ...
+      #    - if: matrix.os == 'windows-latest'
+      #      name: Install dependencies (windows-latest)
+      #      env:
+      #        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      #      run: ...
+      - name: Unit tests and coverage
+        run: |
+          tox -e py${{ matrix.python-version }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true

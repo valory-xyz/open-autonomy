@@ -21,4 +21,4 @@ Distributed consensus meets the AEA framework.
 
       pipenv install --dev --skip-lock
 
-- Install [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) v0.6.0
+- Install [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `v0.6.0`

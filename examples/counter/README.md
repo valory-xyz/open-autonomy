@@ -73,7 +73,7 @@ As you can see from the `log` field, the counter is initializes at `0`.
 `value` contains the `base64` encoding of the bytes of the data,
 representing the app state. 
 
-You can verify that runnning the same query against the other
+You can verify that running the same query against the other
 nodes will give you the same response, e.g.
 
 ```
