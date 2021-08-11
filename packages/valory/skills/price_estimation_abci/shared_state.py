@@ -19,17 +19,21 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional, cast
 
 from aea.skills.base import Model
 
-from packages.valory.skills.price_estimation_abci.models import Round
+from packages.valory.skills.price_estimation_abci.models.base import Period
+from packages.valory.skills.price_estimation_abci.models.rounds import (
+    PeriodState,
+    RegistrationRound,
+)
 
 
 class SharedState(Model):
     """Keep the current shared state."""
 
-    current_round: Round
+    period: Period
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
@@ -40,4 +44,10 @@ class SharedState(Model):
 
     def setup(self) -> None:
         """Set up the model."""
-        self.current_round = Round(self.context.params.consensus_params)
+        self.period = Period(self.context.params.consensus_params, RegistrationRound)
+
+    @property
+    def period_state(self) -> Optional[PeriodState]:
+        """Get the period state if available."""
+        latest_result = self.period.latest_result
+        return cast(Optional[PeriodState], latest_result)

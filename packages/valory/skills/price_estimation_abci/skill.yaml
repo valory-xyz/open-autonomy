@@ -9,16 +9,19 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmYEks7tgJzKw4DCvhYwbGZYmM3JWnStjnMHVfBRaLVhtQ
+  behaviours.py: QmakFT2jjXGYQ53pTHopufpdA3WfNtNH9agJpLYwXnDYDw
   behaviours_utils.py: QmbiNqfucs13GZkDBn1e1WDS2Ez8T3VhnCC6GChbxyHBuM
   dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
-  handlers.py: QmTNxbWDUCnXNuKr2TE1uH4v9XWf6kq3SJ318ZJtYqWXqD
-  models.py: QmfUALCBCLzfRScndC7M1NeXTRixDKf9vCPWMLoWFpgpzD
+  handlers.py: QmWeWv2nsr1rKruA4gEf2yuJkajnwD9VscbETkLCBq6e42
+  models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
+  models/base.py: QmdovAkGJRBei8ZvGNgP1jcBySeBv5G96DmW3K7A7557Km
+  models/payloads.py: QmZtbTg9hbGWvpZYDmwTHGgejRPaHne2wHPJo9dLcpUc9n
+  models/rounds.py: QmTRyS16w1U6rQwQE2UkTmNg52En9wyqnkp6CPXiwPkivK
   params.py: QmPf5jHGZb86wsj8akNgtKPSUmWYw6PyAgdBf28JGj2RtB
   price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
-  shared_state.py: QmcLy4EoSY94BGQqtxktYG7rwm4YSUNXEHRkZ3D8TE6tq7
-  tendermint_rpc.py: QmNujd7L9CH8zR93SUAudp5d6epKcLLGVNr13CpBHZkv2b
+  shared_state.py: QmTYfDR1oRVBZx4WAEaVgioX2Mg37wvSZkhjgCFhVwurYx
+  tendermint_rpc.py: QmZf1uqePHdekhfgPjfLjTropttuxSEKJcy8WjE6KHvFb9
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
@@ -74,12 +77,8 @@ models:
     args: {}
     class_name: SharedState
 dependencies:
-  ccxt:
-    version: ==1.54.60
   coinmarketcap:
     version: ==5.0.3
   pycoingecko:
     version: ==2.2.0
-  requests-cache:
-    version: ==0.4.13
 is_abstract: false
