@@ -4,6 +4,7 @@ build-docker-localnode:
 .PHONY: build-docker-localnode
 
 build-docker-aea:
+	-docker network ls | grep _localnet | cut -d' ' -f1 | xargs docker network rm
 	docker build -f ../../examples/price_estimation/Dockerfile -t valory/price_estimation:0.1.0 ../..
 .PHONY: build-docker-aea
 
