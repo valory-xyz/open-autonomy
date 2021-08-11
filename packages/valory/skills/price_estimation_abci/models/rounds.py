@@ -21,17 +21,19 @@
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
-from typing import Dict, FrozenSet, Mapping, Optional, Set, Tuple
+from typing import Any
+from typing import Counter as CounterType
+from typing import Dict, FrozenSet, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
-from packages.valory.protocols.abci.custom_types import ConsensusParams
 from packages.valory.skills.price_estimation_abci.models.base import AbstractRound
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     EstimatePayload,
     ObservationPayload,
     RegistrationPayload,
 )
+from packages.valory.skills.price_estimation_abci.params import ConsensusParams
 
 
 class PeriodState:
@@ -54,7 +56,7 @@ class PeriodState:
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
         enforce(self._participants is not None, "'participants' field is None")
-        return self._participants
+        return cast(FrozenSet[str], self._participants)
 
     @property
     def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
@@ -63,7 +65,7 @@ class PeriodState:
             self._participant_to_observations is not None,
             "'participant_to_observations' field is None",
         )
-        return self._participant_to_observations
+        return cast(Mapping[str, ObservationPayload], self._participant_to_observations)
 
     @property
     def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
@@ -72,7 +74,7 @@ class PeriodState:
             self._participant_to_estimate is not None,
             "'participant_to_estimate' field is None",
         )
-        return self._participant_to_estimate
+        return cast(Mapping[str, EstimatePayload], self._participant_to_estimate)
 
     @property
     def most_voted_estimate(self) -> float:
@@ -80,7 +82,7 @@ class PeriodState:
         enforce(
             self._most_voted_estimate is not None, "'most_voted_estimate' field is None"
         )
-        return self._most_voted_estimate
+        return cast(float, self._most_voted_estimate)
 
     @property
     def observations(self) -> Tuple[ObservationPayload, ...]:
@@ -100,7 +102,7 @@ class RegistrationRound(AbstractRound):
 
     round_id = "registration"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the registration round."""
         super().__init__(*args, **kwargs)
 
@@ -114,7 +116,9 @@ class RegistrationRound(AbstractRound):
         # we don't care if it was already there
         self.participants.add(sender)
 
-    def check_registration(self, _payload: RegistrationPayload) -> bool:
+    def check_registration(  # pylint: disable=no-self-use
+        self, _payload: RegistrationPayload
+    ) -> bool:
         """
         Check a registration payload can be applied to the current state.
 
@@ -264,7 +268,7 @@ class EstimateConsensusRound(AbstractRound):
     @property
     def estimate_threshold_reached(self) -> bool:
         """Check that the estimate threshold has been reached."""
-        estimates_counter = Counter()
+        estimates_counter: CounterType = Counter()
         estimates_counter.update(
             payload.estimate for payload in self.participant_to_estimate.values()
         )
@@ -316,7 +320,7 @@ class ConsensusReachedRound(AbstractRound):
         """Initialize a 'consensus-reached' round."""
         super().__init__(consensus_params)
         self.state = state
-        self.final_participant_to_estimate = {}
+        self.final_participant_to_estimate: Dict[str, EstimatePayload] = {}
 
     def estimate(self, payload: EstimatePayload) -> None:
         """Handle an 'estimate' payload."""

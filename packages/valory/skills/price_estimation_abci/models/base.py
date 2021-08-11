@@ -91,7 +91,7 @@ class Transaction(ABC):
             raise ValueError("signature not valid.")
 
 
-class Block:
+class Block:  # pylint: disable=too-few-public-methods
     """Class to represent (a subset of) data of a Tendermint block."""
 
     def __init__(
@@ -153,7 +153,7 @@ class BlockBuilder:
     _current_header: Optional[Header] = None
     _current_transactions: List[Transaction] = []
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the block builder."""
         self.reset()
 
@@ -181,11 +181,11 @@ class BlockBuilder:
         self._current_header = header
 
     @property
-    def transactions(self) -> Tuple[Transaction]:
+    def transactions(self) -> Tuple[Transaction, ...]:
         """Get the sequence of transactions."""
         return tuple(self._current_transactions)
 
-    def add_transaction(self, transaction: Transaction):
+    def add_transaction(self, transaction: Transaction) -> None:
         """Add a transaction."""
         self._current_transactions.append(transaction)
 
@@ -285,20 +285,22 @@ class Period:
         self._in_block_processing = False
 
         self._block_builder = BlockBuilder()
-        self._current_round: AbstractRound = starting_round_cls(consensus_params)
+        self._current_round: Optional[AbstractRound] = starting_round_cls(
+            consensus_params
+        )
 
         self._previous_rounds: List[AbstractRound] = []
         self._round_results: List[Any] = []
 
     @property
-    def is_finished(self):
+    def is_finished(self) -> bool:
         """Check if a period has finished."""
         return self._current_round is None
 
     @property
-    def current_round_id(self) -> str:
+    def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
-        return self._current_round.round_id
+        return self._current_round.round_id if self._current_round else None
 
     @property
     def latest_result(self) -> Optional[Any]:
@@ -326,9 +328,11 @@ class Period:
         """
         if not self._in_block_processing:
             raise ValueError("not processing a block")
-        is_valid = self._current_round.check_transaction(transaction)
+        is_valid = cast(AbstractRound, self._current_round).check_transaction(
+            transaction
+        )
         if is_valid:
-            self._current_round.add_transaction(transaction)
+            cast(AbstractRound, self._current_round).add_transaction(transaction)
             self._block_builder.add_transaction(transaction)
         return is_valid
 
@@ -351,10 +355,11 @@ class Period:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        result = self._current_round.end_block()
+        current_round = cast(AbstractRound, self._current_round)
+        result = current_round.end_block()
         if result is None:
             return
         round_result, next_round = result
-        self._previous_rounds.append(self._current_round)
+        self._previous_rounds.append(current_round)
         self._round_results.append(round_result)
         self._current_round = next_round
