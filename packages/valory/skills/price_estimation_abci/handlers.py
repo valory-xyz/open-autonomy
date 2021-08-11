@@ -21,6 +21,7 @@
 from typing import Optional, cast
 
 from aea.configurations.data_types import PublicId
+from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
@@ -40,7 +41,10 @@ from packages.valory.skills.price_estimation_abci.dialogues import (
     HttpDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.price_estimation_abci.models import ERROR_CODE, Transaction
+from packages.valory.skills.price_estimation_abci.models.base import (
+    ERROR_CODE,
+    Transaction,
+)
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -63,7 +67,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        self.context.state.current_round.begin_block(message.header)
+        self.context.state.period.begin_block(message.header)
         return super().begin_block(message, dialogue)
 
     def check_tx(  # pylint: disable=no-self-use
@@ -76,6 +80,10 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify()
+            enforce(
+                not self.context.state.period.is_finished,
+                "period is finished, cannot accept new transactions",
+            )
         except Exception as exception:  # pylint: disable=broad-except
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
@@ -92,7 +100,12 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify()
-            self.context.state.current_round.deliver_tx(transaction)
+            enforce(
+                not self.context.state.period.is_finished,
+                "period is finished, cannot accept new transactions",
+            )
+            is_valid = self.context.state.period.deliver_tx(transaction)
+            enforce(is_valid, "transaction is not valid")
             # return deliver_tx success
             return super().deliver_tx(message, dialogue)
         except Exception as exception:  # pylint: disable=broad-except
@@ -104,8 +117,15 @@ class ABCIPriceEstimationHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
-        self.context.state.current_round.end_block()
+        self.context.state.period.end_block()
         return super().end_block(message, dialogue)
+
+    def commit(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
+        """Handle the 'commit' request."""
+        self.context.state.period.commit()
+        return super().commit(message, dialogue)
 
     @classmethod
     def _check_tx_failed(

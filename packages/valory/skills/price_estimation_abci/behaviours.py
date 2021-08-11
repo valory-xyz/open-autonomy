@@ -35,12 +35,18 @@ from packages.valory.skills.price_estimation_abci.behaviours_utils import (
     WaitForConditionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
-from packages.valory.skills.price_estimation_abci.models import (
+from packages.valory.skills.price_estimation_abci.models.base import Transaction
+from packages.valory.skills.price_estimation_abci.models.payloads import (
     BaseTxPayload,
     EstimatePayload,
     ObservationPayload,
     RegistrationPayload,
-    Transaction,
+)
+from packages.valory.skills.price_estimation_abci.models.rounds import (
+    CollectObservationRound,
+    ConsensusReachedRound,
+    EstimateConsensusRound,
+    PeriodState,
 )
 from packages.valory.skills.price_estimation_abci.tendermint_rpc import BehaviourUtils
 
@@ -67,7 +73,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         self.register_state(
             "wait_registration_threshold",
             WaitForConditionBehaviour(
-                condition=self.wait_registration_threshold,
+                condition=self.wait_observation_round,
                 name="wait_registration_threshold",
                 skill_context=self.context,
             ),
@@ -79,7 +85,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         self.register_state(
             "wait_observation_threshold",
             WaitForConditionBehaviour(
-                condition=self.wait_observation_threshold,
+                condition=self.wait_estimate_round,
                 name="wait_observation_threshold",
                 skill_context=self.context,
             ),
@@ -92,7 +98,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         self.register_state(
             "wait_estimate_threshold",
             WaitForConditionBehaviour(
-                condition=self.wait_estimate_threshold,
+                condition=self.wait_consensus_round,
                 name="wait_estimate_threshold",
                 skill_context=self.context,
             ),
@@ -132,17 +138,25 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         date = datetime.datetime.now() + datetime.timedelta(0, initial_delay)
         return partial(_check_time, date)
 
-    def wait_registration_threshold(self) -> bool:
+    def wait_observation_round(self) -> bool:
         """Wait registration threshold is reached."""
-        return self.context.state.current_round.registration_threshold_reached
+        return (
+            self.context.state.period.current_round_id
+            == CollectObservationRound.round_id
+        )
 
-    def wait_observation_threshold(self) -> bool:
+    def wait_estimate_round(self) -> bool:
         """Wait observation threshold is reached."""
-        return self.context.state.current_round.observation_threshold_reached
+        return (
+            self.context.state.period.current_round_id
+            == EstimateConsensusRound.round_id
+        )
 
-    def wait_estimate_threshold(self) -> bool:
+    def wait_consensus_round(self) -> bool:
         """Wait estimate threshold is reached."""
-        return self.context.state.current_round.estimate_threshold_reached
+        return (
+            self.context.state.period.current_round_id == ConsensusReachedRound.round_id
+        )
 
 
 class BaseState(
@@ -305,7 +319,9 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self.context.logger.info("Entered in the 'estimate' behaviour state")
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
-        observation_payloads = self.context.state.current_round.observations
+        observation_payloads = cast(
+            PeriodState, self.context.state.period_state
+        ).observations
         observations = [obs_payload.observation for obs_payload in observation_payloads]
         self.context.logger.info(
             f"Using observations {observations} to compute the estimate."
@@ -333,5 +349,7 @@ class EndBehaviour(State):
 
     def act(self) -> None:
         """Do the act."""
-        final_estimate = self.context.state.current_round.most_voted_estimate
+        final_estimate = cast(
+            PeriodState, self.context.state.period_state
+        ).most_voted_estimate
         self.context.logger.info(f"Consensus reached on estimate: {final_estimate}")

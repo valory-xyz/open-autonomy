@@ -34,7 +34,7 @@ from packages.valory.skills.price_estimation_abci.dialogues import (
     HttpDialogue,
     HttpDialogues,
 )
-from packages.valory.skills.price_estimation_abci.models import OK_CODE
+from packages.valory.skills.price_estimation_abci.models.base import OK_CODE
 
 
 class BehaviourUtils(Behaviour, ABC):
