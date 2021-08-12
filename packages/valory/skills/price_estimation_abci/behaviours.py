@@ -170,6 +170,16 @@ class BaseState(
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
         State.__init__(self, **kwargs)
+        self._is_done: bool = False
+
+    def is_done(self) -> bool:
+        """Check whether the state is done."""
+        return self._is_done
+
+    def set_done(self) -> None:
+        """Set the behaviour to done."""
+        self._is_done = True
+        self._event = DONE_EVENT
 
     def handle_signing_failure(self) -> None:
         """Handle signing failure."""
@@ -197,6 +207,9 @@ class BaseState(
         while True:
             response = yield from self.broadcast_tx_commit(transaction.encode())
             response = cast(HttpMessage, response)
+            if not self._check_http_return_code_200(response):
+                self.context.logger.info("Received return code != 200, retrying...")
+                continue
             if self._check_transaction_delivered(response):
                 # done
                 break
@@ -224,17 +237,6 @@ class BaseState(
 class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Register to the next round."""
 
-    is_programmatically_defined = True
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the behaviour."""
-        super().__init__(**kwargs)
-        self._is_done: bool = False
-
-    def is_done(self) -> bool:
-        """Check whether the state is done."""
-        return self._is_done
-
     def async_act(self) -> None:  # type: ignore
         """
         Do the action.
@@ -248,24 +250,11 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         payload = RegistrationPayload(self.context.agent_address)
         yield from self._send_transaction(payload)
         self.context.logger.info("'registration' behaviour state is done")
-        # set flag 'done' and event to "done"
-        self._is_done = True
-        self._event = DONE_EVENT
+        self.set_done()
 
 
 class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Observe price estimate."""
-
-    is_programmatically_defined = True
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the behaviour."""
-        super().__init__(**kwargs)
-        self._is_done: bool = False
-
-    def is_done(self) -> bool:
-        """Check whether the state is done."""
-        return self._is_done
 
     def async_act(self) -> Generator:
         """
@@ -287,24 +276,11 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         payload = ObservationPayload(self.context.agent_address, observation)
         yield from self._send_transaction(payload)
         self.context.logger.info("'observation' behaviour state is done")
-        # set flag 'done' and event to "done"
-        self._is_done = True
-        self._event = DONE_EVENT
+        self.set_done()
 
 
 class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Estimate price."""
-
-    is_programmatically_defined = True
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the behaviour."""
-        super().__init__(**kwargs)
-        self._is_done: bool = False
-
-    def is_done(self) -> bool:
-        """Check whether the state is done."""
-        return self._is_done
 
     def async_act(self) -> Generator:
         """
@@ -333,9 +309,7 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         payload = EstimatePayload(self.context.agent_address, estimate)
         yield from self._send_transaction(payload)
         self.context.logger.info("'estimate' behaviour state is done")
-        # set flag 'done' and event to "done"
-        self._is_done = True
-        self._event = DONE_EVENT
+        self.set_done()
 
 
 class EndBehaviour(State):
