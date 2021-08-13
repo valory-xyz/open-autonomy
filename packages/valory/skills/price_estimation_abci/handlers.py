@@ -89,7 +89,6 @@ class ABCIPriceEstimationHandler(ABCIHandler):
                 message, dialogue, exception_to_info_msg(exception)
             )
 
-        # return check_tx success
         return super().check_tx(message, dialogue)
 
     def deliver_tx(  # pylint: disable=no-self-use
@@ -105,13 +104,15 @@ class ABCIPriceEstimationHandler(ABCIHandler):
                 "period is finished, cannot accept new transactions",
             )
             is_valid = self.context.state.period.deliver_tx(transaction)
-            enforce(is_valid, "transaction is not valid")
-            # return deliver_tx success
-            return super().deliver_tx(message, dialogue)
+            enforce(
+                is_valid,
+                f"transaction of type '{transaction.payload.transaction_type.value}' is not valid",
+            )
         except Exception as exception:  # pylint: disable=broad-except
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+        return super().deliver_tx(message, dialogue)
 
     def end_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
@@ -152,7 +153,7 @@ class ABCIPriceEstimationHandler(ABCIHandler):
     ) -> AbciMessage:
         """Handle a failed deliver_tx request."""
         reply = dialogue.reply(
-            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
             target_message=message,
             code=ERROR_CODE,
             data=b"",
@@ -187,29 +188,65 @@ class HttpHandler(Handler):
             Optional[HttpDialogue], http_dialogues.update(http_message)
         )
         if http_dialogue is None:
-            self.context.logger.warning(
-                "something went wrong when adding the incoming HTTP message to the dialogue."
-            )
+            self._handle_unidentified_dialogue(http_message)
             return
 
-        if (
-            http_message.performative != HttpMessage.Performative.RESPONSE
-            or http_message.status_code != 200
-        ):
-            self.context.logger.info(
-                f"response not valid: performative={http_message.performative}, "
-                f"status_code={http_message.status_code}"
-            )
+        if http_message.performative != HttpMessage.Performative.RESPONSE:
+            self._handle_no_requests(http_message)
             return
 
         request_nonce = http_dialogue.dialogue_label.dialogue_reference[0]
         callback = self.context.state.request_id_to_callback.pop(request_nonce, None)
         if callback is None:
-            self.context.logger.warning(
-                f"callback not specified for request with nonce {request_nonce}"
-            )
+            self._handle_no_callback(http_message, http_dialogue)
             return
+
+        if http_message.status_code != 200:
+            self.context.logger.info(
+                f"response not valid: performative={http_message.performative}, "
+                f"status_code={http_message.status_code}"
+            )
+            callback(http_message)
+            return
+
         callback(http_message)
+
+    def _handle_unidentified_dialogue(self, msg: Message) -> None:
+        """
+        Handle an unidentified dialogue.
+
+        :param msg: the unidentified message to be handled
+        """
+        self.context.logger.info(
+            "received invalid message={}, unidentified dialogue.".format(msg)
+        )
+
+    def _handle_no_callback(self, _message: Message, dialogue: HttpDialogue) -> None:
+        """
+        Handle no callback found.
+
+        :param _message: the message to be handled
+        :param dialogue: the http dialogue
+        """
+        request_nonce = dialogue.dialogue_label.dialogue_reference[0]
+        self.context.logger.warning(
+            f"callback not specified for request with nonce {request_nonce}"
+        )
+
+    def _handle_no_requests(self, message: HttpMessage) -> None:
+        """
+        Handle HTTP responses.
+
+        Log an error message saying that the handler did not expect requests
+        but only responses.
+
+        :param message: the message
+        """
+        self.context.logger.warning(
+            "invalid message={}, expected HTTP response, got HTTP request.".format(
+                message
+            )
+        )
 
 
 class SigningHandler(Handler):
