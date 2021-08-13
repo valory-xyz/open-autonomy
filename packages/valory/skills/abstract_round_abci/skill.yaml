@@ -1,0 +1,38 @@
+name: abstract_round_abci
+author: valory
+version: 0.1.0
+type: skill
+description: abstract round-based ABCI application
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
+  __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
+  base_models.py: QmdovAkGJRBei8ZvGNgP1jcBySeBv5G96DmW3K7A7557Km
+  dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
+  handlers.py: QmXdTJ7trPwHgaBA8kBxjTNkxtp9NJ7D9vpMYwZg8WHxvb
+  shared_state.py: QmZqPHTcNUTQhq9t7fjWLpoPhniVi4dTQxrTd2vHSh5REb
+  utils.py: QmR6CJQKcqQJQ8p8SPajmuqNZ9MuYofNLrma9sFbfrSosw
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+contracts: []
+protocols:
+- valory/abci:0.1.0
+skills:
+- valory/abstract_abci:0.1.0
+behaviours: {}
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIRoundHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  state:
+    args:
+      initial_round_cls: null
+    class_name: SharedState
+dependencies: {}
+is_abstract: true
