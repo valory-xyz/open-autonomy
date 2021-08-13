@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the handler for the 'price_estimation_abci' skill."""
+"""This module contains the handler for the 'abstract_round_abci' skill."""
 from typing import cast
 
 from aea.exceptions import enforce
@@ -25,11 +25,11 @@ from aea.exceptions import enforce
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import Events
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
-from packages.valory.skills.price_estimation_abci.dialogues import AbciDialogue
-from packages.valory.skills.price_estimation_abci.models.base import (
+from packages.valory.skills.abstract_round_abci.base_models import (
     ERROR_CODE,
     Transaction,
 )
+from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -65,10 +65,7 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify()
-            enforce(
-                not self.context.state.period.is_finished,
-                "period is finished, cannot accept new transactions",
-            )
+            self.context.state.period.check_is_finished()
         except Exception as exception:  # pylint: disable=broad-except
             self._log_exception(exception)
             return self._check_tx_failed(
@@ -86,10 +83,7 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify()
-            enforce(
-                not self.context.state.period.is_finished,
-                "period is finished, cannot accept new transactions",
-            )
+            self.context.state.period.check_is_finished()
             is_valid = self.context.state.period.deliver_tx(transaction)
             enforce(is_valid, "transaction is not valid")
         except Exception as exception:  # pylint: disable=broad-except

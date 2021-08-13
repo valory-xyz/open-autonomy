@@ -29,13 +29,13 @@ from aea_ledger_ethereum import EthereumCrypto
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.fetchai.protocols.signing.custom_types import RawMessage, Terms
+from packages.valory.skills.abstract_round_abci.base_models import Transaction
 from packages.valory.skills.price_estimation_abci.behaviours_utils import (
     AsyncBehaviour,
     DONE_EVENT,
     WaitForConditionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
-from packages.valory.skills.price_estimation_abci.models.base import Transaction
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     BaseTxPayload,
     EstimatePayload,

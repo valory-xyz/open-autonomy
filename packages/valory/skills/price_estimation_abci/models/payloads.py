@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the price_estimation app."""
 from enum import Enum
 
-from packages.valory.skills.price_estimation_abci.models.base import BaseTxPayload
+from packages.valory.skills.abstract_round_abci.base_models import BaseTxPayload
 
 
 class TransactionType(Enum):

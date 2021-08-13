@@ -29,12 +29,12 @@ from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
 )
 from packages.fetchai.protocols.http import HttpMessage
+from packages.valory.skills.abstract_round_abci.base_models import OK_CODE
 from packages.valory.skills.price_estimation_abci.behaviours_utils import AsyncBehaviour
 from packages.valory.skills.price_estimation_abci.dialogues import (
     HttpDialogue,
     HttpDialogues,
 )
-from packages.valory.skills.price_estimation_abci.models.base import OK_CODE
 
 
 class BehaviourUtils(Behaviour, ABC):
@@ -60,7 +60,7 @@ class BehaviourUtils(Behaviour, ABC):
             self_ = cast(AsyncBehaviour, self_)
             self_.try_send(message)
 
-        self.context.state.request_id_to_callback[request_nonce] = partial(
+        self.context.requests.request_id_to_callback[request_nonce] = partial(
             write_message, self
         )
 

@@ -43,9 +43,7 @@ class SharedState(Model):
 
     def setup(self) -> None:
         """Set up the model."""
-        self.period = Period(
-            self.context.params.consensus_params, self.initial_round_cls
-        )
+        self.period = Period(self.initial_round_cls)
 
     @classmethod
     def _process_initial_round_cls(
@@ -56,7 +54,7 @@ class SharedState(Model):
             raise ValueError("'initial_round_cls' must be set")
         initial_round_cls = locate(initial_round_cls_dotted_path)
         if initial_round_cls is None:
-            raise ValueError("'initial_round_cls' must be set")
+            raise ValueError("'initial_round_cls' not found")
         if not inspect.isclass(initial_round_cls):
             raise ValueError(f"The object {initial_round_cls} is not a class")
         if not issubclass(initial_round_cls, AbstractRound):

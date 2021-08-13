@@ -45,15 +45,13 @@ def locate(path: str) -> Any:
         spec_name = ".".join(parts[: i + 1])
         module_location = os.path.join(file_location, "__init__.py")
         spec = importlib.util.spec_from_file_location(spec_name, module_location)
-        if spec is None:
+        nextmodule = _get_module(spec)  # type: ignore
+        if nextmodule is None:
             module_location = file_location + ".py"
             spec = importlib.util.spec_from_file_location(spec_name, module_location)
-            if spec is None:
-                continue
+            nextmodule = _get_module(spec)  # type: ignore
 
-        nextmodule = _get_module(spec)
-
-        if nextmodule:
+        if os.path.exists(file_location) or nextmodule:
             module, i = nextmodule, i + 1
         else:  # pragma: nocover
             break

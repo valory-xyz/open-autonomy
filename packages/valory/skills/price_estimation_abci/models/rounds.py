@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the price estimation ABCI application."""
+from abc import ABC
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
@@ -27,7 +28,7 @@ from typing import Dict, FrozenSet, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
-from packages.valory.skills.price_estimation_abci.models.base import AbstractRound
+from packages.valory.skills.abstract_round_abci.base_models import AbstractRound
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     EstimatePayload,
     ObservationPayload,
@@ -90,7 +91,18 @@ class PeriodState:
         return tuple(self.participant_to_observations.values())
 
 
-class RegistrationRound(AbstractRound):
+class BaseRound(AbstractRound, ABC):
+    """Base round class for the price_estimation_abci skill."""
+
+    def __init__(
+        self, consensus_params: ConsensusParams, *args: Any, **kwargs: Any
+    ) -> None:
+        """Initialize the base round."""
+        super().__init__(*args, **kwargs)
+        self._consensus_params = consensus_params
+
+
+class RegistrationRound(BaseRound):
     """
     This class represents the registration round.
 
@@ -144,7 +156,7 @@ class RegistrationRound(AbstractRound):
         return None
 
 
-class CollectObservationRound(AbstractRound):
+class CollectObservationRound(BaseRound):
     """
     This class represents the 'collect-observation' round.
 
@@ -156,9 +168,15 @@ class CollectObservationRound(AbstractRound):
 
     round_id = "collect_observation"
 
-    def __init__(self, state: PeriodState, consensus_params: ConsensusParams):
+    def __init__(
+        self,
+        state: PeriodState,
+        consensus_params: ConsensusParams,
+        *args: Any,
+        **kwargs: Any
+    ):
         """Initialize the 'collect-observation' round."""
-        super().__init__(consensus_params)
+        super().__init__(consensus_params, *args, **kwargs)
         self.state = state
 
         self.participant_to_observations: Dict[str, ObservationPayload] = {}
@@ -216,7 +234,7 @@ class CollectObservationRound(AbstractRound):
         return None
 
 
-class EstimateConsensusRound(AbstractRound):
+class EstimateConsensusRound(BaseRound):
     """
     This class represents the 'estimate_consensus' round.
 
@@ -226,9 +244,15 @@ class EstimateConsensusRound(AbstractRound):
 
     round_id = "estimate_consensus"
 
-    def __init__(self, state: PeriodState, consensus_params: ConsensusParams):
+    def __init__(
+        self,
+        state: PeriodState,
+        consensus_params: ConsensusParams,
+        *args: Any,
+        **kwargs: Any
+    ):
         """Initialize the 'estimate consensus' round."""
-        super().__init__(consensus_params)
+        super().__init__(consensus_params, *args, **kwargs)
         self.state = state
 
         self.participant_to_estimate: Dict[str, EstimatePayload] = {}
@@ -304,7 +328,7 @@ class EstimateConsensusRound(AbstractRound):
         return None
 
 
-class ConsensusReachedRound(AbstractRound):
+class ConsensusReachedRound(BaseRound):
     """
     This class represents the 'consensus-reached' round.
 
@@ -316,9 +340,15 @@ class ConsensusReachedRound(AbstractRound):
 
     round_id = "consensus_reached"
 
-    def __init__(self, state: PeriodState, consensus_params: ConsensusParams):
+    def __init__(
+        self,
+        state: PeriodState,
+        consensus_params: ConsensusParams,
+        *args: Any,
+        **kwargs: Any
+    ) -> None:
         """Initialize a 'consensus-reached' round."""
-        super().__init__(consensus_params)
+        super().__init__(consensus_params, *args, **kwargs)
         self.state = state
         self.final_participant_to_estimate: Dict[str, EstimatePayload] = {}
 
