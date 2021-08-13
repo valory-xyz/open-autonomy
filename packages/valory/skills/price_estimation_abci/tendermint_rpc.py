@@ -117,3 +117,8 @@ class BehaviourUtils(Behaviour, ABC):
         json_body = json.loads(response.body)
         deliver_tx_response = json_body["result"]["deliver_tx"]
         return deliver_tx_response["code"] == OK_CODE
+
+    @classmethod
+    def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
+        """Check the HTTP response has return code 200."""
+        return response.status_code == 200
