@@ -96,6 +96,7 @@ class TestABCICounterSkillMany(AEATestCaseMany):
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
             )
+            self.run_install()
 
         for agent_name in self.agent_names:
             logging.debug(f"Launching agent {agent_name}...")
