@@ -12,7 +12,7 @@ fingerprint:
   dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
   handlers.py: QmXdTJ7trPwHgaBA8kBxjTNkxtp9NJ7D9vpMYwZg8WHxvb
   shared_state.py: QmZqPHTcNUTQhq9t7fjWLpoPhniVi4dTQxrTd2vHSh5REb
-  utils.py: QmR6CJQKcqQJQ8p8SPajmuqNZ9MuYofNLrma9sFbfrSosw
+  utils.py: QmSyD2P2n7hSdkrXPNBjVXGtmpNbqwfEEqnct8d66DsMi1
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

@@ -39,27 +39,29 @@ def _get_module(spec: ModuleSpec) -> Optional[types.ModuleType]:
 def locate(path: str) -> Any:
     """Locate an object by name or dotted save_path, importing as necessary."""
     parts = [part for part in path.split(".") if part]
-    module, n = None, 0
-    while n < len(parts):
-        file_location = os.path.join(*parts[: n + 1])
-        spec_name = ".".join(parts[: n + 1])
+    module, i = None, 0
+    while i < len(parts):
+        file_location = os.path.join(*parts[: i + 1])
+        spec_name = ".".join(parts[: i + 1])
         module_location = os.path.join(file_location, "__init__.py")
         spec = importlib.util.spec_from_file_location(spec_name, module_location)
-        nextmodule = _get_module(spec)
-        if nextmodule is None:
+        if spec is None:
             module_location = file_location + ".py"
             spec = importlib.util.spec_from_file_location(spec_name, module_location)
-            nextmodule = _get_module(spec)
+            if spec is None:
+                continue
+
+        nextmodule = _get_module(spec)
 
         if nextmodule:
-            module, n = nextmodule, n + 1
+            module, i = nextmodule, i + 1
         else:  # pragma: nocover
             break
     if module:
         object_ = module
     else:
         object_ = builtins
-    for part in parts[n:]:
+    for part in parts[i:]:
         try:
             object_ = getattr(object_, part)
         except AttributeError:
