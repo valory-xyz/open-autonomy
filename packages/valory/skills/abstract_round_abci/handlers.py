@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_round_abci.base_models import (
     ERROR_CODE,
     Transaction,
 )
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationConsensusBehaviour,
@@ -297,7 +298,7 @@ class SigningHandler(Handler):
             RegistrationBehaviour, fsm_behaviour.get_state(current_state_name)
         )
         # send failure
-        registration_state.try_send(signing_msg.signed_message)
+        registration_state.try_send(signing_msg)
 
     def _handle_unidentified_dialogue(self, signing_msg: SigningMessage) -> None:
         """
@@ -337,11 +338,11 @@ class SigningHandler(Handler):
                 PriceEstimationConsensusBehaviour, self.context.behaviours.main
             )
             current_state_name = cast(str, fsm_behaviour.current)
-            registration_state = cast(
-                RegistrationBehaviour, fsm_behaviour.get_state(current_state_name)
+            behaviour_state = cast(
+                BaseState, fsm_behaviour.get_state(current_state_name)
             )
             # send failure
-            registration_state.try_send(None)
+            behaviour_state.try_send(signing_msg)
 
     def _handle_invalid(
         self, signing_msg: SigningMessage, signing_dialogue: SigningDialogue

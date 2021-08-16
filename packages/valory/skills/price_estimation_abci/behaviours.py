@@ -39,6 +39,7 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     ConsensusReachedRound,
     EstimateConsensusRound,
     PeriodState,
+    RegistrationRound,
 )
 
 
@@ -164,7 +165,8 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         """
         self.context.logger.info("Entered in the 'registration' behaviour state")
         payload = RegistrationPayload(self.context.agent_address)
-        yield from self._send_transaction(payload)
+        stop_condition = self.is_round_ended(RegistrationRound.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
         self.context.logger.info("'registration' behaviour state is done")
         self.set_done()
 
@@ -190,7 +192,8 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             f"Got observation of {currency_id} price in {convert_id} from {self.context.price_api.api_id}: {observation}"
         )
         payload = ObservationPayload(self.context.agent_address, observation)
-        yield from self._send_transaction(payload)
+        stop_condition = self.is_round_ended(CollectObservationRound.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
         self.context.logger.info("'observation' behaviour state is done")
         self.set_done()
 
@@ -223,7 +226,8 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             f"Got estimate of {currency_id} price in {convert_id}: {estimate}"
         )
         payload = EstimatePayload(self.context.agent_address, estimate)
-        yield from self._send_transaction(payload)
+        stop_condition = self.is_round_ended(EstimateConsensusRound.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
         self.context.logger.info("'estimate' behaviour state is done")
         self.set_done()
 

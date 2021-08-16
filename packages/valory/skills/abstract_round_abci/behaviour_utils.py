@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes for behaviours."""
+import inspect
 import json
 from abc import ABC
 from functools import partial
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
 
+from aea.protocols.base import Message
 from aea.skills.base import Behaviour
 from aea.skills.behaviours import State
 from aea_ledger_ethereum import EthereumCrypto
@@ -88,13 +90,16 @@ class AsyncBehaviour:
         """Wait for message."""
         self._condition = condition
         message = yield
-        return message
+        return cast(Message, message)
 
     def act(self) -> None:
         """Do the act."""
         if not self._called_once:
             self._called_once = True
             self._generator_act = self.async_act()
+            if not inspect.isgenerator(self._generator_act):
+                self._called_once = False
+                return
             self.generator_act.send(None)  # trigger first execution
             return
         if self._notified:
@@ -234,6 +239,18 @@ class BaseState(
         State.__init__(self, **kwargs)
         self._is_done: bool = False
 
+    def check_in_round(self, round_id: str) -> bool:
+        """Check that we entered in a specific round."""
+        return self.context.state.period.current_round_id == round_id
+
+    def check_not_in_round(self, round_id: str) -> bool:
+        """Check that we are not in a specific round."""
+        return self.context.state.period.current_round_id != round_id
+
+    def is_round_ended(self, round_id: str) -> Callable[[], bool]:
+        """Get a callable to check whether the current round has ended."""
+        return partial(self.check_not_in_round, round_id)
+
     def is_done(self) -> bool:
         """Check whether the state is done."""
         return self._is_done
@@ -247,9 +264,11 @@ class BaseState(
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
 
-    def _send_transaction(self, payload: BaseTxPayload) -> Generator:
+    def _send_transaction(
+        self, payload: BaseTxPayload, stop_condition: Callable[[], bool] = lambda: False
+    ) -> Generator:
         """
-        Send transaction and wait for the response.
+        Send transaction and wait for the response, and repeat until not successful.
 
         Steps:
         - Request the signature of the payload to the Decision Maker
@@ -257,16 +276,19 @@ class BaseState(
           and wait/repeat until the transaction is not mined.
 
         :param: payload: the payload to send
+        :param: stop_condition: the condition to be checked to interrupt the waiting loop.
         :yield: the responses
         """
-        self._send_signing_request(payload.encode())
-        signature = yield from self.wait_for_message()
-        if signature is None:
-            self.handle_signing_failure()
-            return
-        signature_bytes = signature.body
-        transaction = Transaction(payload, signature_bytes)
-        while True:
+        while not stop_condition():
+            self._send_signing_request(payload.encode())
+            signature_response = yield from self.wait_for_message()
+            signature_response = cast(SigningMessage, signature_response)
+            if signature_response.performative == SigningMessage.Performative.ERROR:
+                self.handle_signing_failure()
+                continue
+            signature_bytes = signature_response.signed_message.body
+            transaction = Transaction(payload, signature_bytes)
+
             response = yield from self.broadcast_tx_commit(transaction.encode())
             response = cast(HttpMessage, response)
             if not self._check_http_return_code_200(response):
@@ -275,7 +297,7 @@ class BaseState(
             if self._check_transaction_delivered(response):
                 # done
                 break
-            # otherwise, repeat until done
+            # otherwise, repeat until done, or until stop condition is true
 
     def _send_signing_request(self, raw_message: bytes) -> None:
         """Send a signing request."""
