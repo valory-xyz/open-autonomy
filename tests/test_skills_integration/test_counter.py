@@ -30,8 +30,11 @@ import pytest
 import requests
 from aea.test_tools.test_cases import AEATestCaseEmpty, AEATestCaseMany
 
-from tests.conftest import UseTendermint
-from tests.helpers.tendermint_utils import TendermintLocalNetworkBuilder
+from tests.conftest import DEFAULT_REQUESTS_TIMEOUT, UseTendermint
+from tests.helpers.tendermint_utils import (
+    BaseTendermintTestClass,
+    TendermintLocalNetworkBuilder,
+)
 
 
 @pytest.mark.integration
@@ -79,7 +82,7 @@ class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
         ), "ABCI agent wasn't successfully terminated."
 
 
-class TestABCICounterSkillMany(AEATestCaseMany):
+class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
     """Test that the ABCI counter skill works together with Tendermint."""
 
     IS_LOCAL = False
@@ -142,7 +145,8 @@ class TestABCICounterSkillMany(AEATestCaseMany):
             process = self.run_agent()
             processes.append(process)
 
-        time.sleep(2.0)
+        logging.info("Waiting Tendermint nodes to be up")
+        self.health_check(self.tendermint_net_builder)
 
         # start test of the ABCI app
         # check that the initial counter state is 0
@@ -195,7 +199,7 @@ class TestABCICounterSkillMany(AEATestCaseMany):
         result = requests.get(
             node.get_http_addr("localhost") + "/broadcast_tx_commit",
             params=dict(tx=tx_arg),
-            timeout=5.0,
+            timeout=DEFAULT_REQUESTS_TIMEOUT,
         )
         assert result.status_code == expected_status_code
 
@@ -207,7 +211,10 @@ class TestABCICounterSkillMany(AEATestCaseMany):
         :param agent_id: the agent to be queried
         """
         node = self.tendermint_net_builder.nodes[agent_id]
-        result = requests.get(node.get_http_addr("localhost") + "/abci_query")
+        result = requests.get(
+            node.get_http_addr("localhost") + "/abci_query",
+            timeout=DEFAULT_REQUESTS_TIMEOUT,
+        )
         assert result.status_code == 200
         counter_value_base64 = result.json()["result"]["response"]["value"].encode(
             "ascii"
