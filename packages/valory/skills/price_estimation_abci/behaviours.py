@@ -19,25 +19,17 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import datetime
-from abc import ABC
 from functools import partial
-from typing import Any, Callable, Generator, cast
+from typing import Callable, Generator, cast
 
 from aea.skills.behaviours import FSMBehaviour, State
-from aea_ledger_ethereum import EthereumCrypto
 
-from packages.fetchai.protocols.http import HttpMessage
-from packages.fetchai.protocols.signing import SigningMessage
-from packages.fetchai.protocols.signing.custom_types import RawMessage, Terms
-from packages.valory.skills.abstract_round_abci.base_models import Transaction
-from packages.valory.skills.price_estimation_abci.behaviours_utils import (
-    AsyncBehaviour,
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
     DONE_EVENT,
     WaitForConditionBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.dialogues import SigningDialogues
 from packages.valory.skills.price_estimation_abci.models.payloads import (
-    BaseTxPayload,
     EstimatePayload,
     ObservationPayload,
     RegistrationPayload,
@@ -48,7 +40,6 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     EstimateConsensusRound,
     PeriodState,
 )
-from packages.valory.skills.price_estimation_abci.tendermint_rpc import BehaviourUtils
 
 
 class PriceEstimationConsensusBehaviour(FSMBehaviour):
@@ -157,81 +148,6 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         return (
             self.context.state.period.current_round_id == ConsensusReachedRound.round_id
         )
-
-
-class BaseState(
-    AsyncBehaviour, State, BehaviourUtils, ABC
-):  # pylint: disable=too-many-ancestors
-    """Base class for FSM states."""
-
-    is_programmatically_defined = True
-
-    def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
-        """Initialize a base state behaviour."""
-        AsyncBehaviour.__init__(self)
-        State.__init__(self, **kwargs)
-        self._is_done: bool = False
-
-    def is_done(self) -> bool:
-        """Check whether the state is done."""
-        return self._is_done
-
-    def set_done(self) -> None:
-        """Set the behaviour to done."""
-        self._is_done = True
-        self._event = DONE_EVENT
-
-    def handle_signing_failure(self) -> None:
-        """Handle signing failure."""
-        self.context.logger.error("the transaction could not be signed.")
-
-    def _send_transaction(self, payload: BaseTxPayload) -> Generator:
-        """
-        Send transaction and wait for the response.
-
-        Steps:
-        - Request the signature of the payload to the Decision Maker
-        - Send the transaction to the 'price-estimation' app via the Tendermint node,
-          and wait/repeat until the transaction is not mined.
-
-        :param: payload: the payload to send
-        :yield: the responses
-        """
-        self._send_signing_request(payload.encode())
-        signature = yield from self.wait_for_message()
-        if signature is None:
-            self.handle_signing_failure()
-            return
-        signature_bytes = signature.body
-        transaction = Transaction(payload, signature_bytes)
-        while True:
-            response = yield from self.broadcast_tx_commit(transaction.encode())
-            response = cast(HttpMessage, response)
-            if not self._check_http_return_code_200(response):
-                self.context.logger.info("Received return code != 200, retrying...")
-                continue
-            if self._check_transaction_delivered(response):
-                # done
-                break
-            # otherwise, repeat until done
-
-    def _send_signing_request(self, raw_message: bytes) -> None:
-        """Send a signing request."""
-        signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
-        signing_msg, _ = signing_dialogues.create(
-            counterparty=self.context.decision_maker_address,
-            performative=SigningMessage.Performative.SIGN_MESSAGE,
-            raw_message=RawMessage(EthereumCrypto.identifier, raw_message),
-            terms=Terms(
-                ledger_id=EthereumCrypto.identifier,
-                sender_address="",
-                counterparty_address="",
-                amount_by_currency_id={},
-                quantities_by_good_id={},
-                nonce="",
-            ),
-        )
-        self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
 
 class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors

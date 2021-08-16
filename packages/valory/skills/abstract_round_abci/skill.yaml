@@ -9,15 +9,18 @@ fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
   base_models.py: Qmbp58RGt6cqt5K4zPNry9nHUoYfdN6XFKv3PxDPnTdcMt
-  dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
-  handlers.py: QmbkrGjMo2tzZsNnoSTcvcJ1Mr9DAhwxqqsK5FunY6y68r
-  shared_state.py: QmeWtrVXDyszjVgwQKd6vf2ypMBkvq4i1rpbbkRSjeSRL7
+  behaviour_utils.py: QmZWg2jUpToTm4PmiWR32ndVkZvrBqTYuSQuUvEvfq2jHb
+  dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
+  handlers.py: QmXNAyQQBcC2cEdjE6RGC1jEPFkHppgLazJ1pBP2pZXA8M
+  models.py: QmejWpeAFB98ncmdhyt3aFVK2pzQDFSyXMBWDovMMhZjE3
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
 connections:
+- fetchai/http_client:0.22.0
 - valory/abci:0.1.0
 contracts: []
 protocols:
+- fetchai/http:1.0.0
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
@@ -26,10 +29,25 @@ handlers:
   abci:
     args: {}
     class_name: ABCIRoundHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
 models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
   state:
     args:
       initial_round_cls: null
