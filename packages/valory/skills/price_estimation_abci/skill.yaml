@@ -9,19 +9,18 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmYKbZocAQSPmWzHPsLKQDgcwTR8iuwTGc5vYLXrykcw4c
+  behaviours.py: QmSGawS7aLtJbzA9d7bjE9iZ2L6Cv1vrMdBGger3CbYfnz
   behaviours_utils.py: QmbiNqfucs13GZkDBn1e1WDS2Ez8T3VhnCC6GChbxyHBuM
-  dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
+  dialogues.py: Qmb1GwdWhqw1cruAW6EXAxSf7QdtC2CY6eLbjYY74cHsQN
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
-  handlers.py: QmPMNerQ2J9JrUG31iZTUF4JsapXyDBVTSStgG6idJmTeK
+  handlers.py: QmU1KHv33cxMDyFct4hCFHtrwzqa6t1azFEBmSWdvAPxZF
   models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
-  models/base.py: QmdovAkGJRBei8ZvGNgP1jcBySeBv5G96DmW3K7A7557Km
-  models/payloads.py: QmZtbTg9hbGWvpZYDmwTHGgejRPaHne2wHPJo9dLcpUc9n
-  models/rounds.py: QmTRyS16w1U6rQwQE2UkTmNg52En9wyqnkp6CPXiwPkivK
+  models/payloads.py: QmP6cHeQwSoJQyAADuDgukdvQtYShYpMBVj31AjzRJypGE
+  models/rounds.py: QmXCt9xyDeQAB7R1Sh3hqzNHBcN4brhSXgBCRsZDY3H5hr
   params.py: QmPf5jHGZb86wsj8akNgtKPSUmWYw6PyAgdBf28JGj2RtB
   price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
-  shared_state.py: QmTYfDR1oRVBZx4WAEaVgioX2Mg37wvSZkhjgCFhVwurYx
-  tendermint_rpc.py: QmeJBmHQjR85GyHWzedZpAEztStJcMEzAX86fcANakMZz7
+  state_models.py: QmQTvDGXVZRoYMmzrybmVdNypsNqCvCJ65kktC1ynh3xqz
+  tendermint_rpc.py: Qmd3X7UibvXKjjX8gNGWm6yN1QQ4qFTDv9qmD1ra94hiy8
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
@@ -31,7 +30,7 @@ protocols:
 - fetchai/http:1.0.0
 - valory/abci:0.1.0
 skills:
-- valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
 behaviours:
   main:
     args: {}
@@ -70,11 +69,15 @@ models:
       api_key: null
       source_id: coingecko
     class_name: PriceApi
+  requests:
+    args: {}
+    class_name: Requests
   signing_dialogues:
     args: {}
     class_name: SigningDialogues
   state:
-    args: {}
+    args:
+      initial_round_cls: vendor.valory.skills.price_estimation_abci.models.rounds.RegistrationRound
     class_name: SharedState
 dependencies:
   coinmarketcap:

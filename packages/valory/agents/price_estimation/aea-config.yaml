@@ -18,6 +18,7 @@ protocols:
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
 - valory/price_estimation_abci:0.1.0
 default_ledger: ethereum
 required_ledgers:
@@ -38,11 +39,3 @@ type: connection
 config:
   target_skill_id: valory/price_estimation_abci:0.1.0
   use_tendermint: false
----
-public_id: valory/price_estimation_abci:0.1.0
-type: skill
-models:
-  params:
-    args:
-      consensus:
-        max_participants: 1

@@ -19,21 +19,36 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
-from typing import Any, Callable, Dict, Optional, cast
+from typing import Any, Callable, Dict, cast
 
+from aea.exceptions import enforce
 from aea.skills.base import Model
 
-from packages.valory.skills.price_estimation_abci.models.base import Period
-from packages.valory.skills.price_estimation_abci.models.rounds import (
-    PeriodState,
-    RegistrationRound,
+from packages.valory.skills.abstract_round_abci.shared_state import (
+    SharedState as BaseSharedState,
 )
+from packages.valory.skills.price_estimation_abci.models.rounds import PeriodState
 
 
-class SharedState(Model):
-    """Keep the current shared state."""
+class SharedState(BaseSharedState):
+    """Shared state."""
 
-    period: Period
+    def setup(self) -> None:
+        """Set up."""
+        super().setup()
+        consensus_params = self.context.params.consensus_params
+        self.period.setup(consensus_params)
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Get the period state if available."""
+        period_state = self.period.latest_result
+        enforce(period_state is not None, "period state not available")
+        return cast(PeriodState, period_state)
+
+
+class Requests(Model):
+    """Keep the current pending requests."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
@@ -41,13 +56,3 @@ class SharedState(Model):
 
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
-
-    def setup(self) -> None:
-        """Set up the model."""
-        self.period = Period(self.context.params.consensus_params, RegistrationRound)
-
-    @property
-    def period_state(self) -> Optional[PeriodState]:
-        """Get the period state if available."""
-        latest_result = self.period.latest_result
-        return cast(Optional[PeriodState], latest_result)

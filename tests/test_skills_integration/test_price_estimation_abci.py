@@ -33,7 +33,6 @@ class TestABCICounterSkillMany(AEATestCaseMany):
     IS_LOCAL = False
     capture_log = True
     NB_AGENTS = 4
-    cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
         """Run the ABCI skill."""
@@ -96,7 +95,11 @@ class TestABCICounterSkillMany(AEATestCaseMany):
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
             )
-            self.run_install()
+            logging.debug("Running 'aea install'...")
+
+        # run 'aea install' in only one AEA project, to save time
+        self.set_agent_context(self.agent_names[0])
+        self.run_install()
 
         for agent_name in self.agent_names:
             logging.debug(f"Launching agent {agent_name}...")

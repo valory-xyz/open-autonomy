@@ -28,7 +28,6 @@ from eth_account import Account
 from eth_account.messages import encode_defunct
 
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.price_estimation_abci.params import ConsensusParams
 
 
 OK_CODE = 0
@@ -208,9 +207,8 @@ class AbstractRound(ABC):
 
     round_id: str
 
-    def __init__(self, consensus_params: ConsensusParams) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the round."""
-        self._consensus_params = consensus_params
 
     def check_transaction(self, transaction: Transaction) -> bool:
         """
@@ -273,11 +271,8 @@ class AbstractRound(ABC):
 class Period:
     """This class represents a period (i.e. a sequence of rounds)"""
 
-    def __init__(
-        self, consensus_params: ConsensusParams, starting_round_cls: Type[AbstractRound]
-    ):
+    def __init__(self, starting_round_cls: Type[AbstractRound]):
         """Initialize the round."""
-        self._consensus_params = consensus_params
         self._blockchain = Blockchain()
 
         # this flag is set when the object has not finished processing a block.
@@ -285,17 +280,30 @@ class Period:
         self._in_block_processing = False
 
         self._block_builder = BlockBuilder()
-        self._current_round: Optional[AbstractRound] = starting_round_cls(
-            consensus_params
-        )
+        self._starting_round_cls = starting_round_cls
+        self._current_round: Optional[AbstractRound] = None
 
         self._previous_rounds: List[AbstractRound] = []
         self._round_results: List[Any] = []
+
+    def setup(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Set up the period.
+
+        :param args: the arguments to pass to the round constructor.
+        :param kwargs: the keyword-arguments to pass to the round constructor.
+        """
+        self._current_round = self._starting_round_cls(*args, **kwargs)
 
     @property
     def is_finished(self) -> bool:
         """Check if a period has finished."""
         return self._current_round is None
+
+    def check_is_finished(self) -> None:
+        """Check if a period has finished."""
+        if self.is_finished:
+            raise ValueError("period is finished, cannot accept new transactions")
 
     @property
     def current_round_id(self) -> Optional[str]:
