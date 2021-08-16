@@ -22,6 +22,11 @@ import subprocess  # nosec
 from pathlib import Path
 from typing import List
 
+import pytest
+
+from tests.conftest import LOCALHOST
+from tests.helpers.base import tendermint_health_check
+
 
 _TCP = "tcp://"
 _HTTP = "http://"
@@ -129,3 +134,19 @@ class TendermintLocalNetworkBuilder:
             f"--p2p.seeds={','.join(self.get_p2p_seeds())}",
             f"--consensus.create_empty_blocks={self.consensus_create_empty_blocks}",
         ]
+
+    @property
+    def http_rpc_laddrs(self) -> List[str]:
+        """Get HTTP RPC listening addresses."""
+        return [node.get_http_addr(LOCALHOST) for node in self.nodes]
+
+
+class BaseTendermintTestClass:
+    """MixIn class for Pytest classes."""
+
+    @staticmethod
+    def health_check(tendermint_net: TendermintLocalNetworkBuilder) -> None:
+        """Do a health-check of the Tendermint network."""
+        for rpc_addr in tendermint_net.http_rpc_laddrs:
+            if not tendermint_health_check(rpc_addr):
+                pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")

@@ -37,7 +37,10 @@ CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ign
 ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
 
 DEFAULT_ASYNC_TIMEOUT = 5.0
-HTTP_LOCALHOST = "http://localhost"
+DEFAULT_REQUESTS_TIMEOUT = 5.0
+MAX_RETRIES = 10
+LOCALHOST = "localhost"
+HTTP_LOCALHOST = f"http://{LOCALHOST}"
 
 
 @pytest.fixture()

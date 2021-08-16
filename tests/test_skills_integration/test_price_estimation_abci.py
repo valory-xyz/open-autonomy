@@ -24,10 +24,13 @@ from pathlib import Path
 
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.helpers.tendermint_utils import TendermintLocalNetworkBuilder
+from tests.helpers.tendermint_utils import (
+    BaseTendermintTestClass,
+    TendermintLocalNetworkBuilder,
+)
 
 
-class TestABCICounterSkillMany(AEATestCaseMany):
+class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
     """Test that the ABCI price_estimation skill works together with Tendermint."""
 
     IS_LOCAL = False
@@ -106,6 +109,9 @@ class TestABCICounterSkillMany(AEATestCaseMany):
             self.set_agent_context(agent_name)
             process = self.run_agent()
             processes.append(process)
+
+        logging.info("Waiting Tendermint nodes to be up")
+        self.health_check(self.tendermint_net_builder)
 
         check_strings = (
             "Entered in the 'registration' behaviour state",

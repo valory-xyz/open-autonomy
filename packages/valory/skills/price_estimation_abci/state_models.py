@@ -19,12 +19,12 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
-from typing import Any, Callable, Dict, cast
+from typing import cast
 
 from aea.exceptions import enforce
-from aea.skills.base import Model
 
-from packages.valory.skills.abstract_round_abci.shared_state import (
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.price_estimation_abci.models.rounds import PeriodState
@@ -47,12 +47,4 @@ class SharedState(BaseSharedState):
         return cast(PeriodState, period_state)
 
 
-class Requests(Model):
-    """Keep the current pending requests."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, **kwargs)
-
-        # mapping from dialogue reference nonce to a callback
-        self.request_id_to_callback: Dict[str, Callable] = {}
+Requests = BaseRequests

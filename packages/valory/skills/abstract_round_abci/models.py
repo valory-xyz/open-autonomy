@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Optional, Type
+from typing import Any, Callable, Dict, Optional, Type
 
 from aea.skills.base import Model
 
@@ -64,3 +64,14 @@ class SharedState(Model):
                 f"The class {initial_round_cls} is not an instance of {cls_module}.{cls_name}"
             )
         return initial_round_cls
+
+
+class Requests(Model):
+    """Keep the current pending requests."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the state."""
+        super().__init__(*args, **kwargs)
+
+        # mapping from dialogue reference nonce to a callback
+        self.request_id_to_callback: Dict[str, Callable] = {}
