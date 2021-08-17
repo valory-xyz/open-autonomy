@@ -123,7 +123,6 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
     @property
     def data(self) -> Dict:
         """
-
         Get the dictionary data.
 
         The returned dictionary is required to be used

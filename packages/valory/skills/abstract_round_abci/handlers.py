@@ -78,7 +78,6 @@ class ABCIRoundHandler(ABCIHandler):
         """Handle the 'check_tx' request."""
         transaction_bytes = message.tx
         # check we can decode the transaction
-        # TOFIX: DON'T USE PICKLE! Write a Protobuf type for representing transactions
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify()
