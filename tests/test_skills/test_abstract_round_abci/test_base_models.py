@@ -21,9 +21,16 @@
 from abc import ABC
 from enum import Enum
 
+from aea_ledger_ethereum import EthereumCrypto
+from hypothesis import given
+from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
+
 from packages.valory.skills.abstract_round_abci.base_models import (
     BaseTxPayload,
     Transaction,
+)
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
 )
 
 
@@ -86,3 +93,28 @@ def test_encode_decode_transaction():
     expected = Transaction(payload, signature)
     actual = expected.decode(expected.encode())
     assert expected == actual
+
+
+def test_sign_verify_transaction():
+    """Test sign/verify transaction."""
+    crypto = EthereumCrypto()
+    sender = crypto.address
+    payload = PayloadA(sender)
+    payload_bytes = payload.encode()
+    signature = crypto.sign_message(payload_bytes)
+    transaction = Transaction(payload, signature)
+    transaction.verify()
+
+
+@given(
+    dictionaries(
+        keys=text(),
+        values=one_of(floats(allow_nan=False, allow_infinity=False), booleans()),
+    )
+)
+def test_dict_serializer_is_deterministic(obj):
+    """Test that 'DictProtobufStructSerializer' is deterministic."""
+    obj_bytes = DictProtobufStructSerializer.encode(obj)
+    for _ in range(100):
+        assert obj_bytes == DictProtobufStructSerializer.encode(obj)
+    assert obj == DictProtobufStructSerializer.decode(obj_bytes)

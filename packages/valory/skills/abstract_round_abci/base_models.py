@@ -19,13 +19,16 @@
 
 """This module contains the base classes for the models classes of the skill."""
 from abc import ABC, ABCMeta, abstractmethod
+from copy import copy
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, cast
 
-from aea.helpers.serializers import DictProtobufStructSerializer
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
 from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 
 
 OK_CODE = 0
@@ -104,21 +107,27 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def encode(self) -> bytes:
         """Encode the payload."""
-        return DictProtobufStructSerializer.encode(
-            {
-                "transaction_type": str(self.transaction_type),
-                "sender": self.sender,
-                **self.data,
-            }
-        )
+        return DictProtobufStructSerializer.encode(self.json)
 
     @classmethod
     def decode(cls, obj: bytes) -> "BaseTxPayload":
         """Decode the payload."""
-        dict_data = DictProtobufStructSerializer.decode(obj)
-        transaction_type = str(dict_data.pop("transaction_type"))
+        return cls.from_json(DictProtobufStructSerializer.decode(obj))
+
+    @classmethod
+    def from_json(cls, obj: Dict) -> "BaseTxPayload":
+        """Decode the payload."""
+        data = copy(obj)
+        transaction_type = str(data.pop("transaction_type"))
         payload_cls = _MetaPayload.transaction_type_to_payload_cls[transaction_type]
-        return payload_cls(**dict_data)
+        return payload_cls(**data)
+
+    @property
+    def json(self) -> Dict:
+        """Get the JSON representation of the payload."""
+        return dict(
+            transaction_type=str(self.transaction_type), sender=self.sender, **self.data
+        )
 
     @property
     def data(self) -> Dict:
@@ -153,7 +162,7 @@ class Transaction(ABC):
 
     def encode(self) -> bytes:
         """Encode the transaction."""
-        data = dict(payload=self.payload.encode(), signature=self.signature)
+        data = dict(payload=self.payload.json, signature=self.signature)
         return DictProtobufStructSerializer.encode(data)
 
     @classmethod
@@ -161,13 +170,13 @@ class Transaction(ABC):
         """Decode the transaction."""
         data = DictProtobufStructSerializer.decode(obj)
         signature = data["signature"]
-        payload_bytes = data["payload"]
-        payload = BaseTxPayload.decode(payload_bytes)
+        payload_dict = data["payload"]
+        payload = BaseTxPayload.from_json(payload_dict)
         return Transaction(payload, signature)
 
     def verify(self) -> None:
         """Verify the signature is correct."""
-        payload_bytes = self.payload.encode()
+        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
         encoded_payload_bytes = encode_defunct(payload_bytes)
         public_key = Account.recover_message(  # pylint: disable=no-value-for-parameter
             encoded_payload_bytes, signature=self.signature
