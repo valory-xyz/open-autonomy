@@ -21,6 +21,7 @@
 import datetime
 import inspect
 import json
+import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
@@ -51,6 +52,8 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 
 DONE_EVENT = "done"
 FAIL_EVENT = "fail"
+
+_REQUEST_RETRY_DELAY = 1.0
 
 
 class AsyncBehaviour(ABC):
@@ -261,14 +264,18 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
 
             response = yield from self._broadcast_tx_commit(transaction.encode())
             response = cast(HttpMessage, response)
+            json_body = json.loads(response.body)
+            self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             if not self._check_http_return_code_200(response):
-                self.context.logger.info("Received return code != 200, retrying...")
+                self.context.logger.info(
+                    f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                )
+                yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
             if self._check_transaction_delivered(response):
-                # done
+                self.context.logger.info("Transaction delivered!")
                 break
             # otherwise, repeat until done, or until stop condition is true
-            yield from self.sleep(1.0)
 
     def _send_signing_request(self, raw_message: bytes) -> None:
         """Send a signing request."""

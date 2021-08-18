@@ -36,6 +36,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
     IS_LOCAL = False
     capture_log = True
     NB_AGENTS = 4
+    cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
         """Run the ABCI skill."""

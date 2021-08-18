@@ -137,7 +137,8 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         Steps:
         - Build a registration transaction
         - Send the transaction and wait for it to be mined
-        - Go to the next state.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'registration' behaviour state")
         payload = RegistrationPayload(self.context.agent_address)
@@ -153,13 +154,13 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     def async_act(self) -> Generator:
         """
-        Do the action.
+                Do the action.
 
-        Steps:
-        - Ask the configured API the price of a currency
-        - Build an observation transaction
-        - Send the transaction and wait for it to be mined
-        - Go to the next state.
+                Steps:
+                - Ask the configured API the price of a currency
+                - Build an observation transaction
+        - Wait until ABCI application transitions to the next round.
+                - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'observation' behaviour state")
         currency_id = self.context.params.currency_id
@@ -187,7 +188,8 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         - Run the script to compute the estimate starting from the shared observations
         - Build an estimate transaction
         - Send the transaction and wait for it to be mined
-        - Go to the next state.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'estimate' behaviour state")
         currency_id = self.context.params.currency_id
