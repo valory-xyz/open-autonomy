@@ -58,7 +58,7 @@ class AsyncBehaviour(ABC):
     MixIn behaviour class that support limited asynchronous programming.
 
     An AsyncBehaviour can be in three states:
-    - READY: 'act' not called yet;
+    - READY: no suspended 'async_act' execution;
     - RUNNING: 'act' called, and waiting for a message
     - WAITING_TICK: 'act' called, and waiting for the next 'act' call
     """
