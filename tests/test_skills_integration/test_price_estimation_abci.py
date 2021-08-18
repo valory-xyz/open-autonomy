@@ -92,7 +92,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
 
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants",
-                4,
+                self.NB_AGENTS,
             )
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
