@@ -98,7 +98,6 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
             )
-            logging.debug("Running 'aea install'...")
 
         # run 'aea install' in only one AEA project, to save time
         self.set_agent_context(self.agent_names[0])

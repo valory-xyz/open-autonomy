@@ -18,43 +18,138 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the base classes for the models classes of the skill."""
-import pickle  # nosec
-from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, cast
+from abc import ABC, ABCMeta, abstractmethod
+from copy import copy
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, cast
 
-from aea.exceptions import enforce
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
 from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 
 
 OK_CODE = 0
 ERROR_CODE = 1
 
 
-class BaseTxPayload(ABC):
-    """This class represents a transaction payload."""
+class _MetaPayload(ABCMeta):
+    """
+    Payload metaclass.
 
-    def __init__(self, transaction_type: Enum, sender: str) -> None:
+    The purpose of this metaclass is to remember the association
+    between the type of a payload and the payload class to build it.
+    This is necessary to recover the right payload class to instantiate
+    at decoding time.
+
+    Each class that has this class as metaclass must have a class
+    attribute 'transaction_type', which for simplicity is required
+    to be convertible to string, for serialization purposes.
+    """
+
+    transaction_type_to_payload_cls: Dict[str, Type["BaseTxPayload"]] = {}
+
+    def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
+        """Create a new class object."""
+        new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if new_cls.__module__.startswith("packages."):
+            # ignore class if it is from an import with prefix "packages."
+            return new_cls
+        if ABC in bases:
+            # abstract class, return
+            return new_cls
+        if not issubclass(new_cls, BaseTxPayload):
+            raise ValueError(f"class {name} must inherit from {BaseTxPayload.__name__}")
+        new_cls = cast(Type[BaseTxPayload], new_cls)
+
+        transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
+        mcs._validate_transaction_type(transaction_type, new_cls)
+        # remember association from transaction type to payload class
+        mcs.transaction_type_to_payload_cls[transaction_type] = new_cls
+
+        return new_cls
+
+    @classmethod
+    def _validate_transaction_type(
+        mcs, transaction_type: str, new_payload_cls: Type["BaseTxPayload"]
+    ) -> None:
+        """Check that a transaction type is not already associated to a concrete payload class."""
+        if transaction_type in mcs.transaction_type_to_payload_cls:
+            previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
+            if new_payload_cls != previous_payload_cls:
+                raise ValueError(
+                    f"transaction type with name {transaction_type} already used by class {previous_payload_cls}, and cannot be used by class {new_payload_cls}"
+                )
+
+    @classmethod
+    def _get_field(mcs, cls: Type, field_name: str) -> Any:
+        """Get a field from a class if present, otherwise raise error."""
+        if not hasattr(cls, field_name) and getattr(cls, field_name) is None:
+            raise ValueError(f"class {cls} must set '{field_name}' class field")
+        return getattr(cls, field_name)
+
+
+class BaseTxPayload(ABC, metaclass=_MetaPayload):
+    """This class represents a base class for transaction payload classes."""
+
+    transaction_type: Any
+
+    def __init__(self, sender: str) -> None:
         """
         Initialize a transaction payload.
 
-        :param transaction_type: the transaction type.
         :param sender: the sender (Ethereum) address
         """
-        self.transaction_type = transaction_type
         self.sender = sender
 
     def encode(self) -> bytes:
         """Encode the payload."""
-        return pickle.dumps(self)  # nosec
+        return DictProtobufStructSerializer.encode(self.json)
 
     @classmethod
     def decode(cls, obj: bytes) -> "BaseTxPayload":
         """Decode the payload."""
-        return pickle.loads(obj)  # nosec
+        return cls.from_json(DictProtobufStructSerializer.decode(obj))
+
+    @classmethod
+    def from_json(cls, obj: Dict) -> "BaseTxPayload":
+        """Decode the payload."""
+        data = copy(obj)
+        transaction_type = str(data.pop("transaction_type"))
+        payload_cls = _MetaPayload.transaction_type_to_payload_cls[transaction_type]
+        return payload_cls(**data)
+
+    @property
+    def json(self) -> Dict:
+        """Get the JSON representation of the payload."""
+        return dict(
+            transaction_type=str(self.transaction_type), sender=self.sender, **self.data
+        )
+
+    @property
+    def data(self) -> Dict:
+        """
+        Get the dictionary data.
+
+        The returned dictionary is required to be used
+        as keyword constructor initializer, i.e. these two
+        should have the same effect:
+
+            sender = "..."
+            some_kwargs = {...}
+            p1 = SomePayloadClass(sender, **some_kwargs)
+            p2 = SomePayloadClass(sender, **s.data)
+
+        :return: a dictionary which contains the payload data
+        """
+        return {}
+
+    def __eq__(self, other: Any) -> bool:
+        """Check equality."""
+        return self.sender == other.sender and self.data == other.data
 
 
 class Transaction(ABC):
@@ -67,27 +162,35 @@ class Transaction(ABC):
 
     def encode(self) -> bytes:
         """Encode the transaction."""
-        return pickle.dumps(self)  # nosec
+        data = dict(payload=self.payload.json, signature=self.signature)
+        return DictProtobufStructSerializer.encode(data)
 
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
-        transaction_obj = pickle.loads(obj)  # nosec
-        enforce(
-            isinstance(transaction_obj, Transaction), "not an instance of 'Transaction'"
-        )
-        transaction_obj = cast(Transaction, transaction_obj)
-        return transaction_obj
+        data = DictProtobufStructSerializer.decode(obj)
+        signature = data["signature"]
+        payload_dict = data["payload"]
+        payload = BaseTxPayload.from_json(payload_dict)
+        return Transaction(payload, signature)
 
     def verify(self) -> None:
         """Verify the signature is correct."""
-        payload_bytes = self.payload.encode()
+        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
         encoded_payload_bytes = encode_defunct(payload_bytes)
         public_key = Account.recover_message(  # pylint: disable=no-value-for-parameter
             encoded_payload_bytes, signature=self.signature
         )
         if public_key != self.payload.sender:
             raise ValueError("signature not valid.")
+
+    def __eq__(self, other: Any) -> bool:
+        """Check equality."""
+        return (
+            isinstance(other, Transaction)
+            and self.payload == other.payload
+            and self.signature == other.signature
+        )
 
 
 class Block:  # pylint: disable=too-few-public-methods

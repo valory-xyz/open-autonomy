@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/abci skill."""
+"""Tests for valory/abstract_abci skill."""
 import logging
 from pathlib import Path
 from typing import cast

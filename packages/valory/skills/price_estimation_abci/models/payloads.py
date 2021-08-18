@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the price_estimation app."""
+from abc import ABC
 from enum import Enum
+from typing import Dict
 
 from packages.valory.skills.abstract_round_abci.base_models import BaseTxPayload
 
@@ -30,21 +32,25 @@ class TransactionType(Enum):
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
 
+    def __str__(self) -> str:
+        """Get the string value of the transaction type."""
+        return self.value
 
-class RegistrationPayload(BaseTxPayload):
+
+class BasePriceEstimationPayload(BaseTxPayload, ABC):
+    """Base class for the price estimation demo."""
+
+
+class RegistrationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'registration'."""
 
-    def __init__(self, sender: str) -> None:
-        """
-        Initialize a 'registration' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        """
-        super().__init__(TransactionType.REGISTRATION, sender)
+    transaction_type = TransactionType.REGISTRATION
 
 
-class ObservationPayload(BaseTxPayload):
+class ObservationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'observation'."""
+
+    transaction_type = TransactionType.OBSERVATION
 
     def __init__(self, sender: str, observation: float) -> None:
         """Initialize an 'observation' transaction payload.
@@ -52,7 +58,7 @@ class ObservationPayload(BaseTxPayload):
         :param sender: the sender (Ethereum) address
         :param observation: the observation
         """
-        super().__init__(TransactionType.OBSERVATION, sender)
+        super().__init__(sender)
         self._observation = observation
 
     @property
@@ -60,9 +66,16 @@ class ObservationPayload(BaseTxPayload):
         """Get the observation."""
         return self._observation
 
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(observation=self.observation)
 
-class EstimatePayload(BaseTxPayload):
+
+class EstimatePayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'estimate'."""
+
+    transaction_type = TransactionType.ESTIMATE
 
     def __init__(self, sender: str, estimate: float) -> None:
         """Initialize an 'estimate' transaction payload.
@@ -70,10 +83,15 @@ class EstimatePayload(BaseTxPayload):
         :param sender: the sender (Ethereum) address
         :param estimate: the estimate
         """
-        super().__init__(TransactionType.ESTIMATE, sender)
+        super().__init__(sender)
         self._estimate = estimate
 
     @property
     def estimate(self) -> float:
         """Get the estimate."""
         return self._estimate
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(estimate=self.estimate)
