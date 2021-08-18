@@ -117,7 +117,7 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         )
 
 
-class InitialDelayState(BaseState):
+class InitialDelayState(BaseState):  # pylint: disable=too-many-ancestors
     """Wait for some seconds until Tendermint nodes are running."""
 
     def async_act(self) -> None:  # type: ignore

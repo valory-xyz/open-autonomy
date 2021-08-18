@@ -102,7 +102,8 @@ class AsyncBehaviour(ABC):
             self._notified = True
             self._message = message
 
-    def wait_for_condition(self, condition: Callable[[], bool]) -> Any:
+    @classmethod
+    def wait_for_condition(cls, condition: Callable[[], bool]) -> Any:
         """Wait for a condition to happen."""
         while not condition():
             yield
