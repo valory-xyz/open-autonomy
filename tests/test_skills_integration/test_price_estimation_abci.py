@@ -36,6 +36,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
     IS_LOCAL = False
     capture_log = True
     NB_AGENTS = 4
+    cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
         """Run the ABCI skill."""
@@ -92,7 +93,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
 
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants",
-                4,
+                self.NB_AGENTS,
             )
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",

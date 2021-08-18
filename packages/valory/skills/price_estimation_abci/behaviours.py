@@ -27,7 +27,6 @@ from aea.skills.behaviours import FSMBehaviour, State
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     DONE_EVENT,
-    WaitForConditionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     EstimatePayload,
@@ -50,12 +49,8 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         """Set up the behaviour."""
         # initial delay to wait synchronization with Tendermint
         self.register_state(
-            "wait_tendermint",
-            WaitForConditionBehaviour(
-                condition=self.get_wait_tendermint_rpc_is_ready(),
-                name="wait_tendermint",
-                skill_context=self.context,
-            ),
+            "initial_delay",
+            InitialDelayState(name="initial_delay", skill_context=self.context),
             initial=True,
         )
         self.register_state(
@@ -63,51 +58,22 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             RegistrationBehaviour(name="register", skill_context=self.context),
         )
         self.register_state(
-            "wait_registration_threshold",
-            WaitForConditionBehaviour(
-                condition=self.wait_observation_round,
-                name="wait_registration_threshold",
-                skill_context=self.context,
-            ),
-        )
-        self.register_state(
             "observe",
             ObserveBehaviour(name="observe", skill_context=self.context),
-        )
-        self.register_state(
-            "wait_observation_threshold",
-            WaitForConditionBehaviour(
-                condition=self.wait_estimate_round,
-                name="wait_observation_threshold",
-                skill_context=self.context,
-            ),
         )
         self.register_state(
             "estimate",
             EstimateBehaviour(name="estimate", skill_context=self.context),
         )
-
-        self.register_state(
-            "wait_estimate_threshold",
-            WaitForConditionBehaviour(
-                condition=self.wait_consensus_round,
-                name="wait_estimate_threshold",
-                skill_context=self.context,
-            ),
-        )
-
         self.register_state(
             "end",
             EndBehaviour(name="end", skill_context=self.context),
         )
 
-        self.register_transition("wait_tendermint", "register", DONE_EVENT)
-        self.register_transition("register", "wait_registration_threshold", DONE_EVENT)
-        self.register_transition("wait_registration_threshold", "observe", DONE_EVENT)
-        self.register_transition("observe", "wait_observation_threshold", DONE_EVENT)
-        self.register_transition("wait_observation_threshold", "estimate", DONE_EVENT)
-        self.register_transition("estimate", "wait_estimate_threshold", DONE_EVENT)
-        self.register_transition("wait_estimate_threshold", "end", DONE_EVENT)
+        self.register_transition("initial_delay", "register", DONE_EVENT)
+        self.register_transition("register", "observe", DONE_EVENT)
+        self.register_transition("observe", "estimate", DONE_EVENT)
+        self.register_transition("estimate", "end", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -151,6 +117,16 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         )
 
 
+class InitialDelayState(BaseState):  # pylint: disable=too-many-ancestors
+    """Wait for some seconds until Tendermint nodes are running."""
+
+    def async_act(self) -> None:  # type: ignore
+        """Do the action."""
+        delay = self.context.params.initial_delay
+        yield from self.sleep(delay)
+        self.set_done()
+
+
 class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Register to the next round."""
 
@@ -161,12 +137,14 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         Steps:
         - Build a registration transaction
         - Send the transaction and wait for it to be mined
-        - Go to the next state.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'registration' behaviour state")
         payload = RegistrationPayload(self.context.agent_address)
         stop_condition = self.is_round_ended(RegistrationRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self.wait_until_round(CollectObservationRound.round_id)
         self.context.logger.info("'registration' behaviour state is done")
         self.set_done()
 
@@ -181,8 +159,8 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         Steps:
         - Ask the configured API the price of a currency
         - Build an observation transaction
-        - Send the transaction and wait for it to be mined
-        - Go to the next state.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'observation' behaviour state")
         currency_id = self.context.params.currency_id
@@ -194,6 +172,7 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         payload = ObservationPayload(self.context.agent_address, observation)
         stop_condition = self.is_round_ended(CollectObservationRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self.wait_until_round(EstimateConsensusRound.round_id)
         self.context.logger.info("'observation' behaviour state is done")
         self.set_done()
 
@@ -209,7 +188,8 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         - Run the script to compute the estimate starting from the shared observations
         - Build an estimate transaction
         - Send the transaction and wait for it to be mined
-        - Go to the next state.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'estimate' behaviour state")
         currency_id = self.context.params.currency_id
@@ -228,6 +208,7 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         payload = EstimatePayload(self.context.agent_address, estimate)
         stop_condition = self.is_round_ended(EstimateConsensusRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self.wait_until_round(ConsensusReachedRound.round_id)
         self.context.logger.info("'estimate' behaviour state is done")
         self.set_done()
 
