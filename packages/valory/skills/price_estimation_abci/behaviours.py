@@ -154,13 +154,13 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     def async_act(self) -> Generator:
         """
-                Do the action.
+        Do the action.
 
-                Steps:
-                - Ask the configured API the price of a currency
-                - Build an observation transaction
+        Steps:
+        - Ask the configured API the price of a currency
+        - Build an observation transaction
         - Wait until ABCI application transitions to the next round.
-                - Go to the next behaviour state.
+        - Go to the next behaviour state.
         """
         self.context.logger.info("Entered in the 'observation' behaviour state")
         currency_id = self.context.params.currency_id
