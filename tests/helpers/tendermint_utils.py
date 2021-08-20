@@ -24,8 +24,8 @@ from typing import List
 
 import pytest
 
-from tests.conftest import LOCALHOST
 from tests.helpers.base import tendermint_health_check
+from tests.helpers.constants import LOCALHOST
 
 
 _TCP = "tcp://"

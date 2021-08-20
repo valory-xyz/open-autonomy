@@ -7,6 +7,9 @@ Distributed consensus meets the AEA framework.
 - Create and launch a virtual environment with Python 3.8 (any Python `>=` 3.6 works):
 
       pipenv --python 3.8 && pipenv shell
+      pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps
+
+  We need to add `--no-deps` flag because of conflicting subdependencies.
 
 - Install the package from source:
 
@@ -20,5 +23,6 @@ Distributed consensus meets the AEA framework.
 - Install development dependencies:
 
       pipenv install --dev --skip-lock
+      pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps
 
 - Install [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `v0.6.0`

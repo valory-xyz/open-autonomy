@@ -24,13 +24,16 @@ from pathlib import Path
 
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from tests.conftest import UseGnosisSafeHardHatNet
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
 )
 
 
-class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
+class TestABCICounterSkillMany(
+    AEATestCaseMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
+):
     """Test that the ABCI price_estimation skill works together with Tendermint."""
 
     IS_LOCAL = False
