@@ -24,7 +24,7 @@ from pathlib import Path
 
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.conftest import UseGnosisSafeHardHatNet
+from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -38,7 +38,9 @@ class TestABCICounterSkillMany(
 
     IS_LOCAL = False
     capture_log = True
-    NB_AGENTS = 4
+    NB_AGENTS = 1
+    NB_OWNERS = NB_AGENTS
+    THRESHOLD = NB_AGENTS * 2 // 3 + 1
     cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
@@ -54,7 +56,9 @@ class TestABCICounterSkillMany(
             logging.debug(f"Processing agent {agent_name}...")
             node = self.tendermint_net_builder.nodes[agent_id]
             self.set_agent_context(agent_name)
-            self.generate_private_key("ethereum")
+            Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
+                self.hardhat_key_pairs[agent_id][1]
+            )
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.set_config("agent.default_ledger", "ethereum")
             self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
@@ -117,12 +121,12 @@ class TestABCICounterSkillMany(
         self.health_check(self.tendermint_net_builder)
 
         check_strings = (
-            "Entered in the 'registration' behaviour state",
+            "Entered in the 'register' behaviour state",
             "transaction signing was successful.",
-            "'registration' behaviour state is done",
-            "Entered in the 'observation' behaviour state",
+            "'register' behaviour state is done",
+            "Entered in the 'observe' behaviour state",
             "Got observation of BTC price in USD",
-            "'observation' behaviour state is done",
+            "'observe' behaviour state is done",
             "Entered in the 'estimate' behaviour state",
             "Using observations",
             "Got estimate of BTC price in USD:",

@@ -1,6 +1,25 @@
 version: '3'
 
 services:
+  hardhat:
+    container_name: hardhat
+    image: "node:16.7.0"
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://hardhat:8545"]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    volumes:
+      - ../../third_party/safe-contracts:/home/ubuntu/build
+    working_dir: /home/ubuntu/build
+    entrypoint: "/bin/bash"
+    command: [ "/usr/local/bin/yarn", "run", "hardhat", "node", "--port", "8545"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.2
+
   node0:
     container_name: node0
     image: "tendermint/localnode"
@@ -14,8 +33,9 @@ services:
     command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci0:26658
     networks:
       localnet:
-        ipv4_address: 192.167.11.2
-
+        ipv4_address: 192.167.11.3
+    depends_on:
+    - hardhat
   node1:
     container_name: node1
     image: "tendermint/localnode"
@@ -29,7 +49,9 @@ services:
     command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci1:26658
     networks:
       localnet:
-        ipv4_address: 192.167.11.3
+        ipv4_address: 192.167.11.4
+    depends_on:
+      - hardhat
 
   node2:
     container_name: node2
@@ -44,7 +66,9 @@ services:
     command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci2:26658
     networks:
       localnet:
-        ipv4_address: 192.167.11.4
+        ipv4_address: 192.167.11.5
+    depends_on:
+      - hardhat
 
   node3:
     container_name: node3
@@ -59,7 +83,9 @@ services:
     command: node --consensus.create_empty_blocks=false --proxy_app=tcp://abci3:26658
     networks:
       localnet:
-        ipv4_address: 192.167.11.5
+        ipv4_address: 192.167.11.6
+    depends_on:
+      - hardhat
 
   abci0:
     container_name: abci0
@@ -73,7 +99,9 @@ services:
     command: ["../run.sh", "abci0"]
     networks:
       localnet:
-        ipv4_address: 192.167.11.6
+        ipv4_address: 192.167.11.7
+    depends_on:
+      - node0
 
   abci1:
     container_name: abci1
@@ -87,7 +115,9 @@ services:
     command: ["../run.sh", "abci1"]
     networks:
       localnet:
-        ipv4_address: 192.167.11.7
+        ipv4_address: 192.167.11.8
+    depends_on:
+      - node1
 
   abci2:
     container_name: abci2
@@ -101,7 +131,9 @@ services:
     command: ["../run.sh", "abci2"]
     networks:
       localnet:
-        ipv4_address: 192.167.11.8
+        ipv4_address: 192.167.11.9
+    depends_on:
+      - node2
 
   abci3:
     container_name: abci3
@@ -115,7 +147,9 @@ services:
     command: ["../run.sh", "abci3"]
     networks:
       localnet:
-        ipv4_address: 192.167.11.9
+        ipv4_address: 192.167.11.10
+    depends_on:
+      - node3
 
 networks:
   localnet:

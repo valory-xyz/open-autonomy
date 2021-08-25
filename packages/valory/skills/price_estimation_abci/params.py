@@ -61,6 +61,7 @@ class Params(Model):
         """Initialize the parameters object."""
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
         self.initial_delay = self._ensure("initial_delay", kwargs)
+        self.ethereum_node_url = self._ensure("ethereum_node_url", kwargs)
 
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
 
@@ -71,6 +72,6 @@ class Params(Model):
     @classmethod
     def _ensure(cls, key: str, kwargs: Dict) -> Any:
         """Get and ensure the configuration field is not None."""
-        value = kwargs.pop(key)
+        value = kwargs.pop(key, None)
         enforce(value is not None, f"'{key}' required, but it is not set")
         return value

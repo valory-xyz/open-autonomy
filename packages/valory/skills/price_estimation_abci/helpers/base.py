@@ -17,21 +17,17 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the handler for the 'price_estimation_abci' skill."""
+"""Generic helpers module for the skill valory/price_estimation_abci."""
+import struct
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
-from packages.valory.skills.abstract_round_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    LedgerApiHandler as BaseLedgerApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    SigningHandler as BaseSigningHandler,
-)
+from eth_typing import ChecksumAddress, HexAddress, HexStr
 
 
-ABCIPriceEstimationHandler = ABCIRoundHandler
-HttpHandler = BaseHttpHandler
-SigningHandler = BaseSigningHandler
-LedgerApiHandler = BaseLedgerApiHandler
+def encode_float(value: float) -> bytes:
+    """Encode a float value."""
+    return struct.pack("d", value)
+
+
+def checksum_address(agent_address: str) -> ChecksumAddress:
+    """Get the checksum address."""
+    return ChecksumAddress(HexAddress(HexStr(agent_address)))

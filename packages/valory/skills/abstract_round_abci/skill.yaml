@@ -8,20 +8,23 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base_models.py: QmaPxRbZMHaitsN5YCYE6Yxsm1LpXCZrW1T2MCSXfWRDpw
-  behaviour_utils.py: QmVH8z5t46JRWMVFernjyHeBugtweML6Rs7uetNDdhNqDg
-  dialogues.py: QmbkySpFRLQX2eQNheQ1gnbvXi7r6iv8rUjAvif2Gm1awV
-  handlers.py: Qmb3NCK3foDNnwm5x4T9DH65AckyowS2ZFgAKtw1spRYiU
+  base_models.py: QmZBVxwapJaVxYPfZ18w4tn6bhyjVXpq91Nv54UTyQQxob
+  behaviour_utils.py: QmZh5csZq1rBqg5xBYQncLhPjwutqbku3p1WQb8f39nJ9N
+  dialogues.py: Qmdg11Nw8DhnmF4Yq8TkhuRd4vxaY6hbrAEGgVqMUN4z7y
+  handlers.py: QmcmYczicQaHekxSZ1kWtMKMseWySy2ibY3HXavHNymC1f
   models.py: QmejWpeAFB98ncmdhyt3aFVK2pzQDFSyXMBWDovMMhZjE3
   serializer.py: QmZKgTmRgReAnVuQLQH1Lk23dx9UrwpATFtqFwCi9qN7SH
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
+- fetchai/ledger:0.18.0
 - valory/abci:0.1.0
 contracts: []
 protocols:
+- fetchai/contract_api:1.0.0
 - fetchai/http:1.0.0
+- fetchai/ledger_api:1.0.0
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
@@ -30,9 +33,15 @@ handlers:
   abci:
     args: {}
     class_name: ABCIRoundHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler
@@ -43,6 +52,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
   requests:
     args: {}
     class_name: Requests

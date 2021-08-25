@@ -29,6 +29,7 @@ from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
+from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import State
 from aea_ledger_ethereum import EthereumCrypto
 
@@ -36,18 +37,27 @@ from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
 from packages.fetchai.protocols.http import HttpMessage
+from packages.fetchai.protocols.ledger_api import LedgerApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
-from packages.fetchai.protocols.signing.custom_types import RawMessage, Terms
+from packages.fetchai.protocols.signing.custom_types import (
+    RawMessage,
+    RawTransaction,
+    Terms,
+)
 from packages.valory.skills.abstract_round_abci.base_models import (
     BaseTxPayload,
+    LEDGER_API_ADDRESS,
     OK_CODE,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogue,
     HttpDialogues,
+    LedgerApiDialogue,
+    LedgerApiDialogues,
     SigningDialogues,
 )
+from packages.valory.skills.price_estimation_abci.models.rounds import PeriodState
 
 
 DONE_EVENT = "done"
@@ -161,9 +171,9 @@ class AsyncBehaviour(ABC):
                 return
             # trigger first execution, up to next 'yield' statement
             self._get_generator_act().send(None)
-        except Exception:  # pylint: disable=broad-except
+        except StopIteration:
+            # this may happen because no yield statement was found
             self._state = self.AsyncState.READY
-            raise
 
     def _handle_waiting_for_message(self) -> None:
         """Handle an 'act' tick, when waiting for a message."""
@@ -207,6 +217,11 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         State.__init__(self, **kwargs)
         self._is_done: bool = False
 
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self.context.state.period_state)
+
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
         return self.context.state.period.current_round_id == round_id
@@ -219,14 +234,14 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Get a callable to check whether the current round has ended."""
         return partial(self.check_not_in_round, round_id)
 
-    def wait_until_round(self, round_id: str) -> Any:
+    def wait_until_round_end(self, round_id: str) -> Any:
         """
-        Wait until the ABCI application reaches a certain round.
+        Wait until the ABCI application exits from a round.
 
         :param round_id: the identifier of the desired round.
         :yield: None
         """
-        yield from self.wait_for_condition(partial(self.check_in_round, round_id))
+        yield from self.wait_for_condition(partial(self.check_not_in_round, round_id))
 
     def is_done(self) -> bool:
         """Check whether the state is done."""
@@ -236,6 +251,10 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Set the behaviour to done."""
         self._is_done = True
         self._event = DONE_EVENT
+
+    def _get_request_nonce_from_dialogue(self, dialogue: Dialogue) -> str:
+        """Get the request nonce for the request, from the protocol's dialogue."""
+        return dialogue.dialogue_label.dialogue_reference[0]
 
     def _send_transaction(
         self, payload: BaseTxPayload, stop_condition: Callable[[], bool] = lambda: False
@@ -277,13 +296,19 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
                 break
             # otherwise, repeat until done, or until stop condition is true
 
-    def _send_signing_request(self, raw_message: bytes) -> None:
+    def _send_signing_request(
+        self, raw_message: bytes, is_deprecated_mode: bool = False
+    ) -> None:
         """Send a signing request."""
         signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
-        signing_msg, _ = signing_dialogues.create(
+        signing_msg, signing_dialogue = signing_dialogues.create(
             counterparty=self.context.decision_maker_address,
             performative=SigningMessage.Performative.SIGN_MESSAGE,
-            raw_message=RawMessage(EthereumCrypto.identifier, raw_message),
+            raw_message=RawMessage(
+                EthereumCrypto.identifier,
+                raw_message,
+                is_deprecated_mode=is_deprecated_mode,
+            ),
             terms=Terms(
                 ledger_id=EthereumCrypto.identifier,
                 sender_address="",
@@ -293,7 +318,49 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
                 nonce="",
             ),
         )
+        request_nonce = self._get_request_nonce_from_dialogue(signing_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
+
+    def _send_transaction_signing_request(
+        self, raw_transaction: RawTransaction, terms: Terms
+    ) -> None:
+        """Send a transaction signing request."""
+        signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
+        signing_msg, signing_dialogue = signing_dialogues.create(
+            counterparty=self.context.decision_maker_address,
+            performative=SigningMessage.Performative.SIGN_TRANSACTION,
+            raw_transaction=raw_transaction,
+            terms=terms,
+        )
+        request_nonce = self._get_request_nonce_from_dialogue(signing_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.decision_maker_message_queue.put_nowait(signing_msg)
+
+    def _send_transaction_request(self, signing_msg: SigningMessage):
+        self.context.logger.info("transaction signing was successful.")
+        ledger_api_dialogues = cast(
+            LedgerApiDialogues, self.context.ledger_api_dialogues
+        )
+        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+            counterparty=LEDGER_API_ADDRESS,
+            performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+            signed_transaction=signing_msg.signed_transaction,
+        )
+        ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
+
+        signing_dialogue = self.context.signing_dialogues.get_dialogue(signing_msg)
+        ledger_api_dialogue.associated_signing_dialogue = signing_dialogue
+        request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=ledger_api_msg)
+        self.context.logger.info("sending transaction to ledger.")
 
     def _handle_signing_failure(self) -> None:
         """Handle signing failure."""
@@ -309,6 +376,10 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
+    def default_callback_request(self, message: Message):
+        """Implement default callback request."""
+        self.try_send(message)
+
     def _do_request(
         self, request_message: HttpMessage, http_dialogue: HttpDialogue
     ) -> HttpMessage:
@@ -321,16 +392,10 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :return: the response message
         """
         self.context.outbox.put_message(message=request_message)
-        request_nonce = http_dialogue.dialogue_label.dialogue_reference[0]
-
-        def write_message(self_: AsyncBehaviour, message: HttpMessage) -> None:
-            self_ = cast(AsyncBehaviour, self_)
-            self_.try_send(message)
-
-        self.context.requests.request_id_to_callback[request_nonce] = partial(
-            write_message, self
-        )
-
+        request_nonce = self._get_request_nonce_from_dialogue(http_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
         response = yield from self.wait_for_message()
         return response
 

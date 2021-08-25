@@ -27,16 +27,16 @@ import requests
 from aea.exceptions import AEAEnforceError, enforce
 from docker.models.containers import Container
 
-from tests.helpers.constants import ROOT_DIR
+from tests.helpers.constants import THIRD_PARTY
 from tests.helpers.docker.base import DockerImage
 
 
 DEFAULT_HARDHAT_PORT = 8545
-GNOSIS_SAFE_CONTRACTS_ROOT_DIR = ROOT_DIR / "safe-contracts"
+GNOSIS_SAFE_CONTRACTS_ROOT_DIR = THIRD_PARTY / "safe-contracts"
 
 _SLEEP_TIME = 1
 
-# Note: address of deployment is deterministic
+# Note: addresses of deployment of master contracts are deterministic
 SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"
 PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"

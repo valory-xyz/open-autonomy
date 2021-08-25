@@ -37,7 +37,7 @@ class SharedState(BaseSharedState):
         """Set up."""
         super().setup()
         consensus_params = self.context.params.consensus_params
-        self.period.setup(consensus_params)
+        self.period.setup(PeriodState(), consensus_params)
 
     @property
     def period_state(self) -> PeriodState:

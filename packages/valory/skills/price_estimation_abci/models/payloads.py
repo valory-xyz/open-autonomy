@@ -29,8 +29,10 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     REGISTRATION = "registration"
+    DEPLOY_SAFE = "deploy_safe"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
+    SIGNATURE = "signature"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -45,6 +47,31 @@ class RegistrationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
+
+
+class DeploySafePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'deploy_safe'."""
+
+    transaction_type = TransactionType.DEPLOY_SAFE
+
+    def __init__(self, sender: str, safe_contract_address: str) -> None:
+        """Initialize a 'deploy_safe' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param safe_contract_address: the Safe contract address
+        """
+        super().__init__(sender)
+        self._safe_contract_address = safe_contract_address
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the Safe contract address."""
+        return self._safe_contract_address
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(safe_contract_address=self.safe_contract_address)
 
 
 class ObservationPayload(BasePriceEstimationPayload):
@@ -95,3 +122,28 @@ class EstimatePayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(estimate=self.estimate)
+
+
+class SignaturePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'signature'."""
+
+    transaction_type = TransactionType.SIGNATURE
+
+    def __init__(self, sender: str, signature: str) -> None:
+        """Initialize an 'signature' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param signature: the signature
+        """
+        super().__init__(sender)
+        self._signature = signature
+
+    @property
+    def signature(self) -> str:
+        """Get the signature."""
+        return self._signature
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(signature=self.signature)

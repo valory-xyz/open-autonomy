@@ -2,17 +2,20 @@ agent_name: price_estimation
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: ABCI Price Estimation Agent.
+description: ''
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
+- fetchai/ledger:0.18.0
 - valory/abci:0.1.0
 contracts: []
 protocols:
+- fetchai/contract_api:1.0.0
 - fetchai/default:1.0.0
 - fetchai/http:1.0.0
+- fetchai/ledger_api:1.0.0
 - fetchai/signing:1.0.0
 - fetchai/state_update:1.0.0
 - valory/abci:0.1.0
