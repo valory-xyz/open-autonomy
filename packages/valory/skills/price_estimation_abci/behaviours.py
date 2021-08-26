@@ -22,26 +22,21 @@ import datetime
 from functools import partial
 from typing import Callable, Generator, cast
 
-from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
-from aea_ledger_ethereum import EthereumCrypto
-from eth_typing import ChecksumAddress, HexAddress, HexStr
-from gnosis.eth import EthereumClient
-from gnosis.safe import Safe
+from web3.types import Wei
 
 from packages.fetchai.protocols.signing import SigningMessage
-from packages.fetchai.protocols.signing.custom_types import RawTransaction, Terms
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     DONE_EVENT,
 )
-from packages.valory.skills.price_estimation_abci.helpers.base import encode_float
 from packages.valory.skills.price_estimation_abci.helpers.gnosis_safe import (
     get_deploy_safe_tx,
 )
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
+    FinalizationTxPayload,
     ObservationPayload,
     RegistrationPayload,
     SignaturePayload,
@@ -52,8 +47,12 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     ConsensusReachedRound,
     DeploySafeRound,
     EstimateConsensusRound,
+    FinalizationRound,
     RegistrationRound,
 )
+
+
+SIGNATURE_LENGTH = 65
 
 
 class PriceEstimationConsensusBehaviour(FSMBehaviour):
@@ -88,6 +87,10 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
             SignatureBehaviour(name="signature", skill_context=self.context),
         )
         self.register_state(
+            "finalize",
+            FinalizeBehaviour(name="finalize", skill_context=self.context),
+        )
+        self.register_state(
             "end",
             EndBehaviour(name="end", skill_context=self.context),
         )
@@ -97,7 +100,8 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         self.register_transition("deploy_safe", "observe", DONE_EVENT)
         self.register_transition("observe", "estimate", DONE_EVENT)
         self.register_transition("estimate", "signature", DONE_EVENT)
-        self.register_transition("signature", "end", DONE_EVENT)
+        self.register_transition("signature", "finalize", DONE_EVENT)
+        self.register_transition("finalize", "end", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -164,12 +168,12 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        self._log_start()
         payload = RegistrationPayload(self.context.agent_address)
         stop_condition = self.is_round_ended(RegistrationRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
         yield from self.wait_until_round_end(RegistrationRound.round_id)
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        self._log_end()
         self.set_done()
 
 
@@ -183,13 +187,13 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         Steps:
         - TODO
         """
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
             self.not_deployer_act()
         else:
             yield from self.deployer_act()
         yield from self.wait_until_round_end(DeploySafeRound.round_id)
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        self._log_end()
         self.set_done()
 
     def not_deployer_act(self) -> None:
@@ -215,27 +219,8 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         tx_params, contract_address = get_deploy_safe_tx(
             ethereum_node_url, self.context.agent_address, list(owners), threshold
         )
-
-        transaction = RawTransaction(EthereumCrypto.identifier, body=tx_params)
-        terms = Terms(
-            EthereumCrypto.identifier,
-            self.context.agent_address,
-            counterparty_address="",
-            amount_by_currency_id={},
-            quantities_by_good_id={},
-            nonce="",
-        )
-        self._send_transaction_signing_request(transaction, terms)
-        signature_response = yield from self.wait_for_message()
-        signature_response = cast(SigningMessage, signature_response)
-        enforce(
-            signature_response.performative
-            == SigningMessage.Performative.SIGNED_TRANSACTION,
-            "signing error",
-        )
-        self._send_transaction_request(signature_response)
-        tx_hash = yield from self.wait_for_message()
-        self.context.logger.info(f"Tx hash: {tx_hash.transaction_digest.body}")
+        tx_hash = yield from self._send_raw_transaction(tx_params)
+        self.context.logger.info(f"Tx hash: {tx_hash}")
         return contract_address
 
 
@@ -252,7 +237,7 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        self._log_start()
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
         observation = self.context.price_api.get_price(currency_id, convert_id)
@@ -263,7 +248,7 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         stop_condition = self.is_round_ended(CollectObservationRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
         yield from self.wait_until_round_end(CollectObservationRound.round_id)
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        self._log_end()
         self.set_done()
 
 
@@ -281,7 +266,7 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        self._log_start()
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
         observation_payloads = self.period_state.observations
@@ -297,7 +282,7 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         stop_condition = self.is_round_ended(EstimateConsensusRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
         yield from self.wait_until_round_end(EstimateConsensusRound.round_id)
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        self._log_end()
         self.set_done()
 
 
@@ -308,27 +293,20 @@ class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     def async_act(self) -> Generator:
         """Do the act."""
-        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+        self._log_start()
         final_estimate = self.period_state.most_voted_estimate
         self.context.logger.info(f"Consensus reached on estimate: {final_estimate}")
-        encoded_estimate = encode_float(final_estimate)
+        encoded_estimate = self.period_state.encoded_estimate
         signature_hex = yield from self._get_safe_tx_signature(encoded_estimate)
         payload = SignaturePayload(self.context.agent_address, signature_hex)
         stop_condition = self.is_round_ended(CollectSignatureRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
         yield from self.wait_until_round_end(CollectSignatureRound.round_id)
-        self.context.logger.info(f"'{self.name}' behaviour state is done")
+        self._log_end()
         self.set_done()
 
     def _get_safe_tx_signature(self, data: bytes):
-        safe = Safe(
-            ChecksumAddress(
-                HexAddress(HexStr(self.period_state.safe_contract_address))
-            ),
-            EthereumClient(self.context.params.ethereum_node_url),
-        )
-        recipient = self.period_state.safe_contract_address
-        safe_tx = safe.build_multisig_tx(recipient, 0, data)
+        safe_tx = self._get_safe_tx(data)
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         self._send_signing_request(safe_tx.safe_tx_hash, is_deprecated_mode=True)
@@ -337,6 +315,72 @@ class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         # remove the leading '0x'
         signature_hex = signature_hex[2:]
         return signature_hex
+
+
+class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+    """Finalize state."""
+
+    is_programmatically_defined = True
+
+    def async_act(self) -> None:
+        """Do the act."""
+        self._log_start()
+        if self.context.agent_address != self.period_state.safe_sender_address:
+            self.not_deployer_act()
+        else:
+            yield from self.deployer_act()
+        yield from self.wait_until_round_end(FinalizationRound.round_id)
+        self._log_end()
+        self._log_end()
+        self.set_done()
+
+    def not_deployer_act(self) -> None:
+        """Do the non-deployer action."""
+        self.context.logger.info(
+            "I am not the designated sender, waiting until next round..."
+        )
+
+    def deployer_act(self) -> None:
+        """Do the deployer action."""
+        self.context.logger.info(
+            "I am the designated sender, sending the safe transaction..."
+        )
+        tx_hash = yield from self._send_safe_transaction()
+        payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
+        stop_condition = self.is_round_ended(DeploySafeRound.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
+
+    def _send_safe_transaction(self) -> str:
+        """Send a Safe transaction using the participants' signatures."""
+        sorted_addresses = self.period_state.sorted_addresses
+        data = self.period_state.encoded_estimate
+
+        # compose final signature (need to be sorted!)
+        final_signature = ""
+        for signer, signature in self.period_state.participant_to_signature.items():
+            signer_index = sorted_addresses.index(signer)
+            final_signature = (
+                final_signature[: 65 * signer_index]
+                + signature
+                + final_signature[65 * signer_index :]
+            )
+
+        safe_tx = self._get_safe_tx(data)
+        safe_tx.signatures = final_signature
+        safe_tx.call(self.context.agent_address)
+
+        tx_gas_price = safe_tx.gas_price or safe_tx.w3.eth.gas_price
+        tx_parameters = {
+            "from": self.context.agent_address,
+            "gasPrice": tx_gas_price,
+        }
+        tx = safe_tx.w3_tx.buildTransaction(tx_parameters)
+        tx["gas"] = Wei(max(tx["gas"] + 75000, safe_tx.recommended_gas()))
+
+        safe_tx.w3_tx.buildTransaction(tx_parameters)
+
+        tx_hash = yield from self._send_raw_transaction(tx_parameters)
+        return tx_hash
 
 
 class EndBehaviour(BaseState):  # pylint: disable=too-many-ancestors

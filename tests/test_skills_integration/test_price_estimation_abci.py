@@ -38,7 +38,7 @@ class TestABCICounterSkillMany(
 
     IS_LOCAL = False
     capture_log = True
-    NB_AGENTS = 4
+    NB_AGENTS = 1
     NB_OWNERS = NB_AGENTS
     THRESHOLD = NB_AGENTS * 2 // 3 + 1
     cli_log_options = ["-v", "DEBUG"]

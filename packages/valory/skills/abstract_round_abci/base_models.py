@@ -145,7 +145,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
             sender = "..."
             some_kwargs = {...}
             p1 = SomePayloadClass(sender, **some_kwargs)
-            p2 = SomePayloadClass(sender, **s.data)
+            p2 = SomePayloadClass(sender, **p1.data)
 
         :return: a dictionary which contains the payload data
         """

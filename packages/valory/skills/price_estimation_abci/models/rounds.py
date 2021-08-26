@@ -24,14 +24,16 @@ from operator import itemgetter
 from types import MappingProxyType
 from typing import Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, Mapping, Optional, Set, Tuple, cast
+from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base_models import AbstractRound
+from packages.valory.skills.price_estimation_abci.helpers.base import encode_float
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
+    FinalizationTxPayload,
     ObservationPayload,
     RegistrationPayload,
     SignaturePayload,
@@ -50,6 +52,7 @@ class PeriodState:
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
         most_voted_estimate: Optional[float] = None,
         participant_to_signature: Optional[Mapping[str, str]] = None,
+        safe_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
         self._participants = participants
@@ -58,6 +61,7 @@ class PeriodState:
         self._participant_to_estimate = participant_to_estimate
         self._most_voted_estimate = most_voted_estimate
         self._participant_to_signature = participant_to_signature
+        self._safe_tx_hash = safe_tx_hash
 
     @property
     def participants(self) -> FrozenSet[str]:
@@ -102,6 +106,15 @@ class PeriodState:
         return cast(Mapping[str, str], self._participant_to_signature)
 
     @property
+    def safe_tx_hash(self) -> str:
+        """Get the safe_tx_hash."""
+        enforce(
+            self._safe_tx_hash is not None,
+            "'safe_tx_hash' field is None",
+        )
+        return cast(str, self._safe_tx_hash)
+
+    @property
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
         enforce(
@@ -110,9 +123,19 @@ class PeriodState:
         return cast(float, self._most_voted_estimate)
 
     @property
+    def encoded_estimate(self) -> bytes:
+        """Get the encoded (most voted) estimate."""
+        return encode_float(self.most_voted_estimate)
+
+    @property
     def observations(self) -> Tuple[ObservationPayload, ...]:
         """Get the tuple of observations."""
         return tuple(self.participant_to_observations.values())
+
+    @property
+    def sorted_addresses(self) -> List[str]:
+        """Sorted addresses."""
+        return sorted(self.participants, key=str.lower)
 
     @property
     def safe_sender_address(self) -> str:
@@ -132,7 +155,7 @@ class PeriodState:
 
         :return: the sender address
         """
-        return min(self.participants, key=str.lower)
+        return self.sorted_addresses[0]
 
     def update(self, **kwargs) -> "PeriodState":
         """Copy and update the state."""
@@ -259,7 +282,7 @@ class DeploySafeRound(BaseRound):
         A deploy safe transaction can be applied only if:
         - the sender belongs to the set of participants
         - the sender is the elected sender
-        - the sender has not already sent its
+        - the sender has not already sent the contract address
 
         :param: payload: the payload.
         :return: True if the observation tx is allowed, False otherwise.
@@ -500,43 +523,83 @@ class CollectSignatureRound(BaseRound):
         return None
 
 
-class ConsensusReachedRound(BaseRound):
+class FinalizationRound(BaseRound):
     """
-    This class represents the 'consensus-reached' round.
+    This class represents the finalization Safe round.
 
-    This round does not change the estimate on which the consensus was reached,
-    i.e. the most voted estimate whose number of votes for the first time at the
-    end of a block was above the 2/3 threshold. However, it still collects the
-    remaining votes, if any.
+    Input: participants' signatures
+    Output: the hash of the Safe transaction
+
+    It schedules the ConsensusReachedRound.
     """
 
-    round_id = "consensus_reached"
+    round_id = "finalization"
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize a 'consensus-reached' round."""
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'finalization' round."""
         super().__init__(*args, **kwargs)
-        self.final_participant_to_estimate: Dict[str, EstimatePayload] = {}
+        self._tx_hash: Optional[str] = None
 
-    def estimate(self, payload: EstimatePayload) -> None:
-        """Handle an 'estimate' payload."""
+    def finalization(self, payload: FinalizationTxPayload) -> None:
+        """Handle a finalization payload."""
         sender = payload.sender
+
         if sender not in self.state.participants:
             # sender not in the set of participants.
             return
 
-        if sender in self.state.participant_to_estimate:
-            # sender has already sent its estimate
+        if sender != self.state.safe_sender_address:
+            # the sender is not the elected sender
             return
 
-        self.final_participant_to_estimate[sender] = payload
+        if self._tx_hash is not None:
+            # transaction already set
+            return
 
-    def check_estimate(self, payload: EstimatePayload) -> bool:
-        """Check an estimate payload can be applied to the current state."""
+        self._tx_hash = payload.tx_hash
+
+    def check_finalization(self, payload: DeploySafePayload) -> bool:
+        """
+        Check a finalization payload can be applied to the current state.
+
+        A finalization transaction can be applied only if:
+        - the sender belongs to the set of participants
+        - the sender is the elected sender
+        - the sender has not already sent the transaction hash
+
+        :param: payload: the payload.
+        :return: True if the finalization tx is allowed, False otherwise.
+        """
         sender_in_participant_set = payload.sender in self.state.participants
-        sender_has_not_sent_estimate_yet = (
-            payload.sender not in self.state.participant_to_estimate
+        sender_is_elected_sender = payload.sender == self.state.safe_sender_address
+        tx_hash_not_set_yet = self._tx_hash is None
+        return (
+            sender_in_participant_set
+            and sender_is_elected_sender
+            and tx_hash_not_set_yet
         )
-        return sender_in_participant_set and sender_has_not_sent_estimate_yet
+
+    @property
+    def tx_hash_set(self) -> bool:
+        """Check that the tx hash has been set."""
+        return self._tx_hash is not None
+
+    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.tx_hash_set:
+            state = self.state.update(safe_tx_hash=self._tx_hash)
+            next_round = ConsensusReachedRound(state, self._consensus_params)
+            return state, next_round
+        return None
+
+
+class ConsensusReachedRound(BaseRound):
+    """
+    This class represents the 'consensus-reached' round.
+    """
+
+    round_id = "consensus_reached"
 
     def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
         """Process the end of the block."""

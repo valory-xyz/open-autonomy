@@ -32,6 +32,9 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import State
 from aea_ledger_ethereum import EthereumCrypto
+from eth_typing import ChecksumAddress, HexAddress, HexStr
+from gnosis.eth import EthereumClient
+from gnosis.safe import Safe, SafeTx
 
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
@@ -252,6 +255,14 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         self._is_done = True
         self._event = DONE_EVENT
 
+    def _log_start(self) -> None:
+        """Log the entering in the behaviour state."""
+        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+
+    def _log_end(self) -> None:
+        """Log the exiting from the behaviour state."""
+        self.context.logger.info(f"Entered in the '{self.name}' behaviour state")
+
     def _get_request_nonce_from_dialogue(self, dialogue: Dialogue) -> str:
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
@@ -444,3 +455,38 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
+
+    def _get_safe_tx(self, data: bytes) -> SafeTx:
+        safe = Safe(
+            ChecksumAddress(
+                HexAddress(HexStr(self.period_state.safe_contract_address))
+            ),
+            EthereumClient(self.context.params.ethereum_node_url),
+        )
+        recipient = self.period_state.safe_contract_address
+        safe_tx = safe.build_multisig_tx(recipient, 0, data)
+        return safe_tx
+
+    def _send_raw_transaction(self, tx_params: Dict):
+        transaction = RawTransaction(EthereumCrypto.identifier, body=tx_params)
+        terms = Terms(
+            EthereumCrypto.identifier,
+            self.context.agent_address,
+            counterparty_address="",
+            amount_by_currency_id={},
+            quantities_by_good_id={},
+            nonce="",
+        )
+        self._send_transaction_signing_request(transaction, terms)
+        signature_response = yield from self.wait_for_message()
+        signature_response = cast(SigningMessage, signature_response)
+        enforce(
+            signature_response.performative
+            == SigningMessage.Performative.SIGNED_TRANSACTION,
+            "signing error",
+        )
+        self._send_transaction_request(signature_response)
+        transaction_digest_msg = yield from self.wait_for_message()
+        tx_hash = transaction_digest_msg.transaction_digest.body
+        self.context.logger.info(f"Tx hash: {tx_hash}")
+        return tx_hash
