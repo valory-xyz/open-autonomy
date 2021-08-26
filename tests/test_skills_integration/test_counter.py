@@ -30,7 +30,7 @@ import pytest
 import requests
 from aea.test_tools.test_cases import AEATestCaseEmpty, AEATestCaseMany
 
-from tests.conftest import UseTendermint
+from tests.fixture_helpers import UseTendermint
 from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,

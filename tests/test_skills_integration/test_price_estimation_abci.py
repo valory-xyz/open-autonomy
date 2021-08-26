@@ -38,7 +38,7 @@ class TestABCICounterSkillMany(
 
     IS_LOCAL = False
     capture_log = True
-    NB_AGENTS = 1
+    NB_AGENTS = 4
     NB_OWNERS = NB_AGENTS
     THRESHOLD = NB_AGENTS * 2 // 3 + 1
     cli_log_options = ["-v", "DEBUG"]
@@ -122,7 +122,7 @@ class TestABCICounterSkillMany(
 
         check_strings = (
             "Entered in the 'register' behaviour state",
-            "transaction signing was successful.",
+            "message signing was successful.",
             "'register' behaviour state is done",
             "Entered in the 'observe' behaviour state",
             "Got observation of BTC price in USD",
@@ -132,6 +132,7 @@ class TestABCICounterSkillMany(
             "Got estimate of BTC price in USD:",
             "'estimate' behaviour state is done",
             "Consensus reached on estimate:",
+            "Signatures:",
         )
 
         # check that *each* AEA prints these messages
