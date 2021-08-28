@@ -56,7 +56,7 @@ def exception_to_info_msg(exception: Exception) -> str:
     return f"{exception.__class__.__name__}: {str(exception)}"
 
 
-class HandlerUtils(ABC):
+class HandlerUtils(ABC):  # pylint: disable=too-few-public-methods
     """MixIn class with handler utils."""
 
     context: SkillContext
@@ -444,24 +444,24 @@ class LedgerApiHandler(HandlerUtils, Handler):
         )
 
     def _handle_raw_transaction(
-        self, ledger_api_msg: LedgerApiMessage, ledger_api_dialogue: LedgerApiDialogue
+        self, ledger_api_msg: LedgerApiMessage, _ledger_api_dialogue: LedgerApiDialogue
     ) -> None:
         """
         Handle a message of raw_transaction performative.
 
         :param ledger_api_msg: the ledger api message
-        :param ledger_api_dialogue: the ledger api dialogue
+        :param _ledger_api_dialogue: the ledger api dialogue
         """
         self.context.logger.info("received raw transaction={}".format(ledger_api_msg))
 
     def _handle_transaction_digest(
-        self, ledger_api_msg: LedgerApiMessage, ledger_api_dialogue: LedgerApiDialogue
+        self, ledger_api_msg: LedgerApiMessage, _ledger_api_dialogue: LedgerApiDialogue
     ) -> None:
         """
         Handle a message of transaction_digest performative.
 
         :param ledger_api_msg: the ledger api message
-        :param ledger_api_dialogue: the ledger api dialogue
+        :param _ledger_api_dialogue: the ledger api dialogue
         """
         self.context.logger.info(
             "transaction was successfully submitted. Transaction digest={}".format(

@@ -17,10 +17,16 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains Gnosis Safe utilities."""
+"""
+This module contains Gnosis Safe utilities.
+
+Taken from:
+    https://github.com/gnosis/safe-cli/blob/contracts_v1.3.0/safe_creator.py
+
+"""
 import logging
 import secrets
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 from eth_typing import URI
 from gnosis.eth import EthereumClient
@@ -31,7 +37,7 @@ from hexbytes import HexBytes
 
 # Note: addresses of deployment of master contracts are deterministic
 from web3.auto import w3
-from web3.types import TxParams
+from web3.types import Nonce, TxParams, Wei
 
 from packages.valory.skills.price_estimation_abci.helpers.base import checksum_address
 
@@ -43,12 +49,12 @@ MULTISEND_CONTRACT = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 
 
-def _get_nonce():
+def _get_nonce() -> int:
     """Generate a nonce for the Safe deployment."""
     return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-def get_deploy_safe_tx(
+def get_deploy_safe_tx(  # pylint: disable=too-many-locals
     ethereum_node_url: str,
     sender: str,
     owners: List[str],
@@ -57,10 +63,6 @@ def get_deploy_safe_tx(
 ) -> Tuple[TxParams, str]:
     """
     Get the deployment transaction of the new Safe.
-
-    Taken from:
-        https://github.com/gnosis/safe-cli/blob/contracts_v1.3.0/safe_creator.py
-
 
     :param ethereum_node_url: Ethereum node url
     :param sender: public key of the sender of the transaction
@@ -71,8 +73,9 @@ def get_deploy_safe_tx(
     :return: transaction params and contract address
     """
     node_url: URI = URI(ethereum_node_url)
-    salt_nonce: int = salt_nonce if salt_nonce is not None else _get_nonce()
-    to = NULL_ADDRESS
+    salt_nonce = salt_nonce if salt_nonce is not None else _get_nonce()
+    salt_nonce = cast(int, salt_nonce)
+    to_address = NULL_ADDRESS
     data = b""
     payment_token = NULL_ADDRESS
     payment = 0
@@ -90,14 +93,16 @@ def get_deploy_safe_tx(
     account_balance: int = ethereum_client.get_balance(account_address)
     if not account_balance:
         raise ValueError("Client does not have any funds")
-    else:
-        ether_account_balance = round(
-            ethereum_client.w3.fromWei(account_balance, "ether"), 6
-        )
-        logging.info(
-            f"Network {ethereum_client.get_network().name} - Sender {account_address} - "
-            f"Balance: {ether_account_balance}Ξ"
-        )
+
+    ether_account_balance = round(
+        ethereum_client.w3.fromWei(account_balance, "ether"), 6
+    )
+    logging.info(
+        "Network %s - Sender %s - Balance: %sΞ",
+        ethereum_client.get_network().name,
+        account_address,
+        ether_account_balance,
+    )
 
     if not ethereum_client.w3.eth.getCode(
         safe_contract_address
@@ -105,15 +110,21 @@ def get_deploy_safe_tx(
         raise ValueError("Network not supported")
 
     logging.info(
-        f"Creating new Safe with owners={owners} threshold={threshold} "
-        f"fallback-handler={fallback_handler} salt-nonce={salt_nonce}"
+        "Creating new Safe with owners=%s threshold=%s "
+        "fallback-handler=%s salt-nonce=%s",
+        owners,
+        threshold,
+        fallback_handler,
+        salt_nonce,
     )
-    safe_contract = get_safe_V1_3_0_contract(ethereum_client.w3, safe_contract_address)
+    safe_contract = (  # pylint: disable=assignment-from-no-return
+        get_safe_V1_3_0_contract(ethereum_client.w3, safe_contract_address)
+    )
     safe_creation_tx_data = HexBytes(
         safe_contract.functions.setup(
             owners,
             threshold,
-            to,
+            to_address,
             data,
             fallback_handler,
             payment_token,
@@ -137,7 +148,7 @@ def get_deploy_safe_tx(
     return tx_params, contract_address
 
 
-def _build_tx_deploy_proxy_contract_with_nonce(
+def _build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments
     proxy_factory: ProxyFactory,
     master_copy: str,
     address: str,
@@ -160,27 +171,29 @@ def _build_tx_deploy_proxy_contract_with_nonce(
     :param nonce: Nonce
     :return: Tuple(tx-hash, tx, deployed contract address)
     """
-    proxy_factory_contract = get_proxy_factory_contract(
-        proxy_factory.ethereum_client.w3, proxy_factory.address
+    proxy_factory_contract = (  # pylint: disable=assignment-from-no-return
+        get_proxy_factory_contract(
+            proxy_factory.ethereum_client.w3, proxy_factory.address
+        )
     )
     create_proxy_fn = proxy_factory_contract.functions.createProxyWithNonce(
         master_copy, initializer, salt_nonce
     )
 
-    tx_parameters = {"from": address}
+    tx_parameters = TxParams({"from": address})
     contract_address = create_proxy_fn.call(tx_parameters)
 
     if gas_price is not None:
-        tx_parameters["gasPrice"] = gas_price
+        tx_parameters["gasPrice"] = Wei(gas_price)
 
     if gas is not None:
-        tx_parameters["gas"] = gas
+        tx_parameters["gas"] = Wei(gas)
 
     if nonce is not None:
-        tx_parameters["nonce"] = nonce
+        tx_parameters["nonce"] = Nonce(nonce)
 
-    tx = create_proxy_fn.buildTransaction(tx_parameters)
+    transaction_dict = create_proxy_fn.buildTransaction(tx_parameters)
     # Auto estimation of gas does not work. We use a little more gas just in case
-    tx["gas"] = tx["gas"] + 50000
-    tx["nonce"] = w3.eth.get_transaction_count(address)
-    return tx, contract_address
+    transaction_dict["gas"] = Wei(transaction_dict["gas"] + 50000)
+    transaction_dict["nonce"] = w3.eth.get_transaction_count(address)
+    return transaction_dict, contract_address

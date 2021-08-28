@@ -146,7 +146,9 @@ class SigningDialogues(Model, BaseSigningDialogues):
         )
 
 
-class LedgerApiDialogue(BaseLedgerApiDialogue):
+class LedgerApiDialogue(
+    BaseLedgerApiDialogue
+):  # pylint: disable=too-few-public-methods
     """The dialogue class maintains state of a dialogue and manages it."""
 
     __slots__ = ("_associated_signing_dialogue",)
@@ -173,10 +175,10 @@ class LedgerApiDialogue(BaseLedgerApiDialogue):
             role=role,
             message_class=message_class,
         )
-        self._associated_signing_dialogue = None  # type: Optional[SigningDialogue]
+        self._associated_signing_dialogue: Optional[BaseSigningDialogue] = None
 
     @property
-    def associated_signing_dialogue(self) -> "SigningDialogue":
+    def associated_signing_dialogue(self) -> "BaseSigningDialogue":
         """Get the associated signing dialogue."""
         if self._associated_signing_dialogue is None:
             raise ValueError("Associated signing dialogue not set!")
@@ -184,7 +186,7 @@ class LedgerApiDialogue(BaseLedgerApiDialogue):
 
     @associated_signing_dialogue.setter
     def associated_signing_dialogue(
-        self, associated_signing_dialogue: "SigningDialogue"
+        self, associated_signing_dialogue: "BaseSigningDialogue"
     ) -> None:
         """Set the associated signing dialogue."""
         enforce(

@@ -265,7 +265,8 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Log the exiting from the behaviour state."""
         self.context.logger.info(f"'{self.name}' behaviour state is done")
 
-    def _get_request_nonce_from_dialogue(self, dialogue: Dialogue) -> str:
+    @classmethod
+    def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
@@ -354,7 +355,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         ] = self.default_callback_request
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
-    def _send_transaction_request(self, signing_msg: SigningMessage):
+    def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
         self.context.logger.info("transaction signing was successful.")
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -389,7 +390,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
-    def default_callback_request(self, message: Message):
+    def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
         self.try_send(message)
 
@@ -458,17 +459,17 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
 
-    def _get_safe_tx(self, to: str, data: bytes) -> SafeTx:
+    def _get_safe_tx(self, to_address: str, data: bytes) -> SafeTx:
         safe = Safe(
             ChecksumAddress(
                 HexAddress(HexStr(self.period_state.safe_contract_address))
             ),
             EthereumClient(self.context.params.ethereum_node_url),
         )
-        safe_tx = safe.build_multisig_tx(to, 0, data)
+        safe_tx = safe.build_multisig_tx(to_address, 0, data)
         return safe_tx
 
-    def _send_raw_transaction(self, tx_params: Dict):
+    def _send_raw_transaction(self, tx_params: Dict) -> Generator[None, None, str]:
         transaction = RawTransaction(EthereumCrypto.identifier, body=tx_params)
         terms = Terms(
             EthereumCrypto.identifier,

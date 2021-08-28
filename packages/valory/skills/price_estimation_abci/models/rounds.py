@@ -42,10 +42,10 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
 from packages.valory.skills.price_estimation_abci.params import ConsensusParams
 
 
-class PeriodState:
+class PeriodState:  # pylint: disable=too-many-instance-attributes
     """Class to represent a period state."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         participants: Optional[FrozenSet[str]] = None,
         safe_contract_address: Optional[str] = None,
@@ -169,7 +169,7 @@ class PeriodState:
         """
         return self.sorted_addresses[0]
 
-    def update(self, **kwargs) -> "PeriodState":
+    def update(self, **kwargs: Any) -> "PeriodState":
         """Copy and update the state."""
         # remove leading underscore from keys
         data = {key[1:]: value for key, value in self.__dict__.items()}
@@ -485,7 +485,7 @@ class TxHashRound(BaseRound):
         super().__init__(*args, **kwargs)
         self.transaction_hash: Optional[str] = None
 
-    def tx_hash(self, payload: TransactionHashPayload):
+    def tx_hash(self, payload: TransactionHashPayload) -> None:
         """Handle a 'tx_hash' payload."""
         sender = payload.sender
         if sender not in self.state.participants:

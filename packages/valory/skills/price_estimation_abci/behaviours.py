@@ -188,7 +188,7 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     state_id = "deploy_safe"
 
-    def async_act(self) -> None:  # type: ignore
+    def async_act(self) -> Generator:
         """
         Do the action.
 
@@ -213,7 +213,7 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             "I am not the designated sender, waiting until next round..."
         )
 
-    def deployer_act(self) -> None:
+    def deployer_act(self) -> Generator:
         """Do the deployer action."""
         self.context.logger.info(
             "I am the designated sender, deploying the safe contract..."
@@ -223,14 +223,14 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         stop_condition = self.is_round_ended(DeploySafeRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
-    def _send_deploy_transaction(self):
+    def _send_deploy_transaction(self) -> Generator[None, None, str]:
         ethereum_node_url = self.context.params.ethereum_node_url
         owners = self.period_state.participants
         threshold = self.context.params.consensus_params.two_thirds_threshold
         tx_params, contract_address = get_deploy_safe_tx(
             ethereum_node_url, self.context.agent_address, list(owners), threshold
         )
-        tx_hash = yield from self._send_raw_transaction(tx_params)
+        tx_hash = yield from self._send_raw_transaction(dict(tx_params))
         self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
 
@@ -328,7 +328,7 @@ class TransactionHashBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             "I am not the designated sender, waiting until next round..."
         )
 
-    def sender_act(self) -> None:
+    def sender_act(self) -> Generator[None, None, None]:
         """Do the deployer action."""
         self.context.logger.info(
             "I am the designated sender, committing the transaction hash..."
@@ -361,7 +361,7 @@ class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self._log_end()
         self.set_done()
 
-    def _get_safe_tx_signature(self):
+    def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(self.period_state.safe_tx_hash)
@@ -379,7 +379,7 @@ class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     state_id = "finalize"
 
-    def async_act(self) -> None:
+    def async_act(self) -> Generator[None, None, None]:
         """Do the act."""
         self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
@@ -396,7 +396,7 @@ class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             "I am not the designated sender, waiting until next round..."
         )
 
-    def sender_act(self) -> None:
+    def sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
         self.context.logger.info(
             "I am the designated sender, sending the safe transaction..."
@@ -412,7 +412,7 @@ class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         stop_condition = self.is_round_ended(FinalizationRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
-    def _send_safe_transaction(self) -> str:
+    def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
         data = self.period_state.encoded_estimate
 
@@ -434,12 +434,14 @@ class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             "from": self.context.agent_address,
             "gasPrice": tx_gas_price,
         }
-        tx = safe_tx.w3_tx.buildTransaction(tx_parameters)
-        tx["gas"] = Wei(max(tx["gas"] + 75000, safe_tx.recommended_gas()))
-        tx["nonce"] = safe_tx.w3.eth.get_transaction_count(
+        transaction_dict = safe_tx.w3_tx.buildTransaction(tx_parameters)
+        transaction_dict["gas"] = Wei(
+            max(transaction_dict["gas"] + 75000, safe_tx.recommended_gas())
+        )
+        transaction_dict["nonce"] = safe_tx.w3.eth.get_transaction_count(
             safe_tx.w3.toChecksumAddress(self.context.agent_address)
         )
-        tx_hash = yield from self._send_raw_transaction(tx)
+        tx_hash = yield from self._send_raw_transaction(transaction_dict)
         self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 
@@ -449,10 +451,12 @@ class EndBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     state_id = "end"
 
-    def async_act(self) -> None:
+    def async_act(self) -> Generator:
         """Do the act."""
         self.context.logger.info(
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
         self.set_done()
+        # dummy 'yield' to return a generator
+        yield
