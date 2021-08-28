@@ -130,6 +130,9 @@ jobs:
 
           # clone AEA 'fetchai' packages in 'packages/' folder
           svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai
+
+          # pull node image needed for the integration tests
+          docker pull node:16.7.0
       #    # set up environment depending on the platform in use
       #    - if: matrix.os == 'ubuntu-latest'
       #      name: Install dependencies (ubuntu-latest)
