@@ -19,12 +19,14 @@
 
 """Tendermint Docker image."""
 import logging
+import os
+import pprint
 import time
 from typing import List
 
 import docker
 import requests
-from aea.exceptions import AEAEnforceError, enforce
+from aea.exceptions import enforce
 from docker.models.containers import Container
 
 from tests.helpers.constants import THIRD_PARTY
@@ -95,13 +97,13 @@ class GnosisSafeNetDockerImage(DockerImage):
         :param sleep_rate: the amount of time to sleep between different requests.
         :return: True if the wait was successful, False otherwise.
         """
-        request = dict(jsonrpc=2.0, method="web3_clientVersion", params=[], id=1)
         for i in range(max_attempts):
             try:
-                response = requests.post(f"http://localhost:{self.port}", json=request)
+                response = requests.get(f"http://localhost:{self.port}")
                 enforce(response.status_code == 200, "")
                 return True
-            except (AEAEnforceError, requests.ConnectionError, requests.ConnectTimeout):
+            except Exception as e:  # pylint: disable=broad-except
+                logging.error("Exception: %s: %s", type(e).__name__, str(e))
                 logging.info(
                     "Attempt %s failed. Retrying in %s seconds...", i, sleep_rate
                 )

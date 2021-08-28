@@ -78,8 +78,8 @@ def key_pairs() -> List[Tuple[str, str]]:
 @pytest.fixture(scope="function")
 def gnosis_safe_hardhat(
     hardhat_port,
-    timeout: float = 2.0,
-    max_attempts: int = 10,
+    timeout: float = 3.0,
+    max_attempts: int = 20,
 ):
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
