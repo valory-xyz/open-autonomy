@@ -36,7 +36,6 @@ from gnosis.safe import ProxyFactory
 from hexbytes import HexBytes
 
 # Note: addresses of deployment of master contracts are deterministic
-from web3.auto import w3
 from web3.types import Nonce, TxParams, Wei
 
 from packages.valory.skills.price_estimation_abci.helpers.base import checksum_address
@@ -138,12 +137,14 @@ def get_deploy_safe_tx(  # pylint: disable=too-many-locals
     )
 
     proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
+    nonce = ethereum_client.get_nonce_for_account(account_address)
     tx_params, contract_address = _build_tx_deploy_proxy_contract_with_nonce(
         proxy_factory,
         safe_contract_address,
         account_address,
         safe_creation_tx_data,
         salt_nonce,
+        nonce=nonce,
     )
     return tx_params, contract_address
 
@@ -195,5 +196,4 @@ def _build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-argu
     transaction_dict = create_proxy_fn.buildTransaction(tx_parameters)
     # Auto estimation of gas does not work. We use a little more gas just in case
     transaction_dict["gas"] = Wei(transaction_dict["gas"] + 50000)
-    transaction_dict["nonce"] = w3.eth.get_transaction_count(address)
     return transaction_dict, contract_address

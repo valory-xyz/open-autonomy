@@ -5,5 +5,5 @@ aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://node2:26657
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.ethereum_node_url http://hardhat:8545
-aea config set vendor.valory.skills.price_estimation_abci.models.params.args.proxy_contract_address "0x8C63F2A488B3Cf2Eb8439bB92757a0A760E70942"
+aea config set vendor.fetchai.connections.ledger.config.ledger_apis.ethereum.address http://hardhat:8545
 aea build

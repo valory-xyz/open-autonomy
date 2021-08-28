@@ -6,6 +6,5 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.con
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://node3:26657
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.convert_id USDT
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.ethereum_node_url http://hardhat:8545
-aea config set vendor.valory.skills.price_estimation_abci.models.params.args.proxy_contract_address "0x8C63F2A488B3Cf2Eb8439bB92757a0A760E70942"
 aea build
 

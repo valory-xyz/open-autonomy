@@ -6,6 +6,8 @@ ENV PATH=$PATH:/home/ubuntu/.local/bin
 
 RUN sudo apt-get install python3.7 python3.7-dev -y
 RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.7 python3 && sudo ln -s python3.7 python
+# used in Docker-compose to wait until Hardhat node is up
+RUN sudo apt-get install wait-for-it -y
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install "aea[all]>=1.0.0,<2.0.0"

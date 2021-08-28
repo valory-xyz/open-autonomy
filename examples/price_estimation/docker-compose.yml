@@ -6,11 +6,6 @@ services:
     image: "node:16.7.0"
     ports:
       - "8545:8545"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://hardhat:8545"]
-      interval: 1s
-      timeout: 1s
-      retries: 5
     volumes:
       - ../../third_party/safe-contracts:/home/ubuntu/build
     working_dir: /home/ubuntu/build
@@ -36,6 +31,7 @@ services:
         ipv4_address: 192.167.11.3
     depends_on:
     - hardhat
+
   node1:
     container_name: node1
     image: "tendermint/localnode"
@@ -95,12 +91,13 @@ services:
       dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
-    entrypoint: /bin/sh
-    command: ["../run.sh", "abci0"]
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "hardhat:8545", "--", "../run.sh", "abci0"]
     networks:
       localnet:
         ipv4_address: 192.167.11.7
     depends_on:
+      - hardhat
       - node0
 
   abci1:
@@ -111,12 +108,13 @@ services:
       dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
-    entrypoint: /bin/sh
-    command: ["../run.sh", "abci1"]
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "hardhat:8545", "--", "../run.sh", "abci1"]
     networks:
       localnet:
         ipv4_address: 192.167.11.8
     depends_on:
+      - hardhat
       - node1
 
   abci2:
@@ -127,12 +125,13 @@ services:
       dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
-    entrypoint: /bin/sh
-    command: ["../run.sh", "abci2"]
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "hardhat:8545", "--", "../run.sh", "abci2"]
     networks:
       localnet:
         ipv4_address: 192.167.11.9
     depends_on:
+      - hardhat
       - node2
 
   abci3:
@@ -143,12 +142,13 @@ services:
       dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
-    entrypoint: /bin/sh
-    command: ["../run.sh", "abci3"]
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "hardhat:8545", "--", "../run.sh", "abci3"]
     networks:
       localnet:
         ipv4_address: 192.167.11.10
     depends_on:
+      - hardhat
       - node3
 
 networks:

@@ -15,7 +15,7 @@ fingerprint:
   handlers.py: QmPihVLuQoLB6euJnfEJ3qFWGZFYtuAg5eYkzeZ8Mknv4L
   helpers/__init__.py: QmTDj1SsdjnfnuSJbtKGXxAG8PYtcvR97HAVVi5kK4zDVN
   helpers/base.py: QmaVWKoYSZfijfFs23aVPw25JeF36a3K6j1DNnvSU6E2Ed
-  helpers/gnosis_safe.py: QmSjWNDmxpvjH2Pty46zXHQGWjFA6oSuoNZJAJfaqbiUR5
+  helpers/gnosis_safe.py: QmXqKbLy4B6pfB5HdzGARG8FuYxtt2T1kBDVbMENjk5DuJ
   models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
   models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
   models/rounds.py: QmcJqS9KUGXNeBuB6YRCsrJMMzjqwvsv2t8ZQvwZbzk746
@@ -74,7 +74,6 @@ models:
       currency_id: BTC
       ethereum_node_url: http://localhost:8545
       initial_delay: 5.0
-      proxy_contract_address: to-change
       tendermint_url: http://localhost:26657
     class_name: Params
   price_api:
