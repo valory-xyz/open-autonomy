@@ -67,15 +67,15 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         """Set up the behaviour."""
         self._register_states(
             [
-                InitialDelayState,
-                RegistrationBehaviour,
-                DeploySafeBehaviour,
-                ObserveBehaviour,
-                EstimateBehaviour,
-                TransactionHashBehaviour,
-                SignatureBehaviour,
-                FinalizeBehaviour,
-                EndBehaviour,
+                InitialDelayState,  # type: ignore
+                RegistrationBehaviour,  # type: ignore
+                DeploySafeBehaviour,  # type: ignore
+                ObserveBehaviour,  # type: ignore
+                EstimateBehaviour,  # type: ignore
+                TransactionHashBehaviour,  # type: ignore
+                SignatureBehaviour,  # type: ignore
+                FinalizeBehaviour,  # type: ignore
+                EndBehaviour,  # type: ignore
             ]
         )
 
