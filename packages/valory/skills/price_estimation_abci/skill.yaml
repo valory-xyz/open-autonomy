@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmY4Ry2ueJYtyiVpuxvm2zpTxmzNxegswHuRHmZhMcBmnL
+  behaviours.py: Qmbd1HEfsPqGzAEGRcRx4LRoxbJqPa4Uyt8JERZd4SSz5n
   dialogues.py: QmUyFp2mxAvwhv2SJ1jjAVMjLJWThwqxhpVjgH3zaaaZh6
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
   handlers.py: QmPihVLuQoLB6euJnfEJ3qFWGZFYtuAg5eYkzeZ8Mknv4L
@@ -17,8 +17,8 @@ fingerprint:
   helpers/base.py: QmaVWKoYSZfijfFs23aVPw25JeF36a3K6j1DNnvSU6E2Ed
   helpers/gnosis_safe.py: QmNhjjzm569GisxD7Pqr35vbFMS4rSnYzb3K5LSbvngMHM
   models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
-  models/payloads.py: QmS7xfHnU4578Cqmhb7pTN1jnQRvWQjrhg3B5f4UcA5Cco
-  models/rounds.py: QmeRkbnHuTgzW1sdFjJ8LBj9shtbp8iJuJigRnBorYY1ex
+  models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
+  models/rounds.py: QmaasFyzajwjjLpVPcLUyJFAqRbYYbQkv57NDaUyVu8SMK
   params.py: QmU9Jz4Hvvyn6HuvXtCctkhGuAYtGZudXzpgBGyrFNGJUX
   price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
   state_models.py: QmVi6feFy4rvDMpErzraTp3kVpT5Zzm3AY7GL2U1fxgAHw

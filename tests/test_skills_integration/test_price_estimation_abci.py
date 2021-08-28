@@ -38,7 +38,7 @@ class TestABCICounterSkillMany(
 
     IS_LOCAL = False
     capture_log = True
-    NB_AGENTS = 1
+    NB_AGENTS = 4
     NB_OWNERS = NB_AGENTS
     THRESHOLD = NB_AGENTS * 2 // 3 + 1
     cli_log_options = ["-v", "DEBUG"]
@@ -124,6 +124,8 @@ class TestABCICounterSkillMany(
             "Entered in the 'register' behaviour state",
             "message signing was successful.",
             "'register' behaviour state is done",
+            "Entered in the 'deploy_safe' behaviour state",
+            "'deploy_safe' behaviour state is done",
             "Entered in the 'observe' behaviour state",
             "Got observation of BTC price in USD",
             "'observe' behaviour state is done",
@@ -131,10 +133,16 @@ class TestABCICounterSkillMany(
             "Using observations",
             "Got estimate of BTC price in USD:",
             "'estimate' behaviour state is done",
-            "Consensus reached on estimate:",
-            "Signatures:",
+            "Entered in the 'tx_hash' behaviour state",
+            "'tx_hash' behaviour state is done",
+            "Entered in the 'sign' behaviour state",
+            "Signature:",
+            "'sign' behaviour state is done",
+            "Entered in the 'finalize' behaviour state",
+            "'finalize' behaviour state is done",
+            "Finalized estimate",
+            "Period end",
         )
-
         # check that *each* AEA prints these messages
         for process in processes:
             missing_strings = self.missing_from_output(process, check_strings)

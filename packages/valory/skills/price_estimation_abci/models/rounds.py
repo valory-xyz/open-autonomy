@@ -37,6 +37,7 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     ObservationPayload,
     RegistrationPayload,
     SignaturePayload,
+    TransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.params import ConsensusParams
 
@@ -53,6 +54,7 @@ class PeriodState:
         most_voted_estimate: Optional[float] = None,
         participant_to_signature: Optional[Mapping[str, str]] = None,
         safe_tx_hash: Optional[str] = None,
+        final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
         self._participants = participants
@@ -62,6 +64,7 @@ class PeriodState:
         self._most_voted_estimate = most_voted_estimate
         self._participant_to_signature = participant_to_signature
         self._safe_tx_hash = safe_tx_hash
+        self._final_tx_hash = final_tx_hash
 
     @property
     def participants(self) -> FrozenSet[str]:
@@ -100,7 +103,7 @@ class PeriodState:
     def participant_to_signature(self) -> Mapping[str, str]:
         """Get the participant_to_signature."""
         enforce(
-            self._participant_to_estimate is not None,
+            self._participant_to_signature is not None,
             "'participant_to_signature' field is None",
         )
         return cast(Mapping[str, str], self._participant_to_signature)
@@ -113,6 +116,15 @@ class PeriodState:
             "'safe_tx_hash' field is None",
         )
         return cast(str, self._safe_tx_hash)
+
+    @property
+    def final_tx_hash(self) -> str:
+        """Get the safe_tx_hash."""
+        enforce(
+            self._safe_tx_hash is not None,
+            "'final_tx_hash' field is None",
+        )
+        return cast(str, self._final_tx_hash)
 
     @property
     def most_voted_estimate(self) -> float:
@@ -458,6 +470,68 @@ class EstimateConsensusRound(BaseRound):
                 participant_to_estimate=MappingProxyType(self.participant_to_estimate),
                 most_voted_estimate=self.most_voted_estimate,
             )
+            next_round = TxHashRound(state, self._consensus_params)
+            return state, next_round
+        return None
+
+
+class TxHashRound(BaseRound):
+    """This class represents the 'tx-hash' round."""
+
+    round_id = "tx_hash"
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'collect-signature' round."""
+        super().__init__(*args, **kwargs)
+        self.transaction_hash: Optional[str] = None
+
+    def tx_hash(self, payload: TransactionHashPayload):
+        """Handle a 'tx_hash' payload."""
+        sender = payload.sender
+        if sender not in self.state.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender != self.state.safe_sender_address:
+            # sender is not the designated sender
+            return
+
+        if self.transaction_hash is not None:
+            # tx_hash already set
+            return
+
+        self.transaction_hash = payload.tx_hash
+
+    def check_tx_hash(self, payload: TransactionHashPayload) -> bool:
+        """
+        Check a signature payload can be applied to the current state.
+
+        This can happen only if:
+        - the sender is the designated sender
+        - the sender has not sent the tx_hash yet
+
+        :param payload: the payload to check
+        :return: True if the tx is allowed, False otherwise.
+        """
+        sender = payload.sender
+        sender_in_participants = sender in self.state.participants
+        sender_not_designated = sender == self.state.safe_sender_address
+        transaction_hash_not_sent_yet = self.transaction_hash is None
+        return (
+            sender_in_participants
+            and sender_not_designated
+            and transaction_hash_not_sent_yet
+        )
+
+    @property
+    def tx_hash_is_set(self) -> bool:
+        """Check that the transaction hash has been set."""
+        return self.transaction_hash is not None
+
+    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+        """Process the end of the block."""
+        if self.tx_hash_is_set:
+            state = self.state.update(safe_tx_hash=self.transaction_hash)
             next_round = CollectSignatureRound(state, self._consensus_params)
             return state, next_round
         return None
@@ -518,7 +592,7 @@ class CollectSignatureRound(BaseRound):
                     self.signatures_by_participant
                 )
             )
-            next_round = ConsensusReachedRound(state, self._consensus_params)
+            next_round = FinalizationRound(state, self._consensus_params)
             return state, next_round
         return None
 
@@ -588,16 +662,14 @@ class FinalizationRound(BaseRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.tx_hash_set:
-            state = self.state.update(safe_tx_hash=self._tx_hash)
+            state = self.state.update(final_tx_hash=self._tx_hash)
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
 class ConsensusReachedRound(BaseRound):
-    """
-    This class represents the 'consensus-reached' round.
-    """
+    """This class represents the 'consensus-reached' round."""
 
     round_id = "consensus_reached"
 

@@ -32,6 +32,7 @@ class TransactionType(Enum):
     DEPLOY_SAFE = "deploy_safe"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
+    TX_HASH = "tx_hash"
     SIGNATURE = "signature"
     FINALIZATION = "finalization"
 
@@ -148,6 +149,31 @@ class SignaturePayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(signature=self.signature)
+
+
+class TransactionHashPayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'tx_hash'."""
+
+    transaction_type = TransactionType.TX_HASH
+
+    def __init__(self, sender: str, tx_hash: str) -> None:
+        """Initialize an 'tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param tx_hash: the tx_hash
+        """
+        super().__init__(sender)
+        self._tx_hash = tx_hash
+
+    @property
+    def tx_hash(self) -> str:
+        """Get the tx_hash."""
+        return self._tx_hash
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(tx_hash=self.tx_hash)
 
 
 class FinalizationTxPayload(BasePriceEstimationPayload):

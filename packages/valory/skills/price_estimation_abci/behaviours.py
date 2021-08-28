@@ -18,10 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+import binascii
 import datetime
+import pprint
 from functools import partial
-from typing import Callable, Generator, cast
+from typing import Callable, Generator, List, Type, cast
 
+from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
 from web3.types import Wei
 
@@ -40,6 +43,7 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     ObservationPayload,
     RegistrationPayload,
     SignaturePayload,
+    TransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.models.rounds import (
     CollectObservationRound,
@@ -49,6 +53,7 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     EstimateConsensusRound,
     FinalizationRound,
     RegistrationRound,
+    TxHashRound,
 )
 
 
@@ -60,51 +65,48 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        # initial delay to wait synchronization with Tendermint
-        self.register_state(
-            "initial_delay",
-            InitialDelayState(name="initial_delay", skill_context=self.context),
-            initial=True,
+        self._register_states(
+            [
+                InitialDelayState,
+                RegistrationBehaviour,
+                DeploySafeBehaviour,
+                ObserveBehaviour,
+                EstimateBehaviour,
+                TransactionHashBehaviour,
+                SignatureBehaviour,
+                FinalizeBehaviour,
+                EndBehaviour,
+            ]
         )
-        self.register_state(
-            "register",
-            RegistrationBehaviour(name="register", skill_context=self.context),
-        )
-        self.register_state(
-            "deploy_safe",
-            DeploySafeBehaviour(name="deploy_safe", skill_context=self.context),
-        )
-        self.register_state(
-            "observe",
-            ObserveBehaviour(name="observe", skill_context=self.context),
-        )
-        self.register_state(
-            "estimate",
-            EstimateBehaviour(name="estimate", skill_context=self.context),
-        )
-        self.register_state(
-            "signature",
-            SignatureBehaviour(name="signature", skill_context=self.context),
-        )
-        self.register_state(
-            "finalize",
-            FinalizeBehaviour(name="finalize", skill_context=self.context),
-        )
-        self.register_state(
-            "end",
-            EndBehaviour(name="end", skill_context=self.context),
-        )
-
-        self.register_transition("initial_delay", "register", DONE_EVENT)
-        self.register_transition("register", "deploy_safe", DONE_EVENT)
-        self.register_transition("deploy_safe", "observe", DONE_EVENT)
-        self.register_transition("observe", "estimate", DONE_EVENT)
-        self.register_transition("estimate", "signature", DONE_EVENT)
-        self.register_transition("signature", "finalize", DONE_EVENT)
-        self.register_transition("finalize", "end", DONE_EVENT)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
+
+    def _register_states(self, state_classes: List[Type[BaseState]]) -> None:
+        """Register a list of states."""
+        enforce(
+            len(state_classes) != 0,
+            "empty list of state classes",
+            exception_class=ValueError,
+        )
+        self._register_state(state_classes[0], initial=True)
+        for state_cls in state_classes[1:]:
+            self._register_state(state_cls)
+
+        for index in range(len(state_classes) - 1):
+            before, after = state_classes[index], state_classes[index + 1]
+            self.register_transition(before.state_id, after.state_id, DONE_EVENT)
+
+    def _register_state(
+        self, state_cls: Type[BaseState], initial: bool = False
+    ) -> None:
+        """Register state."""
+        name = state_cls.state_id
+        return super().register_state(
+            state_cls.state_id,
+            state_cls(name=name, skill_context=self.context),
+            initial=initial,
+        )
 
     def get_wait_tendermint_rpc_is_ready(self) -> Callable:
         """
@@ -148,6 +150,8 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
 class InitialDelayState(BaseState):  # pylint: disable=too-many-ancestors
     """Wait for some seconds until Tendermint nodes are running."""
 
+    state_id = "initial_delay"
+
     def async_act(self) -> None:  # type: ignore
         """Do the action."""
         delay = self.context.params.initial_delay
@@ -157,6 +161,8 @@ class InitialDelayState(BaseState):  # pylint: disable=too-many-ancestors
 
 class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Register to the next round."""
+
+    state_id = "register"
 
     def async_act(self) -> None:  # type: ignore
         """
@@ -180,6 +186,8 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Deploy Safe."""
 
+    state_id = "deploy_safe"
+
     def async_act(self) -> None:  # type: ignore
         """
         Do the action.
@@ -193,6 +201,9 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         else:
             yield from self.deployer_act()
         yield from self.wait_until_round_end(DeploySafeRound.round_id)
+        self.context.logger.info(
+            f"Safe contract address: {self.period_state.safe_contract_address}"
+        )
         self._log_end()
         self.set_done()
 
@@ -220,12 +231,14 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             ethereum_node_url, self.context.agent_address, list(owners), threshold
         )
         tx_hash = yield from self._send_raw_transaction(tx_params)
-        self.context.logger.info(f"Tx hash: {tx_hash}")
+        self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
 
 
 class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Observe price estimate."""
+
+    state_id = "observe"
 
     def async_act(self) -> Generator:
         """
@@ -254,6 +267,8 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
 class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Estimate price."""
+
+    state_id = "estimate"
 
     def async_act(self) -> Generator:
         """
@@ -286,18 +301,59 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
+class TransactionHashBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+    """Share the transaction hash for the signature round."""
+
+    state_id = "tx_hash"
+
+    def async_act(self) -> None:  # type: ignore
+        """
+        Do the action.
+
+        Steps:
+        - TODO
+        """
+        self._log_start()
+        if self.context.agent_address != self.period_state.safe_sender_address:
+            self.not_sender_act()
+        else:
+            yield from self.sender_act()
+        yield from self.wait_until_round_end(TxHashRound.round_id)
+        self._log_end()
+        self.set_done()
+
+    def not_sender_act(self) -> None:
+        """Do the non-deployer action."""
+        self.context.logger.info(
+            "I am not the designated sender, waiting until next round..."
+        )
+
+    def sender_act(self) -> None:
+        """Do the deployer action."""
+        self.context.logger.info(
+            "I am the designated sender, committing the transaction hash..."
+        )
+        self.context.logger.info(
+            f"Consensus reached on estimate: {self.period_state.most_voted_estimate}"
+        )
+        data = self.period_state.encoded_estimate
+        safe_tx = self._get_safe_tx(self.context.agent_address, data)
+        safe_tx_hash = safe_tx.safe_tx_hash.hex()[2:]
+        self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+        payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+        stop_condition = self.is_round_ended(TxHashRound.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
+
+
 class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Signature state."""
 
-    is_programmatically_defined = True
+    state_id = "sign"
 
     def async_act(self) -> Generator:
         """Do the act."""
         self._log_start()
-        final_estimate = self.period_state.most_voted_estimate
-        self.context.logger.info(f"Consensus reached on estimate: {final_estimate}")
-        encoded_estimate = self.period_state.encoded_estimate
-        signature_hex = yield from self._get_safe_tx_signature(encoded_estimate)
+        signature_hex = yield from self._get_safe_tx_signature()
         payload = SignaturePayload(self.context.agent_address, signature_hex)
         stop_condition = self.is_round_ended(CollectSignatureRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
@@ -305,67 +361,71 @@ class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self._log_end()
         self.set_done()
 
-    def _get_safe_tx_signature(self, data: bytes):
-        safe_tx = self._get_safe_tx(data)
+    def _get_safe_tx_signature(self):
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        self._send_signing_request(safe_tx.safe_tx_hash, is_deprecated_mode=True)
+        safe_tx_hash_bytes = binascii.unhexlify(self.period_state.safe_tx_hash)
+        self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
         signature_hex = cast(SigningMessage, signature_response).signed_message.body
         # remove the leading '0x'
         signature_hex = signature_hex[2:]
+        self.context.logger.info(f"Signature: {signature_hex}")
         return signature_hex
 
 
 class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Finalize state."""
 
-    is_programmatically_defined = True
+    state_id = "finalize"
 
     def async_act(self) -> None:
         """Do the act."""
         self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
-            self.not_deployer_act()
+            self.not_sender_act()
         else:
-            yield from self.deployer_act()
+            yield from self.sender_act()
         yield from self.wait_until_round_end(FinalizationRound.round_id)
-        self._log_end()
         self._log_end()
         self.set_done()
 
-    def not_deployer_act(self) -> None:
-        """Do the non-deployer action."""
+    def not_sender_act(self) -> None:
+        """Do the non-sender action."""
         self.context.logger.info(
             "I am not the designated sender, waiting until next round..."
         )
 
-    def deployer_act(self) -> None:
-        """Do the deployer action."""
+    def sender_act(self) -> None:
+        """Do the sender action."""
         self.context.logger.info(
             "I am the designated sender, sending the safe transaction..."
         )
         tx_hash = yield from self._send_safe_transaction()
+        self.context.logger.info(
+            f"Transaction hash of the final transaction: {tx_hash}"
+        )
+        self.context.logger.info(
+            f"Signatures: {pprint.pformat(self.context.state.period_state.participant_to_signature)}"
+        )
         payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
-        stop_condition = self.is_round_ended(DeploySafeRound.round_id)
+        stop_condition = self.is_round_ended(FinalizationRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
     def _send_safe_transaction(self) -> str:
         """Send a Safe transaction using the participants' signatures."""
-        sorted_addresses = self.period_state.sorted_addresses
         data = self.period_state.encoded_estimate
 
         # compose final signature (need to be sorted!)
-        final_signature = ""
-        for signer, signature in self.period_state.participant_to_signature.items():
-            signer_index = sorted_addresses.index(signer)
-            final_signature = (
-                final_signature[: 65 * signer_index]
-                + signature
-                + final_signature[65 * signer_index :]
-            )
+        final_signature = b""
+        for signer in self.period_state.sorted_addresses:
+            if signer not in self.period_state.participant_to_signature:
+                continue
+            signature = self.period_state.participant_to_signature[signer]
+            signature_bytes = binascii.unhexlify(signature)
+            final_signature += signature_bytes
 
-        safe_tx = self._get_safe_tx(data)
+        safe_tx = self._get_safe_tx(self.context.agent_address, data)
         safe_tx.signatures = final_signature
         safe_tx.call(self.context.agent_address)
 
@@ -376,23 +436,23 @@ class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         }
         tx = safe_tx.w3_tx.buildTransaction(tx_parameters)
         tx["gas"] = Wei(max(tx["gas"] + 75000, safe_tx.recommended_gas()))
-
-        safe_tx.w3_tx.buildTransaction(tx_parameters)
-
-        tx_hash = yield from self._send_raw_transaction(tx_parameters)
+        tx["nonce"] = safe_tx.w3.eth.get_transaction_count(
+            safe_tx.w3.toChecksumAddress(self.context.agent_address)
+        )
+        tx_hash = yield from self._send_raw_transaction(tx)
+        self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 
 
 class EndBehaviour(BaseState):  # pylint: disable=too-many-ancestors
     """Final state."""
 
-    is_programmatically_defined = True
+    state_id = "end"
 
     def async_act(self) -> None:
         """Do the act."""
-        final_estimate = self.period_state.most_voted_estimate
-        self.context.logger.info(f"Consensus reached on estimate: {final_estimate}")
         self.context.logger.info(
-            f"Signatures: {self.context.state.period_state.participant_to_signature}"
+            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
+        self.context.logger.info("Period end.")
         self.set_done()
