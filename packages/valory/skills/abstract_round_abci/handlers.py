@@ -28,6 +28,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.base import Handler, SkillContext
 
+from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.ledger_api import LedgerApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
@@ -41,12 +42,12 @@ from packages.valory.skills.abstract_round_abci.base_models import (
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
-    LedgerApiDialogue,
-    LedgerApiDialogues,
-)
-from packages.valory.skills.price_estimation_abci.dialogues import (
+    ContractApiDialogue,
+    ContractApiDialogues,
     HttpDialogue,
     HttpDialogues,
+    LedgerApiDialogue,
+    LedgerApiDialogues,
     SigningDialogues,
 )
 
@@ -526,4 +527,120 @@ class LedgerApiHandler(HandlerUtils, Handler):
                 ledger_api_msg.performative,
                 ledger_api_dialogue,
             )
+        )
+
+
+class ContractApiHandler(HandlerUtils, Handler):
+    """Implement the contract api handler."""
+
+    SUPPORTED_PROTOCOL = ContractApiMessage.protocol_id  # type: Optional[PublicId]
+
+    def setup(self) -> None:
+        """Implement the setup for the handler."""
+
+    def handle(self, message: Message) -> None:
+        """
+        Implement the reaction to a message.
+
+        :param message: the message
+        :return: None
+        """
+        contract_api_msg = cast(ContractApiMessage, message)
+
+        # recover dialogue
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        contract_api_dialogue = cast(
+            Optional[ContractApiDialogue],
+            contract_api_dialogues.update(contract_api_msg),
+        )
+        if contract_api_dialogue is None:
+            self._handle_unidentified_dialogue(contract_api_msg)
+            return
+
+        request_nonce = contract_api_dialogue.dialogue_label.dialogue_reference[0]
+        callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)
+        if callback is None:
+            self._handle_no_callback(message, contract_api_dialogue)
+            return
+
+        # handle message
+        if (
+            contract_api_msg.performative
+            is ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            self._handle_raw_transaction(contract_api_msg, contract_api_dialogue)
+        elif contract_api_msg.performative == ContractApiMessage.Performative.ERROR:
+            self._handle_error(contract_api_msg, contract_api_dialogue)
+        else:
+            self._handle_invalid(contract_api_msg, contract_api_dialogue)
+            return
+        callback(contract_api_msg)
+
+    def teardown(self) -> None:
+        """Implement the handler teardown."""
+
+    def _handle_unidentified_dialogue(
+        self, contract_api_msg: ContractApiMessage
+    ) -> None:
+        """
+        Handle an unidentified dialogue.
+
+        :param contract_api_msg: the message
+        """
+        self.context.logger.info(
+            "received invalid contract_api message=%s, unidentified dialogue.",
+            contract_api_msg,
+        )
+
+    def _handle_raw_transaction(
+        self,
+        contract_api_msg: ContractApiMessage,
+        contract_api_dialogue: ContractApiDialogue,
+    ) -> None:
+        """
+        Handle a message of raw_transaction performative.
+
+        :param contract_api_msg: the contract api message
+        :param contract_api_dialogue: the contract api dialogue
+        """
+        self.context.logger.info(
+            "received raw transaction=%s in dialogue=%s.",
+            contract_api_msg,
+            contract_api_dialogue,
+        )
+
+    def _handle_error(
+        self,
+        contract_api_msg: ContractApiMessage,
+        contract_api_dialogue: ContractApiDialogue,
+    ) -> None:
+        """
+        Handle a message of error performative.
+
+        :param contract_api_msg: the ledger api message
+        :param contract_api_dialogue: the ledger api dialogue
+        """
+        self.context.logger.info(
+            "received contract_api error message=%s in dialogue=%s.",
+            contract_api_msg,
+            contract_api_dialogue,
+        )
+
+    def _handle_invalid(
+        self,
+        contract_api_msg: ContractApiMessage,
+        contract_api_dialogue: ContractApiDialogue,
+    ) -> None:
+        """
+        Handle a message of invalid performative.
+
+        :param contract_api_msg: the ledger api message
+        :param contract_api_dialogue: the ledger api dialogue
+        """
+        self.context.logger.warning(
+            "cannot handle contract_api message of performative=%s in dialogue=%s.",
+            contract_api_msg.performative,
+            contract_api_dialogue,
         )

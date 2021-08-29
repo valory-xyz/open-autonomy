@@ -32,9 +32,6 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import State
 from aea_ledger_ethereum import EthereumCrypto
-from eth_typing import ChecksumAddress, HexAddress, HexStr
-from gnosis.eth import EthereumClient
-from gnosis.safe import Safe, SafeTx
 
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
@@ -60,7 +57,6 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.price_estimation_abci.models.rounds import PeriodState
 
 
 DONE_EVENT = "done"
@@ -221,11 +217,6 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         State.__init__(self, **kwargs)
         self._is_done: bool = False
         enforce(self.state_id != "", "State id not set.")
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, self.context.state.period_state)
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
@@ -459,18 +450,9 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
 
-    def _get_safe_tx(self, to_address: str, data: bytes) -> SafeTx:
-        safe = Safe(
-            ChecksumAddress(
-                HexAddress(HexStr(self.period_state.safe_contract_address))
-            ),
-            EthereumClient(self.context.params.ethereum_node_url),
-        )
-        safe_tx = safe.build_multisig_tx(to_address, 0, data)
-        return safe_tx
-
-    def _send_raw_transaction(self, tx_params: Dict) -> Generator[None, None, str]:
-        transaction = RawTransaction(EthereumCrypto.identifier, body=tx_params)
+    def _send_raw_transaction(
+        self, transaction: RawTransaction
+    ) -> Generator[None, None, str]:
         terms = Terms(
             EthereumCrypto.identifier,
             self.context.agent_address,

@@ -9,10 +9,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmRemgc6ehxrHnAHcLFGg15uQDudPFBTLUSrUaTwdHnv5i
-  dialogues.py: QmUyFp2mxAvwhv2SJ1jjAVMjLJWThwqxhpVjgH3zaaaZh6
+  behaviours.py: QmXP5KskdM2xqJhS2zcSVXQd1Q3VqdzNsZrLurWHekNzPm
+  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
-  handlers.py: QmPihVLuQoLB6euJnfEJ3qFWGZFYtuAg5eYkzeZ8Mknv4L
+  handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   helpers/__init__.py: QmTDj1SsdjnfnuSJbtKGXxAG8PYtcvR97HAVVi5kK4zDVN
   helpers/base.py: QmaVWKoYSZfijfFs23aVPw25JeF36a3K6j1DNnvSU6E2Ed
   helpers/gnosis_safe.py: QmXqKbLy4B6pfB5HdzGARG8FuYxtt2T1kBDVbMENjk5DuJ
@@ -27,7 +27,8 @@ connections:
 - fetchai/http_client:0.22.0
 - fetchai/ledger:0.18.0
 - valory/abci:0.1.0
-contracts: []
+contracts:
+- valory/gnosis_safe:0.1.0
 protocols:
 - fetchai/contract_api:1.0.0
 - fetchai/http:1.0.0
@@ -44,6 +45,9 @@ handlers:
   abci:
     args: {}
     class_name: ABCIPriceEstimationHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
@@ -57,6 +61,9 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
   estimator:
     args: {}
     class_name: Estimator
