@@ -8,6 +8,10 @@ Distributed consensus meets the AEA framework.
 
       git clone --recursive git@github.com:valory-xyz/consensus-algorithms.git
 
+  Later to update the Git submodules:
+
+      git submodule update --init --recursive
+
 - Create and launch a virtual environment with Python 3.8 (any Python `>=` 3.6 works):
 
       pipenv --python 3.8 && pipenv shell
