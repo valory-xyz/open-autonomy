@@ -118,7 +118,9 @@ class TestABCICounterSkillMany(
             processes.append(process)
 
         logging.info("Waiting Tendermint nodes to be up")
-        self.health_check(self.tendermint_net_builder)
+        self.health_check(
+            self.tendermint_net_builder, max_retries=20, sleep_interval=3.0
+        )
 
         check_strings = (
             "Entered in the 'register' behaviour state",
