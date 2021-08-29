@@ -100,7 +100,7 @@ models:
     class_name: SharedState
 dependencies:
   gnosis-py:
-    version: <4.0.0,>=3.1.16
+    version: ==3.1.16
   pycoingecko:
     version: ==2.2.0
 is_abstract: false

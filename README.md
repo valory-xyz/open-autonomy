@@ -13,7 +13,7 @@ Distributed consensus meets the AEA framework.
 
 - Install the package from source:
 
-      pip install .
+      pip install -e .
 
 - [Install Tendermint](https://docs.tendermint.com/master/introduction/install.html)
 
