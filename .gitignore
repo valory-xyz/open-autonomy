@@ -343,3 +343,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/linux,windows,macos,python,vim,visualstudiocode,pycharm+all
 
 Pipfile.lock
+
+# ignore packages/fetchai, but useful to have them locally
+# so to be able to run tests
+packages/fetchai

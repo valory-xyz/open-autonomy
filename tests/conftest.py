@@ -18,14 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
-import inspect
-import os
-from pathlib import Path
+from typing import List, Tuple
 
 import docker
 import pytest
 
+from tests.helpers.constants import KEY_PAIRS
+from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.gnosis_safe_net import (
+    DEFAULT_HARDHAT_PORT,
+    GnosisSafeNetDockerImage,
+)
 from tests.helpers.docker.tendermint import (
     DEFAULT_PROXY_APP,
     DEFAULT_TENDERMINT_PORT,
@@ -33,14 +37,7 @@ from tests.helpers.docker.tendermint import (
 )
 
 
-CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
-ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
-
-DEFAULT_ASYNC_TIMEOUT = 5.0
-DEFAULT_REQUESTS_TIMEOUT = 5.0
-MAX_RETRIES = 10
-LOCALHOST = "localhost"
-HTTP_LOCALHOST = f"http://{LOCALHOST}"
+ROOT_DIR = _ROOT_DIR
 
 
 @pytest.fixture()
@@ -64,11 +61,27 @@ def tendermint(
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
-@pytest.mark.integration
-class UseTendermint:
-    """Inherit from this class to use Tendermint."""
+@pytest.fixture()
+def hardhat_port() -> int:
+    """Get the Tendermint port"""
+    return DEFAULT_HARDHAT_PORT
 
-    @pytest.fixture(autouse=True)
-    def _start_tendermint(self, tendermint, tendermint_port):
-        """Start a Tendermint image."""
-        self.tendermint_port = tendermint_port
+
+@pytest.fixture()
+def key_pairs() -> List[Tuple[str, str]]:
+    """Get the default key paris for hardhat."""
+    return KEY_PAIRS
+
+
+@pytest.mark.integration
+@pytest.mark.ledger
+@pytest.fixture(scope="function")
+def gnosis_safe_hardhat(
+    hardhat_port,
+    timeout: float = 3.0,
+    max_attempts: int = 20,
+):
+    """Launch the HardHat node with Gnosis Safe contracts deployed."""
+    client = docker.from_env()
+    image = GnosisSafeNetDockerImage(client, hardhat_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)

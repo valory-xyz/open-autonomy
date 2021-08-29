@@ -32,6 +32,12 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogues as BaseHttpDialogues,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
+    LedgerApiDialogue as BaseLedgerApiDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    LedgerApiDialogues as BaseLedgerApiDialogues,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
     SigningDialogue as BaseSigningDialogue,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -49,3 +55,7 @@ HttpDialogues = BaseHttpDialogues
 
 SigningDialogue = BaseSigningDialogue
 SigningDialogues = BaseSigningDialogues
+
+
+LedgerApiDialogue = BaseLedgerApiDialogue
+LedgerApiDialogues = BaseLedgerApiDialogues

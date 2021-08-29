@@ -27,7 +27,7 @@ from typing import Generator
 
 import requests
 
-from tests.conftest import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
+from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
 
 
 @contextlib.contextmanager

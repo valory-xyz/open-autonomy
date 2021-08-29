@@ -23,7 +23,7 @@ import time
 import pytest
 from aea.test_tools.test_cases import AEATestCaseEmpty
 
-from tests.conftest import UseTendermint
+from tests.fixture_helpers import UseTendermint
 
 
 @pytest.mark.integration

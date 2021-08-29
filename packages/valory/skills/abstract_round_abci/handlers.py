@@ -18,15 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
-
+from abc import ABC
 from typing import Optional, cast
 
 from aea.configurations.data_types import PublicId
+from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
 from aea.protocols.base import Message
-from aea.skills.base import Handler
+from aea.protocols.dialogue.base import Dialogue
+from aea.skills.base import Handler, SkillContext
 
 from packages.fetchai.protocols.http import HttpMessage
+from packages.fetchai.protocols.ledger_api import LedgerApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.fetchai.protocols.signing.dialogues import SigningDialogue
 from packages.valory.protocols.abci import AbciMessage
@@ -36,11 +39,10 @@ from packages.valory.skills.abstract_round_abci.base_models import (
     ERROR_CODE,
     Transaction,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    PriceEstimationConsensusBehaviour,
-    RegistrationBehaviour,
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    AbciDialogue,
+    LedgerApiDialogue,
+    LedgerApiDialogues,
 )
 from packages.valory.skills.price_estimation_abci.dialogues import (
     HttpDialogue,
@@ -54,7 +56,25 @@ def exception_to_info_msg(exception: Exception) -> str:
     return f"{exception.__class__.__name__}: {str(exception)}"
 
 
-class ABCIRoundHandler(ABCIHandler):
+class HandlerUtils(ABC):  # pylint: disable=too-few-public-methods
+    """MixIn class with handler utils."""
+
+    context: SkillContext
+
+    def _handle_no_callback(self, _message: Message, dialogue: Dialogue) -> None:
+        """
+        Handle no callback found.
+
+        :param _message: the message to be handled
+        :param dialogue: the http dialogue
+        """
+        request_nonce = dialogue.dialogue_label.dialogue_reference[0]
+        self.context.logger.warning(
+            f"callback not specified for request with nonce {request_nonce}"
+        )
+
+
+class ABCIRoundHandler(HandlerUtils, ABCIHandler):
     """ABCI handler."""
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
@@ -148,7 +168,7 @@ class ABCIRoundHandler(ABCIHandler):
     ) -> AbciMessage:
         """Handle a failed deliver_tx request."""
         reply = dialogue.reply(
-            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
             target_message=message,
             code=ERROR_CODE,
             data=b"",
@@ -166,7 +186,7 @@ class ABCIRoundHandler(ABCIHandler):
         self.context.logger.error(exception_to_info_msg(exception))
 
 
-class HttpHandler(Handler):
+class HttpHandler(HandlerUtils, Handler):
     """The HTTP response handler."""
 
     SUPPORTED_PROTOCOL = HttpMessage.protocol_id  # type: Optional[PublicId]
@@ -220,18 +240,6 @@ class HttpHandler(Handler):
             "received invalid message={}, unidentified dialogue.".format(msg)
         )
 
-    def _handle_no_callback(self, _message: Message, dialogue: HttpDialogue) -> None:
-        """
-        Handle no callback found.
-
-        :param _message: the message to be handled
-        :param dialogue: the http dialogue
-        """
-        request_nonce = dialogue.dialogue_label.dialogue_reference[0]
-        self.context.logger.warning(
-            f"callback not specified for request with nonce {request_nonce}"
-        )
-
     def _handle_no_requests(self, message: HttpMessage) -> None:
         """
         Handle HTTP responses.
@@ -248,7 +256,7 @@ class HttpHandler(Handler):
         )
 
 
-class SigningHandler(Handler):
+class SigningHandler(HandlerUtils, Handler):
     """Implement the transaction handler."""
 
     SUPPORTED_PROTOCOL = SigningMessage.protocol_id  # type: Optional[PublicId]
@@ -276,28 +284,35 @@ class SigningHandler(Handler):
             self._handle_unidentified_dialogue(signing_msg)
             return
 
+        request_nonce = signing_dialogue.dialogue_label.dialogue_reference[0]
+        callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)
+        if callback is None:
+            self._handle_no_callback(message, signing_dialogue)
+            return
+
         # handle message
         if signing_msg.performative is SigningMessage.Performative.SIGNED_MESSAGE:
             self._handle_signed_message(signing_msg, signing_dialogue)
+        elif signing_msg.performative is SigningMessage.Performative.SIGNED_TRANSACTION:
+            self._handle_signed_transaction(signing_msg, signing_dialogue)
         elif signing_msg.performative is SigningMessage.Performative.ERROR:
             self._handle_error(signing_msg, signing_dialogue)
         else:
             self._handle_invalid(signing_msg, signing_dialogue)
+            return
+        callback(signing_msg)
 
     def _handle_signed_message(
-        self, signing_msg: SigningMessage, signing_dialogue: SigningDialogue
+        self, _signing_msg: SigningMessage, signing_dialogue: SigningDialogue
+    ) -> None:
+        self.context.logger.info("message signing was successful.")
+        self.context.logger.debug(f"signing success for {signing_dialogue}")
+
+    def _handle_signed_transaction(
+        self, _signing_msg: SigningMessage, signing_dialogue: SigningDialogue
     ) -> None:
         self.context.logger.info("transaction signing was successful.")
         self.context.logger.debug(f"signing success for {signing_dialogue}")
-        fsm_behaviour = cast(
-            PriceEstimationConsensusBehaviour, self.context.behaviours.main
-        )
-        current_state_name = cast(str, fsm_behaviour.current)
-        registration_state = cast(
-            RegistrationBehaviour, fsm_behaviour.get_state(current_state_name)
-        )
-        # send failure
-        registration_state.try_send(signing_msg)
 
     def _handle_unidentified_dialogue(self, signing_msg: SigningMessage) -> None:
         """
@@ -315,7 +330,7 @@ class SigningHandler(Handler):
         self, signing_msg: SigningMessage, signing_dialogue: SigningDialogue
     ) -> None:
         """
-        Handle an oef search message.
+        Handle a signing error message.
 
         :param signing_msg: the signing message
         :param signing_dialogue: the dialogue
@@ -325,23 +340,6 @@ class SigningHandler(Handler):
                 signing_msg.error_code, signing_dialogue
             )
         )
-        signing_msg_ = cast(
-            Optional[SigningMessage], signing_dialogue.last_outgoing_message
-        )
-        if (
-            signing_msg_ is not None
-            and signing_msg_.performative
-            == SigningMessage.Performative.SIGN_TRANSACTION
-        ):
-            fsm_behaviour = cast(
-                PriceEstimationConsensusBehaviour, self.context.behaviours.main
-            )
-            current_state_name = cast(str, fsm_behaviour.current)
-            behaviour_state = cast(
-                BaseState, fsm_behaviour.get_state(current_state_name)
-            )
-            # send failure
-            behaviour_state.try_send(signing_msg)
 
     def _handle_invalid(
         self, signing_msg: SigningMessage, signing_dialogue: SigningDialogue
@@ -355,5 +353,177 @@ class SigningHandler(Handler):
         self.context.logger.warning(
             "cannot handle signing message of performative={} in dialogue={}.".format(
                 signing_msg.performative, signing_dialogue
+            )
+        )
+
+
+class LedgerApiHandler(HandlerUtils, Handler):
+    """Implement the ledger handler."""
+
+    SUPPORTED_PROTOCOL = LedgerApiMessage.protocol_id  # type: Optional[PublicId]
+
+    def setup(self) -> None:
+        """Implement the setup for the handler."""
+
+    def handle(self, message: Message) -> None:
+        """
+        Implement the reaction to a message.
+
+        :param message: the message
+        :return: None
+        """
+        ledger_api_msg = cast(LedgerApiMessage, message)
+
+        # recover dialogue
+        ledger_api_dialogues = cast(
+            LedgerApiDialogues, self.context.ledger_api_dialogues
+        )
+        ledger_api_dialogue = cast(
+            Optional[LedgerApiDialogue], ledger_api_dialogues.update(ledger_api_msg)
+        )
+        if ledger_api_dialogue is None:
+            self._handle_unidentified_dialogue(ledger_api_msg)
+            return
+
+        request_nonce = ledger_api_dialogue.dialogue_label.dialogue_reference[0]
+        callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)
+        if callback is None:
+            self._handle_no_callback(message, ledger_api_dialogue)
+            return
+
+        # handle message
+        if ledger_api_msg.performative is LedgerApiMessage.Performative.BALANCE:
+            self._handle_balance(ledger_api_msg)
+        elif (
+            ledger_api_msg.performative is LedgerApiMessage.Performative.RAW_TRANSACTION
+        ):
+            self._handle_raw_transaction(ledger_api_msg, ledger_api_dialogue)
+        elif (
+            ledger_api_msg.performative
+            == LedgerApiMessage.Performative.TRANSACTION_DIGEST
+        ):
+            self._handle_transaction_digest(ledger_api_msg, ledger_api_dialogue)
+        elif (
+            ledger_api_msg.performative
+            == LedgerApiMessage.Performative.TRANSACTION_RECEIPT
+        ):
+            self._handle_transaction_receipt(ledger_api_msg, ledger_api_dialogue)
+        elif ledger_api_msg.performative == LedgerApiMessage.Performative.ERROR:
+            self._handle_error(ledger_api_msg, ledger_api_dialogue)
+        else:
+            self._handle_invalid(ledger_api_msg, ledger_api_dialogue)
+            return
+        callback(ledger_api_msg)
+
+    def teardown(self) -> None:
+        """Implement the handler teardown."""
+
+    def _handle_unidentified_dialogue(self, ledger_api_msg: LedgerApiMessage) -> None:
+        """
+        Handle an unidentified dialogue.
+
+        :param ledger_api_msg: the message
+        """
+        self.context.logger.info(
+            "received invalid ledger_api message={}, unidentified dialogue.".format(
+                ledger_api_msg
+            )
+        )
+
+    def _handle_balance(self, ledger_api_msg: LedgerApiMessage) -> None:
+        """
+        Handle a message of balance performative.
+
+        :param ledger_api_msg: the ledger api message
+        """
+        self.context.logger.info(
+            "starting balance on {} ledger={}.".format(
+                ledger_api_msg.ledger_id,
+                ledger_api_msg.balance,
+            )
+        )
+
+    def _handle_raw_transaction(
+        self, ledger_api_msg: LedgerApiMessage, _ledger_api_dialogue: LedgerApiDialogue
+    ) -> None:
+        """
+        Handle a message of raw_transaction performative.
+
+        :param ledger_api_msg: the ledger api message
+        :param _ledger_api_dialogue: the ledger api dialogue
+        """
+        self.context.logger.info("received raw transaction={}".format(ledger_api_msg))
+
+    def _handle_transaction_digest(
+        self, ledger_api_msg: LedgerApiMessage, _ledger_api_dialogue: LedgerApiDialogue
+    ) -> None:
+        """
+        Handle a message of transaction_digest performative.
+
+        :param ledger_api_msg: the ledger api message
+        :param _ledger_api_dialogue: the ledger api dialogue
+        """
+        self.context.logger.info(
+            "transaction was successfully submitted. Transaction digest={}".format(
+                ledger_api_msg.transaction_digest
+            )
+        )
+
+    def _handle_transaction_receipt(
+        self, ledger_api_msg: LedgerApiMessage, ledger_api_dialogue: LedgerApiDialogue
+    ) -> None:
+        """
+        Handle a message of transaction receipt performative.
+
+        :param ledger_api_msg: the ledger api message
+        :param ledger_api_dialogue: the ledger api dialogue
+        """
+        is_settled = LedgerApis.is_transaction_settled(
+            ledger_api_msg.terms.ledger_id, ledger_api_msg.transaction_receipt.receipt
+        )
+        if is_settled:
+            ledger_api_msg_ = cast(
+                Optional[LedgerApiMessage], ledger_api_dialogue.last_outgoing_message
+            )
+            if ledger_api_msg_ is None:
+                raise ValueError(  # pragma: nocover
+                    "Could not retrieve last ledger_api message"
+                )
+            self.context.logger.info("transaction confirmed.")
+        else:
+            self.context.logger.info(
+                "transaction_receipt={} not settled or not valid, aborting".format(
+                    ledger_api_msg.transaction_receipt
+                )
+            )
+
+    def _handle_error(
+        self, ledger_api_msg: LedgerApiMessage, ledger_api_dialogue: LedgerApiDialogue
+    ) -> None:
+        """
+        Handle a message of error performative.
+
+        :param ledger_api_msg: the ledger api message
+        :param ledger_api_dialogue: the ledger api dialogue
+        """
+        self.context.logger.info(
+            "received ledger_api error message={} in dialogue={}.".format(
+                ledger_api_msg, ledger_api_dialogue
+            )
+        )
+
+    def _handle_invalid(
+        self, ledger_api_msg: LedgerApiMessage, ledger_api_dialogue: LedgerApiDialogue
+    ) -> None:
+        """
+        Handle a message of invalid performative.
+
+        :param ledger_api_msg: the ledger api message
+        :param ledger_api_dialogue: the ledger api dialogue
+        """
+        self.context.logger.warning(
+            "cannot handle ledger_api message of performative={} in dialogue={}.".format(
+                ledger_api_msg.performative,
+                ledger_api_dialogue,
             )
         )

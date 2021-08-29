@@ -24,18 +24,23 @@ from pathlib import Path
 
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
 )
 
 
-class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
+class TestABCICounterSkillMany(
+    AEATestCaseMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
+):
     """Test that the ABCI price_estimation skill works together with Tendermint."""
 
     IS_LOCAL = False
     capture_log = True
     NB_AGENTS = 4
+    NB_OWNERS = NB_AGENTS
+    THRESHOLD = NB_AGENTS * 2 // 3 + 1
     cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
@@ -51,7 +56,9 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
             logging.debug(f"Processing agent {agent_name}...")
             node = self.tendermint_net_builder.nodes[agent_id]
             self.set_agent_context(agent_name)
-            self.generate_private_key("ethereum")
+            Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
+                self.hardhat_key_pairs[agent_id][1]
+            )
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.set_config("agent.default_ledger", "ethereum")
             self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
@@ -111,22 +118,33 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
             processes.append(process)
 
         logging.info("Waiting Tendermint nodes to be up")
-        self.health_check(self.tendermint_net_builder)
+        self.health_check(
+            self.tendermint_net_builder, max_retries=20, sleep_interval=3.0
+        )
 
         check_strings = (
-            "Entered in the 'registration' behaviour state",
-            "transaction signing was successful.",
-            "'registration' behaviour state is done",
-            "Entered in the 'observation' behaviour state",
+            "Entered in the 'register' behaviour state",
+            "message signing was successful.",
+            "'register' behaviour state is done",
+            "Entered in the 'deploy_safe' behaviour state",
+            "'deploy_safe' behaviour state is done",
+            "Entered in the 'observe' behaviour state",
             "Got observation of BTC price in USD",
-            "'observation' behaviour state is done",
+            "'observe' behaviour state is done",
             "Entered in the 'estimate' behaviour state",
             "Using observations",
             "Got estimate of BTC price in USD:",
             "'estimate' behaviour state is done",
-            "Consensus reached on estimate:",
+            "Entered in the 'tx_hash' behaviour state",
+            "'tx_hash' behaviour state is done",
+            "Entered in the 'sign' behaviour state",
+            "Signature:",
+            "'sign' behaviour state is done",
+            "Entered in the 'finalize' behaviour state",
+            "'finalize' behaviour state is done",
+            "Finalized estimate",
+            "Period end",
         )
-
         # check that *each* AEA prints these messages
         for process in processes:
             missing_strings = self.missing_from_output(process, check_strings)

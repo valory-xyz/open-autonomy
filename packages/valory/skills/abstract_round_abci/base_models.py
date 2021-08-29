@@ -25,6 +25,9 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, c
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
+from packages.fetchai.connections.ledger.base import (
+    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
 from packages.valory.protocols.abci.custom_types import Header
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
@@ -33,6 +36,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 
 OK_CODE = 0
 ERROR_CODE = 1
+LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
 class _MetaPayload(ABCMeta):
@@ -141,7 +145,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
             sender = "..."
             some_kwargs = {...}
             p1 = SomePayloadClass(sender, **some_kwargs)
-            p2 = SomePayloadClass(sender, **s.data)
+            p2 = SomePayloadClass(sender, **p1.data)
 
         :return: a dictionary which contains the payload data
         """

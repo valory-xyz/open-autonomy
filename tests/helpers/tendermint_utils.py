@@ -20,12 +20,12 @@
 """Helpers for Tendermint."""
 import subprocess  # nosec
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 import pytest
 
-from tests.conftest import LOCALHOST
 from tests.helpers.base import tendermint_health_check
+from tests.helpers.constants import LOCALHOST
 
 
 _TCP = "tcp://"
@@ -145,8 +145,10 @@ class BaseTendermintTestClass:
     """MixIn class for Pytest classes."""
 
     @staticmethod
-    def health_check(tendermint_net: TendermintLocalNetworkBuilder) -> None:
+    def health_check(
+        tendermint_net: TendermintLocalNetworkBuilder, **kwargs: Any
+    ) -> None:
         """Do a health-check of the Tendermint network."""
         for rpc_addr in tendermint_net.http_rpc_laddrs:
-            if not tendermint_health_check(rpc_addr):
+            if not tendermint_health_check(rpc_addr, **kwargs):
                 pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")

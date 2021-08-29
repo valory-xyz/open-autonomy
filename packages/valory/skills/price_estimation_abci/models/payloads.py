@@ -29,8 +29,12 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     REGISTRATION = "registration"
+    DEPLOY_SAFE = "deploy_safe"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
+    TX_HASH = "tx_hash"
+    SIGNATURE = "signature"
+    FINALIZATION = "finalization"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -45,6 +49,31 @@ class RegistrationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
+
+
+class DeploySafePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'deploy_safe'."""
+
+    transaction_type = TransactionType.DEPLOY_SAFE
+
+    def __init__(self, sender: str, safe_contract_address: str) -> None:
+        """Initialize a 'deploy_safe' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param safe_contract_address: the Safe contract address
+        """
+        super().__init__(sender)
+        self._safe_contract_address = safe_contract_address
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the Safe contract address."""
+        return self._safe_contract_address
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(safe_contract_address=self.safe_contract_address)
 
 
 class ObservationPayload(BasePriceEstimationPayload):
@@ -95,3 +124,78 @@ class EstimatePayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(estimate=self.estimate)
+
+
+class SignaturePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'signature'."""
+
+    transaction_type = TransactionType.SIGNATURE
+
+    def __init__(self, sender: str, signature: str) -> None:
+        """Initialize an 'signature' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param signature: the signature
+        """
+        super().__init__(sender)
+        self._signature = signature
+
+    @property
+    def signature(self) -> str:
+        """Get the signature."""
+        return self._signature
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(signature=self.signature)
+
+
+class TransactionHashPayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'tx_hash'."""
+
+    transaction_type = TransactionType.TX_HASH
+
+    def __init__(self, sender: str, tx_hash: str) -> None:
+        """Initialize an 'tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param tx_hash: the tx_hash
+        """
+        super().__init__(sender)
+        self._tx_hash = tx_hash
+
+    @property
+    def tx_hash(self) -> str:
+        """Get the tx_hash."""
+        return self._tx_hash
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(tx_hash=self.tx_hash)
+
+
+class FinalizationTxPayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'finalization'."""
+
+    transaction_type = TransactionType.FINALIZATION
+
+    def __init__(self, sender: str, tx_hash: str) -> None:
+        """Initialize an 'finalization' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param tx_hash: the 'safe' transaction hash
+        """
+        super().__init__(sender)
+        self._tx_hash = tx_hash
+
+    @property
+    def tx_hash(self) -> str:
+        """Get the signature."""
+        return self._tx_hash
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(tx_hash=self.tx_hash)

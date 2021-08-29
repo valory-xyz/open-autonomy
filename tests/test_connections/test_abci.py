@@ -47,12 +47,13 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
-from tests.conftest import HTTP_LOCALHOST, UseTendermint
+from tests.fixture_helpers import UseTendermint
 from tests.helpers.async_utils import (
     AnotherThreadTask,
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
+from tests.helpers.constants import HTTP_LOCALHOST
 
 
 class ABCIAppTest:

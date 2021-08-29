@@ -9,23 +9,29 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmUq1JC3DiM3VpYtDkxjyYGHL9Rpk9hSDHXaHhhNQAX442
-  dialogues.py: QmPL1skwKz4QK4ULY3kbS3CoxpqxSEDZzQNmEWwEXE5SkH
+  behaviours.py: QmRemgc6ehxrHnAHcLFGg15uQDudPFBTLUSrUaTwdHnv5i
+  dialogues.py: QmUyFp2mxAvwhv2SJ1jjAVMjLJWThwqxhpVjgH3zaaaZh6
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
-  handlers.py: Qmby2H6JJCijhMdP7ADFXWGafH9ozEvoG29S34GxXQF4zU
+  handlers.py: QmPihVLuQoLB6euJnfEJ3qFWGZFYtuAg5eYkzeZ8Mknv4L
+  helpers/__init__.py: QmTDj1SsdjnfnuSJbtKGXxAG8PYtcvR97HAVVi5kK4zDVN
+  helpers/base.py: QmaVWKoYSZfijfFs23aVPw25JeF36a3K6j1DNnvSU6E2Ed
+  helpers/gnosis_safe.py: QmXqKbLy4B6pfB5HdzGARG8FuYxtt2T1kBDVbMENjk5DuJ
   models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
-  models/payloads.py: QmTYzGzXnhP4QGeP7QUQvJ7DpyyGPKRVuCTNi1uLuhZF88
-  models/rounds.py: QmXCt9xyDeQAB7R1Sh3hqzNHBcN4brhSXgBCRsZDY3H5hr
-  params.py: QmPf5jHGZb86wsj8akNgtKPSUmWYw6PyAgdBf28JGj2RtB
+  models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
+  models/rounds.py: QmcJqS9KUGXNeBuB6YRCsrJMMzjqwvsv2t8ZQvwZbzk746
+  params.py: QmU9Jz4Hvvyn6HuvXtCctkhGuAYtGZudXzpgBGyrFNGJUX
   price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
-  state_models.py: QmZfXDCP8rqxfvpSHwpLjQnYbH5k9DC9RVQNS79qRvuAbW
+  state_models.py: QmVi6feFy4rvDMpErzraTp3kVpT5Zzm3AY7GL2U1fxgAHw
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
+- fetchai/ledger:0.18.0
 - valory/abci:0.1.0
 contracts: []
 protocols:
+- fetchai/contract_api:1.0.0
 - fetchai/http:1.0.0
+- fetchai/ledger_api:1.0.0
 - fetchai/signing:1.0.0
 - valory/abci:0.1.0
 skills:
@@ -41,6 +47,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler
@@ -54,12 +63,16 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
   params:
     args:
       consensus:
         max_participants: 1
       convert_id: USD
       currency_id: BTC
+      ethereum_node_url: http://localhost:8545
       initial_delay: 5.0
       tendermint_url: http://localhost:26657
     class_name: Params
@@ -79,6 +92,8 @@ models:
       initial_round_cls: vendor.valory.skills.price_estimation_abci.models.rounds.RegistrationRound
     class_name: SharedState
 dependencies:
+  gnosis-py:
+    version: <4.0.0,>=3.1.16
   pycoingecko:
     version: ==2.2.0
 is_abstract: false
