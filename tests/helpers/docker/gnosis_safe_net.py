@@ -19,8 +19,6 @@
 
 """Tendermint Docker image."""
 import logging
-import os
-import pprint
 import time
 from typing import List
 

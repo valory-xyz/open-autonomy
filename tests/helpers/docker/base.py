@@ -122,7 +122,7 @@ def launch_image(
     success = image.wait(max_attempts, timeout)
     if not success:
         container.stop()
-        logger.info(f"Error logs from container:\n%s", container.logs().decode())
+        logger.info("Error logs from container:\n%s", container.logs().decode())
         container.remove()
         pytest.fail(f"{image.tag} doesn't work. Exiting...")
     else:
@@ -131,5 +131,5 @@ def launch_image(
         yield
         logger.info(f"Stopping the image {image.tag}...")
         container.stop()
-        logger.info(f"Logs from container:\n%s", container.logs().decode())
+        logger.info("Logs from container:\n%s", container.logs().decode())
         container.remove()
