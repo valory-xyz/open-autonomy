@@ -18,6 +18,12 @@ services:
   node0:
     container_name: node0
     image: "tendermint/localnode"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     ports:
       - "26656-26657:26656-26657"
     environment:
@@ -35,6 +41,12 @@ services:
   node1:
     container_name: node1
     image: "tendermint/localnode"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     ports:
       - "26666-26667:26656-26657"
     environment:
@@ -52,6 +64,12 @@ services:
   node2:
     container_name: node2
     image: "tendermint/localnode"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     environment:
       - ID=2
       - LOG=${LOG:-tendermint.log}
@@ -69,6 +87,12 @@ services:
   node3:
     container_name: node3
     image: "tendermint/localnode"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     environment:
       - ID=3
       - LOG=${LOG:-tendermint.log}
@@ -86,6 +110,12 @@ services:
   abci0:
     container_name: abci0
     image: "valory/price_estimation:0.1.0"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     build:
       context: ../..
       dockerfile: examples/price_estimation/Dockerfile
@@ -103,6 +133,12 @@ services:
   abci1:
     container_name: abci1
     image: "valory/price_estimation:0.1.0"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     build:
       context: ../..
       dockerfile: examples/price_estimation/Dockerfile
@@ -120,6 +156,12 @@ services:
   abci2:
     container_name: abci2
     image: "valory/price_estimation:0.1.0"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     build:
       context: ../..
       dockerfile: examples/price_estimation/Dockerfile
@@ -137,6 +179,12 @@ services:
   abci3:
     container_name: abci3
     image: "valory/price_estimation:0.1.0"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+        reservations:
+          cpus: '0.25'
     build:
       context: ../..
       dockerfile: examples/price_estimation/Dockerfile
