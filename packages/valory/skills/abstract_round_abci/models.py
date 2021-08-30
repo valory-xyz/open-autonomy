@@ -34,12 +34,11 @@ class SharedState(Model):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, **kwargs)
-
-        initial_round_cls_dotted_path = kwargs.get("initial_round_cls")
+        initial_round_cls_dotted_path = kwargs.pop("initial_round_cls", None)
         self.initial_round_cls = self._process_initial_round_cls(
             initial_round_cls_dotted_path
         )
+        super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""

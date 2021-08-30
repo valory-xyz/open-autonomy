@@ -12,7 +12,7 @@ fingerprint:
   behaviour_utils.py: Qmf4DR27pXBbrTszRsgoaRL8LcSPUm6r6intk8JmP1Ab5u
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
   handlers.py: Qmby2nysqawiNYLvBMJBH5ALuc1aLx1hqfvp9rs79dRk2W
-  models.py: QmejWpeAFB98ncmdhyt3aFVK2pzQDFSyXMBWDovMMhZjE3
+  models.py: QmPVcwtqDEdLcLE8BNk5Ke2XwNR8Dpkq2x2raYQZRGNu6g
   serializer.py: QmZKgTmRgReAnVuQLQH1Lk23dx9UrwpATFtqFwCi9qN7SH
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
