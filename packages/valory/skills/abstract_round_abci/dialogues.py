@@ -22,11 +22,19 @@
 from typing import Any, Optional, Type
 
 from aea.exceptions import enforce
+from aea.helpers.transaction.base import Terms
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel as BaseDialogueLabel
 from aea.skills.base import Model
 
+from packages.fetchai.protocols.contract_api import ContractApiMessage
+from packages.fetchai.protocols.contract_api.dialogues import (
+    ContractApiDialogue as BaseContractApiDialogue,
+)
+from packages.fetchai.protocols.contract_api.dialogues import (
+    ContractApiDialogues as BaseContractApiDialogues,
+)
 from packages.fetchai.protocols.http.dialogues import (
     HttpDialogue as BaseHttpDialogue,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
 )
@@ -146,9 +154,9 @@ class SigningDialogues(Model, BaseSigningDialogues):
         )
 
 
-class LedgerApiDialogue(
+class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
     BaseLedgerApiDialogue
-):  # pylint: disable=too-few-public-methods
+):
     """The dialogue class maintains state of a dialogue and manages it."""
 
     __slots__ = ("_associated_signing_dialogue",)
@@ -223,4 +231,75 @@ class LedgerApiDialogues(Model, BaseLedgerApiDialogues):
             self_address=str(self.skill_id),
             role_from_first_message=role_from_first_message,
             dialogue_class=LedgerApiDialogue,
+        )
+
+
+class ContractApiDialogue(  # pylint: disable=too-few-public-methods
+    BaseContractApiDialogue
+):
+    """The dialogue class maintains state of a dialogue and manages it."""
+
+    __slots__ = ("_terms",)
+
+    def __init__(
+        self,
+        dialogue_label: BaseDialogueLabel,
+        self_address: Address,
+        role: BaseDialogue.Role,
+        message_class: Type[ContractApiMessage] = ContractApiMessage,
+    ) -> None:
+        """
+        Initialize a dialogue.
+
+        :param dialogue_label: the identifier of the dialogue
+        :param self_address: the address of the entity for whom this dialogue is maintained
+        :param role: the role of the agent this dialogue is maintained for
+        :param message_class: the message class
+        """
+        BaseContractApiDialogue.__init__(
+            self,
+            dialogue_label=dialogue_label,
+            self_address=self_address,
+            role=role,
+            message_class=message_class,
+        )
+        self._terms = None  # type: Optional[Terms]
+
+    @property
+    def terms(self) -> Terms:
+        """Get the terms."""
+        if self._terms is None:
+            raise ValueError("Terms not set!")
+        return self._terms
+
+    @terms.setter
+    def terms(self, terms: Terms) -> None:
+        """Set the terms."""
+        enforce(self._terms is None, "Terms already set!")
+        self._terms = terms
+
+
+class ContractApiDialogues(Model, BaseContractApiDialogues):
+    """The dialogues class keeps track of all dialogues."""
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize dialogues."""
+        Model.__init__(self, **kwargs)
+
+        def role_from_first_message(  # pylint: disable=unused-argument
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            """Infer the role of the agent from an incoming/outgoing first message
+
+            :param message: an incoming/outgoing first message
+            :param receiver_address: the address of the receiving agent
+            :return: The role of the agent
+            """
+            return ContractApiDialogue.Role.AGENT
+
+        BaseContractApiDialogues.__init__(
+            self,
+            self_address=str(self.skill_id),
+            role_from_first_message=role_from_first_message,
+            dialogue_class=ContractApiDialogue,
         )

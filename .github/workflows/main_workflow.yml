@@ -30,7 +30,7 @@ jobs:
           pipenv lock
 
   linter_checks:
-    continue-on-error: True
+    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:

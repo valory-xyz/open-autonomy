@@ -9,16 +9,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmRemgc6ehxrHnAHcLFGg15uQDudPFBTLUSrUaTwdHnv5i
-  dialogues.py: QmUyFp2mxAvwhv2SJ1jjAVMjLJWThwqxhpVjgH3zaaaZh6
+  behaviours.py: QmUHQQFRKvhDSYDLCFxMLHHNxJ5bnr6hEi2KJjgzB1UAJj
+  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
-  handlers.py: QmPihVLuQoLB6euJnfEJ3qFWGZFYtuAg5eYkzeZ8Mknv4L
-  helpers/__init__.py: QmTDj1SsdjnfnuSJbtKGXxAG8PYtcvR97HAVVi5kK4zDVN
-  helpers/base.py: QmaVWKoYSZfijfFs23aVPw25JeF36a3K6j1DNnvSU6E2Ed
-  helpers/gnosis_safe.py: QmXqKbLy4B6pfB5HdzGARG8FuYxtt2T1kBDVbMENjk5DuJ
+  handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
   models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
-  models/rounds.py: QmcJqS9KUGXNeBuB6YRCsrJMMzjqwvsv2t8ZQvwZbzk746
+  models/rounds.py: QmWvZmrVv1TJSXLUbtC9BER7S9fY1wzUGdkZEjpRt5SdTT
   params.py: QmU9Jz4Hvvyn6HuvXtCctkhGuAYtGZudXzpgBGyrFNGJUX
   price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
   state_models.py: QmVi6feFy4rvDMpErzraTp3kVpT5Zzm3AY7GL2U1fxgAHw
@@ -27,7 +24,8 @@ connections:
 - fetchai/http_client:0.22.0
 - fetchai/ledger:0.18.0
 - valory/abci:0.1.0
-contracts: []
+contracts:
+- valory/gnosis_safe:0.1.0
 protocols:
 - fetchai/contract_api:1.0.0
 - fetchai/http:1.0.0
@@ -44,6 +42,9 @@ handlers:
   abci:
     args: {}
     class_name: ABCIPriceEstimationHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
@@ -57,6 +58,9 @@ models:
   abci_dialogues:
     args: {}
     class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
   estimator:
     args: {}
     class_name: Estimator
@@ -93,7 +97,7 @@ models:
     class_name: SharedState
 dependencies:
   gnosis-py:
-    version: <4.0.0,>=3.1.16
+    version: ==3.1.16
   pycoingecko:
     version: ==2.2.0
 is_abstract: false

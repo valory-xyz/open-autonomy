@@ -17,17 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Generic helpers module for the skill valory/price_estimation_abci."""
-import struct
-
-from eth_typing import ChecksumAddress, HexAddress, HexStr
-
-
-def encode_float(value: float) -> bytes:
-    """Encode a float value."""
-    return struct.pack("d", value)
-
-
-def checksum_address(agent_address: str) -> ChecksumAddress:
-    """Get the checksum address."""
-    return ChecksumAddress(HexAddress(HexStr(agent_address)))
+"""This module contains the support resources for the Fetch oracle contract."""

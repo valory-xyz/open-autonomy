@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the price estimation ABCI application."""
+import struct
 from abc import ABC
 from collections import Counter
 from operator import itemgetter
@@ -29,7 +30,6 @@ from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base_models import AbstractRound
-from packages.valory.skills.price_estimation_abci.helpers.base import encode_float
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -40,6 +40,11 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     TransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.params import ConsensusParams
+
+
+def encode_float(value: float) -> bytes:
+    """Encode a float value."""
+    return struct.pack("d", value)
 
 
 class PeriodState:  # pylint: disable=too-many-instance-attributes

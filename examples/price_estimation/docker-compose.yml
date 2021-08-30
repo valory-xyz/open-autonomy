@@ -92,7 +92,7 @@ services:
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "--timeout", "30", "hardhat:8545", "--", "../run.sh", "abci0"]
+    command: ["/usr/bin/wait-for-it", "-t", "30", "hardhat:8545", "--", "../run.sh", "abci0"]
     networks:
       localnet:
         ipv4_address: 192.167.11.7
@@ -109,7 +109,7 @@ services:
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "--timeout", "30", "hardhat:8545", "--", "../run.sh", "abci1"]
+    command: ["/usr/bin/wait-for-it", "-t", "30", "hardhat:8545", "--", "../run.sh", "abci1"]
     networks:
       localnet:
         ipv4_address: 192.167.11.8
@@ -126,7 +126,7 @@ services:
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "--timeout", "30", "hardhat:8545", "--", "../run.sh", "abci2"]
+    command: ["/usr/bin/wait-for-it", "-t", "30", "hardhat:8545", "--", "../run.sh", "abci2"]
     networks:
       localnet:
         ipv4_address: 192.167.11.9
@@ -143,7 +143,7 @@ services:
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "--timeout", "30", "hardhat:8545", "--", "../run.sh", "abci3"]
+    command: ["/usr/bin/wait-for-it", "-t", "30", "hardhat:8545", "--", "../run.sh", "abci3"]
     networks:
       localnet:
         ipv4_address: 192.167.11.10

@@ -21,20 +21,28 @@
 import binascii
 import datetime
 import pprint
+from abc import ABC
 from functools import partial
-from typing import Callable, Generator, List, Type, cast
+from typing import Any, Callable, Dict, Generator, List, Tuple, Type, cast
 
 from aea.exceptions import enforce
+from aea.helpers.transaction.base import RawTransaction, Terms
 from aea.skills.behaviours import FSMBehaviour
-from web3.types import Wei
+from aea_ledger_ethereum import EthereumCrypto
 
+from packages.fetchai.connections.ledger.base import (
+    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
+from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     DONE_EVENT,
 )
-from packages.valory.skills.price_estimation_abci.helpers.gnosis_safe import (
-    get_deploy_safe_tx,
+from packages.valory.skills.price_estimation_abci.dialogues import (
+    ContractApiDialogue,
+    ContractApiDialogues,
 )
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
@@ -52,12 +60,14 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     DeploySafeRound,
     EstimateConsensusRound,
     FinalizationRound,
+    PeriodState,
     RegistrationRound,
     TxHashRound,
 )
 
 
 SIGNATURE_LENGTH = 65
+LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
 class PriceEstimationConsensusBehaviour(FSMBehaviour):
@@ -147,7 +157,32 @@ class PriceEstimationConsensusBehaviour(FSMBehaviour):
         )
 
 
-class InitialDelayState(BaseState):  # pylint: disable=too-many-ancestors
+class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ancestors
+    """Base state behaviour for the price estimation skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self.context.state.period_state)
+
+    def get_default_terms(self) -> Terms:
+        """
+        Get default transaction terms.
+
+        :return: terms
+        """
+        terms = Terms(
+            ledger_id=EthereumCrypto.identifier,
+            sender_address=self.context.agent_address,
+            counterparty_address=self.context.agent_address,
+            amount_by_currency_id={},
+            quantities_by_good_id={},
+            nonce="",
+        )
+        return terms
+
+
+class InitialDelayState(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
     """Wait for some seconds until Tendermint nodes are running."""
 
     state_id = "initial_delay"
@@ -159,7 +194,9 @@ class InitialDelayState(BaseState):  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
-class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
+    PriceEstimationBaseState
+):
     """Register to the next round."""
 
     state_id = "register"
@@ -183,7 +220,9 @@ class RegistrationBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
-class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
+    PriceEstimationBaseState
+):
     """Deploy Safe."""
 
     state_id = "deploy_safe"
@@ -192,8 +231,9 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         """
         Do the action.
 
-        Steps:
-        - TODO
+        If the agent is the designated deployer, then prepare the
+        deployment transaction and send it.
+        Otherwise, wait until the next round.
         """
         self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
@@ -215,27 +255,67 @@ class DeploySafeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
 
     def deployer_act(self) -> Generator:
         """Do the deployer action."""
+        stop_condition = self.is_round_ended(DeploySafeRound.round_id)
+        if stop_condition():
+            self.context.logger.info("contract already deployed, skipping...")
+            return
         self.context.logger.info(
             "I am the designated sender, deploying the safe contract..."
         )
         contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
-        stop_condition = self.is_round_ended(DeploySafeRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
-        ethereum_node_url = self.context.params.ethereum_node_url
-        owners = self.period_state.participants
+        owners = list(self.period_state.participants)
         threshold = self.context.params.consensus_params.two_thirds_threshold
-        tx_params, contract_address = get_deploy_safe_tx(
-            ethereum_node_url, self.context.agent_address, list(owners), threshold
+        contract_api_response = yield from self._get_contract_deploy_transaction(
+            owners=owners, threshold=threshold
         )
-        tx_hash = yield from self._send_raw_transaction(dict(tx_params))
+        raw_transaction = cast(
+            ContractApiMessage, contract_api_response
+        ).raw_transaction
+        contract_address = raw_transaction.body.pop("contract_address")
+        tx_hash = yield from self._send_raw_transaction(raw_transaction)
         self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
 
+    def _get_contract_deploy_transaction(self, **kwargs: Any) -> ContractApiMessage:
+        """
+        Request contract deploy transaction
 
-class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+        :param: kwargs: keyword argument for the contract api request
+        :return: the contract api response
+        :yields: the contract api response
+        """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=LEDGER_API_ADDRESS,
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GnosisSafeContract.contract_id),
+            callable="get_deploy_transaction",
+            kwargs=ContractApiMessage.Kwargs(
+                dict(deployer_address=self.context.agent_address, **kwargs)
+            ),
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
+        contract_api_dialogue.terms = self.get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=contract_api_msg)
+        response = yield from self.wait_for_message()
+        return response
+
+
+class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
     """Observe price estimate."""
 
     state_id = "observe"
@@ -265,7 +345,7 @@ class ObserveBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
-class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
     """Estimate price."""
 
     state_id = "estimate"
@@ -301,7 +381,9 @@ class EstimateBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
-class TransactionHashBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
+    PriceEstimationBaseState
+):
     """Share the transaction hash for the signature round."""
 
     state_id = "tx_hash"
@@ -337,15 +419,59 @@ class TransactionHashBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             f"Consensus reached on estimate: {self.period_state.most_voted_estimate}"
         )
         data = self.period_state.encoded_estimate
-        safe_tx = self._get_safe_tx(self.context.agent_address, data)
-        safe_tx_hash = safe_tx.safe_tx_hash.hex()[2:]
+        safe_tx_hash = yield from self._get_safe_transaction_hash(
+            self.period_state.safe_contract_address,
+            to_address=self.context.agent_address,
+            value=0,
+            data=data,
+        )
+        safe_tx_hash = safe_tx_hash[2:]
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
         stop_condition = self.is_round_ended(TxHashRound.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
+    def _get_safe_transaction_hash(
+        self, contract_address: str, **kwargs: Any
+    ) -> ContractApiMessage:
+        """
+        Request contract safe transaction hash
 
-class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+        :param: contract_address: the contract address
+        :param: kwargs: keyword argument for the contract api request
+        :return: the contract api response
+        :yields: the contract api response
+        """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=LEDGER_API_ADDRESS,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_address=contract_address,
+            callable="get_raw_safe_transaction_hash",
+            kwargs=ContractApiMessage.Kwargs(kwargs),
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
+        contract_api_dialogue.terms = self.get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=contract_api_msg)
+        response = yield from self.wait_for_message()
+        tx_hash = cast(ContractApiMessage, response).raw_transaction.body["tx_hash"]
+        return cast(str, tx_hash)
+
+
+class SignatureBehaviour(  # pylint: disable=too-many-ancestors
+    PriceEstimationBaseState
+):
     """Signature state."""
 
     state_id = "sign"
@@ -374,7 +500,7 @@ class SignatureBehaviour(BaseState):  # pylint: disable=too-many-ancestors
         return signature_hex
 
 
-class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
     """Finalize state."""
 
     state_id = "finalize"
@@ -425,28 +551,78 @@ class FinalizeBehaviour(BaseState):  # pylint: disable=too-many-ancestors
             signature_bytes = binascii.unhexlify(signature)
             final_signature += signature_bytes
 
-        safe_tx = self._get_safe_tx(self.context.agent_address, data)
-        safe_tx.signatures = final_signature
-        safe_tx.call(self.context.agent_address)
-
-        tx_gas_price = safe_tx.gas_price or safe_tx.w3.eth.gas_price
-        tx_parameters = {
-            "from": self.context.agent_address,
-            "gasPrice": tx_gas_price,
-        }
-        transaction_dict = safe_tx.w3_tx.buildTransaction(tx_parameters)
-        transaction_dict["gas"] = Wei(
-            max(transaction_dict["gas"] + 75000, safe_tx.recommended_gas())
+        transaction = yield from self._get_safe_transaction(
+            contract_address=self.period_state.safe_contract_address,
+            owners=tuple(self.period_state.participants),
+            sender_address=self.context.agent_address,
+            to_address=self.context.agent_address,
+            value=0,
+            data=data,
+            signatures_by_owner=dict(self.period_state.participant_to_signature),
         )
-        transaction_dict["nonce"] = safe_tx.w3.eth.get_transaction_count(
-            safe_tx.w3.toChecksumAddress(self.context.agent_address)
-        )
-        tx_hash = yield from self._send_raw_transaction(transaction_dict)
+        tx_hash = yield from self._send_raw_transaction(transaction)
         self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 
+    def _get_safe_transaction(  # pylint: disable=too-many-arguments
+        self,
+        contract_address: str,
+        sender_address: str,
+        owners: Tuple[str, ...],
+        to_address: str,
+        value: int,
+        data: bytes,
+        signatures_by_owner: Dict[str, str],
+    ) -> Generator[None, None, RawTransaction]:
+        """
+        Request contract safe transaction hash
 
-class EndBehaviour(BaseState):  # pylint: disable=too-many-ancestors
+        :param: contract_address: the contract address
+        :param sender_address: the address of the sender
+        :param owners: the sequence of owners
+        :param to_address: the tx recipient address
+        :param value: the ETH value of the transaction
+        :param data: the data of the transaction
+        :param signatures_by_owner: mapping from owners to signatures
+        :return: the raw transaction
+        :yields: the raw transaction
+        """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=LEDGER_API_ADDRESS,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_address=contract_address,
+            callable="get_raw_safe_transaction",
+            kwargs=ContractApiMessage.Kwargs(
+                dict(
+                    sender_address=sender_address,
+                    owners=owners,
+                    to_address=to_address,
+                    value=value,
+                    data=data,
+                    signatures_by_owner=signatures_by_owner,
+                )
+            ),
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
+        contract_api_dialogue.terms = self.get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=contract_api_msg)
+        response = yield from self.wait_for_message()
+        return cast(ContractApiMessage, response).raw_transaction
+
+
+class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
     """Final state."""
 
     state_id = "end"

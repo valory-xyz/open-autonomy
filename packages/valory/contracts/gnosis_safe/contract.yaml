@@ -1,0 +1,17 @@
+name: gnosis_safe
+author: valory
+version: 0.1.0
+type: contract
+description: Gnosis Safe contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
+  __init__.py: QmS2MEY7dgz18icnFs975zxCxMmYQzVkeFfe2TjnTDeDiL
+  contract.py: QmRez2r1oE6WJabRueMVV9UcnKDcpof2GvFoucpFPJSHcL
+fingerprint_ignore_patterns: []
+class_name: GnosisSafeContract
+contract_interface_paths: {}
+dependencies:
+  gnosis-py:
+    version: ==3.1.16
