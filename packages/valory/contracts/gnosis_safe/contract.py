@@ -31,7 +31,7 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr, URI
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.contracts import get_proxy_factory_contract, get_safe_V1_3_0_contract
-from gnosis.safe import ProxyFactory
+from gnosis.safe import ProxyFactory, Safe
 from hexbytes import HexBytes
 from web3 import HTTPProvider
 from web3.types import Nonce, TxParams, Wei
@@ -75,19 +75,22 @@ class GnosisSafeContract(Contract):
     def get_raw_transaction(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
-        """Get raw transaction."""
+        """Get the Safe transaction."""
+        raise NotImplementedError
 
     @classmethod
     def get_raw_message(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
+        raise NotImplementedError
 
     @classmethod
     def get_state(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
+        raise NotImplementedError
 
     @classmethod
     def get_deploy_transaction(
@@ -270,3 +273,32 @@ class GnosisSafeContract(Contract):
         # Auto estimation of gas does not work. We use a little more gas just in case
         transaction_dict["gas"] = Wei(transaction_dict["gas"] + 50000)
         return transaction_dict, contract_address
+
+    @classmethod
+    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        to_address: str,
+        value: int,
+        data: bytes,
+    ) -> JSONLike:
+        """
+        Get the hash of the raw Safe transaction
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param to_address: the tx recipient address
+        :param value: the ETH value of the transaction
+        :param data: the data of the transaction
+        :return: the hash of the raw Safe transaction
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        uri = cast(URI, cast(HTTPProvider, ledger_api.api.provider).endpoint_uri)
+        ethereum_client = EthereumClient(uri)
+        safe = Safe(
+            ChecksumAddress(HexAddress(HexStr(contract_address))),
+            ethereum_client,
+        )
+        safe_tx = safe.build_multisig_tx(to_address, value, data)
+        return dict(tx_hash=safe_tx.safe_tx_hash.hex())
