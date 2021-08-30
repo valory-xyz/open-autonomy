@@ -21,8 +21,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     ports:
       - "26656-26657:26656-26657"
@@ -44,8 +42,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     ports:
       - "26666-26667:26656-26657"
@@ -67,8 +63,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     environment:
       - ID=2
@@ -90,8 +84,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     environment:
       - ID=3
@@ -113,8 +105,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     build:
       context: ../..
@@ -136,8 +126,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     build:
       context: ../..
@@ -159,8 +147,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     build:
       context: ../..
@@ -182,8 +168,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-        reservations:
           cpus: '0.25'
     build:
       context: ../..
