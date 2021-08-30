@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe contract."""
+import binascii
 import logging
 import secrets
 from typing import Any, Dict, List, Optional, Tuple, cast
@@ -31,7 +32,7 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr, URI
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.contracts import get_proxy_factory_contract, get_safe_V1_3_0_contract
-from gnosis.safe import ProxyFactory, Safe
+from gnosis.safe import ProxyFactory, Safe, SafeTx
 from hexbytes import HexBytes
 from web3 import HTTPProvider
 from web3.types import Nonce, TxParams, Wei
@@ -293,6 +294,21 @@ class GnosisSafeContract(Contract):
         :param data: the data of the transaction
         :return: the hash of the raw Safe transaction
         """
+        safe_tx = cls._get_safe_tx(
+            ledger_api, contract_address, to_address, value, data
+        )
+        return dict(tx_hash=safe_tx.safe_tx_hash.hex())
+
+    @classmethod
+    def _get_safe_tx(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        to_address: str,
+        value: int,
+        data: bytes,
+    ) -> SafeTx:
+        """Get the Safe transaction object."""
         ledger_api = cast(EthereumApi, ledger_api)
         uri = cast(URI, cast(HTTPProvider, ledger_api.api.provider).endpoint_uri)
         ethereum_client = EthereumClient(uri)
@@ -301,4 +317,59 @@ class GnosisSafeContract(Contract):
             ethereum_client,
         )
         safe_tx = safe.build_multisig_tx(to_address, value, data)
-        return dict(tx_hash=safe_tx.safe_tx_hash.hex())
+        return safe_tx
+
+    @classmethod
+    def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        sender_address: str,
+        owners: Tuple[str],
+        to_address: str,
+        value: int,
+        data: bytes,
+        signatures_by_owner: Dict[str, str],
+    ) -> JSONLike:
+        """
+        Get the raw Safe transaction
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param sender_address: the address of the sender
+        :param owners: the sequence of owners
+        :param to_address: the tx recipient address
+        :param value: the ETH value of the transaction
+        :param data: the data of the transaction
+        :param signatures_by_owner: mapping from owners to signatures
+        :return: the raw Safe transaction
+        """
+        sorted_owners = sorted(owners, key=str.lower)
+        final_signature = b""
+        for signer in sorted_owners:
+            if signer not in signatures_by_owner:
+                continue
+            signature = signatures_by_owner[signer]
+            signature_bytes = binascii.unhexlify(signature)
+            final_signature += signature_bytes
+
+        safe_tx = cls._get_safe_tx(
+            ledger_api, contract_address, to_address, value, data
+        )
+        safe_tx.signatures = final_signature
+        safe_tx.call(sender_address)
+
+        tx_gas_price = safe_tx.gas_price or safe_tx.w3.eth.gas_price
+        tx_parameters = {
+            "from": sender_address,
+            "gasPrice": tx_gas_price,
+        }
+        transaction_dict = safe_tx.w3_tx.buildTransaction(tx_parameters)
+        transaction_dict["gas"] = Wei(
+            max(transaction_dict["gas"] + 75000, safe_tx.recommended_gas())
+        )
+        transaction_dict["nonce"] = safe_tx.w3.eth.get_transaction_count(
+            safe_tx.w3.toChecksumAddress(sender_address)
+        )
+
+        return transaction_dict
