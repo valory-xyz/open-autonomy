@@ -297,7 +297,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
             if self._check_transaction_delivered(response):
-                self.context.logger.info("Transaction delivered!")
+                self.context.logger.info("A2A transaction delivered!")
                 break
             # otherwise, repeat until done, or until stop condition is true
 
@@ -347,7 +347,6 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
     def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
-        self.context.logger.info("transaction signing was successful.")
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )

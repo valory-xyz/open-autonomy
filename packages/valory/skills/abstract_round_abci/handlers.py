@@ -306,13 +306,13 @@ class SigningHandler(HandlerUtils, Handler):
     def _handle_signed_message(
         self, _signing_msg: SigningMessage, signing_dialogue: SigningDialogue
     ) -> None:
-        self.context.logger.info("message signing was successful.")
+        self.context.logger.info("Message signing was successful.")
         self.context.logger.debug(f"signing success for {signing_dialogue}")
 
     def _handle_signed_transaction(
         self, _signing_msg: SigningMessage, signing_dialogue: SigningDialogue
     ) -> None:
-        self.context.logger.info("transaction signing was successful.")
+        self.context.logger.info("Transaction signing was successful.")
         self.context.logger.debug(f"signing success for {signing_dialogue}")
 
     def _handle_unidentified_dialogue(self, signing_msg: SigningMessage) -> None:
@@ -606,6 +606,10 @@ class ContractApiHandler(HandlerUtils, Handler):
         :param contract_api_dialogue: the contract api dialogue
         """
         self.context.logger.info(
+            "Received raw transaction=%s",
+            contract_api_msg,
+        )
+        self.context.logger.debug(
             "received raw transaction=%s in dialogue=%s.",
             contract_api_msg,
             contract_api_dialogue,
