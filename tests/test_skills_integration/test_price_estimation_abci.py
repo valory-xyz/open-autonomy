@@ -124,7 +124,7 @@ class TestABCICounterSkillMany(
 
         check_strings = (
             "Entered in the 'register' behaviour state",
-            "message signing was successful.",
+            "Message signing was successful.",
             "'register' behaviour state is done",
             "Entered in the 'deploy_safe' behaviour state",
             "'deploy_safe' behaviour state is done",
