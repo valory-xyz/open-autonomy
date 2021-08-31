@@ -110,12 +110,19 @@ v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
 new_env: clean
+	if [ ! -z "$(which svn)" ];\
+	then\
+		echo "The development setup requires SVN, exit";\
+		exit 1;\
+	fi;\
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
 		pipenv --python 3.8;\
 		pipenv install --dev --skip-lock --clear;\
 		pipenv run pip install -e .[all];\
+		pipenv run pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps;\
+		svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai;\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
