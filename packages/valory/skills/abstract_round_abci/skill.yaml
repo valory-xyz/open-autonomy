@@ -10,6 +10,7 @@ fingerprint:
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
   base_models.py: QmPy7YpocRXQdZFCr3sxRdCfmxs82q3X4NiZDmetcRVstG
   behaviour_utils.py: QmW83FeY2xK4wzfDi8DZ7QWzBdN4VEN3Xrqpv7cSAHrKEj
+  behaviours.py: QmacjRmHaQKEzoSb6RDjBs5cuWngupLuxREfaiPWbd8H4j
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
   handlers.py: QmWmx6eGXhxGit1y8tfWzAYRrWhs8QjX3hqxzJPimkANyU
   models.py: QmPVcwtqDEdLcLE8BNk5Ke2XwNR8Dpkq2x2raYQZRGNu6g
@@ -28,7 +29,10 @@ protocols:
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
-behaviours: {}
+behaviours:
+  main:
+    args: {}
+    class_name: AbstractRoundBehaviour
 handlers:
   abci:
     args: {}
