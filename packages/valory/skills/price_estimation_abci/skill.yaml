@@ -15,10 +15,10 @@ fingerprint:
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models/__init__.py: Qmew8b5gbsmVtbJtMrWctBZ8CPnGLx9dfSwJQdwX8ADevm
   models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
-  models/rounds.py: QmWvZmrVv1TJSXLUbtC9BER7S9fY1wzUGdkZEjpRt5SdTT
-  params.py: QmU9Jz4Hvvyn6HuvXtCctkhGuAYtGZudXzpgBGyrFNGJUX
+  models/rounds.py: QmeERFCp1iutEFo6DUsEfQgUqBCjTafmCELZDzSShfHV15
+  params.py: QmdKF8QjvT74pN9KcB5hkEYPmwzQqQqvy5Dxz8Sv1dpfgM
   price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
-  state_models.py: QmVi6feFy4rvDMpErzraTp3kVpT5Zzm3AY7GL2U1fxgAHw
+  state_models.py: QmZWtcrmH6Qu5rfkkydU79JvfhZ2DrcQq1VCJY7ZnEr29j
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
@@ -76,7 +76,6 @@ models:
         max_participants: 1
       convert_id: USD
       currency_id: BTC
-      ethereum_node_url: http://localhost:8545
       initial_delay: 5.0
       tendermint_url: http://localhost:26657
     class_name: Params
