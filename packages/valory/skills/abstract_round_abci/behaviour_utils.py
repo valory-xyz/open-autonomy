@@ -36,6 +36,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.ledger_api import LedgerApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
@@ -52,6 +53,8 @@ from packages.valory.skills.abstract_round_abci.base_models import (
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
+    ContractApiDialogue,
+    ContractApiDialogues,
     HttpDialogue,
     HttpDialogues,
     LedgerApiDialogue,
@@ -478,9 +481,26 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
 
-    def _send_raw_transaction(
+    def _get_default_terms(self) -> Terms:
+        """
+        Get default transaction terms.
+
+        :return: terms
+        """
+        terms = Terms(
+            ledger_id=EthereumCrypto.identifier,
+            sender_address=self.context.agent_address,
+            counterparty_address=self.context.agent_address,
+            amount_by_currency_id={},
+            quantities_by_good_id={},
+            nonce="",
+        )
+        return terms
+
+    def send_raw_transaction(
         self, transaction: RawTransaction
     ) -> Generator[None, None, str]:
+        """Send raw transactions to the ledger for mining."""
         terms = Terms(
             EthereumCrypto.identifier,
             self.context.agent_address,
@@ -501,3 +521,53 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         transaction_digest_msg = yield from self.wait_for_message()
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash
+
+    def get_contract_api_response(
+        self,
+        contract_address: Optional[str],
+        contract_id: str,
+        contract_callable: str,
+        **kwargs: Any,
+    ) -> Generator[None, None, ContractApiMessage]:
+        """
+        Request contract safe transaction hash
+
+        :param contract_address: the contract address
+        :param contract_id: the contract id
+        :param contract_callable: the collable to call on the contract
+        :param kwargs: keyword argument for the contract api request
+        :return: the contract api response
+        :yields: the contract api response
+        """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        kwargs = {
+            "counterparty": LEDGER_API_ADDRESS,
+            "ledger_id": EthereumCrypto.identifier,
+            "contract_id": contract_id,
+            "callable": contract_callable,
+            "kwargs": ContractApiMessage.Kwargs(kwargs),
+        }
+        if contract_address is None:
+            kwargs[
+                "performative"
+            ] = ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION
+        else:
+            kwargs["contract_address"] = contract_address
+            kwargs["performative"] = ContractApiMessage.Performative.GET_RAW_TRANSACTION
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            **kwargs
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
+        contract_api_dialogue.terms = self._get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=contract_api_msg)
+        response = yield from self.wait_for_message()
+        return response
