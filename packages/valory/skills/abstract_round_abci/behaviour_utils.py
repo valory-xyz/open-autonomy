@@ -544,14 +544,18 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         )
         kwargs = {
             "counterparty": LEDGER_API_ADDRESS,
-            "performative": ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             "ledger_id": EthereumCrypto.identifier,
             "contract_id": contract_id,
             "callable": contract_callable,
             "kwargs": ContractApiMessage.Kwargs(kwargs),
         }
-        if contract_address is not None:
+        if contract_address is None:
+            kwargs[
+                "performative"
+            ] = ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION
+        else:
             kwargs["contract_address"] = contract_address
+            kwargs["performative"] = ContractApiMessage.Performative.GET_RAW_TRANSACTION
         contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
             **kwargs
         )
