@@ -19,7 +19,6 @@
 
 """This module contains the data classes for the price estimation ABCI application."""
 import struct
-from abc import ABC
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
@@ -29,7 +28,10 @@ from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
-from packages.valory.skills.abstract_round_abci.base_models import AbstractRound
+from packages.valory.skills.abstract_round_abci.base_models import (
+    AbstractRound,
+    BasePeriodState,
+)
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -39,7 +41,6 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     SignaturePayload,
     TransactionHashPayload,
 )
-from packages.valory.skills.price_estimation_abci.params import ConsensusParams
 
 
 def encode_float(value: float) -> bytes:
@@ -47,7 +48,7 @@ def encode_float(value: float) -> bytes:
     return struct.pack("d", value)
 
 
-class PeriodState:  # pylint: disable=too-many-instance-attributes
+class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
     """Class to represent a period state."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -62,7 +63,7 @@ class PeriodState:  # pylint: disable=too-many-instance-attributes
         final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
-        self._participants = participants
+        super().__init__(participants=participants)
         self._safe_contract_address = safe_contract_address
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
@@ -70,12 +71,6 @@ class PeriodState:  # pylint: disable=too-many-instance-attributes
         self._participant_to_signature = participant_to_signature
         self._safe_tx_hash = safe_tx_hash
         self._final_tx_hash = final_tx_hash
-
-    @property
-    def participants(self) -> FrozenSet[str]:
-        """Get the participants."""
-        enforce(self._participants is not None, "'participants' field is None")
-        return cast(FrozenSet[str], self._participants)
 
     @property
     def safe_contract_address(self) -> str:
@@ -174,36 +169,8 @@ class PeriodState:  # pylint: disable=too-many-instance-attributes
         """
         return self.sorted_addresses[0]
 
-    def update(self, **kwargs: Any) -> "PeriodState":
-        """Copy and update the state."""
-        # remove leading underscore from keys
-        data = {key[1:]: value for key, value in self.__dict__.items()}
-        data.update(kwargs)
-        return PeriodState(**data)
 
-
-class BaseRound(AbstractRound, ABC):
-    """Base round class for the price_estimation_abci skill."""
-
-    def __init__(
-        self,
-        state: PeriodState,
-        consensus_params: ConsensusParams,
-        *args: Any,
-        **kwargs: Any
-    ) -> None:
-        """Initialize the base round."""
-        super().__init__(*args, **kwargs)
-        self._consensus_params = consensus_params
-        self._state = state
-
-    @property
-    def state(self) -> PeriodState:
-        """Get the period state."""
-        return self._state
-
-
-class RegistrationRound(BaseRound):
+class RegistrationRound(AbstractRound):
     """
     This class represents the registration round.
 
@@ -257,7 +224,7 @@ class RegistrationRound(BaseRound):
         return None
 
 
-class DeploySafeRound(BaseRound):
+class DeploySafeRound(AbstractRound):
     """
     This class represents the deploy Safe round.
 
@@ -282,7 +249,7 @@ class DeploySafeRound(BaseRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.state.safe_sender_address:
+        if sender != cast(PeriodState, self.state).safe_sender_address:
             # the sender is not the elected sender
             return
 
@@ -305,7 +272,9 @@ class DeploySafeRound(BaseRound):
         :return: True if the observation tx is allowed, False otherwise.
         """
         sender_in_participant_set = payload.sender in self.state.participants
-        sender_is_elected_sender = payload.sender == self.state.safe_sender_address
+        sender_is_elected_sender = (
+            payload.sender == cast(PeriodState, self.state).safe_sender_address
+        )
         contract_address_not_set_yet = self._contract_address is None
         return (
             sender_in_participant_set
@@ -322,13 +291,18 @@ class DeploySafeRound(BaseRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.contract_set:
-            state = self.state.update(safe_contract_address=self._contract_address)
+            state = cast(
+                PeriodState,
+                self.state.update(
+                    self.state, safe_contract_address=self._contract_address
+                ),
+            )
             next_round = CollectObservationRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class CollectObservationRound(BaseRound):
+class CollectObservationRound(AbstractRound):
     """
     This class represents the 'collect-observation' round.
 
@@ -387,17 +361,21 @@ class CollectObservationRound(BaseRound):
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.observation_threshold_reached:
-            state = self.state.update(
-                participant_to_observations=MappingProxyType(
-                    self.participant_to_observations
-                )
+            state = cast(
+                PeriodState,
+                self.state.update(
+                    state=self.state,
+                    participant_to_observations=MappingProxyType(
+                        self.participant_to_observations
+                    ),
+                ),
             )
             next_round = EstimateConsensusRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class EstimateConsensusRound(BaseRound):
+class EstimateConsensusRound(AbstractRound):
     """
     This class represents the 'estimate_consensus' round.
 
@@ -471,16 +449,22 @@ class EstimateConsensusRound(BaseRound):
     def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
         """Process the end of the block."""
         if self.estimate_threshold_reached:
-            state = self.state.update(
-                participant_to_estimate=MappingProxyType(self.participant_to_estimate),
-                most_voted_estimate=self.most_voted_estimate,
+            state = cast(
+                PeriodState,
+                self.state.update(
+                    state=self.state,
+                    participant_to_estimate=MappingProxyType(
+                        self.participant_to_estimate
+                    ),
+                    most_voted_estimate=self.most_voted_estimate,
+                ),
             )
             next_round = TxHashRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class TxHashRound(BaseRound):
+class TxHashRound(AbstractRound):
     """This class represents the 'tx-hash' round."""
 
     round_id = "tx_hash"
@@ -497,7 +481,7 @@ class TxHashRound(BaseRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.state.safe_sender_address:
+        if sender != cast(PeriodState, self.state).safe_sender_address:
             # sender is not the designated sender
             return
 
@@ -520,7 +504,9 @@ class TxHashRound(BaseRound):
         """
         sender = payload.sender
         sender_in_participants = sender in self.state.participants
-        sender_not_designated = sender == self.state.safe_sender_address
+        sender_not_designated = (
+            sender == cast(PeriodState, self.state).safe_sender_address
+        )
         transaction_hash_not_sent_yet = self.transaction_hash is None
         return (
             sender_in_participants
@@ -536,13 +522,16 @@ class TxHashRound(BaseRound):
     def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
         """Process the end of the block."""
         if self.tx_hash_is_set:
-            state = self.state.update(safe_tx_hash=self.transaction_hash)
+            state = cast(
+                PeriodState,
+                self.state.update(self.state, safe_tx_hash=self.transaction_hash),
+            )
             next_round = CollectSignatureRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class CollectSignatureRound(BaseRound):
+class CollectSignatureRound(AbstractRound):
     """This class represents the 'collect-signature' round."""
 
     round_id = "collect_signature"
@@ -592,17 +581,21 @@ class CollectSignatureRound(BaseRound):
     def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
         """Process the end of the block."""
         if self.signature_threshold_reached:
-            state = self.state.update(
-                participant_to_signature=MappingProxyType(
-                    self.signatures_by_participant
-                )
+            state = cast(
+                PeriodState,
+                self.state.update(
+                    self.state,
+                    participant_to_signature=MappingProxyType(
+                        self.signatures_by_participant
+                    ),
+                ),
             )
             next_round = FinalizationRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class FinalizationRound(BaseRound):
+class FinalizationRound(AbstractRound):
     """
     This class represents the finalization Safe round.
 
@@ -627,7 +620,7 @@ class FinalizationRound(BaseRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.state.safe_sender_address:
+        if sender != cast(PeriodState, self.state).safe_sender_address:
             # the sender is not the elected sender
             return
 
@@ -650,7 +643,9 @@ class FinalizationRound(BaseRound):
         :return: True if the finalization tx is allowed, False otherwise.
         """
         sender_in_participant_set = payload.sender in self.state.participants
-        sender_is_elected_sender = payload.sender == self.state.safe_sender_address
+        sender_is_elected_sender = (
+            payload.sender == cast(PeriodState, self.state).safe_sender_address
+        )
         tx_hash_not_set_yet = self._tx_hash is None
         return (
             sender_in_participant_set
@@ -667,13 +662,15 @@ class FinalizationRound(BaseRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.tx_hash_set:
-            state = self.state.update(final_tx_hash=self._tx_hash)
+            state = cast(
+                PeriodState, self.state.update(self.state, final_tx_hash=self._tx_hash)
+            )
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class ConsensusReachedRound(BaseRound):
+class ConsensusReachedRound(AbstractRound):
     """This class represents the 'consensus-reached' round."""
 
     round_id = "consensus_reached"

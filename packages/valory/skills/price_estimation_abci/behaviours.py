@@ -19,15 +19,11 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
-import datetime
 import pprint
 from abc import ABC
-from functools import partial
-from typing import Any, Callable, Dict, Generator, List, Tuple, Type, cast
+from typing import Any, Dict, Generator, Tuple, cast
 
-from aea.exceptions import enforce
 from aea.helpers.transaction.base import RawTransaction, Terms
-from aea.skills.behaviours import FSMBehaviour
 from aea_ledger_ethereum import EthereumCrypto
 
 from packages.fetchai.connections.ledger.base import (
@@ -36,10 +32,8 @@ from packages.fetchai.connections.ledger.base import (
 from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    DONE_EVENT,
-)
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.dialogues import (
     ContractApiDialogue,
     ContractApiDialogues,
@@ -56,7 +50,6 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
 from packages.valory.skills.price_estimation_abci.models.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
-    ConsensusReachedRound,
     DeploySafeRound,
     EstimateConsensusRound,
     FinalizationRound,
@@ -68,93 +61,6 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
 
 SIGNATURE_LENGTH = 65
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
-
-
-class PriceEstimationConsensusBehaviour(FSMBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        self._register_states(
-            [
-                InitialDelayState,  # type: ignore
-                RegistrationBehaviour,  # type: ignore
-                DeploySafeBehaviour,  # type: ignore
-                ObserveBehaviour,  # type: ignore
-                EstimateBehaviour,  # type: ignore
-                TransactionHashBehaviour,  # type: ignore
-                SignatureBehaviour,  # type: ignore
-                FinalizeBehaviour,  # type: ignore
-                EndBehaviour,  # type: ignore
-            ]
-        )
-
-    def teardown(self) -> None:
-        """Tear down the behaviour"""
-
-    def _register_states(self, state_classes: List[Type[BaseState]]) -> None:
-        """Register a list of states."""
-        enforce(
-            len(state_classes) != 0,
-            "empty list of state classes",
-            exception_class=ValueError,
-        )
-        self._register_state(state_classes[0], initial=True)
-        for state_cls in state_classes[1:]:
-            self._register_state(state_cls)
-
-        for index in range(len(state_classes) - 1):
-            before, after = state_classes[index], state_classes[index + 1]
-            self.register_transition(before.state_id, after.state_id, DONE_EVENT)
-
-    def _register_state(
-        self, state_cls: Type[BaseState], initial: bool = False
-    ) -> None:
-        """Register state."""
-        name = state_cls.state_id
-        return super().register_state(
-            state_cls.state_id,
-            state_cls(name=name, skill_context=self.context),
-            initial=initial,
-        )
-
-    def get_wait_tendermint_rpc_is_ready(self) -> Callable:
-        """
-        Wait Tendermint RPC server is up.
-
-        This method will return a function that returns
-        False until 'initial_delay' seconds (a skill parameter)
-        have elapsed since the call of the method.
-
-        :return: the function used to wait.
-        """
-
-        def _check_time(expected_time: datetime.datetime) -> bool:
-            return datetime.datetime.now() > expected_time
-
-        initial_delay = self.context.params.initial_delay
-        date = datetime.datetime.now() + datetime.timedelta(0, initial_delay)
-        return partial(_check_time, date)
-
-    def wait_observation_round(self) -> bool:
-        """Wait registration threshold is reached."""
-        return (
-            self.context.state.period.current_round_id
-            == CollectObservationRound.round_id
-        )
-
-    def wait_estimate_round(self) -> bool:
-        """Wait observation threshold is reached."""
-        return (
-            self.context.state.period.current_round_id
-            == EstimateConsensusRound.round_id
-        )
-
-    def wait_consensus_round(self) -> bool:
-        """Wait estimate threshold is reached."""
-        return (
-            self.context.state.period.current_round_id == ConsensusReachedRound.round_id
-        )
 
 
 class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ancestors
@@ -237,9 +143,9 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         """
         self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
-            self.not_deployer_act()
+            self._not_deployer_act()
         else:
-            yield from self.deployer_act()
+            yield from self._deployer_act()
         yield from self.wait_until_round_end(DeploySafeRound.round_id)
         self.context.logger.info(
             f"Safe contract address: {self.period_state.safe_contract_address}"
@@ -247,13 +153,13 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         self._log_end()
         self.set_done()
 
-    def not_deployer_act(self) -> None:
+    def _not_deployer_act(self) -> None:
         """Do the non-deployer action."""
         self.context.logger.info(
             "I am not the designated sender, waiting until next round..."
         )
 
-    def deployer_act(self) -> Generator:
+    def _deployer_act(self) -> Generator:
         """Do the deployer action."""
         stop_condition = self.is_round_ended(DeploySafeRound.round_id)
         if stop_condition():
@@ -397,20 +303,20 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
         """
         self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
-            self.not_sender_act()
+            self._not_sender_act()
         else:
-            yield from self.sender_act()
+            yield from self._sender_act()
         yield from self.wait_until_round_end(TxHashRound.round_id)
         self._log_end()
         self.set_done()
 
-    def not_sender_act(self) -> None:
+    def _not_sender_act(self) -> None:
         """Do the non-deployer action."""
         self.context.logger.info(
             "I am not the designated sender, waiting until next round..."
         )
 
-    def sender_act(self) -> Generator[None, None, None]:
+    def _sender_act(self) -> Generator[None, None, None]:
         """Do the deployer action."""
         self.context.logger.info(
             "I am the designated sender, committing the transaction hash..."
@@ -509,20 +415,20 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         """Do the act."""
         self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
-            self.not_sender_act()
+            self._not_sender_act()
         else:
-            yield from self.sender_act()
+            yield from self._sender_act()
         yield from self.wait_until_round_end(FinalizationRound.round_id)
         self._log_end()
         self.set_done()
 
-    def not_sender_act(self) -> None:
+    def _not_sender_act(self) -> None:
         """Do the non-sender action."""
         self.context.logger.info(
             "I am not the designated sender, waiting until next round..."
         )
 
-    def sender_act(self) -> Generator[None, None, None]:
+    def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
         self.context.logger.info(
             "I am the designated sender, sending the safe transaction..."
@@ -636,3 +542,19 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
         self.set_done()
         # dummy 'yield' to return a generator
         yield
+
+
+class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the price estimation."""
+
+    all_ordered_states = [
+        InitialDelayState,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        DeploySafeBehaviour,  # type: ignore
+        ObserveBehaviour,  # type: ignore
+        EstimateBehaviour,  # type: ignore
+        TransactionHashBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
+        EndBehaviour,  # type: ignore
+    ]

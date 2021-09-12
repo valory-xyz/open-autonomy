@@ -20,8 +20,21 @@
 """This module contains the base classes for the models classes of the skill."""
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, cast
+from math import ceil
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    FrozenSet,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    cast,
+)
 
+from aea.exceptions import enforce
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
@@ -303,6 +316,60 @@ class BlockBuilder:
         )
 
 
+class ConsensusParams:
+    """Represent the consensus parameters."""
+
+    def __init__(self, max_participants: int):
+        """Initialize the consensus parameters."""
+        self._max_participants = max_participants
+
+    @property
+    def max_participants(self) -> int:
+        """Get the maximum number of participants."""
+        return self._max_participants
+
+    @property
+    def two_thirds_threshold(self) -> int:
+        """Get the 2/3 threshold."""
+        return ceil(self.max_participants * 2 / 3)
+
+    @classmethod
+    def from_json(cls, obj: Dict) -> "ConsensusParams":
+        """Get from JSON."""
+        max_participants = obj["max_participants"]
+        enforce(
+            isinstance(max_participants, int) and max_participants >= 0,
+            "max_participants must be an integer greater than 0.",
+        )
+
+        return ConsensusParams(max_participants)
+
+
+class BasePeriodState:
+    """Class to represent a period state."""
+
+    def __init__(
+        self,
+        participants: Optional[FrozenSet[str]] = None,
+    ) -> None:
+        """Initialize a period state."""
+        self._participants = participants
+
+    @property
+    def participants(self) -> FrozenSet[str]:
+        """Get the participants."""
+        enforce(self._participants is not None, "'participants' field is None")
+        return cast(FrozenSet[str], self._participants)
+
+    @classmethod
+    def update(cls, state: "BasePeriodState", **kwargs: Any) -> "BasePeriodState":
+        """Copy and update the state."""
+        # remove leading underscore from keys
+        data = {key[1:]: value for key, value in state.__dict__.items()}
+        data.update(kwargs)
+        return cls(**data)
+
+
 class AbstractRound(ABC):
     """
     This class represents an abstract round.
@@ -314,8 +381,19 @@ class AbstractRound(ABC):
 
     round_id: str
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        state: BasePeriodState,
+        consensus_params: ConsensusParams,
+    ) -> None:
         """Initialize the round."""
+        self._consensus_params = consensus_params
+        self._state = state
+
+    @property
+    def state(self) -> BasePeriodState:
+        """Get the period state."""
+        return self._state
 
     def check_transaction(self, transaction: Transaction) -> bool:
         """

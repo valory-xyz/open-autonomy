@@ -19,11 +19,17 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any, Callable, Dict, Optional, Type, cast
 
+from aea.exceptions import enforce
 from aea.skills.base import Model
 
-from packages.valory.skills.abstract_round_abci.base_models import AbstractRound, Period
+from packages.valory.skills.abstract_round_abci.base_models import (
+    AbstractRound,
+    BasePeriodState,
+    ConsensusParams,
+    Period,
+)
 from packages.valory.skills.abstract_round_abci.utils import locate
 
 
@@ -43,6 +49,15 @@ class SharedState(Model):
     def setup(self) -> None:
         """Set up the model."""
         self.period = Period(self.initial_round_cls)
+        consensus_params = self.context.params.consensus_params
+        self.period.setup(BasePeriodState(), consensus_params)
+
+    @property
+    def period_state(self) -> BasePeriodState:
+        """Get the period state if available."""
+        period_state = self.period.latest_result
+        enforce(period_state is not None, "period state not available")
+        return cast(BasePeriodState, period_state)
 
     @classmethod
     def _process_initial_round_cls(
@@ -74,3 +89,22 @@ class Requests(Model):
 
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
+
+
+class BaseParams(Model):
+    """Parameters."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters object."""
+        self.tendermint_url = self._ensure("tendermint_url", kwargs)
+        self.initial_delay = self._ensure("initial_delay", kwargs)
+
+        self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def _ensure(cls, key: str, kwargs: Dict) -> Any:
+        """Get and ensure the configuration field is not None."""
+        value = kwargs.pop(key, None)
+        enforce(value is not None, f"'{key}' required, but it is not set")
+        return value

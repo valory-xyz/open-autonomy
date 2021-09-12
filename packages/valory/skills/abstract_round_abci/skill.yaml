@@ -8,11 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base_models.py: QmPy7YpocRXQdZFCr3sxRdCfmxs82q3X4NiZDmetcRVstG
+  base_models.py: QmWJtGvuTRvajUzf3WgU4EcsQ2y1XCDjVgMcVGdRqh2Zbp
   behaviour_utils.py: QmW83FeY2xK4wzfDi8DZ7QWzBdN4VEN3Xrqpv7cSAHrKEj
+  behaviours.py: QmacjRmHaQKEzoSb6RDjBs5cuWngupLuxREfaiPWbd8H4j
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
   handlers.py: QmWmx6eGXhxGit1y8tfWzAYRrWhs8QjX3hqxzJPimkANyU
-  models.py: QmPVcwtqDEdLcLE8BNk5Ke2XwNR8Dpkq2x2raYQZRGNu6g
+  models.py: Qmbtcjkm1PSMLXMgJRqs73D24tzjb8j98tkbFXwmV3qEfY
   serializer.py: QmZKgTmRgReAnVuQLQH1Lk23dx9UrwpATFtqFwCi9qN7SH
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
@@ -28,7 +29,10 @@ protocols:
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
-behaviours: {}
+behaviours:
+  main:
+    args: {}
+    class_name: AbstractRoundBehaviour
 handlers:
   abci:
     args: {}
