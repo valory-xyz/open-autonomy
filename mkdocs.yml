@@ -13,6 +13,7 @@ nav:
   - Price Estimation:
     - Demo: 'price_estimation_demo.md'
     - How it works: 'price_estimation.md'
+    - System: 'poc-diagram.md'
 
 plugins:
     - markdownmermaid

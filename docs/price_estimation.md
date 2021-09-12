@@ -65,6 +65,8 @@ The POC has the following phases:
     by the Tendermint network, and submitted on the Ethereum chain
     via the Safe transaction.
 
+A full diagram can be found [here](/poc-diagram.md)
+
 ## Setup
 
 The network is composed of:
