@@ -10,6 +10,7 @@ strict: true
 
 nav:
   - Home: 'index.md'
+  - System: 'poc-diagram.md'
 
 plugins:
     - markdownmermaid
