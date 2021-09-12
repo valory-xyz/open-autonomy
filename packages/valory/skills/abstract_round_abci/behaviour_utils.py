@@ -25,7 +25,7 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
@@ -45,6 +45,7 @@ from packages.fetchai.protocols.signing.custom_types import (
     Terms,
 )
 from packages.valory.skills.abstract_round_abci.base_models import (
+    AbstractRound,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
@@ -93,6 +94,10 @@ class AsyncBehaviour(ABC):
 
     @abstractmethod
     def async_act(self) -> Generator:
+        """Do the act, supporting asynchronous execution."""
+
+    @abstractmethod
+    def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
 
     def _get_generator_act(self) -> Generator:
@@ -161,7 +166,7 @@ class AsyncBehaviour(ABC):
         """Call the 'async_act' method for the first time."""
         self._state = self.AsyncState.RUNNING
         try:
-            self._generator_act = self.async_act()
+            self._generator_act = self.async_act_wrapper()
             # if the method 'async_act' was not a generator function
             # (i.e. no 'yield' or 'yield from' statement)
             # just return
@@ -210,6 +215,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
 
     is_programmatically_defined = True
     state_id = ""
+    matching_round: Optional[Type[AbstractRound]] = None
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -230,13 +236,15 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Get a callable to check whether the current round has ended."""
         return partial(self.check_not_in_round, round_id)
 
-    def wait_until_round_end(self, round_id: str) -> Any:
+    def wait_until_round_end(self) -> Any:
         """
         Wait until the ABCI application exits from a round.
 
-        :param round_id: the identifier of the desired round.
         :yield: None
         """
+        if self.matching_round is None:
+            raise ValueError("No matching_round set!")
+        round_id = self.matching_round.round_id
         yield from self.wait_for_condition(partial(self.check_not_in_round, round_id))
 
     def is_done(self) -> bool:
@@ -247,6 +255,27 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Set the behaviour to done."""
         self._is_done = True
         self._event = DONE_EVENT
+
+    def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
+        """
+        Send transaction and wait for the response, and repeat until not successful.
+
+        Calls `_send_transaction` and uses the default stop condition (based on round id).
+
+        :param: payload: the payload to send
+        :yield: the responses
+        """
+        if self.matching_round is None:
+            raise ValueError("No matching_round set!")
+        stop_condition = self.is_round_ended(self.matching_round.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
+
+    def async_act_wrapper(self) -> Generator:
+        """Do the act, supporting asynchronous execution."""
+        self._log_start()
+        yield from self.async_act()
+        self._log_end()
+        self.set_done()
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""

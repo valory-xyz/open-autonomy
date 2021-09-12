@@ -97,7 +97,6 @@ class InitialDelayState(PriceEstimationBaseState):  # pylint: disable=too-many-a
         """Do the action."""
         delay = self.context.params.initial_delay
         yield from self.sleep(delay)
-        self.set_done()
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -106,6 +105,7 @@ class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
     """Register to the next round."""
 
     state_id = "register"
+    matching_round = RegistrationRound
 
     def async_act(self) -> None:  # type: ignore
         """
@@ -113,17 +113,13 @@ class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
 
         Steps:
         - Build a registration transaction
-        - Send the transaction and wait for it to be mined
+        - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        self._log_start()
         payload = RegistrationPayload(self.context.agent_address)
-        stop_condition = self.is_round_ended(RegistrationRound.round_id)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
-        yield from self.wait_until_round_end(RegistrationRound.round_id)
-        self._log_end()
-        self.set_done()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
 
 class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
@@ -132,6 +128,7 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
     """Deploy Safe."""
 
     state_id = "deploy_safe"
+    matching_round = DeploySafeRound
 
     def async_act(self) -> Generator:
         """
@@ -141,17 +138,14 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         deployment transaction and send it.
         Otherwise, wait until the next round.
         """
-        self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
             self._not_deployer_act()
         else:
             yield from self._deployer_act()
-        yield from self.wait_until_round_end(DeploySafeRound.round_id)
+        yield from self.wait_until_round_end()
         self.context.logger.info(
             f"Safe contract address: {self.period_state.safe_contract_address}"
         )
-        self._log_end()
-        self.set_done()
 
     def _not_deployer_act(self) -> None:
         """Do the non-deployer action."""
@@ -161,16 +155,12 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
-        stop_condition = self.is_round_ended(DeploySafeRound.round_id)
-        if stop_condition():
-            self.context.logger.info("contract already deployed, skipping...")
-            return
         self.context.logger.info(
             "I am the designated sender, deploying the safe contract..."
         )
         contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self.send_a2a_transaction(payload)
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = list(self.period_state.participants)
@@ -225,6 +215,7 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
     """Observe price estimate."""
 
     state_id = "observe"
+    matching_round = CollectObservationRound
 
     def async_act(self) -> Generator:
         """
@@ -236,7 +227,6 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        self._log_start()
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
         observation = self.context.price_api.get_price(currency_id, convert_id)
@@ -244,17 +234,15 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
             f"Got observation of {currency_id} price in {convert_id} from {self.context.price_api.api_id}: {observation}"
         )
         payload = ObservationPayload(self.context.agent_address, observation)
-        stop_condition = self.is_round_ended(CollectObservationRound.round_id)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
-        yield from self.wait_until_round_end(CollectObservationRound.round_id)
-        self._log_end()
-        self.set_done()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
 
 class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
     """Estimate price."""
 
     state_id = "estimate"
+    matching_round = EstimateConsensusRound
 
     def async_act(self) -> Generator:
         """
@@ -267,7 +255,6 @@ class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        self._log_start()
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
         observation_payloads = self.period_state.observations
@@ -280,11 +267,8 @@ class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
             f"Got estimate of {currency_id} price in {convert_id}: {estimate}"
         )
         payload = EstimatePayload(self.context.agent_address, estimate)
-        stop_condition = self.is_round_ended(EstimateConsensusRound.round_id)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
-        yield from self.wait_until_round_end(EstimateConsensusRound.round_id)
-        self._log_end()
-        self.set_done()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
 
 class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
@@ -293,6 +277,7 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
     """Share the transaction hash for the signature round."""
 
     state_id = "tx_hash"
+    matching_round = TxHashRound
 
     def async_act(self) -> None:  # type: ignore
         """
@@ -301,14 +286,11 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
         Steps:
         - TODO
         """
-        self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
             self._not_sender_act()
         else:
             yield from self._sender_act()
-        yield from self.wait_until_round_end(TxHashRound.round_id)
-        self._log_end()
-        self.set_done()
+        yield from self.wait_until_round_end()
 
     def _not_sender_act(self) -> None:
         """Do the non-deployer action."""
@@ -334,8 +316,7 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
         safe_tx_hash = safe_tx_hash[2:]
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
-        stop_condition = self.is_round_ended(TxHashRound.round_id)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self.send_a2a_transaction(payload)
 
     def _get_safe_transaction_hash(
         self, contract_address: str, **kwargs: Any
@@ -381,17 +362,14 @@ class SignatureBehaviour(  # pylint: disable=too-many-ancestors
     """Signature state."""
 
     state_id = "sign"
+    matching_round = CollectSignatureRound
 
     def async_act(self) -> Generator:
         """Do the act."""
-        self._log_start()
         signature_hex = yield from self._get_safe_tx_signature()
         payload = SignaturePayload(self.context.agent_address, signature_hex)
-        stop_condition = self.is_round_ended(CollectSignatureRound.round_id)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
-        yield from self.wait_until_round_end(CollectSignatureRound.round_id)
-        self._log_end()
-        self.set_done()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
@@ -410,17 +388,15 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
     """Finalize state."""
 
     state_id = "finalize"
+    matching_round = FinalizationRound
 
     def async_act(self) -> Generator[None, None, None]:
         """Do the act."""
-        self._log_start()
         if self.context.agent_address != self.period_state.safe_sender_address:
             self._not_sender_act()
         else:
             yield from self._sender_act()
-        yield from self.wait_until_round_end(FinalizationRound.round_id)
-        self._log_end()
-        self.set_done()
+        yield from self.wait_until_round_end()
 
     def _not_sender_act(self) -> None:
         """Do the non-sender action."""
@@ -441,8 +417,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
             f"Signatures: {pprint.pformat(self.context.state.period_state.participant_to_signature)}"
         )
         payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
-        stop_condition = self.is_round_ended(FinalizationRound.round_id)
-        yield from self._send_transaction(payload, stop_condition=stop_condition)
+        yield from self.send_a2a_transaction(payload)
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
@@ -530,7 +505,6 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
-        self.set_done()
         # dummy 'yield' to return a generator
         yield
 
