@@ -448,15 +448,6 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         """Send a Safe transaction using the participants' signatures."""
         data = self.period_state.encoded_estimate
 
-        # compose final signature (need to be sorted!)
-        final_signature = b""
-        for signer in self.period_state.sorted_addresses:
-            if signer not in self.period_state.participant_to_signature:
-                continue
-            signature = self.period_state.participant_to_signature[signer]
-            signature_bytes = binascii.unhexlify(signature)
-            final_signature += signature_bytes
-
         transaction = yield from self._get_safe_transaction(
             contract_address=self.period_state.safe_contract_address,
             owners=tuple(self.period_state.participants),

@@ -4,45 +4,7 @@ This demo is about a network of AEAs reaching
 Byzantine fault-tolerant consensus, powered by Tendermint, 
 on a price estimate of Bitcoin price in US dollars.
 
-## Introduction
-
-The estimate is an average of a set of observations
-on the Bitcoin price coming from different sources,
-e.g. CoinMarketCap, CoinGecko, Binance and Coinbase.
-Each AEA shares an observation from one of the sources above
-by committing it to a temporary blockchain made with Tendermint.
-Once all the observation are settled, each AEA
-runs a script to aggregate the observations to compute an estimate,
-and we say that the consensus is reached when one estimate
-reaches 2/3 of the total voting power committed
-on the temporary blockchain.
-Alongside the finite-state machine behaviour, the AEAs runs
-an ABCI application instance which receives all the updates from the 
-underlying Tendermint network.
-
-A round of consensus breaks down in four steps:
-
-- Registration phase: the application accepts registrations
-    from AEAs to join the round of consensus, up to a configured 
-    maximum number of participants (in the demo, this limit is 4);
-    once this threshold is hit ("registration threshold"), 
-    the round goes to the _collect-observation_ phase.
-- Collect-observation phase: the application accepts 
-    observations, only one per agent,
-    of the target quantity to estimate from only the AEAs
-    that joined this round. Once all the AEAs have submitted their
-    observations, 
-    and the list of observations are replicated among the 
-    different ABCI applications instances, the round goes to the _consensus_ phase
-- Consensus phase: the application waits for votes on 
-    estimates. The participants are supposed to run the same script
-    to aggregate the set of observations.
-    Once the same estimate receives a number of votes greater or equal than
-    2/3 of the total voting power, the consensus is reached.
-- Consensus-reached phase: the application in this phase still accepts votes,
-    but they can't affect the consensus reached due to the quorum requirements.
-    At this point, each AEA has a local copy of the estimate, replicated
-    by the Tendermint network.
+For more details, please read <a href="../price_estimation/">this page</a>.
 
 ## Preliminaries
 
@@ -60,13 +22,14 @@ make localnet-start
 ```
 
 This will spawn:
+
 - a network of 4 Tendermint nodes, each one trying to connect to
   a separate ABCI application instance;
 - 4 AEAs, each one running an instance of the ABCI application,
   and a finite-state machine behaviour to interact with
   the round phases.
 
-The following is the output of a single AEA:
+The following is the output of a single AEA (you can use `docker logs --follow`):
 ```
 info: Building package (connection, valory/abci:0.1.0)...
 info: Running command '/usr/bin/python3 check_dependencies.py /home/ubuntu/price_estimation/.build/connection/valory/abci'...
