@@ -10,6 +10,9 @@ strict: true
 
 nav:
   - Home: 'index.md'
+  - Price Estimation:
+    - Demo: 'price_estimation_demo.md'
+    - How it works: 'price_estimation.md'
 
 plugins:
     - markdownmermaid
@@ -18,9 +21,13 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight
   - admonition
+  - markdown_include.include:
+      base_path: docs
+  - pymdownx.arithmatex
 
 #extra_css:
 #    - css/my-styles.css
 
 extra_javascript:
     - https://unpkg.com/mermaid@8.10.1/dist/mermaid.min.js
+    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
