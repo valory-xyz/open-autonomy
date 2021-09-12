@@ -25,7 +25,7 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
@@ -36,6 +36,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.ledger_api import LedgerApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
@@ -45,12 +46,15 @@ from packages.fetchai.protocols.signing.custom_types import (
     Terms,
 )
 from packages.valory.skills.abstract_round_abci.base_models import (
+    AbstractRound,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
+    ContractApiDialogue,
+    ContractApiDialogues,
     HttpDialogue,
     HttpDialogues,
     LedgerApiDialogue,
@@ -93,6 +97,10 @@ class AsyncBehaviour(ABC):
 
     @abstractmethod
     def async_act(self) -> Generator:
+        """Do the act, supporting asynchronous execution."""
+
+    @abstractmethod
+    def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
 
     def _get_generator_act(self) -> Generator:
@@ -161,7 +169,7 @@ class AsyncBehaviour(ABC):
         """Call the 'async_act' method for the first time."""
         self._state = self.AsyncState.RUNNING
         try:
-            self._generator_act = self.async_act()
+            self._generator_act = self.async_act_wrapper()
             # if the method 'async_act' was not a generator function
             # (i.e. no 'yield' or 'yield from' statement)
             # just return
@@ -210,6 +218,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
 
     is_programmatically_defined = True
     state_id = ""
+    matching_round: Optional[Type[AbstractRound]] = None
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -230,13 +239,15 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Get a callable to check whether the current round has ended."""
         return partial(self.check_not_in_round, round_id)
 
-    def wait_until_round_end(self, round_id: str) -> Any:
+    def wait_until_round_end(self) -> Any:
         """
         Wait until the ABCI application exits from a round.
 
-        :param round_id: the identifier of the desired round.
         :yield: None
         """
+        if self.matching_round is None:
+            raise ValueError("No matching_round set!")
+        round_id = self.matching_round.round_id
         yield from self.wait_for_condition(partial(self.check_not_in_round, round_id))
 
     def is_done(self) -> bool:
@@ -247,6 +258,27 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Set the behaviour to done."""
         self._is_done = True
         self._event = DONE_EVENT
+
+    def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
+        """
+        Send transaction and wait for the response, and repeat until not successful.
+
+        Calls `_send_transaction` and uses the default stop condition (based on round id).
+
+        :param: payload: the payload to send
+        :yield: the responses
+        """
+        if self.matching_round is None:
+            raise ValueError("No matching_round set!")
+        stop_condition = self.is_round_ended(self.matching_round.round_id)
+        yield from self._send_transaction(payload, stop_condition=stop_condition)
+
+    def async_act_wrapper(self) -> Generator:
+        """Do the act, supporting asynchronous execution."""
+        self._log_start()
+        yield from self.async_act()
+        self._log_end()
+        self.set_done()
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""
@@ -449,9 +481,26 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
 
-    def _send_raw_transaction(
+    def _get_default_terms(self) -> Terms:
+        """
+        Get default transaction terms.
+
+        :return: terms
+        """
+        terms = Terms(
+            ledger_id=EthereumCrypto.identifier,
+            sender_address=self.context.agent_address,
+            counterparty_address=self.context.agent_address,
+            amount_by_currency_id={},
+            quantities_by_good_id={},
+            nonce="",
+        )
+        return terms
+
+    def send_raw_transaction(
         self, transaction: RawTransaction
     ) -> Generator[None, None, str]:
+        """Send raw transactions to the ledger for mining."""
         terms = Terms(
             EthereumCrypto.identifier,
             self.context.agent_address,
@@ -472,3 +521,53 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         transaction_digest_msg = yield from self.wait_for_message()
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash
+
+    def get_contract_api_response(
+        self,
+        contract_address: Optional[str],
+        contract_id: str,
+        contract_callable: str,
+        **kwargs: Any,
+    ) -> Generator[None, None, ContractApiMessage]:
+        """
+        Request contract safe transaction hash
+
+        :param contract_address: the contract address
+        :param contract_id: the contract id
+        :param contract_callable: the collable to call on the contract
+        :param kwargs: keyword argument for the contract api request
+        :return: the contract api response
+        :yields: the contract api response
+        """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        kwargs = {
+            "counterparty": LEDGER_API_ADDRESS,
+            "ledger_id": EthereumCrypto.identifier,
+            "contract_id": contract_id,
+            "callable": contract_callable,
+            "kwargs": ContractApiMessage.Kwargs(kwargs),
+        }
+        if contract_address is None:
+            kwargs[
+                "performative"
+            ] = ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION
+        else:
+            kwargs["contract_address"] = contract_address
+            kwargs["performative"] = ContractApiMessage.Performative.GET_RAW_TRANSACTION
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            **kwargs
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
+        contract_api_dialogue.terms = self._get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=contract_api_msg)
+        response = yield from self.wait_for_message()
+        return response

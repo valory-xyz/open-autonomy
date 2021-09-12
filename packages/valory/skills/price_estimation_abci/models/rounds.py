@@ -49,7 +49,11 @@ def encode_float(value: float) -> bytes:
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
-    """Class to represent a period state."""
+    """
+    Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
