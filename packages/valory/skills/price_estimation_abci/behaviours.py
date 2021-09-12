@@ -26,7 +26,6 @@ from typing import Generator, cast
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -150,11 +149,12 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
             threshold=threshold,
             deployer_address=self.context.agent_address,
         )
-        raw_transaction = cast(
-            ContractApiMessage, contract_api_response
-        ).raw_transaction
-        contract_address = raw_transaction.body.pop("contract_address")
-        tx_hash = yield from self.send_raw_transaction(raw_transaction)
+        contract_address = contract_api_response.raw_transaction.body.pop(
+            "contract_address"
+        )
+        tx_hash = yield from self.send_raw_transaction(
+            contract_api_response.raw_transaction
+        )
         self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
 
@@ -346,8 +346,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
             data=self.period_state.encoded_estimate,
             signatures_by_owner=dict(self.period_state.participant_to_signature),
         )
-        transaction = contract_api_msg.raw_transaction
-        tx_hash = yield from self.send_raw_transaction(transaction)
+        tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
         self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 
