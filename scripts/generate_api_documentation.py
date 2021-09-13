@@ -158,7 +158,7 @@ def run_pydoc_markdown(module: str) -> str:
     :param module: the dotted path.
     :return: the PyDoc content (pre-processed).
     """
-    pydoc = subprocess.Popen(  # nosec # pylint: consider-using-with
+    pydoc = subprocess.Popen(  # nosec # pylint: disable=consider-using-with
         ["pydoc-markdown", "-m", module, "-I", "."], stdout=subprocess.PIPE
     )
     stdout, _ = pydoc.communicate()
