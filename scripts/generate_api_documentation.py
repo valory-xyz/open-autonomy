@@ -80,14 +80,14 @@ def replace_underscores(text: str) -> str:
     return text_b
 
 
-def is_relative_to(p1: Path, p2: Path) -> bool:
+def is_relative_to(path_one: Path, path_two: Path) -> bool:
     """Check if a path is relative to another path."""
-    return str(p1).startswith(str(p2))
+    return str(path_one).startswith(str(path_two))
 
 
-def is_not_dir(p: Path) -> bool:
+def is_not_dir(path: Path) -> bool:
     """Call p.is_dir() method and negate the result."""
-    return not p.is_dir()
+    return not path.is_dir()
 
 
 def should_skip(module_path: Path) -> bool:
@@ -145,7 +145,7 @@ def make_pydoc(dotted_path: str, dest_file: Path) -> None:
         api_doc_content = run_pydoc_markdown(dotted_path)
         dest_file.parent.mkdir(parents=True, exist_ok=True)
         dest_file.write_text(api_doc_content)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except,invalid-name
         print(f"Error: {str(e)}")
         return
     print("Done!")
@@ -158,7 +158,7 @@ def run_pydoc_markdown(module: str) -> str:
     :param module: the dotted path.
     :return: the PyDoc content (pre-processed).
     """
-    pydoc = subprocess.Popen(  # nosec
+    pydoc = subprocess.Popen(  # nosec # pylint: consider-using-with
         ["pydoc-markdown", "-m", module, "-I", "."], stdout=subprocess.PIPE
     )
     stdout, _ = pydoc.communicate()
