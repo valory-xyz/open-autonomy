@@ -41,7 +41,8 @@ class TestCounterHandler(BaseSkillTestCase):
         """Setup the test class."""
         super().setup()
         cls.abci_counter_handler = cast(
-            ABCICounterHandler, cls._skill.skill_context.handlers.abci)
+            ABCICounterHandler, cls._skill.skill_context.handlers.abci
+        )
         cls.logger = cls._skill.skill_context.logger
 
         cls.abci_dialogues = cast(
@@ -52,22 +53,20 @@ class TestCounterHandler(BaseSkillTestCase):
         """Test the setup method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
             assert self.abci_counter_handler.setup() is None
+            mock_logger.assert_any_call(
+                logging.DEBUG, "ABCI Handler: setup method called."
+            )
 
         # after
         self.assert_quantity_in_outbox(0)
-
-        mock_logger.assert_any_call(
-            logging.DEBUG, "ABCI Handler: setup method called."
-        )
 
     def test_teardown(self):
         """Test the teardown method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
             assert self.abci_counter_handler.teardown() is None
+            mock_logger.assert_any_call(
+                logging.DEBUG, "ABCI Handler: teardown method called."
+            )
 
         # after
         self.assert_quantity_in_outbox(0)
-
-        mock_logger.assert_any_call(
-            logging.DEBUG, "ABCI Handler: teardown method called."
-        )
