@@ -25,11 +25,10 @@ import shutil
 import subprocess  # nosec
 import sys
 from pathlib import Path
+from typing import Set
 
 from aea.configurations.base import ComponentType, PublicId
-from aea.configurations.constants import (
-    PACKAGES,
-)
+from aea.configurations.constants import PACKAGES
 
 
 DOCS_DIR = Path("docs/")
@@ -44,7 +43,7 @@ DEFAULT_PACKAGES = {
 }
 
 IGNORE_NAMES = {r"^__init__\.py$", r"^__version__\.py$", r"^py\.typed$", r"^.*_pb2.py$"}
-IGNORE_PREFIXES = {}
+IGNORE_PREFIXES: Set[Path] = set()
 
 
 def check_working_tree_is_dirty() -> None:
@@ -73,6 +72,7 @@ def replace_underscores(text: str) -> str:
     """
     Replace escaped underscores in a text.
 
+    :param text: the text
     :return: the processed text
     """
     text_a = text.replace("\\_\\_", "`__`")
