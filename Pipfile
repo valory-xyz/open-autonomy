@@ -27,7 +27,7 @@ mkdocs = "==1.2.1"
 mkdocs-mermaid-plugin = {git = "https://github.com/pugong/mkdocs-mermaid-plugin.git"}
 mkdocs-material = "==7.1.10"
 mypy = "==0.910"
-pydoc-markdown = "==3.10.3"
+pydoc-markdown = "==4.3.2"
 pydocstyle = "==6.1.1"
 pymdown-extensions = "==8.2"
 pytest = "==6.2.5"
