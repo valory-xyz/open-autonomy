@@ -31,7 +31,7 @@ from tests.helpers.tendermint_utils import (
 )
 
 
-class TestABCICounterSkillMany(
+class TestABCIPriceEstimationSkillMany(
     AEATestCaseMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
 ):
     """Test that the ABCI price_estimation skill works together with Tendermint."""

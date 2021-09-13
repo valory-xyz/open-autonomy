@@ -19,32 +19,12 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
-from typing import cast
-
-from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.price_estimation_abci.models.rounds import PeriodState
 
 
-class SharedState(BaseSharedState):
-    """Shared state."""
-
-    def setup(self) -> None:
-        """Set up."""
-        super().setup()
-        consensus_params = self.context.params.consensus_params
-        self.period.setup(PeriodState(), consensus_params)
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Get the period state if available."""
-        period_state = self.period.latest_result
-        enforce(period_state is not None, "period state not available")
-        return cast(PeriodState, period_state)
-
-
+SharedState = BaseSharedState
 Requests = BaseRequests
