@@ -14,7 +14,7 @@ fingerprint:
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
   handlers.py: QmWmx6eGXhxGit1y8tfWzAYRrWhs8QjX3hqxzJPimkANyU
   models.py: Qmbtcjkm1PSMLXMgJRqs73D24tzjb8j98tkbFXwmV3qEfY
-  serializer.py: QmZKgTmRgReAnVuQLQH1Lk23dx9UrwpATFtqFwCi9qN7SH
+  serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
 connections:
