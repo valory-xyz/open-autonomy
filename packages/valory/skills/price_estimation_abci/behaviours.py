@@ -49,6 +49,7 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     RegistrationRound,
     TxHashRound,
 )
+import requests
 
 
 SIGNATURE_LENGTH = 65
@@ -64,15 +65,19 @@ class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ance
         return cast(PeriodState, self.context.state.period_state)
 
 
-class InitialDelayState(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
-    """Wait for some seconds until Tendermint nodes are running."""
+class TendermintHealthcheck(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
+    """Check whether Tendermint nodes are running."""
 
-    state_id = "initial_delay"
+    state_id = "tendermint_healthcheck"
 
     def async_act(self) -> None:  # type: ignore
-        """Do the action."""
-        delay = self.context.params.initial_delay
-        yield from self.sleep(delay)
+        """Check whether tendermint is running or not."""
+        while True:
+            try:
+                if requests.get(f"{self.context.params.tendermint_url}/health").status_code == 200:
+                    break
+            except requests.exceptions.ConnectionError:
+                yield
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -370,7 +375,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     all_ordered_states = [
-        InitialDelayState,  # type: ignore
+        TendermintHealthcheck,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
