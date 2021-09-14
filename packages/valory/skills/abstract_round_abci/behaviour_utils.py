@@ -402,7 +402,9 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
 
-    def _broadcast_tx_commit(self, tx_bytes: bytes) -> HttpMessage:
+    def _broadcast_tx_commit(
+        self, tx_bytes: bytes
+    ) -> Generator[None, None, HttpMessage]:
         """Send a broadcast_tx_commit request."""
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
@@ -418,7 +420,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
 
     def _do_request(
         self, request_message: HttpMessage, http_dialogue: HttpDialogue
-    ) -> HttpMessage:
+    ) -> Generator[None, None, HttpMessage]:
         """
         Do a request and wait the response, asynchronously.
 

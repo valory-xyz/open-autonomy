@@ -149,8 +149,8 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
             threshold=threshold,
             deployer_address=self.context.agent_address,
         )
-        contract_address = contract_api_response.raw_transaction.body.pop(
-            "contract_address"
+        contract_address = cast(
+            str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
         tx_hash = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
