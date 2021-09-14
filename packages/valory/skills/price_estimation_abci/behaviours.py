@@ -23,6 +23,8 @@ import pprint
 from abc import ABC
 from typing import Generator, cast
 
+import requests
+
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
@@ -49,7 +51,6 @@ from packages.valory.skills.price_estimation_abci.models.rounds import (
     RegistrationRound,
     TxHashRound,
 )
-import requests
 
 
 SIGNATURE_LENGTH = 65
