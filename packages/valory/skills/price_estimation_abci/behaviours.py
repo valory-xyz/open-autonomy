@@ -22,16 +22,20 @@ import binascii
 import pprint
 from abc import ABC
 from typing import Generator, cast
-
-import requests
+from aiohttp.client_exceptions import ClientConnectionError
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
+from packages.valory.connections.tmint.connection import (
+    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
+)
+from packages.fetchai.protocols.http.message import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.dialogues import HttpDialogue, HttpDialogues
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -72,13 +76,20 @@ class TendermintHealthcheck(PriceEstimationBaseState):  # pylint: disable=too-ma
     state_id = "tendermint_healthcheck"
 
     def async_act(self) -> None:  # type: ignore
-        """Check whether tendermint is running or not."""
-        while True:
-            try:
-                if requests.get(f"{self.context.params.tendermint_url}/health").status_code == 200:
-                    break
-            except requests.exceptions.ConnectionError:
-                yield
+        """
+        Check whether tendermint is running or not.
+        """
+        http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
+        request_http_message, d = http_dialogues.create(
+            counterparty=str(HTTP_CLIENT_PUBLIC_ID),
+            performative=HttpMessage.Performative.REQUEST,
+            method="GET",
+            url=f"{self.context.params.tendermint_url}/health",
+            headers="",
+            version="",
+            body=b"{}",
+        )
+        yield from self._do_request(request_http_message, d)
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
