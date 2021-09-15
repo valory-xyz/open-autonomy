@@ -177,6 +177,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """
         return self.sorted_addresses[0]
 
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get the most_voted_tx_hash."""
+        enforce(
+            self._most_voted_tx_hash is not None, "'most_voted_tx_hash' field is None"
+        )
+        return cast(str, self._most_voted_tx_hash)
+
 
 class RegistrationRound(AbstractRound):
     """
