@@ -343,7 +343,7 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
     def async_act(self) -> Generator:
         """Do the act."""
         self.context.logger.info(
-            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.most_voted_tx_hash}"
+            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
         # dummy 'yield' to return a generator
