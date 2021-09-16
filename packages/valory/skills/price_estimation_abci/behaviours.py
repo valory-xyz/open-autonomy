@@ -239,7 +239,7 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.period_state.safe_sender_address, #keeper address
+            to_address=self.period_state.safe_sender_address,  # keeper address
             value=0,
             data=data,
         )
@@ -272,7 +272,7 @@ class SignatureBehaviour(  # pylint: disable=too-many-ancestors
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(self.period_state.safe_tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(self.period_state.most_voted_tx_hash)
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
         signature_hex = cast(SigningMessage, signature_response).signed_message.body
