@@ -117,19 +117,10 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, str], self._participant_to_signature)
 
     @property
-    def safe_tx_hash(self) -> str:
-        """Get the safe_tx_hash."""
-        enforce(
-            self._safe_tx_hash is not None,
-            "'safe_tx_hash' field is None",
-        )
-        return cast(str, self._safe_tx_hash)
-
-    @property
     def final_tx_hash(self) -> str:
         """Get the safe_tx_hash."""
         enforce(
-            self._safe_tx_hash is not None,
+            self._final_tx_hash is not None,
             "'final_tx_hash' field is None",
         )
         return cast(str, self._final_tx_hash)
@@ -492,7 +483,6 @@ class TxHashRound(AbstractRound):
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
-        self.transaction_hash: Optional[str] = None
         self.participant_to_tx_hash: Dict[str, TransactionHashPayload] = {}
 
     def tx_hash(self, payload: TransactionHashPayload) -> None:
@@ -524,17 +514,7 @@ class TxHashRound(AbstractRound):
         sender_has_not_sent_tx_hash_yet = (
             payload.sender not in self.participant_to_tx_hash
         )
-        transaction_hash_not_sent_yet = self.transaction_hash is None
-        return (
-            sender_in_participant_set
-            and sender_has_not_sent_tx_hash_yet
-            and transaction_hash_not_sent_yet
-        )
-
-    @property
-    def tx_hash_is_set(self) -> bool:
-        """Check that the transaction hash has been set."""
-        return self.transaction_hash is not None
+        return sender_in_participant_set and sender_has_not_sent_tx_hash_yet
 
     @property
     def tx_threshold_reached(self) -> bool:
@@ -554,16 +534,14 @@ class TxHashRound(AbstractRound):
         tx_counter.update(
             payload.tx_hash for payload in self.participant_to_tx_hash.values()
         )
-        most_voted_tx_hash, max_votes = max(
-            tx_counter.items(), key=itemgetter(1)
-        )
+        most_voted_tx_hash, max_votes = max(tx_counter.items(), key=itemgetter(1))
         if max_votes < self._consensus_params.two_thirds_threshold:
             raise ValueError("tx hash has not enough votes")
         return most_voted_tx_hash
 
     def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
         """Process the end of the block."""
-        if self.tx_hash_is_set and self.tx_threshold_reached:
+        if self.tx_threshold_reached:
             state = cast(
                 PeriodState,
                 self.state.update(
