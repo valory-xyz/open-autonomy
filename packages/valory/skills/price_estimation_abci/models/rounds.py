@@ -25,7 +25,7 @@ from operator import itemgetter
 from types import MappingProxyType
 from typing import Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, Mapping, Optional, Set, Tuple, cast
+from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
@@ -157,13 +157,18 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return tuple(self.participant_to_observations.values())
 
     @property
+    def sorted_addresses(self) -> List[str]:
+        """Sorted addresses."""
+        return sorted(self.participants, key=str.lower)
+
+    @property
     def safe_sender_address(self) -> str:
         """
         Get the Safe sender address.
 
         :return: the sender address
         """
-        return self.participants[floor(self.keeper_randomness * len(self.participants))]
+        return self.sorted_addresses[floor(self.keeper_randomness * len(self.participants))]
 
 
 class RegistrationRound(AbstractRound):
