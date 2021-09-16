@@ -20,6 +20,8 @@
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
 import pprint
+import time
+import json
 from abc import ABC
 from typing import Generator, cast
 from aiohttp.client_exceptions import ClientConnectionError
@@ -28,14 +30,14 @@ from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.connections.tmint.connection import (
-    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
+    PUBLIC_ID as TENDERMINT_HEALTHCHECK_CLIENT,
 )
 from packages.fetchai.protocols.http.message import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.dialogues import HttpDialogue, HttpDialogues
+from packages.valory.skills.abstract_round_abci.dialogues import HttpDialogues
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -79,17 +81,20 @@ class TendermintHealthcheck(PriceEstimationBaseState):  # pylint: disable=too-ma
         """
         Check whether tendermint is running or not.
         """
-        http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
-        request_http_message, d = http_dialogues.create(
-            counterparty=str(HTTP_CLIENT_PUBLIC_ID),
-            performative=HttpMessage.Performative.REQUEST,
-            method="GET",
-            url=f"{self.context.params.tendermint_url}/health",
-            headers="",
-            version="",
-            body=b"{}",
-        )
-        yield from self._do_request(request_http_message, d)
+        while True:
+            request_message, http_dialogue = self._build_http_request_message(
+                "GET",
+                self.context.params.tendermint_url + "/health",
+            )
+            result = yield from self._do_request(request_message, http_dialogue)
+            try:
+                json.loads(result.body.decode())
+                break
+            except json.JSONDecodeError:
+                self.context.logger.error(
+                    "Tendermint not running, Trying again !"
+                )
+                yield from self.sleep(1)
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
