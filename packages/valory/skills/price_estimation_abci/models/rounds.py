@@ -465,17 +465,12 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         return None
 
 
-<<<<<<< HEAD
 class TxHashRound(PriceEstimationAbstractRound):
-    """This class represents the 'tx-hash' round."""
-=======
-class TxHashRound(AbstractRound):
     """This class represents the 'tx-hash' round.
 
     Input: a period state with the set of participants
     Ouptut: a new period state with also the votes for each tx hash
     """
->>>>>>> main
 
     round_id = "tx_hash"
 
@@ -509,7 +504,7 @@ class TxHashRound(AbstractRound):
         :param payload: the payload to check
         :return: True if the tx is allowed, False otherwise.
         """
-        sender_in_participant_set = payload.sender in self.state.participants
+        sender_in_participant_set = payload.sender in self.period_state.participants
         sender_has_not_sent_tx_hash_yet = (
             payload.sender not in self.participant_to_tx_hash
         )
@@ -541,15 +536,9 @@ class TxHashRound(AbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         if self.tx_threshold_reached:
-            state = cast(
-                PeriodState,
-                self.state.update(
-                    state=self.state,
-                    participant_to_tx_hash=MappingProxyType(
-                        self.participant_to_tx_hash
-                    ),
-                    most_voted_tx_hash=self.most_voted_tx_hash,
-                ),
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.participant_to_tx_hash),
+                most_voted_tx_hash=self.most_voted_tx_hash,
             )
             next_round = CollectSignatureRound(state, self._consensus_params)
             return state, next_round
