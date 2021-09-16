@@ -41,6 +41,7 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     SignaturePayload,
     TransactionHashPayload,
 )
+from math import floor
 
 
 def encode_float(value: float) -> bytes:
@@ -65,6 +66,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_signature: Optional[Mapping[str, str]] = None,
         safe_tx_hash: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
+        keeper_randomness: Optional[float] = None
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
@@ -75,6 +77,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._participant_to_signature = participant_to_signature
         self._safe_tx_hash = safe_tx_hash
         self._final_tx_hash = final_tx_hash
+        self._keeper_randomness = keeper_randomness
 
     @property
     def safe_contract_address(self) -> str:
@@ -144,34 +147,23 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return encode_float(self.most_voted_estimate)
 
     @property
+    def keeper_randomness(self) -> float:
+        """Get the keeper's random number [0-1]."""
+        return cast(float, self._keeper_randomness)
+
+    @property
     def observations(self) -> Tuple[ObservationPayload, ...]:
         """Get the tuple of observations."""
         return tuple(self.participant_to_observations.values())
-
-    @property
-    def sorted_addresses(self) -> List[str]:
-        """Sorted addresses."""
-        return sorted(self.participants, key=str.lower)
 
     @property
     def safe_sender_address(self) -> str:
         """
         Get the Safe sender address.
 
-        It is the address with the minimum integer value,
-        and since the length of the hex strings is the same,
-        this coincides with alphanumeric order.
-
-        However, we need to lower the strings, since
-        the addresses are checksum addres.
-
-        TOFIX: the 'leader' should be decided in a more sensible way,
-          introducing some decentralized randomization. this is a
-          temporary solution.
-
         :return: the sender address
         """
-        return self.sorted_addresses[0]
+        return self.participants[floor(self.keeper_randomness * len(self.participants))]
 
 
 class RegistrationRound(AbstractRound):
