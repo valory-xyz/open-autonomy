@@ -20,11 +20,12 @@
 """This module contains the data classes for the price estimation ABCI application."""
 import struct
 from collections import Counter
+from math import floor
 from operator import itemgetter
 from types import MappingProxyType
 from typing import Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
+from typing import Dict, FrozenSet, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
@@ -41,7 +42,6 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     SignaturePayload,
     TransactionHashPayload,
 )
-from math import floor
 
 
 def encode_float(value: float) -> bytes:
@@ -66,7 +66,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_signature: Optional[Mapping[str, str]] = None,
         safe_tx_hash: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
-        keeper_randomness: Optional[float] = None
+        keeper_randomness: Optional[float] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
