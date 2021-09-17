@@ -370,7 +370,7 @@ class BasePeriodState:
         # remove leading underscore from keys
         data = {key[1:]: value for key, value in self.__dict__.items()}
         data.update(kwargs)
-        return self.__class__(**data)
+        return type(self)(**data)
 
 
 class AbstractRound(ABC):
