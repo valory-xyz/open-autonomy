@@ -19,20 +19,14 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
-import pprint
-import time
 import json
+import pprint
 from abc import ABC
 from typing import Generator, cast
-from aiohttp.client_exceptions import ClientConnectionError
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.connections.tmint.connection import (
-    PUBLIC_ID as TENDERMINT_HEALTHCHECK_CLIENT,
-)
-from packages.fetchai.protocols.http.message import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -89,11 +83,10 @@ class TendermintHealthcheck(PriceEstimationBaseState):  # pylint: disable=too-ma
             result = yield from self._do_request(request_message, http_dialogue)
             try:
                 json.loads(result.body.decode())
+                self.context.logger.info("Tendermint running.")
                 break
             except json.JSONDecodeError:
-                self.context.logger.error(
-                    "Tendermint not running, Trying again !"
-                )
+                self.context.logger.error("Tendermint not running, Trying again !")
                 yield from self.sleep(1)
 
 

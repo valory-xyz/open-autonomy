@@ -66,3 +66,4 @@ class AbstractRoundBehaviour(FSMBehaviour):
             state_cls(name=name, skill_context=self.context),
             initial=initial,
         )
+
