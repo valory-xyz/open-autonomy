@@ -215,6 +215,7 @@ class HttpHandler(HandlerUtils, Handler):
             self._handle_no_requests(http_message)
             return
 
+        # http messages can also come from external! so this won't work
         request_nonce = http_dialogue.dialogue_label.dialogue_reference[0]
         callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)
         if callback is None:

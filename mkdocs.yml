@@ -15,6 +15,24 @@ nav:
     - How it works: 'price_estimation.md'
     - System: 'poc-diagram.md'
     - FSM: 'fsm.md'
+  - API:
+    - Connections:
+      - ABCI:
+        - Connection: 'api/connections/abci/connection.md'
+    - Skills:
+      - Abstract ABCI:
+        - Dialogues: 'api/skills/abstract_abci/dialogues.md'
+        - Handlers: 'api/skills/abstract_abci/handlers.md'
+      - Abstract Round ABCI:
+        - Base Models: 'api/skills/abstract_round_abci/base_models.md'
+        - Behaviour Utils: 'api/skills/abstract_round_abci/behaviour_utils.md'
+        - Behaviour: 'api/skills/abstract_round_abci/behaviours.md'
+        - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
+        - Handlers: 'api/skills/abstract_round_abci/handlers.md'
+        - Models: 'api/skills/abstract_round_abci/models.md'
+        - Serializer: 'api/skills/abstract_round_abci/serializer.md'
+        - Utils: 'api/skills/abstract_round_abci/utils.md'
+
 
 plugins:
     - markdownmermaid
