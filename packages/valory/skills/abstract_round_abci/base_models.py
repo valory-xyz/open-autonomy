@@ -170,7 +170,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
 
 class Transaction(ABC):
-    """Class to represent a transaction for Tendermint."""
+    """Class to represent a transaction for the ephemeral chain of a period."""
 
     def __init__(self, payload: BaseTxPayload, signature: str) -> None:
         """Initialize a transaction object."""
