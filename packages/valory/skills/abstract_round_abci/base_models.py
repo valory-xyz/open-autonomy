@@ -193,10 +193,10 @@ class Transaction(ABC):
     def verify(self) -> None:
         """Verify the signature is correct."""
         payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
-        address = LedgerApis.recover_message(
+        addresses = LedgerApis.recover_message(
             identifier="ethereum", message=payload_bytes, signature=self.signature
         )
-        if address != self.payload.sender:
+        if self.payload.sender not in addresses:
             raise ValueError("signature not valid.")
 
     def __eq__(self, other: Any) -> bool:
