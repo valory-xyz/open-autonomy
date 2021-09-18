@@ -190,11 +190,11 @@ class Transaction(ABC):
         payload = BaseTxPayload.from_json(payload_dict)
         return Transaction(payload, signature)
 
-    def verify(self) -> None:
+    def verify(self, ledger_id: str) -> None:
         """Verify the signature is correct."""
         payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
         addresses = LedgerApis.recover_message(
-            identifier="ethereum", message=payload_bytes, signature=self.signature
+            identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
         if self.payload.sender not in addresses:
             raise ValueError("signature not valid.")
