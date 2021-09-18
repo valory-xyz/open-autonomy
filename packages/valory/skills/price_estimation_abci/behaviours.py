@@ -19,6 +19,7 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
+import json
 import pprint
 from abc import ABC
 from typing import Generator, cast
@@ -70,15 +71,30 @@ class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ance
         return cast(PeriodState, self.context.state.period_state)
 
 
-class InitialDelayState(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
-    """Wait for some seconds until Tendermint nodes are running."""
+class TendermintHealthcheck(
+    PriceEstimationBaseState
+):  # pylint: disable=too-many-ancestors
+    """Check whether Tendermint nodes are running."""
 
-    state_id = "initial_delay"
+    state_id = "tendermint_healthcheck"
 
     def async_act(self) -> None:  # type: ignore
-        """Do the action."""
-        delay = self.context.params.initial_delay
-        yield from self.sleep(delay)
+        """Check whether tendermint is running or not."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/health",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        is_done = False
+        try:
+            json.loads(result.body.decode())
+            self.context.logger.info("Tendermint running.")
+            is_done = True
+        except json.JSONDecodeError:
+            self.context.logger.error("Tendermint not running, trying again!")
+            yield from self.sleep(1)
+        if is_done:
+            self.set_done()
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -102,6 +118,7 @@ class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
         payload = RegistrationPayload(self.context.agent_address)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
@@ -128,6 +145,7 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         self.context.logger.info(
             f"Safe contract address: {self.period_state.safe_contract_address}"
         )
+        self.set_done()
 
     def _not_deployer_act(self) -> None:
         """Do the non-deployer action."""
@@ -155,8 +173,8 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
             threshold=threshold,
             deployer_address=self.context.agent_address,
         )
-        contract_address = contract_api_response.raw_transaction.body.pop(
-            "contract_address"
+        contract_address = cast(
+            str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
         tx_hash = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
@@ -190,6 +208,7 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         payload = ObservationPayload(self.context.agent_address, observation)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
@@ -223,6 +242,7 @@ class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         payload = EstimatePayload(self.context.agent_address, estimate)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
@@ -255,6 +275,7 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
         payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class SignatureBehaviour(  # pylint: disable=too-many-ancestors
@@ -274,6 +295,7 @@ class SignatureBehaviour(  # pylint: disable=too-many-ancestors
         payload = SignaturePayload(self.context.agent_address, signature_hex)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
@@ -301,6 +323,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         else:
             yield from self._sender_act()
         yield from self.wait_until_round_end()
+        self.set_done()
 
     def _not_sender_act(self) -> None:
         """Do the non-sender action."""
@@ -354,14 +377,15 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
         self.context.logger.info("Period end.")
         # dummy 'yield' to return a generator
         yield
+        self.set_done()
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = InitialDelayState
+    initial_state_cls = TendermintHealthcheck
     transition_function: TransitionFunction = {
-        InitialDelayState: {DONE_EVENT: RegistrationBehaviour},
+        TendermintHealthcheck: {DONE_EVENT: RegistrationBehaviour},
         RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
         ObserveBehaviour: {DONE_EVENT: EstimateBehaviour},

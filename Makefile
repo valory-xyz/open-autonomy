@@ -38,15 +38,15 @@ clean-test:
 
 .PHONY: lint
 lint:
-	black aea_consensus_algorithms packages scripts tests
-	isort aea_consensus_algorithms packages scripts tests
-	flake8 aea_consensus_algorithms packages scripts tests
+	black aea_consensus_algorithms packages/valory scripts tests
+	isort aea_consensus_algorithms packages/valory scripts tests
+	flake8 aea_consensus_algorithms packages/valory scripts tests
 	vulture aea_consensus_algorithms scripts/whitelist.py
 	darglint aea_consensus_algorithms scripts packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills
 
 .PHONY: pylint
 pylint:
-	pylint -j4 aea_consensus_algorithms packages scripts
+	pylint -j4 aea_consensus_algorithms packages/valory scripts
 
 .PHONY: security
 security:
@@ -56,7 +56,7 @@ security:
 
 .PHONY: static
 static:
-	mypy aea_consensus_algorithms packages scripts --disallow-untyped-defs
+	mypy aea_consensus_algorithms packages/valory scripts --disallow-untyped-defs
 	mypy tests
 
 .PHONY: package_checks

@@ -74,7 +74,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
         """Register state."""
         name = state_cls.state_id
         return super().register_state(
-            state_cls.state_id,
+            name,
             state_cls(name=name, skill_context=self.context),
             initial=initial,
         )
