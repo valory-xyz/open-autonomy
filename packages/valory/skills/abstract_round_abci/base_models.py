@@ -171,7 +171,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
 
 class Transaction(ABC):
-    """Class to represent a transaction."""
+    """Class to represent a transaction for the ephemeral chain of a period."""
 
     def __init__(self, payload: BaseTxPayload, signature: str) -> None:
         """Initialize a transaction object."""
@@ -342,12 +342,15 @@ class ConsensusParams:
             isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
-
         return ConsensusParams(max_participants)
 
 
 class BasePeriodState:
-    """Class to represent a period state."""
+    """
+    Class to represent a period state.
+
+    This is the relevant state constructed and replicated by the agents in a period.
+    """
 
     def __init__(
         self,
@@ -359,16 +362,16 @@ class BasePeriodState:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        enforce(self._participants is not None, "'participants' field is None")
-        return cast(FrozenSet[str], self._participants)
+        if self._participants is None:
+            raise ValueError("'participants' field is None")
+        return self._participants
 
-    @classmethod
-    def update(cls, state: "BasePeriodState", **kwargs: Any) -> "BasePeriodState":
+    def update(self, **kwargs: Any) -> "BasePeriodState":
         """Copy and update the state."""
         # remove leading underscore from keys
-        data = {key[1:]: value for key, value in state.__dict__.items()}
+        data = {key[1:]: value for key, value in self.__dict__.items()}
         data.update(kwargs)
-        return cls(**data)
+        return type(self)(**data)
 
 
 class AbstractRound(ABC):
@@ -392,7 +395,7 @@ class AbstractRound(ABC):
         self._state = state
 
     @property
-    def state(self) -> BasePeriodState:
+    def period_state(self) -> BasePeriodState:
         """Get the period state."""
         return self._state
 
@@ -416,7 +419,7 @@ class AbstractRound(ABC):
             return False
         return payload_handler(transaction.payload)
 
-    def add_transaction(self, transaction: Transaction) -> None:
+    def process_transaction(self, transaction: Transaction) -> None:
         """
         Process a transaction.
 
@@ -434,7 +437,7 @@ class AbstractRound(ABC):
         handler(transaction.payload)
 
     @abstractmethod
-    def end_block(self) -> Optional[Tuple[Any, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
         """
         Process the end of the block.
 
@@ -449,7 +452,7 @@ class AbstractRound(ABC):
         This is done after each block because we consider the Tendermint
         block, and not the transaction, as the smallest unit
         on which the consensus is reached; in other words,
-        each read operation on  the state should be done
+        each read operation on the state should be done
         only after each block, and not after each transaction.
         """
 
@@ -521,6 +524,13 @@ class Period:
             raise ValueError("period is finished, cannot accept new transactions")
 
     @property
+    def current_round(self) -> AbstractRound:
+        """Get current round."""
+        if self._current_round is None:
+            raise ValueError("current_round not set!")
+        return self._current_round
+
+    @property
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self._current_round.round_id if self._current_round else None
@@ -564,7 +574,7 @@ class Period:
             transaction
         )
         if is_valid:
-            cast(AbstractRound, self._current_round).add_transaction(transaction)
+            self.current_round.process_transaction(transaction)
             self._block_builder.add_transaction(transaction)
         return is_valid
 
@@ -602,7 +612,7 @@ class Period:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        current_round = cast(AbstractRound, self._current_round)
+        current_round = self.current_round
         result = current_round.end_block()
         if result is None:
             return

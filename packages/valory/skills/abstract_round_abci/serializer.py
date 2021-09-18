@@ -73,7 +73,7 @@ class DictProtobufStructSerializer:
 
     @classmethod
     def _patch_dict(cls, dictionnary: Dict[str, Any]) -> None:
-        need_patch: Dict[str, bool] = dict()
+        need_patch: Dict[str, bool] = {}
         for key, value in dictionnary.items():
             if isinstance(value, bytes):
                 # convert bytes values to string, as protobuf.Struct does support byte fields
@@ -123,13 +123,13 @@ class DictProtobufStructSerializer:
 
             if isinstance(value, dict):
                 cls._patch_dict_restore(value)
-            elif isinstance(value, str) and dictionary.get(cls.NEED_PATCH, dict()).get(
+            elif isinstance(value, str) and dictionary.get(cls.NEED_PATCH, {}).get(
                 key, False
             ):
                 dictionary[key] = cls._str_to_bytes(value)
-            elif isinstance(value, float) and dictionary.get(
-                cls.NEED_PATCH, dict()
-            ).get(key, False):
+            elif isinstance(value, float) and dictionary.get(cls.NEED_PATCH, {}).get(
+                key, False
+            ):
                 dictionary[key] = int(value)
 
         dictionary.pop(cls.NEED_PATCH, None)
