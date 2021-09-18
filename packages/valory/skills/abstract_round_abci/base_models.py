@@ -20,6 +20,7 @@
 """This module contains the base classes for the models classes of the skill."""
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
+from enum import Enum
 from math import ceil
 from typing import (
     Any,
@@ -457,15 +458,44 @@ class AbstractRound(ABC):
 
 
 class Period:
-    """This class represents a period (i.e. a sequence of rounds)"""
+    """
+    This class represents a period (i.e. a sequence of rounds)
+
+    It is a generic class that keeps track of the current round
+    of the consensus period. It receives 'deliver_tx' requests
+    from the ABCI handlers and forwards them to the current
+    active round instance, which implements the ABCI app logic.
+    It also schedules the next round (if any) whenever a round terminates.
+    """
+
+    class _BlockConstructionState(Enum):
+        """
+        Phases of an ABCI-based block construction.
+
+        WAITING_FOR_BEGIN_BLOCK: the app is ready to accept
+            "begin_block" requests from the consensus engine node.
+            Then, it transitions into the 'WAITING_FOR_DELIVER_TX' phase.
+        WAITING_FOR_DELIVER_TX: the app is building the block
+            by accepting "deliver_tx" requests, and waits
+            until the "end_block" request.
+            Then, it transitions into the 'WAITING_FOR_COMMIT' phase.
+        WAITING_FOR_COMMIT: the app finished the construction
+            of the block, but it is waiting for the "commit"
+            request from the consensus engine node.
+            Then, it transitions into the 'WAITING_FOR_BEGIN_BLOCK' phase.
+        """
+
+        WAITING_FOR_BEGIN_BLOCK = "waiting_for_begin_block"
+        WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
+        WAITING_FOR_COMMIT = "waiting_for_commit"
 
     def __init__(self, starting_round_cls: Type[AbstractRound]):
         """Initialize the round."""
         self._blockchain = Blockchain()
 
-        # this flag is set when the object has not finished processing a block.
-        # i.e. 'begin_block' called, but not yet 'commit'.
-        self._in_block_processing = False
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+        )
 
         self._block_builder = BlockBuilder()
         self._starting_round_cls = starting_round_cls
@@ -512,11 +542,17 @@ class Period:
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
-        if self._in_block_processing:
-            raise ValueError("already processing a block")
         if self.is_finished:
             raise ValueError("period is finished, cannot accept new blocks")
-        self._in_block_processing = True
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+        ):
+            raise ValueError("cannot accept a 'begin_block' request.")
+        # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+        )
         self._block_builder.reset()
         self._block_builder.header = header
 
@@ -529,9 +565,14 @@ class Period:
         :param transaction: the transaction.
         :return: True if the transaction delivery was successful, False otherwise.
         """
-        if not self._in_block_processing:
-            raise ValueError("not processing a block")
-        is_valid = self.current_round.check_transaction(transaction)
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+        ):
+            raise ValueError("cannot accept a 'deliver_tx' request.")
+        is_valid = cast(AbstractRound, self._current_round).check_transaction(
+            transaction
+        )
         if is_valid:
             self.current_round.process_transaction(transaction)
             self._block_builder.add_transaction(transaction)
@@ -539,16 +580,30 @@ class Period:
 
     def end_block(self) -> None:
         """Process the 'end_block' request."""
-        if not self._in_block_processing:
-            raise ValueError("not processing a block")
-        # what's missing here?
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+        ):
+            raise ValueError("cannot accept a 'end_block' request.")
+        # The ABCI app now waits again for the next block
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_COMMIT
+        )
 
     def commit(self) -> None:
         """Process the 'commit' request."""
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_COMMIT
+        ):
+            raise ValueError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
         self._blockchain.add_block(block)
         self._update_round()
-        self._in_block_processing = False
+        # The ABCI app now waits again for the next block
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+        )
 
     def _update_round(self) -> None:
         """
