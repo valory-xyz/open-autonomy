@@ -34,9 +34,8 @@ from typing import (
     cast,
 )
 
+from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
-from eth_account import Account
-from eth_account.messages import encode_defunct
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
@@ -194,11 +193,10 @@ class Transaction(ABC):
     def verify(self) -> None:
         """Verify the signature is correct."""
         payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
-        encoded_payload_bytes = encode_defunct(payload_bytes)
-        public_key = Account.recover_message(  # pylint: disable=no-value-for-parameter
-            encoded_payload_bytes, signature=self.signature
+        address = LedgerApis.recover_message(
+            identifier="ethereum", message=payload_bytes, signature=self.signature
         )
-        if public_key != self.payload.sender:
+        if address != self.payload.sender:
             raise ValueError("signature not valid.")
 
     def __eq__(self, other: Any) -> bool:

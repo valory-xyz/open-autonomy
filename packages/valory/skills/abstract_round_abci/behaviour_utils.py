@@ -145,7 +145,16 @@ class AsyncBehaviour(ABC):
         yield from self.wait_for_condition(_wait_until)
 
     def wait_for_message(self, condition: Callable = lambda message: True) -> Any:
-        """Wait for message."""
+        """
+        Wait for message.
+
+        Care must be taken. This method does not handle concurrent requests.
+        Use directly after a request is being sent.
+
+        :param condition: a callable
+        :return: a message
+        :yield: None
+        """
         self._state = self.AsyncState.WAITING_MESSAGE
         message = yield
         while message is None and not condition(message):
