@@ -582,6 +582,11 @@ class Period:
 
     def commit(self) -> None:
         """Process the 'commit' request."""
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_COMMIT
+        ):
+            raise ValueError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
         self._blockchain.add_block(block)
         self._update_round()
