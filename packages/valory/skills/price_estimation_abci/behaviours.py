@@ -19,6 +19,7 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
+import json
 import pprint
 from abc import ABC
 from typing import Generator, cast
@@ -64,16 +65,30 @@ class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ance
         return cast(PeriodState, self.context.state.period_state)
 
 
-class InitialDelayState(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
-    """Wait for some seconds until Tendermint nodes are running."""
+class TendermintHealthcheck(
+    PriceEstimationBaseState
+):  # pylint: disable=too-many-ancestors
+    """Check whether Tendermint nodes are running."""
 
-    state_id = "initial_delay"
+    state_id = "tendermint_healthcheck"
 
     def async_act(self) -> None:  # type: ignore
-        """Do the action."""
-        delay = self.context.params.initial_delay
-        yield from self.sleep(delay)
-        self.set_done()
+        """Check whether tendermint is running or not."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/health",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        is_done = False
+        try:
+            json.loads(result.body.decode())
+            self.context.logger.info("Tendermint running.")
+            is_done = True
+        except json.JSONDecodeError:
+            self.context.logger.error("Tendermint not running, trying again!")
+            yield from self.sleep(1)
+        if is_done:
+            self.set_done()
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -363,7 +378,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     all_ordered_states = [
-        InitialDelayState,  # type: ignore
+        TendermintHealthcheck,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
