@@ -29,8 +29,14 @@ from packages.fetchai.connections.ledger.base import (
 )
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    DONE_EVENT,
+)
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    TransitionFunction,
+)
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -377,14 +383,15 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    all_ordered_states = [
-        TendermintHealthcheck,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ObserveBehaviour,  # type: ignore
-        EstimateBehaviour,  # type: ignore
-        TransactionHashBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        EndBehaviour,  # type: ignore
-    ]
+    initial_state_cls = TendermintHealthcheck
+    transition_function: TransitionFunction = {
+        TendermintHealthcheck: {DONE_EVENT: RegistrationBehaviour},
+        RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
+        DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
+        ObserveBehaviour: {DONE_EVENT: EstimateBehaviour},
+        EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
+        TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
+        SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
+        FinalizeBehaviour: {DONE_EVENT: EndBehaviour},
+        EndBehaviour: {},
+    }
