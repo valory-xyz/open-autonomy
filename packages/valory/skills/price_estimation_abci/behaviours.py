@@ -354,13 +354,13 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     all_ordered_states = [
-        InitialDelayState,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ObserveBehaviour,  # type: ignore
-        EstimateBehaviour,  # type: ignore
-        TransactionHashBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        EndBehaviour,  # type: ignore
+        InitialDelayState,
+        RegistrationBehaviour,
+        DeploySafeBehaviour,
+        ObserveBehaviour,
+        EstimateBehaviour,
+        TransactionHashBehaviour,
+        SignatureBehaviour,
+        FinalizeBehaviour,
+        EndBehaviour,
     ]
