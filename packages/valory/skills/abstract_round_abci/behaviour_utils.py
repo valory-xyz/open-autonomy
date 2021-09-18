@@ -225,6 +225,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         AsyncBehaviour.__init__(self)
         State.__init__(self, **kwargs)
         self._is_done: bool = False
+        self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")
 
     def check_in_round(self, round_id: str) -> bool:
@@ -275,10 +276,12 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
 
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
-        self._log_start()
+        if not self._is_started:
+            self._log_start()
+            self._is_started = True
         yield from self.async_act()
-        self._log_end()
-        self.set_done()
+        if self._is_done:
+            self._log_end()
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour state."""

@@ -19,6 +19,7 @@
 
 """This module contains the data classes for the price estimation ABCI application."""
 import struct
+from abc import ABC
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
