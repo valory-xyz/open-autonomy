@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Callable, Dict, Optional, Type, cast
+from typing import Any, Callable, Dict, Optional, Type
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
@@ -56,8 +56,9 @@ class SharedState(Model):
     def period_state(self) -> BasePeriodState:
         """Get the period state if available."""
         period_state = self.period.latest_result
-        enforce(period_state is not None, "period state not available")
-        return cast(BasePeriodState, period_state)
+        if period_state is None:
+            raise ValueError("period_state not available")
+        return period_state
 
     @classmethod
     def _process_initial_round_cls(

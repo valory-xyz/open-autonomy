@@ -31,7 +31,6 @@ from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.dialogues import HttpDialogues
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -66,28 +65,30 @@ class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ance
         return cast(PeriodState, self.context.state.period_state)
 
 
-class TendermintHealthcheck(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
+class TendermintHealthcheck(
+    PriceEstimationBaseState
+):  # pylint: disable=too-many-ancestors
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
 
     def async_act(self) -> None:  # type: ignore
-        """
-        Check whether tendermint is running or not.
-        """
-        while True:
-            request_message, http_dialogue = self._build_http_request_message(
-                "GET",
-                self.context.params.tendermint_url + "/health",
-            )
-            result = yield from self._do_request(request_message, http_dialogue)
-            try:
-                json.loads(result.body.decode())
-                self.context.logger.info("Tendermint running.")
-                break
-            except json.JSONDecodeError:
-                self.context.logger.error("Tendermint not running, Trying again !")
-                yield from self.sleep(1)
+        """Check whether tendermint is running or not."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/health",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        is_done = False
+        try:
+            json.loads(result.body.decode())
+            self.context.logger.info("Tendermint running.")
+            is_done = True
+        except json.JSONDecodeError:
+            self.context.logger.error("Tendermint not running, trying again!")
+            yield from self.sleep(1)
+        if is_done:
+            self.set_done()
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -111,6 +112,7 @@ class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
         payload = RegistrationPayload(self.context.agent_address)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
@@ -137,6 +139,7 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         self.context.logger.info(
             f"Safe contract address: {self.period_state.safe_contract_address}"
         )
+        self.set_done()
 
     def _not_deployer_act(self) -> None:
         """Do the non-deployer action."""
@@ -164,8 +167,8 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
             threshold=threshold,
             deployer_address=self.context.agent_address,
         )
-        contract_address = contract_api_response.raw_transaction.body.pop(
-            "contract_address"
+        contract_address = cast(
+            str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
         tx_hash = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
@@ -199,6 +202,7 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         payload = ObservationPayload(self.context.agent_address, observation)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
@@ -232,6 +236,7 @@ class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         payload = EstimatePayload(self.context.agent_address, estimate)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
@@ -242,39 +247,19 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
     state_id = "tx_hash"
     matching_round = TxHashRound
 
-    def async_act(self) -> None:  # type: ignore
+    def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
         - TODO
         """
-        if self.context.agent_address != self.period_state.safe_sender_address:
-            self._not_sender_act()
-        else:
-            yield from self._sender_act()
-        yield from self.wait_until_round_end()
-
-    def _not_sender_act(self) -> None:
-        """Do the non-deployer action."""
-        self.context.logger.info(
-            "I am not the designated sender, waiting until next round..."
-        )
-
-    def _sender_act(self) -> Generator[None, None, None]:
-        """Do the deployer action."""
-        self.context.logger.info(
-            "I am the designated sender, committing the transaction hash..."
-        )
-        self.context.logger.info(
-            f"Consensus reached on estimate: {self.period_state.most_voted_estimate}"
-        )
         data = self.period_state.encoded_estimate
         contract_api_msg = yield from self.get_contract_api_response(
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.context.agent_address,
+            to_address=self.period_state.safe_sender_address,  # keeper address
             value=0,
             data=data,
         )
@@ -283,6 +268,8 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
         yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class SignatureBehaviour(  # pylint: disable=too-many-ancestors
@@ -295,15 +282,19 @@ class SignatureBehaviour(  # pylint: disable=too-many-ancestors
 
     def async_act(self) -> Generator:
         """Do the act."""
+        self.context.logger.info(
+            f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
+        )
         signature_hex = yield from self._get_safe_tx_signature()
         payload = SignaturePayload(self.context.agent_address, signature_hex)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
+        self.set_done()
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(self.period_state.safe_tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(self.period_state.most_voted_tx_hash)
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
         signature_hex = cast(SigningMessage, signature_response).signed_message.body
@@ -326,6 +317,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         else:
             yield from self._sender_act()
         yield from self.wait_until_round_end()
+        self.set_done()
 
     def _not_sender_act(self) -> None:
         """Do the non-sender action."""
@@ -379,6 +371,7 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
         self.context.logger.info("Period end.")
         # dummy 'yield' to return a generator
         yield
+        self.set_done()
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):

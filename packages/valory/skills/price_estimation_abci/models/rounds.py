@@ -19,6 +19,7 @@
 
 """This module contains the data classes for the price estimation ABCI application."""
 import struct
+from abc import ABC
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
@@ -62,8 +63,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
         most_voted_estimate: Optional[float] = None,
+        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
+        most_voted_tx_hash: Optional[str] = None,
         participant_to_signature: Optional[Mapping[str, str]] = None,
-        safe_tx_hash: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
@@ -72,8 +74,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
         self._most_voted_estimate = most_voted_estimate
+        self._participant_to_tx_hash = participant_to_tx_hash
+        self._most_voted_tx_hash = most_voted_tx_hash
         self._participant_to_signature = participant_to_signature
-        self._safe_tx_hash = safe_tx_hash
         self._final_tx_hash = final_tx_hash
 
     @property
@@ -113,19 +116,10 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, str], self._participant_to_signature)
 
     @property
-    def safe_tx_hash(self) -> str:
-        """Get the safe_tx_hash."""
-        enforce(
-            self._safe_tx_hash is not None,
-            "'safe_tx_hash' field is None",
-        )
-        return cast(str, self._safe_tx_hash)
-
-    @property
     def final_tx_hash(self) -> str:
-        """Get the safe_tx_hash."""
+        """Get the final_tx_hash."""
         enforce(
-            self._safe_tx_hash is not None,
+            self._final_tx_hash is not None,
             "'final_tx_hash' field is None",
         )
         return cast(str, self._final_tx_hash)
@@ -173,8 +167,25 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """
         return self.sorted_addresses[0]
 
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get the most_voted_tx_hash."""
+        enforce(
+            self._most_voted_tx_hash is not None, "'most_voted_tx_hash' field is None"
+        )
+        return cast(str, self._most_voted_tx_hash)
 
-class RegistrationRound(AbstractRound):
+
+class PriceEstimationAbstractRound(AbstractRound, ABC):
+    """Abstract round for the price estimation skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self._state)
+
+
+class RegistrationRound(PriceEstimationAbstractRound):
     """
     This class represents the registration round.
 
@@ -218,7 +229,7 @@ class RegistrationRound(AbstractRound):
         """Check that the registration threshold has been reached."""
         return len(self.participants) == self._consensus_params.max_participants
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
@@ -228,7 +239,7 @@ class RegistrationRound(AbstractRound):
         return None
 
 
-class DeploySafeRound(AbstractRound):
+class DeploySafeRound(PriceEstimationAbstractRound):
     """
     This class represents the deploy Safe round.
 
@@ -249,11 +260,11 @@ class DeploySafeRound(AbstractRound):
         """Handle a deploy safe payload."""
         sender = payload.sender
 
-        if sender not in self.state.participants:
+        if sender not in self.period_state.participants:
             # sender not in the set of participants.
             return
 
-        if sender != cast(PeriodState, self.state).safe_sender_address:
+        if sender != self.period_state.safe_sender_address:
             # the sender is not the elected sender
             return
 
@@ -275,9 +286,9 @@ class DeploySafeRound(AbstractRound):
         :param: payload: the payload.
         :return: True if the observation tx is allowed, False otherwise.
         """
-        sender_in_participant_set = payload.sender in self.state.participants
+        sender_in_participant_set = payload.sender in self.period_state.participants
         sender_is_elected_sender = (
-            payload.sender == cast(PeriodState, self.state).safe_sender_address
+            payload.sender == self.period_state.safe_sender_address
         )
         contract_address_not_set_yet = self._contract_address is None
         return (
@@ -287,26 +298,23 @@ class DeploySafeRound(AbstractRound):
         )
 
     @property
-    def contract_set(self) -> bool:
+    def is_contract_set(self) -> bool:
         """Check that the contract has been set."""
         return self._contract_address is not None
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
-        if self.contract_set:
-            state = cast(
-                PeriodState,
-                self.state.update(
-                    self.state, safe_contract_address=self._contract_address
-                ),
+        if self.is_contract_set:
+            state = self.period_state.update(
+                safe_contract_address=self._contract_address
             )
             next_round = CollectObservationRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class CollectObservationRound(AbstractRound):
+class CollectObservationRound(PriceEstimationAbstractRound):
     """
     This class represents the 'collect-observation' round.
 
@@ -326,7 +334,7 @@ class CollectObservationRound(AbstractRound):
     def observation(self, payload: ObservationPayload) -> None:
         """Handle an 'observation' payload."""
         sender = payload.sender
-        if sender not in self.state.participants:
+        if sender not in self.period_state.participants:
             # sender not in the set of participants.
             return
 
@@ -347,7 +355,7 @@ class CollectObservationRound(AbstractRound):
         :param: payload: the payload.
         :return: True if the observation tx is allowed, False otherwise.
         """
-        sender_in_participant_set = payload.sender in self.state.participants
+        sender_in_participant_set = payload.sender in self.period_state.participants
         sender_has_not_sent_observation_yet = (
             payload.sender not in self.participant_to_observations
         )
@@ -361,17 +369,13 @@ class CollectObservationRound(AbstractRound):
             >= self._consensus_params.two_thirds_threshold
         )
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.observation_threshold_reached:
-            state = cast(
-                PeriodState,
-                self.state.update(
-                    state=self.state,
-                    participant_to_observations=MappingProxyType(
-                        self.participant_to_observations
-                    ),
+            state = self.period_state.update(
+                participant_to_observations=MappingProxyType(
+                    self.participant_to_observations
                 ),
             )
             next_round = EstimateConsensusRound(state, self._consensus_params)
@@ -379,7 +383,7 @@ class CollectObservationRound(AbstractRound):
         return None
 
 
-class EstimateConsensusRound(AbstractRound):
+class EstimateConsensusRound(PriceEstimationAbstractRound):
     """
     This class represents the 'estimate_consensus' round.
 
@@ -397,7 +401,7 @@ class EstimateConsensusRound(AbstractRound):
     def estimate(self, payload: EstimatePayload) -> None:
         """Handle an 'estimate' payload."""
         sender = payload.sender
-        if sender not in self.state.participants:
+        if sender not in self.period_state.participants:
             # sender not in the set of participants.
             return
 
@@ -419,7 +423,7 @@ class EstimateConsensusRound(AbstractRound):
         :param: payload: the payload.
         :return: True if the estimate tx is allowed, False otherwise.
         """
-        sender_in_participant_set = payload.sender in self.state.participants
+        sender_in_participant_set = payload.sender in self.period_state.participants
         sender_has_not_sent_estimate_yet = (
             payload.sender not in self.participant_to_estimate
         )
@@ -450,92 +454,99 @@ class EstimateConsensusRound(AbstractRound):
             raise ValueError("estimate has not enough votes")
         return most_voted_estimate
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         if self.estimate_threshold_reached:
-            state = cast(
-                PeriodState,
-                self.state.update(
-                    state=self.state,
-                    participant_to_estimate=MappingProxyType(
-                        self.participant_to_estimate
-                    ),
-                    most_voted_estimate=self.most_voted_estimate,
-                ),
+            state = self.period_state.update(
+                participant_to_estimate=MappingProxyType(self.participant_to_estimate),
+                most_voted_estimate=self.most_voted_estimate,
             )
             next_round = TxHashRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class TxHashRound(AbstractRound):
-    """This class represents the 'tx-hash' round."""
+class TxHashRound(PriceEstimationAbstractRound):
+    """This class represents the 'tx-hash' round.
+
+    Input: a period state with the set of participants
+    Ouptut: a new period state with also the votes for each tx hash
+    """
 
     round_id = "tx_hash"
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
-        self.transaction_hash: Optional[str] = None
+        self.participant_to_tx_hash: Dict[str, TransactionHashPayload] = {}
 
     def tx_hash(self, payload: TransactionHashPayload) -> None:
         """Handle a 'tx_hash' payload."""
         sender = payload.sender
-        if sender not in self.state.participants:
+        if sender not in self.period_state.participants:
             # sender not in the set of participants.
             return
 
-        if sender != cast(PeriodState, self.state).safe_sender_address:
-            # sender is not the designated sender
+        if sender in self.participant_to_tx_hash:
+            # sender has already sent its tx hash
             return
 
-        if self.transaction_hash is not None:
-            # tx_hash already set
-            return
-
-        self.transaction_hash = payload.tx_hash
+        self.participant_to_tx_hash[sender] = payload
 
     def check_tx_hash(self, payload: TransactionHashPayload) -> bool:
         """
         Check a signature payload can be applied to the current state.
 
         This can happen only if:
-        - the sender is the designated sender
+        - the round is in the 'tx_hash' state;
+        - the sender belongs to the set of participants
         - the sender has not sent the tx_hash yet
 
         :param payload: the payload to check
         :return: True if the tx is allowed, False otherwise.
         """
-        sender = payload.sender
-        sender_in_participants = sender in self.state.participants
-        sender_not_designated = (
-            sender == cast(PeriodState, self.state).safe_sender_address
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender_has_not_sent_tx_hash_yet = (
+            payload.sender not in self.participant_to_tx_hash
         )
-        transaction_hash_not_sent_yet = self.transaction_hash is None
-        return (
-            sender_in_participants
-            and sender_not_designated
-            and transaction_hash_not_sent_yet
-        )
+        return sender_in_participant_set and sender_has_not_sent_tx_hash_yet
 
     @property
-    def tx_hash_is_set(self) -> bool:
-        """Check that the transaction hash has been set."""
-        return self.transaction_hash is not None
+    def tx_threshold_reached(self) -> bool:
+        """Check that the tx threshold has been reached."""
+        tx_counter: CounterType = Counter()
+        tx_counter.update(
+            payload.tx_hash for payload in self.participant_to_tx_hash.values()
+        )
+        # check that a single estimate has at least 2/3 of votes
+        two_thirds_n = self._consensus_params.two_thirds_threshold
+        return any(count >= two_thirds_n for count in tx_counter.values())
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get the most voted tx hash."""
+        tx_counter = Counter()  # type: ignore
+        tx_counter.update(
+            payload.tx_hash for payload in self.participant_to_tx_hash.values()
+        )
+        most_voted_tx_hash, max_votes = max(tx_counter.items(), key=itemgetter(1))
+        if max_votes < self._consensus_params.two_thirds_threshold:
+            raise ValueError("tx hash has not enough votes")
+        return most_voted_tx_hash
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
-        if self.tx_hash_is_set:
-            state = cast(
-                PeriodState,
-                self.state.update(self.state, safe_tx_hash=self.transaction_hash),
+        if self.tx_threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.participant_to_tx_hash),
+                most_voted_tx_hash=self.most_voted_tx_hash,
             )
             next_round = CollectSignatureRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class CollectSignatureRound(AbstractRound):
+class CollectSignatureRound(PriceEstimationAbstractRound):
     """This class represents the 'collect-signature' round."""
 
     round_id = "collect_signature"
@@ -548,7 +559,7 @@ class CollectSignatureRound(AbstractRound):
     def signature(self, payload: SignaturePayload) -> None:
         """Handle a 'signature' payload."""
         sender = payload.sender
-        if sender not in self.state.participants:
+        if sender not in self.period_state.participants:
             # sender not in the set of participants.
             return
 
@@ -570,7 +581,7 @@ class CollectSignatureRound(AbstractRound):
         :param: payload: the payload.
         :return: True if the signature tx is allowed, False otherwise.
         """
-        sender_in_participant_set = payload.sender in self.state.participants
+        sender_in_participant_set = payload.sender in self.period_state.participants
         sender_has_not_sent_signature_yet = (
             payload.sender not in self.signatures_by_participant
         )
@@ -582,16 +593,12 @@ class CollectSignatureRound(AbstractRound):
         two_thirds_n = self._consensus_params.two_thirds_threshold
         return len(self.signatures_by_participant) >= two_thirds_n
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         if self.signature_threshold_reached:
-            state = cast(
-                PeriodState,
-                self.state.update(
-                    self.state,
-                    participant_to_signature=MappingProxyType(
-                        self.signatures_by_participant
-                    ),
+            state = self.period_state.update(
+                participant_to_signature=MappingProxyType(
+                    self.signatures_by_participant
                 ),
             )
             next_round = FinalizationRound(state, self._consensus_params)
@@ -599,7 +606,7 @@ class CollectSignatureRound(AbstractRound):
         return None
 
 
-class FinalizationRound(AbstractRound):
+class FinalizationRound(PriceEstimationAbstractRound):
     """
     This class represents the finalization Safe round.
 
@@ -620,11 +627,11 @@ class FinalizationRound(AbstractRound):
         """Handle a finalization payload."""
         sender = payload.sender
 
-        if sender not in self.state.participants:
+        if sender not in self.period_state.participants:
             # sender not in the set of participants.
             return
 
-        if sender != cast(PeriodState, self.state).safe_sender_address:
+        if sender != self.period_state.safe_sender_address:
             # the sender is not the elected sender
             return
 
@@ -646,9 +653,9 @@ class FinalizationRound(AbstractRound):
         :param: payload: the payload.
         :return: True if the finalization tx is allowed, False otherwise.
         """
-        sender_in_participant_set = payload.sender in self.state.participants
+        sender_in_participant_set = payload.sender in self.period_state.participants
         sender_is_elected_sender = (
-            payload.sender == cast(PeriodState, self.state).safe_sender_address
+            payload.sender == self.period_state.safe_sender_address
         )
         tx_hash_not_set_yet = self._tx_hash is None
         return (
@@ -662,23 +669,21 @@ class FinalizationRound(AbstractRound):
         """Check that the tx hash has been set."""
         return self._tx_hash is not None
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.tx_hash_set:
-            state = cast(
-                PeriodState, self.state.update(self.state, final_tx_hash=self._tx_hash)
-            )
+            state = self.period_state.update(final_tx_hash=self._tx_hash)
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class ConsensusReachedRound(AbstractRound):
+class ConsensusReachedRound(PriceEstimationAbstractRound):
     """This class represents the 'consensus-reached' round."""
 
     round_id = "consensus_reached"
 
-    def end_block(self) -> Optional[Tuple[PeriodState, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         return None
