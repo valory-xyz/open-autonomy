@@ -103,7 +103,7 @@ def test_sign_verify_transaction():
     payload_bytes = payload.encode()
     signature = crypto.sign_message(payload_bytes)
     transaction = Transaction(payload, signature)
-    transaction.verify()
+    transaction.verify(crypto.identifier)
 
 
 @given(

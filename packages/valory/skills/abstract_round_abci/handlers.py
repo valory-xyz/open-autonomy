@@ -101,7 +101,7 @@ class ABCIRoundHandler(HandlerUtils, ABCIHandler):
         # check we can decode the transaction
         try:
             transaction = Transaction.decode(transaction_bytes)
-            transaction.verify()
+            transaction.verify(self.context.default_ledger_id)
             self.context.state.period.check_is_finished()
         except Exception as exception:  # pylint: disable=broad-except
             self._log_exception(exception)
@@ -119,7 +119,7 @@ class ABCIRoundHandler(HandlerUtils, ABCIHandler):
         transaction_bytes = message.tx
         try:
             transaction = Transaction.decode(transaction_bytes)
-            transaction.verify()
+            transaction.verify(self.context.default_ledger_id)
             self.context.state.period.check_is_finished()
             is_valid = self.context.state.period.deliver_tx(transaction)
             enforce(is_valid, "transaction is not valid")
