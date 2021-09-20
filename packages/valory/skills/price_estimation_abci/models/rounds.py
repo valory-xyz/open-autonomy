@@ -327,7 +327,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
 
         # Skip keeper every 5 seconds
         if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
-            self.state._skipped_keepers += 1
+            self.period_state._skipped_keepers += 1
             self._deploy_start_time = datetime.now()
 
         return None
@@ -567,7 +567,7 @@ class TxHashRound(PriceEstimationAbstractRound):
 
         # Skip keeper every 5 seconds
         if (datetime.now() - self._txhash_start_time).seconds >= 5.0:
-            self.state._skipped_keepers += 1
+            self.period_state._skipped_keepers += 1
             self._txhash_start_time = datetime.now()
 
         return None
@@ -707,7 +707,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
         # Skip keeper every 5 seconds
         if (datetime.now() - self._finalization_start_time).seconds >= 5.0:
-            self.state._skipped_keepers += 1
+            self.period_state._skipped_keepers += 1
             self._finalization_start_time = datetime.now()
 
         return None
