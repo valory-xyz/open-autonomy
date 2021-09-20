@@ -21,6 +21,7 @@
 import struct
 from abc import ABC
 from collections import Counter
+from datetime import datetime
 from math import floor
 from operator import itemgetter
 from types import MappingProxyType
@@ -43,8 +44,6 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     SignaturePayload,
     TransactionHashPayload,
 )
-
-from datetime import datetime
 
 
 def encode_float(value: float) -> bytes:
@@ -176,7 +175,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         :return: the sender address
         """
         random_keeper_position = floor(self.keeper_randomness * len(self.participants))
-        randomized_addresses = rotate_list(self.sorted_addresses, random_keeper_position)
+        randomized_addresses = rotate_list(
+            self.sorted_addresses, random_keeper_position
+        )
         return randomized_addresses[self.skipped_keepers % len(randomized_addresses)]
 
     @property
