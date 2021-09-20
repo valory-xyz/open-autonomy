@@ -13,7 +13,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0.2 (1.0.2+r75+1)"
-   sodipodi:docname="dibujo.svg">
+   sodipodi:docname="fsm.svg">
   <defs
      id="defs2">
     <rect
@@ -628,6 +628,102 @@
          style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
          id="path2608-1" />
     </marker>
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2794" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-2" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-7" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854-0" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-6" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854-2" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-9" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854-20" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-92" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854-28" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-29" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854-3" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect927-5-6-78" />
+    <rect
+       x="-45.389969"
+       y="81.750099"
+       width="105.44625"
+       height="62.676479"
+       id="rect2854-4" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -636,9 +732,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.69454856"
-     inkscape:cx="265.10747"
-     inkscape:cy="491.55073"
+     inkscape:zoom="2.7565583"
+     inkscape:cx="470.46989"
+     inkscape:cy="1059.0297"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -656,7 +752,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -667,7 +763,7 @@
     <text
        xml:space="preserve"
        id="text872"
-       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect874)" />
+       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect874);" />
     <text
        xml:space="preserve"
        style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;white-space:pre;inline-size:68.4879;stroke-width:0.264583"
@@ -682,877 +778,861 @@
     <text
        xml:space="preserve"
        id="text904"
-       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect906)" />
+       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect906);" />
     <text
        xml:space="preserve"
        id="text910"
-       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect912)" />
+       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect912);" />
     <text
        xml:space="preserve"
        id="text1076"
-       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect1078)" />
+       style="font-family:sans-serif;font-size:10.58333333px;line-height:1.25;letter-spacing:0px;word-spacing:0px;text-align:center;white-space:pre;shape-inside:url(#rect1078);" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-7-72"
+       width="103.35398"
+       height="20.885687"
+       x="53.323009"
+       y="260.71371"
+       ry="2.1942558" />
+    <rect
+       style="fill:#e6e6e6;stroke:#000000;stroke-width:0.219628;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect4191"
+       width="118.60156"
+       height="281.08701"
+       x="45.699223"
+       y="7.9564977"
+       ry="7.1665382"
+       inkscape:export-xdpi="88.859489"
+       inkscape:export-ydpi="88.859489" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.279412;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026"
+       width="103.27844"
+       height="39.25943"
+       x="53.360779"
+       y="18.518538"
+       ry="4.1246061" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="64.903008"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-7"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="92.875969"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-4"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="120.84893"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-42"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="148.8219"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-7-7"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="176.79486"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-4-8"
+       width="103.35398"
+       height="20.885687"
+       x="53.323009"
+       y="204.76781"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-3"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="232.74075"
+       ry="2.1942558" />
+    <rect
+       style="fill:#f6d5ff;stroke:#000000;stroke-width:0.203872;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1026-5-3-6"
+       width="103.35398"
+       height="20.885687"
+       x="53.323013"
+       y="260.71371"
+       ry="2.1942558" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458299;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:0.52916597,1.05833194;stroke-dashoffset:0"
+       d="M 136.8769,40.002758 V 273.78252"
+       id="path3071" />
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.238604;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect833"
+       width="26.786364"
+       height="26.786366"
+       x="59.460632"
+       y="26.493132"
+       ry="2.2018535" />
+    <text
+       xml:space="preserve"
+       id="text864"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866);"
+       transform="matrix(0.41576875,0,0,0.41576875,117.96225,24.970307)"><tspan
+         x="-119.42672"
+         y="16.047566"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold'">Behaviour</tspan><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
+</tspan></tspan><tspan
+         x="-108.56641"
+         y="21.40148"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
+</tspan></tspan><tspan
+         x="-130.55574"
+         y="26.755394"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">Defines the actions to 
+</tspan></tspan><tspan
+         x="-130.89887"
+         y="32.109308"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">perform during a state
+</tspan></tspan><tspan
+         x="-108.56641"
+         y="37.463223"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
+</tspan></tspan><tspan
+         x="-116.19798"
+         y="42.817139"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">API calls
+</tspan></tspan><tspan
+         x="-119.98896"
+         y="48.171055"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Calculations
+</tspan></tspan><tspan
+         x="-115.27607"
+         y="53.524971"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Signing
+</tspan></tspan><tspan
+         x="-125.21034"
+         y="58.878887"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Send transactions</tspan></tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.239;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect833-5"
+       width="26.786364"
+       height="26.786366"
+       x="91.606819"
+       y="26.49333"
+       ry="2.2018535" />
+    <text
+       xml:space="preserve"
+       id="text925"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927);"
+       transform="matrix(0.41576875,0,0,0.41576875,101.93527,-3.9321176)"><tspan
+         x="0.49932215"
+         y="85.563191"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold'">Round</tspan><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
+</tspan></tspan><tspan
+         x="7.3330078"
+         y="90.917103"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
+</tspan></tspan><tspan
+         x="-21.990242"
+         y="96.271015"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">Defines the rules to transition
+</tspan></tspan><tspan
+         x="-14.544708"
+         y="101.62493"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">across different states
+</tspan></tspan><tspan
+         x="7.3330078"
+         y="106.97884"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
+</tspan></tspan><tspan
+         x="-18.914464"
+         y="112.33275"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Check minimun participants
+</tspan></tspan><tspan
+         x="-16.723385"
+         y="117.68666"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Check votation thresholds
+</tspan></tspan><tspan
+         x="-12.808381"
+         y="123.04058"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Check unset variables</tspan></tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.239;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.478,0.95599999;stroke-dashoffset:0"
+       id="rect833-5-3"
+       width="26.786364"
+       height="26.786366"
+       x="123.753"
+       y="26.49333"
+       ry="2.2018535" />
+    <text
+       xml:space="preserve"
+       id="text898"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900);"
+       transform="matrix(0.41576875,0,0,0.41576875,100.05712,25.093574)"><tspan
+         x="77.911598"
+         y="15.602253"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan><tspan
+           style="shape-inside:url(#rect900)">
+</tspan></tspan><tspan
+         x="89.685547"
+         y="20.893915"><tspan
+           style="shape-inside:url(#rect900)">
+</tspan></tspan><tspan
+         x="62.445889"
+         y="26.185577"><tspan
+           style="shape-inside:url(#rect900)">Contains states' information. 
+</tspan></tspan><tspan
+         x="59.857935"
+         y="31.47724"><tspan
+           style="shape-inside:url(#rect900)">It's shared shared across states
+</tspan></tspan><tspan
+         x="65.666361"
+         y="36.768902"><tspan
+           style="shape-inside:url(#rect900)">and updated at each one.
+</tspan></tspan><tspan
+         x="89.685547"
+         y="42.060566"><tspan
+           style="shape-inside:url(#rect900)">
+</tspan></tspan><tspan
+         x="68.378338"
+         y="47.362514"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic'">Number of participants
+</tspan></tspan><tspan
+         x="71.359032"
+         y="52.664459"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic'">Transaction hashes
+</tspan></tspan><tspan
+         x="71.321825"
+         y="57.966404"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic'">Contract addresses</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       id="text1082"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08442,-22.065363)"><tspan
+         x="-187.45836"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">INITIAL DELAY STATE</tspan></tspan></text>
     <g
-       id="g4909"
-       transform="matrix(0.41576875,0,0,0.41576875,144.582,-29.971067)">
+       id="g1608"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,-36.186844)">
       <rect
-         style="fill:#e6e6e6;stroke:#000000;stroke-width:0.528245;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-         id="rect4191"
-         width="285.25848"
-         height="676.06573"
-         x="-237.83119"
-         y="91.22274"
-         ry="17.236837"
-         inkscape:export-xdpi="88.859489"
-         inkscape:export-ydpi="88.859489" />
-      <g
-         id="g4425"
-         transform="translate(-18.336624,-17.904472)"
-         inkscape:export-xdpi="88.859489"
-         inkscape:export-ydpi="88.859489">
-        <rect
-           style="fill:#f6d5ff;stroke:#000000;stroke-width:0.672038;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-           id="rect1026"
-           width="248.40356"
-           height="94.426117"
-           x="-201.06711"
-           y="134.53085"
-           ry="9.920433" />
-        <rect
-           style="fill:#ffffff;stroke:#000000;stroke-width:0.573886;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-           id="rect833"
-           width="64.426109"
-           height="64.426117"
-           x="-186.39584"
-           y="153.71121"
-           ry="5.2958608" />
-        <text
-           xml:space="preserve"
-           id="text864"
-           style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866)"
-           transform="translate(-45.688737,150.04854)"><tspan
-             x="-119.42672"
-             y="16.047566"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold'">Behaviour</tspan><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
-</tspan></tspan><tspan
-             x="-108.56641"
-             y="21.40148"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
-</tspan></tspan><tspan
-             x="-130.55574"
-             y="26.755394"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">Defines the actions to 
-</tspan></tspan><tspan
-             x="-130.89887"
-             y="32.109308"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">perform during a state
-</tspan></tspan><tspan
-             x="-108.56641"
-             y="37.463223"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
-</tspan></tspan><tspan
-             x="-116.19798"
-             y="42.817139"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">API calls
-</tspan></tspan><tspan
-             x="-119.98896"
-             y="48.171055"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Calculations
-</tspan></tspan><tspan
-             x="-115.27607"
-             y="53.524971"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Signing
-</tspan></tspan><tspan
-             x="-125.21034"
-             y="58.878887"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Send transactions</tspan></tspan></text>
-        <rect
-           style="fill:#ffffff;stroke:#000000;stroke-width:0.573886;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-           id="rect833-5"
-           width="64.426109"
-           height="64.426117"
-           x="-109.07838"
-           y="153.71121"
-           ry="5.2958608" />
-        <text
-           xml:space="preserve"
-           id="text925"
-           style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927)"
-           transform="translate(-84.236573,80.532915)"><tspan
-             x="0.49932215"
-             y="85.563191"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold'">Round</tspan><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
-</tspan></tspan><tspan
-             x="7.3330078"
-             y="90.917103"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
-</tspan></tspan><tspan
-             x="-21.990242"
-             y="96.271015"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">Defines the rules to transition
-</tspan></tspan><tspan
-             x="-14.544708"
-             y="101.62493"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">across different states
-</tspan></tspan><tspan
-             x="7.3330078"
-             y="106.97884"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans'">
-</tspan></tspan><tspan
-             x="-18.914464"
-             y="112.33275"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Check minimun participants
-</tspan></tspan><tspan
-             x="-16.723385"
-             y="117.68666"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Check votation thresholds
-</tspan></tspan><tspan
-             x="-12.808381"
-             y="123.04058"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Italic'">Check unset variables</tspan></tspan></text>
-        <rect
-           style="fill:#ffffff;stroke:#000000;stroke-width:0.573886;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-           id="rect833-6"
-           width="64.426117"
-           height="64.426109"
-           x="-31.760921"
-           y="153.71121"
-           ry="5.2958608" />
-        <text
-           xml:space="preserve"
-           id="text898"
-           style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900)"
-           transform="translate(-88.753853,150.34502)"><tspan
-             x="77.911598"
-             y="15.602253"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan><tspan
-               style="shape-inside:url(#rect900)">
-</tspan></tspan><tspan
-             x="89.685547"
-             y="20.893915"><tspan
-               style="shape-inside:url(#rect900)">
-</tspan></tspan><tspan
-             x="63.388466"
-             y="26.185577"><tspan
-               style="shape-inside:url(#rect900)">Contains the current state's 
-</tspan></tspan><tspan
-             x="79.205575"
-             y="31.47724"><tspan
-               style="shape-inside:url(#rect900)">information
-</tspan></tspan><tspan
-             x="89.685547"
-             y="36.768902"><tspan
-               style="shape-inside:url(#rect900)">
-</tspan></tspan><tspan
-             x="68.378338"
-             y="42.07085"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic'">Number of participants
-</tspan></tspan><tspan
-             x="71.359032"
-             y="47.372795"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic'">Transaction hashes
-</tspan></tspan><tspan
-             x="71.321825"
-             y="52.674739"><tspan
-               style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic'">Contract addresses</tspan></tspan></text>
-        <text
-           xml:space="preserve"
-           id="text1082"
-           style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084)"
-           transform="translate(0.30358964,36.919138)"><tspan
-             x="-187.45836"
-             y="110.39244"><tspan
-               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">INITIAL DELAY STATE</tspan></tspan></text>
-        <g
-           id="g1661"
-           transform="translate(-0.92057037,2.9543907)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5"
-             width="248.58525"
-             height="50.233902"
-             x="-200.23738"
-             y="243.13962"
-             ry="5.2775869" />
-          <g
-             id="g1608"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2);"
-             transform="translate(1.2241705,145.61876)"><tspan
-               x="-189.01554"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">REGISTRATION STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g1661-7"
-           transform="translate(-0.92057037,70.234473)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-7"
-             width="248.58525"
-             height="50.233902"
-             x="-200.23738"
-             y="243.13962"
-             ry="5.2775869" />
-          <g
-             id="g1608-1"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-3"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-7"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-3);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-0"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-0"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-7"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-9);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-3"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-2"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-4"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-1);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-0"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-4);"
-             transform="translate(1.2241705,145.61876)"><tspan
-               x="-187.46525"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">DEPLOY SAFE STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g1661-0"
-           transform="translate(-0.92057037,137.51457)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-4"
-             width="248.58525"
-             height="50.233902"
-             x="-200.23738"
-             y="243.13962"
-             ry="5.2775869" />
-          <g
-             id="g1608-2"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-4"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-9"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-6);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-01"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-5"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-0"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-3);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-4"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-1"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-9"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-7);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-4"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-0);"
-             transform="translate(1.2241705,145.61876)"><tspan
-               x="-187.91311"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">OBSERVATION STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g1661-3"
-           transform="translate(-0.92057037,204.79467)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-42"
-             width="248.58525"
-             height="50.233902"
-             x="-200.23738"
-             y="243.13962"
-             ry="5.2775869" />
-          <g
-             id="g1608-3"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-1"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-5"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-4);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-7"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-3"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-9"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-8"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-3"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-0"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-14);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-3"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-2);"
-             transform="translate(1.2241705,145.61876)"><tspan
-               x="-184.11661"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">ESTIMATION STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g1661-7-5"
-           transform="translate(-0.92057037,272.07477)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-7-7"
-             width="248.58525"
-             height="50.233902"
-             x="-200.23738"
-             y="243.13962"
-             ry="5.2775869" />
-          <g
-             id="g1608-1-6"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-3-4"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-7-1"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-3-0);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-0-0"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-0-7"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-7-2"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-9-0);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-3-5"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-2-1"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-4-2"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-1-6);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-0-7"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-4-4);"
-             transform="translate(1.2241705,145.61876)"><tspan
-               x="-187.64033"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">TRANSACTION HASH STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g2583"
-           transform="translate(5.2695847,0.52759586)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-4-8"
-             width="248.58525"
-             height="50.233902"
-             x="-206.42754"
-             y="581.96686"
-             ry="5.2775869" />
-          <g
-             id="g1608-2-7"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
-             transform="translate(-6.1901481,338.82725)">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-4-5"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-9-3"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-6-0);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-01-2"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
-             transform="translate(-6.1901481,338.82725)">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-5-8"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-0-9"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-3-5);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-4-7"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
-             transform="translate(-6.1901481,338.82725)">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-1-3"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-9-0"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-7-5);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-4-2"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-0-5);"
-             transform="translate(-9.1230897,484.44601)"><tspan
-               x="-183.1382"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">SIGNATURE STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g1661-6"
-           transform="translate(-0.92057037,406.6349)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-3"
-             width="248.58525"
-             height="50.233902"
-             x="-200.23738"
-             y="243.13962"
-             ry="5.2775869" />
-          <g
-             id="g1608-9"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-9"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-53"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-1"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-06"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-1"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-30);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-1"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-4"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-97"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-5);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-6"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-6);"
-             transform="translate(1.2241705,145.61876)"><tspan
-               x="-186.85202"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">FINALIZATION STATE</tspan></tspan></text>
-        </g>
-        <g
-           id="g2543"
-           transform="translate(4.2825241,-3.9837758e-5)">
-          <rect
-             style="fill:#f6d5ff;stroke:#000000;stroke-width:0.490349;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-             id="rect1026-5-7-72"
-             width="248.58525"
-             height="50.233902"
-             x="-205.44048"
-             y="717.05463"
-             ry="5.2775869" />
-          <g
-             id="g1608-1-7"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
-             transform="translate(-5.2031003,473.91503)">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-63-3-7"
-               width="64.682167"
-               height="19.682173"
-               x="-185.6033"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text864-2-7-9"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-3-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-44.839473,257.66383)"><tspan
-                 x="-119.42672"
-                 y="16.047566"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
-          </g>
-          <g
-             id="g1613-0-9"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
-             transform="translate(-5.2031003,473.91503)">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-5-1-0-8"
-               width="64.682167"
-               height="19.682171"
-               x="-108.28583"
-               y="262.28281"
-               ry="1.6178849" />
-            <text
-               xml:space="preserve"
-               id="text925-2-7-1"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-9-3);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-83.30359,188.1482)"><tspan
-                 x="0.49932215"
-                 y="85.563191"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
-          </g>
-          <g
-             id="g1618-3-6"
-             style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
-             transform="translate(-5.2031003,473.91503)">
-            <rect
-               style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-               id="rect833-6-3-2-9"
-               width="64.682175"
-               height="19.682171"
-               x="-30.968369"
-               y="262.28281"
-               ry="1.6178851" />
-            <text
-               xml:space="preserve"
-               id="text898-5-4-0"
-               style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect900-4-1-7);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
-               transform="translate(-88.381041,258.03472)"><tspan
-                 x="77.911598"
-                 y="15.602253"><tspan
-                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">PeriodState</tspan></tspan></text>
-          </g>
-          <text
-             xml:space="preserve"
-             id="text1082-8-0-4"
-             style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-4-0);"
-             transform="translate(-21.47546,619.53379)"><tspan
-               x="-170.0675"
-               y="110.39244"><tspan
-                 style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">END STATE</tspan></tspan></text>
-        </g>
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
-           d="m -76.874926,228.96134 v 16.71377"
-           id="path2585" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-1)"
-           d="m -76.874926,296.49162 v 16.71377"
-           id="path2585-6" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-8)"
-           d="M -76.874926,363.64603 V 380.3598"
-           id="path2585-0" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-88)"
-           d="m -76.874926,431.05815 v 16.71377"
-           id="path2585-5" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-0)"
-           d="M -76.874926,498.10323 V 514.817"
-           id="path2585-3" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-16)"
-           d="m -76.874926,565.38141 v 16.71377"
-           id="path2585-30" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-10)"
-           d="m -76.874926,632.63897 v 16.71377"
-           id="path2585-308" />
-        <path
-           style="fill:none;stroke:#000000;stroke-width:0.545;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-101)"
-           d="m -76.874926,699.94039 v 16.71377"
-           id="path2585-8" />
-      </g>
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
       <text
          xml:space="preserve"
-         id="text4619"
-         style="font-size:10.5833px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect4621)"
-         transform="translate(9.1881669,1.5875)"
-         inkscape:export-xdpi="88.859489"
-         inkscape:export-ydpi="88.859489"><tspan
-           x="-165.52056"
-           y="105.71069"><tspan
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">FINITE STATE MACHINE</tspan></tspan></text>
+         id="text864-2"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,-36.186844)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08443,24.356886)"><tspan
+         x="-189.01554"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">REGISTRATION STATE</tspan></tspan></text>
+    <g
+       id="g1608-1"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,-8.213888)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-3"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-7"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-3);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-0"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,-8.213888)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-0"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-7"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-9);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-0"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-4);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08443,52.329842)"><tspan
+         x="-187.46525"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">DEPLOY SAFE STATE</tspan></tspan></text>
+    <g
+       id="g1608-2"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,19.759074)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-4"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-9"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-6);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-01"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,19.759074)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-5"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-0"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-3);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-4"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-0);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08443,80.302804)"><tspan
+         x="-187.91311"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">OBSERVATION STATE</tspan></tspan></text>
+    <g
+       id="g1608-3"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,47.732037)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-1"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-5"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-4);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-7"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,47.732037)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-3"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-9"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-3"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-2);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08443,108.27577)"><tspan
+         x="-184.11661"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">ESTIMATION STATE</tspan></tspan></text>
+    <g
+       id="g1608-1-6"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,75.705)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-3-4"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-7-1"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-3-0);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-0-0"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,75.705)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-0-7"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-7-2"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-9-0);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-0-7"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-4-4);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08443,136.24873)"><tspan
+         x="-187.64033"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">TRANSACTION HASH STATE</tspan></tspan></text>
+    <g
+       id="g1608-2-7"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,103.67795)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-4-5"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-9-3"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-6-0);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-01-2"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,103.67795)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-5-8"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-0-9"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-3-5);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-4-2"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-0-5);"
+       transform="matrix(0.41576875,0,0,0.41576875,135.35603,164.22168)"><tspan
+         x="-183.1382"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">SIGNATURE STATE</tspan></tspan></text>
+    <g
+       id="g1608-9"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,131.6509)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-9"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-53"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-1"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57546,131.6509)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-06"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-1"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-30);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-6"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-6);"
+       transform="matrix(0.41576875,0,0,0.41576875,137.08443,192.19463)"><tspan
+         x="-186.85202"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">FINALIZATION STATE</tspan></tspan></text>
+    <g
+       id="g1608-1-7"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57545,159.62386)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-63-3-7"
+         width="64.682167"
+         height="19.682173"
+         x="-185.6033"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text864-2-7-9"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect866-2-3-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-44.839473,257.66383)"><tspan
+           x="-119.42672"
+           y="16.047566"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Behaviour</tspan></tspan></text>
+    </g>
+    <g
+       id="g1613-0-9"
+       style="stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none"
+       transform="matrix(0.41576875,0,0,0.41576875,136.57545,159.62386)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect833-5-1-0-8"
+         width="64.682167"
+         height="19.682171"
+         x="-108.28583"
+         y="262.28281"
+         ry="1.6178849" />
+      <text
+         xml:space="preserve"
+         id="text925-2-7-1"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-9-3);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="translate(-83.30359,188.1482)"><tspan
+           x="0.49932215"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none">Round</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       id="text1082-8-0-4"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1084-2-4-0);"
+       transform="matrix(0.41576875,0,0,0.41576875,129.80991,220.16759)"><tspan
+         x="-170.0675"
+         y="110.39244"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">END STATE</tspan></tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
+       d="m 104.99601,57.779783 v 6.949063"
+       id="path2585" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-1)"
+       d="m 104.99601,85.856763 v 6.949063"
+       id="path2585-6" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-8)"
+       d="m 104.99601,113.77747 v 6.94906"
+       id="path2585-0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-88)"
+       d="m 104.99601,141.80532 v 6.94906"
+       id="path2585-5" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-0)"
+       d="m 104.99601,169.68057 v 6.94906"
+       id="path2585-3" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-16)"
+       d="m 104.99601,197.65274 v 6.94906"
+       id="path2585-30" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-10)"
+       d="m 104.99601,225.61633 v 6.94906"
+       id="path2585-308" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.226594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-101)"
+       d="m 104.99601,253.59815 v 6.94907"
+       id="path2585-8" />
+    <text
+       xml:space="preserve"
+       id="text4619"
+       style="font-size:10.5833px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect4621);"
+       transform="matrix(0.41576875,0,0,0.41576875,148.40215,-29.311034)"
+       inkscape:export-xdpi="88.859489"
+       inkscape:export-ydpi="88.859489"><tspan
+         x="-165.52056"
+         y="105.71069"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">FINITE STATE MACHINE</tspan></tspan></text>
+    <g
+       id="g2843"
+       transform="translate(1.3102459,0.34698604)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-9"
+       transform="translate(1.3102459,28.319942)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-1"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-2"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-2);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-93"
+       transform="translate(1.3102459,56.292904)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-6"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-0"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-7);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-6"
+       transform="translate(1.3102459,84.265867)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-18"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-7"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-6);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-2"
+       transform="translate(1.3102459,112.23883)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-3"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-75"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-9);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-97"
+       transform="translate(1.3102459,140.21178)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-36"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-1"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-92);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-1"
+       transform="translate(1.3102459,168.18473)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-9"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-4"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-29);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
+    </g>
+    <g
+       id="g2843-5"
+       transform="translate(1.3102459,196.15769)">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.220011;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.440022, 0.880044;stroke-dashoffset:0"
+         id="rect833-5-1-35-0"
+         width="26.892824"
+         height="8.1832314"
+         x="122.38901"
+         y="72.514023"
+         ry="0.67266595" />
+      <text
+         xml:space="preserve"
+         id="text925-2-6-3"
+         style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect927-5-6-78);stroke-width:0.529167;stroke-miterlimit:4;stroke-dasharray:none;"
+         transform="matrix(0.41576875,0,0,0.41576875,132.77584,41.691169)"><tspan
+           x="-4.4409406"
+           y="85.563191"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'">PeriodState</tspan></tspan></text>
     </g>
   </g>
 </svg>
