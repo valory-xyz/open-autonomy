@@ -453,6 +453,8 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         method: str,
         url: str,
         content: Dict = None,
+        headers: Dict = None,
+        parameters: Dict = None
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -465,6 +467,17 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :param content: the payload.
         :return: the http message and the http dialogue
         """
+        if parameters:
+            url = url + "?"
+            for key, val in parameters.items():
+                url += f"{key}={val}&"
+            url = url[:-1]
+
+        header_string = ""
+        if headers:
+            for key, val in headers.items():
+                header_string += f"{key}: {val}\r\n"
+
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
 
@@ -474,7 +487,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
             performative=HttpMessage.Performative.REQUEST,
             method=method,
             url=url,
-            headers="",
+            headers=header_string,
             version="",
             body=b"" if content is None else json.dumps(content).encode("utf-8"),
         )

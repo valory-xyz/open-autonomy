@@ -21,7 +21,7 @@
 import json
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import requests
 from aea.exceptions import AEAEnforceError
@@ -33,6 +33,8 @@ from requests.exceptions import (  # pylint: disable=redefined-builtin
     Timeout,
     TooManyRedirects,
 )
+
+from packages.fetchai.protocols.http.message import HttpMessage
 
 
 class Currency(Enum):
@@ -70,6 +72,16 @@ class ApiWrapper(ABC):  # pylint: disable=too-few-public-methods
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
 
+    @abstractmethod
+    def get_spec(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Dict:
+        """Return API Specs for `currency_id`"""
+
+    @abstractmethod
+    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+        """Process the response recieved from `http_client`"""
+
 
 class CoinMarketCapApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     """Wrap the CoinMarketCap's APIs."""
@@ -81,7 +93,7 @@ class CoinMarketCapApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-met
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
-        currency_id, convert_id = Currency(currency_id), Currency(convert_id)
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         url = self._URL
         parameters = {"symbol": currency_id.value, "convert": convert_id.value}
         headers = {
@@ -99,11 +111,36 @@ class CoinMarketCapApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-met
         except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError, KeyError):
             return None
 
+    def get_spec(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Dict:
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
+        return {
+            "url": self._URL,
+            "api_id": self.api_id,
+            "headers": {
+                "Accepts": "application/json",
+                "X-CMC_PRO_API_KEY": self.api_key,
+            },
+            "parameters": {
+                "symbol": self.currency_id.value,
+                "convert": self.convert_id.value
+            }
+        }
+
+    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+        try:
+            response = json.loads(response.body.decode())
+            return response["data"][self.currency_id.value]["quote"][self.convert_id.value]["price"]
+        except json.JSONDecodeError:
+            return None
+
 
 class CoinGeckoApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     """Wrap the CoinGecko's APIs."""
 
     api_id = "coingecko"
+    _URL = "https://api.coingecko.com/api/v3/simple/price"
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object."""
@@ -114,11 +151,31 @@ class CoinGeckoApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
-        currency_id, convert_id = Currency(currency_id), Currency(convert_id)
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         response = self.api.get_price(
             ids=currency_id.slug, vs_currencies=convert_id.slug
         )
         return float(response[currency_id.slug][convert_id.slug])
+
+    def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
+
+        return {
+            "url": self._URL,
+            "api_id": self.api_id,
+            "headers": {},
+            "parameters": {
+                "ids": self.currency_id.slug,
+                "vs_currencies": self.convert_id.slug
+            }
+        }
+
+    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+        try:
+            response = json.loads(response.body.decode())
+            return float(response[self.currency_id.slug][self.convert_id.slug])
+        except json.JSONDecodeError:
+            return None
 
 
 class BinanceApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
@@ -131,13 +188,33 @@ class BinanceApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
-        currency_id, convert_id = Currency(currency_id), Currency(convert_id)
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         url = self._URL
         parameters = {"symbol": currency_id.value + convert_id.value}
         try:
             response = requests.get(url, params=parameters)
             return float(response.json()["price"])
         except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError, KeyError):
+            return None
+
+    def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
+        return {
+            "url": self._URL,
+            "api_id": self.api_id,
+            "headers": {
+
+            },
+            "parameters": {
+                "symbol": self.currency_id.value + self.convert_id.value
+            }
+        }
+
+    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+        try:
+            response = json.loads(response.body.decode())
+            return float(response["price"])
+        except json.JSONDecodeError:
             return None
 
 
@@ -151,7 +228,7 @@ class CoinbaseApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
-        currency_id, convert_id = Currency(currency_id), Currency(convert_id)
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         url = self._URL.format(
             currency_id=currency_id.value, convert_id=convert_id.value
         )
@@ -159,6 +236,23 @@ class CoinbaseApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
             response = requests.get(url)
             return float(response.json()["data"]["amount"])
         except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
+            return None
+
+    def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
+        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
+        return {
+            "url": self._URL.format(
+                currency_id=currency_id.value, convert_id=convert_id.value),
+            "api_id": self.api_id,
+            "headers": {},
+            "parameters": {}
+        }
+
+    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+        try:
+            response = json.loads(response.body.decode())
+            return float(response["data"]["amount"])
+        except json.JSONDecodeError:
             return None
 
 
@@ -198,3 +292,13 @@ class PriceApi(Model):
     ) -> Optional[float]:
         """Get the price of a cryptocurrency."""
         return self._api.get_price(currency_id, convert_id)
+
+    def get_spec(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Optional[float]:
+        """Get the spec of the API"""
+        return self._api.get_spec(currency_id, convert_id)
+
+    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+        """Process the response and return observed price."""
+        return self._api.post_request_process(response)

@@ -85,16 +85,13 @@ class TendermintHealthcheck(
             self.context.params.tendermint_url + "/health",
         )
         result = yield from self._do_request(request_message, http_dialogue)
-        is_done = False
         try:
             json.loads(result.body.decode())
             self.context.logger.info("Tendermint running.")
-            is_done = True
+            self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
-        if is_done:
-            self.set_done()
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -201,7 +198,17 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         """
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
-        observation = self.context.price_api.get_price(currency_id, convert_id)
+
+        api_specs = self.context.price_api.get_spec(currency_id, convert_id)
+        http_message, http_dialogue = self._build_http_request_message(
+            method="GET",
+            url=api_specs["url"],
+            headers=api_specs['headers'],
+            parameters=api_specs['parameters']
+        )
+        response = yield from self._do_request(http_message, http_dialogue)
+        observation = self.context.price_api.post_request_process(response)
+
         self.context.logger.info(
             f"Got observation of {currency_id} price in {convert_id} from {self.context.price_api.api_id}: {observation}"
         )
