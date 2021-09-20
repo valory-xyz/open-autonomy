@@ -20,6 +20,7 @@
 """This module contains the base classes for the models classes of the skill."""
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
+from enum import Enum
 from math import ceil
 from typing import (
     Any,
@@ -170,7 +171,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
 
 class Transaction(ABC):
-    """Class to represent a transaction."""
+    """Class to represent a transaction for the ephemeral chain of a period."""
 
     def __init__(self, payload: BaseTxPayload, signature: str) -> None:
         """Initialize a transaction object."""
@@ -341,12 +342,15 @@ class ConsensusParams:
             isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
-
         return ConsensusParams(max_participants)
 
 
 class BasePeriodState:
-    """Class to represent a period state."""
+    """
+    Class to represent a period state.
+
+    This is the relevant state constructed and replicated by the agents in a period.
+    """
 
     def __init__(
         self,
@@ -358,16 +362,16 @@ class BasePeriodState:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        enforce(self._participants is not None, "'participants' field is None")
-        return cast(FrozenSet[str], self._participants)
+        if self._participants is None:
+            raise ValueError("'participants' field is None")
+        return self._participants
 
-    @classmethod
-    def update(cls, state: "BasePeriodState", **kwargs: Any) -> "BasePeriodState":
+    def update(self, **kwargs: Any) -> "BasePeriodState":
         """Copy and update the state."""
         # remove leading underscore from keys
-        data = {key[1:]: value for key, value in state.__dict__.items()}
+        data = {key[1:]: value for key, value in self.__dict__.items()}
         data.update(kwargs)
-        return cls(**data)
+        return type(self)(**data)
 
 
 class AbstractRound(ABC):
@@ -391,7 +395,7 @@ class AbstractRound(ABC):
         self._state = state
 
     @property
-    def state(self) -> BasePeriodState:
+    def period_state(self) -> BasePeriodState:
         """Get the period state."""
         return self._state
 
@@ -415,7 +419,7 @@ class AbstractRound(ABC):
             return False
         return payload_handler(transaction.payload)
 
-    def add_transaction(self, transaction: Transaction) -> None:
+    def process_transaction(self, transaction: Transaction) -> None:
         """
         Process a transaction.
 
@@ -433,7 +437,7 @@ class AbstractRound(ABC):
         handler(transaction.payload)
 
     @abstractmethod
-    def end_block(self) -> Optional[Tuple[Any, Optional["AbstractRound"]]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
         """
         Process the end of the block.
 
@@ -448,21 +452,50 @@ class AbstractRound(ABC):
         This is done after each block because we consider the Tendermint
         block, and not the transaction, as the smallest unit
         on which the consensus is reached; in other words,
-        each read operation on  the state should be done
+        each read operation on the state should be done
         only after each block, and not after each transaction.
         """
 
 
 class Period:
-    """This class represents a period (i.e. a sequence of rounds)"""
+    """
+    This class represents a period (i.e. a sequence of rounds)
+
+    It is a generic class that keeps track of the current round
+    of the consensus period. It receives 'deliver_tx' requests
+    from the ABCI handlers and forwards them to the current
+    active round instance, which implements the ABCI app logic.
+    It also schedules the next round (if any) whenever a round terminates.
+    """
+
+    class _BlockConstructionState(Enum):
+        """
+        Phases of an ABCI-based block construction.
+
+        WAITING_FOR_BEGIN_BLOCK: the app is ready to accept
+            "begin_block" requests from the consensus engine node.
+            Then, it transitions into the 'WAITING_FOR_DELIVER_TX' phase.
+        WAITING_FOR_DELIVER_TX: the app is building the block
+            by accepting "deliver_tx" requests, and waits
+            until the "end_block" request.
+            Then, it transitions into the 'WAITING_FOR_COMMIT' phase.
+        WAITING_FOR_COMMIT: the app finished the construction
+            of the block, but it is waiting for the "commit"
+            request from the consensus engine node.
+            Then, it transitions into the 'WAITING_FOR_BEGIN_BLOCK' phase.
+        """
+
+        WAITING_FOR_BEGIN_BLOCK = "waiting_for_begin_block"
+        WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
+        WAITING_FOR_COMMIT = "waiting_for_commit"
 
     def __init__(self, starting_round_cls: Type[AbstractRound]):
         """Initialize the round."""
         self._blockchain = Blockchain()
 
-        # this flag is set when the object has not finished processing a block.
-        # i.e. 'begin_block' called, but not yet 'commit'.
-        self._in_block_processing = False
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+        )
 
         self._block_builder = BlockBuilder()
         self._starting_round_cls = starting_round_cls
@@ -491,6 +524,13 @@ class Period:
             raise ValueError("period is finished, cannot accept new transactions")
 
     @property
+    def current_round(self) -> AbstractRound:
+        """Get current round."""
+        if self._current_round is None:
+            raise ValueError("current_round not set!")
+        return self._current_round
+
+    @property
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self._current_round.round_id if self._current_round else None
@@ -502,11 +542,17 @@ class Period:
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
-        if self._in_block_processing:
-            raise ValueError("already processing a block")
         if self.is_finished:
             raise ValueError("period is finished, cannot accept new blocks")
-        self._in_block_processing = True
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+        ):
+            raise ValueError("cannot accept a 'begin_block' request.")
+        # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+        )
         self._block_builder.reset()
         self._block_builder.header = header
 
@@ -519,27 +565,45 @@ class Period:
         :param transaction: the transaction.
         :return: True if the transaction delivery was successful, False otherwise.
         """
-        if not self._in_block_processing:
-            raise ValueError("not processing a block")
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+        ):
+            raise ValueError("cannot accept a 'deliver_tx' request.")
         is_valid = cast(AbstractRound, self._current_round).check_transaction(
             transaction
         )
         if is_valid:
-            cast(AbstractRound, self._current_round).add_transaction(transaction)
+            self.current_round.process_transaction(transaction)
             self._block_builder.add_transaction(transaction)
         return is_valid
 
     def end_block(self) -> None:
         """Process the 'end_block' request."""
-        if not self._in_block_processing:
-            raise ValueError("not processing a block")
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
+        ):
+            raise ValueError("cannot accept a 'end_block' request.")
+        # The ABCI app now waits again for the next block
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_COMMIT
+        )
 
     def commit(self) -> None:
         """Process the 'commit' request."""
+        if (
+            self._block_construction_phase
+            != Period._BlockConstructionState.WAITING_FOR_COMMIT
+        ):
+            raise ValueError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
         self._blockchain.add_block(block)
         self._update_round()
-        self._in_block_processing = False
+        # The ABCI app now waits again for the next block
+        self._block_construction_phase = (
+            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+        )
 
     def _update_round(self) -> None:
         """
@@ -548,7 +612,7 @@ class Period:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        current_round = cast(AbstractRound, self._current_round)
+        current_round = self.current_round
         result = current_round.end_block()
         if result is None:
             return
