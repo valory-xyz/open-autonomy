@@ -67,12 +67,6 @@ class ApiWrapper(ABC):  # pylint: disable=too-few-public-methods
         self.api_key = api_key if api_key is not None else ""
 
     @abstractmethod
-    def get_price(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
-        """Get the price of a cryptocurrency."""
-
-    @abstractmethod
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
     ) -> Dict:
@@ -88,28 +82,6 @@ class CoinMarketCapApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-met
 
     api_id = "coinmarketcap"
     _URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
-
-    def get_price(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
-        """Get the price of a cryptocurrency."""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        url = self._URL
-        parameters = {"symbol": currency_id.value, "convert": convert_id.value}
-        headers = {
-            "Accepts": "application/json",
-            "X-CMC_PRO_API_KEY": self.api_key,
-        }
-
-        session = Session()
-        session.headers.update(headers)
-
-        try:
-            response = session.get(url, params=parameters)
-            data = json.loads(response.text)
-            return data["data"][currency_id.value]["quote"][convert_id.value]["price"]
-        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError, KeyError):
-            return None
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
@@ -147,16 +119,6 @@ class CoinGeckoApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
         super().__init__(*args, **kwargs)
         self.api = CoinGeckoAPI()
 
-    def get_price(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
-        """Get the price of a cryptocurrency."""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        response = self.api.get_price(
-            ids=currency_id.slug, vs_currencies=convert_id.slug
-        )
-        return float(response[currency_id.slug][convert_id.slug])
-
     def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
 
@@ -183,19 +145,6 @@ class BinanceApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
 
     api_id = "binance"
     _URL = "https://api.binance.com/api/v3/ticker/price"
-
-    def get_price(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
-        """Get the price of a cryptocurrency."""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        url = self._URL
-        parameters = {"symbol": currency_id.value + convert_id.value}
-        try:
-            response = requests.get(url, params=parameters)
-            return float(response.json()["price"])
-        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError, KeyError):
-            return None
 
     def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
@@ -224,25 +173,11 @@ class CoinbaseApiWrapper(ApiWrapper):  # pylint: disable=too-few-public-methods
     api_id = "coinbase"
     _URL = "https://api.coinbase.com/v2/prices/{currency_id}-{convert_id}/buy"
 
-    def get_price(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
-        """Get the price of a cryptocurrency."""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        url = self._URL.format(
-            currency_id=currency_id.value, convert_id=convert_id.value
-        )
-        try:
-            response = requests.get(url)
-            return float(response.json()["data"]["amount"])
-        except (ConnectionError, Timeout, TooManyRedirects, AEAEnforceError):
-            return None
-
     def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
             "url": self._URL.format(
-                currency_id=currency_id.value, convert_id=convert_id.value),
+                currency_id=self.currency_id.value, convert_id=self.convert_id.value),
             "api_id": self.api_id,
             "headers": {},
             "parameters": {}
@@ -286,12 +221,6 @@ class PriceApi(Model):
         if api_cls is None:
             raise ValueError(f"'{self._source_id}' is not a supported API identifier")
         return api_cls(self._api_key)
-
-    def get_price(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
-        """Get the price of a cryptocurrency."""
-        return self._api.get_price(currency_id, convert_id)
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
