@@ -186,6 +186,9 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
     state_id = "observe"
     matching_round = CollectObservationRound
 
+    _number_of_retries = 0
+    _retries = 0
+
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -199,6 +202,10 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
 
+        if not self._number_of_retries:
+            self._number_of_retries = self.context.price_api._retries
+            self._retries = 0
+
         api_specs = self.context.price_api.get_spec(currency_id, convert_id)
         http_message, http_dialogue = self._build_http_request_message(
             method="GET",
@@ -209,13 +216,25 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         response = yield from self._do_request(http_message, http_dialogue)
         observation = self.context.price_api.post_request_process(response)
 
-        self.context.logger.info(
-            f"Got observation of {currency_id} price in {convert_id} from {self.context.price_api.api_id}: {observation}"
-        )
-        payload = ObservationPayload(self.context.agent_address, observation)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()
+        if observation:
+            self.context.logger.info(
+                f"Got observation of {currency_id} price in "
+                + f"{convert_id} from {self.context.price_api.api_id}: "
+                + f"{observation}"
+            )
+            payload = ObservationPayload(self.context.agent_address, observation)
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+            self.set_done()
+        else:
+            self.context.logger.info(
+                f"Could not get price from {self.context.price_api.api_id} "
+                + f"Trying Again"
+            )
+
+            self._retries += 1
+            if self._retries > self._number_of_retries:
+                raise RuntimeError("Max retries reached.")
 
 
 class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
