@@ -43,10 +43,17 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     TransactionHashPayload,
 )
 
+from datetime import datetime
+
 
 def encode_float(value: float) -> bytes:
     """Encode a float value."""
     return struct.pack("d", value)
+
+
+def rotate_list(my_list: list, positions: int) -> List[str]:
+    """Rotate a list n positions."""
+    return my_list[positions:] + my_list[:positions]
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -78,6 +85,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._safe_tx_hash = safe_tx_hash
         self._final_tx_hash = final_tx_hash
         self._keeper_randomness = keeper_randomness
+        self._skipped_keepers = 0
 
     @property
     def safe_contract_address(self) -> str:
@@ -162,13 +170,20 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return sorted(self.participants, key=str.lower)
 
     @property
+    def skipped_keepers(self) -> int:
+        """Skipped keeper agents."""
+        return self._skipped_keepers
+
+    @property
     def safe_sender_address(self) -> str:
         """
         Get the Safe sender address.
 
         :return: the sender address
         """
-        return self.sorted_addresses[floor(self.keeper_randomness * len(self.participants))]
+        random_keeper_position = floor(self.keeper_randomness * len(self.participants))
+        randomized_addresses = rotate_list(self.sorted_addresses, random_keeper_position)
+        return randomized_addresses[self.skipped_keepers % len(randomized_addresses)]
 
 
 class RegistrationRound(AbstractRound):
@@ -241,6 +256,7 @@ class DeploySafeRound(AbstractRound):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
         self._contract_address: Optional[str] = None
+        self._deploy_start_time = datetime.now()
 
     def deploy_safe(self, payload: DeploySafePayload) -> None:
         """Handle a deploy safe payload."""
@@ -300,6 +316,12 @@ class DeploySafeRound(AbstractRound):
             )
             next_round = CollectObservationRound(state, self._consensus_params)
             return state, next_round
+
+        # Skip keeper every 5 seconds
+        if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
+            self.state._skipped_keepers += 1
+            self._deploy_start_time = datetime.now()
+
         return None
 
 
@@ -474,6 +496,7 @@ class TxHashRound(AbstractRound):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
         self.transaction_hash: Optional[str] = None
+        self._txhash_start_time = datetime.now()
 
     def tx_hash(self, payload: TransactionHashPayload) -> None:
         """Handle a 'tx_hash' payload."""
@@ -529,6 +552,12 @@ class TxHashRound(AbstractRound):
             )
             next_round = CollectSignatureRound(state, self._consensus_params)
             return state, next_round
+
+        # Skip keeper every 5 seconds
+        if (datetime.now() - self._txhash_start_time).seconds >= 5.0:
+            self.state._skipped_keepers += 1
+            self._txhash_start_time = datetime.now()
+
         return None
 
 
@@ -612,6 +641,7 @@ class FinalizationRound(AbstractRound):
         """Initialize the 'finalization' round."""
         super().__init__(*args, **kwargs)
         self._tx_hash: Optional[str] = None
+        self._finalization_start_time = datetime.now()
 
     def finalization(self, payload: FinalizationTxPayload) -> None:
         """Handle a finalization payload."""
@@ -668,6 +698,12 @@ class FinalizationRound(AbstractRound):
             )
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
+
+        # Skip keeper every 5 seconds
+        if (datetime.now() - self._finalization_start_time).seconds >= 5.0:
+            self.state._skipped_keepers += 1
+            self._finalization_start_time = datetime.now()
+
         return None
 
 
