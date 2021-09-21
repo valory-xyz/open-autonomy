@@ -28,7 +28,7 @@ an application state running in another.
     execute some routines, monitor the value of the crypto assets of the final customer etc.
     
     In other words, Valory **is not** an ABCI application, but can rely on
-    ABCI-compatible systems.
+    ABCI-based systems.
 
 
 The ABCI standard was introduced contextually with the
