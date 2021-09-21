@@ -454,7 +454,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         url: str,
         content: Dict = None,
         headers: Dict = None,
-        parameters: Dict = None
+        parameters: Dict = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.

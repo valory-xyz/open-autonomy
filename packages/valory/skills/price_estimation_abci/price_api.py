@@ -56,6 +56,8 @@ class ApiSpecs(ABC):  # pylint: disable=too-few-public-methods
     """Wrap an API library to access cryptocurrencies' prices."""
 
     api_id: str
+    currency_id: Currency
+    convert_id: Currency
 
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the API wrapper."""
@@ -92,15 +94,17 @@ class CoinMarketCapApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
             },
             "parameters": {
                 "symbol": self.currency_id.value,
-                "convert": self.convert_id.value
-            }
+                "convert": self.convert_id.value,
+            },
         }
 
     def post_request_process(self, response: HttpMessage) -> Optional[float]:
         """Process the response and return observed price."""
         try:
             response = json.loads(response.body.decode())
-            return response["data"][self.currency_id.value]["quote"][self.convert_id.value]["price"]
+            return response["data"][self.currency_id.value]["quote"][
+                self.convert_id.value
+            ]["price"]
         except (json.JSONDecodeError, KeyError):
             return None
 
@@ -116,7 +120,9 @@ class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
         super().__init__(*args, **kwargs)
         self.api = CoinGeckoAPI()
 
-    def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
+    def get_spec(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Dict:
         """Return API Specs for `coingecko`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
@@ -125,8 +131,8 @@ class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
             "headers": {},
             "parameters": {
                 "ids": self.currency_id.slug,
-                "vs_currencies": self.convert_id.slug
-            }
+                "vs_currencies": self.convert_id.slug,
+            },
         }
 
     def post_request_process(self, response: HttpMessage) -> Optional[float]:
@@ -144,18 +150,16 @@ class BinanceApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
     api_id = "binance"
     _URL = "https://api.binance.com/api/v3/ticker/price"
 
-    def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
+    def get_spec(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Dict:
         """Return API Specs for `binance`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
             "url": self._URL,
             "api_id": self.api_id,
-            "headers": {
-
-            },
-            "parameters": {
-                "symbol": self.currency_id.value + self.convert_id.value
-            }
+            "headers": {},
+            "parameters": {"symbol": self.currency_id.value + self.convert_id.value},
         }
 
     def post_request_process(self, response: HttpMessage) -> Optional[float]:
@@ -173,15 +177,18 @@ class CoinbaseApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
     api_id = "coinbase"
     _URL = "https://api.coinbase.com/v2/prices/{currency_id}-{convert_id}/buy"
 
-    def get_spec(self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD) -> Dict:
+    def get_spec(
+        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+    ) -> Dict:
         """Return API Specs for `coinbase`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
             "url": self._URL.format(
-                currency_id=self.currency_id.value, convert_id=self.convert_id.value),
+                currency_id=self.currency_id.value, convert_id=self.convert_id.value
+            ),
             "api_id": self.api_id,
             "headers": {},
-            "parameters": {}
+            "parameters": {},
         }
 
     def post_request_process(self, response: HttpMessage) -> Optional[float]:
@@ -218,6 +225,13 @@ class PriceApi(Model):
         """Get API id."""
         return self._api.api_id
 
+    @property
+    def retries(
+        self,
+    ) -> int:
+        """Returns number of allowed retries."""
+        return self._retries
+
     def _get_api(self) -> ApiSpecs:
         """Get the ApiSpecs object."""
         api_cls = self._api_id_to_cls.get(self._source_id)
@@ -227,7 +241,7 @@ class PriceApi(Model):
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Optional[float]:
+    ) -> Dict:
         """Get the spec of the API"""
         return self._api.get_spec(currency_id, convert_id)
 

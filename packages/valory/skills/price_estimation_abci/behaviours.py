@@ -203,15 +203,15 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         convert_id = self.context.params.convert_id
 
         if not self._number_of_retries:
-            self._number_of_retries = self.context.price_api._retries
+            self._number_of_retries = self.context.price_api.retries
             self._retries = 0
 
         api_specs = self.context.price_api.get_spec(currency_id, convert_id)
         http_message, http_dialogue = self._build_http_request_message(
             method="GET",
             url=api_specs["url"],
-            headers=api_specs['headers'],
-            parameters=api_specs['parameters']
+            headers=api_specs["headers"],
+            parameters=api_specs["parameters"],
         )
         response = yield from self._do_request(http_message, http_dialogue)
         observation = self.context.price_api.post_request_process(response)
