@@ -103,7 +103,7 @@ A quick overview of the ABCI protocol is depicted in this diagram:
 
 ![](abci-requests.png)
 
-### User sends a transaction
+### Send a transaction
 
 The user can send a transaction by using the following three
 Tendermint RPC methods:
@@ -114,6 +114,11 @@ Tendermint RPC methods:
   which does not wait until the transaction is considered valid and added to the mempool;
 - [`broadcast_tx_commit`](https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_commit),
   which waits until the transaction is committed into a block and processed by the ABCI app.
+
+Note that the above methods take in input a transaction, i.e. a sequence of bytes.
+The consensus node does not know the meaning of the content of the transaction,
+as its meaning resides in the ABCI application logic. This is a key feature
+that makes the application layer and the consensus layer highly decoupled.
 
 #### The `broadcast_tx_sync` method
 
@@ -199,6 +204,35 @@ Tendermint RPC methods:
         else
           Tendermint node->>User: OK
         end
+        deactivate User
+
+</div>
+
+### Query the state
+
+The ABCI appplication state can be queried by means of the 
+[`abci_query`](https://docs.tendermint.com/master/rpc/#/ABCI/abci_query)
+request.
+The sender has to provide the `path` parameter (a string) and the `data`
+parameter (a string). The actual content will depend on the queries the ABCI application
+supports.
+
+The consensus node forwards the query through the `Query` request.
+
+#### `abci_query`
+
+<div class="mermaid">
+    sequenceDiagram
+
+        participant User
+        participant Tendermint node
+        participant ABCI app
+
+        User->>Tendermint node: query(path="/a/b/c", data=0x123...)
+        activate User
+        Tendermint node->>ABCI app: RequestQuery(...)
+        ABCI app->>Tendermint node: ResponseQuery(...)
+        Tendermint node->>User: response(...)
         deactivate User
 
 </div>
