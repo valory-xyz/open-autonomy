@@ -469,6 +469,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :param parameters: url query parameters.
         :return: the http message and the http dialogue
         """
+        # pylint: disable=too-many-arguments
         if parameters:
             url = url + "?"
             for key, val in parameters.items():

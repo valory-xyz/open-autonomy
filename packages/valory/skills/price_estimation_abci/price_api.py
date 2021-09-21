@@ -23,10 +23,9 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional, Union
 
+from aea.protocols.base import Message
 from aea.skills.base import Model
 from pycoingecko import CoinGeckoAPI
-
-from packages.fetchai.protocols.http.message import HttpMessage
 
 
 NUMBER_OF_RETRIES = 5
@@ -70,7 +69,7 @@ class ApiSpecs(ABC):  # pylint: disable=too-few-public-methods
         """Return API Specs for `currency_id`"""
 
     @abstractmethod
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def post_request_process(self, response: Message) -> Optional[float]:
         """Process the response and return observed price."""
 
 
@@ -98,7 +97,7 @@ class CoinMarketCapApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
             },
         }
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def post_request_process(self, response: Message) -> Optional[float]:
         """Process the response and return observed price."""
         try:
             response = json.loads(response.body.decode())
@@ -135,7 +134,7 @@ class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
             },
         }
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def post_request_process(self, response: Message) -> Optional[float]:
         """Process the response and return observed price."""
         try:
             response = json.loads(response.body.decode())
@@ -162,7 +161,7 @@ class BinanceApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
             "parameters": {"symbol": self.currency_id.value + self.convert_id.value},
         }
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def post_request_process(self, response: Message) -> Optional[float]:
         """Process the response and return observed price."""
         try:
             response = json.loads(response.body.decode())
@@ -191,7 +190,7 @@ class CoinbaseApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
             "parameters": {},
         }
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def post_request_process(self, response: Message) -> Optional[float]:
         """Process the response and return observed price."""
         try:
             response = json.loads(response.body.decode())
@@ -245,6 +244,6 @@ class PriceApi(Model):
         """Get the spec of the API"""
         return self._api.get_spec(currency_id, convert_id)
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def post_request_process(self, response: Message) -> Optional[float]:
         """Process the response and return observed price."""
         return self._api.post_request_process(response)
