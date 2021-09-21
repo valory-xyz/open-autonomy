@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmcPvRJcABmYfdRDztoC5g94m5wq4V8bxTTwr8FejZ45wA
+  behaviours.py: QmRnsoPG3u2TAmGzhcmwpAWfrKWNFdzLtc8iSJrBxLadEj
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
@@ -17,7 +17,7 @@ fingerprint:
   models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
   models/rounds.py: QmXUm3KQoq7oGdJDPAjc7Q8R7MP3nBT6TsKtYhWPyynpYo
   params.py: QmdKF8QjvT74pN9KcB5hkEYPmwzQqQqvy5Dxz8Sv1dpfgM
-  price_api.py: QmdyDwDaACmcdW3Y9pUwoPWTUg6opCJecpdD9qdxXGc8fq
+  price_api.py: QmWaavchEeAWP2LZGkcCAPQ6McHN16STRYzX6i6E4tZG7U
   state_models.py: QmZWtcrmH6Qu5rfkkydU79JvfhZ2DrcQq1VCJY7ZnEr29j
 fingerprint_ignore_patterns: []
 connections:
@@ -82,6 +82,7 @@ models:
   price_api:
     args:
       api_key: null
+      retries: 5
       source_id: coingecko
     class_name: PriceApi
   requests:
