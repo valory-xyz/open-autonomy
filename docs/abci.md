@@ -47,7 +47,9 @@ by clearly separating the business logic layer (the application)
 from the consensus and networking layer (the consensus engine)
 through the ABCI protocol:
 
-![](abci-tendermint.jpg)
+<div style="text-align: center;"> 
+  <img src="../abci-tendermint.jpg" alt="ABCI and Tendermint" />
+</div>
 
 The interaction between the consensus node and the ABCI application
 follows the client-server paradigm:
