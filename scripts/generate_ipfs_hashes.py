@@ -67,7 +67,7 @@ type_to_class_config = {
 }  # type: Dict[PackageType, Type[PackageConfiguration]]
 
 
-def _get_all_packages(vendor: str = '') -> List[Tuple[PackageType, Path]]:
+def _get_all_packages(vendor: str = "") -> List[Tuple[PackageType, Path]]:
     """
     Get all the hashable package of the repository.
 
@@ -76,6 +76,7 @@ def _get_all_packages(vendor: str = '') -> List[Tuple[PackageType, Path]]:
     - packages/*
     - tests/data/*
 
+    :param vendor: vendor to hash packages from
     :return: pairs of (package-type, path-to-the-package)
     """
 
@@ -93,12 +94,11 @@ def _get_all_packages(vendor: str = '') -> List[Tuple[PackageType, Path]]:
     )
 
     if vendor:
+
         def vendor_filter(package: Tuple[PackageType, Path]) -> bool:
             return package[1].parts[1] == vendor.lower()
 
-        packages = list(
-            filter(vendor_filter, packages)
-        )
+        packages = list(filter(vendor_filter, packages))
 
     return packages
 
@@ -389,7 +389,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--vendor",
         type=str,
-        default='',
+        default="",
         help="Vendor to hash packages from.",
     )
 
@@ -397,11 +397,12 @@ def parse_arguments() -> argparse.Namespace:
     return arguments_
 
 
-def update_hashes(timeout: float = 15.0, vendor: str = '') -> int:
+def update_hashes(timeout: float = 15.0, vendor: str = "") -> int:
     """
     Process all AEA packages, update fingerprint, and update hashes.csv files.
 
     :param timeout: timeout to the update.
+    :param vendor: vendor to hash packages from
     :return: exit code. 0 for success, 1 if an exception occurred.
     """
     return_code = 0
@@ -476,11 +477,12 @@ def check_same_ipfs_hash(
     return result
 
 
-def check_hashes(timeout: float = 15.0, vendor: str = '') -> int:
+def check_hashes(timeout: float = 15.0, vendor: str = "") -> int:
     """
     Check fingerprints and outer hash of all AEA packages.
 
     :param timeout: timeout to the check.
+    :param vendor: vendor to hash packages from
     :return: exit code. 1 if some fingerprint/hash don't match
         or if an exception occurs, 0 in case of success.
     """
