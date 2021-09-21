@@ -29,8 +29,14 @@ from packages.fetchai.connections.ledger.base import (
 )
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    BaseState,
+    DONE_EVENT,
+)
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    TransitionFunction,
+)
 from packages.valory.skills.price_estimation_abci.models.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -79,16 +85,13 @@ class TendermintHealthcheck(
             self.context.params.tendermint_url + "/health",
         )
         result = yield from self._do_request(request_message, http_dialogue)
-        is_done = False
         try:
             json.loads(result.body.decode())
             self.context.logger.info("Tendermint running.")
-            is_done = True
+            self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
-        if is_done:
-            self.set_done()
 
 
 class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
@@ -183,6 +186,9 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
     state_id = "observe"
     matching_round = CollectObservationRound
 
+    _number_of_retries = 0
+    _retries = 0
+
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -195,14 +201,40 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         """
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
-        observation = self.context.price_api.get_price(currency_id, convert_id)
-        self.context.logger.info(
-            f"Got observation of {currency_id} price in {convert_id} from {self.context.price_api.api_id}: {observation}"
+
+        if not self._number_of_retries:
+            self._number_of_retries = self.context.price_api.retries
+            self._retries = 0
+
+        api_specs = self.context.price_api.get_spec(currency_id, convert_id)
+        http_message, http_dialogue = self._build_http_request_message(
+            method="GET",
+            url=api_specs["url"],
+            headers=api_specs["headers"],
+            parameters=api_specs["parameters"],
         )
-        payload = ObservationPayload(self.context.agent_address, observation)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()
+        response = yield from self._do_request(http_message, http_dialogue)
+        observation = self.context.price_api.post_request_process(response)
+
+        if observation:
+            self.context.logger.info(
+                f"Got observation of {currency_id} price in "
+                + f"{convert_id} from {self.context.price_api.api_id}: "
+                + f"{observation}"
+            )
+            payload = ObservationPayload(self.context.agent_address, observation)
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+            self.set_done()
+        else:
+            self.context.logger.info(
+                f"Could not get price from {self.context.price_api.api_id} "
+                + "Trying Again"
+            )
+
+            self._retries += 1
+            if self._retries > self._number_of_retries:
+                raise RuntimeError("Max retries reached.")
 
 
 class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
@@ -377,14 +409,15 @@ class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancest
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    all_ordered_states = [
-        TendermintHealthcheck,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ObserveBehaviour,  # type: ignore
-        EstimateBehaviour,  # type: ignore
-        TransactionHashBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        EndBehaviour,  # type: ignore
-    ]
+    initial_state_cls = TendermintHealthcheck
+    transition_function: TransitionFunction = {
+        TendermintHealthcheck: {DONE_EVENT: RegistrationBehaviour},
+        RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
+        DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
+        ObserveBehaviour: {DONE_EVENT: EstimateBehaviour},
+        EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
+        TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
+        SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
+        FinalizeBehaviour: {DONE_EVENT: EndBehaviour},
+        EndBehaviour: {},
+    }

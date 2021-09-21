@@ -31,7 +31,6 @@ from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import State
-from aea_ledger_ethereum import EthereumCrypto
 
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
@@ -145,7 +144,16 @@ class AsyncBehaviour(ABC):
         yield from self.wait_for_condition(_wait_until)
 
     def wait_for_message(self, condition: Callable = lambda message: True) -> Any:
-        """Wait for message."""
+        """
+        Wait for message.
+
+        Care must be taken. This method does not handle concurrent requests.
+        Use directly after a request is being sent.
+
+        :param condition: a callable
+        :return: a message
+        :yield: None
+        """
         self._state = self.AsyncState.WAITING_MESSAGE
         message = yield
         while message is None and not condition(message):
@@ -345,12 +353,12 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
             counterparty=self.context.decision_maker_address,
             performative=SigningMessage.Performative.SIGN_MESSAGE,
             raw_message=RawMessage(
-                EthereumCrypto.identifier,
+                self.context.default_ledger_id,
                 raw_message,
                 is_deprecated_mode=is_deprecated_mode,
             ),
             terms=Terms(
-                ledger_id=EthereumCrypto.identifier,
+                ledger_id=self.context.default_ledger_id,
                 sender_address="",
                 counterparty_address="",
                 amount_by_currency_id={},
@@ -445,6 +453,8 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         method: str,
         url: str,
         content: Dict = None,
+        headers: Dict = None,
+        parameters: Dict = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -455,8 +465,22 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :param method: the http request method (i.e. 'GET' or 'POST').
         :param url: the url to send the message to.
         :param content: the payload.
+        :param headers: headers to be included.
+        :param parameters: url query parameters.
         :return: the http message and the http dialogue
         """
+        # pylint: disable=too-many-arguments
+        if parameters:
+            url = url + "?"
+            for key, val in parameters.items():
+                url += f"{key}={val}&"
+            url = url[:-1]
+
+        header_string = ""
+        if headers:
+            for key, val in headers.items():
+                header_string += f"{key}: {val}\r\n"
+
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
 
@@ -466,7 +490,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
             performative=HttpMessage.Performative.REQUEST,
             method=method,
             url=url,
-            headers="",
+            headers=header_string,
             version="",
             body=b"" if content is None else json.dumps(content).encode("utf-8"),
         )
@@ -493,7 +517,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :return: terms
         """
         terms = Terms(
-            ledger_id=EthereumCrypto.identifier,
+            ledger_id=self.context.default_ledger_id,
             sender_address=self.context.agent_address,
             counterparty_address=self.context.agent_address,
             amount_by_currency_id={},
@@ -507,7 +531,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
     ) -> Generator[None, None, str]:
         """Send raw transactions to the ledger for mining."""
         terms = Terms(
-            EthereumCrypto.identifier,
+            self.context.default_ledger_id,
             self.context.agent_address,
             counterparty_address="",
             amount_by_currency_id={},
@@ -549,7 +573,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         )
         kwargs = {
             "counterparty": LEDGER_API_ADDRESS,
-            "ledger_id": EthereumCrypto.identifier,
+            "ledger_id": self.context.default_ledger_id,
             "contract_id": contract_id,
             "callable": contract_callable,
             "kwargs": ContractApiMessage.Kwargs(kwargs),

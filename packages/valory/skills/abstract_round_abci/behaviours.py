@@ -18,43 +18,55 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
-from typing import List, Type
+from typing import Dict, Optional, Type
 
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
 
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    DONE_EVENT,
-)
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+
+
+State = Type[BaseState]
+Action = Optional[str]
+TransitionFunction = Dict[State, Dict[Action, State]]
 
 
 class AbstractRoundBehaviour(FSMBehaviour):
     """This behaviour implements an abstract round."""
 
-    all_ordered_states: List[Type[BaseState]] = []
+    initial_state_cls: State
+    transition_function: TransitionFunction = {}
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._register_states(self.all_ordered_states)
+        self._register_states(self.transition_function)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
-    def _register_states(self, state_classes: List[Type[BaseState]]) -> None:
+    def _register_states(self, transition_function: TransitionFunction) -> None:
         """Register a list of states."""
         enforce(
-            len(state_classes) != 0,
+            len(transition_function) != 0,
             "empty list of state classes",
             exception_class=ValueError,
         )
-        self._register_state(state_classes[0], initial=True)
-        for state_cls in state_classes[1:]:
-            self._register_state(state_cls)
+        for state, outgoing_transitions in transition_function.items():
+            self._register_state_if_not_registered(
+                state, initial=state == self.initial_state_cls
+            )
+            for event, next_state in outgoing_transitions.items():
+                self._register_state_if_not_registered(
+                    next_state, initial=next_state == self.initial_state_cls
+                )
+                self.register_transition(state.state_id, next_state.state_id, event)
 
-        for index in range(len(state_classes) - 1):
-            before, after = state_classes[index], state_classes[index + 1]
-            self.register_transition(before.state_id, after.state_id, DONE_EVENT)
+    def _register_state_if_not_registered(
+        self, state_cls: Type[BaseState], initial: bool = False
+    ) -> None:
+        """Register state, if not already registered."""
+        if state_cls.state_id not in self._name_to_state:
+            self._register_state(state_cls, initial=initial)
 
     def _register_state(
         self, state_cls: Type[BaseState], initial: bool = False
