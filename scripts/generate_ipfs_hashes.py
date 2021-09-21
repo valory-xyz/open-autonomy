@@ -67,7 +67,7 @@ type_to_class_config = {
 }  # type: Dict[PackageType, Type[PackageConfiguration]]
 
 
-def _get_all_packages() -> List[Tuple[PackageType, Path]]:
+def _get_all_packages(vendor: str = '') -> List[Tuple[PackageType, Path]]:
     """
     Get all the hashable package of the repository.
 
@@ -91,6 +91,14 @@ def _get_all_packages() -> List[Tuple[PackageType, Path]]:
             filter(operator.methodcaller("is_dir"), Path("packages").glob("*/*/*/")),
         )
     )
+
+    if vendor:
+        def vendor_filter(package: Tuple[PackageType, Path]) -> bool:
+            return package[1].parts[1] == vendor.lower()
+
+        packages = list(
+            filter(vendor_filter, packages)
+        )
 
     return packages
 
@@ -378,12 +386,18 @@ def parse_arguments() -> argparse.Namespace:
         default=15.0,
         help="Time to wait before IPFS daemon is up and running.",
     )
+    parser.add_argument(
+        "--vendor",
+        type=str,
+        default='',
+        help="Vendor to hash packages from.",
+    )
 
     arguments_ = parser.parse_args()
     return arguments_
 
 
-def update_hashes(timeout: float = 15.0) -> int:
+def update_hashes(timeout: float = 15.0, vendor: str = '') -> int:
     """
     Process all AEA packages, update fingerprint, and update hashes.csv files.
 
@@ -401,7 +415,7 @@ def update_hashes(timeout: float = 15.0) -> int:
             )  # type: ipfshttpclient.Client
 
             # ipfs hash the packages
-            for package_type, package_path in _get_all_packages():
+            for package_type, package_path in _get_all_packages(vendor):
                 print(
                     "Processing package {} of type {}".format(
                         package_path.name, package_type
@@ -462,7 +476,7 @@ def check_same_ipfs_hash(
     return result
 
 
-def check_hashes(timeout: float = 15.0) -> int:
+def check_hashes(timeout: float = 15.0, vendor: str = '') -> int:
     """
     Check fingerprints and outer hash of all AEA packages.
 
@@ -481,7 +495,7 @@ def check_hashes(timeout: float = 15.0) -> int:
                 "/ip4/127.0.0.1/tcp/5001/http"
             )  # type: ipfshttpclient.Client
 
-            for package_type, package_path in _get_all_packages():
+            for package_type, package_path in _get_all_packages(vendor):
                 configuration_obj = load_configuration(package_type, package_path)
                 failed = failed or not check_fingerprint(configuration_obj, client)
                 failed = failed or not check_same_ipfs_hash(
@@ -512,10 +526,10 @@ def main() -> None:
     """Execute the script."""
     arguments = parse_arguments()
     if arguments.check:
-        return_code = check_hashes(arguments.timeout)
+        return_code = check_hashes(arguments.timeout, arguments.vendor)
     else:
         clean_directory()
-        return_code = update_hashes(arguments.timeout)
+        return_code = update_hashes(arguments.timeout, arguments.vendor)
 
     sys.exit(return_code)
 
