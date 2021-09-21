@@ -17,7 +17,7 @@ fingerprint:
   models/payloads.py: QmdEVmcui2BphfnbJcUUnWSSFavEvNLu6p4y3whmHkm2us
   models/rounds.py: QmXUm3KQoq7oGdJDPAjc7Q8R7MP3nBT6TsKtYhWPyynpYo
   params.py: QmdKF8QjvT74pN9KcB5hkEYPmwzQqQqvy5Dxz8Sv1dpfgM
-  price_api.py: QmTtLUhsyZDkedMoinx8xnbwqzBTogEDhZmjAihgCSnQmq
+  price_api.py: QmegXcyqBUKQNWMAdVyPrH3CuzcUrzDg6Xy469CH4HdY5t
   state_models.py: QmZWtcrmH6Qu5rfkkydU79JvfhZ2DrcQq1VCJY7ZnEr29j
 fingerprint_ignore_patterns: []
 connections:
