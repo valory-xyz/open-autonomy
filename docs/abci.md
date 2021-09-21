@@ -15,6 +15,22 @@ Blockchains are systems for multi-master state machine replication.
 Using a socket protocol, a consensus engine running in one process can manage 
 an application state running in another.
 
+
+!!! note
+
+    Valory's systems require more complex applications.
+    ABCI applications are only reactive and specify how
+    a transaction updates the application state.
+    Instead, we are interested in applications that
+    can still rely on "lower-level" ABCI application layer to replicate the state
+    consistently among different instances, 
+    but that also exhibit **proactive behaviour**, e.g. periodically 
+    execute some routines, monitor the value of the crypto assets of the final customer etc.
+    
+    In other words, Valory **is not** an ABCI application, but can rely on
+    ABCI-compatible systems.
+
+
 The ABCI standard was introduced contextually with the
 [Tendermint project](https://docs.tendermint.com/master/introduction/what-is-tendermint.html), 
 although an ABCI-based app can work with any consensus engine
@@ -98,7 +114,7 @@ At [this link](https://github.com/tendermint/tendermint/blob/master/proto/tender
 you can see the Protobuf definitions of those messages.
 
 In the following, we will review the most important interactions
-between an user, a Tendermint node, and an ABCI-application instance,
+between a simple user, a Tendermint node, and an ABCI-application instance,
 with a focus on how the ABCI protocol comes into play.
 
 A quick overview of the ABCI protocol is depicted in this diagram:
