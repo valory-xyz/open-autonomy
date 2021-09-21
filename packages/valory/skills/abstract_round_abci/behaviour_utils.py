@@ -466,7 +466,7 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :param url: the url to send the message to.
         :param content: the payload.
         :param headers: headers to be included.
-        :param parameters: url query parameters. 
+        :param parameters: url query parameters.
         :return: the http message and the http dialogue
         """
         if parameters:

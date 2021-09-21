@@ -229,7 +229,7 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         else:
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id} "
-                + f"Trying Again"
+                + "Trying Again"
             )
 
             self._retries += 1
