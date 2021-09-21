@@ -21,7 +21,6 @@
 import struct
 from abc import ABC
 from collections import Counter
-from datetime import datetime
 from math import floor
 from operator import itemgetter
 from types import MappingProxyType
@@ -268,7 +267,6 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
         self._contract_address: Optional[str] = None
-        self._deploy_start_time = datetime.now()
 
     def deploy_safe(self, payload: DeploySafePayload) -> None:
         """Handle a deploy safe payload."""
@@ -325,12 +323,6 @@ class DeploySafeRound(PriceEstimationAbstractRound):
             )
             next_round = CollectObservationRound(state, self._consensus_params)
             return state, next_round
-
-        # Skip keeper every 5 seconds
-        if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
-            self.period_state._skipped_keepers += 1
-            self._deploy_start_time = datetime.now()
-
         return None
 
 
@@ -499,7 +491,6 @@ class TxHashRound(PriceEstimationAbstractRound):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
         self.transaction_hash: Optional[str] = None
-        self._txhash_start_time = datetime.now()
         self.participant_to_tx_hash: Dict[str, TransactionHashPayload] = {}
 
     def tx_hash(self, payload: TransactionHashPayload) -> None:
@@ -565,12 +556,6 @@ class TxHashRound(PriceEstimationAbstractRound):
             )
             next_round = CollectSignatureRound(state, self._consensus_params)
             return state, next_round
-
-        # Skip keeper every 5 seconds
-        if (datetime.now() - self._txhash_start_time).seconds >= 5.0:
-            self.period_state._skipped_keepers += 1
-            self._txhash_start_time = datetime.now()
-
         return None
 
 
@@ -650,7 +635,6 @@ class FinalizationRound(PriceEstimationAbstractRound):
         """Initialize the 'finalization' round."""
         super().__init__(*args, **kwargs)
         self._tx_hash: Optional[str] = None
-        self._finalization_start_time = datetime.now()
 
     def finalization(self, payload: FinalizationTxPayload) -> None:
         """Handle a finalization payload."""
@@ -705,12 +689,6 @@ class FinalizationRound(PriceEstimationAbstractRound):
             state = self.period_state.update(final_tx_hash=self._tx_hash)
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
-
-        # Skip keeper every 5 seconds
-        if (datetime.now() - self._finalization_start_time).seconds >= 5.0:
-            self.period_state._skipped_keepers += 1
-            self._finalization_start_time = datetime.now()
-
         return None
 
 
