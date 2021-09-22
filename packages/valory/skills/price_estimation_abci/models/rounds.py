@@ -169,9 +169,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def safe_sender_address(self) -> str:
         """
-        Get the Safe sender address.
+        Get the Safe sender address. The sender is selected randomly
+        at each round. If it goes inactive, it will be skipped and the
+        next agent on the randomized list will become the new sender.
 
-        :return: the sender address
+        :return: the address of the current sender.
         """
         random_keeper_position = floor(self.keeper_randomness * len(self.participants))
         randomized_addresses = rotate_list(
