@@ -24,13 +24,11 @@ from unittest import mock
 
 import pytest
 from aea.common import Address
-from aea.exceptions import AEAEnforceError
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-import packages
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
@@ -65,9 +63,6 @@ from packages.valory.protocols.abci.custom_types import (
     VoteInfo,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
-from packages.valory.protocols.abci.message import (
-    _default_logger as abci_message_logger,
-)
 
 
 class BaseTestMessageConstruction:
@@ -669,23 +664,6 @@ def test_decoding_unknown_performative():
     with pytest.raises(ValueError, match="Performative not valid:"):
         with mock.patch.object(AbciMessage.Performative, "__eq__", return_value=False):
             AbciMessage.serializer.decode(encoded_msg)
-
-
-@mock.patch.object(
-    packages.valory.protocols.message,  # type: ignore
-    "enforce",
-    side_effect=AEAEnforceError("some error"),
-)
-def test_incorrect_message(mocked_enforce):
-    """Test that we raise an exception when the message is incorrect."""
-    with mock.patch.object(abci_message_logger, "error") as mock_logger:
-        AbciMessage(
-            message_id=1,
-            dialogue_reference=(str(0), ""),
-            target=0,
-            performative=AbciMessage.Performative.DUMMY,
-        )
-        mock_logger.assert_any_call("some error")
 
 
 class AgentDialogue(AbciDialogue):
