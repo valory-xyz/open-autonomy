@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base_models.py: QmU9xTwCM5Yc2WSCsCvmEKqqHrjTbBoMfwKPjCN6jPtyTv
-  behaviour_utils.py: QmWUHZTL9xzNeGuxMZHENWxpEVK5KuKkLyDVnXCtciUkkf
+  base_models.py: Qmf4KbQvUMwkk53uidohcyKJ7XyXsxjBQT3rxqLWb3rFji
+  behaviour_utils.py: QmXQZeiuVnuwQF2SevtcQQBTWAv2kfA2ze3ScUjaJH5XGx
   behaviours.py: QmQenv8ifpqL3R7CimRdnFPQXvmmdcYaz6RsAGa75c7WLE
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
-  handlers.py: QmTy1cLPQFMVyicWS6YvmvCUJe7hHppsy2QFVx8K5dMAnC
+  handlers.py: QmVUMncqc55dFuVDTcfbg8d9Uygz2QfKHsm4579HEhqLCh
   models.py: QmVffaSEKTNjmra9DtYnRM1ZqxvcVnyvJdtbGSTygwF8Po
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
