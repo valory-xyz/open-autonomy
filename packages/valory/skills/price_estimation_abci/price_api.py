@@ -26,7 +26,7 @@ from typing import Any, Dict, Optional, Union
 from aea.skills.base import Model
 from pycoingecko import CoinGeckoAPI
 
-from packages.fetchai.protocols.http.message import HttpMessage
+from packages.fetchai.protocols.http import HttpMessage
 
 
 NUMBER_OF_RETRIES = 5
