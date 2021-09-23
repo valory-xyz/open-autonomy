@@ -268,6 +268,11 @@ class BaseState(AsyncBehaviour, State, ABC):
         self._is_done = True
         self._event = DONE_EVENT
 
+    def set_fail(self) -> None:
+        """Set the behaviour to done."""
+        self._is_done = True
+        self._event = FAIL_EVENT
+
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.

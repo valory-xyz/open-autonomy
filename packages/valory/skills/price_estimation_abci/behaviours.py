@@ -32,6 +32,7 @@ from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     DONE_EVENT,
+    FAIL_EVENT,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -62,7 +63,7 @@ SIGNATURE_LENGTH = 65
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
-class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ancestors
+class PriceEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the price estimation skill."""
 
     @property
@@ -71,9 +72,7 @@ class PriceEstimationBaseState(BaseState, ABC):  # pylint: disable=too-many-ance
         return cast(PeriodState, self.context.state.period_state)
 
 
-class TendermintHealthcheck(
-    PriceEstimationBaseState
-):  # pylint: disable=too-many-ancestors
+class TendermintHealthcheck(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -97,9 +96,7 @@ class TendermintHealthcheck(
             yield from self.sleep(1)
 
 
-class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
-    PriceEstimationBaseState
-):
+class RegistrationBehaviour(PriceEstimationBaseState):
     """Register to the next round."""
 
     state_id = "register"
@@ -121,9 +118,7 @@ class RegistrationBehaviour(  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
-class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
-    PriceEstimationBaseState
-):
+class DeploySafeBehaviour(PriceEstimationBaseState):
     """Deploy Safe."""
 
     state_id = "deploy_safe"
@@ -183,7 +178,7 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         return contract_address
 
 
-class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
+class ObserveBehaviour(PriceEstimationBaseState):
     """Observe price estimate."""
 
     state_id = "observe"
@@ -199,9 +194,9 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        if self.context.price_api.is_retires_exceeded():
+        if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            raise NotImplementedError
+            self.set_fail()
 
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
@@ -232,7 +227,15 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
             self.context.price_api.increment_retries()
 
 
-class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
+class WaitBehaviour(PriceEstimationBaseState):
+    """
+    Wait behaviour.
+
+    This behaviour is used to regroup the agents after a failure.
+    """
+
+
+class EstimateBehaviour(PriceEstimationBaseState):
     """Estimate price."""
 
     state_id = "estimate"
@@ -266,9 +269,7 @@ class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         self.set_done()
 
 
-class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
-    PriceEstimationBaseState
-):
+class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
     state_id = "tx_hash"
@@ -299,9 +300,7 @@ class TransactionHashBehaviour(  # pylint: disable=too-many-ancestors
         self.set_done()
 
 
-class SignatureBehaviour(  # pylint: disable=too-many-ancestors
-    PriceEstimationBaseState
-):
+class SignatureBehaviour(PriceEstimationBaseState):
     """Signature state."""
 
     state_id = "sign"
@@ -331,7 +330,7 @@ class SignatureBehaviour(  # pylint: disable=too-many-ancestors
         return signature_hex
 
 
-class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
+class FinalizeBehaviour(PriceEstimationBaseState):
     """Finalize state."""
 
     state_id = "finalize"
@@ -385,7 +384,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
         return tx_hash
 
 
-class EndBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
+class EndBehaviour(PriceEstimationBaseState):
     """Final state."""
 
     state_id = "end"
@@ -409,7 +408,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheck: {DONE_EVENT: RegistrationBehaviour},
         RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
-        ObserveBehaviour: {DONE_EVENT: EstimateBehaviour},
+        ObserveBehaviour: {DONE_EVENT: EstimateBehaviour, FAIL_EVENT: WaitBehaviour},
         EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
         TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
         SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
