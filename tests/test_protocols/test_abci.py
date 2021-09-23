@@ -19,8 +19,9 @@
 
 """Tests package for the 'valory/abci' protocol."""
 from abc import abstractmethod
+from typing import Tuple, cast
 
-from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.abci import AbciMessage, abci_pb2, custom_types
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
     BlockParams,
@@ -67,6 +68,23 @@ class BaseTestMessageConstruction:
         actual_message = self.build_message()
         expected_message = actual_message.decode(actual_message.encode())
         assert expected_message == actual_message
+
+    def test_props(self):
+        """Test values returned by property methods"""
+        """
+        TODO:
+            Add tests for remaining properties.
+        """
+        message = self.build_message()
+        assert message.valid_performatives == message.get("_performatives")
+        assert message.dialogue_reference == cast(
+            Tuple[str, str], message.get("dialogue_reference")
+        )
+        assert message.message_id == cast(int, message.get("message_id"))
+        assert message.performative == cast(
+            AbciMessage.Performative, message.get("performative")
+        )
+        assert message.target == cast(int, message.get("target"))
 
     @classmethod
     def _make_consensus_params(cls) -> ConsensusParams:
@@ -513,4 +531,49 @@ class TestResponseApplySnapshotChunk(BaseTestMessageConstruction):
             result=Result(ResultType.REJECT),
             refetch_chunks=(0, 1, 2),
             reject_senders=("sender_1", "sender_2"),
+        )
+
+
+class CustomType:
+    """Abstraction for custom types."""
+
+    @staticmethod
+    def encode(protobuf_object, custom_type_object):
+        """Encode mathod."""
+
+    @staticmethod
+    def decode(protobuf_object):
+        """Decode method."""
+
+
+class ProtobufObject:
+    """Protobuf object."""
+
+
+class BaseCustomTypesTest:
+    """Base class for testing custom types"""
+
+    @abstractmethod
+    def build_type_buffer(
+        self,
+    ) -> Tuple[CustomType, ProtobufObject]:
+        """Build custom type object and protobuf object for same"""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run test."""
+        custom_type, protobuf = self.build_type_buffer()
+        custom_type.encode(protobuf, custom_type)
+        assert custom_type == custom_type.decode(protobuf)
+
+
+class TestBlockParams(BaseCustomTypesTest):
+    """BlockParams test."""
+
+    def build_type_buffer(self) -> Tuple[CustomType, ProtobufObject]:
+        """Build Custom Type and protobuf object for BlockParams"""
+        return (
+            custom_types.BlockParams(32, 10),
+            abci_pb2.AbciMessage.ConsensusParams.BlockParams(),  # type: ignore
         )
