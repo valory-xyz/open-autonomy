@@ -147,19 +147,23 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
 
     def _not_deployer_act(self) -> None:
         """Do the non-deployer action."""
-        self.context.logger.info(
-            "I am not the designated sender, waiting until next round..."
-        )
-        # Skip keeper every 5 seconds
-        if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
-            self.period_state._skipped_keepers += 1
-            self._deploy_start_time = datetime.now()
 
         def has_contract_been_deployed_stub() -> bool:
             return True
 
         if has_contract_been_deployed_stub():
+            self.context.logger.info("Contract has been deployed.")
             self.set_done()
+        else:
+            # Skip keeper every 5 seconds
+            if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
+                self.context.logger.info("Keeper timeout. Skipping...")
+                self.period_state._skipped_keepers += 1
+                self._deploy_start_time = datetime.now()
+            else:
+                self.context.logger.info(
+                    "I am not the designated deployer, waiting until the contract is deployed..."
+                )
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
@@ -366,14 +370,23 @@ class FinalizeBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-a
 
     def _not_sender_act(self) -> None:
         """Do the non-sender action."""
-        # Skip keeper every 5 seconds
-        if (datetime.now() - self._finalization_start_time).seconds >= 5.0:
-            self.period_state._skipped_keepers += 1
-            self._finalization_start_time = datetime.now()
 
-        self.context.logger.info(
-            "I am not the designated sender, waiting until next round..."
-        )
+        def has_transaction_been_sent_stub() -> bool:
+            return True
+
+        if has_transaction_been_sent_stub():
+            self.context.logger.info("Keeper has sent the transaction.")
+            self.set_done()
+        else:
+            # Skip keeper every 5 seconds
+            if (datetime.now() - self._finalization_start_time).seconds >= 5.0:
+                self.context.logger.info("Keeper timeout. Skipping...")
+                self.period_state._skipped_keepers += 1
+                self._finalization_start_time = datetime.now()
+            else:
+                self.context.logger.info(
+                    "I am not the designated sender, waiting until the tx is sent..."
+                )
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
