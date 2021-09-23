@@ -155,7 +155,10 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
             self.period_state._skipped_keepers += 1
             self._deploy_start_time = datetime.now()
 
-        if <deployed>:
+        def has_contract_been_deployed_stub():
+            return True
+
+        if has_contract_been_deployed_stub():
             self.set_done()
 
     def _deployer_act(self) -> Generator:
