@@ -76,7 +76,7 @@ models:
         max_participants: 1
       convert_id: USD
       currency_id: BTC
-      initial_delay: 5.0
+      max_time_healthcheck: 120
       tendermint_url: http://localhost:26657
     class_name: Params
   price_api:

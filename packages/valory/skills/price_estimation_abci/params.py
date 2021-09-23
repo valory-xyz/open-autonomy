@@ -30,4 +30,11 @@ class Params(BaseParams):
         """Initialize the parameters object."""
         self.currency_id = self._ensure("currency_id", kwargs)
         self.convert_id = self._ensure("convert_id", kwargs)
+        self._max_healthcheck = self._ensure("max_healthcheck", kwargs)
         super().__init__(*args, **kwargs)
+        self._count_healthcheck = 0
+
+    def is_health_check_timed_out(self) -> bool:
+        """Check if the healthcheck has timed out."""
+        self._count_healthcheck += 1
+        return self._count_healthcheck > self._max_healthcheck

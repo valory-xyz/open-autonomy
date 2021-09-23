@@ -80,6 +80,9 @@ class TendermintHealthcheck(
 
     def async_act(self) -> None:  # type: ignore
         """Check whether tendermint is running or not."""
+        if self.context.params.is_health_check_timed_out():
+            # if the tendermint node cannot start then the app cannot work
+            raise RuntimeError("Tendermint node did not come live!")
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + "/health",
@@ -186,9 +189,6 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
     state_id = "observe"
     matching_round = CollectObservationRound
 
-    _number_of_retries = 0
-    _retries = 0
-
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -199,13 +199,12 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
+        if self.context.price_api.is_retires_exceeded():
+            # now we need to wait and see if the other agents progress the round, otherwise we should restart?
+            raise NotImplementedError
+
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
-
-        if not self._number_of_retries:
-            self._number_of_retries = self.context.price_api.retries
-            self._retries = 0
-
         api_specs = self.context.price_api.get_spec(currency_id, convert_id)
         http_message, http_dialogue = self._build_http_request_message(
             method="GET",
@@ -228,13 +227,9 @@ class ObserveBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-an
             self.set_done()
         else:
             self.context.logger.info(
-                f"Could not get price from {self.context.price_api.api_id} "
-                + "Trying Again"
+                f"Could not get price from {self.context.price_api.api_id}"
             )
-
-            self._retries += 1
-            if self._retries > self._number_of_retries:
-                raise RuntimeError("Max retries reached.")
+            self.context.price_api.increment_retries()
 
 
 class EstimateBehaviour(PriceEstimationBaseState):  # pylint: disable=too-many-ancestors
