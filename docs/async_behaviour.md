@@ -5,6 +5,12 @@
     The content of this section is subject to change. Some parts
     might soon become obsolete (especially the API documentation).
 
+!!!note
+    
+    At the time this document was written, the `aea` Python pacakge
+    used was at version `1.0.1`. For later releases, some content
+    of this section may not be relevant anymore.
+
 The `AsyncBehaviour` class, introduced in the `valory/abstract_round_abci`
 skill, is a mixin class that allows the AEA developer to use
 asynchronous programming patterns in a `Behaviour` implementation.
@@ -45,4 +51,24 @@ in terms of maintainability, as the business logic does not reside in a single
 skill component (in a behaviour class), but in many skill components 
 (in the handler classes, one for each interaction protocol required by the behaviour).
 
+## Asynchronous programming to the rescue
 
+A well-known programming technique that turned out very useful in the
+web development community is **asynchronous programming**.
+
+Informally, a programming language that supports asynchronous 
+programming features allows running blocking operations _asynchronously_:
+the operation is not run in the same thread where the call happened,
+but it is delegated to another executor, e.g. another thread/process,
+allowing the caller function execution being "suspended" until the operation has completed.
+Once the blocking operation has completed, the execution of the function
+can process the result and continue as usual.
+This lets the main thread to perform other tasks while the function is waiting
+for the result of the operation.
+ 
+If the reader is not familiar with asynchronous programming concepts,
+we suggest reading the following resources:
+
+- [MDN Web Docs: Asynchronous JavaScript](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous)
+- [MDN Web Docs: Glossary: asynchronous](https://developer.mozilla.org/en-US/docs/Glossary/Asynchronous)
+- [`asyncio` standard Python library documentation](https://docs.python.org/3/library/asyncio.html)
