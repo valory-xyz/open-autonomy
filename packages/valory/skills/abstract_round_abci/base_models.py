@@ -52,6 +52,18 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
+class SignatureNotValidError(ValueError):
+    """Error raised when a signature is invalid."""
+
+
+class AddBlockError(ValueError):
+    """Error raised when a block addition is not valid."""
+
+
+class TransactionNotValidError(ValueError):
+    """Error raised when a transaction is not valid."""
+
+
 class _MetaPayload(ABCMeta):
     """
     Payload metaclass.
@@ -198,7 +210,7 @@ class Transaction(ABC):
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
         if self.payload.sender not in addresses:
-            raise ValueError("signature not valid.")
+            raise SignatureNotValidError("signature not valid.")
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
@@ -243,7 +255,9 @@ class Blockchain:
         expected_height = self.height
         actual_height = block.header.height
         if expected_height != actual_height:
-            raise ValueError(f"expected height {expected_height}, got {actual_height}")
+            raise AddBlockError(
+                f"expected height {expected_height}, got {actual_height}"
+            )
         self._blocks.append(block)
 
     @property
@@ -255,14 +269,6 @@ class Blockchain:
     def length(self) -> int:
         """Get the blockchain length."""
         return len(self._blocks)
-
-    def get_block(self, height: int) -> Block:
-        """Get the ith block."""
-        if not self.length > height >= 0:
-            raise ValueError(
-                f"height {height} not valid, must be between {self.length} and 0"
-            )
-        return self._blocks[height]
 
 
 class BlockBuilder:
@@ -431,7 +437,7 @@ class AbstractRound(ABC):
         if handler is None:
             raise ValueError("request not recognized")
         if not self.check_transaction(transaction):
-            raise ValueError("transaction not valid")
+            raise TransactionNotValidError("transaction not valid")
         handler(transaction.payload)
 
     @abstractmethod
@@ -596,12 +602,15 @@ class Period:
         ):
             raise ValueError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
-        self._blockchain.add_block(block)
-        self._update_round()
-        # The ABCI app now waits again for the next block
-        self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
-        )
+        try:
+            self._blockchain.add_block(block)
+            self._update_round()
+            # The ABCI app now waits again for the next block
+            self._block_construction_phase = (
+                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            )
+        except AddBlockError as exception:
+            raise exception
 
     def _update_round(self) -> None:
         """
