@@ -19,9 +19,9 @@
 
 """Tests package for the 'valory/abci' protocol."""
 from abc import abstractmethod
-from typing import Tuple, cast
+from typing import Any, Tuple, cast
 
-from packages.valory.protocols.abci import AbciMessage, abci_pb2, custom_types
+from packages.valory.protocols.abci import AbciMessage, abci_pb2
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
     BlockParams,
@@ -546,17 +546,13 @@ class CustomType:
         """Decode method."""
 
 
-class ProtobufObject:
-    """Protobuf object."""
-
-
 class BaseCustomTypesTest:
     """Base class for testing custom types"""
 
     @abstractmethod
     def build_type_buffer(
         self,
-    ) -> Tuple[CustomType, ProtobufObject]:
+    ) -> Tuple[CustomType, Any]:
         """Build custom type object and protobuf object for same"""
 
     def test_run(
@@ -571,9 +567,9 @@ class BaseCustomTypesTest:
 class TestBlockParams(BaseCustomTypesTest):
     """BlockParams test."""
 
-    def build_type_buffer(self) -> Tuple[CustomType, ProtobufObject]:
+    def build_type_buffer(self) -> Tuple[CustomType, Any]:
         """Build Custom Type and protobuf object for BlockParams"""
         return (
-            custom_types.BlockParams(32, 10),
+            BlockParams(32, 10),
             abci_pb2.AbciMessage.ConsensusParams.BlockParams(),  # type: ignore
         )
