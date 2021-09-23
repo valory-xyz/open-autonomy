@@ -144,18 +144,19 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         self.context.logger.info(
             f"Safe contract address: {self.period_state.safe_contract_address}"
         )
-        self.set_done()
 
     def _not_deployer_act(self) -> None:
         """Do the non-deployer action."""
+        self.context.logger.info(
+            "I am not the designated sender, waiting until next round..."
+        )
         # Skip keeper every 5 seconds
         if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
             self.period_state._skipped_keepers += 1
             self._deploy_start_time = datetime.now()
 
-        self.context.logger.info(
-            "I am not the designated sender, waiting until next round..."
-        )
+        if <deployed>:
+            self.set_done()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
@@ -165,6 +166,7 @@ class DeploySafeBehaviour(  # pylint: disable=too-many-ancestors
         contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
         yield from self.send_a2a_transaction(payload)
+        self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = list(self.period_state.participants)
