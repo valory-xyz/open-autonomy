@@ -31,7 +31,7 @@ ignored-modules=
 max-args=6
 # max-locals=31
 # max-statements=80
-max-parents=7
+max-parents=9
 # max-branches=24
 # max-attributes=38
 
