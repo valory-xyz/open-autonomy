@@ -171,9 +171,7 @@ class AbciSerializer(Serializer):
             chunk_sender = msg.chunk_sender
             performative.chunk_sender = chunk_sender
             abci_msg.request_apply_snapshot_chunk.CopyFrom(performative)
-        elif (
-            performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION
-        ):  # pragma: nocover
+        elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             performative = abci_pb2.AbciMessage.Response_Exception_Performative()  # type: ignore
             abci_msg.response_exception.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
@@ -316,14 +314,14 @@ class AbciSerializer(Serializer):
             reject_senders = msg.reject_senders
             performative.reject_senders.extend(reject_senders)
             abci_msg.response_apply_snapshot_chunk.CopyFrom(performative)
-        elif performative_id == AbciMessage.Performative.DUMMY:  # pragma: nocover
+        elif performative_id == AbciMessage.Performative.DUMMY:
             performative = abci_pb2.AbciMessage.Dummy_Performative()  # type: ignore
             dummy_consensus_params = msg.dummy_consensus_params
             ConsensusParams.encode(
                 performative.dummy_consensus_params, dummy_consensus_params
             )
             abci_msg.dummy.CopyFrom(performative)
-        else:  # pragma: nocover
+        else:
             raise ValueError("Performative not valid: {}".format(performative_id))
 
         dialogue_message_pb.content = abci_msg.SerializeToString()
@@ -440,9 +438,7 @@ class AbciSerializer(Serializer):
             performative_content["chunk"] = chunk
             chunk_sender = abci_pb.request_apply_snapshot_chunk.chunk_sender
             performative_content["chunk_sender"] = chunk_sender
-        elif (
-            performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION
-        ):  # pragma: nocover
+        elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             pass
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
             message = abci_pb.response_echo.message
@@ -573,11 +569,11 @@ class AbciSerializer(Serializer):
             reject_senders = abci_pb.response_apply_snapshot_chunk.reject_senders
             reject_senders_tuple = tuple(reject_senders)
             performative_content["reject_senders"] = reject_senders_tuple
-        elif performative_id == AbciMessage.Performative.DUMMY:  # pragma: nocover
+        elif performative_id == AbciMessage.Performative.DUMMY:
             pb2_dummy_consensus_params = abci_pb.dummy.dummy_consensus_params
             dummy_consensus_params = ConsensusParams.decode(pb2_dummy_consensus_params)
             performative_content["dummy_consensus_params"] = dummy_consensus_params
-        else:  # pragma: nocover
+        else:
             raise ValueError("Performative not valid: {}.".format(performative_id))
 
         return AbciMessage(

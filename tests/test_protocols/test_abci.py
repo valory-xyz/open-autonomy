@@ -544,6 +544,27 @@ class TestResponseApplySnapshotChunk(BaseTestMessageConstruction):
         )
 
 
+class TestDummy(BaseTestMessageConstruction):
+    """Test ABCI request abci."""
+
+    def build_message(self):
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.DUMMY,  # type: ignore
+            dummy_consensus_params=self._make_consensus_params(),
+        )
+
+
+class TestResponseException(BaseTestMessageConstruction):
+    """Test ABCI request abci."""
+
+    def build_message(self):
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_EXCEPTION,  # type: ignore
+        )
+
+
 def test_performative_string_value():
     """Test the string valoe of performatives."""
 
