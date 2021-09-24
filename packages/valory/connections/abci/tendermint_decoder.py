@@ -298,28 +298,28 @@ class _TendermintProtocolDecoder:
     @classmethod
     def request_list_snapshots(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a list_snapshots request."""
         raise NotImplementedError
 
     @classmethod
     def request_offer_snapshot(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a offer_snapshot request."""
         raise NotImplementedError
 
     @classmethod
     def request_load_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a load_snapshot_chunk request."""
         raise NotImplementedError
 
     @classmethod
     def request_apply_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a apply_snapshot_chunk request."""
         raise NotImplementedError
 
