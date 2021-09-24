@@ -298,35 +298,35 @@ class _TendermintProtocolDecoder:
     @classmethod
     def request_list_snapshots(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a list_snapshots request."""
         raise NotImplementedError
 
     @classmethod
     def request_offer_snapshot(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a offer_snapshot request."""
         raise NotImplementedError
 
     @classmethod
     def request_load_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a load_snapshot_chunk request."""
         raise NotImplementedError
 
     @classmethod
     def request_apply_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:  # pragma: nocover
+    ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a apply_snapshot_chunk request."""
         raise NotImplementedError
 
     @classmethod
     def no_match(
         cls, _request: Request, _dialogues: AbciDialogues, _counterparty: str
-    ) -> None:  # pragma: nocover
+    ) -> None:
         """Handle the case in which the request is not supported."""
         return None
 
@@ -351,7 +351,7 @@ class _TendermintProtocolDecoder:
         return Header.decode(header_tendermint_pb)
 
     @classmethod
-    def _decode_block_id(cls, block_id_pb: BlockIDPb) -> BlockID:  # pragma: nocover
+    def _decode_block_id(cls, block_id_pb: BlockIDPb) -> BlockID:
         """Decode a Block ID object."""
         part_set_header_pb = block_id_pb.part_set_header
         part_set_header = PartSetHeader(
@@ -367,13 +367,11 @@ class _TendermintProtocolDecoder:
         return LastCommitInfo.decode(last_commit_info_tendermint_pb)
 
     @classmethod
-    def _decode_validator(
-        cls, validator_pb: ValidatorPb
-    ) -> Validator:  # pragma: nocover
+    def _decode_validator(cls, validator_pb: ValidatorPb) -> Validator:
         """Decode a Validator object."""
         return Validator(validator_pb.address, validator_pb.power)
 
     @classmethod
-    def _decode_evidence(cls, evidence_pb: EvidencePb) -> Evidence:  # pragma: nocover
+    def _decode_evidence(cls, evidence_pb: EvidencePb) -> Evidence:
         """Decode an Evidence object."""
         return Evidence.decode(evidence_pb)
