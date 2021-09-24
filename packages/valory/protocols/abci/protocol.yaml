@@ -13,7 +13,7 @@ fingerprint:
   abci_pb2.py: QmNsWkFfQBUUET1ucyAXSKnHTTTVh51ZWJbbxR3vMnExBf
   custom_types.py: QmZ3uyXYstevcJ1X1kCtpA3PJu1ABtJcHax2SMeVSezpnh
   dialogues.py: QmXqPYwychNzk9iqdarEyGVjsD7rzeRn26J4YdhjsG1XAG
-  message.py: QmUA11n2fPrBu5Hbyv3QcKYs9JSFa8AKW6hpXq1TKKWZhB
+  message.py: QmUHjat79v2jFmv7ZzNgaDE8K6aDyJssiBCt9W4xegVuAe
   serialization.py: QmVCmr9s6SdH5Z6k3QYvuwhdkVE4KZm3sXoHAhqA9yBKrj
 fingerprint_ignore_patterns: []
 dependencies:
