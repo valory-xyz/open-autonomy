@@ -104,7 +104,7 @@ class _TendermintProtocolEncoder:
         """
         init_chain = ResponseInitChain()
 
-        if message.consensus_params is not None:
+        if message.consensus_params is not None:  # pragma: nocover
             consensus_params_pb = cls._encode_consensus_params(message.consensus_params)
             init_chain.consensus_params.CopyFrom(consensus_params_pb)
 
@@ -221,7 +221,7 @@ class _TendermintProtocolEncoder:
         """
         end_block = ResponseEndBlock()
 
-        if message.is_set("consensus_param_updates"):
+        if message.is_set("consensus_param_updates"):  # pragma: nocover
             consensus_params_pb = ConsensusParams()
             CustomConsensusParams.encode(
                 consensus_params_pb, message.consensus_param_updates
@@ -254,14 +254,14 @@ class _TendermintProtocolEncoder:
         return Response(commit=commit)
 
     @classmethod
-    def no_match(cls, _request: Request) -> None:
+    def no_match(cls, _request: Request) -> None:  # pragma: nocover
         """No match."""
         return None
 
     @classmethod
     def _encode_consensus_params(
         cls, consensus_params: CustomConsensusParams
-    ) -> ConsensusParams:
+    ) -> ConsensusParams:  # pragma: nocover
         consensus_params_pb = ConsensusParams()
         CustomConsensusParams.encode(consensus_params_pb, consensus_params)
         return consensus_params_pb
@@ -269,13 +269,13 @@ class _TendermintProtocolEncoder:
     @classmethod
     def _encode_validator_update(
         cls, validator_update: CustomValidatorUpdate
-    ) -> ValidatorUpdate:
+    ) -> ValidatorUpdate:  # pragma: nocover
         validator_update_pb = ValidatorUpdate()
         CustomValidatorUpdate.encode(validator_update_pb, validator_update)
         return validator_update_pb
 
     @classmethod
-    def _encode_event(cls, event: CustomEvent) -> Event:
+    def _encode_event(cls, event: CustomEvent) -> Event:  # pragma: nocover
         event_pb = Event()
         CustomEvent.encode(event_pb, event)
         return event_pb

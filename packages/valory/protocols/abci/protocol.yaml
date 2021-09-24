@@ -13,8 +13,8 @@ fingerprint:
   abci_pb2.py: QmNsWkFfQBUUET1ucyAXSKnHTTTVh51ZWJbbxR3vMnExBf
   custom_types.py: QmZ3uyXYstevcJ1X1kCtpA3PJu1ABtJcHax2SMeVSezpnh
   dialogues.py: QmXqPYwychNzk9iqdarEyGVjsD7rzeRn26J4YdhjsG1XAG
-  message.py: QmUA11n2fPrBu5Hbyv3QcKYs9JSFa8AKW6hpXq1TKKWZhB
-  serialization.py: QmVCmr9s6SdH5Z6k3QYvuwhdkVE4KZm3sXoHAhqA9yBKrj
+  message.py: QmRiPi844nckTTZKve4GXoNuLzonhzvts9JLyrW4SU9m86
+  serialization.py: Qmd2fKTi2XDkPkHzsMB9nHE3xqMjLRreCoQtKKoJiV76Xv
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

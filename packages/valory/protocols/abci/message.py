@@ -353,7 +353,7 @@ class AbciMessage(Message):
         return cast(bytes, self.get("data"))
 
     @property
-    def dummy_consensus_params(self) -> CustomConsensusParams:
+    def dummy_consensus_params(self) -> CustomConsensusParams:  # pragma: nocover
         """Get the 'dummy_consensus_params' content from the message."""
         enforce(
             self.is_set("dummy_consensus_params"),
@@ -845,7 +845,9 @@ class AbciMessage(Message):
                         type(self.chunk_sender)
                     ),
                 )
-            elif self.performative == AbciMessage.Performative.RESPONSE_EXCEPTION:
+            elif (
+                self.performative == AbciMessage.Performative.RESPONSE_EXCEPTION
+            ):  # pragma: nocover
                 expected_nb_of_contents = 0
             elif self.performative == AbciMessage.Performative.RESPONSE_ECHO:
                 expected_nb_of_contents = 1
@@ -1175,7 +1177,7 @@ class AbciMessage(Message):
                     all(isinstance(element, str) for element in self.reject_senders),
                     "Invalid type for tuple elements in content 'reject_senders'. Expected 'str'.",
                 )
-            elif self.performative == AbciMessage.Performative.DUMMY:
+            elif self.performative == AbciMessage.Performative.DUMMY:  # pragma: nocover
                 expected_nb_of_contents = 1
                 enforce(
                     isinstance(self.dummy_consensus_params, CustomConsensusParams),
@@ -1200,7 +1202,7 @@ class AbciMessage(Message):
                         self.target
                     ),
                 )
-        except (AEAEnforceError, ValueError, KeyError) as e:
+        except (AEAEnforceError, ValueError, KeyError) as e:  # pragma: nocover
             _default_logger.error(str(e))
             return False
 
