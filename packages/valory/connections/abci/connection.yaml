@@ -9,7 +9,7 @@ fingerprint:
   Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
   __init__.py: QmWustVbKTkibXp3YHaeM9VyuLHSJKQCEURpbz28MEjNNu
   check_dependencies.py: QmQAvjc4NYDg5e6RfAFs7R7UoACuVqRwCV5bX4Tfmw9reA
-  connection.py: QmXpchf8j1SRH3grpBsJH4HhG2S9Jq9TVLucfnDVaeVnJA
+  connection.py: QmXzLa53ScSYzSg9CJG1szUEJHJR6CcmguKexaNUFd9JQz
   dialogues.py: QmW9qr1Ln6QkAUX5H3H4Cb26nTDEw1mSFwQDcZ5a9ZQLBH
   gogoproto/__init__.py: QmTS3DpP33BaeUMZRHRPbpTXq3TxC8aHERY1EDwEoYukT9
   gogoproto/gogo_pb2.py: QmPJH9L58JXB66JAV7iWRmWFaB9n3PkswmHZVbA1npvhbb
@@ -31,8 +31,8 @@ fingerprint:
   tendermint/types/types_pb2.py: QmQFgH9qQRf7Kghxod8uMXR2E22B6jE1M3rBJkWhoQFEF4
   tendermint/types/validator_pb2.py: QmX2kaCCmAM2eVRxqMfcAeg4QMvU1NNQcXyGLqMsSRAGwt
   tendermint/version/types_pb2.py: QmRArhcu1XukHVsQJQEBStV5S79mr7yK5nXRLMVmtPPjSf
-  tendermint_decoder.py: QmSx1kteJtTg5btMqMcNakA9NkzyMANg7EuH2VM2BvsWoF
-  tendermint_encoder.py: QmUTtNAw8XcbypqVeEsDRvKKpVkQD9KTRxuSFCuyKYsgaC
+  tendermint_decoder.py: QmXcPqo72tSpRP3oJHyhCbxEwBQ3Fss2UHGuVJY3u2U7bj
+  tendermint_encoder.py: QmUEXhqKu4qGpHP5G3SQUg7Xw97BF8FKWLEpPwY4VEZg8D
   version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
