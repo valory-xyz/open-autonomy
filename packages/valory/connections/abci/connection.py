@@ -65,7 +65,7 @@ class _TendermintABCISerializer:
         while True:
             towrite = number & 0x7F
             number >>= 7
-            if number:
+            if number:  # pragma: nocover
                 buf += bytes((towrite | 0x80,))
             else:
                 buf += bytes((towrite,))
@@ -112,7 +112,7 @@ class _TendermintABCISerializer:
             except EOFError:
                 return
             data = buffer.read(length)
-            if len(data) < length:
+            if len(data) < length:  # pragma: nocover
                 return
             message = message_cls()
             message.ParseFromString(data)
@@ -174,7 +174,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
         :param loop: asyncio event loop
         """
-        if not self._is_stopped:
+        if not self._is_stopped:  # pragma: nocover
             return
         self._loop = loop
         self._is_stopped = False
@@ -185,7 +185,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
     async def disconnect(self) -> None:
         """Disconnect the channel"""
-        if self.is_stopped:
+        if self.is_stopped:  # pragma: nocover
             return
         self._is_stopped = True
         self._server = cast(AbstractServer, self._server)
@@ -213,7 +213,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
             try:
                 bits = await reader.read(MAX_READ_IN_BYTES)
-            except CancelledError:
+            except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")
                 return
             if len(bits) == 0:
@@ -246,7 +246,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                         to=request.to, sender=request.sender, message=request
                     )
                     await self.queue.put(envelope)
-                else:
+                else:  # pragma: nocover
                     self.logger.warning(f"Decoded request {req_type} was None.")
 
     async def get_message(self) -> Envelope:
@@ -258,7 +258,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self.logger = cast(Logger, self.logger)
         message = cast(AbciMessage, envelope.message)
         dialogue = self._dialogues.update(message)
-        if dialogue is None:
+        if dialogue is None:  # pragma: nocover
             self.logger.warning(
                 "Could not create dialogue for message={}".format(message)
             )
@@ -323,7 +323,7 @@ class TendermintNode:
             "tendermint",
             "init",
         ]
-        if self.params.home is not None:
+        if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
 
@@ -338,7 +338,7 @@ class TendermintNode:
             f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
             f"--consensus.create_empty_blocks={self.params.consensus_create_empty_blocks}",
         ]
-        if self.params.home is not None:
+        if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
 
@@ -349,7 +349,7 @@ class TendermintNode:
 
     def start(self) -> None:
         """Start a Tendermint node process."""
-        if self._process is not None:
+        if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command()
         self._process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with
@@ -358,12 +358,12 @@ class TendermintNode:
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
-        if self._process is None:
+        if self._process is None:  # pragma: nocover
             return
         self._process.send_signal(signal.SIGTERM)
         self._process.wait(timeout=30)
         poll = self._process.poll()
-        if poll is None:
+        if poll is None:  # pragma: nocover
             self._process.terminate()
             self._process.wait(2)
         self._process = None
@@ -455,7 +455,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
 
         In the implementation, remember to update 'connection_status' accordingly.
         """
-        if self.is_connected:
+        if self.is_connected:  # pragma: nocover
             return
 
         self.state = ConnectionStates.connecting
@@ -465,7 +465,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             self.node.start()
         self.channel.logger = self.logger
         await self.channel.connect(loop=self.loop)
-        if self.channel.is_stopped:
+        if self.channel.is_stopped:  # pragma: nocover
             self.state = ConnectionStates.disconnected
             return
         self.state = ConnectionStates.connected
@@ -476,7 +476,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
 
         In the implementation, remember to update 'connection_status' accordingly.
         """
-        if self.is_disconnected:
+        if self.is_disconnected:  # pragma: nocover
             return
 
         self.state = ConnectionStates.disconnecting

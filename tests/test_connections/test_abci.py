@@ -32,6 +32,7 @@ from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
+from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (
     ABCIServerConnection,
     DEFAULT_ABCI_PORT,
@@ -391,3 +392,12 @@ async def test_connection_standalone_tendermint_setup():
     await connection.connect()
     await asyncio.sleep(2.0)
     await connection.disconnect()
+
+
+def test_dep_util():
+    """Test dependency utils."""
+
+    assert dep_utils.nth([0, 1, 2, 3], 1, -1) == 1
+    assert dep_utils.nth([0, 1, 2, 3], 5, -1) == -1
+    assert dep_utils.get_version(1, 0, 0) == (1, 0, 0)
+    assert dep_utils.version_to_string((1, 0, 0)) == "1.0.0"
