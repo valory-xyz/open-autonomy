@@ -23,6 +23,7 @@ from copy import copy
 from enum import Enum
 from math import ceil
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -80,7 +81,9 @@ class _MetaPayload(ABCMeta):
             # abstract class, return
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
-            raise ValueError(f"class {name} must inherit from {BaseTxPayload.__name__}")
+            raise ValueError(  # pragma: no cover
+                f"class {name} must inherit from {BaseTxPayload.__name__}"
+            )
         new_cls = cast(Type[BaseTxPayload], new_cls)
 
         transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
@@ -105,7 +108,7 @@ class _MetaPayload(ABCMeta):
     @classmethod
     def _get_field(mcs, cls: Type, field_name: str) -> Any:
         """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(cls, field_name) and getattr(cls, field_name) is None:
+        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
             raise ValueError(f"class {cls} must set '{field_name}' class field")
         return getattr(cls, field_name)
 
@@ -260,9 +263,11 @@ class Blockchain:
 
     def get_block(self, height: int) -> Block:
         """Get the ith block."""
+        if self.length == 0:
+            raise ValueError("blockchain is empty")
         if not self.length > height >= 0:
             raise ValueError(
-                f"height {height} not valid, must be between {self.length} and 0"
+                f"height {height} not valid, must be between {self.length - 1} and 0"
             )
         return self._blocks[height]
 
@@ -311,6 +316,8 @@ class BlockBuilder:
 
     def get_block(self) -> Block:
         """Get the block."""
+        if self._current_header is None:
+            raise ValueError("header not set yet")
         return Block(
             self.header,
             self._current_transactions,
@@ -344,6 +351,13 @@ class ConsensusParams:
         )
         return ConsensusParams(max_participants)
 
+    def __eq__(self, other: Any) -> bool:
+        """Check equality."""
+        return (
+            isinstance(other, ConsensusParams)
+            and self.max_participants == other.max_participants
+        )
+
 
 class BasePeriodState:
     """
@@ -354,10 +368,10 @@ class BasePeriodState:
 
     def __init__(
         self,
-        participants: Optional[FrozenSet[str]] = None,
+        participants: Optional[AbstractSet[str]] = None,
     ) -> None:
         """Initialize a period state."""
-        self._participants = participants
+        self._participants = frozenset(participants) if participants else None
 
     @property
     def participants(self) -> FrozenSet[str]:
