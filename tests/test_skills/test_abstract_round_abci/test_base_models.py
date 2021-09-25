@@ -25,10 +25,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
-from packages.valory.skills.abstract_round_abci.base_models import (
-    BaseTxPayload,
-    Transaction,
-)
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, Transaction
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )

@@ -44,7 +44,7 @@ from packages.fetchai.protocols.signing.custom_types import (
     RawTransaction,
     Terms,
 )
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseTxPayload,
     LEDGER_API_ADDRESS,

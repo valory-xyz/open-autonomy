@@ -38,7 +38,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     TransitionFunction,
 )
-from packages.valory.skills.price_estimation_abci.models.payloads import (
+from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
     FinalizationTxPayload,
@@ -47,7 +47,7 @@ from packages.valory.skills.price_estimation_abci.models.payloads import (
     SignaturePayload,
     TransactionHashPayload,
 )
-from packages.valory.skills.price_estimation_abci.models.rounds import (
+from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
     DeploySafeRound,

@@ -36,7 +36,7 @@ from packages.fetchai.protocols.signing.dialogues import SigningDialogue
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import Events
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
     SignatureNotValidError,
@@ -152,7 +152,7 @@ class ABCIRoundHandler(HandlerUtils, ABCIHandler):
             self.context.state.period.commit()
         except AddBlockError as exception:
             self._log_exception(exception)
-            # handle failure!
+            raise exception
         # return commit success
         return super().commit(message, dialogue)
 
