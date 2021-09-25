@@ -139,7 +139,72 @@ In words, the first time the `act()` method is called:
 
 ## A simple example
 
-TODO
+Consider a [(one-shot) behaviour](https://fetchai.github.io/agents-aea/skill/#behaviourspy) 
+whose logic is to print a sequence of messages separated by a sleep interval:
+
+```python
+
+class PrintBehaviour(OneShotBehaviour, AsyncBehaviour):
+
+    def async_act_wrapper(self):
+        yield from self.async_act()
+
+    def async_act(self):
+        print("First message")
+        yield from self.sleep(1.0)
+        print("Second message")
+        yield from self.sleep(1.0)
+        print("Third message")
+```
+
+Without `AsyncBehaviour`, one should take care of:
+
+- remembering the "state" of the behavioru (i.e. what is the last message printed)
+- handling the sleep interval by hand
+
+This is a naive implementation
+```python
+
+import datetime
+from aea.skills.behaviours import SimpleBehaviour
+
+
+class PrintBehaviour(SimpleBehaviour):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state = 0
+
+        # remember time of last printed message
+        self.last_time = None
+        # timedelta of 0 days, 1 second
+        self.timedelta = datetime.timedelta(0, 1)
+
+    def act(self):
+        now = datetime.datetime.now()
+        if self.state == 0:
+            print("First message")
+            self.state += 1
+            self.last_time = now
+            return
+        if self.state == 1 and now > (self.last_time + self.timedelta):
+            print("Second message")
+            self.state += 1
+            self.last_time = now
+            return
+        if self.state == 2 and now > (self.last_time + self.timedelta):
+            print("Third message")
+            self.state += 1
+            self.last_time = now
+            return
+        # do nothing
+```
+
+
+```python
+
+```
+
 
 ## Blocking requests
 
@@ -280,7 +345,8 @@ the utility functions like `build_*` and `send`,
 but they are conceptually similar to what is done in the handlers of the 
 `fetchai/generic_buyer` skill. 
 
-The `wait_for_message` method allows to wait for specific events triggered
+The `wait_for_message` method, used in the `send(...)` method to wait for the response,
+allows to wait for specific events triggered
 by other components. In this case, each of the handler will
 dispatch the response to the requester component, whose request
 is identified by the [(dialogue) identifier](https://fetchai.github.io/agents-aea/protocol/#dialogue-rules)
