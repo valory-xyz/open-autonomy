@@ -234,6 +234,12 @@ class WaitBehaviour(PriceEstimationBaseState):
     This behaviour is used to regroup the agents after a failure.
     """
 
+    state_id = "wait"
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        raise NotImplementedError
+
 
 class EstimateBehaviour(PriceEstimationBaseState):
     """Estimate price."""
