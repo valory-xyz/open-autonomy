@@ -22,12 +22,14 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install pipenv
+          pip install poetry
       - name: Pipenv install requirements and check it can be locked
         run: |
-          pipenv install --dev --skip-lock --clear
-          pipenv run pip install -e .[all]
-          pipenv lock
+          rm -rf poetry.lock
+          poetry lock
+          poetry run pip install -e .[all]
+          poetry install
+          poetry lock
 
   linter_checks:
     continue-on-error: False
