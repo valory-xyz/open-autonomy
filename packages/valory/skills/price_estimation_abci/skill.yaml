@@ -92,7 +92,7 @@ models:
     class_name: SigningDialogues
   state:
     args:
-      initial_round_cls: vendor.valory.skills.price_estimation_abci.models.rounds.RegistrationRound
+      initial_round_cls: vendor.valory.skills.price_estimation_abci.rounds.RegistrationRound
     class_name: SharedState
 dependencies:
   gnosis-py:
