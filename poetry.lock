@@ -1952,7 +1952,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">3.7.1,<3.10.0"
-content-hash = "2c6d4cac71fb080f0fbc2fe3e119d67aa36e7c4713dc60c21dae54622b3942d3"
+content-hash = "1a567d7f9b22a1fb09e7097efd96d7055a7215881407e667eeac4a876a7e98db"
 
 [metadata.files]
 aea = [

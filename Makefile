@@ -128,9 +128,8 @@ new_env: clean
 		    poetry env remove "${e}}";\
 		fi;\
 		poetry install;\
-		poetry run pip install -e .[all];\
 		poetry run pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps;\
-		svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai;\
+		svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai --force;\
 		echo "Enter virtual environment with all development dependencies now: 'poetry shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
