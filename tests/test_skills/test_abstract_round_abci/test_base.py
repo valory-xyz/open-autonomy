@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the base_models.py module of the skill."""
+"""Test the base.py module of the skill."""
 from abc import ABC
 from enum import Enum
 from unittest import mock
