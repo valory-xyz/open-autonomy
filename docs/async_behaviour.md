@@ -7,7 +7,7 @@
 
 !!!note
     
-    At the time this document was written, the `aea` Python pacakge
+    At the time this document was written, the `aea` Python package
     used was at version `1.0.1`. For later releases, some content
     of this section may not be relevant anymore.
 
