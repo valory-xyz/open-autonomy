@@ -16,7 +16,7 @@ fingerprint:
   models.py: QmZWtcrmH6Qu5rfkkydU79JvfhZ2DrcQq1VCJY7ZnEr29j
   params.py: Qmb9vr8YhFUwaPx6DSpNfzuYZXNd2BAXGs2mL8mVTHorAR
   payloads.py: QmafVjPL43em4pCdc18A4wXeyYG5yDX2Mcv4mGccZVhKmz
-  price_api.py: QmVjEp6dLnQMWAiVz2dLGWxXvRSFYht396wGduSMr8iYGk
+  price_api.py: QmTvGaH16idZdFybvNw8G536S1Kvz4xdDFY8zvTdkBy8v6
   rounds.py: Qma2gqXdqkyz9WGau7smgQ9Mm8ndVFU8vQjrMZbjqzFVT9
 fingerprint_ignore_patterns: []
 connections:
@@ -94,9 +94,5 @@ models:
     args:
       initial_round_cls: vendor.valory.skills.price_estimation_abci.rounds.RegistrationRound
     class_name: SharedState
-dependencies:
-  gnosis-py:
-    version: ==3.1.16
-  pycoingecko:
-    version: ==2.2.0
+dependencies: {}
 is_abstract: false
