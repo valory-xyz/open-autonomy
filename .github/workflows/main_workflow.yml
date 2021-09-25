@@ -28,7 +28,6 @@ jobs:
           rm -rf poetry.lock
           poetry lock
           poetry install
-          poetry run pip install -e .[all]
           poetry lock
 
   linter_checks:
