@@ -36,9 +36,8 @@ from typing import (
     cast,
 )
 
+from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
-from eth_account import Account
-from eth_account.messages import encode_defunct
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
@@ -52,6 +51,18 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
+
+
+class SignatureNotValidError(ValueError):
+    """Error raised when a signature is invalid."""
+
+
+class AddBlockError(ValueError):
+    """Error raised when a block addition is not valid."""
+
+
+class TransactionNotValidError(ValueError):
+    """Error raised when a transaction is not valid."""
 
 
 class _MetaPayload(ABCMeta):
@@ -195,15 +206,14 @@ class Transaction(ABC):
         payload = BaseTxPayload.from_json(payload_dict)
         return Transaction(payload, signature)
 
-    def verify(self) -> None:
+    def verify(self, ledger_id: str) -> None:
         """Verify the signature is correct."""
         payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
-        encoded_payload_bytes = encode_defunct(payload_bytes)
-        public_key = Account.recover_message(  # pylint: disable=no-value-for-parameter
-            encoded_payload_bytes, signature=self.signature
+        addresses = LedgerApis.recover_message(
+            identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
-        if public_key != self.payload.sender:
-            raise ValueError("signature not valid.")
+        if self.payload.sender not in addresses:
+            raise SignatureNotValidError("signature not valid.")
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
@@ -248,7 +258,9 @@ class Blockchain:
         expected_height = self.height
         actual_height = block.header.height
         if expected_height != actual_height:
-            raise ValueError(f"expected height {expected_height}, got {actual_height}")
+            raise AddBlockError(
+                f"expected height {expected_height}, got {actual_height}"
+            )
         self._blocks.append(block)
 
     @property
@@ -447,7 +459,7 @@ class AbstractRound(ABC):
         if handler is None:
             raise ValueError("request not recognized")
         if not self.check_transaction(transaction):
-            raise ValueError("transaction not valid")
+            raise TransactionNotValidError("transaction not valid")
         handler(transaction.payload)
 
     @abstractmethod
@@ -612,12 +624,15 @@ class Period:
         ):
             raise ValueError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
-        self._blockchain.add_block(block)
-        self._update_round()
-        # The ABCI app now waits again for the next block
-        self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
-        )
+        try:
+            self._blockchain.add_block(block)
+            self._update_round()
+            # The ABCI app now waits again for the next block
+            self._block_construction_phase = (
+                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            )
+        except AddBlockError as exception:
+            raise exception
 
     def _update_round(self) -> None:
         """

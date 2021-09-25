@@ -36,9 +36,12 @@ from packages.fetchai.protocols.signing.dialogues import SigningDialogue
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import Events
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
+    AddBlockError,
     ERROR_CODE,
+    SignatureNotValidError,
     Transaction,
+    TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
@@ -101,14 +104,13 @@ class ABCIRoundHandler(HandlerUtils, ABCIHandler):
         # check we can decode the transaction
         try:
             transaction = Transaction.decode(transaction_bytes)
-            transaction.verify()
+            transaction.verify(self.context.default_ledger_id)
             self.context.state.period.check_is_finished()
-        except Exception as exception:  # pylint: disable=broad-except
+        except (SignatureNotValidError, ValueError) as exception:
             self._log_exception(exception)
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
-
         # return check_tx success
         return super().check_tx(message, dialogue)
 
@@ -119,11 +121,16 @@ class ABCIRoundHandler(HandlerUtils, ABCIHandler):
         transaction_bytes = message.tx
         try:
             transaction = Transaction.decode(transaction_bytes)
-            transaction.verify()
+            transaction.verify(self.context.default_ledger_id)
             self.context.state.period.check_is_finished()
             is_valid = self.context.state.period.deliver_tx(transaction)
             enforce(is_valid, "transaction is not valid")
-        except Exception as exception:  # pylint: disable=broad-except
+        except (
+            SignatureNotValidError,
+            TransactionNotValidError,
+            ValueError,
+        ) as exception:
+            self._log_exception(exception)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -141,7 +148,12 @@ class ABCIRoundHandler(HandlerUtils, ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'commit' request."""
-        self.context.state.period.commit()
+        try:
+            self.context.state.period.commit()
+        except AddBlockError as exception:
+            self._log_exception(exception)
+            raise exception
+        # return commit success
         return super().commit(message, dialogue)
 
     @classmethod

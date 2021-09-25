@@ -22,7 +22,7 @@ from abc import ABC
 from enum import Enum
 from typing import Dict
 
-from packages.valory.skills.abstract_round_abci.base_models import BaseTxPayload
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
 class TransactionType(Enum):

@@ -19,6 +19,15 @@
 
 """Tests package for the 'valory/abci' protocol."""
 from abc import abstractmethod
+from typing import Type
+from unittest import mock
+
+import pytest
+from aea.common import Address
+from aea.mail.base import Envelope
+from aea.protocols.base import Message
+from aea.protocols.dialogue.base import Dialogue as BaseDialogue
+from aea.protocols.dialogue.base import DialogueLabel
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
@@ -53,6 +62,7 @@ from packages.valory.protocols.abci.custom_types import (
     VersionParams,
     VoteInfo,
 )
+from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
 
 
 class BaseTestMessageConstruction:
@@ -64,9 +74,27 @@ class BaseTestMessageConstruction:
 
     def test_run(self):
         """Run the test."""
-        actual_message = self.build_message()
-        expected_message = actual_message.decode(actual_message.encode())
-        assert expected_message == actual_message
+        msg = self.build_message()
+        msg.to = "receiver"
+        envelope = Envelope(to=msg.to, sender="sender", message=msg)
+        envelope_bytes = envelope.encode()
+
+        actual_envelope = Envelope.decode(envelope_bytes)
+        expected_envelope = envelope
+
+        assert expected_envelope.to == actual_envelope.to
+        assert expected_envelope.sender == actual_envelope.sender
+        assert (
+            expected_envelope.protocol_specification_id
+            == actual_envelope.protocol_specification_id
+        )
+        assert expected_envelope.message != actual_envelope.message
+
+        actual_msg = AbciMessage.serializer.decode(actual_envelope.message)
+        actual_msg.to = actual_envelope.to
+        actual_msg.sender = actual_envelope.sender
+        expected_msg = msg
+        assert expected_msg == actual_msg
 
     @classmethod
     def _make_consensus_params(cls) -> ConsensusParams:
@@ -514,3 +542,290 @@ class TestResponseApplySnapshotChunk(BaseTestMessageConstruction):
             refetch_chunks=(0, 1, 2),
             reject_senders=("sender_1", "sender_2"),
         )
+
+
+class TestDummy(BaseTestMessageConstruction):
+    """Test ABCI request abci."""
+
+    def build_message(self):
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.DUMMY,  # type: ignore
+            dummy_consensus_params=self._make_consensus_params(),
+        )
+
+
+class TestResponseException(BaseTestMessageConstruction):
+    """Test ABCI request abci."""
+
+    def build_message(self):
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_EXCEPTION,  # type: ignore
+        )
+
+
+def test_performative_string_value():
+    """Test the string valoe of performatives."""
+
+    assert str(AbciMessage.Performative.DUMMY) == "dummy", "The str value must be dummy"
+    assert (
+        str(AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK)
+        == "request_apply_snapshot_chunk"
+    ), "The str value must be request_apply_snapshot_chunk"
+    assert (
+        str(AbciMessage.Performative.REQUEST_BEGIN_BLOCK) == "request_begin_block"
+    ), "The str value must be request_begin_block"
+    assert (
+        str(AbciMessage.Performative.REQUEST_CHECK_TX) == "request_check_tx"
+    ), "The str value must be request_check_tx"
+    assert (
+        str(AbciMessage.Performative.REQUEST_COMMIT) == "request_commit"
+    ), "The str value must be request_commit"
+    assert (
+        str(AbciMessage.Performative.REQUEST_DELIVER_TX) == "request_deliver_tx"
+    ), "The str value must be request_deliver_tx"
+    assert (
+        str(AbciMessage.Performative.REQUEST_ECHO) == "request_echo"
+    ), "The str value must be request_echo"
+    assert (
+        str(AbciMessage.Performative.REQUEST_END_BLOCK) == "request_end_block"
+    ), "The str value must be request_end_block"
+    assert (
+        str(AbciMessage.Performative.REQUEST_FLUSH) == "request_flush"
+    ), "The str value must be request_flush"
+    assert (
+        str(AbciMessage.Performative.REQUEST_INFO) == "request_info"
+    ), "The str value must be request_info"
+    assert (
+        str(AbciMessage.Performative.REQUEST_INIT_CHAIN) == "request_init_chain"
+    ), "The str value must be request_init_chain"
+    assert (
+        str(AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS) == "request_list_snapshots"
+    ), "The str value must be request_list_snapshots"
+    assert (
+        str(AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK)
+        == "request_load_snapshot_chunk"
+    ), "The str value must be request_load_snapshot_chunk"
+    assert (
+        str(AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT) == "request_offer_snapshot"
+    ), "The str value must be request_offer_snapshot"
+    assert (
+        str(AbciMessage.Performative.REQUEST_QUERY) == "request_query"
+    ), "The str value must be request_query"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK)
+        == "response_apply_snapshot_chunk"
+    ), "The str value must be response_apply_snapshot_chunk"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_BEGIN_BLOCK) == "response_begin_block"
+    ), "The str value must be response_begin_block"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_CHECK_TX) == "response_check_tx"
+    ), "The str value must be response_check_tx"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_COMMIT) == "response_commit"
+    ), "The str value must be response_commit"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_DELIVER_TX) == "response_deliver_tx"
+    ), "The str value must be response_deliver_tx"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_ECHO) == "response_echo"
+    ), "The str value must be response_echo"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_END_BLOCK) == "response_end_block"
+    ), "The str value must be response_end_block"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_EXCEPTION) == "response_exception"
+    ), "The str value must be response_exception"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_FLUSH) == "response_flush"
+    ), "The str value must be response_flush"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_INFO) == "response_info"
+    ), "The str value must be response_info"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_INIT_CHAIN) == "response_init_chain"
+    ), "The str value must be response_init_chain"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS)
+        == "response_list_snapshots"
+    ), "The str value must be response_list_snapshots"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK)
+        == "response_load_snapshot_chunk"
+    ), "The str value must be response_load_snapshot_chunk"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT)
+        == "response_offer_snapshot"
+    ), "The str value must be response_offer_snapshot"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_QUERY) == "response_query"
+    ), "The str value must be response_query"
+
+
+def test_encoding_unknown_performative():
+    """Test that we raise an exception when the performative is unknown during encoding."""
+    msg = AbciMessage(
+        performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"
+    )
+
+    with pytest.raises(ValueError, match="Performative not valid:"):
+        with mock.patch.object(AbciMessage.Performative, "__eq__", return_value=False):
+            AbciMessage.serializer.encode(msg)
+
+
+def test_decoding_unknown_performative():
+    """Test that we raise an exception when the performative is unknown during encoding."""
+    msg = AbciMessage(
+        performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"
+    )
+
+    encoded_msg = AbciMessage.serializer.encode(msg)
+    with pytest.raises(ValueError, match="Performative not valid:"):
+        with mock.patch.object(AbciMessage.Performative, "__eq__", return_value=False):
+            AbciMessage.serializer.decode(encoded_msg)
+
+
+class AgentDialogue(AbciDialogue):
+    """The dialogue class maintains state of a dialogue and manages it."""
+
+    def __init__(
+        self,
+        dialogue_label: DialogueLabel,
+        self_address: Address,
+        role: BaseDialogue.Role,
+        message_class: Type[AbciMessage],
+    ) -> None:
+        """
+        Initialize a dialogue.
+
+        :param dialogue_label: the identifier of the dialogue
+        :param self_address: the address of the entity for whom this dialogue is maintained
+        :param role: the role of the agent this dialogue is maintained for
+        :return: None
+        """
+        AbciDialogue.__init__(
+            self,
+            dialogue_label=dialogue_label,
+            self_address=self_address,
+            role=role,
+            message_class=message_class,
+        )
+
+
+class AgentDialogues(AbciDialogues):
+    """The dialogues class keeps track of all dialogues."""
+
+    def __init__(self, self_address: Address) -> None:
+        """
+        Initialize dialogues.
+
+        :return: None
+        """
+
+        def role_from_first_message(  # pylint: disable=unused-argument
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            """Infer the role of the agent from an incoming/outgoing first message
+
+            :param message: an incoming/outgoing first message
+            :param receiver_address: the address of the receiving agent
+            :return: The role of the agent
+            """
+            return AbciDialogue.Role.CLIENT
+
+        AbciDialogues.__init__(
+            self,
+            self_address=self_address,
+            role_from_first_message=role_from_first_message,
+            dialogue_class=AgentDialogue,
+        )
+
+
+class ServerDialogue(AbciDialogue):
+    """The dialogue class maintains state of a dialogue and manages it."""
+
+    def __init__(
+        self,
+        dialogue_label: DialogueLabel,
+        self_address: Address,
+        role: BaseDialogue.Role,
+        message_class: Type[AbciMessage],
+    ) -> None:
+        """
+        Initialize a dialogue.
+
+        :param dialogue_label: the identifier of the dialogue
+        :param self_address: the address of the entity for whom this dialogue is maintained
+        :param role: the role of the agent this dialogue is maintained for
+        :return: None
+        """
+        AbciDialogue.__init__(
+            self,
+            dialogue_label=dialogue_label,
+            self_address=self_address,
+            role=role,
+            message_class=message_class,
+        )
+
+
+class ServerDialogues(AbciDialogues):
+    """The dialogues class keeps track of all dialogues."""
+
+    def __init__(self, self_address: Address) -> None:
+        """
+        Initialize dialogues.
+
+        :return: None
+        """
+
+        def role_from_first_message(  # pylint: disable=unused-argument
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            """Infer the role of the agent from an incoming/outgoing first message
+
+            :param message: an incoming/outgoing first message
+            :param receiver_address: the address of the receiving agent
+            :return: The role of the agent
+            """
+            return AbciDialogue.Role.SERVER
+
+        AbciDialogues.__init__(
+            self,
+            self_address=self_address,
+            role_from_first_message=role_from_first_message,
+            dialogue_class=ServerDialogue,
+        )
+
+
+class TestDialogues:
+    """Tests abci dialogues."""
+
+    @classmethod
+    def setup_class(cls):
+        """Set up the test."""
+        cls.agent_addr = "agent address"
+        cls.server_addr = "server address"
+        cls.agent_dialogues = AgentDialogues(cls.agent_addr)
+        cls.server_dialogues = ServerDialogues(cls.server_addr)
+
+    def test_create_self_initiated(self):
+        """Test the self initialisation of a dialogue."""
+        result = self.agent_dialogues._create_self_initiated(
+            dialogue_opponent_addr=self.server_addr,
+            dialogue_reference=(str(0), ""),
+            role=AbciDialogue.Role.CLIENT,
+        )
+        assert isinstance(result, AbciDialogue)
+        assert result.role == AbciDialogue.Role.CLIENT, "The role must be client."
+
+    def test_create_opponent_initiated(self):
+        """Test the opponent initialisation of a dialogue."""
+        result = self.agent_dialogues._create_opponent_initiated(
+            dialogue_opponent_addr=self.server_addr,
+            dialogue_reference=(str(0), ""),
+            role=AbciDialogue.Role.CLIENT,
+        )
+        assert isinstance(result, AbciDialogue)
+        assert result.role == AbciDialogue.Role.CLIENT, "The role must be client."

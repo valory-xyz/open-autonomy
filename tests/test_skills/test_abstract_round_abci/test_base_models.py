@@ -28,7 +28,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
@@ -113,7 +113,7 @@ def test_sign_verify_transaction():
     payload_bytes = payload.encode()
     signature = crypto.sign_message(payload_bytes)
     transaction = Transaction(payload, signature)
-    transaction.verify()
+    transaction.verify(crypto.identifier)
 
 
 @mock.patch("eth_account.Account.recover_message", return_value="wrong_sender")
