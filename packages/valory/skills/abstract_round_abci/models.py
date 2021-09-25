@@ -98,7 +98,6 @@ class BaseParams(Model):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
-        self.initial_delay = self._ensure("initial_delay", kwargs)
 
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         super().__init__(*args, **kwargs)
