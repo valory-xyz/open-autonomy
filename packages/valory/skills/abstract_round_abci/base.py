@@ -255,7 +255,7 @@ class Blockchain:
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
-        expected_height = self.height
+        expected_height = self.height + 1
         actual_height = block.header.height
         if expected_height != actual_height:
             raise AddBlockError(
@@ -266,22 +266,17 @@ class Blockchain:
     @property
     def height(self) -> int:
         """Get the height."""
-        return self.length + 1
+        return self.length - 1
 
     @property
     def length(self) -> int:
         """Get the blockchain length."""
         return len(self._blocks)
 
-    def get_block(self, height: int) -> Block:
-        """Get the ith block."""
-        if self.length == 0:
-            raise ValueError("blockchain is empty")
-        if not self.length > height >= 0:
-            raise ValueError(
-                f"height {height} not valid, must be between {self.length - 1} and 0"
-            )
-        return self._blocks[height]
+    @property
+    def blocks(self) -> Tuple[Block, ...]:
+        """Get the blocks."""
+        return tuple(self._blocks)
 
 
 class BlockBuilder:

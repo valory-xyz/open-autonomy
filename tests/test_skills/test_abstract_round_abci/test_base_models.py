@@ -30,12 +30,14 @@ from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
+    AddBlockError,
     BasePeriodState,
     BaseTxPayload,
     Block,
     BlockBuilder,
     Blockchain,
     ConsensusParams,
+    Period,
     Transaction,
     _MetaPayload,
 )
@@ -78,6 +80,22 @@ class PayloadC(BasePayload):
     transaction_type = PayloadEnum.C
 
 
+class ConcreteRound(AbstractRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    round_id = "concrete"
+
+    def end_block(self):
+        """End block."""
+
+    def check_payload_a(self, *args, **kwargs) -> bool:
+        """Check payloads of type 'payload_a'."""
+        return True
+
+    def payload_a(self, *args, **kwargs) -> None:
+        """Process payloads of type 'payload_a'."""
+
+
 def test_encode_decode():
     """Test encoding and decoding of payloads."""
     sender = "sender"
@@ -116,12 +134,14 @@ def test_sign_verify_transaction():
     transaction.verify(crypto.identifier)
 
 
-@mock.patch("eth_account.Account.recover_message", return_value="wrong_sender")
+@mock.patch(
+    "aea.crypto.ledger_apis.LedgerApis.recover_message", return_value={"wrong_sender"}
+)
 def test_verify_transaction_negative_case(*_mocks):
     """Test verify() of transaction, negative case."""
     transaction = Transaction(MagicMock(sender="right_sender", json={}), b"")
     with pytest.raises(ValueError, match="signature not valid."):
-        transaction.verify()
+        transaction.verify("")
 
 
 @given(
@@ -195,7 +215,7 @@ class TestBlockchain:
 
     def test_height(self):
         """Test the 'height' property getter."""
-        assert self.blockchain.height == 1
+        assert self.blockchain.height == -1
 
     def test_len(self):
         """Test the 'length' property getter."""
@@ -203,10 +223,10 @@ class TestBlockchain:
 
     def test_add_block_positive(self):
         """Test 'add_block', success."""
-        block = Block(MagicMock(height=1), [])
+        block = Block(MagicMock(height=0), [])
         self.blockchain.add_block(block)
         assert self.blockchain.length == 1
-        assert self.blockchain.height == 2
+        assert self.blockchain.height == 0
 
     def test_add_block_negative_wrong_height(self):
         """Test 'add_block', wrong height."""
@@ -214,30 +234,13 @@ class TestBlockchain:
         block = Block(MagicMock(height=wrong_height), [])
         with pytest.raises(
             ValueError,
-            match=f"expected height {self.blockchain.height}, got {wrong_height}",
+            match=f"expected height {self.blockchain.height + 1}, got {wrong_height}",
         ):
             self.blockchain.add_block(block)
 
-    def test_get_block_positive(self):
-        """Test 'get_block', success."""
-        self.test_add_block_positive()
-        self.blockchain.get_block(0)
-
-    @pytest.mark.parametrize("wrong_height", [-1, 0, 42])
-    def test_get_block_when_empty(self, wrong_height):
-        """Test 'get_block' when blockchain is empty."""
-        with pytest.raises(ValueError, match="blockchain is empty"):
-            self.blockchain.get_block(wrong_height)
-
-    @pytest.mark.parametrize("wrong_height", [-1, 42])
-    def test_get_block_wrong_height(self, wrong_height):
-        """Test 'get_block' when wrong height is provided."""
-        self.blockchain.add_block(Block(MagicMock(height=1), []))
-        with pytest.raises(
-            ValueError,
-            match=f"height {wrong_height} not valid, must be between {self.blockchain.length - 1} and 0",
-        ):
-            self.blockchain.get_block(wrong_height)
+    def test_blocks(self):
+        """Test 'blocks' property getter."""
+        assert self.blockchain.blocks == tuple()
 
 
 class TestBlockBuilder:
@@ -352,28 +355,13 @@ class TestBasePeriodState:
 class TestAbstractRound:
     """Test the 'AbstractRound' class."""
 
-    class ConcreteRound(AbstractRound):
-        """Dummy instantiation of the AbstractRound class."""
-
-        def end_block(self):
-            """End block."""
-
-        def check_payload_a(self, *args, **kwargs) -> bool:
-            """Check payloads of type 'payload_a'."""
-            return True
-
-        def payload_a(self) -> None:
-            """Process payloads of type 'payload_a'."""
-
     def setup(self):
         """Set up the tests."""
-        self.known_payload_type = TestAbstractRound.ConcreteRound.payload_a.__name__
+        self.known_payload_type = ConcreteRound.payload_a.__name__
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(participants=self.participants)
         self.params = ConsensusParams(max_participants=len(self.participants))
-        self.round = TestAbstractRound.ConcreteRound(
-            self.base_period_state, self.params
-        )
+        self.round = ConcreteRound(self.base_period_state, self.params)
 
     def test_period_state_getter(self):
         """Test 'period_state' property getter."""
@@ -391,3 +379,143 @@ class TestAbstractRound:
         tx_mock = MagicMock()
         tx_mock.payload.transaction_type.value = self.known_payload_type
         assert self.round.check_transaction(tx_mock)
+
+    def test_process_transaction_negative_unknown_payload(self):
+        """Test 'process_transaction' method, with unknown payload type."""
+        tx_mock = MagicMock()
+        tx_mock.payload.transaction_type.value = "unknown_payload"
+        with pytest.raises(ValueError, match="request not recognized"):
+            self.round.process_transaction(tx_mock)
+
+    def test_process_transaction_negative_check_transaction_fails(self):
+        """Test 'process_transaction' method, with 'check_transaction' failing."""
+        tx_mock = MagicMock()
+        tx_mock.payload.transaction_type.value = "payload_a"
+        with mock.patch.object(self.round, "check_transaction", return_value=False):
+            with pytest.raises(ValueError, match="transaction not valid"):
+                self.round.process_transaction(tx_mock)
+
+    def test_process_transaction_positive(self):
+        """Test 'process_transaction' method, positive case."""
+        tx_mock = MagicMock()
+        tx_mock.payload.transaction_type.value = "payload_a"
+        self.round.process_transaction(tx_mock)
+
+
+class TestPeriod:
+    """Test the Period class."""
+
+    def setup(self):
+        """Set up the test."""
+        self.period = Period(starting_round_cls=ConcreteRound)
+        self.period.setup(MagicMock(), MagicMock())
+
+    def test_is_finished(self):
+        """Test 'is_finished' property."""
+        assert not self.period.is_finished
+        self.period._current_round = None
+        assert self.period.is_finished
+
+    def test_check_is_finished_negative(self):
+        """Test 'check_is_finished', negative case."""
+        self.period._current_round = None
+        with pytest.raises(
+            ValueError, match="period is finished, cannot accept new transactions"
+        ):
+            self.period.check_is_finished()
+
+    def test_current_round_positive(self):
+        """Test 'current_round' property getter, positive case."""
+        assert isinstance(self.period.current_round, ConcreteRound)
+
+    def test_current_round_negative_current_round_not_set(self):
+        """Test 'current_round' property getter, negative case (current round not set)."""
+        self.period._current_round = None
+        with pytest.raises(ValueError, match="current_round not set!"):
+            self.period.current_round
+
+    def test_current_round_id(self):
+        """Test 'current_round_id' property getter"""
+        assert self.period.current_round_id == ConcreteRound.round_id
+
+    def test_latest_result(self):
+        """Test 'latest_result' property getter."""
+        assert self.period.latest_result is None
+
+    def test_begin_block_negative_is_finished(self):
+        """Test 'begin_block' method, negative case (period is finished)."""
+        self.period._current_round = None
+        with pytest.raises(
+            ValueError, match="period is finished, cannot accept new blocks"
+        ):
+            self.period.begin_block(MagicMock())
+
+    def test_begin_block_negative_wrong_phase(self):
+        """Test 'begin_block' method, negative case (wrong phase)."""
+        self.period._block_construction_phase = MagicMock()
+        with pytest.raises(ValueError, match="cannot accept a 'begin_block' request."):
+            self.period.begin_block(MagicMock())
+
+    def test_begin_block_positive(self):
+        """Test 'begin_block' method, positive case."""
+        self.period.begin_block(MagicMock())
+
+    def test_deliver_tx_negative_wrong_phase(self):
+        """Test 'begin_block' method, negative (wrong phase)."""
+        with pytest.raises(ValueError, match="cannot accept a 'deliver_tx' request."):
+            self.period.deliver_tx(MagicMock())
+
+    def test_deliver_tx_positive_not_valid(self):
+        """Test 'begin_block' method, positive (not valid)."""
+        self.period.begin_block(MagicMock())
+        with mock.patch.object(
+            self.period.current_round, "check_transaction", return_value=True
+        ):
+            with mock.patch.object(self.period.current_round, "process_transaction"):
+                self.period.deliver_tx(MagicMock())
+
+    def test_end_block_negative_wrong_phase(self):
+        """Test 'end_block' method, negative case (wrong phase)."""
+        with pytest.raises(ValueError, match="cannot accept a 'end_block' request."):
+            self.period.end_block()
+
+    def test_end_block_positive(self):
+        """Test 'end_block' method, positive case."""
+        self.period.begin_block(MagicMock())
+        self.period.end_block()
+
+    def test_commit_negative_wrong_phase(self):
+        """Test 'end_block' method, negative case (wrong phase)."""
+        with pytest.raises(ValueError, match="cannot accept a 'commit' request."):
+            self.period.commit()
+
+    def test_commit_negative_exception(self):
+        """Test 'end_block' method, negative case (raise exception)."""
+        self.period.begin_block(MagicMock(height=0))
+        self.period.end_block()
+        with mock.patch.object(
+            self.period._blockchain, "add_block", side_effect=AddBlockError
+        ):
+            with pytest.raises(AddBlockError):
+                self.period.commit()
+
+    def test_commit_positive_no_change_round(self):
+        """Test 'end_block' method, positive (no change round)."""
+        self.period.begin_block(MagicMock(height=0))
+        self.period.end_block()
+        self.period.commit()
+        assert isinstance(self.period.current_round, ConcreteRound)
+
+    def test_commit_positive_with_change_round(self):
+        """Test 'end_block' method, positive (with change round)."""
+        self.period.begin_block(MagicMock(height=0))
+        self.period.end_block()
+        round_result, next_round = MagicMock(), MagicMock()
+        with mock.patch.object(
+            self.period.current_round,
+            "end_block",
+            return_value=(round_result, next_round),
+        ):
+            self.period.commit()
+        assert not isinstance(self.period.current_round, ConcreteRound)
+        assert self.period.latest_result == round_result
