@@ -137,17 +137,154 @@ In words, the first time the `act()` method is called:
 4. sets the state to `RUNNING`;
 5. returns to the caller in the main loop.
 
+## A simple example
+
+TODO
+
 ## Blocking requests
 
 As explained above, one of the common tasks for a behaviour is
 to interact with other services and/or agents via message-based
 communication. In this section, we focus on a sequence of
-request-response interactions through the agent interaction protocols.
+request-response interactions through agent interaction protocols.
+We consider the [`fetchai/generic_buyer` skill](https://fetchai.github.io/agents-aea/generic-skills/) 
+as an example ([link to code](https://github.com/fetchai/agents-aea/tree/v1.0.2/packages/fetchai/skills/generic_buyer)).
 
 ### The idiomatic approach
 
-TODO
+The idiomatic approach, implemented in the skill `fetchai/generic_buyer`,
+is outlined in the sequence diagram below. The suffix `B` is a shorthand
+for `Behaviour`, and `H` is a shorthand for `Handler`.
+
+<div class="mermaid">
+    sequenceDiagram
+
+        participant SearchB
+        participant SearchH
+        participant TransactionB
+        participant SigningH
+        participant LedgerH
+        participant DecisionMaker
+        participant FipaH
+        participant OEF
+        participant Seller
+        participant Ledger
+
+        SearchB->>SOEF: "search for sellers"
+        SOEF->>SearchH: listOfAgents
+        SearchH->>Seller: call for proposals
+        Seller->>FipaH: proposals
+        note over FipaH, Seller: buyer and seller negotiate...
+        note over FipaH, Seller: buyer is ready to pay the seller
+        FipaH->>TransactionB: transaction tx
+        TransactionB->>DecisionMaker: signingRequest(tx)
+        DecisionMaker->>SigningH: signed_tx
+        SigningH->>Ledger: signed_tx
+        Ledger->>LedgerH: tx_hash
+        LedgerH->>Seller: tx_hash
+        Seller->>FipaH: bought data
+</div>
+
+The participants `SearchB`, `SearchH`, `TransactionB`, `SigningH`, `LedgerH`, `FipaH`
+and `DecisionMaker` are **internal components** of the buyer AEA, 
+whereas `SOEF`, `Seller`, and `Ledger` are external actors.
+
+Follows the breakdown of each message exchange:
+
+- The buyer starts by searching for seller of the desired data,
+  and the search behaviour (`SearchB`) sends a search request to the
+  [SOEF](https://docs.fetch.ai/soef/simple-oef/), the search & discovery
+  agent service;
+- The search result of the SOEF gets routed to the search handler (`SearchH`),
+  which selects one of the sellers, and sends a "call for proposal" (CFP) message to him.
+  The CFP is the first message of a [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
+  See the AEA documentation on the [AEA FIPA-like protocol](https://fetchai.github.io/agents-aea/protocol/#fetchaifipa100-protocol). 
+- The seller replies with a "FIPA proposal" to the buyer. Such message
+  is handled by the `FipaH` handler;
+- Once the negotiation has completed (only the `FipaH` is involved in the negotiation),
+  the `FipaH` handler sends the payment transaction to the `TransactionB` behaviour
+  such that it can be processed;
+- The `TransactionB`, which was periodically listening for new transaction to process,
+  reads the new transaction and sends a signing requests to the `DecisionMaker`.
+  Note that a component skill does not have access to the crypto identity of 
+  an AEA, and it has to rely on the `DecisionMaker` for certain operations
+  like digital signing.
+- The `DecisionMaker` sends the response to the dedicated handler, the `SigningH`.
+  The `SigningH` submit the transactions to the `Ledger` (through the `ledger_api` connection);
+- The `Ledger`'s response (the transaction hash) is handled by the `LedgerH` handler, 
+  which in turn sends the transaction hash to the `Seller`
+- The `Seller`, once the transaction has been validated, will send the
+  bought data to the buyer with an FIPA "inform" message, which is handled
+  by the `FipaH` handler.
+
+The business logic is spread across different skill components, behaviours and handlers,
+due to the "forced callback" mechanism that forces the developer to handle the message
+of an interaction protocol in the handler registered for that protocol. 
+
 
 ### Using the `AsyncBehaviour`
 
-TODO
+The above example can be reimplemented in an `AsyncBehaviour` in
+the following way (Python-pseudocode):
+
+```python
+
+
+class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
+    
+    def async_act_wrapper(self):
+        yield from self.async_act()
+    
+    def async_act(self):
+        search_request = build_search_request(...)
+        # send search request to the SOEF 
+        # and (asynchronously) wait for the response
+        response = yield from send(search_request)
+        agents = response.result
+        # pick the first agent in the result list
+        seller = agents[0]
+        
+        # send CFP to the seller 
+        # and (asynchronously) wait for the response
+        cfp = build_cfp(...)
+        response = yield from send(cfp, to=seller)
+        
+        # here there should be the buyer strategy 
+        # for the negotiation with the seller...
+        # ...
+        
+        # in case both parties accept the negotiation outcome:
+        tx = build_tx(...)
+        
+        # send transaction to the decision maker 
+        # and (asynchronously) wait for the response 
+        signed_tx = yield from send(tx)
+        
+        # send transaction to the decision maker 
+        # and (asynchronously) wait for the response
+        tx_hash = yield from send(signed_tx)
+
+        # send transaction hash to the seller
+        send(tx_hash, to=seller)
+
+        # wait until the seller sends the data
+        inform_message = yield from self.wait_for_message()
+        print(inform_message.data)
+        
+        # done!
+```
+
+As you can see, the core business logic of the buyer resides in the `async_act`
+method. Many details of the implementation are omitted, like 
+the utility functions like `build_*` and `send`, 
+but they are conceptually similar to what is done in the handlers of the 
+`fetchai/generic_buyer` skill. 
+
+The `wait_for_message` method allows to wait for specific events triggered
+by other components. In this case, each of the handler will
+dispatch the response to the requester component, whose request
+is identified by the [(dialogue) identifier](https://fetchai.github.io/agents-aea/protocol/#dialogue-rules)
+of the interaction.
+However, note that the handler code in this case is _skill-independent_, 
+which means that they do not contribute to the business logic.
+
