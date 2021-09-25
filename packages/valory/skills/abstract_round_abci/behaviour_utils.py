@@ -44,7 +44,7 @@ from packages.fetchai.protocols.signing.custom_types import (
     RawTransaction,
     Terms,
 )
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
@@ -221,7 +221,7 @@ class AsyncBehaviour(ABC):
         self._state = self.AsyncState.READY
 
 
-class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancestors
+class BaseState(AsyncBehaviour, State, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -267,6 +267,11 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Set the behaviour to done."""
         self._is_done = True
         self._event = DONE_EVENT
+
+    def set_fail(self) -> None:
+        """Set the behaviour to done."""
+        self._is_done = True
+        self._event = FAIL_EVENT
 
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
@@ -469,7 +474,6 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :param parameters: url query parameters.
         :return: the http message and the http dialogue
         """
-        # pylint: disable=too-many-arguments
         if parameters:
             url = url + "?"
             for key, val in parameters.items():

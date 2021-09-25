@@ -8,12 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base_models.py: QmU9xTwCM5Yc2WSCsCvmEKqqHrjTbBoMfwKPjCN6jPtyTv
-  behaviour_utils.py: QmWUHZTL9xzNeGuxMZHENWxpEVK5KuKkLyDVnXCtciUkkf
+  base.py: Qmf4KbQvUMwkk53uidohcyKJ7XyXsxjBQT3rxqLWb3rFji
+  behaviour_utils.py: QmXfHNbWLVZXW9dayfi24DyfisPH3LyJQkSh97H3qLf1V2
   behaviours.py: QmQenv8ifpqL3R7CimRdnFPQXvmmdcYaz6RsAGa75c7WLE
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
-  handlers.py: QmTy1cLPQFMVyicWS6YvmvCUJe7hHppsy2QFVx8K5dMAnC
-  models.py: QmVffaSEKTNjmra9DtYnRM1ZqxvcVnyvJdtbGSTygwF8Po
+  handlers.py: QmRPNGZdangTBYZq7GYTx2ytkZoiHFsGWPbU5q5jdiptoc
+  models.py: QmdoDbanHN1h5YBuCdJ3EVj8L7vF9CaFvsMwwgvsDewgHA
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
