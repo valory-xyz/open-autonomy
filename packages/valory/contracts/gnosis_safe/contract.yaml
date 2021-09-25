@@ -14,4 +14,4 @@ class_name: GnosisSafeContract
 contract_interface_paths: {}
 dependencies:
   gnosis-py:
-    version: ==3.1.16
+    version: ==3.4.0
