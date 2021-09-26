@@ -449,7 +449,8 @@ class TestBaseState:
         response = MagicMock(body='{"result": {"deliver_tx": {"code": 0}}}')
         assert self.behaviour._check_transaction_delivered(response)
 
-    def test_get_default_terms(self):
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    def test_get_default_terms(self, *_):
         """Test '_get_default_terms'."""
         self.behaviour.context.default_ledger_id = "ledger_id"
         self.behaviour.context.agent_address = "address"
@@ -457,10 +458,9 @@ class TestBaseState:
 
     @mock.patch.object(BaseState, "_send_transaction_signing_request")
     @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction(self, *_):
         """Test 'send_raw_transaction'."""
-        self.behaviour.context.default_ledger_id = "ledger_id"
-        self.behaviour.context.agent_address = "address"
         m = MagicMock()
         gen = self.behaviour.send_raw_transaction(m)
         # trigger generator function
@@ -480,6 +480,8 @@ class TestBaseState:
             self.behaviour.context.contract_api_dialogues,
             "create",
             return_value=(MagicMock(), MagicMock()),
+        ), mock.patch(
+            "packages.valory.skills.abstract_round_abci.behaviour_utils.Terms"
         ), mock.patch.object(
             BaseState, "_send_transaction_signing_request"
         ), mock.patch.object(
