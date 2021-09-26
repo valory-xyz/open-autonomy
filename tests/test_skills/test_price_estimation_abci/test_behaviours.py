@@ -17,19 +17,22 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/price_estimation_abci skill."""
+"""Tests for valory/price_estimation_abci skill's behaviours."""
 import json
 import logging
 from pathlib import Path
 from typing import cast
 from unittest.mock import patch
 
+import pytest
+from aea.exceptions import AEAActException
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
 from packages.fetchai.protocols.http import HttpMessage
+from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationConsensusBehaviour,
     TendermintHealthcheck,
@@ -60,6 +63,11 @@ class TestPriceEstimationFSMBehaviour(BaseSkillTestCase):
             cls.price_estimation_behaviour.current
             == cls.price_estimation_behaviour.initial_state
         )
+
+    @classmethod
+    def teardown(cls):
+        """Teardown the test class."""
+        _MetaPayload.transaction_type_to_payload_cls = {}
 
     def test_tendermint_healthcheck_not_live(self):
         """Test the tendermint health check does not finish if not healthy."""
@@ -108,6 +116,15 @@ class TestPriceEstimationFSMBehaviour(BaseSkillTestCase):
             TendermintHealthcheck.state_id
         )
         assert not state.is_done()
+
+    def test_tendermint_healthcheck_not_live_raises(self):
+        """Test the tendermint health check raises if not healthy for too long."""
+        assert self.price_estimation_behaviour.current == TendermintHealthcheck.state_id
+        self.skill.skill_context.params._count_healthcheck = (
+            self.skill.skill_context.params._max_healthcheck + 1
+        )
+        with pytest.raises(AEAActException, match="Tendermint node did not come live!"):
+            self.price_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_live(self):
         """Test the tendermint health check does finish if healthy."""
