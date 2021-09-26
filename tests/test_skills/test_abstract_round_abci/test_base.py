@@ -96,42 +96,51 @@ class ConcreteRound(AbstractRound):
         """Process payloads of type 'payload_a'."""
 
 
-def test_encode_decode():
-    """Test encoding and decoding of payloads."""
-    sender = "sender"
+class TestTransactions:
+    """Test Transactions class."""
 
-    expected_payload = PayloadA(sender=sender)
-    actual_payload = PayloadA.decode(expected_payload.encode())
-    assert expected_payload == actual_payload
+    def setup(self):
+        """Set up the test."""
+        self.old_value = _MetaPayload.transaction_type_to_payload_cls
 
-    expected_payload = PayloadB(sender=sender)
-    actual_payload = PayloadB.decode(expected_payload.encode())
-    assert expected_payload == actual_payload
+    def test_encode_decode(self):
+        """Test encoding and decoding of payloads."""
+        sender = "sender"
 
-    expected_payload = PayloadC(sender=sender)
-    actual_payload = PayloadC.decode(expected_payload.encode())
-    assert expected_payload == actual_payload
+        expected_payload = PayloadA(sender=sender)
+        actual_payload = PayloadA.decode(expected_payload.encode())
+        assert expected_payload == actual_payload
 
+        expected_payload = PayloadB(sender=sender)
+        actual_payload = PayloadB.decode(expected_payload.encode())
+        assert expected_payload == actual_payload
 
-def test_encode_decode_transaction():
-    """Test encode/decode of a transaction."""
-    sender = "sender"
-    signature = "signature"
-    payload = PayloadA(sender)
-    expected = Transaction(payload, signature)
-    actual = expected.decode(expected.encode())
-    assert expected == actual
+        expected_payload = PayloadC(sender=sender)
+        actual_payload = PayloadC.decode(expected_payload.encode())
+        assert expected_payload == actual_payload
 
+    def test_encode_decode_transaction(self):
+        """Test encode/decode of a transaction."""
+        sender = "sender"
+        signature = "signature"
+        payload = PayloadA(sender)
+        expected = Transaction(payload, signature)
+        actual = expected.decode(expected.encode())
+        assert expected == actual
 
-def test_sign_verify_transaction():
-    """Test sign/verify transaction."""
-    crypto = EthereumCrypto()
-    sender = crypto.address
-    payload = PayloadA(sender)
-    payload_bytes = payload.encode()
-    signature = crypto.sign_message(payload_bytes)
-    transaction = Transaction(payload, signature)
-    transaction.verify(crypto.identifier)
+    def test_sign_verify_transaction(self):
+        """Test sign/verify transaction."""
+        crypto = EthereumCrypto()
+        sender = crypto.address
+        payload = PayloadA(sender)
+        payload_bytes = payload.encode()
+        signature = crypto.sign_message(payload_bytes)
+        transaction = Transaction(payload, signature)
+        transaction.verify(crypto.identifier)
+
+    def teardown(self):
+        """Tear down the test."""
+        _MetaPayload.transaction_type_to_payload_cls = self.old_value
 
 
 @mock.patch(
