@@ -69,8 +69,7 @@ models:
     args: {}
     class_name: SigningDialogues
   state:
-    args:
-      initial_round_cls: null
+    args: {}
     class_name: SharedState
 dependencies: {}
 is_abstract: true
