@@ -215,7 +215,7 @@ class TestBlockchain:
 
     def test_height(self):
         """Test the 'height' property getter."""
-        assert self.blockchain.height == -1
+        assert self.blockchain.height == 0
 
     def test_len(self):
         """Test the 'length' property getter."""
@@ -223,10 +223,10 @@ class TestBlockchain:
 
     def test_add_block_positive(self):
         """Test 'add_block', success."""
-        block = Block(MagicMock(height=0), [])
+        block = Block(MagicMock(height=1), [])
         self.blockchain.add_block(block)
         assert self.blockchain.length == 1
-        assert self.blockchain.height == 0
+        assert self.blockchain.height == 1
 
     def test_add_block_negative_wrong_height(self):
         """Test 'add_block', wrong height."""
@@ -287,7 +287,7 @@ class TestBlockBuilder:
 
     def test_get_block_negative_header_not_set_yet(self):
         """Test 'get_block', negative case (header not set yet)."""
-        with pytest.raises(ValueError, match="header not set yet"):
+        with pytest.raises(ValueError, match="header not set"):
             self.block_builder.get_block()
 
     def test_get_block_positive(self):
@@ -491,7 +491,7 @@ class TestPeriod:
 
     def test_commit_negative_exception(self):
         """Test 'end_block' method, negative case (raise exception)."""
-        self.period.begin_block(MagicMock(height=0))
+        self.period.begin_block(MagicMock(height=1))
         self.period.end_block()
         with mock.patch.object(
             self.period._blockchain, "add_block", side_effect=AddBlockError
@@ -501,14 +501,14 @@ class TestPeriod:
 
     def test_commit_positive_no_change_round(self):
         """Test 'end_block' method, positive (no change round)."""
-        self.period.begin_block(MagicMock(height=0))
+        self.period.begin_block(MagicMock(height=1))
         self.period.end_block()
         self.period.commit()
         assert isinstance(self.period.current_round, ConcreteRound)
 
     def test_commit_positive_with_change_round(self):
         """Test 'end_block' method, positive (with change round)."""
-        self.period.begin_block(MagicMock(height=0))
+        self.period.begin_block(MagicMock(height=1))
         self.period.end_block()
         round_result, next_round = MagicMock(), MagicMock()
         with mock.patch.object(

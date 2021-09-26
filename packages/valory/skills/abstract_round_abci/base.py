@@ -265,8 +265,15 @@ class Blockchain:
 
     @property
     def height(self) -> int:
-        """Get the height."""
-        return self.length - 1
+        """
+        Get the height.
+
+        Tendermint's height starts from 1. A return value
+            equal to 0 means empty blockchain.
+
+        :return: the height.
+        """
+        return self.length
 
     @property
     def length(self) -> int:
@@ -323,8 +330,6 @@ class BlockBuilder:
 
     def get_block(self) -> Block:
         """Get the block."""
-        if self._current_header is None:
-            raise ValueError("header not set yet")
         return Block(
             self.header,
             self._current_transactions,
