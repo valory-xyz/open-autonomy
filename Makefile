@@ -82,11 +82,12 @@ test:
 
 .PHONY: checks
 checks:
-	make static \
+	make clean \
+	&& make static \
 	&& make lint \
 	&& make pylint \
 	&& make hashes \
-	&& pytest tests/test_skills/test_price_estimation_abci/
+	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci
 
 # how to use:
 #
