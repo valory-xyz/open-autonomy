@@ -31,6 +31,7 @@ class Params(BaseParams):
         self.currency_id = self._ensure("currency_id", kwargs)
         self.convert_id = self._ensure("convert_id", kwargs)
         self._max_healthcheck = self._ensure("max_healthcheck", kwargs)
+        self.keeper_timeout = self._ensure("keeper_timeout", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
 

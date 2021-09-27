@@ -22,7 +22,6 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from datetime import datetime
 from typing import Generator, cast
 
 from packages.fetchai.connections.ledger.base import (
@@ -124,7 +123,6 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
     state_id = "deploy_safe"
     matching_round = DeploySafeRound
-    _deploy_start_time = datetime.now()
 
     def async_act(self) -> Generator:
         """
@@ -134,6 +132,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         deployment transaction and send it.
         Otherwise, wait until the next round.
         """
+        self.context.state.reset_state_time(self.state_id)
         if self.context.agent_address != self.period_state.safe_sender_address:
             self._not_deployer_act()
         else:
@@ -153,11 +152,10 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             self.context.logger.info("Contract has been deployed.")
             self.set_done()
         else:
-            # Skip keeper every 5 seconds
-            if (datetime.now() - self._deploy_start_time).seconds >= 5.0:
+            # Skip keeper if it has timed out
+            if self.context.state.has_keeper_timed_out(self.state_id):
                 self.context.logger.info("Keeper timeout. Skipping...")
                 self.period_state._skipped_keepers += 1
-                self._deploy_start_time = datetime.now()
             else:
                 self.context.logger.info(
                     "I am not the designated deployer, waiting until the contract is deployed..."
@@ -357,10 +355,10 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     state_id = "finalize"
     matching_round = FinalizationRound
-    _finalization_start_time = datetime.now()
 
     def async_act(self) -> Generator[None, None, None]:
         """Do the act."""
+        self.context.state.reset_state_time(self.state_id)
         if self.context.agent_address != self.period_state.safe_sender_address:
             self._not_sender_act()
         else:
@@ -378,11 +376,10 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self.context.logger.info("Keeper has sent the transaction.")
             self.set_done()
         else:
-            # Skip keeper every 5 seconds
-            if (datetime.now() - self._finalization_start_time).seconds >= 5.0:
+            # Skip keeper if it has timed out
+            if self.context.state.has_keeper_timed_out(self.state_id):
                 self.context.logger.info("Keeper timeout. Skipping...")
                 self.period_state._skipped_keepers += 1
-                self._finalization_start_time = datetime.now()
             else:
                 self.context.logger.info(
                     "I am not the designated sender, waiting until the tx is sent..."

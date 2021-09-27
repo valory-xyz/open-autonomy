@@ -19,6 +19,7 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 
+from datetime import datetime
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
@@ -37,3 +38,19 @@ class SharedState(BaseSharedState):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
         super().__init__(*args, initial_round_cls=RegistrationRound, **kwargs)
+        self._state_start_times = {
+            "deploy_safe": datetime.min,
+            "finalize": datetime.min,
+        }
+
+    def reset_state_time(self, state_id: str) -> None:
+        """Set the state start time to the current time."""
+        self._state_start_times[state_id] = datetime.now()
+
+    def has_keeper_timed_out(self, state_id: str) -> bool:
+        """Check if the keeper has timed out."""
+        return (
+            self._state_start_times[state_id] != datetime.min
+            and (datetime.now() - self._state_start_times[state_id]).seconds
+            >= self.context.params.keeper_timeout
+        )

@@ -9,12 +9,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmXPL7uNWkDhLYd7K8gvbvKFJnVKzSYXCe8hUMC8trcK77
+  behaviours.py: QmdVDpN1GCcwzVPZgTJnBMoUdRzDjeW3ah5RMHpW7f6m62
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmdtzrhruNymJAv1QFapChFQsGSfsFcp67XJbxJxYDpd3i
-  params.py: Qmb9vr8YhFUwaPx6DSpNfzuYZXNd2BAXGs2mL8mVTHorAR
+  models.py: QmfCxL9WrfUaXUbsecpuAumQbLNut2u34ssCbQ5b5xrj4a
+  params.py: QmYGSwMySfJZxExxPzxT2DY2xoWUsVqbwujWqZYZxVHA6j
   payloads.py: QmafVjPL43em4pCdc18A4wXeyYG5yDX2Mcv4mGccZVhKmz
   price_api.py: QmTvGaH16idZdFybvNw8G536S1Kvz4xdDFY8zvTdkBy8v6
   rounds.py: QmfAKoFaXqwJQNb1yse4qhsdukCViuPaQ5buygzQqFDwyW
@@ -75,6 +75,7 @@ models:
         max_participants: 1
       convert_id: USD
       currency_id: BTC
+      keeper_timeout: 5
       max_healthcheck: 120
       tendermint_url: http://localhost:26657
     class_name: Params
