@@ -124,7 +124,6 @@ class TestABCIPriceEstimationSkillMany(
 
         check_strings = (
             "Entered in the 'register' behaviour state",
-            "Message signing was successful.",
             "'register' behaviour state is done",
             "Entered in the 'deploy_safe' behaviour state",
             "'deploy_safe' behaviour state is done",
