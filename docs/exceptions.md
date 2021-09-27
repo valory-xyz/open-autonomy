@@ -1,6 +1,6 @@
 # Error handling
 
-Errors that arise during the execution of an autonomous agent system are categorized in two different classes: `AppExceptions` and `AppErrors`. The main difference between the two is the need of handling them, so we use this language so that developers know what must handle and what not.
+Errors that arise during the execution of an autonomous agent system are categorized in two different classes: `AppExceptions` and `AppErrors`. The main difference between the two is the need of handling them, so we use this language so that developers know what must be handled by the application and what not.
 
 ## AppExceptions
 AppExceptions are runtime errors that arise from faulty or malicious agent-to-agent interactions and need to be caught and handled. Examples of this are transaction signature errors (`SignatureNotValidError`), unexpected content being sent by a faulty agent (`TransactionNotValidError`) or problems that happen while commiting a new block to the blockchain (`AddBlockError`).
