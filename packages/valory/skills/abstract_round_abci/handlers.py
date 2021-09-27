@@ -41,10 +41,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Transaction,
     TransactionNotValidError,
 )
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    AbciDialogue,
-    HttpDialogue,
-)
+from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -220,9 +217,10 @@ class AbstractResponseHandler(Handler, ABC):
         protocol_dialogues = self._recover_protocol_dialogues()
         if protocol_dialogues is None:
             self._handle_missing_dialogues()
+        protocol_dialogues = cast(Dialogues, protocol_message)
 
         protocol_dialogue = cast(
-            Optional[HttpDialogue], protocol_dialogues.update(protocol_message)
+            Optional[Dialogue], protocol_dialogues.update(protocol_message)
         )
         if protocol_dialogue is None:
             self._handle_unidentified_dialogue(protocol_message)
@@ -252,7 +250,7 @@ class AbstractResponseHandler(Handler, ABC):
 
         :return: the dialogues attribute name.
         """
-        return self.SUPPORTED_PROTOCOL.name + "_dialogues"
+        return cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
 
     def _recover_protocol_dialogues(self) -> Optional[Dialogues]:
         """
@@ -306,7 +304,7 @@ class AbstractResponseHandler(Handler, ABC):
             f"callback not specified for request with nonce {request_nonce}"
         )
 
-    def _log_message_handling(self, message: Message):
+    def _log_message_handling(self, message: Message) -> None:
         """Log the handling of the message."""
         self.context.logger.info("calling registered callback with message=%s", message)
 
