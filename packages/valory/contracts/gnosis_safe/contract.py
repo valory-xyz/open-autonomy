@@ -29,10 +29,12 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from eth_typing import ChecksumAddress, HexAddress, HexStr, URI
+
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.contracts import get_proxy_factory_contract, get_safe_V1_3_0_contract
 from gnosis.safe import ProxyFactory, Safe, SafeTx
+
 from hexbytes import HexBytes
 from web3 import HTTPProvider
 from web3.types import Nonce, TxParams, Wei

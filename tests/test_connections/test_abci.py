@@ -37,13 +37,26 @@ from packages.valory.connections.abci.connection import (
     ABCIServerConnection,
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
+    _TendermintABCISerializer,
+    _TendermintProtocolEncoder,
+    _TendermintProtocolDecoder,
 )
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
+    Response,  # type: ignore
+)
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import ResponseInitChain
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
+    BlockParams,
+    ConsensusParams,
+    Duration,
     Events,
+    EvidenceParams,
     ProofOps,
+    ValidatorParams,
     ValidatorUpdate,
     ValidatorUpdates,
+    VersionParams,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
@@ -392,6 +405,28 @@ async def test_connection_standalone_tendermint_setup():
     await connection.connect()
     await asyncio.sleep(2.0)
     await connection.disconnect()
+
+
+def test_not_implemented_errors():
+    """Test _TendermintProtocolDecoder method implementations."""
+    with pytest.raises(NotImplementedError) as e_info:
+        _TendermintProtocolDecoder.request_list_snapshots(None, None, None)
+
+    with pytest.raises(NotImplementedError) as e_info:
+        _TendermintProtocolDecoder.request_offer_snapshot(None, None, None)
+
+    with pytest.raises(NotImplementedError) as e_info:
+        _TendermintProtocolDecoder.request_load_snapshot_chunk(None, None, None)
+
+    with pytest.raises(NotImplementedError) as e_info:
+        _TendermintProtocolDecoder.request_apply_snapshot_chunk(None, None, None)
+
+
+def test_encode_varint_method():
+    """Test encode_varint method for _TendermintABCISerializer"""
+    assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
+    assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
+    assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
 
 
 def test_dep_util():
