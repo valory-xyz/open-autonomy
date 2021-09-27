@@ -35,6 +35,7 @@ nav:
         - Models: 'api/skills/abstract_round_abci/models.md'
         - Serializer: 'api/skills/abstract_round_abci/serializer.md'
         - Utils: 'api/skills/abstract_round_abci/utils.md'
+    - Exceptions: exceptions.md
 
 
 plugins:
