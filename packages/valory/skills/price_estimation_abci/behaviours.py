@@ -72,7 +72,7 @@ class PriceEstimationBaseState(BaseState, ABC):
         return cast(PeriodState, self.context.state.period_state)
 
 
-class TendermintHealthcheck(PriceEstimationBaseState):
+class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -437,9 +437,9 @@ class EndBehaviour(PriceEstimationBaseState):
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = TendermintHealthcheck
+    initial_state_cls = TendermintHealthcheckBehaviour
     transition_function: TransitionFunction = {
-        TendermintHealthcheck: {DONE_EVENT: RegistrationBehaviour},
+        TendermintHealthcheckBehaviour: {DONE_EVENT: RegistrationBehaviour},
         RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
         ObserveBehaviour: {DONE_EVENT: EstimateBehaviour, FAIL_EVENT: WaitBehaviour},
