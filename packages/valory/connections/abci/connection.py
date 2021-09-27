@@ -402,12 +402,10 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             Optional[str], self.configuration.config.get("target_skill_id")
         )
 
-        if (
-            self.host is None or self.port is None or target_skill_id_string is None
-        ):  # pragma: nocover
+        if self.host is None or self.port is None or target_skill_id_string is None:
             raise ValueError("host and port and target_skill_id must be set!")
         target_skill_id = PublicId.try_from_str(target_skill_id_string)
-        if target_skill_id is None:  # pragma: nocover
+        if target_skill_id is None:
             raise ValueError("Provided target_skill_id is not a valid public id.")
         self.target_skill_id = target_skill_id
 

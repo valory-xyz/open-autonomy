@@ -30,11 +30,11 @@ from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
 
 from aea.exceptions import enforce
 
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
 )
-from packages.valory.skills.price_estimation_abci.models.payloads import (
+from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
     FinalizationTxPayload,

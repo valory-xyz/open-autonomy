@@ -23,6 +23,7 @@ from copy import copy
 from enum import Enum
 from math import ceil
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -52,6 +53,18 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
+class SignatureNotValidError(ValueError):
+    """Error raised when a signature is invalid."""
+
+
+class AddBlockError(ValueError):
+    """Error raised when a block addition is not valid."""
+
+
+class TransactionNotValidError(ValueError):
+    """Error raised when a transaction is not valid."""
+
+
 class _MetaPayload(ABCMeta):
     """
     Payload metaclass.
@@ -79,7 +92,9 @@ class _MetaPayload(ABCMeta):
             # abstract class, return
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
-            raise ValueError(f"class {name} must inherit from {BaseTxPayload.__name__}")
+            raise ValueError(  # pragma: no cover
+                f"class {name} must inherit from {BaseTxPayload.__name__}"
+            )
         new_cls = cast(Type[BaseTxPayload], new_cls)
 
         transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
@@ -104,7 +119,7 @@ class _MetaPayload(ABCMeta):
     @classmethod
     def _get_field(mcs, cls: Type, field_name: str) -> Any:
         """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(cls, field_name) and getattr(cls, field_name) is None:
+        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
             raise ValueError(f"class {cls} must set '{field_name}' class field")
         return getattr(cls, field_name)
 
@@ -198,7 +213,7 @@ class Transaction(ABC):
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
         if self.payload.sender not in addresses:
-            raise ValueError("signature not valid.")
+            raise SignatureNotValidError("signature not valid.")
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
@@ -240,29 +255,35 @@ class Blockchain:
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
-        expected_height = self.height
+        expected_height = self.height + 1
         actual_height = block.header.height
         if expected_height != actual_height:
-            raise ValueError(f"expected height {expected_height}, got {actual_height}")
+            raise AddBlockError(
+                f"expected height {expected_height}, got {actual_height}"
+            )
         self._blocks.append(block)
 
     @property
     def height(self) -> int:
-        """Get the height."""
-        return self.length + 1
+        """
+        Get the height.
+
+        Tendermint's height starts from 1. A return value
+            equal to 0 means empty blockchain.
+
+        :return: the height.
+        """
+        return self.length
 
     @property
     def length(self) -> int:
         """Get the blockchain length."""
         return len(self._blocks)
 
-    def get_block(self, height: int) -> Block:
-        """Get the ith block."""
-        if not self.length > height >= 0:
-            raise ValueError(
-                f"height {height} not valid, must be between {self.length} and 0"
-            )
-        return self._blocks[height]
+    @property
+    def blocks(self) -> Tuple[Block, ...]:
+        """Get the blocks."""
+        return tuple(self._blocks)
 
 
 class BlockBuilder:
@@ -353,6 +374,13 @@ class ConsensusParams:
         )
         return ConsensusParams(max_participants, keeper_timeout_seconds)
 
+    def __eq__(self, other: Any) -> bool:
+        """Check equality."""
+        return (
+            isinstance(other, ConsensusParams)
+            and self.max_participants == other.max_participants
+        )
+
 
 class BasePeriodState:
     """
@@ -363,10 +391,10 @@ class BasePeriodState:
 
     def __init__(
         self,
-        participants: Optional[FrozenSet[str]] = None,
+        participants: Optional[AbstractSet[str]] = None,
     ) -> None:
         """Initialize a period state."""
-        self._participants = participants
+        self._participants = frozenset(participants) if participants else None
 
     @property
     def participants(self) -> FrozenSet[str]:
@@ -442,7 +470,7 @@ class AbstractRound(ABC):
         if handler is None:
             raise ValueError("request not recognized")
         if not self.check_transaction(transaction):
-            raise ValueError("transaction not valid")
+            raise TransactionNotValidError("transaction not valid")
         handler(transaction.payload)
 
     @abstractmethod
@@ -607,12 +635,15 @@ class Period:
         ):
             raise ValueError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
-        self._blockchain.add_block(block)
-        self._update_round()
-        # The ABCI app now waits again for the next block
-        self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
-        )
+        try:
+            self._blockchain.add_block(block)
+            self._update_round()
+            # The ABCI app now waits again for the next block
+            self._block_construction_phase = (
+                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            )
+        except AddBlockError as exception:
+            raise exception
 
     def _update_round(self) -> None:
         """

@@ -159,7 +159,7 @@ def _save_specification_in_temporary_file(
     # hence, we are writing in a temporary directory
     spec_path = Path("..", name + ".yaml")
     log(f"Save specification '{name}' in temporary file {spec_path}")
-    spec_path.write_text(specification_content)
+    spec_path.write_text(specification_content, encoding="utf-8")
 
 
 def _generate_protocol(package_path: Path) -> None:
@@ -232,7 +232,7 @@ def _fix_generated_protocol(
         file_to_replace = Path(
             PROTOCOLS_PLURALS, package_path.name, CUSTOM_TYPE_MODULE_NAME
         )
-        file_to_replace.write_text(custom_types_module.read_text())
+        file_to_replace.write_text(custom_types_module.read_text(), encoding="utf-8")
 
     package_readme_file = package_path / README_FILENAME
     if package_readme_file.exists():
