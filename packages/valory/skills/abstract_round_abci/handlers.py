@@ -201,7 +201,6 @@ class AbstractResponseHandler(Handler, ABC):
                 from the skill context. The attribute name used to read the attribute
                 is computed by '_get_dialogues_attribute_name()' method.
                 If no dialogues instance is found, log a message and return.
-            1. Try to recover the dialogue; if no dialogue is present, log a message and return.
             2. Try to recover the dialogue; if no dialogue is present, log a message and return.
             3. Check whether the performative is in the set of allowed performative;
                 if not, log a message and return.
@@ -211,28 +210,23 @@ class AbstractResponseHandler(Handler, ABC):
 
         :param message: the message to handle.
         """
-        protocol_message = cast(HttpMessage, message)
-
-        # recover dialogue
         protocol_dialogues = self._recover_protocol_dialogues()
         if protocol_dialogues is None:
             self._handle_missing_dialogues()
-        protocol_dialogues = cast(Dialogues, protocol_message)
+        protocol_dialogues = cast(Dialogues, protocol_dialogues)
 
-        protocol_dialogue = cast(
-            Optional[Dialogue], protocol_dialogues.update(protocol_message)
-        )
+        protocol_dialogue = cast(Optional[Dialogue], protocol_dialogues.update(message))
         if protocol_dialogue is None:
-            self._handle_unidentified_dialogue(protocol_message)
+            self._handle_unidentified_dialogue(message)
             return
 
-        if protocol_message.performative not in self.allowed_response_performatives:
-            self._handle_unallowed_performative(protocol_message)
+        if message.performative not in self.allowed_response_performatives:
+            self._handle_unallowed_performative(message)
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
         callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)
         if callback is None:
-            self._handle_no_callback(protocol_message, protocol_dialogue)
+            self._handle_no_callback(message, protocol_dialogue)
             return
 
         self._log_message_handling(message)
