@@ -17,23 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the price estimation ABCI application."""
-
-from typing import Any
-
-from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
-from packages.valory.skills.price_estimation_abci.rounds import RegistrationRound
-
-
-Requests = BaseRequests
-
-
-class SharedState(BaseSharedState):
-    """Keep the current shared state of the skill."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, initial_round_cls=RegistrationRound, **kwargs)
+"""Tests for valory/price_estimation_abci skill."""

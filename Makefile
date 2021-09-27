@@ -80,6 +80,14 @@ test:
 	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
+.PHONY: checks
+checks:
+	make clean \
+	&& make static \
+	&& make lint \
+	&& make pylint \
+	&& make hashes \
+	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci
 
 # how to use:
 #

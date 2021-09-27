@@ -24,7 +24,6 @@ from enum import Enum
 from typing import Any, Dict, Optional, Union
 
 from aea.skills.base import Model
-from pycoingecko import CoinGeckoAPI
 
 from packages.fetchai.protocols.http import HttpMessage
 
@@ -118,7 +117,6 @@ class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object."""
         super().__init__(*args, **kwargs)
-        self.api = CoinGeckoAPI()
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD

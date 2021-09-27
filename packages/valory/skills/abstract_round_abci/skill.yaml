@@ -13,7 +13,7 @@ fingerprint:
   behaviours.py: QmQenv8ifpqL3R7CimRdnFPQXvmmdcYaz6RsAGa75c7WLE
   dialogues.py: QmdhxMo4rdq65AYz77ajqvaH6Un5pRJzxxknttbwKdoJuQ
   handlers.py: QmQ1XtG2kiYrFBsWwihvro9jmDKEK5kbWUj4GC9w4yp7P8
-  models.py: QmdoDbanHN1h5YBuCdJ3EVj8L7vF9CaFvsMwwgvsDewgHA
+  models.py: QmaKQzohXVrZvd5kztMKXJgyntZ3cr6CFJWgYCXaLQAwWh
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
@@ -69,8 +69,7 @@ models:
     args: {}
     class_name: SigningDialogues
   state:
-    args:
-      initial_round_cls: null
+    args: {}
     class_name: SharedState
 dependencies: {}
 is_abstract: true

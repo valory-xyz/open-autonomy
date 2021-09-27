@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any, Callable, Dict, Type
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
@@ -30,20 +30,18 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     Period,
 )
-from packages.valory.skills.abstract_round_abci.utils import locate
 
 
 class SharedState(Model):
-    """Keep the current shared state."""
+    """Keep the current shared state of the skill."""
 
     period: Period
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, initial_round_cls: Type[AbstractRound], **kwargs: Any
+    ) -> None:
         """Initialize the state."""
-        initial_round_cls_dotted_path = kwargs.pop("initial_round_cls", None)
-        self.initial_round_cls = self._process_initial_round_cls(
-            initial_round_cls_dotted_path
-        )
+        self.initial_round_cls = self._process_initial_round_cls(initial_round_cls)
         super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
@@ -62,14 +60,9 @@ class SharedState(Model):
 
     @classmethod
     def _process_initial_round_cls(
-        cls, initial_round_cls_dotted_path: Optional[str]
+        cls, initial_round_cls: Type[AbstractRound]
     ) -> Type[AbstractRound]:
         """Process the 'initial_round_cls' parameter."""
-        if initial_round_cls_dotted_path is None:
-            raise ValueError("'initial_round_cls' must be set")
-        initial_round_cls = locate(initial_round_cls_dotted_path)
-        if initial_round_cls is None:
-            raise ValueError("'initial_round_cls' not found")
         if not inspect.isclass(initial_round_cls):
             raise ValueError(f"The object {initial_round_cls} is not a class")
         if not issubclass(initial_round_cls, AbstractRound):
