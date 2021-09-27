@@ -213,6 +213,7 @@ class AbstractResponseHandler(Handler, ABC):
         protocol_dialogues = self._recover_protocol_dialogues()
         if protocol_dialogues is None:
             self._handle_missing_dialogues()
+            return
         protocol_dialogues = cast(Dialogues, protocol_dialogues)
 
         protocol_dialogue = cast(Optional[Dialogue], protocol_dialogues.update(message))
@@ -222,6 +223,7 @@ class AbstractResponseHandler(Handler, ABC):
 
         if message.performative not in self.allowed_response_performatives:
             self._handle_unallowed_performative(message)
+            return
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
         callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)

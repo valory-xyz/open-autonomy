@@ -25,6 +25,7 @@ from unittest.mock import MagicMock
 import pytest
 from aea.configurations.data_types import PublicId
 
+from packages.fetchai.protocols.http import HttpMessage
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import CheckTxType, CheckTxTypeEnum
 from packages.valory.skills.abstract_round_abci.base import (
@@ -39,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 )
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler,
+    AbstractResponseHandler,
     exception_to_info_msg,
 )
 
@@ -187,3 +189,60 @@ class TestABCIRoundHandler:
             self.handler.commit(
                 cast(AbciMessage, message), cast(AbciDialogue, dialogue)
             )
+
+
+class ConcreteResponseHandler(AbstractResponseHandler):
+    """A concrete response handler for testing purposes."""
+
+    SUPPORTED_PROTOCOL = HttpMessage.protocol_id
+    allowed_response_performatives = frozenset({HttpMessage.Performative.RESPONSE})
+
+
+class TestAbstractResponseHandler:
+    """Test 'AbstractResponseHandler'."""
+
+    def setup(self):
+        """Set up the tests."""
+        self.context = MagicMock()
+        self.handler = ConcreteResponseHandler(name="", skill_context=self.context)
+
+    def test_handle(self):
+        """Test the 'handle' method."""
+        callback = MagicMock()
+        request_reference = "reference"
+        self.context.requests.request_id_to_callback = {}
+        self.context.requests.request_id_to_callback[request_reference] = callback
+        with mock.patch.object(
+            self.handler, "_recover_protocol_dialogues"
+        ) as mock_dialogues_fn:
+            mock_dialogue = MagicMock()
+            mock_dialogue.dialogue_label.dialogue_reference = (request_reference, "")
+            mock_dialogues = MagicMock()
+            mock_dialogues.update = MagicMock(return_value=mock_dialogue)
+            mock_dialogues_fn.return_value = mock_dialogues
+            mock_message = MagicMock(performative=HttpMessage.Performative.RESPONSE)
+            self.handler.handle(mock_message)
+        callback.assert_called()
+
+    @mock.patch.object(
+        AbstractResponseHandler, "_recover_protocol_dialogues", return_value=None
+    )
+    def test_handle_negative_cannot_recover_dialogues(self, *_):
+        """Test the 'handle' method, negative case (cannot recover dialogues)."""
+        self.handler.handle(MagicMock())
+
+    @mock.patch.object(AbstractResponseHandler, "_recover_protocol_dialogues")
+    def test_handle_negative_cannot_update_dialogues(self, mock_dialogues_fn):
+        """Test the 'handle' method, negative case (cannot update dialogues)."""
+        mock_dialogues = MagicMock(update=MagicMock(return_value=None))
+        mock_dialogues_fn.return_value = mock_dialogues
+        self.handler.handle(MagicMock())
+
+    def test_handle_negative_performative_not_allowed(self):
+        """Test the 'handle' method, negative case (performative not allowed)."""
+        self.handler.handle(MagicMock())
+
+    def test_handle_negative_cannot_find_callback(self):
+        """Test the 'handle' method, negative case (cannot find callback)."""
+        self.context.requests.request_id_to_callback.pop.return_value = None
+        self.handler.handle(MagicMock(performative=HttpMessage.Performative.RESPONSE))
