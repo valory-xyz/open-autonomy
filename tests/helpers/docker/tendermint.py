@@ -18,10 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import logging
 import time
 from typing import List
 
 import docker
+import requests
+from aea.exceptions import enforce
 from docker.models.containers import Container
 
 from tests.helpers.docker.base import DockerImage
@@ -29,8 +32,6 @@ from tests.helpers.docker.base import DockerImage
 
 DEFAULT_TENDERMINT_PORT = 26657
 DEFAULT_PROXY_APP = "tcp://0.0.0.0:26658"
-
-_SLEEP_TIME = 1
 
 
 class TendermintDockerImage(DockerImage):
@@ -54,7 +55,12 @@ class TendermintDockerImage(DockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["node", f"--proxy_app={self.proxy_app}"]
+        cmd = [
+            "node",
+            f"--proxy_app={self.proxy_app}",
+            "--port",
+            str(self.port) + "/tcp",
+        ]
         return cmd
 
     def create(self) -> Container:
@@ -73,5 +79,15 @@ class TendermintDockerImage(DockerImage):
         :param sleep_rate: the amount of time to sleep between different requests.
         :return: True if the wait was successful, False otherwise.
         """
-        time.sleep(_SLEEP_TIME)
-        return True
+        for i in range(max_attempts):
+            try:
+                response = requests.get(f"http://localhost:{self.port}")
+                enforce(response.status_code == 200, "")
+                return True
+            except Exception as e:  # pylint: disable=broad-except
+                logging.error("Exception: %s: %s", type(e).__name__, str(e))
+                logging.info(
+                    "Attempt %s failed. Retrying in %s seconds...", i, sleep_rate
+                )
+                time.sleep(sleep_rate)
+        return False
