@@ -31,7 +31,8 @@ from tests.helpers.docker.base import DockerImage
 
 
 DEFAULT_TENDERMINT_PORT = 26657
-DEFAULT_PROXY_APP = "tcp://0.0.0.0:26658"
+DEFAULT_ABCI_PORT = 26658
+DEFAULT_PROXY_APP = f"tcp://host.docker.internal:{DEFAULT_ABCI_PORT}"
 
 
 class TendermintDockerImage(DockerImage):
@@ -64,8 +65,15 @@ class TendermintDockerImage(DockerImage):
     def create(self) -> Container:
         """Create the container."""
         cmd = self._build_command()
+        ports = {
+            f"{DEFAULT_TENDERMINT_PORT}/tcp": ("0.0.0.0", self.port),  # nosec
+        }
         container = self._client.containers.run(
-            self.tag, command=cmd, detach=True, network="host"
+            self.tag,
+            command=cmd,
+            detach=True,
+            ports=ports,
+            extra_hosts={"host.docker.internal": "host-gateway"},
         )
         return container
 
@@ -79,7 +87,7 @@ class TendermintDockerImage(DockerImage):
         """
         for i in range(max_attempts):
             try:
-                response = requests.get(f"http://localhost:{self.port}")
+                response = requests.get(f"http://localhost:{self.port}/health")
                 enforce(response.status_code == 200, "")
                 return True
             except Exception as e:  # pylint: disable=broad-except
