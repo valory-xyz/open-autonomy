@@ -326,7 +326,7 @@ class _TendermintProtocolDecoder:
     @classmethod
     def no_match(
         cls, _request: Request, _dialogues: AbciDialogues, _counterparty: str
-    ) -> None:
+    ) -> None:  # pragma: nocover
         """Handle the case in which the request is not supported."""
         return None
 
@@ -351,7 +351,7 @@ class _TendermintProtocolDecoder:
         return Header.decode(header_tendermint_pb)
 
     @classmethod
-    def _decode_block_id(cls, block_id_pb: BlockIDPb) -> BlockID:
+    def _decode_block_id(cls, block_id_pb: BlockIDPb) -> BlockID:  # pragma: nocover
         """Decode a Block ID object."""
         part_set_header_pb = block_id_pb.part_set_header
         part_set_header = PartSetHeader(
@@ -367,11 +367,13 @@ class _TendermintProtocolDecoder:
         return LastCommitInfo.decode(last_commit_info_tendermint_pb)
 
     @classmethod
-    def _decode_validator(cls, validator_pb: ValidatorPb) -> Validator:
+    def _decode_validator(
+        cls, validator_pb: ValidatorPb
+    ) -> Validator:  # pragma: nocover
         """Decode a Validator object."""
         return Validator(validator_pb.address, validator_pb.power)
 
     @classmethod
-    def _decode_evidence(cls, evidence_pb: EvidencePb) -> Evidence:
+    def _decode_evidence(cls, evidence_pb: EvidencePb) -> Evidence:  # pragma: nocover
         """Decode an Evidence object."""
         return Evidence.decode(evidence_pb)

@@ -254,7 +254,7 @@ class _TendermintProtocolEncoder:
         return Response(commit=commit)
 
     @classmethod
-    def no_match(cls, _request: Request) -> None:
+    def no_match(cls, _request: Request) -> None:  # pragma: nocover
         """No match."""
         return None
 

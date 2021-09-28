@@ -74,7 +74,7 @@ def version_to_string(version: VERSION) -> str:
 
 def print_ok_message(
     binary_name: str, actual_version: VERSION, version_lower_bound: VERSION
-) -> None:
+) -> None:  # pragma: nocover
     """
     Print OK message.
 
@@ -94,7 +94,7 @@ def check_binary(
     version_regex: Pattern,
     version_lower_bound: VERSION,
     only_warning: bool = False,
-) -> None:
+) -> None:  # pragma: nocover
     """
     Check a binary is accessible from the terminal.
 
@@ -140,7 +140,7 @@ def check_binary(
     print_ok_message(binary_name, actual_version, version_lower_bound)
 
 
-def check_versions() -> None:
+def check_versions() -> None:  # pragma: nocover
     """Check versions."""
     check_binary(
         "tendermint",
