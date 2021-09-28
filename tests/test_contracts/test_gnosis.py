@@ -20,6 +20,7 @@
 """Tests for valory/gnosis contract."""
 
 from abc import abstractmethod
+from typing import Tuple, List
 
 import pytest
 from aea.configurations.base import ContractConfig
@@ -30,6 +31,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
+from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.docker.gnosis_safe_net import DEFAULT_HARDHAT_PORT
 
 
@@ -54,7 +56,7 @@ class BaseContractTest(UseGnosisSafeHardHatNet):
             )
         )
         self.ledger_api = ledger_apis_registry.make(
-            EthereumCrypto.identifier, address=f"http://localhost:{self.hardhat_port}"
+            EthereumCrypto.identifier, address=f"http://localhost:{DEFAULT_HARDHAT_PORT}"
         )
         self.aea_ledger_ethereum = crypto_registry.make(EthereumCrypto.identifier)
 
@@ -63,6 +65,19 @@ class BaseContractTest(UseGnosisSafeHardHatNet):
         self,
     ):
         """Run tests."""
+
+
+class TestDeployTransection(BaseContractTest):
+    """Test `get_deploy_transection` method."""
+
+    def test_run(self):
+        """Run tests."""
+        result = self.contract.get_deploy_transaction(
+            self.ledger_api, self.aea_ledger_ethereum.address,
+            owners=self.owners(),
+            threshold=self.THRESHOLD
+        )
+        print(result)
 
 
 class TestNoneImplementedMethods(BaseContractTest):
@@ -83,13 +98,6 @@ class TestNoneImplementedMethods(BaseContractTest):
             self.contract.get_state(None, None)
 
 
-class TestDeployTransection(BaseContractTest):
-    """Test `get_deploy_transection` method."""
-
-    def test_run(self):
-        """Run tests."""
-
-
 class TestRawSafeTransectionHash(BaseContractTest):
     """Test `get_raw_safe_transaction_hash` method."""
 
@@ -102,9 +110,3 @@ class TestRawSafeTransaction(BaseContractTest):
 
     def test_run(self):
         """Run tests."""
-
-
-if __name__ == "__main__":
-    test = TestDeployTransection()
-    test.setup()
-    test.test_run()
