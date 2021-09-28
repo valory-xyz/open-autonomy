@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
 )
+from packages.valory.skills.price_estimation_abci.estimator import aggregate
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -61,8 +62,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participants: Optional[FrozenSet[str]] = None,
         safe_contract_address: Optional[str] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
-        participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
-        most_voted_estimate: Optional[float] = None,
+        estimate: Optional[float] = None,
         participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
         most_voted_tx_hash: Optional[str] = None,
         participant_to_signature: Optional[Mapping[str, str]] = None,
@@ -72,8 +72,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         super().__init__(participants=participants)
         self._safe_contract_address = safe_contract_address
         self._participant_to_observations = participant_to_observations
-        self._participant_to_estimate = participant_to_estimate
-        self._most_voted_estimate = most_voted_estimate
+        self._estimate = estimate
         self._participant_to_tx_hash = participant_to_tx_hash
         self._most_voted_tx_hash = most_voted_tx_hash
         self._participant_to_signature = participant_to_signature
@@ -98,15 +97,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, ObservationPayload], self._participant_to_observations)
 
     @property
-    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
-        """Get the participant_to_estimate."""
-        enforce(
-            self._participant_to_estimate is not None,
-            "'participant_to_estimate' field is None",
-        )
-        return cast(Mapping[str, EstimatePayload], self._participant_to_estimate)
-
-    @property
     def participant_to_signature(self) -> Mapping[str, str]:
         """Get the participant_to_signature."""
         enforce(
@@ -125,17 +115,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._final_tx_hash)
 
     @property
-    def most_voted_estimate(self) -> float:
-        """Get the most_voted_estimate."""
-        enforce(
-            self._most_voted_estimate is not None, "'most_voted_estimate' field is None"
-        )
-        return cast(float, self._most_voted_estimate)
+    def estimate(self) -> float:
+        """Get the estimate."""
+        enforce(self._estimate is not None, "'estimate' field is None")
+        return cast(float, self._estimate)
 
     @property
     def encoded_estimate(self) -> bytes:
         """Get the encoded (most voted) estimate."""
-        return encode_float(self.most_voted_estimate)
+        return encode_float(self.estimate)
 
     @property
     def observations(self) -> Tuple[ObservationPayload, ...]:
@@ -373,93 +361,16 @@ class CollectObservationRound(PriceEstimationAbstractRound):
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.observation_threshold_reached:
+            observations = [
+                payload.observation
+                for payload in self.participant_to_observations.values()
+            ]
+            estimate = aggregate(*observations)
             state = self.period_state.update(
                 participant_to_observations=MappingProxyType(
                     self.participant_to_observations
                 ),
-            )
-            next_round = EstimateConsensusRound(state, self._consensus_params)
-            return state, next_round
-        return None
-
-
-class EstimateConsensusRound(PriceEstimationAbstractRound):
-    """
-    This class represents the 'estimate_consensus' round.
-
-    Input: a period state with the set of participants and the observations
-    Ouptut: a new period state with also the votes for each estimate
-    """
-
-    round_id = "estimate_consensus"
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'estimate consensus' round."""
-        super().__init__(*args, **kwargs)
-        self.participant_to_estimate: Dict[str, EstimatePayload] = {}
-
-    def estimate(self, payload: EstimatePayload) -> None:
-        """Handle an 'estimate' payload."""
-        sender = payload.sender
-        if sender not in self.period_state.participants:
-            # sender not in the set of participants.
-            return
-
-        if sender in self.participant_to_estimate:
-            # sender has already sent its estimate
-            return
-
-        self.participant_to_estimate[sender] = payload
-
-    def check_estimate(self, payload: EstimatePayload) -> bool:
-        """
-        Check an estimate payload can be applied to the current state.
-
-        An estimate transaction can be applied only if:
-        - the round is in the 'estimate_consensus' state;
-        - the sender belongs to the set of participants
-        - the sender has not sent its estimate yet
-
-        :param: payload: the payload.
-        :return: True if the estimate tx is allowed, False otherwise.
-        """
-        sender_in_participant_set = payload.sender in self.period_state.participants
-        sender_has_not_sent_estimate_yet = (
-            payload.sender not in self.participant_to_estimate
-        )
-        return sender_in_participant_set and sender_has_not_sent_estimate_yet
-
-    @property
-    def estimate_threshold_reached(self) -> bool:
-        """Check that the estimate threshold has been reached."""
-        estimates_counter: CounterType = Counter()
-        estimates_counter.update(
-            payload.estimate for payload in self.participant_to_estimate.values()
-        )
-        # check that a single estimate has at least 2/3 of votes
-        two_thirds_n = self._consensus_params.two_thirds_threshold
-        return any(count >= two_thirds_n for count in estimates_counter.values())
-
-    @property
-    def most_voted_estimate(self) -> float:
-        """Get the most voted estimate."""
-        estimates_counter = Counter()  # type: ignore
-        estimates_counter.update(
-            payload.estimate for payload in self.participant_to_estimate.values()
-        )
-        most_voted_estimate, max_votes = max(
-            estimates_counter.items(), key=itemgetter(1)
-        )
-        if max_votes < self._consensus_params.two_thirds_threshold:
-            raise ValueError("estimate has not enough votes")
-        return most_voted_estimate
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
-        """Process the end of the block."""
-        if self.estimate_threshold_reached:
-            state = self.period_state.update(
-                participant_to_estimate=MappingProxyType(self.participant_to_estimate),
-                most_voted_estimate=self.most_voted_estimate,
+                estimate=estimate,
             )
             next_round = TxHashRound(state, self._consensus_params)
             return state, next_round
