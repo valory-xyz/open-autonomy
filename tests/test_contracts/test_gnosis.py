@@ -23,6 +23,7 @@ from abc import abstractmethod
 
 import pytest
 from aea.configurations.base import ContractConfig
+from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum import EthereumCrypto
 
@@ -35,21 +36,27 @@ from tests.helpers.docker.gnosis_safe_net import DEFAULT_HARDHAT_PORT
 class BaseContractTest(UseGnosisSafeHardHatNet):
     """Base test case for GnosisSafeContract"""
 
-    contract = GnosisSafeContract(
-        ContractConfig(
-            "gnosis_safe",
-            "valory",
-            "0.1.0",
-            "Apache-2.0",
-            ">=1.0.0, <2.0.0",
-            "",
-            [],
+    contract: GnosisSafeContract
+    ledger_api: LedgerApi
+    aea_ledger_ethereum: Crypto
+
+    def setup(self, ):
+        """Setup test."""
+        self.contract = GnosisSafeContract(
+            ContractConfig(
+                "gnosis_safe",
+                "valory",
+                "0.1.0",
+                "Apache-2.0",
+                ">=1.0.0, <2.0.0",
+                "",
+                [],
+            )
         )
-    )
-    ledger_api = ledger_apis_registry.make(
-        EthereumCrypto.identifier, address=f"http://localhost:{DEFAULT_HARDHAT_PORT}"
-    )
-    aea_ledger_ethereum = crypto_registry.make(EthereumCrypto.identifier)
+        self.ledger_api = ledger_apis_registry.make(
+            EthereumCrypto.identifier, address=f"http://localhost:{self.hardhat_port}"
+        )
+        self.aea_ledger_ethereum = crypto_registry.make(EthereumCrypto.identifier)
 
     @abstractmethod
     def test_run(
@@ -95,3 +102,9 @@ class TestRawSafeTransaction(BaseContractTest):
 
     def test_run(self):
         """Run tests."""
+
+
+if __name__ == "__main__":
+    test = TestDeployTransection()
+    test.setup()
+    test.test_run()
