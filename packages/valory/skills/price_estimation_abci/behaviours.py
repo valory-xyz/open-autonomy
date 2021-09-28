@@ -40,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
+    EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
     RegistrationPayload,
@@ -50,6 +51,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
     DeploySafeRound,
+    EstimateConsensusRound,
     FinalizationRound,
     PeriodState,
     RegistrationRound,
@@ -239,6 +241,40 @@ class WaitBehaviour(PriceEstimationBaseState):
         raise NotImplementedError
 
 
+class EstimateBehaviour(PriceEstimationBaseState):
+    """Estimate price."""
+
+    state_id = "estimate"
+    matching_round = EstimateConsensusRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Run the script to compute the estimate starting from the shared observations
+        - Build an estimate transaction
+        - Send the transaction and wait for it to be mined
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
+        """
+
+        currency_id = self.context.params.currency_id
+        convert_id = self.context.params.convert_id
+        self.context.logger.info(
+            "Got estimate of %s price in %s: %s",
+            currency_id,
+            convert_id,
+            self.period_state.estimate,
+        )
+        payload = EstimatePayload(
+            self.context.agent_address, self.period_state.estimate
+        )
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
 class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
@@ -252,15 +288,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         Steps:
         - TODO
         """
-        currency_id = self.context.params.currency_id
-        convert_id = self.context.params.convert_id
-        self.context.logger.info(
-            "Got estimate of %s price in %s: %s",
-            currency_id,
-            convert_id,
-            self.period_state.estimate,
-        )
-        data = self.period_state.encoded_estimate
+        data = self.period_state.encoded_most_voted_estimate
         contract_api_msg = yield from self.get_contract_api_response(
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
@@ -370,7 +398,7 @@ class EndBehaviour(PriceEstimationBaseState):
     def async_act(self) -> Generator:
         """Do the act."""
         self.context.logger.info(
-            f"Finalized estimate: {self.period_state.estimate} with transaction hash: {self.period_state.final_tx_hash}"
+            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
         # dummy 'yield' to return a generator
@@ -387,9 +415,10 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
         ObserveBehaviour: {
-            DONE_EVENT: TransactionHashBehaviour,
+            DONE_EVENT: EstimateBehaviour,
             FAIL_EVENT: WaitBehaviour,
         },
+        EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
         TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
         SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
         FinalizeBehaviour: {DONE_EVENT: EndBehaviour},
