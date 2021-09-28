@@ -20,6 +20,7 @@
 """Tests for valory/price_estimation_abci skill's behaviours."""
 import json
 import logging
+from copy import copy
 from pathlib import Path
 from typing import cast
 from unittest.mock import patch
@@ -64,6 +65,13 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     @classmethod
     def setup(cls):
         """Setup the test class."""
+        # we need to store the current value of the meta-class attribute
+        # _MetaPayload.transaction_type_to_payload_cls, adn restore it
+        # in the teardown function. We do a shallow copy so we avoid
+        # to modify the old mapping during the execution of the tests.
+        cls.old_tx_type_to_payload_cls = copy(
+            _MetaPayload.transaction_type_to_payload_cls
+        )
         super().setup()
         cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
@@ -94,7 +102,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     @classmethod
     def teardown(cls) -> None:
         """Teardown the test class."""
-        _MetaPayload.transaction_type_to_payload_cls = {}
+        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
 
 class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
