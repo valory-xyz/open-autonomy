@@ -19,6 +19,7 @@
 
 """Test the base.py module of the skill."""
 from abc import ABC
+from copy import copy
 from enum import Enum
 from unittest import mock
 from unittest.mock import MagicMock
@@ -101,7 +102,7 @@ class TestTransactions:
 
     def setup(self):
         """Set up the test."""
-        self.old_value = _MetaPayload.transaction_type_to_payload_cls
+        self.old_value = copy(_MetaPayload.transaction_type_to_payload_cls)
 
     def test_encode_decode(self):
         """Test encoding and decoding of payloads."""
@@ -172,7 +173,7 @@ class TestMetaPayloadUtilityMethods:
 
     def setup(self):
         """Set up the test."""
-        self.old_value = _MetaPayload.transaction_type_to_payload_cls
+        self.old_value = copy(_MetaPayload.transaction_type_to_payload_cls)
 
     def test_meta_payload_validate_tx_type(self):
         """
