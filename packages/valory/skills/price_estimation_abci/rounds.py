@@ -101,6 +101,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, ObservationPayload], self._participant_to_observations)
 
     @property
+    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
+        """Get the participant_to_estimate."""
+        enforce(
+            self._participant_to_estimate is not None,
+            "'participant_to_estimate' field is None",
+        )
+        return cast(Mapping[str, EstimatePayload], self._participant_to_estimate)
+
+    @property
     def participant_to_signature(self) -> Mapping[str, str]:
         """Get the participant_to_signature."""
         enforce(

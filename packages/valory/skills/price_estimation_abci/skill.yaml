@@ -17,7 +17,7 @@ fingerprint:
   params.py: Qmb9vr8YhFUwaPx6DSpNfzuYZXNd2BAXGs2mL8mVTHorAR
   payloads.py: QmafVjPL43em4pCdc18A4wXeyYG5yDX2Mcv4mGccZVhKmz
   price_api.py: QmTvGaH16idZdFybvNw8G536S1Kvz4xdDFY8zvTdkBy8v6
-  rounds.py: QmfNknDDFE3SQ1VXotCjnm56UjqwaYbv3fv1gxWbfzYBtR
+  rounds.py: QmPps7P6cnceE4G83tqP7txnRMoxrrAr4CX6xoACts65U1
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
