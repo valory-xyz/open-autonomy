@@ -66,7 +66,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     def setup(cls):
         """Setup the test class."""
         # we need to store the current value of the meta-class attribute
-        # _MetaPayload.transaction_type_to_payload_cls, adn restore it
+        # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
         cls.old_tx_type_to_payload_cls = copy(
