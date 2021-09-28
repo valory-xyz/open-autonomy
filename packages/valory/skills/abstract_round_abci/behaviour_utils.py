@@ -64,6 +64,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 
 DONE_EVENT = "done"
 FAIL_EVENT = "fail"
+EXIT_EVENT = "exit"
 
 _REQUEST_RETRY_DELAY = 1.0
 
@@ -289,6 +290,11 @@ class BaseState(AsyncBehaviour, State, ABC):
         """Set the behaviour to done."""
         self._is_done = True
         self._event = FAIL_EVENT
+
+    def set_exit(self) -> None:
+        """Set the behaviour to done."""
+        self._is_done = True
+        self._event = EXIT_EVENT
 
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """

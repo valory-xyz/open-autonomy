@@ -20,7 +20,7 @@
 """This module contains the shared state for the price estimation ABCI application."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
@@ -38,7 +38,7 @@ class SharedState(BaseSharedState):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
         super().__init__(*args, initial_round_cls=RegistrationRound, **kwargs)
-        self._state_start_times = {
+        self._state_start_times: Dict[str, datetime] = {
             "deploy_safe": datetime.min,
             "finalize": datetime.min,
         }
@@ -52,5 +52,5 @@ class SharedState(BaseSharedState):
         return (
             self._state_start_times[state_id] != datetime.min
             and (datetime.now() - self._state_start_times[state_id]).seconds
-            >= self.context.params.keeper_timeout
+            >= self.context.params.keeper_timeout_seconds
         )

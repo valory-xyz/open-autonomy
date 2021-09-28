@@ -21,7 +21,6 @@
 import struct
 from abc import ABC
 from collections import Counter
-from math import floor
 from operator import itemgetter
 from types import MappingProxyType
 from typing import Any
@@ -65,6 +64,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def __init__(  # pylint: disable=too-many-arguments
         self,
         participants: Optional[FrozenSet[str]] = None,
+        most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
@@ -77,6 +77,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
+        self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
@@ -86,7 +87,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._participant_to_signature = participant_to_signature
         self._final_tx_hash = final_tx_hash
         self._keeper_randomness = keeper_randomness
-        self._skipped_keepers = 0
+
+    @property
+    def most_voted_keeper_address(self) -> str:
+        """Get the most_voted_keeper_address."""
+        enforce(
+            self._most_voted_keeper_address is not None,
+            "'most_voted_keeper_address' field is None",
+        )
+        return cast(str, self._most_voted_keeper_address)
 
     @property
     def safe_contract_address(self) -> str:
@@ -162,28 +171,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return sorted(self.participants, key=str.lower)
 
     @property
-    def skipped_keepers(self) -> int:
-        """Skipped keeper agents."""
-        return self._skipped_keepers
-
-    @property
-    def safe_sender_address(self) -> str:
-        """
-        Get the Safe sender address.
-
-        The sender is selected randomly at each round. If it goes inactive,
-        it will be skipped and the mnext agent on the randomized list will
-        become the new sender.
-
-        :return: the address of the current sender.
-        """
-        random_keeper_position = floor(self.keeper_randomness * len(self.participants))
-        randomized_addresses = rotate_list(
-            self.sorted_addresses, random_keeper_position
-        )
-        return randomized_addresses[self.skipped_keepers % len(randomized_addresses)]
-
-    @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
         enforce(
@@ -255,6 +242,22 @@ class RegistrationRound(PriceEstimationAbstractRound):
         return None
 
 
+class SelectKeeperRound(PriceEstimationAbstractRound):
+    """
+    This class represents the select keeper round.
+
+    Input: a set of participants (addresses)
+    Output: the selected keeper.
+    """
+
+    round_id = "select_keeper"
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'select-keeper' round."""
+        super().__init__(*args, **kwargs)
+        self.participant_to_selection: Dict[str, ObservationPayload] = {}
+
+
 class DeploySafeRound(PriceEstimationAbstractRound):
     """
     This class represents the deploy Safe round.
@@ -280,7 +283,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.period_state.safe_sender_address:
+        if sender != self.period_state.most_voted_keeper_address:
             # the sender is not the elected sender
             return
 
@@ -304,7 +307,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         """
         sender_in_participant_set = payload.sender in self.period_state.participants
         sender_is_elected_sender = (
-            payload.sender == self.period_state.safe_sender_address
+            payload.sender == self.period_state.most_voted_keeper_address
         )
         contract_address_not_set_yet = self._contract_address is None
         return (
@@ -494,7 +497,6 @@ class TxHashRound(PriceEstimationAbstractRound):
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
-        self.transaction_hash: Optional[str] = None
         self.participant_to_tx_hash: Dict[str, TransactionHashPayload] = {}
 
     def tx_hash(self, payload: TransactionHashPayload) -> None:
@@ -648,7 +650,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.period_state.safe_sender_address:
+        if sender != self.period_state.most_voted_keeper_address:
             # the sender is not the elected sender
             return
 
@@ -672,7 +674,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
         """
         sender_in_participant_set = payload.sender in self.period_state.participants
         sender_is_elected_sender = (
-            payload.sender == self.period_state.safe_sender_address
+            payload.sender == self.period_state.most_voted_keeper_address
         )
         tx_hash_not_set_yet = self._tx_hash is None
         return (
