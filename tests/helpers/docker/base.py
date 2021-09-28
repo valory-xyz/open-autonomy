@@ -117,9 +117,6 @@ def launch_image(
     image.check_skip()
     image.stop_if_already_running()
     container = image.create()
-    import pdb
-
-    pdb.set_trace()
     container.start()
     logger.info(f"Setting up image {image.tag}...")
     success = image.wait(max_attempts, timeout)

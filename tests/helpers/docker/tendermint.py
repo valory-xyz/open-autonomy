@@ -58,8 +58,6 @@ class TendermintDockerImage(DockerImage):
         cmd = [
             "node",
             f"--proxy_app={self.proxy_app}",
-            "--port",
-            str(self.port) + "/tcp",
         ]
         return cmd
 
