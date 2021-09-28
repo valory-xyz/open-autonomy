@@ -23,7 +23,7 @@ import logging
 import os
 import time
 from os import PathLike
-from typing import Generator
+from typing import Any, Generator
 
 import requests
 
@@ -61,3 +61,15 @@ def tendermint_health_check(
         )
         time.sleep(sleep_interval)
     return False
+
+
+def try_send(gen: Generator, obj: Any = None) -> None:
+    """
+    Try to send an object to a generator.
+
+    :param gen: the generator.
+    :param obj: the object.
+    :return: None
+    """
+    with contextlib.suppress(StopIteration):
+        gen.send(obj)
