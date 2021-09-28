@@ -17,14 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the price estimation ABCI application."""
-
-
-from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
-
-
-SharedState = BaseSharedState
-Requests = BaseRequests
+"""Tests for valory/price_estimation_abci skill."""

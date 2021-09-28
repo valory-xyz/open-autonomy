@@ -61,8 +61,12 @@ static:
 
 .PHONY: package_checks
 package_checks:
-	python scripts/generate_ipfs_hashes.py --check
+	python scripts/generate_ipfs_hashes.py --check --vendor valory
 	python scripts/check_packages.py
+
+.PHONY: hashes
+hashes:
+	python scripts/generate_ipfs_hashes.py --vendor valory
 
 .PHONY: docs
 docs:
@@ -75,6 +79,39 @@ common_checks: security misc_checks lint static docs
 test:
 	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
+
+.PHONY: checks
+checks:
+	make clean \
+	&& make static \
+	&& make lint \
+	&& make pylint \
+	&& make hashes \
+	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci
+
+# how to use:
+#
+#     make test-sub-p tdir=$TDIR dir=$DIR
+#
+# where:
+# - TDIR is the path to the test module/directory (but without the leading "test_")
+# - DIR is the *dotted* path to the module/subpackage whose code coverage needs to be reported.
+#
+# For example, to run the ABCI connection tests (in tests/test_connections/test_abci.py)
+# and check the code coverage of the package packages.valory.connections.abci:
+#
+#     make test-sub-p tdir=connections/test_abci.py dir=connections.abci
+#
+# Or, to run tests in tests/test_skills/test_counter/ directory and check the code coverage
+# of the skill packages.valory.skills.counter:
+#
+#     make test-sub-p tdir=skills/test_counter/ dir=skills.counter
+#
+.PHONY: test-sub-p
+test-sub-p:
+	pytest -rfE tests/test_$(tdir) --cov=packages.valory.$(dir) --cov-report=html --cov-report=xml --cov-report=term-missing --cov-report=term  --cov-config=.coveragerc
+	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
+
 
 .PHONY: test-all
 test-all:

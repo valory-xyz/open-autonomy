@@ -44,7 +44,7 @@ from packages.fetchai.protocols.signing.custom_types import (
     RawTransaction,
     Terms,
 )
-from packages.valory.skills.abstract_round_abci.base_models import (
+from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
@@ -68,6 +68,10 @@ FAIL_EVENT = "fail"
 _REQUEST_RETRY_DELAY = 1.0
 
 
+class SendException(Exception):
+    """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
+
+
 class AsyncBehaviour(ABC):
     """
     MixIn behaviour class that support limited asynchronous programming.
@@ -87,12 +91,12 @@ class AsyncBehaviour(ABC):
 
     def __init__(self) -> None:
         """Initialize the async behaviour."""
-        self._state = self.AsyncState.READY
-        self._generator_act: Optional[Generator] = None
+        self.__state = self.AsyncState.READY
+        self.__generator_act: Optional[Generator] = None
 
         # temporary variables for the waiting message state
-        self._notified: bool = False
-        self._message: Any = None
+        self.__notified: bool = False
+        self.__message: Any = None
 
     @abstractmethod
     def async_act(self) -> Generator:
@@ -102,24 +106,37 @@ class AsyncBehaviour(ABC):
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
 
-    def _get_generator_act(self) -> Generator:
+    @property
+    def state(self) -> AsyncState:
+        """Get the 'async state'."""
+        return self.__state
+
+    def __get_generator_act(self) -> Generator:
         """Get the _generator_act."""
-        if self._generator_act is None:
-            raise ValueError("Generator act not set!")
-        return self._generator_act
+        if self.__generator_act is None:
+            raise ValueError("generator act not set!")  # pragma: nocover
+        return self.__generator_act
 
     def try_send(self, message: Any) -> None:
         """
         Try to send a message to a waiting behaviour.
 
         It will be send only if the behaviour is actually
-        waiting for a message.
+        waiting for a message and it was not already notified.
 
         :param message: a Python object.
+        :raises: SendException if the behaviour was not waiting for a message,
+            or if it was already notified.
         """
-        if self._state == self.AsyncState.WAITING_MESSAGE:
-            self._notified = True
-            self._message = message
+        in_waiting_message_state = self.__state == self.AsyncState.WAITING_MESSAGE
+        already_notified = self.__notified
+        enforce(
+            in_waiting_message_state and not already_notified,
+            "cannot send message",
+            exception_class=SendException,
+        )
+        self.__notified = True
+        self.__message = message
 
     @classmethod
     def wait_for_condition(cls, condition: Callable[[], bool]) -> Any:
@@ -154,63 +171,63 @@ class AsyncBehaviour(ABC):
         :return: a message
         :yield: None
         """
-        self._state = self.AsyncState.WAITING_MESSAGE
+        self.__state = self.AsyncState.WAITING_MESSAGE
         message = yield
-        while message is None and not condition(message):
+        while message is None or not condition(message):
             message = yield
         message = cast(Message, message)
-        self._state = self.AsyncState.RUNNING
+        self.__state = self.AsyncState.RUNNING
         return message
 
     def act(self) -> None:
         """Do the act."""
-        if self._state == self.AsyncState.READY:
-            self._call_act_first_time()
+        if self.__state == self.AsyncState.READY:
+            self.__call_act_first_time()
             return
-        if self._state == self.AsyncState.WAITING_MESSAGE:
-            self._handle_waiting_for_message()
+        if self.__state == self.AsyncState.WAITING_MESSAGE:
+            self.__handle_waiting_for_message()
             return
-        enforce(self._state == self.AsyncState.RUNNING, "not in 'RUNNING' state")
-        self._handle_tick()
+        enforce(self.__state == self.AsyncState.RUNNING, "not in 'RUNNING' state")
+        self.__handle_tick()
 
-    def _call_act_first_time(self) -> None:
+    def __call_act_first_time(self) -> None:
         """Call the 'async_act' method for the first time."""
-        self._state = self.AsyncState.RUNNING
+        self.__state = self.AsyncState.RUNNING
         try:
-            self._generator_act = self.async_act_wrapper()
+            self.__generator_act = self.async_act_wrapper()
             # if the method 'async_act' was not a generator function
             # (i.e. no 'yield' or 'yield from' statement)
             # just return
-            if not inspect.isgenerator(self._generator_act):
-                self._state = self.AsyncState.READY
+            if not inspect.isgenerator(self.__generator_act):
+                self.__state = self.AsyncState.READY
                 return
             # trigger first execution, up to next 'yield' statement
-            self._get_generator_act().send(None)
+            self.__get_generator_act().send(None)
         except StopIteration:
-            # this may happen because no yield statement was found
-            self._state = self.AsyncState.READY
+            # this may happen if the generator is empty
+            self.__state = self.AsyncState.READY
 
-    def _handle_waiting_for_message(self) -> None:
+    def __handle_waiting_for_message(self) -> None:
         """Handle an 'act' tick, when waiting for a message."""
         # if there is no message coming, skip.
-        if self._notified:
+        if self.__notified:
             try:
-                self._get_generator_act().send(self._message)
+                self.__get_generator_act().send(self.__message)
             except StopIteration:
-                self._handle_stop_iteration()
+                self.__handle_stop_iteration()
             finally:
                 # wait for the next message
-                self._notified = False
-                self._message = None
+                self.__notified = False
+                self.__message = None
 
-    def _handle_tick(self) -> None:
+    def __handle_tick(self) -> None:
         """Handle an 'act' tick."""
         try:
-            self._get_generator_act().send(None)
+            self.__get_generator_act().send(None)
         except StopIteration:
-            self._handle_stop_iteration()
+            self.__handle_stop_iteration()
 
-    def _handle_stop_iteration(self) -> None:
+    def __handle_stop_iteration(self) -> None:
         """
         Handle 'StopIteration' exception.
 
@@ -218,10 +235,10 @@ class AsyncBehaviour(ABC):
         generator function terminated the execution,
         and therefore the state needs to be reset.
         """
-        self._state = self.AsyncState.READY
+        self.__state = self.AsyncState.READY
 
 
-class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancestors
+class BaseState(AsyncBehaviour, State, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -267,6 +284,11 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         """Set the behaviour to done."""
         self._is_done = True
         self._event = DONE_EVENT
+
+    def set_fail(self) -> None:
+        """Set the behaviour to done."""
+        self._is_done = True
+        self._event = FAIL_EVENT
 
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
@@ -469,7 +491,6 @@ class BaseState(AsyncBehaviour, State, ABC):  # pylint: disable=too-many-ancesto
         :param parameters: url query parameters.
         :return: the http message and the http dialogue
         """
-        # pylint: disable=too-many-arguments
         if parameters:
             url = url + "?"
             for key, val in parameters.items():
