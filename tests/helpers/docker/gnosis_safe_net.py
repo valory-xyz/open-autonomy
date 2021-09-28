@@ -76,11 +76,12 @@ class GnosisSafeNetDockerImage(DockerImage):
                 "mode": "rw",
             },
         }
+        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
             command=cmd,
             detach=True,
-            network="host",
+            ports=ports,
             volumes=volumes,
             working_dir=working_dir,
             entrypoint="yarn",
