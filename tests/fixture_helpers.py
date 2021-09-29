@@ -19,6 +19,8 @@
 
 """This module contains helper classes/functions for fixtures."""
 import secrets
+from tests.helpers.constants import KEY_PAIRS
+from tests.helpers.docker.ganache_safenet import DEFAULT_GANACHE_PORT
 from typing import List, Optional, Tuple
 
 import pytest
@@ -70,3 +72,32 @@ class UseGnosisSafeHardHatNet:
         if cls.SALT_NONCE is not None:
             return cls.SALT_NONCE
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+
+
+@pytest.mark.integration
+class UseGanache:
+    """Inherit from this class to use Ganache."""
+
+    NB_OWNERS: int = 4
+    THRESHOLD: int = 1
+
+    ganache_port: int = DEFAULT_GANACHE_PORT
+    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_ganache(cls, ganache_safenet) -> None:
+        """Start Ganache instance."""
+
+    @property
+    def owners(
+        self,
+    ) -> List[Tuple[str, str]]:
+        """Returns list of key pairs for owners."""
+        return self.key_pairs[: self.NB_OWNERS]
+
+    @property
+    def threshold(
+        self,
+    ) -> int:
+        return self.THRESHOLD

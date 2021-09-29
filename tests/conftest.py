@@ -26,6 +26,12 @@ import pytest
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.ganache_safenet import (
+    DEFAULT_GANACHE_ADDR,
+    DEFAULT_GANACHE_CHAIN_ID,
+    DEFAULT_GANACHE_PORT,
+    GanacheDockerImage,
+)
 from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
@@ -38,6 +44,7 @@ from tests.helpers.docker.tendermint import (
 
 
 ROOT_DIR = _ROOT_DIR
+DEFAULT_AMOUNT = 1000000000000000000000
 
 
 @pytest.fixture()
@@ -84,4 +91,42 @@ def gnosis_safe_hardhat(
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
     image = GnosisSafeNetDockerImage(client, hardhat_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="session")
+def ganache_addr() -> str:
+    """HTTP address to the Ganache node."""
+    return DEFAULT_GANACHE_ADDR
+
+
+@pytest.fixture(scope="session")
+def ganache_port() -> int:
+    """Port of the connection to the Ganache Node to use during the tests."""
+    return DEFAULT_GANACHE_PORT
+
+
+@pytest.fixture(scope="session")
+def ganache_configuration():
+    """Get the Ganache configuration for testing purposes."""
+    return dict(
+        accounts_balances=[(key, DEFAULT_AMOUNT) for _, key in KEY_PAIRS],
+    )
+
+
+@pytest.mark.integration
+@pytest.mark.ledger
+@pytest.fixture(scope="function")
+def ganache_safenet(
+    ganache_configuration,
+    ganache_addr,
+    ganache_port,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+):
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    image = GanacheDockerImage(
+        client, ganache_addr, ganache_port, config=ganache_configuration
+    )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
