@@ -112,5 +112,5 @@ def test_base_params_model_initialization():
         name="",
         skill_context=MagicMock(),
         tendermint_url="",
-        consensus=dict(max_participants=1, keeper_timeout_seconds=5),
+        consensus=dict(max_participants=1),
     )
