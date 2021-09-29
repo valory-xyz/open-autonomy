@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+import logging
 from typing import List, Tuple
 
 import docker
@@ -57,6 +58,7 @@ def tendermint(
 ):
     """Launch the Ganache image."""
     client = docker.from_env()
+    logging.info(f"Launching Tendermint at port {tendermint_port}")
     image = TendermintDockerImage(client, tendermint_port, proxy_app)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
@@ -83,5 +85,6 @@ def gnosis_safe_hardhat(
 ):
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
+    logging.info(f"Launching Hardhat at port {hardhat_port}")
     image = GnosisSafeNetDockerImage(client, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
