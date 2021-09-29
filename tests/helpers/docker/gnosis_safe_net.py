@@ -85,6 +85,7 @@ class GnosisSafeNetDockerImage(DockerImage):
             volumes=volumes,
             working_dir=working_dir,
             entrypoint="yarn",
+            extra_hosts={"host.docker.internal": "host-gateway"},
         )
         return container
 
