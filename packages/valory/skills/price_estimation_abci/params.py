@@ -39,3 +39,7 @@ class Params(BaseParams):
         """Check if the healthcheck has timed out."""
         self._count_healthcheck += 1
         return self._count_healthcheck > self._max_healthcheck
+
+    def increment_retries(self) -> None:
+        """Increment the retries counter."""
+        self._count_healthcheck += 1

@@ -32,13 +32,16 @@ from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
+from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (
     ABCIServerConnection,
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
+    _TendermintABCISerializer,
+    _TendermintProtocolDecoder,
 )
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import (
+from packages.valory.protocols.abci.custom_types import (  # type: ignore
     Events,
     ProofOps,
     ValidatorUpdate,
@@ -391,3 +394,34 @@ async def test_connection_standalone_tendermint_setup():
     await connection.connect()
     await asyncio.sleep(2.0)
     await connection.disconnect()
+
+
+def test_not_implemented_errors():
+    """Test _TendermintProtocolDecoder method implementations."""
+    with pytest.raises(NotImplementedError):
+        _TendermintProtocolDecoder.request_list_snapshots(None, None, None)
+
+    with pytest.raises(NotImplementedError):
+        _TendermintProtocolDecoder.request_offer_snapshot(None, None, None)
+
+    with pytest.raises(NotImplementedError):
+        _TendermintProtocolDecoder.request_load_snapshot_chunk(None, None, None)
+
+    with pytest.raises(NotImplementedError):
+        _TendermintProtocolDecoder.request_apply_snapshot_chunk(None, None, None)
+
+
+def test_encode_varint_method():
+    """Test encode_varint method for _TendermintABCISerializer"""
+    assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
+    assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
+    assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
+
+
+def test_dep_util():
+    """Test dependency utils."""
+
+    assert dep_utils.nth([0, 1, 2, 3], 1, -1) == 1
+    assert dep_utils.nth([0, 1, 2, 3], 5, -1) == -1
+    assert dep_utils.get_version(1, 0, 0) == (1, 0, 0)
+    assert dep_utils.version_to_string((1, 0, 0)) == "1.0.0"

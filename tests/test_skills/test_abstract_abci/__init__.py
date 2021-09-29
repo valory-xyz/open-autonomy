@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the agent packages authored by Valory AG."""  # pragma: nocover
+"""Tests for valory/abstract_abci skill."""

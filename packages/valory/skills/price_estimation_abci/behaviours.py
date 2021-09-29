@@ -98,6 +98,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
+            self.context.params.increment_retries()
 
 
 class RegistrationBehaviour(PriceEstimationBaseState):
