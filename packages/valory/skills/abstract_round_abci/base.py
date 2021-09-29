@@ -339,20 +339,14 @@ class BlockBuilder:
 class ConsensusParams:
     """Represent the consensus parameters."""
 
-    def __init__(self, max_participants: int, keeper_timeout_seconds: int):
+    def __init__(self, max_participants: int):
         """Initialize the consensus parameters."""
         self._max_participants = max_participants
-        self._keeper_timeout_seconds = keeper_timeout_seconds
 
     @property
     def max_participants(self) -> int:
         """Get the maximum number of participants."""
         return self._max_participants
-
-    @property
-    def keeper_timeout_seconds(self) -> int:
-        """Get the keeper timeout in seconds."""
-        return self._keeper_timeout_seconds
 
     @property
     def two_thirds_threshold(self) -> int:
@@ -367,12 +361,7 @@ class ConsensusParams:
             isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
-        keeper_timeout_seconds = obj["keeper_timeout_seconds"]
-        enforce(
-            isinstance(keeper_timeout_seconds, int) and keeper_timeout_seconds >= 0,
-            "keeper_timeout_seconds must be an integer greater than 0.",
-        )
-        return ConsensusParams(max_participants, keeper_timeout_seconds)
+        return ConsensusParams(max_participants)
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""

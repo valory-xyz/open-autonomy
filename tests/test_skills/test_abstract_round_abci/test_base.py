@@ -312,23 +312,12 @@ class TestConsensusParams:
     def setup(self):
         """Set up the tests."""
         self.max_participants = 4
-        self.keeper_timeout_seconds = 5
-        self.consensus_params = ConsensusParams(
-            self.max_participants, self.keeper_timeout_seconds
-        )
+        self.consensus_params = ConsensusParams(self.max_participants)
 
     def test_max_participants_getter(self):
         """Test 'max_participants' property getter."""
         expected_max_participants = self.max_participants
         assert self.consensus_params.max_participants == expected_max_participants
-
-    def test_keeper_timeout_seconds_getter(self):
-        """Test 'keeper_timeout_seconds' property getter."""
-        expected_keeper_timeout_seconds = self.keeper_timeout_seconds
-        assert (
-            self.consensus_params.keeper_timeout_seconds
-            == expected_keeper_timeout_seconds
-        )
 
     @pytest.mark.parametrize(
         "nb_participants,expected",
@@ -336,15 +325,14 @@ class TestConsensusParams:
     )
     def test_threshold_getter(self, nb_participants, expected):
         """Test threshold property getter."""
-        params = ConsensusParams(nb_participants, self.keeper_timeout_seconds)
+        params = ConsensusParams(nb_participants)
         assert params.two_thirds_threshold == expected
 
     def test_from_json(self):
         """Test 'from_json' method."""
-        expected = ConsensusParams(self.max_participants, self.keeper_timeout_seconds)
+        expected = ConsensusParams(self.max_participants)
         json_object = dict(
             max_participants=self.max_participants,
-            keeper_timeout_seconds=self.keeper_timeout_seconds,
         )
         actual = ConsensusParams.from_json(json_object)
         assert expected == actual
@@ -383,11 +371,9 @@ class TestAbstractRound:
         """Set up the tests."""
         self.known_payload_type = ConcreteRound.payload_a.__name__
         self.participants = {"a", "b"}
-        self.keeper_timeout_seconds = 5
         self.base_period_state = BasePeriodState(participants=self.participants)
         self.params = ConsensusParams(
             max_participants=len(self.participants),
-            keeper_timeout_seconds=self.keeper_timeout_seconds,
         )
         self.round = ConcreteRound(self.base_period_state, self.params)
 
