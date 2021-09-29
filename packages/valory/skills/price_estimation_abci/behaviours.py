@@ -197,14 +197,16 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         if has_contract_been_deployed_stub():
             self.context.logger.info("Contract has been deployed.")
             self.set_done()
-        else:
-            if self.context.state.has_keeper_timed_out(self.state_id):
-                self.context.logger.info("Keeper timeout. Skipping...")
-                self.set_exit()
-            else:
-                self.context.logger.info(
-                    "I am not the designated deployer, waiting until the contract is deployed..."
-                )
+            return
+
+        if self.context.state.has_keeper_timed_out(self.state_id):
+            self.context.logger.info("Keeper timeout. Skipping...")
+            self.set_exit()
+            return
+
+        self.context.logger.info(
+            "I am not the designated deployer, waiting until the contract is deployed..."
+        )
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
