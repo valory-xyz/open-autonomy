@@ -432,14 +432,16 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         if has_transaction_been_sent_stub():
             self.context.logger.info("Keeper has sent the transaction.")
             self.set_done()
-        else:
-            if self.context.state.has_keeper_timed_out(self.state_id):
-                self.context.logger.info("Keeper timeout. Skipping...")
-                self.set_exit()
-            else:
-                self.context.logger.info(
-                    "I am not the designated sender, waiting until the tx is sent..."
-                )
+            return
+
+        if self.context.state.has_keeper_timed_out(self.state_id):
+            self.context.logger.info("Keeper timeout. Skipping...")
+            self.set_exit()
+            return
+
+        self.context.logger.info(
+            "I am not the designated sender, waiting until the tx is sent..."
+        )
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
@@ -456,10 +458,15 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             )
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
             yield from self.send_a2a_transaction(payload)
+
+        elif self.context.state.has_keeper_timed_out(self.state_id):
+            self.context.logger.info("Keeper timeout. Skipping...")
+            self.set_exit()
+
         else:
-            if self.context.state.has_keeper_timed_out(self.state_id):
-                self.context.logger.info("Keeper timeout. Skipping...")
-                self.set_exit()
+            self.context.logger.info(
+                "I am the designated sender, but the safe transaction has not been sent yet..."
+            )
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
