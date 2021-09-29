@@ -20,7 +20,7 @@
 """This module contains the shared state for the price estimation ABCI application."""
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
@@ -38,19 +38,24 @@ class SharedState(BaseSharedState):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
         super().__init__(*args, initial_round_cls=RegistrationRound, **kwargs)
-        self._state_start_times: Dict[str, datetime] = {
-            "deploy_safe": datetime.min,
-            "finalize": datetime.min,
+        self._state_start_times: Dict[str, Optional[datetime]] = {
+            "deploy_safe": None,
+            "finalize": None,
         }
 
     def reset_state_time(self, state_id: str) -> None:
+        """Reset the state start time to the current time."""
+        self._state_start_times[state_id] = None
+
+    def set_state_time(self, state_id: str) -> None:
         """Set the state start time to the current time."""
-        self._state_start_times[state_id] = datetime.now()
+        if self._state_start_times[state_id] is None:
+            self._state_start_times[state_id] = datetime.now()
 
     def has_keeper_timed_out(self, state_id: str) -> bool:
         """Check if the keeper has timed out."""
-        return (
-            self._state_start_times[state_id] != datetime.min
-            and (datetime.now() - self._state_start_times[state_id]).seconds
+        time = self._state_start_times[state_id]
+        return time is not None and (
+            (datetime.now() - time).seconds
             >= self.context.params.keeper_timeout_seconds
         )
