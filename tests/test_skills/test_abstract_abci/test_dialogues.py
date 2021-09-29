@@ -17,4 +17,25 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the agent packages authored by Valory AG."""  # pragma: nocover
+"""Test the dialogues.py module of the skill."""
+from typing import cast
+from unittest.mock import MagicMock
+
+import pytest
+from aea.protocols.dialogue.base import Dialogues
+
+from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
+
+
+@pytest.mark.parametrize(
+    "dialogues_cls,expected_role_from_first_message",
+    [
+        (AbciDialogues, AbciDialogue.Role.CLIENT),
+    ],
+)
+def test_dialogues_creation(dialogues_cls, expected_role_from_first_message):
+    """Test XDialogues creations."""
+    dialogues = cast(Dialogues, dialogues_cls(name="", skill_context=MagicMock()))
+    assert expected_role_from_first_message == dialogues._role_from_first_message(
+        MagicMock(), MagicMock()
+    )
