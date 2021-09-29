@@ -23,7 +23,7 @@ import json
 import pprint
 from abc import ABC
 from math import floor
-from typing import Generator, cast
+from typing import Generator, List, cast
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
@@ -138,16 +138,28 @@ class SelectKeeperBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        random_keeper_position = floor(
-            self.period_state.keeper_randomness
-            * (len(self.context.state.period_state.participant_to_selection))
+        keeper_address = self.random_selection(
+            list(self.period_state.participant_to_selection.keys()),
+            self.period_state.keeper_randomness,
         )
-        keeper_address = self.period_state.sorted_addresses[random_keeper_position]
+
         self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
         payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
+
+    @staticmethod
+    def random_selection(elements: List[str], randomness: float) -> str:
+        """
+        Select a random element from a list.
+
+        :param: elements: a list of elements to choose among
+        :param: randomness: a random number in the [0,1) interval
+        :return: a randomly chosen element
+        """
+        random_position = floor(randomness * len(elements))
+        return elements[random_position]
 
 
 def has_contract_been_deployed_stub() -> bool:

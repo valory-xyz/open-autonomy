@@ -178,11 +178,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return tuple(self.participant_to_observations.values())
 
     @property
-    def sorted_addresses(self) -> List[str]:
-        """Sorted addresses."""
-        return sorted(self.participants, key=str.lower)
-
-    @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
         enforce(

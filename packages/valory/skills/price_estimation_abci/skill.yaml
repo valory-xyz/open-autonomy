@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmXvdYbxSg25CTZftTsALekmsTn3P5LEAHhRQco5aBSA8q
+  behaviours.py: Qmb8TVBQattCEWn2SGw8znbDw6qr7hPsFMEdTeGFaUZGxK
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
@@ -17,7 +17,7 @@ fingerprint:
   params.py: QmVFrB3SyR8274rXXupKR9WYBw9Ybr2coChZ5JaYtJbb6K
   payloads.py: QmY9rJt3VaQ294yJzaBbA7BMtdophW8wdghwNP44PfELyi
   price_api.py: QmTvGaH16idZdFybvNw8G536S1Kvz4xdDFY8zvTdkBy8v6
-  rounds.py: QmZzoTwL5vB2hUTPircVCWbWX7fDMBUnbmJqfM7dwPonjK
+  rounds.py: Qmb58j2pTtUVawaMD626euADMSHUviDpZgy4vxuP4MzbNT
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
