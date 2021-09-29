@@ -359,7 +359,7 @@ class BaseState(AsyncBehaviour, State, ABC):
             signature_response = cast(SigningMessage, signature_response)
             if signature_response.performative == SigningMessage.Performative.ERROR:
                 self._handle_signing_failure()
-                continue
+                raise RuntimeError("Failure during signing.")  # TOFIX: temporary
             signature_bytes = signature_response.signed_message.body
             transaction = Transaction(payload, signature_bytes)
 
@@ -372,7 +372,7 @@ class BaseState(AsyncBehaviour, State, ABC):
                     f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
                 )
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
-                continue
+                raise RuntimeError("Failure during tx submission.")  # TOFIX: temporary
             if self._check_transaction_delivered(response):
                 self.context.logger.info("A2A transaction delivered!")
                 break
