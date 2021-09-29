@@ -25,7 +25,7 @@ from operator import itemgetter
 from types import MappingProxyType
 from typing import Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
+from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from aea.exceptions import enforce
 
@@ -245,12 +245,12 @@ class RegistrationRound(PriceEstimationAbstractRound):
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
             state = PeriodState(participants=frozenset(self.participants))
-            next_round = DeploySafeRound(state, self._consensus_params)
+            next_round = SelectKeeperARound(state, self._consensus_params)
             return state, next_round
         return None
 
 
-class SelectKeeperRound(PriceEstimationAbstractRound):
+class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
     """
     This class represents the select keeper round.
 
@@ -259,13 +259,14 @@ class SelectKeeperRound(PriceEstimationAbstractRound):
     """
 
     round_id = "select_keeper"
+    next_round_class: Type[PriceEstimationAbstractRound]
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'select-keeper' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
 
-    def select(self, payload: SelectKeeperPayload) -> None:
+    def select_keeper(self, payload: SelectKeeperPayload) -> None:
         """Handle an 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -278,7 +279,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound):
 
         self.participant_to_selection[sender] = payload
 
-    def check_selection(self, payload: SelectKeeperPayload) -> bool:
+    def check_select_keeper(self, payload: SelectKeeperPayload) -> bool:
         """
         Check an select_keeper payload can be applied to the current state.
 
@@ -330,7 +331,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound):
                 ),
                 most_voted_keeper_address=self.most_voted_keeper_address,
             )
-            next_round = DeploySafeRound(state, self._consensus_params)
+            next_round = self.next_round_class(state, self._consensus_params)
             return state, next_round
         return None
 
@@ -773,6 +774,18 @@ class FinalizationRound(PriceEstimationAbstractRound):
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
         return None
+
+
+class SelectKeeperARound(SelectKeeperRound):
+    """This class represents the select keeper A round."""
+
+    next_round_class = DeploySafeRound
+
+
+class SelectKeeperBRound(SelectKeeperRound):
+    """This class represents the select keeper B round."""
+
+    next_round_class = FinalizationRound
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):

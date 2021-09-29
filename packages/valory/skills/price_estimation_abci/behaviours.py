@@ -59,7 +59,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinalizationRound,
     PeriodState,
     RegistrationRound,
-    SelectKeeperRound,
+    SelectKeeperARound,
+    SelectKeeperBRound,
     TxHashRound,
 )
 
@@ -127,8 +128,6 @@ class RegistrationBehaviour(PriceEstimationBaseState):
 class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
     """Select the keeper agent."""
 
-    matching_round = SelectKeeperRound
-
     def async_act(self) -> None:  # type: ignore
         """
         Do the action.
@@ -167,12 +166,14 @@ class SelectKeeperABehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
     state_id = "select_keeper_a"
+    matching_round = SelectKeeperARound
 
 
 class SelectKeeperBBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
     state_id = "select_keeper_b"
+    matching_round = SelectKeeperBRound
 
 
 def has_contract_been_deployed_stub() -> bool:
