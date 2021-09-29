@@ -90,6 +90,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._participant_to_signature = participant_to_signature
         self._final_tx_hash = final_tx_hash
         self._keeper_randomness = keeper_randomness
+        self._keeper_randomness = 0.5  # stub
 
     @property
     def most_voted_keeper_address(self) -> str:
