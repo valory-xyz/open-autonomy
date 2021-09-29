@@ -176,15 +176,6 @@ class SelectKeeperBBehaviour(SelectKeeperBehaviour):
     matching_round = SelectKeeperBRound
 
 
-def has_contract_been_deployed_stub() -> bool:
-    """Stub for deployment check.
-
-    It's a function to avoid pylint complaints, but will be a method
-    :return: True
-    """
-    return True
-
-
 class DeploySafeBehaviour(PriceEstimationBaseState):
     """Deploy Safe."""
 
@@ -201,13 +192,21 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         """
         self.context.state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
-            self._not_deployer_act()
+            yield from self._not_deployer_act()
         else:
             yield from self._deployer_act()
 
-    def _not_deployer_act(self) -> None:
+    def has_contract_been_deployed_stub(self) -> bool:
+        """
+        Stub for deployment check.
+
+        :return: bool
+        """
+        return self.context.state.has_keeper_timed_out(self.state_id)
+
+    def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        if has_contract_been_deployed_stub():
+        if self.has_contract_been_deployed_stub():
             self.context.logger.info("Contract has been deployed.")
             self.set_done()
             self.context.state.reset_state_time(self.state_id)
@@ -219,6 +218,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             self.context.state.reset_state_time(self.state_id)
             return
 
+        yield from self.sleep(1)
         self.context.logger.info(
             "I am not the designated deployer, waiting until the contract is deployed..."
         )
@@ -417,15 +417,6 @@ class SignatureBehaviour(PriceEstimationBaseState):
         return signature_hex
 
 
-def has_transaction_been_sent_stub() -> bool:
-    """Transaction finalization check stub.
-
-    It's a function to avoid pylint complaints, but will be a method.
-    :return: True
-    """
-    return True
-
-
 class FinalizeBehaviour(PriceEstimationBaseState):
     """Finalize state."""
 
@@ -436,13 +427,21 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         """Do the act."""
         self.context.state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
-            self._not_sender_act()
+            yield from self._not_sender_act()
         else:
             yield from self._sender_act()
 
-    def _not_sender_act(self) -> None:
+    def has_transaction_been_sent_stub(self) -> bool:
+        """
+        Transaction finalization check stub.
+
+        :return: bool
+        """
+        return self.context.state.has_keeper_timed_out(self.state_id)
+
+    def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        if has_transaction_been_sent_stub():
+        if self.has_transaction_been_sent_stub():
             self.context.logger.info("Keeper has sent the transaction.")
             self.set_done()
             self.context.state.reset_state_time(self.state_id)
@@ -454,6 +453,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self.context.state.reset_state_time(self.state_id)
             return
 
+        yield from self.sleep(1)
         self.context.logger.info(
             "I am not the designated sender, waiting until the tx is sent..."
         )

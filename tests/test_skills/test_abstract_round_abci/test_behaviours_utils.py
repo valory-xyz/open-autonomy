@@ -374,7 +374,8 @@ class TestBaseState:
         gen = self.behaviour._send_transaction(m)
         # trigger generator function
         try_send(gen, obj=None)
-        try_send(gen, obj=m)
+        with pytest.raises(RuntimeError):
+            try_send(gen, obj=m)
 
     @mock.patch.object(BaseState, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())

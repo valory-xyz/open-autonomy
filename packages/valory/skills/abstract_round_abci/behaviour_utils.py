@@ -372,7 +372,7 @@ class BaseState(AsyncBehaviour, State, ABC):
                     f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
                 )
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
-                raise RuntimeError("Failure during tx submission.")  # TOFIX: temporary
+                continue
             if self._check_transaction_delivered(response):
                 self.context.logger.info("A2A transaction delivered!")
                 break
