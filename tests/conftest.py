@@ -81,7 +81,7 @@ def key_pairs() -> List[Tuple[str, str]]:
 def gnosis_safe_hardhat(
     hardhat_port,
     timeout: float = 3.0,
-    max_attempts: int = 20,
+    max_attempts: int = 30,
 ):
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
