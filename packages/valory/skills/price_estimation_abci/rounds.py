@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
 )
+from packages.valory.skills.price_estimation_abci.estimator import aggregate
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -70,6 +71,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
+        estimate: Optional[float] = None,
         most_voted_estimate: Optional[float] = None,
         participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
         most_voted_tx_hash: Optional[str] = None,
@@ -85,6 +87,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
         self._most_voted_estimate = most_voted_estimate
+        self._estimate = estimate
         self._participant_to_tx_hash = participant_to_tx_hash
         self._most_voted_tx_hash = most_voted_tx_hash
         self._participant_to_signature = participant_to_signature
@@ -156,6 +159,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._final_tx_hash)
 
     @property
+    def estimate(self) -> float:
+        """Get the estimate."""
+        enforce(self._estimate is not None, "'estimate' field is None")
+        return cast(float, self._estimate)
+
+    @property
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
         enforce(
@@ -165,6 +174,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     @property
     def encoded_estimate(self) -> bytes:
+        """Get the encoded estimate."""
+        return encode_float(self.estimate)
+
+    @property
+    def encoded_most_voted_estimate(self) -> bytes:
         """Get the encoded (most voted) estimate."""
         return encode_float(self.most_voted_estimate)
 
@@ -470,10 +484,16 @@ class CollectObservationRound(PriceEstimationAbstractRound):
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.observation_threshold_reached:
+            observations = [
+                payload.observation
+                for payload in self.participant_to_observations.values()
+            ]
+            estimate = aggregate(*observations)
             state = self.period_state.update(
                 participant_to_observations=MappingProxyType(
                     self.participant_to_observations
                 ),
+                estimate=estimate,
             )
             next_round = EstimateConsensusRound(state, self._consensus_params)
             return state, next_round
@@ -516,7 +536,6 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         - the round is in the 'estimate_consensus' state;
         - the sender belongs to the set of participants
         - the sender has not sent its estimate yet
-
         :param: payload: the payload.
         :return: True if the estimate tx is allowed, False otherwise.
         """

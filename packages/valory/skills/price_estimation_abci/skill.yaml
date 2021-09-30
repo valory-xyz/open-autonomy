@@ -9,15 +9,15 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: Qmd689yBe7iGGRKwGJozbXch3HEAE2jEE6Gd72FDC57UV3
+  behaviours.py: QmQYsr3MMReLNnvgBGSe67MKqahhALEvjDAbMKvEBkhtcq
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  estimator.py: Qmb38dpYpuDAA4zXhaVtSzDjYSStBu5cbq9PeRh1Zp3Df6
+  estimator.py: QmdxC8cozUky7T3nNa2rAKFB5dK4GH5xCfFRyGjypz9ZuC
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmUGP65hhDp8w1BwxfWa4NGUzE78rC8bsXnJqncDaAxqjf
   params.py: QmYiRjBiVXb5VLVmsR4RDWxcfmVGRW4b3Q8iyQXV29iNe5
   payloads.py: QmY9rJt3VaQ294yJzaBbA7BMtdophW8wdghwNP44PfELyi
   price_api.py: QmTvGaH16idZdFybvNw8G536S1Kvz4xdDFY8zvTdkBy8v6
-  rounds.py: QmSVcTXpqyqqrCgUUCzPH8UjfQNeyjXwEkR6U3bvmey69W
+  rounds.py: QmbXf8F3HN3LKXthPAuWCCmVDvqkRbBg7MoHiLM7ci7JtB
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.22.0
@@ -60,9 +60,6 @@ models:
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
-  estimator:
-    args: {}
-    class_name: Estimator
   http_dialogues:
     args: {}
     class_name: HttpDialogues

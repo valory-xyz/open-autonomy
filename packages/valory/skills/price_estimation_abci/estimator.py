@@ -19,15 +19,8 @@
 
 """This module contains the model to aggregate the price observations deterministically."""
 import statistics
-from typing import Sequence
-
-from aea.skills.base import Model
 
 
-class Estimator(Model):
-    """Estimator model."""
-
-    @staticmethod
-    def aggregate(observations: Sequence[float]) -> float:
-        """Aggregate a list of observations."""
-        return statistics.mean(observations)
+def aggregate(*observations: float) -> float:
+    """Aggregate a list of observations."""
+    return statistics.mean(observations)

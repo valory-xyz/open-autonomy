@@ -135,7 +135,6 @@ class TestABCIPriceEstimationSkillMany(
             "Got observation of BTC price in USD",
             "'observe' behaviour state is done",
             "Entered in the 'estimate' behaviour state",
-            "Using observations",
             "Got estimate of BTC price in USD:",
             "'estimate' behaviour state is done",
             "Entered in the 'tx_hash' behaviour state",
