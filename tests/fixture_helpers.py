@@ -19,9 +19,11 @@
 
 """This module contains helper classes/functions for fixtures."""
 import secrets
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 import pytest
+from eth_account import Account
+from web3 import Web3
 
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
@@ -56,22 +58,34 @@ class UseGnosisSafeHardHatNet:
         cls.hardhat_port = hardhat_port
         cls.hardhat_key_pairs = key_pairs
 
-    @classmethod
-    def owners(cls) -> List[Tuple[str, str]]:
+    @property
+    def owner_key_pairs(self) -> List[Tuple[str, str]]:
         """Get the owners."""
-        return cls.hardhat_key_pairs[: cls.NB_OWNERS]
+        return self.hardhat_key_pairs[: self.NB_OWNERS]
 
-    @classmethod
-    def deployer(cls) -> Tuple[str, str]:
+    @property
+    def owners(self) -> List[str]:
+        """Get the owners."""
+        return [Web3.toChecksumAddress(t[0]) for t in self.owner_key_pairs]
+
+    @property
+    def deployer(self) -> Tuple[str, str]:
         """Get the key pair of the deployer."""
         # for simplicity, get the first owner
-        return cls.owners()[0]
+        return self.owner_key_pairs[0]
 
-    @classmethod
-    def get_nonce(cls) -> int:
+    @property
+    def threshold(
+        self,
+    ) -> int:
+        """Returns the amount of threshold."""
+        return self.THRESHOLD
+
+    @property
+    def get_nonce(self) -> int:
         """Get the nonce."""
-        if cls.SALT_NONCE is not None:
-            return cls.SALT_NONCE
+        if self.SALT_NONCE is not None:
+            return self.SALT_NONCE
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
@@ -81,24 +95,38 @@ class UseGanache:
 
     NB_OWNERS: int = 4
     THRESHOLD: int = 1
+    SALT_NONCE: Optional[int] = None
 
     ganache_port: int = DEFAULT_GANACHE_PORT
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_ganache(cls, ganache_safenet, ganache_configuration) -> None:
+    def _start_ganache(cls, ganache, ganache_configuration) -> None:
         """Start Ganache instance."""
-        cls.key_pairs = [
-            key for key, _ in ganache_configuration.get("accounts_balances", [])
-        ]
+        cls.key_pairs = cast(
+            List[Tuple[str, str]],
+            [
+                key if type(key) == tuple else (Account.from_key(key).address, key)
+                for key, _ in ganache_configuration.get("accounts_balances", [])
+            ],
+        )
 
     @property
-    def owners(
-        self,
-    ) -> List[Tuple[str, str]]:
-        """Returns list of key pairs for owners."""
-        return self.key_pairs
+    def owner_key_pairs(self) -> List[Tuple[str, str]]:
+        """Get the owners."""
+        return self.key_pairs[: self.NB_OWNERS]
+
+    @property
+    def owners(self) -> List[str]:
+        """Get the owners."""
+        return [Web3.toChecksumAddress(t[0]) for t in self.owner_key_pairs]
+
+    @property
+    def deployer(self) -> Tuple[str, str]:
+        """Get the key pair of the deployer."""
+        # for simplicity, get the first owner
+        return self.owner_key_pairs[0]
 
     @property
     def threshold(
@@ -106,3 +134,10 @@ class UseGanache:
     ) -> int:
         """Returns the amount of threshold."""
         return self.THRESHOLD
+
+    @property
+    def get_nonce(self) -> int:
+        """Get the nonce."""
+        if self.SALT_NONCE is not None:
+            return self.SALT_NONCE
+        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)

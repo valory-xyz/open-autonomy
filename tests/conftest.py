@@ -126,6 +126,7 @@ def ganache_configuration():
     """Get the Ganache configuration for testing purposes."""
     return dict(
         accounts_balances=[
+            (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
             (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
             (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
             (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
@@ -137,7 +138,7 @@ def ganache_configuration():
 @pytest.mark.integration
 @pytest.mark.ledger
 @pytest.fixture(scope="function")
-def ganache_safenet(
+def ganache(
     ganache_configuration,
     ganache_addr,
     ganache_port,
