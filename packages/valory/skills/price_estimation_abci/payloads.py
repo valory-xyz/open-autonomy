@@ -29,6 +29,7 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     REGISTRATION = "registration"
+    SELECT_KEEPER = "select_keeper"
     DEPLOY_SAFE = "deploy_safe"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
@@ -49,6 +50,31 @@ class RegistrationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
+
+
+class SelectKeeperPayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'select_keeper'."""
+
+    transaction_type = TransactionType.SELECT_KEEPER
+
+    def __init__(self, sender: str, keeper: str) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param keeper: the keeper selection
+        """
+        super().__init__(sender)
+        self._keeper = keeper
+
+    @property
+    def keeper(self) -> str:
+        """Get the keeper."""
+        return self._keeper
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(keeper=self.keeper)
 
 
 class DeploySafePayload(BasePriceEstimationPayload):

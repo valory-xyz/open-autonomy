@@ -41,6 +41,7 @@ class TestABCIPriceEstimationSkillMany(
     NB_AGENTS = 4
     NB_OWNERS = NB_AGENTS
     THRESHOLD = NB_AGENTS * 2 // 3 + 1
+    NB_KEEPER_TIMEOUT = 5
     cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
@@ -97,10 +98,13 @@ class TestABCIPriceEstimationSkillMany(
                 json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
                 "list",
             )
-
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants",
                 self.NB_AGENTS,
+            )
+            self.set_config(
+                "vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds",
+                self.NB_KEEPER_TIMEOUT,
             )
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",

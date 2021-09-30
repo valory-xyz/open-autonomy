@@ -331,7 +331,9 @@ class TestConsensusParams:
     def test_from_json(self):
         """Test 'from_json' method."""
         expected = ConsensusParams(self.max_participants)
-        json_object = dict(max_participants=self.max_participants)
+        json_object = dict(
+            max_participants=self.max_participants,
+        )
         actual = ConsensusParams.from_json(json_object)
         assert expected == actual
 
@@ -370,7 +372,9 @@ class TestAbstractRound:
         self.known_payload_type = ConcreteRound.payload_a.__name__
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(participants=self.participants)
-        self.params = ConsensusParams(max_participants=len(self.participants))
+        self.params = ConsensusParams(
+            max_participants=len(self.participants),
+        )
         self.round = ConcreteRound(self.base_period_state, self.params)
 
     def test_period_state_getter(self):

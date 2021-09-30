@@ -25,7 +25,7 @@ from operator import itemgetter
 from types import MappingProxyType
 from typing import Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, cast
+from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from aea.exceptions import enforce
 
@@ -39,6 +39,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     ObservationPayload,
     RegistrationPayload,
+    SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
 )
@@ -47,6 +48,11 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 def encode_float(value: float) -> bytes:
     """Encode a float value."""
     return struct.pack("d", value)
+
+
+def rotate_list(my_list: list, positions: int) -> List[str]:
+    """Rotate a list n positions."""
+    return my_list[positions:] + my_list[:positions]
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -59,7 +65,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def __init__(  # pylint: disable=too-many-arguments
         self,
         participants: Optional[FrozenSet[str]] = None,
+        most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
+        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
         most_voted_estimate: Optional[float] = None,
@@ -67,10 +75,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         most_voted_tx_hash: Optional[str] = None,
         participant_to_signature: Optional[Mapping[str, str]] = None,
         final_tx_hash: Optional[str] = None,
+        keeper_randomness: Optional[float] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
+        self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
+        self._participant_to_selection = participant_to_selection
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
         self._most_voted_estimate = most_voted_estimate
@@ -78,6 +89,17 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_tx_hash = most_voted_tx_hash
         self._participant_to_signature = participant_to_signature
         self._final_tx_hash = final_tx_hash
+        self._keeper_randomness = keeper_randomness
+        self._keeper_randomness = 0.5  # stub
+
+    @property
+    def most_voted_keeper_address(self) -> str:
+        """Get the most_voted_keeper_address."""
+        enforce(
+            self._most_voted_keeper_address is not None,
+            "'most_voted_keeper_address' field is None",
+        )
+        return cast(str, self._most_voted_keeper_address)
 
     @property
     def safe_contract_address(self) -> str:
@@ -87,6 +109,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'safe_contract_address' field is None",
         )
         return cast(str, self._safe_contract_address)
+
+    @property
+    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
+        """Get the participant_to_selection."""
+        enforce(
+            self._participant_to_selection is not None,
+            "'participant_to_selection' field is None",
+        )
+        return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
 
     @property
     def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
@@ -138,34 +169,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return encode_float(self.most_voted_estimate)
 
     @property
+    def keeper_randomness(self) -> float:
+        """Get the keeper's random number [0-1]."""
+        return cast(float, self._keeper_randomness)
+
+    @property
     def observations(self) -> Tuple[ObservationPayload, ...]:
         """Get the tuple of observations."""
         return tuple(self.participant_to_observations.values())
-
-    @property
-    def sorted_addresses(self) -> List[str]:
-        """Sorted addresses."""
-        return sorted(self.participants, key=str.lower)
-
-    @property
-    def safe_sender_address(self) -> str:
-        """
-        Get the Safe sender address.
-
-        It is the address with the minimum integer value,
-        and since the length of the hex strings is the same,
-        this coincides with alphanumeric order.
-
-        However, we need to lower the strings, since
-        the addresses are checksum addres.
-
-        TOFIX: the 'leader' should be decided in a more sensible way,
-          introducing some decentralized randomization. this is a
-          temporary solution.
-
-        :return: the sender address
-        """
-        return self.sorted_addresses[0]
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -234,7 +245,93 @@ class RegistrationRound(PriceEstimationAbstractRound):
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
             state = PeriodState(participants=frozenset(self.participants))
-            next_round = DeploySafeRound(state, self._consensus_params)
+            next_round = SelectKeeperARound(state, self._consensus_params)
+            return state, next_round
+        return None
+
+
+class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
+    """
+    This class represents the select keeper round.
+
+    Input: a set of participants (addresses)
+    Output: the selected keeper.
+    """
+
+    round_id = "select_keeper"
+    next_round_class: Type[PriceEstimationAbstractRound]
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'select-keeper' round."""
+        super().__init__(*args, **kwargs)
+        self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
+
+    def select_keeper(self, payload: SelectKeeperPayload) -> None:
+        """Handle an 'select_keeper' payload."""
+        sender = payload.sender
+        if sender not in self.period_state.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender in self.participant_to_selection:
+            # sender has already sent its estimate
+            return
+
+        self.participant_to_selection[sender] = payload
+
+    def check_select_keeper(self, payload: SelectKeeperPayload) -> bool:
+        """
+        Check an select_keeper payload can be applied to the current state.
+
+        An select_keeper transaction can be applied only if:
+        - the round is in the 'select_keeper' state;
+        - the sender belongs to the set of participants
+        - the sender has not sent its selection yet
+
+        :param: payload: the payload.
+        :return: True if the selection is allowed, False otherwise.
+        """
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender_has_not_sent_selection_yet = (
+            payload.sender not in self.participant_to_selection
+        )
+        return sender_in_participant_set and sender_has_not_sent_selection_yet
+
+    @property
+    def selection_threshold_reached(self) -> bool:
+        """Check that the selection threshold has been reached."""
+        selections_counter: CounterType = Counter()
+        selections_counter.update(
+            payload.keeper for payload in self.participant_to_selection.values()
+        )
+        # check that a single selection has at least 2/3 of votes
+        two_thirds_n = self._consensus_params.two_thirds_threshold
+        return any(count >= two_thirds_n for count in selections_counter.values())
+
+    @property
+    def most_voted_keeper_address(self) -> float:
+        """Get the most voted keeper."""
+        keepers_counter = Counter()  # type: ignore
+        keepers_counter.update(
+            payload.keeper for payload in self.participant_to_selection.values()
+        )
+        most_voted_keeper_address, max_votes = max(
+            keepers_counter.items(), key=itemgetter(1)
+        )
+        if max_votes < self._consensus_params.two_thirds_threshold:
+            raise ValueError("keeper has not enough votes")
+        return most_voted_keeper_address
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+        """Process the end of the block."""
+        if self.selection_threshold_reached:
+            state = self.period_state.update(
+                participant_to_selection=MappingProxyType(
+                    self.participant_to_selection
+                ),
+                most_voted_keeper_address=self.most_voted_keeper_address,
+            )
+            next_round = self.next_round_class(state, self._consensus_params)
             return state, next_round
         return None
 
@@ -264,7 +361,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.period_state.safe_sender_address:
+        if sender != self.period_state.most_voted_keeper_address:
             # the sender is not the elected sender
             return
 
@@ -288,7 +385,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         """
         sender_in_participant_set = payload.sender in self.period_state.participants
         sender_is_elected_sender = (
-            payload.sender == self.period_state.safe_sender_address
+            payload.sender == self.period_state.most_voted_keeper_address
         )
         contract_address_not_set_yet = self._contract_address is None
         return (
@@ -631,7 +728,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
             # sender not in the set of participants.
             return
 
-        if sender != self.period_state.safe_sender_address:
+        if sender != self.period_state.most_voted_keeper_address:
             # the sender is not the elected sender
             return
 
@@ -655,7 +752,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
         """
         sender_in_participant_set = payload.sender in self.period_state.participants
         sender_is_elected_sender = (
-            payload.sender == self.period_state.safe_sender_address
+            payload.sender == self.period_state.most_voted_keeper_address
         )
         tx_hash_not_set_yet = self._tx_hash is None
         return (
@@ -677,6 +774,18 @@ class FinalizationRound(PriceEstimationAbstractRound):
             next_round = ConsensusReachedRound(state, self._consensus_params)
             return state, next_round
         return None
+
+
+class SelectKeeperARound(SelectKeeperRound):
+    """This class represents the select keeper A round."""
+
+    next_round_class = DeploySafeRound
+
+
+class SelectKeeperBRound(SelectKeeperRound):
+    """This class represents the select keeper B round."""
+
+    next_round_class = FinalizationRound
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):

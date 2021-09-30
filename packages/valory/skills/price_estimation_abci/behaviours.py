@@ -22,7 +22,8 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Generator, cast
+from math import floor
+from typing import Generator, List, cast
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
@@ -32,6 +33,8 @@ from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     DONE_EVENT,
+    EXIT_A_EVENT,
+    EXIT_B_EVENT,
     FAIL_EVENT,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -44,6 +47,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     ObservationPayload,
     RegistrationPayload,
+    SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
 )
@@ -55,6 +59,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinalizationRound,
     PeriodState,
     RegistrationRound,
+    SelectKeeperARound,
+    SelectKeeperBRound,
     TxHashRound,
 )
 
@@ -119,6 +125,57 @@ class RegistrationBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
+class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
+    """Select the keeper agent."""
+
+    def async_act(self) -> None:  # type: ignore
+        """
+        Do the action.
+
+        Steps:
+        - Select a new random keeper
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state.
+        """
+        keeper_address = self.random_selection(
+            list(self.period_state.participants),
+            self.period_state.keeper_randomness,
+        )
+
+        self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
+        payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+    @staticmethod
+    def random_selection(elements: List[str], randomness: float) -> str:
+        """
+        Select a random element from a list.
+
+        :param: elements: a list of elements to choose among
+        :param: randomness: a random number in the [0,1) interval
+        :return: a randomly chosen element
+        """
+        random_position = floor(randomness * len(elements))
+        return elements[random_position]
+
+
+class SelectKeeperABehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent."""
+
+    state_id = "select_keeper_a"
+    matching_round = SelectKeeperARound
+
+
+class SelectKeeperBBehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent."""
+
+    state_id = "select_keeper_b"
+    matching_round = SelectKeeperBRound
+
+
 class DeploySafeBehaviour(PriceEstimationBaseState):
     """Deploy Safe."""
 
@@ -133,20 +190,37 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         deployment transaction and send it.
         Otherwise, wait until the next round.
         """
-        if self.context.agent_address != self.period_state.safe_sender_address:
-            self._not_deployer_act()
+        self.context.state.set_state_time(self.state_id)
+        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+            yield from self._not_deployer_act()
         else:
             yield from self._deployer_act()
-        yield from self.wait_until_round_end()
-        self.context.logger.info(
-            f"Safe contract address: {self.period_state.safe_contract_address}"
-        )
-        self.set_done()
 
-    def _not_deployer_act(self) -> None:
+    def has_contract_been_deployed_stub(self) -> bool:
+        """
+        Stub for deployment check.
+
+        :return: bool
+        """
+        return self.context.state.has_keeper_timed_out(self.state_id)
+
+    def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
+        if self.has_contract_been_deployed_stub():
+            self.context.logger.info("Contract has been deployed.")
+            self.set_done()
+            self.context.state.reset_state_time(self.state_id)
+            return
+
+        if self.context.state.has_keeper_timed_out(self.state_id):
+            self.context.logger.info("Keeper timeout. Skipping...")
+            self.set_exit_a()
+            self.context.state.reset_state_time(self.state_id)
+            return
+
+        yield from self.sleep(1)
         self.context.logger.info(
-            "I am not the designated sender, waiting until next round..."
+            "I am not the designated deployer, waiting until the contract is deployed..."
         )
 
     def _deployer_act(self) -> Generator:
@@ -157,6 +231,12 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
         yield from self.send_a2a_transaction(payload)
+        self.context.logger.info(
+            f"Safe contract address: {self.period_state.safe_contract_address}"
+        )
+        yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
+        self.set_done()
+        self.context.state.reset_state_time(self.state_id)
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = list(self.period_state.participants)
@@ -294,7 +374,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.period_state.safe_sender_address,  # keeper address
+            to_address=self.period_state.most_voted_keeper_address,
             value=0,
             data=data,
         )
@@ -345,17 +425,37 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def async_act(self) -> Generator[None, None, None]:
         """Do the act."""
-        if self.context.agent_address != self.period_state.safe_sender_address:
-            self._not_sender_act()
+        self.context.state.set_state_time(self.state_id)
+        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+            yield from self._not_sender_act()
         else:
             yield from self._sender_act()
-        yield from self.wait_until_round_end()
-        self.set_done()
 
-    def _not_sender_act(self) -> None:
+    def has_transaction_been_sent_stub(self) -> bool:
+        """
+        Transaction finalization check stub.
+
+        :return: bool
+        """
+        return self.context.state.has_keeper_timed_out(self.state_id)
+
+    def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
+        if self.has_transaction_been_sent_stub():
+            self.context.logger.info("Keeper has sent the transaction.")
+            self.set_done()
+            self.context.state.reset_state_time(self.state_id)
+            return
+
+        if self.context.state.has_keeper_timed_out(self.state_id):
+            self.context.logger.info("Keeper timeout. Skipping...")
+            self.set_exit_b()
+            self.context.state.reset_state_time(self.state_id)
+            return
+
+        yield from self.sleep(1)
         self.context.logger.info(
-            "I am not the designated sender, waiting until next round..."
+            "I am not the designated sender, waiting until the tx is sent..."
         )
 
     def _sender_act(self) -> Generator[None, None, None]:
@@ -372,6 +472,9 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         )
         payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
         yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
+        self.set_done()
+        self.context.state.reset_state_time(self.state_id)
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
@@ -413,12 +516,20 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     initial_state_cls = TendermintHealthcheckBehaviour
     transition_function: TransitionFunction = {
         TendermintHealthcheckBehaviour: {DONE_EVENT: RegistrationBehaviour},
-        RegistrationBehaviour: {DONE_EVENT: DeploySafeBehaviour},
-        DeploySafeBehaviour: {DONE_EVENT: ObserveBehaviour},
+        RegistrationBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
+        SelectKeeperABehaviour: {DONE_EVENT: DeploySafeBehaviour},
+        DeploySafeBehaviour: {
+            DONE_EVENT: ObserveBehaviour,
+            EXIT_A_EVENT: SelectKeeperABehaviour,
+        },
         ObserveBehaviour: {DONE_EVENT: EstimateBehaviour, FAIL_EVENT: WaitBehaviour},
         EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
         TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
         SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
-        FinalizeBehaviour: {DONE_EVENT: EndBehaviour},
+        FinalizeBehaviour: {
+            DONE_EVENT: EndBehaviour,
+            EXIT_B_EVENT: SelectKeeperBBehaviour,
+        },
+        SelectKeeperBBehaviour: {DONE_EVENT: FinalizeBehaviour},
         EndBehaviour: {},
     }

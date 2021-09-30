@@ -64,6 +64,8 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 
 DONE_EVENT = "done"
 FAIL_EVENT = "fail"
+EXIT_A_EVENT = "exit_a"
+EXIT_B_EVENT = "exit_b"
 
 _REQUEST_RETRY_DELAY = 1.0
 
@@ -290,6 +292,16 @@ class BaseState(AsyncBehaviour, State, ABC):
         self._is_done = True
         self._event = FAIL_EVENT
 
+    def set_exit_a(self) -> None:
+        """Set the behaviour to exit a."""
+        self._is_done = True
+        self._event = EXIT_A_EVENT
+
+    def set_exit_b(self) -> None:
+        """Set the behaviour to exit b."""
+        self._is_done = True
+        self._event = EXIT_B_EVENT
+
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
@@ -347,7 +359,7 @@ class BaseState(AsyncBehaviour, State, ABC):
             signature_response = cast(SigningMessage, signature_response)
             if signature_response.performative == SigningMessage.Performative.ERROR:
                 self._handle_signing_failure()
-                continue
+                raise RuntimeError("Failure during signing.")  # TOFIX: temporary
             signature_bytes = signature_response.signed_message.body
             transaction = Transaction(payload, signature_bytes)
 
