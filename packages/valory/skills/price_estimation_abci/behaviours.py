@@ -22,8 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from math import floor
-from typing import Generator, List, cast
+from typing import Generator, cast
 
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
@@ -63,6 +62,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     SelectKeeperBRound,
     TxHashRound,
 )
+from packages.valory.skills.price_estimation_abci.tools import random_selection
 
 
 SIGNATURE_LENGTH = 65
@@ -138,7 +138,7 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
-        keeper_address = self.random_selection(
+        keeper_address = random_selection(
             list(self.period_state.participants),
             self.period_state.keeper_randomness,
         )
@@ -148,18 +148,6 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
-
-    @staticmethod
-    def random_selection(elements: List[str], randomness: float) -> str:
-        """
-        Select a random element from a list.
-
-        :param: elements: a list of elements to choose among
-        :param: randomness: a random number in the [0,1) interval
-        :return: a randomly chosen element
-        """
-        random_position = floor(randomness * len(elements))
-        return elements[random_position]
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
