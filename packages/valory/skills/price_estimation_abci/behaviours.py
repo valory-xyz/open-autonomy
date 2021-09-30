@@ -339,18 +339,18 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state.
         """
+
         currency_id = self.context.params.currency_id
         convert_id = self.context.params.convert_id
-        observation_payloads = self.period_state.observations
-        observations = [obs_payload.observation for obs_payload in observation_payloads]
         self.context.logger.info(
-            f"Using observations {observations} to compute the estimate."
+            "Got estimate of %s price in %s: %s",
+            currency_id,
+            convert_id,
+            self.period_state.estimate,
         )
-        estimate = self.context.estimator.aggregate(observations)
-        self.context.logger.info(
-            f"Got estimate of {currency_id} price in {convert_id}: {estimate}"
+        payload = EstimatePayload(
+            self.context.agent_address, self.period_state.estimate
         )
-        payload = EstimatePayload(self.context.agent_address, estimate)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
@@ -369,7 +369,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         Steps:
         - TODO
         """
-        data = self.period_state.encoded_estimate
+        data = self.period_state.encoded_most_voted_estimate
         contract_api_msg = yield from self.get_contract_api_response(
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
