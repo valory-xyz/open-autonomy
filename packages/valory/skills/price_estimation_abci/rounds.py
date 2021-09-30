@@ -33,7 +33,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
 )
-from packages.valory.skills.price_estimation_abci.estimator import aggregate
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -44,6 +43,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SignaturePayload,
     TransactionHashPayload,
 )
+from packages.valory.skills.price_estimation_abci.tools import aggregate
 
 
 def encode_float(value: float) -> bytes:

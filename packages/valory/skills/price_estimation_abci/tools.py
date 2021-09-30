@@ -19,8 +19,22 @@
 
 """This module contains the model to aggregate the price observations deterministically."""
 import statistics
+from math import floor
+from typing import List
 
 
 def aggregate(*observations: float) -> float:
     """Aggregate a list of observations."""
     return statistics.mean(observations)
+
+
+def random_selection(elements: List[str], randomness: float) -> str:
+    """
+    Select a random element from a list.
+
+    :param: elements: a list of elements to choose among
+    :param: randomness: a random number in the [0,1) interval
+    :return: a randomly chosen element
+    """
+    random_position = floor(randomness * len(elements))
+    return elements[random_position]
