@@ -19,11 +19,12 @@
 
 """This module contains helper classes/functions for fixtures."""
 import secrets
-from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.docker.ganache_safenet import DEFAULT_GANACHE_PORT
 from typing import List, Optional, Tuple
 
 import pytest
+
+from tests.helpers.constants import KEY_PAIRS
+from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
 
 
 @pytest.mark.integration
@@ -86,18 +87,22 @@ class UseGanache:
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_ganache(cls, ganache_safenet) -> None:
+    def _start_ganache(cls, ganache_safenet, ganache_configuration) -> None:
         """Start Ganache instance."""
+        cls.key_pairs = [
+            key for key, _ in ganache_configuration.get("accounts_balances", [])
+        ]
 
     @property
     def owners(
         self,
     ) -> List[Tuple[str, str]]:
         """Returns list of key pairs for owners."""
-        return self.key_pairs[: self.NB_OWNERS]
+        return self.key_pairs
 
     @property
     def threshold(
         self,
     ) -> int:
+        """Returns the amount of threshold."""
         return self.THRESHOLD

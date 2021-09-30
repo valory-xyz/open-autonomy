@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+from pathlib import Path
 from typing import List, Tuple
 
 import docker
@@ -26,9 +27,8 @@ import pytest
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.docker.base import launch_image
-from tests.helpers.docker.ganache_safenet import (
+from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
-    DEFAULT_GANACHE_CHAIN_ID,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
@@ -44,7 +44,19 @@ from tests.helpers.docker.tendermint import (
 
 
 ROOT_DIR = _ROOT_DIR
+DATA_PATH = _ROOT_DIR / "tests" / "data"
 DEFAULT_AMOUNT = 1000000000000000000000
+
+ETHEREUM_KEY_DEPLOYER = DATA_PATH / "ethereum_key_deployer.txt"
+ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
+ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
+ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
+ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
+
+
+def get_key(key_path: Path) -> str:
+    """Returns key value from file.""" ""
+    return key_path.read_bytes().strip().decode()
 
 
 @pytest.fixture()
@@ -110,7 +122,12 @@ def ganache_port() -> int:
 def ganache_configuration():
     """Get the Ganache configuration for testing purposes."""
     return dict(
-        accounts_balances=[(key, DEFAULT_AMOUNT) for _, key in KEY_PAIRS],
+        accounts_balances=[
+            (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
+        ],
     )
 
 

@@ -20,33 +20,30 @@
 """Tests for valory/gnosis contract."""
 
 from abc import abstractmethod
-from typing import List, Tuple
 
 import pytest
 from aea.configurations.base import ContractConfig
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum import EthereumCrypto
-from eth_account.account import Account
-from eth_keys import keys
-from web3 import Web3
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 
-from tests.fixture_helpers import UseGanache, UseGnosisSafeHardHatNet
-from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.docker.gnosis_safe_net import DEFAULT_HARDHAT_PORT
+from tests.conftest import (
+    ETHEREUM_KEY_DEPLOYER,
+    ETHEREUM_KEY_PATH_1,
+    ETHEREUM_KEY_PATH_2,
+)
+from tests.fixture_helpers import UseGanache
+from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
 
 
-class BaseContractTest(UseGnosisSafeHardHatNet):
+class BaseContractTest(UseGanache):
     """Base test case for GnosisSafeContract"""
 
     contract: GnosisSafeContract
     ledger_api: LedgerApi
-    receiver: Crypto
-
-    owners: Tuple[Tuple[str, str]]
-    threshold: int
+    ethereum_crypto: Crypto
 
     def setup(
         self,
@@ -65,20 +62,12 @@ class BaseContractTest(UseGnosisSafeHardHatNet):
         )
         self.ledger_api = ledger_apis_registry.make(
             EthereumCrypto.identifier,
-            address=f"http://localhost:{DEFAULT_HARDHAT_PORT}",
+            address=f"http://localhost:{DEFAULT_GANACHE_PORT}",
         )
 
-        self.owners = [key for _, key in KEY_PAIRS[:4]]
-        self.threshold = 1
-        self.ethereum_crypto = self.generate_account(KEY_PAIRS[0][1])
-
-    def generate_account(self, key: str) -> EthereumCrypto:
-        crypto = crypto_registry.make(EthereumCrypto.identifier)
-        crypto._entity = Account.from_key(private_key=key)
-        bytes_representation = Web3.toBytes(hexstr=crypto.entity.key.hex())
-        crypto._public_key = str(keys.PrivateKey(bytes_representation).public_key)
-        crypto._address = str(crypto.entity.address)
-        return crypto
+        self.ethereum_crypto = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
+        )
 
     @abstractmethod
     def test_run(
@@ -92,21 +81,42 @@ class TestDeployTransection(BaseContractTest):
 
     def test_run(self):
         """Run tests."""
-
         result = self.contract.get_deploy_transaction(
             ledger_api=self.ledger_api,
             deployer_address=str(self.ethereum_crypto.address),
             owners=list(map(str, self.owners)),
             threshold=int(self.threshold),
         )
-        print(result)
 
+        assert len(result) == 6
+        data = result.pop("data")
+        assert len(data) > 0 and data.startswith("0x")
+        assert all(
+            [key in result for key in ["value", "from", "gas", "gasPrice", "nonce"]]
+        ), "Error, found: {}".format(result)
 
-class TestRawSafeTransectionHash(BaseContractTest):
-    """Test `get_raw_safe_transaction_hash` method."""
+    def test_exceptions(
+        self,
+    ):
+        """Test exceptions."""
 
-    def test_run(self):
-        """Run tests."""
+        with pytest.raises(ValueError):
+            # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
+            self.contract.get_deploy_transaction(
+                ledger_api=self.ledger_api,
+                deployer_address=str(self.ethereum_crypto.address),
+                owners=[],
+                threshold=1,
+            )
+
+        with pytest.raises(ValueError):
+            # Tests for  `ValueError("Client does not have any funds")`.
+            self.contract.get_deploy_transaction(
+                ledger_api=self.ledger_api,
+                deployer_address=crypto_registry.make(EthereumCrypto.identifier),
+                owners=list(map(str, self.owners)),
+                threshold=int(self.threshold),
+            )
 
 
 class TestRawSafeTransaction(BaseContractTest):
@@ -114,6 +124,37 @@ class TestRawSafeTransaction(BaseContractTest):
 
     def test_run(self):
         """Run tests."""
+        sender = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
+        )
+        receiver = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
+        )
+
+        self.contract.get_raw_safe_transaction(
+            self.ledger_api,
+            self.ethereum_crypto.address,
+            sender.address,
+            self.owners,
+            receiver.address,
+            10,
+            b"",
+            {},
+        )
+
+
+class TestRawSafeTransectionHash(BaseContractTest):
+    """Test `get_raw_safe_transaction_hash` method."""
+
+    def test_run(self):
+        """Run tests."""
+        receiver = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
+        )
+
+        self.contract.get_raw_safe_transaction_hash(
+            self.ledger_api, self.ethereum_crypto.address, receiver.address, 10, b""
+        )
 
 
 class TestNoneImplementedMethods(BaseContractTest):
