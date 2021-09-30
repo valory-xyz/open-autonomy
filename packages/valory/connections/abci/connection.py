@@ -113,7 +113,7 @@ class _TendermintABCISerializer:
                 return
             data = buffer.read(length)
             if len(data) < length:
-                return
+                return  # pragma: nocover
             message = message_cls()
             message.ParseFromString(data)
 
@@ -258,7 +258,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self.logger = cast(Logger, self.logger)
         message = cast(AbciMessage, envelope.message)
         dialogue = self._dialogues.update(message)
-        if dialogue is None:
+        if dialogue is None:  # pragma: nocover
             self.logger.warning(
                 "Could not create dialogue for message={}".format(message)
             )

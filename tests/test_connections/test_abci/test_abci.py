@@ -42,10 +42,18 @@ from packages.valory.connections.abci.connection import (
 )
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (  # type: ignore
+    BlockParams,
+    ConsensusParams,
+    Duration,
+    Event,
+    EventAttribute,
     Events,
+    EvidenceParams,
     ProofOps,
+    ValidatorParams,
     ValidatorUpdate,
     ValidatorUpdates,
+    VersionParams,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
@@ -138,12 +146,22 @@ class ABCIAppTest:
     def init_chain(self, request: AbciMessage):
         """Process an init_chain request."""
         abci_dialogue = self._update_dialogues(request)
-        validators: List[ValidatorUpdate] = []
+        validators: List[ValidatorUpdate] = [ValidatorUpdate(pub_key=b"", power=0)]
         app_hash = b""
         response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             validators=ValidatorUpdates(validators),
             app_hash=app_hash,
+            consensus_params=ConsensusParams(
+                BlockParams(max_bytes=1, max_gas=1),
+                EvidenceParams(
+                    max_age_num_blocks=1,
+                    max_age_duration=Duration(seconds=0, nanos=0),
+                    max_bytes=1,
+                ),
+                ValidatorParams(pub_key_types=[]),
+                VersionParams(app_version=0),
+            ),
         )
         return cast(AbciMessage, response)
 
@@ -167,6 +185,7 @@ class ABCIAppTest:
     def check_tx(self, request: AbciMessage) -> AbciMessage:
         """Process a check_tx request."""
         abci_dialogue = self._update_dialogues(request)
+        attributes: List[EventAttribute] = []
         response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
             code=0,  # OK
@@ -175,7 +194,7 @@ class ABCIAppTest:
             info="",
             gas_wanted=0,
             gas_used=0,
-            events=Events([]),
+            events=Events([Event(type_="", attributes=attributes)]),
             codespace="",
         )
         return cast(AbciMessage, response)
@@ -212,6 +231,16 @@ class ABCIAppTest:
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
+            consensus_param_updates=ConsensusParams(
+                BlockParams(max_bytes=1, max_gas=1),
+                EvidenceParams(
+                    max_age_num_blocks=1,
+                    max_age_duration=Duration(seconds=0, nanos=0),
+                    max_bytes=1,
+                ),
+                ValidatorParams(pub_key_types=[]),
+                VersionParams(app_version=0),
+            ),
         )
         return cast(AbciMessage, response)
 
