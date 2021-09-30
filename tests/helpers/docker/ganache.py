@@ -18,8 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Ganache Docker Image."""
-import time
 import logging
+import time
 from typing import Dict, List, Optional
 
 import docker
@@ -28,6 +28,7 @@ from aea.exceptions import enforce
 from docker.models.containers import Container
 
 from tests.helpers.docker.base import DockerImage
+
 
 DEFAULT_GANACHE_ADDR = "http://127.0.0.1"
 DEFAULT_GANACHE_PORT = 8545
@@ -47,6 +48,7 @@ class GanacheDockerImage(DockerImage):
     ):
         """
         Initialize the Ganache Docker image.
+
         :param client: the Docker client.
         :param addr: the address.
         :param port: the port.
