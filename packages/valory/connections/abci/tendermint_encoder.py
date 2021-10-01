@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 """Encode AEA messages into Tendermint protobuf messages."""
 # pylint: disable=no-member
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, cast
 
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     ConsensusParams,
@@ -221,11 +221,14 @@ class _TendermintProtocolEncoder:
         """
         end_block = ResponseEndBlock()
 
-        if message.is_set("consensus_param_updates"):
-            consensus_params_pb = ConsensusParams()
-            CustomConsensusParams.encode(
-                consensus_params_pb, message.consensus_param_updates
+        if (
+            message.is_set("consensus_param_updates")
+            and message.consensus_param_updates is not None
+        ):
+            consensus_params_updates = cast(
+                ConsensusParams, message.consensus_param_updates
             )
+            consensus_params_pb = cls._encode_consensus_params(consensus_params_updates)
             end_block.consensus_param_updates.CopyFrom(consensus_params_pb)
 
         validator_updates_pb = [

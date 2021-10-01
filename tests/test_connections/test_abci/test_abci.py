@@ -150,16 +150,7 @@ class ABCIAppTest:
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             validators=request.validators,
             app_hash=app_hash,
-            consensus_params=ConsensusParams(
-                BlockParams(max_bytes=22020096, max_gas=-1),
-                EvidenceParams(
-                    max_age_num_blocks=100000,
-                    max_age_duration=Duration(seconds=17280, nanos=0),
-                    max_bytes=50,
-                ),
-                ValidatorParams(pub_key_types=["ed25519"]),
-                VersionParams(app_version=0),
-            ),
+            consensus_params=self._get_test_consensus_params(),
         )
         return cast(AbciMessage, response)
 
@@ -229,16 +220,7 @@ class ABCIAppTest:
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
-            consensus_param_updates=ConsensusParams(
-                BlockParams(max_bytes=22020096, max_gas=-1),
-                EvidenceParams(
-                    max_age_num_blocks=100000,
-                    max_age_duration=Duration(seconds=17280, nanos=0),
-                    max_bytes=50,
-                ),
-                ValidatorParams(pub_key_types=["ed25519"]),
-                VersionParams(app_version=0),
-            ),
+            consensus_param_updates=self._get_test_consensus_params(),
         )
         return cast(AbciMessage, response)
 
@@ -256,6 +238,19 @@ class ABCIAppTest:
         """No match."""
         raise Exception(
             f"Received request with performative {request.performative.value}, but no handler available"
+        )
+
+    def _get_test_consensus_params(self) -> ConsensusParams:
+        """Get an instance of ConsensusParams for testing purposes."""
+        return ConsensusParams(
+            BlockParams(max_bytes=22020096, max_gas=-1),
+            EvidenceParams(
+                max_age_num_blocks=100000,
+                max_age_duration=Duration(seconds=17280, nanos=0),
+                max_bytes=50,
+            ),
+            ValidatorParams(pub_key_types=["ed25519"]),
+            VersionParams(app_version=0),
         )
 
 
