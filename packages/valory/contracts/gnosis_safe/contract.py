@@ -214,7 +214,11 @@ class GnosisSafeContract(Contract):
             ]
         )
 
-        nonce = ledger_api._try_get_transaction_count(account_address)
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                account_address
+            )
+        )
         if nonce is None:
             raise ValueError("No nonce returned.")
         tx_params, contract_address = cls._build_tx_deploy_proxy_contract_with_nonce(
@@ -301,7 +305,7 @@ class GnosisSafeContract(Contract):
         return transaction_dict, contract_address
 
     @classmethod
-    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments
+    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
