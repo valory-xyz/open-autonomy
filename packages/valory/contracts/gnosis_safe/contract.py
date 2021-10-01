@@ -388,11 +388,17 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
+        contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
+
         blockchain_bytecode = cls._extract_bytecode_contract(
-            ledger_api.api.eth.get_code(contract_address).hex()[2:],  # strip leading 0x
+            ledger_api.api.eth.get_code(contract_address).hex(),
             solc_version,
         )
-        compiled_bytecode = cls._extract_bytecode_contract("", solc_version)  # FIX
+
+        compiled_bytecode = cls._extract_bytecode_contract(
+            contract_interface["bytecode"], solc_version
+        )
+
         return blockchain_bytecode == compiled_bytecode
 
     @classmethod
@@ -406,7 +412,7 @@ class GnosisSafeContract(Contract):
         :param solc_version: solc version with which the contract was compiled
         :return: the contract with all metadata stripped or None if it failed
         """
-        _, solc_minor, solc_patch, _ = cls._version_extractor(solc_version)
+        _, solc_minor, solc_patch, _ = cls._extract_version(solc_version)
         contract_end = bytecode.index("a165627a7a72305820")
 
         if solc_minor is None or solc_patch is None:
@@ -420,7 +426,7 @@ class GnosisSafeContract(Contract):
         return bytecode
 
     @classmethod
-    def _version_extractor(
+    def _extract_version(
         cls, solc_version: str
     ) -> Tuple[Optional[int], Optional[int], Optional[int], Optional[str]]:
         """

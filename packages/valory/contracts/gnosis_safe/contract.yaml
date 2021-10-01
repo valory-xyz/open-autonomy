@@ -8,7 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
   __init__.py: QmS2MEY7dgz18icnFs975zxCxMmYQzVkeFfe2TjnTDeDiL
-  contract.py: QmU6RSU4qRwpTcUX6kZ6ieJgBFikM4nfex6CpzSoyqKBBW
+  build/GnosisSafe.json: QmdctC2NJmrjqJtCiKGHbzDGEL4Rsk6ACN6mByJZmsFAHu
+  contract.py: QmRkAGfaMxDpFZK1LFEN7SjngU8oNbMrNHqRjR6fJ5Kfmz
 fingerprint_ignore_patterns: []
 class_name: GnosisSafeContract
 contract_interface_paths: {}
