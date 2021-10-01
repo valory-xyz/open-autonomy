@@ -36,6 +36,7 @@ from gnosis.eth.contracts import get_proxy_factory_contract, get_safe_V1_3_0_con
 from gnosis.safe import ProxyFactory, Safe, SafeTx
 from hexbytes import HexBytes
 from web3 import HTTPProvider
+from web3.exceptions import TransactionNotFound
 from web3.types import Nonce, TxParams, Wei
 
 
@@ -446,3 +447,20 @@ class GnosisSafeContract(Contract):
                 commit = match.groups()[3].split(".")[-1]
 
         return major, minor, patch, commit
+
+    @classmethod
+    def verify_tx(cls, ledger_api: LedgerApi, tx_hash: str) -> JSONLike:
+        """
+        Verify a tx hash exists on the blockchain.
+
+        :param ledger_api: the ledger API object
+        :param tx_hash: the transaction hash
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+
+        try:
+            ledger_api.api.eth.getTransaction(tx_hash)
+            return dict(verified=True)
+        except TransactionNotFound:
+            return dict(verified=False)

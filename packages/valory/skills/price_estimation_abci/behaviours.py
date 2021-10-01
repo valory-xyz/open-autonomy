@@ -423,17 +423,34 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         else:
             yield from self._sender_act()
 
-    def has_transaction_been_sent_stub(self) -> bool:
-        """
-        Transaction finalization check stub.
+    def has_transaction_been_sent(self) -> Generator[None, None, bool]:
+        """Transaction finalization check."""
+        contract_api_msg = yield from self.get_contract_api_response(
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction_hash",
+            sender_address=self.context.agent_address,
+            owners=tuple(self.period_state.participants),
+            to_address=self.context.agent_address,
+            value=0,
+            data=self.period_state.encoded_estimate,
+            signatures_by_owner=dict(self.period_state.participant_to_signature),
+        )
+        tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
 
-        :return: bool
-        """
-        return self.context.state.has_keeper_timed_out(self.state_id)
+        contract_api_msg = yield from self.get_contract_api_response(
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="verify_tx",
+            tx_hash=tx_hash,
+        )
+        verified = cast(bool, contract_api_msg.raw_transaction.body["verified"])
+
+        return verified
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        if self.has_transaction_been_sent_stub():
+        if self.has_transaction_been_sent():
             self.context.logger.info("Keeper has sent the transaction.")
             self.set_done()
             self.context.state.reset_state_time(self.state_id)
