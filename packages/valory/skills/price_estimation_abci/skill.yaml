@@ -9,11 +9,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmeyfznYJ2CWCDaMfHLaxVfd7h18p4Qw4Rfa2AYKVb938N
+  behaviours.py: QmPQZEuATjFHNS2tnHf1AJ1Yznq3utqiCTw35tK3LsgQW7
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmUGP65hhDp8w1BwxfWa4NGUzE78rC8bsXnJqncDaAxqjf
-  params.py: QmYiRjBiVXb5VLVmsR4RDWxcfmVGRW4b3Q8iyQXV29iNe5
+  params.py: QmezUsAnSFpWkEnbAUgZiiF6iVgAsV3EWPdX8RZf6QAX8f
   payloads.py: QmY9rJt3VaQ294yJzaBbA7BMtdophW8wdghwNP44PfELyi
   price_api.py: QmTvGaH16idZdFybvNw8G536S1Kvz4xdDFY8zvTdkBy8v6
   rounds.py: Qmd32mFewjUdGga969Yer6HK9sBM2pVqoNfamRXqLDdB1k
@@ -74,6 +74,7 @@ models:
       currency_id: BTC
       keeper_timeout_seconds: 5
       max_healthcheck: 120
+      solidity_version: v0.7.6
       tendermint_url: http://localhost:26657
     class_name: Params
   price_api:

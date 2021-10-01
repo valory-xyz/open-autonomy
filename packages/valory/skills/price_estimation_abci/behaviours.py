@@ -184,17 +184,21 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         else:
             yield from self._deployer_act()
 
-    def has_contract_been_deployed_stub(self) -> bool:
-        """
-        Stub for deployment check.
+    def has_contract_been_deployed(self) -> Generator[None, None, bool]:
+        """Contract deployment verification."""
+        contract_api_response = yield from self.get_contract_api_response(
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="verify_contract",
+            solc_version=self.context.params.solidity_version,
+        )
 
-        :return: bool
-        """
-        return self.context.state.has_keeper_timed_out(self.state_id)
+        verified = cast(bool, contract_api_response.raw_transaction.body["verified"])
+        return verified
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        if self.has_contract_been_deployed_stub():
+        if self.has_contract_been_deployed():
             self.context.logger.info("Contract has been deployed.")
             self.set_done()
             self.context.state.reset_state_time(self.state_id)

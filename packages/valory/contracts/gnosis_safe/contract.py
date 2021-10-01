@@ -378,7 +378,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str, solc_version: str
-    ) -> bool:
+    ) -> JSONLike:
         """
         Verify the contract's bytecode
 
@@ -399,7 +399,8 @@ class GnosisSafeContract(Contract):
             contract_interface["bytecode"], solc_version
         )
 
-        return blockchain_bytecode == compiled_bytecode
+        verified = blockchain_bytecode == compiled_bytecode
+        return dict(verified=verified)
 
     @classmethod
     def _extract_bytecode_contract(

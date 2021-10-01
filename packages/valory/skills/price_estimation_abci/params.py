@@ -32,6 +32,7 @@ class Params(BaseParams):
         self.convert_id = self._ensure("convert_id", kwargs)
         self._max_healthcheck = self._ensure("max_healthcheck", kwargs)
         self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
+        self.solidity_version = self._ensure("solidity_version", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
 
