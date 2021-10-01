@@ -21,18 +21,17 @@
 import binascii
 import logging
 import secrets
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
-from aea.contracts.base import Contract
+from aea.contracts.base import Contract, contract_registry
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from eth_typing import ChecksumAddress, HexAddress, HexStr, URI
 from gnosis.eth import EthereumClient
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.contracts import get_proxy_factory_contract, get_safe_V1_3_0_contract
-from gnosis.safe import ProxyFactory, Safe, SafeTx
+from gnosis.safe import Safe, SafeTx
 from hexbytes import HexBytes
 from web3 import HTTPProvider
 from web3.types import Nonce, TxParams, Wei
@@ -44,7 +43,7 @@ _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
-
+NULL_ADDRESS: str = "0x" + "0" * 40
 SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"
 PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
@@ -108,6 +107,7 @@ class GnosisSafeContract(Contract):
         owners = kwargs.pop("owners")
         threshold = kwargs.pop("threshold")
         salt_nonce = kwargs.pop("salt_nonce", None)
+        ledger_api = cast(EthereumApi, ledger_api)
         tx_params, contract_address = cls._get_deploy_transaction(
             ledger_api,
             deployer_address,
@@ -123,7 +123,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def _get_deploy_transaction(  # pylint: disable=too-many-locals,too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         deployer_address: str,
         owners: List[str],
         threshold: int,
@@ -151,10 +151,6 @@ class GnosisSafeContract(Contract):
         payment = 0
         payment_receiver = NULL_ADDRESS
 
-        ledger_api = cast(EthereumApi, ledger_api)
-        uri = cast(URI, cast(HTTPProvider, ledger_api.api.provider).endpoint_uri)
-        ethereum_client = EthereumClient(uri)
-
         if len(owners) < threshold:
             raise ValueError(
                 "Threshold cannot be bigger than the number of unique owners"
@@ -174,14 +170,14 @@ class GnosisSafeContract(Contract):
         )
         _logger.info(
             "Network %s - Sender %s - Balance: %sΞ",
-            ethereum_client.get_network().name,
+            ledger_api.api.net.version,
             account_address,
             ether_account_balance,
         )
 
-        if not ethereum_client.w3.eth.getCode(
+        if not ledger_api.api.eth.getCode(
             safe_contract_address
-        ) or not ethereum_client.w3.eth.getCode(proxy_factory_address):
+        ) or not ledger_api.api.eth.getCode(proxy_factory_address):
             raise ValueError("Network not supported")
 
         _logger.info(
@@ -192,8 +188,14 @@ class GnosisSafeContract(Contract):
             fallback_handler,
             salt_nonce,
         )
-        safe_contract = (  # pylint: disable=assignment-from-no-return
-            get_safe_V1_3_0_contract(ethereum_client.w3, safe_contract_address)
+        # hack as we currently cannot register multiple contracts :/
+        contract = contract_registry.make(str(cls.contract_id))
+        full_path = Path(
+            str(contract.configuration.directory), "build/GnosisSafe_V1_3_0.json"
+        )
+        safe_contract_interface = ledger_api.load_contract_interface(full_path)
+        safe_contract = ledger_api.get_contract_instance(
+            safe_contract_interface, safe_contract_address
         )
         safe_creation_tx_data = HexBytes(
             safe_contract.functions.setup(
@@ -212,10 +214,12 @@ class GnosisSafeContract(Contract):
             ]
         )
 
-        proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
-        nonce = ethereum_client.get_nonce_for_account(account_address)
+        nonce = ledger_api._try_get_transaction_count(account_address)
+        if nonce is None:
+            raise ValueError("No nonce returned.")
         tx_params, contract_address = cls._build_tx_deploy_proxy_contract_with_nonce(
-            proxy_factory,
+            ledger_api,
+            proxy_factory_address,
             safe_contract_address,
             account_address,
             safe_creation_tx_data,
@@ -227,7 +231,8 @@ class GnosisSafeContract(Contract):
     @classmethod
     def _build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments
         cls,
-        proxy_factory: ProxyFactory,
+        ledger_api: LedgerApi,
+        proxy_factory_address: str,
         master_copy: str,
         address: str,
         initializer: bytes,
@@ -239,7 +244,8 @@ class GnosisSafeContract(Contract):
         """
         Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)
 
-        :param proxy_factory: the ProxyFactory object
+        :param ledger_api: ledger API object
+        :param proxy_factory_address: the address of the proxy factory
         :param address: Ethereum address
         :param master_copy: Address the proxy will point at
         :param initializer: Data for safe creation
@@ -249,11 +255,8 @@ class GnosisSafeContract(Contract):
         :param nonce: Nonce
         :return: Tuple(tx-hash, tx, deployed contract address)
         """
-        proxy_factory_contract = (  # pylint: disable=assignment-from-no-return
-            get_proxy_factory_contract(
-                proxy_factory.ethereum_client.w3, proxy_factory.address
-            )
-        )
+        proxy_factory_contract = cls.get_instance(ledger_api, proxy_factory_address)
+
         create_proxy_fn = proxy_factory_contract.functions.createProxyWithNonce(
             master_copy, initializer, salt_nonce
         )
