@@ -50,6 +50,7 @@ from packages.valory.protocols.abci.custom_types import (
     PartSetHeader,
     ProofOp,
     ProofOps,
+    PublicKey,
     Result,
     ResultType,
     SnapShots,
@@ -191,8 +192,12 @@ class TestRequestInitChain(BaseTestMessageConstruction):
 
         validators = ValidatorUpdates(
             [
-                ValidatorUpdate(b"pub_key_bytes", 1),
-                ValidatorUpdate(b"pub_key_bytes", 2),
+                ValidatorUpdate(
+                    PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.ed25519), 1
+                ),
+                ValidatorUpdate(
+                    PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.secp256k1), 2
+                ),
             ]
         )
 
@@ -216,8 +221,12 @@ class TestResponseInitChain(BaseTestMessageConstruction):
 
         validators = ValidatorUpdates(
             [
-                ValidatorUpdate(b"pub_key_bytes", 1),
-                ValidatorUpdate(b"pub_key_bytes", 2),
+                ValidatorUpdate(
+                    PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.ed25519), 1
+                ),
+                ValidatorUpdate(
+                    PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.secp256k1), 2
+                ),
             ]
         )
 
@@ -413,8 +422,13 @@ class TestResponseEndBlock(BaseTestMessageConstruction):
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,  # type: ignore
             validator_updates=ValidatorUpdates(
                 [
-                    ValidatorUpdate(b"pub_key", 0),
-                    ValidatorUpdate(b"pub_key", 0),
+                    ValidatorUpdate(
+                        PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.ed25519), 1
+                    ),
+                    ValidatorUpdate(
+                        PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.secp256k1),
+                        2,
+                    ),
                 ]
             ),
             consensus_param_updates=super()._make_consensus_params(),
