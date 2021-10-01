@@ -25,7 +25,6 @@ from abc import abstractmethod
 from pathlib import Path
 
 import pytest
-from aea.configurations.base import ContractConfig
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum import EthereumCrypto
@@ -36,8 +35,10 @@ from tests.conftest import (
     ETHEREUM_KEY_DEPLOYER,
     ETHEREUM_KEY_PATH_1,
     ETHEREUM_KEY_PATH_2,
+    ROOT_DIR,
 )
 from tests.fixture_helpers import UseGanache, UseGnosisSafeHardHatNet
+from tests.helpers.contracts import get_register_contract
 from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
 from tests.helpers.docker.gnosis_safe_net import DEFAULT_HARDHAT_PORT
 
@@ -53,17 +54,8 @@ class BaseContractTest(UseGanache):
         self,
     ):
         """Setup test."""
-        self.contract = GnosisSafeContract(
-            ContractConfig(
-                "gnosis_safe",
-                "valory",
-                "0.1.0",
-                "Apache-2.0",
-                ">=1.0.0, <2.0.0",
-                "",
-                [],
-            )
-        )
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+        self.contract = get_register_contract(directory)
         self.ledger_api = ledger_apis_registry.make(
             EthereumCrypto.identifier,
             address=f"http://localhost:{DEFAULT_GANACHE_PORT}",
@@ -91,17 +83,8 @@ class BaseContractTestHardHatSafeNet(UseGnosisSafeHardHatNet):
         self,
     ):
         """Setup test."""
-        self.contract = GnosisSafeContract(
-            ContractConfig(
-                "gnosis_safe",
-                "valory",
-                "0.1.0",
-                "Apache-2.0",
-                ">=1.0.0, <2.0.0",
-                "",
-                [],
-            )
-        )
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+        self.contract = get_register_contract(directory)
         self.ledger_api = ledger_apis_registry.make(
             EthereumCrypto.identifier,
             address=f"http://localhost:{DEFAULT_HARDHAT_PORT}",
