@@ -51,7 +51,6 @@ from packages.valory.protocols.abci.custom_types import (  # type: ignore
     EvidenceParams,
     ProofOps,
     ValidatorParams,
-    ValidatorUpdate,
     ValidatorUpdates,
     VersionParams,
 )
@@ -146,22 +145,21 @@ class ABCIAppTest:
     def init_chain(self, request: AbciMessage):
         """Process an init_chain request."""
         abci_dialogue = self._update_dialogues(request)
-        validators: List[ValidatorUpdate] = []#[ValidatorUpdate(pub_key=b"", power=0)]
         app_hash = b""
         response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
-            validators=ValidatorUpdates(validators),
+            validators=request.validators,
             app_hash=app_hash,
-            # consensus_params=ConsensusParams(
-            #     BlockParams(max_bytes=22020096, max_gas=-1),
-            #     EvidenceParams(
-            #         max_age_num_blocks=100000,
-            #         max_age_duration=Duration(seconds=17280, nanos=0),
-            #         max_bytes=50,
-            #     ),
-            #     ValidatorParams(pub_key_types=["ed25519"]),
-            #     VersionParams(app_version=0),
-            # ),
+            consensus_params=ConsensusParams(
+                BlockParams(max_bytes=22020096, max_gas=-1),
+                EvidenceParams(
+                    max_age_num_blocks=100000,
+                    max_age_duration=Duration(seconds=17280, nanos=0),
+                    max_bytes=50,
+                ),
+                ValidatorParams(pub_key_types=["ed25519"]),
+                VersionParams(app_version=0),
+            ),
         )
         return cast(AbciMessage, response)
 
@@ -231,16 +229,16 @@ class ABCIAppTest:
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
-            # consensus_param_updates=ConsensusParams(
-            #     BlockParams(max_bytes=64, max_gas=-1),
-            #     EvidenceParams(
-            #         max_age_num_blocks=1,
-            #         max_age_duration=Duration(seconds=10, nanos=0),
-            #         max_bytes=1,
-            #     ),
-            #     ValidatorParams(pub_key_types=["ed25519"]),
-            #     VersionParams(app_version=0),
-            # ),
+            consensus_param_updates=ConsensusParams(
+                BlockParams(max_bytes=64, max_gas=-1),
+                EvidenceParams(
+                    max_age_num_blocks=1,
+                    max_age_duration=Duration(seconds=10, nanos=0),
+                    max_bytes=1,
+                ),
+                ValidatorParams(pub_key_types=["ed25519"]),
+                VersionParams(app_version=0),
+            ),
         )
         return cast(AbciMessage, response)
 

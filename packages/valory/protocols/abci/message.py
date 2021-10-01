@@ -1200,7 +1200,7 @@ class AbciMessage(Message):
                         self.target
                     ),
                 )
-        except (AEAEnforceError, ValueError, KeyError) as e:  # pragma: nocover
+        except (AEAEnforceError, ValueError, KeyError) as e:
             _default_logger.error(str(e))
             return False
 
