@@ -230,11 +230,11 @@ class ABCIAppTest:
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
             consensus_param_updates=ConsensusParams(
-                BlockParams(max_bytes=64, max_gas=-1),
+                BlockParams(max_bytes=22020096, max_gas=-1),
                 EvidenceParams(
-                    max_age_num_blocks=1,
-                    max_age_duration=Duration(seconds=10, nanos=0),
-                    max_bytes=1,
+                    max_age_num_blocks=100000,
+                    max_age_duration=Duration(seconds=17280, nanos=0),
+                    max_bytes=50,
                 ),
                 ValidatorParams(pub_key_types=["ed25519"]),
                 VersionParams(app_version=0),
