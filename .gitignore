@@ -348,3 +348,4 @@ Pipfile.lock
 # so to be able to run tests
 packages/fetchai
 !packages/valory/contracts/gnosis_safe/build
+!packages/valory/contracts/gnosis_safe_proxy_factory/build

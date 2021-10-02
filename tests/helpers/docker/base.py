@@ -133,3 +133,47 @@ def launch_image(
         container.stop()
         logger.info("Logs from container:\n%s", container.logs().decode())
         container.remove()
+
+
+class DockerBaseTest(ABC):
+    """Base pytest class for setting up Docker images."""
+
+    timeout: float = 2.0
+    max_attempts: int = 10
+
+    _image: DockerImage
+    _container: Container
+
+    @classmethod
+    def setup_class(cls):
+        """Setup up the test class."""
+        cls._image = cls._build_image()
+        cls._image.check_skip()
+        cls._image.stop_if_already_running()
+        cls._container = cls._image.create()
+        cls._container.start()
+        logger.info(f"Setting up image {cls._image.tag}...")
+        success = cls._image.wait(cls.max_attempts, cls.timeout)
+        if not success:
+            cls._container.stop()
+            logger.info(
+                "Error logs from container:\n%s", cls._container.logs().decode()
+            )
+            cls._container.remove()
+            pytest.fail(f"{cls._image.tag} doesn't work. Exiting...")
+        else:
+            logger.info("Done!")
+            time.sleep(cls.timeout)
+
+    @classmethod
+    def teardown_class(cls):
+        """Tear down the test."""
+        logger.info(f"Stopping the image {cls._image.tag}...")
+        cls._container.stop()
+        logger.info("Logs from container:\n%s", cls._container.logs().decode())
+        cls._container.remove()
+
+    @classmethod
+    @abstractmethod
+    def _build_image(cls) -> DockerImage:
+        """Instantiate the Docker image."""

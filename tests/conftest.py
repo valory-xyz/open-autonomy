@@ -44,6 +44,11 @@ from tests.helpers.docker.tendermint import (
 )
 
 
+def get_key(key_path: Path) -> str:
+    """Returns key value from file.""" ""
+    return key_path.read_bytes().strip().decode()
+
+
 ROOT_DIR = _ROOT_DIR
 DATA_PATH = _ROOT_DIR / "tests" / "data"
 DEFAULT_AMOUNT = 1000000000000000000000
@@ -53,11 +58,15 @@ ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
 ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
 ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
 ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
-
-
-def get_key(key_path: Path) -> str:
-    """Returns key value from file.""" ""
-    return key_path.read_bytes().strip().decode()
+GANACHE_CONFIGURATION = dict(
+    accounts_balances=[
+        (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
+    ],
+)
 
 
 @pytest.fixture()
@@ -124,15 +133,7 @@ def ganache_port() -> int:
 @pytest.fixture(scope="session")
 def ganache_configuration():
     """Get the Ganache configuration for testing purposes."""
-    return dict(
-        accounts_balances=[
-            (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
-        ],
-    )
+    return GANACHE_CONFIGURATION
 
 
 @pytest.mark.integration

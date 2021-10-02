@@ -18,15 +18,26 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes/functions for fixtures."""
+import logging
 import secrets
-from typing import List, Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
+import docker
 import pytest
 from eth_account import Account
 from web3 import Web3
 
+from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
+from tests.helpers.docker.base import DockerBaseTest, DockerImage
+from tests.helpers.docker.ganache import (
+    DEFAULT_GANACHE_ADDR,
+    DEFAULT_GANACHE_PORT,
+    GanacheDockerImage,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.integration
@@ -141,3 +152,19 @@ class UseGanache:
         if self.SALT_NONCE is not None:
             return self.SALT_NONCE
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+
+
+class GanacheBaseTest(DockerBaseTest):
+    """Base pytest class for Ganache."""
+
+    ganache_addr: str = DEFAULT_GANACHE_ADDR
+    ganache_port: int = DEFAULT_GANACHE_PORT
+    ganache_configuration: Dict = GANACHE_CONFIGURATION
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GanacheDockerImage(
+            client, cls.ganache_addr, cls.ganache_port, config=cls.ganache_configuration
+        )
