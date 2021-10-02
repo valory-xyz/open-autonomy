@@ -58,7 +58,7 @@ class TestABCIPriceEstimationSkillMany(
             node = self.tendermint_net_builder.nodes[agent_id]
             self.set_agent_context(agent_name)
             Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
-                self.hardhat_key_pairs[agent_id][1]
+                self.key_pairs[agent_id][1]
             )
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.set_config("agent.default_ledger", "ethereum")
