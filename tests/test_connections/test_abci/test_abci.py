@@ -42,10 +42,17 @@ from packages.valory.connections.abci.connection import (
 )
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (  # type: ignore
+    BlockParams,
+    ConsensusParams,
+    Duration,
+    Event,
+    EventAttribute,
     Events,
+    EvidenceParams,
     ProofOps,
-    ValidatorUpdate,
+    ValidatorParams,
     ValidatorUpdates,
+    VersionParams,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
@@ -138,12 +145,12 @@ class ABCIAppTest:
     def init_chain(self, request: AbciMessage):
         """Process an init_chain request."""
         abci_dialogue = self._update_dialogues(request)
-        validators: List[ValidatorUpdate] = []
         app_hash = b""
         response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
-            validators=ValidatorUpdates(validators),
+            validators=request.validators,
             app_hash=app_hash,
+            consensus_params=self._get_test_consensus_params(),
         )
         return cast(AbciMessage, response)
 
@@ -167,6 +174,7 @@ class ABCIAppTest:
     def check_tx(self, request: AbciMessage) -> AbciMessage:
         """Process a check_tx request."""
         abci_dialogue = self._update_dialogues(request)
+        attributes: List[EventAttribute] = []
         response = abci_dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
             code=0,  # OK
@@ -175,7 +183,7 @@ class ABCIAppTest:
             info="",
             gas_wanted=0,
             gas_used=0,
-            events=Events([]),
+            events=Events([Event(type_="", attributes=attributes)]),
             codespace="",
         )
         return cast(AbciMessage, response)
@@ -212,6 +220,7 @@ class ABCIAppTest:
             performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
             validator_updates=ValidatorUpdates([]),
             events=Events([]),
+            consensus_param_updates=self._get_test_consensus_params(),
         )
         return cast(AbciMessage, response)
 
@@ -229,6 +238,19 @@ class ABCIAppTest:
         """No match."""
         raise Exception(
             f"Received request with performative {request.performative.value}, but no handler available"
+        )
+
+    def _get_test_consensus_params(self) -> ConsensusParams:
+        """Get an instance of ConsensusParams for testing purposes."""
+        return ConsensusParams(
+            BlockParams(max_bytes=22020096, max_gas=-1),
+            EvidenceParams(
+                max_age_num_blocks=100000,
+                max_age_duration=Duration(seconds=17280, nanos=0),
+                max_bytes=50,
+            ),
+            ValidatorParams(pub_key_types=["ed25519"]),
+            VersionParams(app_version=0),
         )
 
 
@@ -278,7 +300,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
         )
 
         # wait until tendermint node synchronized with abci
-        wait_for_condition(self.health_check, period=0.5, timeout=1000000)
+        wait_for_condition(self.health_check, period=5, timeout=1000000)
 
     @abstractmethod
     def make_app(self) -> Any:

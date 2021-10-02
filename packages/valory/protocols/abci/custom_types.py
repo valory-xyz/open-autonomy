@@ -21,6 +21,8 @@
 from enum import Enum
 from typing import List, Optional
 
+import google.protobuf.duration_pb2
+
 from packages.valory.protocols.abci import abci_pb2
 
 
@@ -160,12 +162,10 @@ class EvidenceParams:
         evidence_params_protobuf_object.max_age_num_blocks = (
             evidence_params_object.max_age_num_blocks
         )
-        duration_pb = abci_pb2.AbciMessage.ConsensusParams.Duration()
         Duration.encode(
-            duration_pb,
+            evidence_params_protobuf_object.max_age_duration,
             evidence_params_object.max_age_duration,
         )
-        evidence_params_protobuf_object.max_age_duration.CopyFrom(duration_pb)
         evidence_params_protobuf_object.max_bytes = evidence_params_object.max_bytes
 
     @classmethod
@@ -1441,10 +1441,66 @@ class Timestamp:
         )
 
 
+class PublicKey:
+    """This class represents an instance of PublicKey."""
+
+    class PublicKeyType(Enum):
+        """Enumeration of public key types supported by Tendermint."""
+
+        ed25519 = "ed25519"
+        secp256k1 = "secp256k1"
+
+    def __init__(self, data: bytes, key_type: PublicKeyType) -> None:
+        """
+        Initialize the public key object.
+
+        :param data: the data of the public key.
+        :param key_type: the type of the public key.
+        """
+        self.data = data
+        self.key_type = key_type
+
+    @staticmethod
+    def encode(public_key_protobuf_object, public_key_object: "PublicKey") -> None:
+        """
+        Encode an instance of this class into the protocol buffer object.
+
+        The protocol buffer object in the public_key_protobuf_object argument is matched with the instance of this class in the 'public_key_object' argument.
+
+        :param public_key_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :param public_key_object: an instance of this class to be encoded in the protocol buffer object.
+        """
+        key_type_name = public_key_object.key_type.value
+        setattr(public_key_protobuf_object, key_type_name, public_key_object.data)
+
+    @classmethod
+    def decode(cls, public_key_protobuf_object) -> "PublicKey":
+        """
+        Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+        A new instance of this class is created that matches the protocol buffer object in the 'public_key_protobuf_object' argument.
+
+        :param public_key_protobuf_object: the protocol buffer object whose type corresponds with this class.
+        :return: A new instance of this class that matches the protocol buffer object in the 'public_key_protobuf_object' argument.
+        """
+        key_type_name = public_key_protobuf_object.WhichOneof("sum")
+        key_type = PublicKey.PublicKeyType(key_type_name)
+        data = getattr(public_key_protobuf_object, key_type_name)
+        return PublicKey(data, key_type)
+
+    def __eq__(self, other):
+        """Compare with another object."""
+        return (
+            isinstance(other, PublicKey)
+            and self.data == other.data
+            and self.key_type == other.key_type
+        )
+
+
 class ValidatorUpdate:
     """This class represents an instance of ValidatorUpdate."""
 
-    def __init__(self, pub_key: bytes, power: int):
+    def __init__(self, pub_key: PublicKey, power: int):
         """Initialise an instance of ValidatorUpdate."""
         self.pub_key = pub_key
         self.power = power
@@ -1461,7 +1517,9 @@ class ValidatorUpdate:
         :param validator_update_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :param validator_update_object: an instance of this class to be encoded in the protocol buffer object.
         """
-        validator_update_protobuf_object.pub_key = validator_update_object.pub_key
+        PublicKey.encode(
+            validator_update_protobuf_object.pub_key, validator_update_object.pub_key
+        )
         validator_update_protobuf_object.power = validator_update_object.power
 
     @classmethod
@@ -1474,8 +1532,9 @@ class ValidatorUpdate:
         :param validator_update_protobuf_object: the protocol buffer object whose type corresponds with this class.
         :return: A new instance of this class that matches the protocol buffer object in the 'validator_update_protobuf_object' argument.
         """
+        pub_key = PublicKey.decode(validator_update_protobuf_object.pub_key)
         return ValidatorUpdate(
-            validator_update_protobuf_object.pub_key,
+            pub_key,
             validator_update_protobuf_object.power,
         )
 
