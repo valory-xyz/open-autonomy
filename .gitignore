@@ -347,3 +347,4 @@ Pipfile.lock
 # ignore packages/fetchai, but useful to have them locally
 # so to be able to run tests
 packages/fetchai
+!packages/valory/contracts/gnosis_safe/build

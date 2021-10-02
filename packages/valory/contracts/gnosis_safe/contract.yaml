@@ -8,10 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
   __init__.py: QmS2MEY7dgz18icnFs975zxCxMmYQzVkeFfe2TjnTDeDiL
-  contract.py: QmRez2r1oE6WJabRueMVV9UcnKDcpof2GvFoucpFPJSHcL
+  build/GnosisSafe_V1_3_0.json: QmafMmPcVqiTLykozgjGwNL2S8b1g5bmgMP3z6EdecgMYh
+  build/ProxyFactory_V1_3_0.json: QmRKHfF1hYrrSZNZmec2AS3xSPWdB29uyEWAYdAS5cKHdL
+  contract.py: QmXXR3N6Uu5mqqwDhoNaVfdo6xsz5P69V9vZC28LEWoHJg
 fingerprint_ignore_patterns: []
 class_name: GnosisSafeContract
-contract_interface_paths: {}
+contract_interface_paths:
+  ethereum: build/ProxyFactory_V1_3_0.json
 dependencies:
-  gnosis-py:
-    version: ==3.4.0
+  py-eth-sig-utils: {}
