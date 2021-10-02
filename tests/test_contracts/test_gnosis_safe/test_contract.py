@@ -95,6 +95,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
     )
+    sanitize_from_deploy_tx = ["contract_address"]
 
     @classmethod
     def setup_class(
@@ -155,7 +156,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
         result = self.contract.get_deploy_transaction(
             ledger_api=self.ledger_api,
-            deployer_address=str(self.ethereum_crypto.address),
+            deployer_address=str(self.deployer_crypto.address),
             owners=self.owners(),
             threshold=int(self.threshold()),
         )
@@ -188,7 +189,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
-                deployer_address=str(self.ethereum_crypto.address),
+                deployer_address=str(self.deployer_crypto.address),
                 owners=[],
                 threshold=1,
             )
@@ -233,7 +234,7 @@ class TestRawSafeTransaction(BaseContractTest):
 
         self.contract.get_raw_safe_transaction(
             self.ledger_api,
-            self.ethereum_crypto.address,
+            self.deployer_crypto.address,
             sender.address,
             self.owners(),
             receiver.address,
@@ -254,5 +255,5 @@ class TestRawSafeTransactionHash(BaseContractTest):
         )
 
         self.contract.get_raw_safe_transaction_hash(
-            self.ledger_api, self.ethereum_crypto.address, receiver.address, 10, b""
+            self.ledger_api, self.deployer_crypto.address, receiver.address, 10, b""
         )

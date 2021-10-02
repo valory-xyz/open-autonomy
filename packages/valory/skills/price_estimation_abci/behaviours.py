@@ -239,10 +239,15 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             threshold=threshold,
             deployer_address=self.context.agent_address,
         )
+        contract_address = cast(
+            str, contract_api_response.raw_transaction.body.pop("contract_address")
+        )
         tx_hash, tx_receipt = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
-        contract_address = EthereumApi.get_contract_address(tx_receipt)
+        _ = EthereumApi.get_contract_address(
+            tx_receipt
+        )  # returns None as the contract is created via a proxy
         self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
 

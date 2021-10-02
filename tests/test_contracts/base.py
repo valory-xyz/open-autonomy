@@ -72,11 +72,9 @@ class BaseContractTest(ABC):
             deployer_address=str(cls.deployer_crypto.address),
             **kwargs,
         )
-        import pdb
-
-        pdb.set_trace()
         if tx is None:
             return None
+        contract_address = tx.pop("contract_address", None)
         tx_signed = cls.deployer_crypto.sign_transaction(tx)
         tx_hash = cls.ledger_api.send_signed_transaction(tx_signed)
         if tx_hash is None:
@@ -84,7 +82,7 @@ class BaseContractTest(ABC):
         tx_receipt = cls.ledger_api.get_transaction_receipt(tx_hash)
         if tx_receipt is None:
             return None
-        contract_address = cast(Dict, tx_receipt)["contractAddress"]
+        contract_address = cast(Dict, tx_receipt)["contractAddress"] if contract_address is None else contract_address
         cls.contract_address = contract_address
 
     @classmethod

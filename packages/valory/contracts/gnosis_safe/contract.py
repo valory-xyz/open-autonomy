@@ -115,7 +115,7 @@ class GnosisSafeContract(Contract):
         gas = kwargs.pop("gas", None)
         gas_price = kwargs.pop("gas_price", None)
         ledger_api = cast(EthereumApi, ledger_api)
-        tx_params, _ = cls._get_deploy_transaction(
+        tx_params, contract_address = cls._get_deploy_transaction(
             ledger_api,
             deployer_address,
             owners=owners,
@@ -125,6 +125,8 @@ class GnosisSafeContract(Contract):
             gas_price=gas_price,
         )
         result = dict(cast(Dict, tx_params))
+        # piggyback the contract address
+        result["contract_address"] = contract_address
         return result
 
     @classmethod
