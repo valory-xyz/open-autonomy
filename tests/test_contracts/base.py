@@ -19,45 +19,49 @@
 
 """Base test classes."""
 
+import os
+from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from tempfile import TemporaryDirectory
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum import EthereumCrypto
 
-from tests.conftest import ETHEREUM_KEY_DEPLOYER
-from tests.fixture_helpers import GanacheBaseTest
+from tests.fixture_helpers import GanacheBaseTest, HardHatBaseTest
 from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
 
 
-class BaseGanacheContractTest(GanacheBaseTest):
-    """Base test case for testing contracts on Ganache."""
+class BaseContractTest(ABC):
+    """Base test class for contract tests."""
 
-    directory: Path
+    contract_directory: Path
     contract: Contract
     ledger_api: LedgerApi
+    identifier: str = EthereumCrypto.identifier
     deployer_crypto: Crypto
     contract_address: Optional[str] = None
-    deployment_kwargs: Dict[str, Any] = {}
 
     @classmethod
-    def setup_class(
-        cls,
-    ):
+    def _setup_class(cls, **kwargs):
         """Setup test."""
-        super().setup_class()
-        cls.contract = get_register_contract(cls.directory)
+        key_pairs: List[Tuple[str, str]] = kwargs.pop("key_pairs")
+        url: str = kwargs.pop("url")
+        cls.contract = get_register_contract(cls.contract_directory)
         cls.ledger_api = ledger_apis_registry.make(
-            EthereumCrypto.identifier,
-            address=f"http://localhost:{DEFAULT_GANACHE_PORT}",
+            cls.identifier,
+            address=url,
         )
-        cls.deployer_crypto = crypto_registry.make(
-            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
-        )
-        cls.deploy(**cls.deployment_kwargs)
+        with TemporaryDirectory() as temp_dir:
+            output_file = Path(os.path.join(temp_dir, "key_file"))
+            with open(output_file, "w") as text_file:
+                text_file.write(key_pairs[0][1])
+            cls.deployer_crypto = crypto_registry.make(
+                cls.identifier, private_key_path=output_file
+            )
+        cls.deploy(**cls.deployment_kwargs())
         assert cls.contract_address is not None, "Contract not deployed."
 
     @classmethod
@@ -68,6 +72,9 @@ class BaseGanacheContractTest(GanacheBaseTest):
             deployer_address=str(cls.deployer_crypto.address),
             **kwargs,
         )
+        import pdb
+
+        pdb.set_trace()
         if tx is None:
             return None
         tx_signed = cls.deployer_crypto.sign_transaction(tx)
@@ -79,3 +86,16 @@ class BaseGanacheContractTest(GanacheBaseTest):
             return None
         contract_address = cast(Dict, tx_receipt)["contractAddress"]
         cls.contract_address = contract_address
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        raise NotImplementedError
+
+
+class BaseGanacheContractTest(BaseContractTest, GanacheBaseTest):
+    """Base test case for testing contracts on Ganache."""
+
+
+class BaseHardhatContractTest(BaseContractTest, HardHatBaseTest):
+    """Base test case for testing contracts on Ganache."""

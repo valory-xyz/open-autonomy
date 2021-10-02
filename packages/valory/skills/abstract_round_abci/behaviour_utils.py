@@ -443,6 +443,25 @@ class BaseState(AsyncBehaviour, State, ABC):
         self.context.outbox.put_message(message=ledger_api_msg)
         self.context.logger.info("sending transaction to ledger.")
 
+    def _send_transaction_receipt_request(
+        self, ledger_api_msg_: LedgerApiMessage
+    ) -> None:
+        ledger_api_dialogues = cast(
+            LedgerApiDialogues, self.context.ledger_api_dialogues
+        )
+        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+            counterparty=LEDGER_API_ADDRESS,
+            performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
+            transaction_digest=ledger_api_msg_.transaction_digest,
+        )
+        ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
+        request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
+        self.context.requests.request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=ledger_api_msg)
+        self.context.logger.info("sending transaction receipt request.")
+
     def _handle_signing_failure(self) -> None:
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
@@ -561,7 +580,7 @@ class BaseState(AsyncBehaviour, State, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, str]:
+    ) -> Generator[None, None, Tuple[str, Dict]]:
         """Send raw transactions to the ledger for mining."""
         terms = Terms(
             self.context.default_ledger_id,
@@ -582,7 +601,10 @@ class BaseState(AsyncBehaviour, State, ABC):
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
         tx_hash = transaction_digest_msg.transaction_digest.body
-        return tx_hash
+        self._send_transaction_receipt_request(transaction_digest_msg)
+        transaction_receipt_msg = yield from self.wait_for_message()
+        tx_receipt = transaction_receipt_msg.transaction_receipt.body
+        return tx_hash, tx_receipt
 
     def get_contract_api_response(
         self,
