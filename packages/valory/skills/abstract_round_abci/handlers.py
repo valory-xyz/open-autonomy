@@ -36,6 +36,7 @@ from packages.valory.protocols.abci.custom_types import Events
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
+    BehaviourMessage,
     ERROR_CODE,
     SignatureNotValidError,
     Transaction,
@@ -125,6 +126,7 @@ class ABCIRoundHandler(ABCIHandler):
             self._log_exception(exception)
             raise exception
         # return commit success
+        self.context.behaviours.main.input_queue.put(BehaviourMessage.COMMITTED_BLOCK)
         return super().commit(message, dialogue)
 
     @classmethod
