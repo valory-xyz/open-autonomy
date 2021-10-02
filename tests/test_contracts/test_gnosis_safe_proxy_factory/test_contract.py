@@ -108,12 +108,25 @@ class TestDeployTransactionGanache(BaseContractTest):
             self.deployer_crypto.address,
             b"",
             1,
+            gas=1000,
+            gas_price=1000,
+            nonce=1,
         )
         assert len(result) == 2
-        assert len(result[0]) == 7
+        assert len(result[0]) == 8
         assert all(
             [
-                key in ["value", "gas", "gasPrice", "chainId", "from", "to", "data"]
+                key
+                in [
+                    "value",
+                    "gas",
+                    "gasPrice",
+                    "chainId",
+                    "from",
+                    "to",
+                    "data",
+                    "nonce",
+                ]
                 for key in result[0].keys()
             ]
         )

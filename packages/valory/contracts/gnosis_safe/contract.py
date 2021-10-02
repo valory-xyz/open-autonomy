@@ -35,10 +35,6 @@ from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
 from web3.types import TxParams, Wei
 
-from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
-    GnosisSafeProxyFactoryContract,
-)
-
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
 
@@ -116,6 +112,8 @@ class GnosisSafeContract(Contract):
         owners = kwargs.pop("owners")
         threshold = kwargs.pop("threshold")
         salt_nonce = kwargs.pop("salt_nonce", None)
+        gas = kwargs.pop("gas", None)
+        gas_price = kwargs.pop("gas_price", None)
         ledger_api = cast(EthereumApi, ledger_api)
         tx_params, contract_address = cls._get_deploy_transaction(
             ledger_api,
@@ -123,6 +121,8 @@ class GnosisSafeContract(Contract):
             owners=owners,
             threshold=threshold,
             salt_nonce=salt_nonce,
+            gas=gas,
+            gas_price=gas_price,
         )
         result = dict(cast(Dict, tx_params))
         # piggyback the contract address
@@ -137,6 +137,8 @@ class GnosisSafeContract(Contract):
         owners: List[str],
         threshold: int,
         salt_nonce: Optional[int] = None,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
@@ -149,6 +151,8 @@ class GnosisSafeContract(Contract):
         :param owners: a list of public keys
         :param threshold: the signature threshold
         :param salt_nonce: Use a custom nonce for the deployment. Defaults to random nonce.
+        :param gas: gas cost
+        :param gas_price: Gas price that should be used for the payment calculation
 
         :return: transaction params and contract address
         """
@@ -222,6 +226,11 @@ class GnosisSafeContract(Contract):
         )
         if nonce is None:
             raise ValueError("No nonce returned.")
+        # TOFIX: lazy import until contract dependencies supported in AEA
+        from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (  # pylint: disable=import-outside-toplevel
+            GnosisSafeProxyFactoryContract,
+        )
+
         (
             tx_params,
             contract_address,
@@ -233,6 +242,8 @@ class GnosisSafeContract(Contract):
             safe_creation_tx_data,
             salt_nonce,
             nonce=nonce,
+            gas=gas,
+            gas_price=gas_price,
         )
         return tx_params, contract_address
 
