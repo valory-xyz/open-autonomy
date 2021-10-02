@@ -459,6 +459,7 @@ class TestBaseState:
 
     @mock.patch.object(BaseState, "_send_transaction_signing_request")
     @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction(self, *_):
         """Test 'send_raw_transaction'."""

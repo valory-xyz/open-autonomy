@@ -34,6 +34,7 @@ from tests.helpers.docker.ganache import (
     GanacheDockerImage,
 )
 from tests.helpers.docker.gnosis_safe_net import (
+    DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
@@ -92,8 +93,14 @@ def tendermint(
 
 
 @pytest.fixture()
+def hardhat_addr() -> str:
+    """Get the hardhat addr"""
+    return DEFAULT_HARDHAT_ADDR
+
+
+@pytest.fixture()
 def hardhat_port() -> int:
-    """Get the Tendermint port"""
+    """Get the hardhat port"""
     return DEFAULT_HARDHAT_PORT
 
 
@@ -107,6 +114,7 @@ def key_pairs() -> List[Tuple[str, str]]:
 @pytest.mark.ledger
 @pytest.fixture(scope="function")
 def gnosis_safe_hardhat(
+    hardhat_addr,
     hardhat_port,
     timeout: float = 3.0,
     max_attempts: int = 30,
@@ -114,7 +122,7 @@ def gnosis_safe_hardhat(
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(client, hardhat_port)
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 

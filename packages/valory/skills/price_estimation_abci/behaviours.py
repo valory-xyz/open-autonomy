@@ -24,6 +24,8 @@ import pprint
 from abc import ABC
 from typing import Generator, cast
 
+from aea_ledger_ethereum import EthereumApi
+
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
@@ -240,9 +242,12 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         contract_address = cast(
             str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
-        tx_hash = yield from self.send_raw_transaction(
+        tx_hash, tx_receipt = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        _ = EthereumApi.get_contract_address(
+            tx_receipt
+        )  # returns None as the contract is created via a proxy
         self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
 
@@ -477,7 +482,9 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             data=self.period_state.encoded_estimate,
             signatures_by_owner=dict(self.period_state.participant_to_signature),
         )
-        tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
+        tx_hash, _ = yield from self.send_raw_transaction(
+            contract_api_msg.raw_transaction
+        )
         self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 
