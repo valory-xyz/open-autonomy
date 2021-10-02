@@ -33,12 +33,12 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 )
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER, ROOT_DIR
-from tests.fixture_helpers import UseGanache
+from tests.fixture_helpers import GanacheBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
 
 
-class BaseContractTest(UseGanache):
+class BaseContractTest(GanacheBaseTest):
     """Base test case for GnosisSafeContract"""
 
     directory: Path
@@ -47,38 +47,41 @@ class BaseContractTest(UseGanache):
     deployer_crypto: Crypto
     contract_address: Optional[str] = None
 
-    def setup(
-        self,
+    @classmethod
+    def setup_class(
+        cls,
     ):
         """Setup test."""
-        self.contract = get_register_contract(self.directory)
-        self.ledger_api = ledger_apis_registry.make(
+        super().setup_class()
+        cls.contract = get_register_contract(cls.directory)
+        cls.ledger_api = ledger_apis_registry.make(
             EthereumCrypto.identifier,
             address=f"http://localhost:{DEFAULT_GANACHE_PORT}",
         )
-        self.deployer_crypto = crypto_registry.make(
+        cls.deployer_crypto = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
-        self.deploy()
+        cls.deploy()
 
-    def deploy(self, **kwargs: Any):
+    @classmethod
+    def deploy(cls, **kwargs: Any):
         """Deploy the contract."""
-        tx = self.contract.get_deploy_transaction(
-            ledger_api=self.ledger_api,
-            deployer_address=str(self.deployer_crypto.address),
+        tx = cls.contract.get_deploy_transaction(
+            ledger_api=cls.ledger_api,
+            deployer_address=str(cls.deployer_crypto.address),
             **kwargs,
         )
         if tx is None:
             return None
-        tx_signed = self.deployer_crypto.sign_transaction(tx)
-        tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
+        tx_signed = cls.deployer_crypto.sign_transaction(tx)
+        tx_hash = cls.ledger_api.send_signed_transaction(tx_signed)
         if tx_hash is None:
             return None
-        tx_receipt = self.ledger_api.get_transaction_receipt(tx_hash)
+        tx_receipt = cls.ledger_api.get_transaction_receipt(tx_hash)
         if tx_receipt is None:
             return None
         contract_address = cast(Dict, tx_receipt)["contractAddress"]
-        self.contract_address = contract_address
+        cls.contract_address = contract_address
 
 
 class TestDeployTransactionGanache(BaseContractTest):
@@ -88,7 +91,8 @@ class TestDeployTransactionGanache(BaseContractTest):
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
     )
 
-    def deploy(self):
+    @classmethod
+    def deploy(cls):
         """Deploy the contract."""
         super().deploy(
             gas=10000000,

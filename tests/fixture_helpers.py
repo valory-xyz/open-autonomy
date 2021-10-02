@@ -18,15 +18,37 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes/functions for fixtures."""
+import logging
 import secrets
-from typing import List, Optional, Tuple, cast
+import time
+from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, Tuple, cast
 
+import docker
 import pytest
+from docker.models.containers import Container
 from eth_account import Account
 from web3 import Web3
 
+from tests.conftest import (
+    DEFAULT_AMOUNT,
+    ETHEREUM_KEY_DEPLOYER,
+    ETHEREUM_KEY_PATH_1,
+    ETHEREUM_KEY_PATH_2,
+    ETHEREUM_KEY_PATH_3,
+    ETHEREUM_KEY_PATH_4,
+    get_key,
+)
 from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
+from tests.helpers.docker.base import DockerImage
+from tests.helpers.docker.ganache import (
+    DEFAULT_GANACHE_ADDR,
+    DEFAULT_GANACHE_PORT,
+    GanacheDockerImage,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.integration
@@ -141,3 +163,71 @@ class UseGanache:
         if self.SALT_NONCE is not None:
             return self.SALT_NONCE
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+
+
+class DockerBaseTest(ABC):
+    """Base pytest class for setting up Docker images."""
+
+    timeout: float = 2.0
+    max_attempts: int = 10
+
+    _image: DockerImage
+    _container: Container
+
+    @classmethod
+    def setup_class(cls):
+        """Setup up the test class."""
+        cls._image = cls._build_image()
+        cls._image.check_skip()
+        cls._image.stop_if_already_running()
+        cls._container = cls._image.create()
+        cls._container.start()
+        logger.info(f"Setting up image {cls._image.tag}...")
+        success = cls._image.wait(cls.max_attempts, cls.timeout)
+        if not success:
+            cls._container.stop()
+            logger.info(
+                "Error logs from container:\n%s", cls._container.logs().decode()
+            )
+            cls._container.remove()
+            pytest.fail(f"{cls._image.tag} doesn't work. Exiting...")
+        else:
+            logger.info("Done!")
+            time.sleep(cls.timeout)
+
+    @classmethod
+    def teardown_class(cls):
+        """Tear down the test."""
+        logger.info(f"Stopping the image {cls._image.tag}...")
+        cls._container.stop()
+        logger.info("Logs from container:\n%s", cls._container.logs().decode())
+        cls._container.remove()
+
+    @classmethod
+    @abstractmethod
+    def _build_image(cls) -> DockerImage:
+        """Instantiate the Docker image."""
+
+
+class GanacheBaseTest(DockerBaseTest):
+    """Base pytest class for Ganache."""
+
+    ganache_addr: str = DEFAULT_GANACHE_ADDR
+    ganache_port: int = DEFAULT_GANACHE_PORT
+    ganache_configuration: Dict = dict(
+        accounts_balances=[
+            (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
+            (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
+        ]
+    )
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GanacheDockerImage(
+            client, cls.ganache_addr, cls.ganache_port, config=cls.ganache_configuration
+        )
