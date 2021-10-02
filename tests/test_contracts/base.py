@@ -82,7 +82,11 @@ class BaseContractTest(ABC):
         tx_receipt = cls.ledger_api.get_transaction_receipt(tx_hash)
         if tx_receipt is None:
             return None
-        contract_address = cast(Dict, tx_receipt)["contractAddress"] if contract_address is None else contract_address
+        contract_address = (
+            cast(Dict, tx_receipt)["contractAddress"]
+            if contract_address is None
+            else contract_address
+        )
         cls.contract_address = contract_address
 
     @classmethod
