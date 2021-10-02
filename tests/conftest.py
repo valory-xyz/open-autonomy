@@ -93,7 +93,7 @@ def tendermint(
 
 
 @pytest.fixture()
-def hardhat_addr() -> int:
+def hardhat_addr() -> str:
     """Get the hardhat addr"""
     return DEFAULT_HARDHAT_ADDR
 

@@ -603,7 +603,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         tx_hash = transaction_digest_msg.transaction_digest.body
         self._send_transaction_receipt_request(transaction_digest_msg)
         transaction_receipt_msg = yield from self.wait_for_message()
-        tx_receipt = transaction_receipt_msg.transaction_receipt.body
+        tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_hash, tx_receipt
 
     def get_contract_api_response(

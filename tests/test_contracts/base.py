@@ -87,7 +87,7 @@ class BaseContractTest(ABC):
             if contract_address is None
             else contract_address
         )
-        cls.contract_address = contract_address
+        cls.contract_address = cast(str, contract_address)
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
