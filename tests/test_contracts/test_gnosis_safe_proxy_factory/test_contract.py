@@ -20,6 +20,7 @@
 """Tests for valory/gnosis contract."""
 
 from pathlib import Path
+from typing import Any, Dict
 
 from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
@@ -33,10 +34,14 @@ from tests.test_contracts.base import BaseGanacheContractTest
 class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 
-    directory = Path(
+    contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
     )
-    deployment_kwargs = dict(gas=10000000, gasPrice=10000000)
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        return dict(gas=10000000, gasPrice=10000000)
 
     def test_deploy(self):
         """Test deployment results."""

@@ -24,7 +24,7 @@ import shutil
 import subprocess  # nosec
 import time
 from abc import ABC, abstractmethod
-from typing import Generator
+from typing import Any, Dict, Generator
 
 import docker
 import pytest
@@ -138,8 +138,10 @@ def launch_image(
 class DockerBaseTest(ABC):
     """Base pytest class for setting up Docker images."""
 
-    timeout: float = 2.0
-    max_attempts: int = 10
+    timeout: float = 3.0
+    max_attempts: int = 40
+    addr: str
+    port: int
 
     _image: DockerImage
     _container: Container
@@ -164,6 +166,7 @@ class DockerBaseTest(ABC):
         else:
             logger.info("Done!")
             time.sleep(cls.timeout)
+        cls._setup_class(**cls.setup_class_kwargs())
 
     @classmethod
     def teardown_class(cls):
@@ -177,3 +180,13 @@ class DockerBaseTest(ABC):
     @abstractmethod
     def _build_image(cls) -> DockerImage:
         """Instantiate the Docker image."""
+
+    @classmethod
+    @abstractmethod
+    def _setup_class(cls, **setup_class_kwargs) -> None:
+        """Continue setting up the class."""
+
+    @classmethod
+    @abstractmethod
+    def setup_class_kwargs(cls) -> Dict[str, Any]:
+        """Get kwargs for _setup_class call."""

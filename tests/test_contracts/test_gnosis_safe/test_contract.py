@@ -19,151 +19,146 @@
 
 """Tests for valory/gnosis contract."""
 
-import os
-import tempfile
-from abc import abstractmethod
+import secrets
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
-from aea.crypto.base import Crypto, LedgerApi
-from aea.crypto.registries import crypto_registry, ledger_apis_registry
+from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
+from web3 import Web3
 
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-
-from tests.conftest import (
-    ETHEREUM_KEY_DEPLOYER,
-    ETHEREUM_KEY_PATH_1,
-    ETHEREUM_KEY_PATH_2,
-    ROOT_DIR,
-)
-from tests.fixture_helpers import UseGanache, UseGnosisSafeHardHatNet
+from tests.conftest import ETHEREUM_KEY_PATH_1, ETHEREUM_KEY_PATH_2, ROOT_DIR
 from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_PORT
-from tests.helpers.docker.gnosis_safe_net import DEFAULT_HARDHAT_PORT
+from tests.test_contracts.base import BaseGanacheContractTest, BaseHardhatContractTest
 
 
-class BaseContractTest(UseGanache):
+class BaseContractTest(BaseGanacheContractTest):
     """Base test case for GnosisSafeContract"""
 
-    contract: GnosisSafeContract
-    ledger_api: LedgerApi
-    ethereum_crypto: Crypto
+    NB_OWNERS: int = 4
+    THRESHOLD: int = 1
+    SALT_NONCE: Optional[int] = None
+    contract_directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
+    )
 
-    def setup(
-        self,
+    @classmethod
+    def setup_class(
+        cls,
+    ):
+        """Setup test."""
+        # workaround for the fact that contract dependencies are not possible yet
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
+        )
+        _ = get_register_contract(directory)
+        super().setup_class()
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        return dict(owners=cls.owners(), threshold=int(cls.threshold()))
+
+    @classmethod
+    def owners(cls) -> List[str]:
+        """Get the owners."""
+        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
+
+    @classmethod
+    def deployer(cls) -> Tuple[str, str]:
+        """Get the key pair of the deployer."""
+        # for simplicity, get the first owner
+        return cls.key_pairs()[0]
+
+    @classmethod
+    def threshold(
+        cls,
+    ) -> int:
+        """Returns the amount of threshold."""
+        return cls.THRESHOLD
+
+    @classmethod
+    def get_nonce(cls) -> int:
+        """Get the nonce."""
+        if cls.SALT_NONCE is not None:
+            return cls.SALT_NONCE
+        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+
+
+class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
+    """Base test case for GnosisSafeContract"""
+
+    NB_OWNERS: int = 4
+    THRESHOLD: int = 1
+    SALT_NONCE: Optional[int] = None
+    contract_directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
+    )
+    sanitize_from_deploy_tx = ["contract_address"]
+
+    @classmethod
+    def setup_class(
+        cls,
     ):
         """Setup test."""
         directory = Path(
             ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
         )
         _ = get_register_contract(directory)
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
-        self.contract = get_register_contract(directory)
-        self.ledger_api = ledger_apis_registry.make(
-            EthereumCrypto.identifier,
-            address=f"http://localhost:{DEFAULT_GANACHE_PORT}",
-        )
+        super().setup_class()
 
-        self.ethereum_crypto = crypto_registry.make(
-            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
-        )
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        return dict(owners=cls.owners(), threshold=int(cls.threshold()))
 
-    @abstractmethod
-    def test_run(
-        self,
-    ):
-        """Run tests."""
+    @classmethod
+    def owners(cls) -> List[str]:
+        """Get the owners."""
+        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
 
+    @classmethod
+    def deployer(cls) -> Tuple[str, str]:
+        """Get the key pair of the deployer."""
+        # for simplicity, get the first owner
+        return cls.key_pairs()[0]
 
-class BaseContractTestHardHatSafeNet(UseGnosisSafeHardHatNet):
-    """Base test case for GnosisSafeContract"""
+    @classmethod
+    def threshold(
+        cls,
+    ) -> int:
+        """Returns the amount of threshold."""
+        return cls.THRESHOLD
 
-    contract: GnosisSafeContract
-    ledger_api: LedgerApi
-    ethereum_crypto: Crypto
-
-    def setup(
-        self,
-    ):
-        """Setup test."""
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
-        )
-        _ = get_register_contract(directory)
-        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
-        self.contract = get_register_contract(directory)
-        self.ledger_api = ledger_apis_registry.make(
-            EthereumCrypto.identifier,
-            address=f"http://localhost:{DEFAULT_HARDHAT_PORT}",
-        )
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_file = Path(os.path.join(temp_dir, "key_file"))
-            with open(output_file, "w") as text_file:
-                text_file.write(self.hardhat_key_pairs[0][1])
-            self.ethereum_crypto = crypto_registry.make(
-                EthereumCrypto.identifier, private_key_path=output_file
-            )
-
-    @abstractmethod
-    def test_run(
-        self,
-    ):
-        """Run tests."""
+    @classmethod
+    def get_nonce(cls) -> int:
+        """Get the nonce."""
+        if cls.SALT_NONCE is not None:
+            return cls.SALT_NONCE
+        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
+@pytest.mark.skip
 class TestDeployTransactionGanache(BaseContractTest):
     """Test."""
 
     def test_run(self):
         """Run tests."""
-
-        with pytest.raises(ValueError, match="Network not supported"):
-            self.contract.get_deploy_transaction(
-                ledger_api=self.ledger_api,
-                deployer_address=str(self.ethereum_crypto.address),
-                owners=self.owners,
-                threshold=int(self.threshold),
-            )
         # TOFIX: predeploy gnosis safe factory
-
-    def test_exceptions(
-        self,
-    ):
-        """Test exceptions."""
-
-        with pytest.raises(ValueError):
-            # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
-            self.contract.get_deploy_transaction(
-                ledger_api=self.ledger_api,
-                deployer_address=str(self.ethereum_crypto.address),
-                owners=[],
-                threshold=1,
-            )
-
-        with pytest.raises(ValueError):
-            # Tests for  `ValueError("Client does not have any funds")`.
-            self.contract.get_deploy_transaction(
-                ledger_api=self.ledger_api,
-                deployer_address=crypto_registry.make(
-                    EthereumCrypto.identifier
-                ).address,
-                owners=self.owners,
-                threshold=int(self.threshold),
-            )
 
 
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
-    def test_run(self):
+    def test_deployed(self):
         """Run tests."""
 
         result = self.contract.get_deploy_transaction(
             ledger_api=self.ledger_api,
-            deployer_address=str(self.ethereum_crypto.address),
-            owners=self.owners,
-            threshold=int(self.threshold),
+            deployer_address=str(self.deployer_crypto.address),
+            owners=self.owners(),
+            threshold=int(self.threshold()),
         )
 
         assert len(result) == 9
@@ -185,6 +180,44 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             ]
         ), "Error, found: {}".format(result)
 
+    def test_exceptions(
+        self,
+    ):
+        """Test exceptions."""
+
+        with pytest.raises(ValueError):
+            # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
+            self.contract.get_deploy_transaction(
+                ledger_api=self.ledger_api,
+                deployer_address=str(self.deployer_crypto.address),
+                owners=[],
+                threshold=1,
+            )
+
+        with pytest.raises(ValueError):
+            # Tests for  `ValueError("Client does not have any funds")`.
+            self.contract.get_deploy_transaction(
+                ledger_api=self.ledger_api,
+                deployer_address=crypto_registry.make(
+                    EthereumCrypto.identifier
+                ).address,
+                owners=self.owners(),
+                threshold=int(self.threshold()),
+            )
+
+    def test_non_implemented_methods(
+        self,
+    ):
+        """Test not implemented methods."""
+        with pytest.raises(NotImplementedError):
+            self.contract.get_raw_transaction(None, None)
+
+        with pytest.raises(NotImplementedError):
+            self.contract.get_raw_message(None, None)
+
+        with pytest.raises(NotImplementedError):
+            self.contract.get_state(None, None)
+
 
 @pytest.mark.skip
 class TestRawSafeTransaction(BaseContractTest):
@@ -201,9 +234,9 @@ class TestRawSafeTransaction(BaseContractTest):
 
         self.contract.get_raw_safe_transaction(
             self.ledger_api,
-            self.ethereum_crypto.address,
+            self.deployer_crypto.address,
             sender.address,
-            self.owners,
+            self.owners(),
             receiver.address,
             10,
             b"",
@@ -222,23 +255,5 @@ class TestRawSafeTransactionHash(BaseContractTest):
         )
 
         self.contract.get_raw_safe_transaction_hash(
-            self.ledger_api, self.ethereum_crypto.address, receiver.address, 10, b""
+            self.ledger_api, self.deployer_crypto.address, receiver.address, 10, b""
         )
-
-
-class TestNoneImplementedMethods(BaseContractTest):
-    """Test methods which are yet to implement."""
-
-    def test_run(
-        self,
-    ):
-        """Run tests."""
-
-        with pytest.raises(NotImplementedError):
-            self.contract.get_raw_transaction(None, None)
-
-        with pytest.raises(NotImplementedError):
-            self.contract.get_raw_message(None, None)
-
-        with pytest.raises(NotImplementedError):
-            self.contract.get_state(None, None)

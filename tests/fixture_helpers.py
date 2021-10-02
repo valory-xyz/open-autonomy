@@ -19,13 +19,11 @@
 
 """This module contains helper classes/functions for fixtures."""
 import logging
-import secrets
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Tuple, cast
 
 import docker
 import pytest
 from eth_account import Account
-from web3 import Web3
 
 from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS
@@ -34,6 +32,11 @@ from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
+)
+from tests.helpers.docker.gnosis_safe_net import (
+    DEFAULT_HARDHAT_ADDR,
+    DEFAULT_HARDHAT_PORT,
+    GnosisSafeNetDockerImage,
 )
 
 
@@ -54,62 +57,20 @@ class UseTendermint:
 class UseGnosisSafeHardHatNet:
     """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
 
-    NB_OWNERS: int = 4
-    THRESHOLD: int = 1
-    SALT_NONCE: Optional[int] = None
-
-    hardhat_port: int
-    hardhat_key_pairs: List[Tuple[str, str]]
-    proxy_contract_address: str
+    key_pairs: List[Tuple[str, str]] = []
 
     @classmethod
     @pytest.fixture(autouse=True)
     def _start_hardhat(cls, gnosis_safe_hardhat, hardhat_port, key_pairs) -> None:
         """Start an HardHat instance."""
-        cls.hardhat_port = hardhat_port
-        cls.hardhat_key_pairs = key_pairs
-
-    @property
-    def owner_key_pairs(self) -> List[Tuple[str, str]]:
-        """Get the owners."""
-        return self.hardhat_key_pairs[: self.NB_OWNERS]
-
-    @property
-    def owners(self) -> List[str]:
-        """Get the owners."""
-        return [Web3.toChecksumAddress(t[0]) for t in self.owner_key_pairs]
-
-    @property
-    def deployer(self) -> Tuple[str, str]:
-        """Get the key pair of the deployer."""
-        # for simplicity, get the first owner
-        return self.owner_key_pairs[0]
-
-    @property
-    def threshold(
-        self,
-    ) -> int:
-        """Returns the amount of threshold."""
-        return self.THRESHOLD
-
-    @property
-    def get_nonce(self) -> int:
-        """Get the nonce."""
-        if self.SALT_NONCE is not None:
-            return self.SALT_NONCE
-        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+        cls.key_pairs = key_pairs
 
 
 @pytest.mark.integration
 class UseGanache:
     """Inherit from this class to use Ganache."""
 
-    NB_OWNERS: int = 4
-    THRESHOLD: int = 1
-    SALT_NONCE: Optional[int] = None
-
-    ganache_port: int = DEFAULT_GANACHE_PORT
-    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
+    key_pairs: List[Tuple[str, str]] = []
 
     @classmethod
     @pytest.fixture(autouse=True)
@@ -123,48 +84,74 @@ class UseGanache:
             ],
         )
 
-    @property
-    def owner_key_pairs(self) -> List[Tuple[str, str]]:
-        """Get the owners."""
-        return self.key_pairs[: self.NB_OWNERS]
-
-    @property
-    def owners(self) -> List[str]:
-        """Get the owners."""
-        return [Web3.toChecksumAddress(t[0]) for t in self.owner_key_pairs]
-
-    @property
-    def deployer(self) -> Tuple[str, str]:
-        """Get the key pair of the deployer."""
-        # for simplicity, get the first owner
-        return self.owner_key_pairs[0]
-
-    @property
-    def threshold(
-        self,
-    ) -> int:
-        """Returns the amount of threshold."""
-        return self.THRESHOLD
-
-    @property
-    def get_nonce(self) -> int:
-        """Get the nonce."""
-        if self.SALT_NONCE is not None:
-            return self.SALT_NONCE
-        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
-
 
 class GanacheBaseTest(DockerBaseTest):
     """Base pytest class for Ganache."""
 
-    ganache_addr: str = DEFAULT_GANACHE_ADDR
-    ganache_port: int = DEFAULT_GANACHE_PORT
-    ganache_configuration: Dict = GANACHE_CONFIGURATION
+    addr: str = DEFAULT_GANACHE_ADDR
+    port: int = DEFAULT_GANACHE_PORT
+    configuration: Dict = GANACHE_CONFIGURATION
+
+    @classmethod
+    def setup_class_kwargs(cls) -> Dict[str, Any]:
+        """Get kwargs for _setup_class call."""
+        setup_class_kwargs = {
+            "key_pairs": cls.key_pairs(),
+            "url": cls.url(),
+        }
+        return setup_class_kwargs
 
     @classmethod
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return GanacheDockerImage(
-            client, cls.ganache_addr, cls.ganache_port, config=cls.ganache_configuration
+        return GanacheDockerImage(client, cls.addr, cls.port, config=cls.configuration)
+
+    @classmethod
+    def key_pairs(cls) -> List[Tuple[str, str]]:
+        """Get the key pairs which are funded."""
+        key_pairs = cast(
+            List[Tuple[str, str]],
+            [
+                key if type(key) == tuple else (Account.from_key(key).address, key)
+                for key, _ in cls.configuration.get("accounts_balances", [])
+            ],
         )
+        return key_pairs
+
+    @classmethod
+    def url(cls) -> str:
+        """Get the url under which the image is reachable."""
+        return f"{cls.addr}:{cls.port}"
+
+
+class HardHatBaseTest(DockerBaseTest):
+    """Base pytest class for HardHat."""
+
+    addr: str = DEFAULT_HARDHAT_ADDR
+    port: int = DEFAULT_HARDHAT_PORT
+
+    @classmethod
+    def setup_class_kwargs(cls) -> Dict[str, Any]:
+        """Get kwargs for _setup_class call."""
+        setup_class_kwargs = {
+            "key_pairs": cls.key_pairs(),
+            "url": cls.url(),
+        }
+        return setup_class_kwargs
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
+
+    @classmethod
+    def key_pairs(cls) -> List[Tuple[str, str]]:
+        """Get the key pairs which are funded."""
+        return KEY_PAIRS
+
+    @classmethod
+    def url(cls) -> str:
+        """Get the url under which the image is reachable."""
+        return f"{cls.addr}:{cls.port}"

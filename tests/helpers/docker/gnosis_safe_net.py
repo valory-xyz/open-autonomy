@@ -31,6 +31,7 @@ from tests.helpers.constants import THIRD_PARTY
 from tests.helpers.docker.base import DockerImage
 
 
+DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
 GNOSIS_SAFE_CONTRACTS_ROOT_DIR = THIRD_PARTY / "safe-contracts"
 
@@ -50,10 +51,12 @@ class GnosisSafeNetDockerImage(DockerImage):
     def __init__(
         self,
         client: docker.DockerClient,
+        addr: str = DEFAULT_HARDHAT_ADDR,
         port: int = DEFAULT_HARDHAT_PORT,
     ):
         """Initialize."""
         super().__init__(client)
+        self.addr = addr
         self.port = port
 
     @property
@@ -99,7 +102,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         """
         for i in range(max_attempts):
             try:
-                response = requests.get(f"http://localhost:{self.port}")
+                response = requests.get(f"{self.addr}:{self.port}")
                 enforce(response.status_code == 200, "")
                 return True
             except Exception as e:  # pylint: disable=broad-except

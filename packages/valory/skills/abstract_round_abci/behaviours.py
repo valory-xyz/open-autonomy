@@ -19,7 +19,7 @@
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
 from queue import Queue
-from typing import Dict, Optional, Type, Any
+from typing import Any, Dict, Optional, Type
 
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
