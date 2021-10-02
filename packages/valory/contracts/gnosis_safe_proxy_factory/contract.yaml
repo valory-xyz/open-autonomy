@@ -1,0 +1,18 @@
+name: gnosis_safe_proxy_factory
+author: valory
+version: 0.1.0
+type: contract
+description: Gnosis Safe proxy factory (GnosisSafeProxyFactory) contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmRSN363rGLMwfAmBQzNKPsx952w93E9fSyu7obaDfho5a
+  __init__.py: Qmdd5tuA2NPcHxhYpSW3ceNh8akivnxQC83pvTT91YyupV
+  build/ProxyFactory_V1_3_0.json: QmRKHfF1hYrrSZNZmec2AS3xSPWdB29uyEWAYdAS5cKHdL
+  contract.py: QmPvBWpdiZE528R9c9FJxzu8vAni6tzy5wVZhytCRnjoyD
+fingerprint_ignore_patterns: []
+class_name: GnosisSafeProxyFactoryContract
+contract_interface_paths:
+  ethereum: build/ProxyFactory_V1_3_0.json
+dependencies:
+  py-eth-sig-utils: {}

@@ -54,6 +54,8 @@ class BaseContractTest(UseGanache):
         self,
     ):
         """Setup test."""
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory")
+        _ = get_register_contract(directory)
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         self.contract = get_register_contract(directory)
         self.ledger_api = ledger_apis_registry.make(
@@ -83,6 +85,8 @@ class BaseContractTestHardHatSafeNet(UseGnosisSafeHardHatNet):
         self,
     ):
         """Setup test."""
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory")
+        _ = get_register_contract(directory)
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         self.contract = get_register_contract(directory)
         self.ledger_api = ledger_apis_registry.make(

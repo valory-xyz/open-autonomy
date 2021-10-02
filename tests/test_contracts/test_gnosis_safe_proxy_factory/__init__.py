@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the support resources for the gnosis_safe (GnosisSafeL2) contract."""
+"""Tests package for valory/gnosis_safe_proxy_factory contract."""

@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for valory/gnosis_safe contracts."""
+"""Tests package for valory/gnosis_safe contract."""
