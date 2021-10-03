@@ -661,7 +661,7 @@ class Period:
             self._update_round()
 
 
-class BehaviourMessage(Enum):
+class BehaviourNotification(Enum):
     """Behaviour message."""
 
     COMMITTED_BLOCK = "committed_block"

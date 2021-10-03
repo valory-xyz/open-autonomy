@@ -24,7 +24,7 @@ from typing import Any, Dict, Optional, Type, cast
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
 
-from packages.valory.skills.abstract_round_abci.base import BehaviourMessage
+from packages.valory.skills.abstract_round_abci.base import BehaviourNotification
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
@@ -66,7 +66,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
             return
 
         while not self.notification_queue.empty():
-            message: BehaviourMessage = self.notification_queue.get_nowait()
+            message: BehaviourNotification = self.notification_queue.get_nowait()
             self._process_behaviour_message(message)
 
         current_state = self.current_state
@@ -138,9 +138,9 @@ class AbstractRoundBehaviour(FSMBehaviour):
             initial=initial,
         )
 
-    def _process_behaviour_message(self, _message: BehaviourMessage) -> None:
+    def _process_behaviour_message(self, _message: BehaviourNotification) -> None:
         """Process a behaviour message."""
-        # if message == BehaviourMessage.COMMITTED_BLOCK
+        # if message == BehaviourNotification.COMMITTED_BLOCK
         new_round_id = self.context.state.period.current_round_id
         if self._last_round_id == new_round_id:
             # round has not changed - do nothing
