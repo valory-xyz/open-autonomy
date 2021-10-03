@@ -210,6 +210,26 @@ class PriceEstimationAbstractRound(AbstractRound, ABC):
         return cast(PeriodState, self._state)
 
 
+class TendermintHealthCheckRound(PriceEstimationAbstractRound):
+    """
+    This class represents the registration round.
+
+    Input: None
+    Output: a period state with the set of participants.
+
+    It schedules the DeploySafeRound.
+    """
+
+    round_id = "tendermint_healthcheck"
+    is_degenerate = True
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+        """Process the end of the block."""
+        next_state = self.period_state
+        next_round = RegistrationRound(self.period_state, self._consensus_params)
+        return next_state, next_round
+
+
 class RegistrationRound(PriceEstimationAbstractRound):
     """
     This class represents the registration round.
