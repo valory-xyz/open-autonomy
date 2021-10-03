@@ -229,7 +229,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         self.context.state.reset_state_time(self.state_id)
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
-        owners = list(self.period_state.participants)
+        owners = sorted(self.period_state.participants)
         threshold = self.context.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
             contract_address=None,
