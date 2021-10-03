@@ -339,7 +339,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         try:
             yield from self.async_act()
         except (GeneratorExit, StopIteration):
-            pass
+            self.clean_up()
         if self._is_done:
             self._log_end()
 
@@ -688,3 +688,6 @@ class BaseState(AsyncBehaviour, State, ABC):
         super().stop()
         self.set_done()
         self._log_end()
+
+    def clean_up(self) -> None:
+        """Clean up the resources due to a 'stop' event."""
