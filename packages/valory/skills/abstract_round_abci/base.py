@@ -53,7 +53,7 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
-def consensus_threshold(n: int) -> int:
+def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
     """
     Get consensus threshold.
 
