@@ -20,7 +20,6 @@
 """Integration tests for the valory/price_estimation_abci skill."""
 import json
 import logging
-from math import ceil
 from pathlib import Path
 
 from aea.test_tools.test_cases import AEATestCaseMany

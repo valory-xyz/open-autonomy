@@ -321,7 +321,18 @@ class TestConsensusParams:
 
     @pytest.mark.parametrize(
         "nb_participants,expected",
-        [(1, 1), (2, 2), (3, 3), (4, 3), (5, 4), (6, 5), (7, 5), (8, 6), (9, 7), (10, 7)],
+        [
+            (1, 1),
+            (2, 2),
+            (3, 3),
+            (4, 3),
+            (5, 4),
+            (6, 5),
+            (7, 5),
+            (8, 6),
+            (9, 7),
+            (10, 7),
+        ],
     )
     def test_threshold_getter(self, nb_participants, expected):
         """Test threshold property getter."""
