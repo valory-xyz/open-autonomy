@@ -85,12 +85,9 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
-    is_active: bool = True
 
     def async_act(self) -> None:  # type: ignore
         """Check whether tendermint is running or not."""
-        if not self.is_active:
-            return
         if self.context.params.is_health_check_timed_out():
             # if the tendermint node cannot start then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
@@ -102,8 +99,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         try:
             json.loads(result.body.decode())
             self.context.logger.info("Tendermint running.")
-            self.context.behaviours.main.start = True
-            self.is_active = False
+            self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
@@ -146,7 +142,7 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         - Go to the next behaviour state.
         """
         keeper_address = random_selection(
-            list(self.period_state.participants),
+            sorted(self.period_state.participants),
             self.period_state.keeper_randomness,
         )
 
@@ -514,8 +510,9 @@ class EndBehaviour(PriceEstimationBaseState):
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = RegistrationBehaviour
+    initial_state_cls = TendermintHealthcheckBehaviour
     transition_function: TransitionFunction = {
+        TendermintHealthcheckBehaviour: {DONE_EVENT: RegistrationBehaviour},
         RegistrationBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
         SelectKeeperABehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {
@@ -533,10 +530,3 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         SelectKeeperBBehaviour: {DONE_EVENT: FinalizeBehaviour},
         EndBehaviour: {},
     }
-    start: bool = False
-
-    def act(self) -> None:
-        """Do the act."""
-        if not self.start:
-            return
-        super().act()

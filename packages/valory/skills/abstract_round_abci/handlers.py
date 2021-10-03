@@ -126,7 +126,9 @@ class ABCIRoundHandler(ABCIHandler):
             self._log_exception(exception)
             raise exception
         # return commit success
-        self.context.behaviours.main.input_queue.put(BehaviourMessage.COMMITTED_BLOCK)
+        self.context.behaviours.main.notification_queue.put(
+            BehaviourMessage.COMMITTED_BLOCK
+        )
         return super().commit(message, dialogue)
 
     @classmethod

@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmbMvKVhUawfMXaFwbqwrtNDkadvBsDk97Kc4FJcnmaBvn
+  behaviours.py: QmeTmnJ7HXF5khCqoqLPPaVo9fwhjT1KYCrkrp5XgzZ6L8
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmUGP65hhDp8w1BwxfWa4NGUzE78rC8bsXnJqncDaAxqjf
@@ -38,9 +38,6 @@ behaviours:
   main:
     args: {}
     class_name: PriceEstimationConsensusBehaviour
-  tendermint_healthcheck:
-    args: {}
-    class_name: TendermintHealthcheckBehaviour
 handlers:
   abci:
     args: {}

@@ -97,6 +97,7 @@ class AsyncBehaviour(ABC):
         self.__generator_act: Optional[Generator] = None
 
         # temporary variables for the waiting message state
+        self.__stopped: bool = False
         self.__notified: bool = False
         self.__message: Any = None
 
@@ -112,6 +113,11 @@ class AsyncBehaviour(ABC):
     def state(self) -> AsyncState:
         """Get the 'async state'."""
         return self.__state
+
+    @property
+    def is_stopped(self) -> bool:
+        """Check whether the behaviour has stopped."""
+        return self.__stopped
 
     def __get_generator_act(self) -> Generator:
         """Get the _generator_act."""
@@ -192,8 +198,17 @@ class AsyncBehaviour(ABC):
         enforce(self.__state == self.AsyncState.RUNNING, "not in 'RUNNING' state")
         self.__handle_tick()
 
+    def stop(self) -> None:
+        """Stop the execution of the behaviour."""
+        if self.__stopped or self.__state == self.AsyncState.READY:
+            return
+        self.__get_generator_act().close()
+        self.__state = self.AsyncState.READY
+        self.__stopped = True
+
     def __call_act_first_time(self) -> None:
         """Call the 'async_act' method for the first time."""
+        self.__stopped = False
         self.__state = self.AsyncState.RUNNING
         try:
             self.__generator_act = self.async_act_wrapper()
@@ -321,7 +336,10 @@ class BaseState(AsyncBehaviour, State, ABC):
         if not self._is_started:
             self._log_start()
             self._is_started = True
-        yield from self.async_act()
+        try:
+            yield from self.async_act()
+        except (GeneratorExit, StopIteration):
+            pass
         if self._is_done:
             self._log_end()
 
@@ -480,7 +498,16 @@ class BaseState(AsyncBehaviour, State, ABC):
 
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
-        self.try_send(message)
+        if self.is_stopped:
+            self.context.logger.info(
+                "dropping message as behaviour has stopped: %s", message
+            )
+        elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+            self.try_send(message)
+        else:
+            self.context.logger.warning(
+                "could not send message to FSMBehaviour: %s", message
+            )
 
     def _do_request(
         self, request_message: HttpMessage, http_dialogue: HttpDialogue
@@ -655,3 +682,9 @@ class BaseState(AsyncBehaviour, State, ABC):
         self.context.outbox.put_message(message=contract_api_msg)
         response = yield from self.wait_for_message()
         return response
+
+    def stop(self) -> None:
+        """Stop the execution of the behaviour."""
+        super().stop()
+        self.set_done()
+        self._log_end()

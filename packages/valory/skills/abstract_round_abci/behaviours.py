@@ -19,7 +19,7 @@
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
 from queue import Queue
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
@@ -42,30 +42,34 @@ class AbstractRoundBehaviour(FSMBehaviour):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
-        self.input_queue: Queue = Queue()
+        self.notification_queue: Queue = Queue()
 
         self._round_to_state: Dict[str, str] = {}
         self._last_round_id: str = ""
 
+        # this variable overrides the actual next transition
+        # due to ABCI app updates.
+        self._next_state: Optional[str] = None
+
     def setup(self) -> None:
         """Set up the behaviour."""
-        self.input_queue = Queue()
+        self.notification_queue = Queue()
         self._register_states(self.transition_function)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
-        self.input_queue = Queue()
+        self.notification_queue = Queue()
 
     def act(self) -> None:
         """Implement the behaviour."""
-        if self.current is None:
+        if self.current is None:  # type: ignore
             return
 
-        while not self.input_queue.empty():
-            message: BehaviourMessage = self.input_queue.get_nowait()
+        while not self.notification_queue.empty():
+            message: BehaviourMessage = self.notification_queue.get_nowait()
             self._process_behaviour_message(message)
 
-        current_state = self.get_state(self.current)
+        current_state = self.current_state
         if current_state is None:
             return
 
@@ -76,9 +80,22 @@ class AbstractRoundBehaviour(FSMBehaviour):
                 # we reached a final state - return.
                 self.current = None
                 return
+            # if next state is set, overwrite successor (regardless of the event)
+            if self._next_state is not None:
+                self.current = self._next_state
+                self._next_state = None
+                return
+            # otherwise, read the event and compute the next transition
             event = current_state.event
             next_state = self.transitions.get(self.current, {}).get(event, None)
             self.current = next_state
+
+    @property
+    def current_state(self) -> Optional[BaseState]:
+        """Get the current state."""
+        if self.current is not None:
+            return cast(Optional[BaseState], self.get_state(self.current))
+        return None
 
     def _register_states(self, transition_function: TransitionFunction) -> None:
         """Register a list of states."""
@@ -129,6 +146,18 @@ class AbstractRoundBehaviour(FSMBehaviour):
             # round has not changed - do nothing
             return
         self._last_round_id = new_round_id
-        # before changing state, send an exception
-        # to the 'BaseState' behaviour (using 'generator.throw())
-        self.current = self._round_to_state[self._last_round_id]
+        self._next_state = self._round_to_state[self._last_round_id]
+
+        # checking if current state behaviour has a matching round.
+        #  if so, stop it and replace it with the new state behaviour
+        #  if not, then leave it running; the next state will be scheduled
+        #  when current is done
+        current_state = self.current_state
+        if (
+            current_state is not None
+            and current_state.matching_round is not None
+            and current_state.state_id != self._next_state
+        ):
+            current_state.stop()
+            self.current = self._next_state
+            return
