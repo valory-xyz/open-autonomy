@@ -318,9 +318,9 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         selections_counter.update(
             payload.keeper for payload in self.participant_to_selection.values()
         )
-        # check that a single selection has at least 2/3 of votes
-        two_thirds_n = self._consensus_params.two_thirds_threshold
-        return any(count >= two_thirds_n for count in selections_counter.values())
+        # check that a single selection has at least the consensus # of votes
+        consensus_n = self._consensus_params.consensus_threshold
+        return any(count >= consensus_n for count in selections_counter.values())
 
     @property
     def most_voted_keeper_address(self) -> float:
@@ -332,7 +332,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         most_voted_keeper_address, max_votes = max(
             keepers_counter.items(), key=itemgetter(1)
         )
-        if max_votes < self._consensus_params.two_thirds_threshold:
+        if max_votes < self._consensus_params.consensus_threshold:
             raise ValueError("keeper has not enough votes")
         return most_voted_keeper_address
 
@@ -477,7 +477,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
         """Check that the observation threshold has been reached."""
         return (
             len(self.participant_to_observations)
-            >= self._consensus_params.two_thirds_threshold
+            >= self._consensus_params.consensus_threshold
         )
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
@@ -552,9 +552,9 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         estimates_counter.update(
             payload.estimate for payload in self.participant_to_estimate.values()
         )
-        # check that a single estimate has at least 2/3 of votes
-        two_thirds_n = self._consensus_params.two_thirds_threshold
-        return any(count >= two_thirds_n for count in estimates_counter.values())
+        # check that a single estimate has at least the consensu # of votes
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return any(count >= consensus_threshold for count in estimates_counter.values())
 
     @property
     def most_voted_estimate(self) -> float:
@@ -566,7 +566,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         most_voted_estimate, max_votes = max(
             estimates_counter.items(), key=itemgetter(1)
         )
-        if max_votes < self._consensus_params.two_thirds_threshold:
+        if max_votes < self._consensus_params.consensus_threshold:
             raise ValueError("estimate has not enough votes")
         return most_voted_estimate
 
@@ -634,9 +634,9 @@ class TxHashRound(PriceEstimationAbstractRound):
         tx_counter.update(
             payload.tx_hash for payload in self.participant_to_tx_hash.values()
         )
-        # check that a single estimate has at least 2/3 of votes
-        two_thirds_n = self._consensus_params.two_thirds_threshold
-        return any(count >= two_thirds_n for count in tx_counter.values())
+        # check that a single estimate has at least the consensus # of votes
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return any(count >= consensus_threshold for count in tx_counter.values())
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -646,7 +646,7 @@ class TxHashRound(PriceEstimationAbstractRound):
             payload.tx_hash for payload in self.participant_to_tx_hash.values()
         )
         most_voted_tx_hash, max_votes = max(tx_counter.items(), key=itemgetter(1))
-        if max_votes < self._consensus_params.two_thirds_threshold:
+        if max_votes < self._consensus_params.consensus_threshold:
             raise ValueError("tx hash has not enough votes")
         return most_voted_tx_hash
 
@@ -706,8 +706,8 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
     @property
     def signature_threshold_reached(self) -> bool:
         """Check that the signature threshold has been reached."""
-        two_thirds_n = self._consensus_params.two_thirds_threshold
-        return len(self.signatures_by_participant) >= two_thirds_n
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return len(self.signatures_by_participant) >= consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""

@@ -53,6 +53,16 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 
+def consensus_threshold(n: int) -> int:
+    """
+    Get consensus threshold.
+
+    :param n: the number of participants
+    :return: the consensus threshold
+    """
+    return ceil((2 * n + 1) / 3)
+
+
 class SignatureNotValidError(ValueError):
     """Error raised when a signature is invalid."""
 
@@ -349,9 +359,9 @@ class ConsensusParams:
         return self._max_participants
 
     @property
-    def two_thirds_threshold(self) -> int:
-        """Get the 2/3 threshold."""
-        return ceil(self.max_participants * 2 / 3)
+    def consensus_threshold(self) -> int:
+        """Get the consensus threshold."""
+        return consensus_threshold(self.max_participants)
 
     @classmethod
     def from_json(cls, obj: Dict) -> "ConsensusParams":
