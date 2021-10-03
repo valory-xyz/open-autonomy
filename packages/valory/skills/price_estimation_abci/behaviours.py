@@ -141,7 +141,7 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         - Go to the next behaviour state.
         """
         keeper_address = random_selection(
-            list(self.period_state.participants),
+            sorted(self.period_state.participants),
             self.period_state.keeper_randomness,
         )
 
