@@ -20,6 +20,7 @@
 """Integration tests for the valory/price_estimation_abci skill."""
 import json
 import logging
+from math import ceil
 from pathlib import Path
 
 from aea.test_tools.test_cases import AEATestCaseMany
@@ -39,8 +40,6 @@ class TestABCIPriceEstimationSkillMany(
     IS_LOCAL = False
     capture_log = True
     NB_AGENTS = 4
-    NB_OWNERS = NB_AGENTS
-    THRESHOLD = NB_AGENTS * 2 // 3 + 1
     NB_KEEPER_TIMEOUT = 5
     cli_log_options = ["-v", "DEBUG"]
 

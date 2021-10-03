@@ -321,12 +321,12 @@ class TestConsensusParams:
 
     @pytest.mark.parametrize(
         "nb_participants,expected",
-        [(1, 1), (2, 2), (3, 2), (4, 3), (5, 4), (6, 4), (10, 7)],
+        [(1, 1), (2, 2), (3, 3), (4, 3), (5, 4), (6, 5), (7, 5), (8, 6), (9, 7), (10, 7)],
     )
     def test_threshold_getter(self, nb_participants, expected):
         """Test threshold property getter."""
         params = ConsensusParams(nb_participants)
-        assert params.two_thirds_threshold == expected
+        assert params.consensus_threshold == expected
 
     def test_from_json(self):
         """Test 'from_json' method."""
