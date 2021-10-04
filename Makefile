@@ -62,7 +62,7 @@ static:
 .PHONY: package_checks
 package_checks:
 	python scripts/generate_ipfs_hashes.py --check --vendor valory
-	python scripts/check_packages.py
+	python scripts/check_packages.py --vendor valory
 
 .PHONY: hashes
 hashes:
