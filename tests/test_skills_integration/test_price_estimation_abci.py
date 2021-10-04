@@ -127,6 +127,8 @@ class TestABCIPriceEstimationSkillMany(
         check_strings = (
             "Entered in the 'register' behaviour state",
             "'register' behaviour state is done",
+            "Entered in the 'select_keeper_a' behaviour state",
+            "'select_keeper_a' behaviour state is done",
             "Entered in the 'deploy_safe' behaviour state",
             "'deploy_safe' behaviour state is done",
             "Entered in the 'observe' behaviour state",

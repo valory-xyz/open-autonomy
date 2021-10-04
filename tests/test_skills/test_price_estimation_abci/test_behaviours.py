@@ -51,6 +51,7 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     HttpHandler,
     SigningHandler,
 )
+from packages.valory.skills.price_estimation_abci.rounds import RegistrationRound
 
 from tests.conftest import ROOT_DIR
 
@@ -210,14 +211,17 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             body=json.dumps({}).encode("utf-8"),
         )
         self.http_handler.handle(incoming_message)
-        with patch.object(
-            self.price_estimation_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.price_estimation_behaviour.act_wrapper()
-        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
         state = self.price_estimation_behaviour.get_state(
             TendermintHealthcheckBehaviour.state_id
         )
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger, patch.object(state, "wait_until_round_end"):
+            # need to call 'act' twice so to overcome
+            # the call to 'wait_until_round_end'
+            self.price_estimation_behaviour.act_wrapper()
+            self.price_estimation_behaviour.act_wrapper()
+        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
         assert state.is_done()
 
 
@@ -229,6 +233,15 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour, RegistrationBehaviour.state_id
         )
+
+        # update period round
+        period = self.skill.skill_context.state.period
+        period_state = period.current_round.period_state
+        consensus_params = period.current_round._consensus_params
+        self.skill.skill_context.state.period._current_round = RegistrationRound(
+            period_state, consensus_params
+        )
+
         assert self.price_estimation_behaviour.current == RegistrationBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
         self.assert_quantity_in_decision_making_queue(1)

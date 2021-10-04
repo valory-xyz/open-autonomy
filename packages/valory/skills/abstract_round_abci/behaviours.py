@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
-from typing import Dict, Optional, Type
+from queue import Queue
+from typing import Any, Dict, Optional, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
 
+from packages.valory.skills.abstract_round_abci.base import BehaviourNotification
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
@@ -37,12 +39,63 @@ class AbstractRoundBehaviour(FSMBehaviour):
     initial_state_cls: State
     transition_function: TransitionFunction = {}
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the behaviour."""
+        super().__init__(**kwargs)
+        self.notification_queue: Queue = Queue()
+
+        self._round_to_state: Dict[str, str] = {}
+        self._last_round_id: str = ""
+
+        # this variable overrides the actual next transition
+        # due to ABCI app updates.
+        self._next_state: Optional[str] = None
+
     def setup(self) -> None:
         """Set up the behaviour."""
+        self.notification_queue = Queue()
         self._register_states(self.transition_function)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
+        self.notification_queue = Queue()
+
+    def act(self) -> None:
+        """Implement the behaviour."""
+        if self.current is None:  # type: ignore
+            return
+
+        while not self.notification_queue.empty():
+            message: BehaviourNotification = self.notification_queue.get_nowait()
+            self._process_behaviour_message(message)
+
+        current_state = self.current_state
+        if current_state is None:
+            return
+
+        current_state.act_wrapper()
+
+        if current_state.is_done():
+            if current_state in self._final_states:
+                # we reached a final state - return.
+                self.current = None
+                return
+            # if next state is set, overwrite successor (regardless of the event)
+            if self._next_state is not None:
+                self.current = self._next_state
+                self._next_state = None
+                return
+            # otherwise, read the event and compute the next transition
+            event = current_state.event
+            next_state = self.transitions.get(self.current, {}).get(event, None)
+            self.current = next_state
+
+    @property
+    def current_state(self) -> Optional[BaseState]:
+        """Get the current state."""
+        if self.current is not None:
+            return cast(Optional[BaseState], self.get_state(self.current))
+        return None
 
     def _register_states(self, transition_function: TransitionFunction) -> None:
         """Register a list of states."""
@@ -73,8 +126,38 @@ class AbstractRoundBehaviour(FSMBehaviour):
     ) -> None:
         """Register state."""
         name = state_cls.state_id
+        if state_cls.matching_round is not None:
+            enforce(
+                state_cls.matching_round.round_id not in self._round_to_state,
+                "round id already used",
+            )
+            self._round_to_state[state_cls.matching_round.round_id] = name
         return super().register_state(
             name,
             state_cls(name=name, skill_context=self.context),
             initial=initial,
         )
+
+    def _process_behaviour_message(self, _message: BehaviourNotification) -> None:
+        """Process a behaviour message."""
+        # if message == BehaviourNotification.COMMITTED_BLOCK
+        new_round_id = self.context.state.period.current_round_id
+        if self._last_round_id == new_round_id:
+            # round has not changed - do nothing
+            return
+        self._last_round_id = new_round_id
+        self._next_state = self._round_to_state[self._last_round_id]
+
+        # checking if current state behaviour has a matching round.
+        #  if so, stop it and replace it with the new state behaviour
+        #  if not, then leave it running; the next state will be scheduled
+        #  when current is done
+        current_state = self.current_state
+        if (
+            current_state is not None
+            and current_state.matching_round is not None
+            and current_state.state_id != self._next_state
+        ):
+            current_state.stop()
+            self.current = self._next_state
+            return
