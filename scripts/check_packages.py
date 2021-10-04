@@ -29,6 +29,7 @@ Run this script from the root of the project directory:
     python scripts/check_packages.py
 
 """
+import argparse
 import pprint
 import sys
 from abc import abstractmethod
@@ -48,8 +49,6 @@ from aea.configurations.constants import (
     DEFAULT_SKILL_CONFIG_FILE,
 )
 
-
-VALORY = "valory"
 
 DEFAULT_CONFIG_FILE_PATHS = []  # type: List[Path]
 
@@ -161,7 +160,7 @@ class UnexpectedAuthorError(Exception):
         print("=" * 50)
 
 
-def find_all_configuration_files() -> List:
+def find_all_configuration_files(vendor: str) -> List:
     """Find all configuration files."""
     packages_dir = Path("packages")
     config_files = [
@@ -169,6 +168,12 @@ def find_all_configuration_files() -> List:
         for path in packages_dir.glob("*/*/*/*.yaml")
         if any(file in str(path) for file in CONFIG_FILE_NAMES)
     ]
+    if vendor:
+
+        def vendor_filter(package: Path) -> bool:
+            return package.parts[1] == vendor.lower()
+
+        config_files = list(filter(vendor_filter, config_files))
     return list(chain(config_files, default_config_file_paths()))
 
 
@@ -201,10 +206,10 @@ def get_public_id_from_yaml(configuration_file: Path) -> PublicId:
     return PublicId(author, name, version)
 
 
-def find_all_packages_ids() -> Set[PackageId]:
+def find_all_packages_ids(vendor: str) -> Set[PackageId]:
     """Find all packages ids."""
     package_ids: Set[PackageId] = set()
-    for configuration_file in find_all_configuration_files():
+    for configuration_file in find_all_configuration_files(vendor):
         package_type = PackageType(configuration_file.parts[-3][:-1])
         package_public_id = get_public_id_from_yaml(configuration_file)
         package_id = PackageId(package_type, package_public_id)
@@ -232,13 +237,14 @@ def unified_yaml_load(configuration_file: Path) -> Dict:
 
 
 def check_dependencies(
-    configuration_file: Path, all_packages_ids: Set[PackageId]
+    configuration_file: Path, all_packages_ids: Set[PackageId], vendor: str
 ) -> None:
     """
     Check dependencies of configuration file.
 
     :param configuration_file: path to a package configuration file.
     :param all_packages_ids: all the package ids.
+    :param vendor: the package's vendor.
     """
     data = unified_yaml_load(configuration_file)
 
@@ -248,9 +254,9 @@ def check_dependencies(
     def _get_package_ids(
         package_type: PackageType, public_ids: Set[PublicId]
     ) -> Set[PackageId]:
-        # take only the dependencies whose author is Valory.
+        # take only the dependencies whose author is author.
         expected_author_public_ids = filter(
-            lambda pid: pid.author == VALORY, public_ids
+            lambda pid: pid.author == vendor, public_ids
         )
         # add the package type, so to return PackageId objects.
         return set(
@@ -284,15 +290,31 @@ def check_author(configuration_file: Path, expected_author: str) -> None:
         raise UnexpectedAuthorError(configuration_file, expected_author, actual_author)
 
 
+def parse_arguments() -> argparse.Namespace:
+    """Parse arguments."""
+    script_name = Path(__file__).name
+    parser = argparse.ArgumentParser(script_name, description="Check packages.")
+    parser.add_argument(
+        "--vendor",
+        type=str,
+        default="valory",
+        help="Vendor to hash packages from.",
+    )
+
+    arguments_ = parser.parse_args()
+    return arguments_
+
+
 def main() -> None:
     """Execute the script."""
-    all_packages_ids_ = find_all_packages_ids()
+    arguments = parse_arguments()
+    all_packages_ids_ = find_all_packages_ids(arguments.vendor)
     failed: bool = False
-    for file in find_all_configuration_files():
+    for file in find_all_configuration_files(arguments.vendor):
         try:
             print("Processing " + str(file))
-            check_author(file, VALORY)
-            check_dependencies(file, all_packages_ids_)
+            check_author(file, arguments.vendor)
+            check_dependencies(file, all_packages_ids_, arguments.vendor)
             check_description(file)
         except CustomException as exception:
             exception.print_error()
