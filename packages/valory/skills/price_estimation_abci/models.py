@@ -22,6 +22,7 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -59,3 +60,25 @@ class SharedState(BaseSharedState):
             (datetime.now() - time).seconds
             >= self.context.params.keeper_timeout_seconds
         )
+
+
+class Params(BaseParams):
+    """Parameters."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters object."""
+        self.currency_id = self._ensure("currency_id", kwargs)
+        self.convert_id = self._ensure("convert_id", kwargs)
+        self._max_healthcheck = self._ensure("max_healthcheck", kwargs)
+        self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
+        super().__init__(*args, **kwargs)
+        self._count_healthcheck = 0
+
+    def is_health_check_timed_out(self) -> bool:
+        """Check if the healthcheck has timed out."""
+        self._count_healthcheck += 1
+        return self._count_healthcheck > self._max_healthcheck
+
+    def increment_retries(self) -> None:
+        """Increment the retries counter."""
+        self._count_healthcheck += 1

@@ -56,18 +56,6 @@ def test_dialogues_creation(dialogues_cls, expected_role_from_first_message):
     )
 
 
-def test_ledger_api_dialogue():
-    """Test 'LedgerApiDialogue' creation."""
-    dialogue = LedgerApiDialogue(MagicMock(), "", MagicMock())
-
-    with pytest.raises(ValueError, match="Associated signing dialogue not set!"):
-        dialogue.associated_signing_dialogue
-
-    expected_signing_dialogue = MagicMock()
-    dialogue.associated_signing_dialogue = expected_signing_dialogue
-    assert expected_signing_dialogue == dialogue.associated_signing_dialogue
-
-
 def test_contract_api_dialogue():
     """Test 'ContractApiDialogue' creation."""
     dialogue = ContractApiDialogue(MagicMock(), "", MagicMock())

@@ -42,6 +42,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
+from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -64,7 +65,7 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        self.context.state.period.begin_block(message.header)
+        cast(SharedState, self.context.state).period.begin_block(message.header)
         return super().begin_block(message, dialogue)
 
     def check_tx(  # pylint: disable=no-self-use
@@ -76,7 +77,7 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            self.context.state.period.check_is_finished()
+            cast(SharedState, self.context.state).period.check_is_finished()
         except (SignatureNotValidError, ValueError) as exception:
             self._log_exception(exception)
             return self._check_tx_failed(
@@ -93,8 +94,10 @@ class ABCIRoundHandler(ABCIHandler):
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            self.context.state.period.check_is_finished()
-            is_valid = self.context.state.period.deliver_tx(transaction)
+            cast(SharedState, self.context.state).period.check_is_finished()
+            is_valid = cast(SharedState, self.context.state).period.deliver_tx(
+                transaction
+            )
             enforce(is_valid, "transaction is not valid")
         except (
             SignatureNotValidError,
@@ -112,7 +115,7 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'end_block' request."""
-        self.context.state.period.end_block()
+        cast(SharedState, self.context.state).period.end_block()
         return super().end_block(message, dialogue)
 
     def commit(  # pylint: disable=no-self-use
@@ -120,7 +123,7 @@ class ABCIRoundHandler(ABCIHandler):
     ) -> AbciMessage:
         """Handle the 'commit' request."""
         try:
-            self.context.state.period.commit()
+            cast(SharedState, self.context.state).period.commit()
         except AddBlockError as exception:
             self._log_exception(exception)
             raise exception
@@ -226,7 +229,9 @@ class AbstractResponseHandler(Handler, ABC):
             return
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
-        callback = self.context.requests.request_id_to_callback.pop(request_nonce, None)
+        callback = cast(Requests, self.context.requests).request_id_to_callback.pop(
+            request_nonce, None
+        )
         if callback is None:
             self._handle_no_callback(message, protocol_dialogue)
             return

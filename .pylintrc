@@ -5,8 +5,8 @@ ignore=
     packages/valory/connections/abci/gogoproto
 
 [MESSAGES CONTROL]
-disable=R0801,E0611,E0401,C0301,C0204,C0209
-# disable=C0103,C0201,C0302,W0105,W0707,W1202,W1203,R0801
+disable=R0801,E0611,E0401,C0301,C0204,C0209,W1203
+# disable=C0103,C0201,C0302,W0105,W0707,W1202,R0801
 
 # See here for more options: https://www.codeac.io/documentation/pylint-configuration.html
 W0707: raise-missing-from
@@ -34,7 +34,7 @@ max-args=6
 # max-statements=80
 max-parents=10
 # max-branches=24
-# max-attributes=38
+max-attributes=8
 
 [REFACTORING]
 # max-nested-blocks=6

@@ -117,7 +117,7 @@ def gnosis_safe_hardhat(
     hardhat_addr,
     hardhat_port,
     timeout: float = 3.0,
-    max_attempts: int = 30,
+    max_attempts: int = 40,
 ):
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
