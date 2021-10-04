@@ -271,6 +271,7 @@ class TestBaseState:
     def setup(self):
         """Set up the tests."""
         self.context_mock = MagicMock()
+        self.context_mock.state.period.current_round_id = "round_a"
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
     def test_check_in_round(self):
