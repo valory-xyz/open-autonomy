@@ -49,7 +49,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
-    Period,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -59,9 +58,10 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogues,
     LedgerApiDialogue,
     LedgerApiDialogues,
+    SigningDialogue,
     SigningDialogues,
 )
-from packages.valory.skills.abstract_round_abci.models import Requests
+from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
 
 
 DONE_EVENT = "done"
@@ -261,11 +261,11 @@ class BaseState(AsyncBehaviour, State, ABC):
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
-        return cast(Period, self.context.state.period).current_round_id == round_id
+        return cast(SharedState, self.context.state).period.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
-        return cast(Period, self.context.state.period).last_round_id == round_id
+        return cast(SharedState, self.context.state).period.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
@@ -456,8 +456,14 @@ class BaseState(AsyncBehaviour, State, ABC):
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
 
-        signing_dialogue = self.context.signing_dialogues.get_dialogue(signing_msg)
-        ledger_api_dialogue.associated_signing_dialogue = signing_dialogue
+        signing_dialogue = cast(
+            SigningDialogues, self.context.signing_dialogues
+        ).get_dialogue(signing_msg)
+        if signing_dialogue is None:
+            raise ValueError("Could not find signing dialogue for message.")
+        ledger_api_dialogue.associated_signing_dialogue = cast(
+            SigningDialogue, signing_dialogue
+        )
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce

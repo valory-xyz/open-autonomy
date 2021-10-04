@@ -42,6 +42,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     TransitionFunction,
 )
+from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -78,7 +79,17 @@ class PriceEstimationBaseState(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, self.context.state.period_state)
+        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the params."""
+        return cast(Params, self.context.params)
+
+    @property
+    def shared_state(self) -> SharedState:
+        """Return the shared state."""
+        return cast(SharedState, self.context.state)
 
 
 class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
@@ -88,12 +99,12 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
 
     def async_act(self) -> None:  # type: ignore
         """Check whether tendermint is running or not."""
-        if self.context.params.is_health_check_timed_out():
+        if self.params.is_health_check_timed_out():
             # if the tendermint node cannot start then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
-            self.context.params.tendermint_url + "/health",
+            self.params.tendermint_url + "/health",
         )
         result = yield from self._do_request(request_message, http_dialogue)
         try:
@@ -103,7 +114,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
-            self.context.params.increment_retries()
+            self.params.increment_retries()
 
 
 class RegistrationBehaviour(PriceEstimationBaseState):
@@ -181,7 +192,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         deployment transaction and send it.
         Otherwise, wait until the next round.
         """
-        self.context.state.set_state_time(self.state_id)
+        self.shared_state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_deployer_act()
         else:
@@ -193,20 +204,20 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
         :return: bool
         """
-        return self.context.state.has_keeper_timed_out(self.state_id)
+        return self.shared_state.has_keeper_timed_out(self.state_id)
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
         if self.has_contract_been_deployed_stub():
             self.context.logger.info("Contract has been deployed.")
             self.set_done()
-            self.context.state.reset_state_time(self.state_id)
+            self.shared_state.reset_state_time(self.state_id)
             return
 
-        if self.context.state.has_keeper_timed_out(self.state_id):
+        if self.shared_state.has_keeper_timed_out(self.state_id):
             self.context.logger.info("Keeper timeout. Skipping...")
             self.set_exit_a()
-            self.context.state.reset_state_time(self.state_id)
+            self.shared_state.reset_state_time(self.state_id)
             return
 
         yield from self.sleep(1)
@@ -227,11 +238,11 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         )
         yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
         self.set_done()
-        self.context.state.reset_state_time(self.state_id)
+        self.shared_state.reset_state_time(self.state_id)
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = sorted(self.period_state.participants)
-        threshold = self.context.params.consensus_params.consensus_threshold
+        threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
             contract_address=None,
             contract_id=str(GnosisSafeContract.contract_id),
@@ -273,8 +284,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
             self.set_fail()
 
-        currency_id = self.context.params.currency_id
-        convert_id = self.context.params.convert_id
+        currency_id = self.params.currency_id
+        convert_id = self.params.convert_id
         api_specs = self.context.price_api.get_spec(currency_id, convert_id)
         http_message, http_dialogue = self._build_http_request_message(
             method="GET",
@@ -334,8 +345,8 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state.
         """
 
-        currency_id = self.context.params.currency_id
-        convert_id = self.context.params.convert_id
+        currency_id = self.params.currency_id
+        convert_id = self.params.convert_id
         self.context.logger.info(
             "Got estimate of %s price in %s: %s",
             currency_id,
@@ -419,7 +430,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def async_act(self) -> Generator[None, None, None]:
         """Do the act."""
-        self.context.state.set_state_time(self.state_id)
+        self.shared_state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_sender_act()
         else:
@@ -431,20 +442,20 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
         :return: bool
         """
-        return self.context.state.has_keeper_timed_out(self.state_id)
+        return self.shared_state.has_keeper_timed_out(self.state_id)
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
         if self.has_transaction_been_sent_stub():
             self.context.logger.info("Keeper has sent the transaction.")
             self.set_done()
-            self.context.state.reset_state_time(self.state_id)
+            self.shared_state.reset_state_time(self.state_id)
             return
 
-        if self.context.state.has_keeper_timed_out(self.state_id):
+        if self.shared_state.has_keeper_timed_out(self.state_id):
             self.context.logger.info("Keeper timeout. Skipping...")
             self.set_exit_b()
-            self.context.state.reset_state_time(self.state_id)
+            self.shared_state.reset_state_time(self.state_id)
             return
 
         yield from self.sleep(1)
@@ -462,13 +473,13 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             f"Transaction hash of the final transaction: {tx_hash}"
         )
         self.context.logger.info(
-            f"Signatures: {pprint.pformat(self.context.state.period_state.participant_to_signature)}"
+            f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
         )
         payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
         self.set_done()
-        self.context.state.reset_state_time(self.state_id)
+        self.shared_state.reset_state_time(self.state_id)
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""

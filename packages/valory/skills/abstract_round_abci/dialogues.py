@@ -186,7 +186,7 @@ class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
         self._associated_signing_dialogue: Optional[BaseSigningDialogue] = None
 
     @property
-    def associated_signing_dialogue(self) -> "BaseSigningDialogue":
+    def associated_signing_dialogue(self) -> BaseSigningDialogue:
         """Get the associated signing dialogue."""
         if self._associated_signing_dialogue is None:
             raise ValueError("Associated signing dialogue not set!")
@@ -194,7 +194,7 @@ class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
 
     @associated_signing_dialogue.setter
     def associated_signing_dialogue(
-        self, associated_signing_dialogue: "BaseSigningDialogue"
+        self, associated_signing_dialogue: BaseSigningDialogue
     ) -> None:
         """Set the associated signing dialogue."""
         enforce(
