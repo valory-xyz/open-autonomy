@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the base classes for the models classes of the skill."""
+import logging
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 from enum import Enum
@@ -46,6 +47,9 @@ from packages.valory.protocols.abci.custom_types import Header
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+
+
+_logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
 
 OK_CODE = 0
@@ -409,6 +413,10 @@ class BasePeriodState:
         data.update(kwargs)
         return type(self)(**data)
 
+    def __repr__(self) -> str:
+        """Return a string representation of the state."""
+        return f"BasePeriodState({self.__dict__})"
+
 
 class AbstractRound(ABC):
     """
@@ -536,6 +544,7 @@ class Period:
         self._block_builder = BlockBuilder()
         self._starting_round_cls = starting_round_cls
         self._current_round: Optional[AbstractRound] = None
+        self._last_round: Optional[AbstractRound] = None
 
         self._previous_rounds: List[AbstractRound] = []
         self._round_results: List[Any] = []
@@ -570,6 +579,11 @@ class Period:
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self._current_round.round_id if self._current_round else None
+
+    @property
+    def last_round_id(self) -> Optional[str]:
+        """Get the last round id."""
+        return self._last_round.round_id if self._last_round else None
 
     @property
     def latest_result(self) -> Optional[Any]:
@@ -656,6 +670,10 @@ class Period:
         if result is None:
             return
         round_result, next_round = result
+        _logger.debug(
+            f"updating round, current_round {current_round.round_id}, next_round {next_round.round_id}, round result {round_result}"
+        )
         self._previous_rounds.append(current_round)
         self._round_results.append(round_result)
         self._current_round = next_round
+        self._last_round = current_round

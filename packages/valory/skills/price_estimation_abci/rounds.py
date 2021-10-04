@@ -272,7 +272,6 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
     Output: the selected keeper.
     """
 
-    round_id = "select_keeper"
     next_round_class: Type[PriceEstimationAbstractRound]
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -798,13 +797,31 @@ class FinalizationRound(PriceEstimationAbstractRound):
 class SelectKeeperARound(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
+    round_id = "select_keeper_a"
     next_round_class = DeploySafeRound
+
+    def select_keeper_a(self, payload: SelectKeeperPayload) -> None:
+        """Handle an 'select_keeper' payload."""
+        super().select_keeper(payload)
+
+    def check_select_keeper_a(self, payload: SelectKeeperPayload) -> bool:
+        """Check an select_keeper payload can be applied to the current state."""
+        return super().check_select_keeper(payload)
 
 
 class SelectKeeperBRound(SelectKeeperRound):
     """This class represents the select keeper B round."""
 
+    round_id = "select_keeper_b"
     next_round_class = FinalizationRound
+
+    def select_keeper_b(self, payload: SelectKeeperPayload) -> None:
+        """Handle an 'select_keeper' payload."""
+        super().select_keeper(payload)
+
+    def check_select_keeper_b(self, payload: SelectKeeperPayload) -> bool:
+        """Check an select_keeper payload can be applied to the current state."""
+        return super().check_select_keeper(payload)
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):

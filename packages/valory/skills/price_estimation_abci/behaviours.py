@@ -55,6 +55,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
+    ConsensusReachedRound,
     DeploySafeRound,
     EstimateConsensusRound,
     FinalizationRound,
@@ -493,6 +494,7 @@ class EndBehaviour(PriceEstimationBaseState):
     """Final state."""
 
     state_id = "end"
+    matching_round = ConsensusReachedRound
 
     def async_act(self) -> Generator:
         """Do the act."""

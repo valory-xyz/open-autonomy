@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
+    Period,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -60,6 +61,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogues,
     SigningDialogues,
 )
+from packages.valory.skills.abstract_round_abci.models import Requests
 
 
 DONE_EVENT = "done"
@@ -141,7 +143,9 @@ class AsyncBehaviour(ABC):
         self.__message = message
 
     @classmethod
-    def wait_for_condition(cls, condition: Callable[[], bool]) -> Any:
+    def wait_for_condition(
+        cls, condition: Callable[[], bool]
+    ) -> Generator[None, None, None]:
         """Wait for a condition to happen."""
         while not condition():
             yield
@@ -257,17 +261,29 @@ class BaseState(AsyncBehaviour, State, ABC):
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
-        return self.context.state.period.current_round_id == round_id
+        return cast(Period, self.context.state.period).current_round_id == round_id
+
+    def check_in_last_round(self, round_id: str) -> bool:
+        """Check that we entered in a specific round."""
+        return cast(Period, self.context.state.period).last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
         return not self.check_in_round(round_id)
 
+    def check_not_in_last_round(self, round_id: str) -> bool:
+        """Check that we are not in a specific round."""
+        return not self.check_in_last_round(round_id)
+
+    def check_round_has_finished(self, round_id: str) -> bool:
+        """Check that the round has finished."""
+        return self.check_in_last_round(round_id)
+
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
         return partial(self.check_not_in_round, round_id)
 
-    def wait_until_round_end(self) -> Any:
+    def wait_until_round_end(self) -> Generator[None, None, None]:
         """
         Wait until the ABCI application exits from a round.
 
@@ -276,7 +292,13 @@ class BaseState(AsyncBehaviour, State, ABC):
         if self.matching_round is None:
             raise ValueError("No matching_round set!")
         round_id = self.matching_round.round_id
-        yield from self.wait_for_condition(partial(self.check_not_in_round, round_id))
+        if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
+            raise ValueError(
+                f"Should be in matching round ({round_id}) or last round ({self.context.state.period.last_round_id}), actual round {self.context.state.period.current_round_id}!"
+            )
+        yield from self.wait_for_condition(
+            partial(self.check_round_has_finished, round_id)
+        )
 
     def is_done(self) -> bool:
         """Check whether the state is done."""
@@ -401,7 +423,7 @@ class BaseState(AsyncBehaviour, State, ABC):
             ),
         )
         request_nonce = self._get_request_nonce_from_dialogue(signing_dialogue)
-        self.context.requests.request_id_to_callback[
+        cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
@@ -418,7 +440,7 @@ class BaseState(AsyncBehaviour, State, ABC):
             terms=terms,
         )
         request_nonce = self._get_request_nonce_from_dialogue(signing_dialogue)
-        self.context.requests.request_id_to_callback[
+        cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
@@ -437,7 +459,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         signing_dialogue = self.context.signing_dialogues.get_dialogue(signing_msg)
         ledger_api_dialogue.associated_signing_dialogue = signing_dialogue
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
-        self.context.requests.request_id_to_callback[
+        cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
         self.context.outbox.put_message(message=ledger_api_msg)
@@ -456,7 +478,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
-        self.context.requests.request_id_to_callback[
+        cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
         self.context.outbox.put_message(message=ledger_api_msg)
@@ -495,7 +517,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         """
         self.context.outbox.put_message(message=request_message)
         request_nonce = self._get_request_nonce_from_dialogue(http_dialogue)
-        self.context.requests.request_id_to_callback[
+        cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
         response = yield from self.wait_for_message()
@@ -649,7 +671,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         )
         contract_api_dialogue.terms = self._get_default_terms()
         request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
-        self.context.requests.request_id_to_callback[
+        cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
         self.context.outbox.put_message(message=contract_api_msg)
