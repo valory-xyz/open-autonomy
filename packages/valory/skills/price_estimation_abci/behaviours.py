@@ -210,6 +210,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         """Do the non-deployer action."""
         if self.has_contract_been_deployed_stub():
             self.context.logger.info("Contract has been deployed.")
+            yield from self.wait_until_round_end()
             self.set_done()
             self.shared_state.reset_state_time(self.state_id)
             return
@@ -448,6 +449,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         """Do the non-sender action."""
         if self.has_transaction_been_sent_stub():
             self.context.logger.info("Keeper has sent the transaction.")
+            yield from self.wait_until_round_end()
             self.set_done()
             self.shared_state.reset_state_time(self.state_id)
             return

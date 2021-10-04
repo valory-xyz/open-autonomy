@@ -41,7 +41,6 @@ from packages.fetchai.protocols.http.dialogues import (
 from packages.fetchai.protocols.http.dialogues import (
     HttpDialogues as BaseHttpDialogues,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
 )
-from packages.fetchai.protocols.ledger_api import LedgerApiMessage
 from packages.fetchai.protocols.ledger_api.dialogues import (
     LedgerApiDialogue as BaseLedgerApiDialogue,
 )
@@ -154,54 +153,7 @@ class SigningDialogues(Model, BaseSigningDialogues):
         )
 
 
-class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
-    BaseLedgerApiDialogue
-):
-    """The dialogue class maintains state of a dialogue and manages it."""
-
-    __slots__ = ("_associated_signing_dialogue",)
-
-    def __init__(
-        self,
-        dialogue_label: BaseDialogueLabel,
-        self_address: Address,
-        role: BaseDialogue.Role,
-        message_class: Type[LedgerApiMessage] = LedgerApiMessage,
-    ) -> None:
-        """
-        Initialize a dialogue.
-
-        :param dialogue_label: the identifier of the dialogue
-        :param self_address: the address of the entity for whom this dialogue is maintained
-        :param role: the role of the agent this dialogue is maintained for
-        :param message_class: the message class
-        """
-        BaseLedgerApiDialogue.__init__(
-            self,
-            dialogue_label=dialogue_label,
-            self_address=self_address,
-            role=role,
-            message_class=message_class,
-        )
-        self._associated_signing_dialogue: Optional[BaseSigningDialogue] = None
-
-    @property
-    def associated_signing_dialogue(self) -> BaseSigningDialogue:
-        """Get the associated signing dialogue."""
-        if self._associated_signing_dialogue is None:
-            raise ValueError("Associated signing dialogue not set!")
-        return self._associated_signing_dialogue
-
-    @associated_signing_dialogue.setter
-    def associated_signing_dialogue(
-        self, associated_signing_dialogue: BaseSigningDialogue
-    ) -> None:
-        """Set the associated signing dialogue."""
-        enforce(
-            self._associated_signing_dialogue is None,
-            "Associated signing dialogue already set!",
-        )
-        self._associated_signing_dialogue = associated_signing_dialogue
+LedgerApiDialogue = BaseLedgerApiDialogue
 
 
 class LedgerApiDialogues(Model, BaseLedgerApiDialogues):

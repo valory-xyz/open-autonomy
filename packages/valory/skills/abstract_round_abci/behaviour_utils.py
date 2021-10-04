@@ -58,7 +58,6 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogues,
     LedgerApiDialogue,
     LedgerApiDialogues,
-    SigningDialogue,
     SigningDialogues,
 )
 from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
@@ -455,15 +454,6 @@ class BaseState(AsyncBehaviour, State, ABC):
             signed_transaction=signing_msg.signed_transaction,
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
-
-        signing_dialogue = cast(
-            SigningDialogues, self.context.signing_dialogues
-        ).get_dialogue(signing_msg)
-        if signing_dialogue is None:
-            raise ValueError("Could not find signing dialogue for message.")
-        ledger_api_dialogue.associated_signing_dialogue = cast(
-            SigningDialogue, signing_dialogue
-        )
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce

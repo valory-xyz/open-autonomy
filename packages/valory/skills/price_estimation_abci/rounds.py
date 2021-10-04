@@ -217,7 +217,7 @@ class RegistrationRound(PriceEstimationAbstractRound):
     Input: None
     Output: a period state with the set of participants.
 
-    It schedules the DeploySafeRound.
+    It schedules the SelectKeeperARound.
     """
 
     round_id = "registration"
