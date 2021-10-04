@@ -83,6 +83,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             cls._skill.skill_context.behaviours.main,
         )
         cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
+        cls.abci_handler = cast(HttpHandler, cls._skill.skill_context.handlers.abci)
         cls.signing_handler = cast(
             SigningHandler, cls._skill.skill_context.handlers.signing
         )
@@ -105,6 +106,20 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
+    def end_block_request(self) -> None:
+        """Process end block request."""
+        self._skill.skill_context.state.period.begin_block(None)
+        incoming_message = self.build_incoming_message(
+            message_type=AbciMessage,
+            dialogue_reference=("stub", ""),
+            performative=AbciMessage.Performative.REQUEST_END_BLOCK,
+            target=0,
+            message_id=1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(ABCI_SERVER_PUBLIC_ID),
+            height=100,
+        )
+        self.abci_handler.handle(incoming_message)
 
 class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test case to test TendermintHealthcheckBehaviour."""
@@ -216,12 +231,13 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
-        ) as mock_logger, patch.object(state, "wait_until_round_end"):
+        ) as mock_logger:
             # need to call 'act' twice so to overcome
             # the call to 'wait_until_round_end'
             self.price_estimation_behaviour.act_wrapper()
-            self.price_estimation_behaviour.act_wrapper()
         mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
+        self.end_block_request()
+        self.price_estimation_behaviour.act_wrapper()
         assert state.is_done()
 
 
