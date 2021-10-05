@@ -95,7 +95,7 @@ class GnosisSafeContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        raise NotImplementedError
+        return cls.verify_contract(ledger_api, contract_address)
 
     @classmethod
     def get_deploy_transaction(

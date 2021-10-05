@@ -203,8 +203,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         contract_api_response = yield from self.get_contract_api_response(
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="verify_contract",
-            solc_version=self.context.params.solidity_version,
+            contract_callable="get_state",
         )
 
         verified = cast(bool, contract_api_response.raw_transaction.body["verified"])
