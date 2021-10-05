@@ -29,8 +29,8 @@ layer among different AEA participants. Notably, the ABCIApp changes states only
 by means of transaction committed by the AEAs to the temporary blockchain,
 and in this sense is "purely reactive";
 instead, the FSMBehaviour execution also shows "proactive logic".
-For example, the FSMBehaviour can observe the price value of BTC
-from different sources, reach the consensus on an estimate,
+For example, the FSMBehaviour of each AEA can observe the price value of BTC
+from an external source, AEAs can use the ABCIApp to replicate the observations, and then reach the consensus on an estimate,
 and submit the estimate on the Ethereum blockchain
 (as done in the 
 [price estimation demo](./price_estimation_demo.md));
