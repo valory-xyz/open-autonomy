@@ -149,9 +149,10 @@ def test_price_api():
 def test_price_api_exceptions():
     """Test excpetions in PriceApi."""
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="'source_id' is a mandatory configuration"):
         # raises ValueError("'source_id' is a mandatory configuration")
         PriceApi()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="'api' is not a supported API identifier"):
+        # raises ValueError("'api' is not a supported API identifier")
         PriceApi(name="price_api", skill_context=SkillContext(), source_id="api")

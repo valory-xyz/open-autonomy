@@ -20,6 +20,7 @@
 """Tests for valory/price_estimation_abci skill's behaviours."""
 import json
 import logging
+import time
 from copy import copy
 from pathlib import Path
 from typing import cast
@@ -45,6 +46,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationConsensusBehaviour,
     RegistrationBehaviour,
+    SelectKeeperABehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -158,6 +160,8 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             TendermintHealthcheckBehaviour.state_id
         )
         assert not state.is_done()
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_not_live_raises(self):
         """Test the tendermint health check raises if not healthy for too long."""
@@ -289,17 +293,23 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
             RegistrationBehaviour.state_id
         )
         assert not state.is_done()
-        # for sender in ["sender_a", "sender_b", "sender_c", "sender_d"]:  # noqa: E800
-        #     incoming_message = self.build_incoming_message(  # noqa: E800
-        #         message_type=AbciMessage,  # noqa: E800
-        #         dialogue_reference=("stub", ""),  # noqa: E800
-        #         performative=AbciMessage.Performative.REQUEST_DELIVER_TX,  # noqa: E800
-        #         target=0,  # noqa: E800
-        #         message_id=1,  # noqa: E800
-        #         to=str(self.skill.skill_context.skill_id),  # noqa: E800
-        #         sender=str(ABCI_SERVER_PUBLIC_ID),  # noqa: E800
-        #         tx=,  # noqa: E800
-        #     )  # noqa: E800
-        #     self.http_handler.handle(incoming_message)  # noqa: E800
-        # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
-        # assert state.is_done()  # noqa: E800
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test SelectKeeperBehaviour."""
+
+    def test_observe_behaviour(
+        self,
+    ):
+        """Test select keeper agent."""
+
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=SelectKeeperABehaviour.state_id,
+        )
+        assert (
+            self.price_estimation_behaviour.current == SelectKeeperABehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_decision_making_queue(1)
