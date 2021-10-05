@@ -40,7 +40,11 @@ from packages.valory.connections.abci.connection import (  # noqa: F401
     PUBLIC_ID as ABCI_SERVER_PUBLIC_ID,
 )
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
-from packages.valory.skills.abstract_round_abci.base import OK_CODE, _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import (
+    BasePeriodState,
+    OK_CODE,
+    _MetaPayload,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.behaviours import (
@@ -53,6 +57,7 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     HttpHandler,
     SigningHandler,
 )
+from packages.valory.skills.price_estimation_abci.rounds import PeriodState
 
 from tests.conftest import ROOT_DIR
 
@@ -94,12 +99,24 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             == cls.price_estimation_behaviour.initial_state
         )
 
-    @staticmethod
-    def fast_forward_to_state(behaviour: AbstractRoundBehaviour, state_id: str) -> None:
+    def fast_forward_to_state(
+        self,
+        behaviour: AbstractRoundBehaviour,
+        state_id: str,
+        period_state: BasePeriodState,
+    ) -> None:
         """Fast forward the FSM to a state."""
         next_state = behaviour.get_state(state_id)
         assert next_state is not None, f"State {state_id} not found"
-        behaviour.current = cast(BaseState, next_state).state_id
+        next_state = cast(BaseState, next_state)
+        behaviour.current = next_state.state_id
+        self.skill.skill_context.state.period._round_results.append(period_state)
+        if next_state.matching_round is not None:
+            self.skill.skill_context.state.period._current_round = (
+                next_state.matching_round(
+                    period_state, self.skill.skill_context.params.consensus_params
+                )
+            )
 
     @classmethod
     def teardown(cls) -> None:
@@ -231,7 +248,9 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
     def test_registration(self):
         """Test registration."""
         self.fast_forward_to_state(
-            self.price_estimation_behaviour, RegistrationBehaviour.state_id
+            self.price_estimation_behaviour,
+            RegistrationBehaviour.state_id,
+            PeriodState(),
         )
         assert self.price_estimation_behaviour.current == RegistrationBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
@@ -303,10 +322,11 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ):
         """Test select keeper agent."""
-
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=SelectKeeperABehaviour.state_id,
+            period_state=PeriodState(participants),
         )
         assert (
             self.price_estimation_behaviour.current == SelectKeeperABehaviour.state_id
