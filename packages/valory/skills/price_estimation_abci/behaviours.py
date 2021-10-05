@@ -38,6 +38,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     EXIT_A_EVENT,
     EXIT_B_EVENT,
     FAIL_EVENT,
+    TimeoutException,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -195,7 +196,6 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         deployment transaction and send it.
         Otherwise, wait until the next round.
         """
-        self.shared_state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_deployer_act()
         else:
@@ -203,8 +203,13 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        yield from self.wait_until_round_end()
-        self.set_done()  # we need to self.set_exit_a() if we time out on the wait above.
+        try:
+            yield from self.wait_until_round_end(
+                timeout=self.context.params.keeper_timeout_seconds
+            )
+            self.set_done()
+        except TimeoutException:
+            self.set_exit_a()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
@@ -217,7 +222,6 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         self.context.logger.info(f"Safe contract address: {contract_address}")
         yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
         self.set_done()
-        self.shared_state.reset_state_time(self.state_id)
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = sorted(self.period_state.participants)
@@ -542,6 +546,10 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         RegistrationBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
         SelectKeeperABehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {
+            DONE_EVENT: ValidateSafeBehaviour,
+            EXIT_A_EVENT: SelectKeeperABehaviour,
+        },
+        ValidateSafeBehaviour: {
             DONE_EVENT: ObserveBehaviour,
             EXIT_A_EVENT: SelectKeeperABehaviour,
         },
