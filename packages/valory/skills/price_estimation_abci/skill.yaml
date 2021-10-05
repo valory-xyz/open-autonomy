@@ -74,7 +74,6 @@ models:
       currency_id: BTC
       keeper_timeout_seconds: 5
       max_healthcheck: 120
-      solidity_version: v0.7.6
       tendermint_url: http://localhost:26657
     class_name: Params
   price_api:
