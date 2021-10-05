@@ -9,7 +9,7 @@ The `ABCIApp` is a finite-state machine
 implemented as an ABCI Application, 
 that defines the finite-state machine 
 of a period of the consensus on a temporary blockchain.
-The underlying consensus engine allows decentralized 
+The underlying consensus engine (at present Tendermint) allows decentralized 
 state replication among different processes.
 The transitions of such FSM are triggered by the delivery of blocks
 from the consensus engine. 
