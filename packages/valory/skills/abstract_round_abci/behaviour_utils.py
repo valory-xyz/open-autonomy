@@ -626,6 +626,7 @@ class BaseState(AsyncBehaviour, State, ABC):
 
     def get_contract_api_response(
         self,
+        performative: ContractApiMessage.Performative,
         contract_address: Optional[str],
         contract_id: str,
         contract_callable: str,
@@ -634,6 +635,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         """
         Request contract safe transaction hash
 
+        :param performative: the message performative
         :param contract_address: the contract address
         :param contract_id: the contract id
         :param contract_callable: the collable to call on the contract
@@ -645,19 +647,15 @@ class BaseState(AsyncBehaviour, State, ABC):
             ContractApiDialogues, self.context.contract_api_dialogues
         )
         kwargs = {
+            "performative": performative,
             "counterparty": LEDGER_API_ADDRESS,
             "ledger_id": self.context.default_ledger_id,
             "contract_id": contract_id,
             "callable": contract_callable,
             "kwargs": ContractApiMessage.Kwargs(kwargs),
         }
-        if contract_address is None:
-            kwargs[
-                "performative"
-            ] = ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION
-        else:
+        if contract_address is not None:
             kwargs["contract_address"] = contract_address
-            kwargs["performative"] = ContractApiMessage.Performative.GET_RAW_TRANSACTION
         contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
             **kwargs
         )

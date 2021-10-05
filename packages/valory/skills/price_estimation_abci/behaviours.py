@@ -29,6 +29,7 @@ from aea_ledger_ethereum import EthereumApi
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
+from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -52,6 +53,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
+    ValidateSafePayload,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
@@ -65,6 +67,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     SelectKeeperARound,
     SelectKeeperBRound,
     TxHashRound,
+    ValidateSafeRound,
 )
 from packages.valory.skills.price_estimation_abci.tools import random_selection
 
@@ -198,36 +201,10 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         else:
             yield from self._deployer_act()
 
-    def has_contract_been_deployed(self) -> Generator[None, None, bool]:
-        """Contract deployment verification."""
-        contract_api_response = yield from self.get_contract_api_response(
-            contract_address=self.period_state.safe_contract_address,
-            contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="get_state",
-        )
-
-        verified = cast(bool, contract_api_response.raw_transaction.body["verified"])
-        return verified
-
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        if self.has_contract_been_deployed():
-            self.context.logger.info("Contract has been deployed.")
-            yield from self.wait_until_round_end()
-            self.set_done()
-            self.shared_state.reset_state_time(self.state_id)
-            return
-
-        if self.shared_state.has_keeper_timed_out(self.state_id):
-            self.context.logger.info("Keeper timeout. Skipping...")
-            self.set_exit_a()
-            self.shared_state.reset_state_time(self.state_id)
-            return
-
-        yield from self.sleep(1)
-        self.context.logger.info(
-            "I am not the designated deployer, waiting until the contract is deployed..."
-        )
+        yield from self.wait_until_round_end()
+        self.set_done()  # we need to self.set_exit_a() if we time out on the wait above.
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
@@ -237,9 +214,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
         yield from self.send_a2a_transaction(payload)
-        self.context.logger.info(
-            f"Safe contract address: {self.period_state.safe_contract_address}"
-        )
+        self.context.logger.info(f"Safe contract address: {contract_address}")
         yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
         self.set_done()
         self.shared_state.reset_state_time(self.state_id)
@@ -248,6 +223,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         owners = sorted(self.period_state.participants)
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
+            ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
             contract_address=None,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_deploy_transaction",
@@ -266,6 +242,38 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         )  # returns None as the contract is created via a proxy
         self.context.logger.info(f"Deployment tx hash: {tx_hash}")
         return contract_address
+
+
+class ValidateSafeBehaviour(PriceEstimationBaseState):
+    """ValidateSafe."""
+
+    state_id = "validate_safe"
+    matching_round = ValidateSafeRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        If the agent is the designated deployer, then prepare the
+        deployment transaction and send it.
+        Otherwise, wait until the next round.
+        """
+        is_correct = yield from self.has_correct_contract_been_deployed()
+        payload = ValidateSafePayload(self.context.agent_address, is_correct)
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+    def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
+        """Contract deployment verification."""
+        contract_api_response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_state",
+        )
+        verified = cast(bool, contract_api_response.state.body["verified"])
+        return verified
 
 
 class ObserveBehaviour(PriceEstimationBaseState):
@@ -380,6 +388,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """
         data = self.period_state.encoded_most_voted_estimate
         contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
@@ -489,6 +498,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
         contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction",
