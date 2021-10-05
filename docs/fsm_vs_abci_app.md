@@ -38,7 +38,7 @@ each step represents a 'state' of the FSMBehaviour.
 
 The FSMBehaviour can be seen as a _client_ of the ABCIApp (in that sense it encapsulates the "user" of a normal blockchain),
 although the ultimate goal is to provide services to external
-users. Continuing the example above, the FSMBehaviour that periodically
+users or other systems. Continuing the example above, the FSMBehaviour that periodically
 submits the average BTC price on the Ethereum blockchain can be 
 seen as a BTC price oracle service.
 
