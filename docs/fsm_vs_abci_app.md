@@ -25,9 +25,8 @@ TODO
 
 The FSMBehaviour is an AEA Behaviour that is closely related
 to an ABCIApp. It utilizes the ABCIApp as state-replication
-layer among different AEA participants to implement more complex
-business logic. Notably, the ABCIApp changes states only
-by means of transaction committed to the blockchain,
+layer among different AEA participants. Notably, the ABCIApp changes states only
+by means of transaction committed by the AEAs to the temporary blockchain,
 and in this sense is "purely reactive";
 instead, the FSMBehaviour execution also shows "proactive logic".
 For example, the FSMBehaviour can observe the price value of BTC
