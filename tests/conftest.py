@@ -34,6 +34,7 @@ from tests.helpers.docker.ganache import (
     GanacheDockerImage,
 )
 from tests.helpers.docker.gnosis_safe_net import (
+    DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
@@ -42,6 +43,11 @@ from tests.helpers.docker.tendermint import (
     DEFAULT_TENDERMINT_PORT,
     TendermintDockerImage,
 )
+
+
+def get_key(key_path: Path) -> str:
+    """Returns key value from file.""" ""
+    return key_path.read_bytes().strip().decode()
 
 
 ROOT_DIR = _ROOT_DIR
@@ -53,11 +59,15 @@ ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
 ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
 ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
 ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
-
-
-def get_key(key_path: Path) -> str:
-    """Returns key value from file.""" ""
-    return key_path.read_bytes().strip().decode()
+GANACHE_CONFIGURATION = dict(
+    accounts_balances=[
+        (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
+        (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
+    ],
+)
 
 
 @pytest.fixture()
@@ -83,8 +93,14 @@ def tendermint(
 
 
 @pytest.fixture()
+def hardhat_addr() -> str:
+    """Get the hardhat addr"""
+    return DEFAULT_HARDHAT_ADDR
+
+
+@pytest.fixture()
 def hardhat_port() -> int:
-    """Get the Tendermint port"""
+    """Get the hardhat port"""
     return DEFAULT_HARDHAT_PORT
 
 
@@ -98,14 +114,15 @@ def key_pairs() -> List[Tuple[str, str]]:
 @pytest.mark.ledger
 @pytest.fixture(scope="function")
 def gnosis_safe_hardhat(
+    hardhat_addr,
     hardhat_port,
     timeout: float = 3.0,
-    max_attempts: int = 30,
+    max_attempts: int = 40,
 ):
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(client, hardhat_port)
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -124,15 +141,7 @@ def ganache_port() -> int:
 @pytest.fixture(scope="session")
 def ganache_configuration():
     """Get the Ganache configuration for testing purposes."""
-    return dict(
-        accounts_balances=[
-            (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
-            (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
-        ],
-    )
+    return GANACHE_CONFIGURATION
 
 
 @pytest.mark.integration

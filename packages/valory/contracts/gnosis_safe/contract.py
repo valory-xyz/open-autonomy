@@ -22,6 +22,7 @@ import binascii
 import logging
 import re
 import secrets
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 from aea.common import JSONLike
@@ -29,14 +30,11 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from eth_typing import ChecksumAddress, HexAddress, HexStr, URI
-from gnosis.eth import EthereumClient
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.contracts import get_proxy_factory_contract, get_safe_V1_3_0_contract
-from gnosis.safe import ProxyFactory, Safe, SafeTx
+from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
-from web3 import HTTPProvider
-from web3.types import Nonce, TxParams, Wei
+from packaging.version import Version
+from py_eth_sig_utils.eip712 import encode_typed_data
+from web3.types import TxParams, Wei
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
@@ -45,12 +43,10 @@ _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
-
+NULL_ADDRESS: str = "0x" + "0" * 40
 SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"
 PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
-MULTISEND_CONTRACT = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
-MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 
 
 def keccak256(input_: bytes) -> bytes:
@@ -66,6 +62,14 @@ def _get_nonce() -> int:
 def checksum_address(agent_address: str) -> ChecksumAddress:
     """Get the checksum address."""
     return ChecksumAddress(HexAddress(HexStr(agent_address)))
+
+
+class SafeOperation(Enum):
+    """Operation types."""
+
+    CALL = 0
+    DELEGATE_CALL = 1
+    CREATE = 2
 
 
 class GnosisSafeContract(Contract):
@@ -109,12 +113,17 @@ class GnosisSafeContract(Contract):
         owners = kwargs.pop("owners")
         threshold = kwargs.pop("threshold")
         salt_nonce = kwargs.pop("salt_nonce", None)
+        gas = kwargs.pop("gas", None)
+        gas_price = kwargs.pop("gas_price", None)
+        ledger_api = cast(EthereumApi, ledger_api)
         tx_params, contract_address = cls._get_deploy_transaction(
             ledger_api,
             deployer_address,
             owners=owners,
             threshold=threshold,
             salt_nonce=salt_nonce,
+            gas=gas,
+            gas_price=gas_price,
         )
         result = dict(cast(Dict, tx_params))
         # piggyback the contract address
@@ -124,11 +133,13 @@ class GnosisSafeContract(Contract):
     @classmethod
     def _get_deploy_transaction(  # pylint: disable=too-many-locals,too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         deployer_address: str,
         owners: List[str],
         threshold: int,
         salt_nonce: Optional[int] = None,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
@@ -141,6 +152,8 @@ class GnosisSafeContract(Contract):
         :param owners: a list of public keys
         :param threshold: the signature threshold
         :param salt_nonce: Use a custom nonce for the deployment. Defaults to random nonce.
+        :param gas: gas cost
+        :param gas_price: Gas price that should be used for the payment calculation
 
         :return: transaction params and contract address
         """
@@ -151,10 +164,6 @@ class GnosisSafeContract(Contract):
         payment_token = NULL_ADDRESS
         payment = 0
         payment_receiver = NULL_ADDRESS
-
-        ledger_api = cast(EthereumApi, ledger_api)
-        uri = cast(URI, cast(HTTPProvider, ledger_api.api.provider).endpoint_uri)
-        ethereum_client = EthereumClient(uri)
 
         if len(owners) < threshold:
             raise ValueError(
@@ -175,14 +184,14 @@ class GnosisSafeContract(Contract):
         )
         _logger.info(
             "Network %s - Sender %s - Balance: %sΞ",
-            ethereum_client.get_network().name,
+            ledger_api.api.net.version,
             account_address,
             ether_account_balance,
         )
 
-        if not ethereum_client.w3.eth.getCode(
+        if not ledger_api.api.eth.getCode(
             safe_contract_address
-        ) or not ethereum_client.w3.eth.getCode(proxy_factory_address):
+        ) or not ledger_api.api.eth.getCode(proxy_factory_address):
             raise ValueError("Network not supported")
 
         _logger.info(
@@ -193,9 +202,7 @@ class GnosisSafeContract(Contract):
             fallback_handler,
             salt_nonce,
         )
-        safe_contract = (  # pylint: disable=assignment-from-no-return
-            get_safe_V1_3_0_contract(ethereum_client.w3, safe_contract_address)
-        )
+        safe_contract = cls.get_instance(ledger_api, safe_contract_address)
         safe_creation_tx_data = HexBytes(
             safe_contract.functions.setup(
                 owners,
@@ -213,112 +220,135 @@ class GnosisSafeContract(Contract):
             ]
         )
 
-        proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
-        nonce = ethereum_client.get_nonce_for_account(account_address)
-        tx_params, contract_address = cls._build_tx_deploy_proxy_contract_with_nonce(
-            proxy_factory,
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                account_address
+            )
+        )
+        if nonce is None:
+            raise ValueError("No nonce returned.")
+        # TOFIX: lazy import until contract dependencies supported in AEA
+        from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (  # pylint: disable=import-outside-toplevel
+            GnosisSafeProxyFactoryContract,
+        )
+
+        (
+            tx_params,
+            contract_address,
+        ) = GnosisSafeProxyFactoryContract.build_tx_deploy_proxy_contract_with_nonce(
+            ledger_api,
+            proxy_factory_address,
             safe_contract_address,
             account_address,
             safe_creation_tx_data,
             salt_nonce,
             nonce=nonce,
+            gas=gas,
+            gas_price=gas_price,
         )
         return tx_params, contract_address
 
     @classmethod
-    def _build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments
-        cls,
-        proxy_factory: ProxyFactory,
-        master_copy: str,
-        address: str,
-        initializer: bytes,
-        salt_nonce: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        nonce: Optional[int] = None,
-    ) -> Tuple[TxParams, str]:
-        """
-        Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)
-
-        :param proxy_factory: the ProxyFactory object
-        :param address: Ethereum address
-        :param master_copy: Address the proxy will point at
-        :param initializer: Data for safe creation
-        :param salt_nonce: Uint256 for `create2` salt
-        :param gas: Gas
-        :param gas_price: Gas Price
-        :param nonce: Nonce
-        :return: Tuple(tx-hash, tx, deployed contract address)
-        """
-        proxy_factory_contract = (  # pylint: disable=assignment-from-no-return
-            get_proxy_factory_contract(
-                proxy_factory.ethereum_client.w3, proxy_factory.address
-            )
-        )
-        create_proxy_fn = proxy_factory_contract.functions.createProxyWithNonce(
-            master_copy, initializer, salt_nonce
-        )
-
-        tx_parameters = TxParams({"from": address})
-        contract_address = create_proxy_fn.call(tx_parameters)
-
-        if gas_price is not None:
-            tx_parameters["gasPrice"] = Wei(gas_price)
-
-        if gas is not None:
-            tx_parameters["gas"] = Wei(gas)
-
-        if nonce is not None:
-            tx_parameters["nonce"] = Nonce(nonce)
-
-        transaction_dict = create_proxy_fn.buildTransaction(tx_parameters)
-        # Auto estimation of gas does not work. We use a little more gas just in case
-        transaction_dict["gas"] = Wei(transaction_dict["gas"] + 50000)
-        return transaction_dict, contract_address
-
-    @classmethod
-    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments
+    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         to_address: str,
         value: int,
         data: bytes,
+        operation: int = SafeOperation.CALL.value,
+        safe_tx_gas: int = 0,
+        base_gas: int = 0,
+        gas_price: int = 0,
+        gas_token: str = NULL_ADDRESS,
+        refund_receiver: str = NULL_ADDRESS,
+        safe_nonce: Optional[int] = None,
+        safe_version: Optional[str] = None,
+        chain_id: Optional[int] = None,
     ) -> JSONLike:
         """
-        Get the hash of the raw Safe transaction
+        Get the hash of the raw Safe transaction.
+
+        Adapted from https://github.com/gnosis/gnosis-py/blob/69f1ee3263086403f6017effa0841c6a2fbba6d6/gnosis/safe/safe_tx.py#L125
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param to_address: the tx recipient address
         :param value: the ETH value of the transaction
         :param data: the data of the transaction
+        :param operation: Operation type of Safe transaction
+        :param safe_tx_gas: Gas that should be used for the Safe transaction
+        :param base_gas: Gas costs for that are independent of the transaction execution
+            (e.g. base transaction fee, signature check, payment of the refund)
+        :param gas_price: Gas price that should be used for the payment calculation
+        :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
+        :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
+        :param safe_nonce: Current nonce of the Safe. If not provided, it will be retrieved from network
+        :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
+        :param chain_id: Ethereum network chain_id is used in hash calculation for Safes >= 1.3.0. If not provided, it will be retrieved from the provided ethereum_client
         :return: the hash of the raw Safe transaction
         """
-        safe_tx = cls._get_safe_tx(
-            ledger_api, contract_address, to_address, value, data
-        )
-        return dict(tx_hash=safe_tx.safe_tx_hash.hex())
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        if safe_nonce is None:
+            safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
+        if safe_version is None:
+            safe_version = safe_contract.functions.VERSION().call(
+                block_identifier="latest"
+            )
+        if chain_id is None:
+            chain_id = ledger_api.api.eth.chain_id
 
-    @classmethod
-    def _get_safe_tx(  # pylint: disable=too-many-arguments
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        to_address: str,
-        value: int,
-        data: bytes,
-    ) -> SafeTx:
-        """Get the Safe transaction object."""
-        ledger_api = cast(EthereumApi, ledger_api)
-        uri = cast(URI, cast(HTTPProvider, ledger_api.api.provider).endpoint_uri)
-        ethereum_client = EthereumClient(uri)
-        safe = Safe(
-            ChecksumAddress(HexAddress(HexStr(contract_address))),
-            ethereum_client,
-        )
-        safe_tx = safe.build_multisig_tx(to_address, value, data)
-        return safe_tx
+        data_ = HexBytes(data).hex()
+
+        # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
+        safe_version_ = Version(safe_version)
+        base_gas_name = "baseGas" if safe_version_ >= Version("1.0.0") else "dataGas"
+
+        structured_data = {
+            "types": {
+                "EIP712Domain": [
+                    {"name": "verifyingContract", "type": "address"},
+                ],
+                "SafeTx": [
+                    {"name": "to", "type": "address"},
+                    {"name": "value", "type": "uint256"},
+                    {"name": "data", "type": "bytes"},
+                    {"name": "operation", "type": "uint8"},
+                    {"name": "safeTxGas", "type": "uint256"},
+                    {"name": base_gas_name, "type": "uint256"},
+                    {"name": "gasPrice", "type": "uint256"},
+                    {"name": "gasToken", "type": "address"},
+                    {"name": "refundReceiver", "type": "address"},
+                    {"name": "nonce", "type": "uint256"},
+                ],
+            },
+            "primaryType": "SafeTx",
+            "domain": {
+                "verifyingContract": contract_address,
+            },
+            "message": {
+                "to": to_address,
+                "value": value,
+                "data": data_,
+                "operation": operation,
+                "safeTxGas": safe_tx_gas,
+                base_gas_name: base_gas,
+                "gasPrice": gas_price,
+                "gasToken": gas_token,
+                "refundReceiver": refund_receiver,
+                "nonce": safe_nonce,
+            },
+        }
+
+        # Safes >= 1.3.0 Added `chainId` to the domain
+        if safe_version_ >= Version("1.3.0"):
+            # EIP712Domain(uint256 chainId,address verifyingContract)
+            structured_data["types"]["EIP712Domain"].insert(  # type: ignore
+                0, {"name": "chainId", "type": "uint256"}
+            )
+            structured_data["domain"]["chainId"] = chain_id  # type: ignore
+
+        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
 
     @classmethod
     def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
@@ -331,6 +361,14 @@ class GnosisSafeContract(Contract):
         value: int,
         data: bytes,
         signatures_by_owner: Dict[str, str],
+        operation: int = SafeOperation.CALL.value,
+        safe_tx_gas: int = 0,
+        base_gas: int = 0,
+        gas_price: int = 0,
+        gas_token: str = NULL_ADDRESS,
+        refund_receiver: str = NULL_ADDRESS,
+        safe_nonce: Optional[int] = None,
+        safe_version: Optional[str] = None,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -339,40 +377,65 @@ class GnosisSafeContract(Contract):
         :param contract_address: the contract address
         :param sender_address: the address of the sender
         :param owners: the sequence of owners
-        :param to_address: the tx recipient address
-        :param value: the ETH value of the transaction
-        :param data: the data of the transaction
+        :param to_address: Destination address of Safe transaction
+        :param value: Ether value of Safe transaction
+        :param data: Data payload of Safe transaction
         :param signatures_by_owner: mapping from owners to signatures
+        :param operation: Operation type of Safe transaction
+        :param safe_tx_gas: Gas that should be used for the Safe transaction
+        :param base_gas: Gas costs for that are independent of the transaction execution
+            (e.g. base transaction fee, signature check, payment of the refund)
+        :param gas_price: Gas price that should be used for the payment calculation
+        :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
+        :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
+        :param safe_nonce: Current nonce of the Safe. If not provided, it will be retrieved from network
+        :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
         :return: the raw Safe transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         sorted_owners = sorted(owners, key=str.lower)
-        final_signature = b""
+        signatures = b""
         for signer in sorted_owners:
             if signer not in signatures_by_owner:
                 continue
             signature = signatures_by_owner[signer]
             signature_bytes = binascii.unhexlify(signature)
-            final_signature += signature_bytes
+            signatures += signature_bytes
+        # Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
 
-        safe_tx = cls._get_safe_tx(
-            ledger_api, contract_address, to_address, value, data
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+
+        if safe_nonce is None:
+            safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
+        if safe_version is None:
+            safe_version = safe_contract.functions.VERSION().call(
+                block_identifier="latest"
+            )
+
+        w3_tx = safe_contract.functions.execTransaction(
+            to_address,
+            value,
+            data,
+            operation,
+            safe_tx_gas,
+            base_gas,
+            gas_price,
+            gas_token,
+            refund_receiver,
+            signatures,
         )
-        safe_tx.signatures = final_signature
-        safe_tx.call(sender_address)
-
-        tx_gas_price = safe_tx.gas_price or safe_tx.w3.eth.gas_price
+        tx_gas_price = gas_price or ledger_api.api.eth.gas_price
         tx_parameters = {
             "from": sender_address,
             "gasPrice": tx_gas_price,
         }
-        transaction_dict = safe_tx.w3_tx.buildTransaction(tx_parameters)
+        transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
-            max(transaction_dict["gas"] + 75000, safe_tx.recommended_gas())
+            max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
         )
-        transaction_dict["nonce"] = safe_tx.w3.eth.get_transaction_count(
-            safe_tx.w3.toChecksumAddress(sender_address)
+        transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
+            ledger_api.api.toChecksumAddress(sender_address)
         )
-
         return transaction_dict
 
     @classmethod

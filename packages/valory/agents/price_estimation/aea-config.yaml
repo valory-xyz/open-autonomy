@@ -10,7 +10,9 @@ connections:
 - fetchai/http_client:0.22.0
 - fetchai/ledger:0.18.0
 - valory/abci:0.1.0
-contracts: []
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
 protocols:
 - fetchai/contract_api:1.0.0
 - fetchai/default:1.0.0

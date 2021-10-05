@@ -39,8 +39,6 @@ class TestABCIPriceEstimationSkillMany(
     IS_LOCAL = False
     capture_log = True
     NB_AGENTS = 4
-    NB_OWNERS = NB_AGENTS
-    THRESHOLD = NB_AGENTS * 2 // 3 + 1
     NB_KEEPER_TIMEOUT = 5
     SOLIDITY_VERSION = "v0.7.6"
     cli_log_options = ["-v", "DEBUG"]
@@ -59,7 +57,7 @@ class TestABCIPriceEstimationSkillMany(
             node = self.tendermint_net_builder.nodes[agent_id]
             self.set_agent_context(agent_name)
             Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
-                self.hardhat_key_pairs[agent_id][1]
+                self.key_pairs[agent_id][1]
             )
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.set_config("agent.default_ledger", "ethereum")

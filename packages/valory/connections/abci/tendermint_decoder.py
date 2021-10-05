@@ -53,11 +53,15 @@ from packages.valory.protocols.abci.custom_types import (
     Timestamp,
     Validator,
     ValidatorUpdates,
+    ValidatorUpdate,
 )
 
 
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
     ConsensusParams as ConsensusParamsPb,
+)
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
+    ValidatorUpdate as ValidatorUpdatePb,
 )
 
 
@@ -147,7 +151,12 @@ class _TendermintProtocolDecoder:
             if init_chain.consensus_params is not None
             else None
         )
-        validators = ValidatorUpdates(init_chain.validators)
+        validators = ValidatorUpdates(
+            [
+                cls._decode_validator_update(validator_update_pb)
+                for validator_update_pb in list(init_chain.validators)
+            ]
+        )
         app_state_bytes = init_chain.app_state_bytes
         initial_height = init_chain.initial_height
 
@@ -344,6 +353,13 @@ class _TendermintProtocolDecoder:
     ) -> ConsensusParams:
         """Decode a ConsensusParams object."""
         return ConsensusParams.decode(consensus_params_tendermint_pb)
+
+    @classmethod
+    def _decode_validator_update(
+        cls, validator_update_pb: ValidatorUpdatePb
+    ) -> ValidatorUpdate:
+        """Decode a ValidatorUpdate object."""
+        return ValidatorUpdate.decode(validator_update_pb)
 
     @classmethod
     def _decode_header(cls, header_tendermint_pb: HeaderPb) -> Header:

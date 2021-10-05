@@ -181,8 +181,14 @@ ct:ConsensusParams: |
   ValidatorParams validator = 3;
   VersionParams version = 4;
 ct:ValidatorUpdates: |
+  message PublicKey {
+    oneof sum {
+      bytes ed25519   = 1;
+      bytes secp256k1 = 2;
+    }
+  }
   message ValidatorUpdate {
-    bytes pub_key = 1;
+    PublicKey pub_key = 1;
     int64 power = 2;
   }
   repeated ValidatorUpdate validators = 1;

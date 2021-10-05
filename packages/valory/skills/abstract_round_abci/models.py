@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Callable, Dict, Type
+from typing import Any, Callable, Dict, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
@@ -30,6 +30,24 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     Period,
 )
+
+
+class BaseParams(Model):
+    """Parameters."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters object."""
+        self.tendermint_url = self._ensure("tendermint_url", kwargs)
+
+        self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def _ensure(cls, key: str, kwargs: Dict) -> Any:
+        """Get and ensure the configuration field is not None."""
+        value = kwargs.pop(key, None)
+        enforce(value is not None, f"'{key}' required, but it is not set")
+        return value
 
 
 class SharedState(Model):
@@ -47,7 +65,7 @@ class SharedState(Model):
     def setup(self) -> None:
         """Set up the model."""
         self.period = Period(self.initial_round_cls)
-        consensus_params = self.context.params.consensus_params
+        consensus_params = cast(BaseParams, self.context.params).consensus_params
         self.period.setup(BasePeriodState(), consensus_params)
 
     @property
@@ -83,21 +101,3 @@ class Requests(Model):
 
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
-
-
-class BaseParams(Model):
-    """Parameters."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object."""
-        self.tendermint_url = self._ensure("tendermint_url", kwargs)
-
-        self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
-        super().__init__(*args, **kwargs)
-
-    @classmethod
-    def _ensure(cls, key: str, kwargs: Dict) -> Any:
-        """Get and ensure the configuration field is not None."""
-        value = kwargs.pop(key, None)
-        enforce(value is not None, f"'{key}' required, but it is not set")
-        return value

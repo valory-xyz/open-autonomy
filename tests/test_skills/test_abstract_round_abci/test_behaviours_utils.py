@@ -271,6 +271,7 @@ class TestBaseState:
     def setup(self):
         """Set up the tests."""
         self.context_mock = MagicMock()
+        self.context_mock.state.period.current_round_id = "round_a"
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
     def test_check_in_round(self):
@@ -459,6 +460,7 @@ class TestBaseState:
 
     @mock.patch.object(BaseState, "_send_transaction_signing_request")
     @mock.patch.object(BaseState, "_send_transaction_request")
+    @mock.patch.object(BaseState, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_send_raw_transaction(self, *_):
         """Test 'send_raw_transaction'."""
