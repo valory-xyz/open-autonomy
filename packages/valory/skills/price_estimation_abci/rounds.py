@@ -280,7 +280,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
 
     def select_keeper(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
             # sender not in the set of participants.
@@ -801,7 +801,7 @@ class SelectKeeperARound(SelectKeeperRound):
     next_round_class = DeploySafeRound
 
     def select_keeper_a(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
     def check_select_keeper_a(self, payload: SelectKeeperPayload) -> bool:
@@ -816,7 +816,7 @@ class SelectKeeperBRound(SelectKeeperRound):
     next_round_class = FinalizationRound
 
     def select_keeper_b(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
     def check_select_keeper_b(self, payload: SelectKeeperPayload) -> bool:
