@@ -20,7 +20,6 @@
 """This module contains the class to connect to an Gnosis Safe contract."""
 import binascii
 import logging
-import re
 import secrets
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, cast
@@ -439,73 +438,19 @@ class GnosisSafeContract(Contract):
         return transaction_dict
 
     @classmethod
-    def verify_contract(
-        cls, ledger_api: LedgerApi, contract_address: str, solc_version: str
-    ) -> JSONLike:
+    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
         """
         Verify the contract's bytecode
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
-        :param solc_version: solc version with which the contract was compiled
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
         contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
 
-        blockchain_bytecode = cls._extract_bytecode_contract(
-            ledger_api.api.eth.get_code(contract_address).hex(),
-            solc_version,
-        )
+        blockchain_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        local_bytecode = contract_interface["deployedBytecode"]
+        verified = blockchain_bytecode == local_bytecode
 
-        compiled_bytecode = cls._extract_bytecode_contract(
-            contract_interface["bytecode"], solc_version
-        )
-
-        verified = blockchain_bytecode == compiled_bytecode
         return dict(verified=verified)
-
-    @classmethod
-    def _extract_bytecode_contract(
-        cls, bytecode: str, solc_version: str
-    ) -> Optional[str]:
-        """
-        Strip all contract's metadata
-
-        :param bytecode: the contract's bytecode
-        :param solc_version: solc version with which the contract was compiled
-        :return: the contract with all metadata stripped or None if it failed
-        """
-        _, solc_minor, solc_patch, _ = cls._extract_version(solc_version)
-        contract_end = bytecode.index("a165627a7a72305820")
-
-        if solc_minor is None or solc_patch is None:
-            return None
-        if solc_minor >= 4 and solc_patch >= 22:
-            contract_start = bytecode.rindex("6080604052")
-            return bytecode[contract_start:contract_end]
-        if solc_minor >= 4 and solc_patch >= 7:
-            contract_start = bytecode.rindex("6060604052")
-            return bytecode[contract_start:contract_end]
-        return bytecode
-
-    @classmethod
-    def _extract_version(
-        cls, solc_version: str
-    ) -> Tuple[Optional[int], Optional[int], Optional[int], Optional[str]]:
-        """
-        Extracts version numbers from a string in the format "v0.4.16+commit.d7661dd9"
-
-        :param solc_version: solc version with which the contract was compiled
-        :return: the version numbers: major, minor, patch, [commit]
-        """
-        major, minor, patch, commit = None, None, None, None
-        version_regex = r"v([0-9]+)\.([0-9]+)\.([0-9]+)([+-]commit\.[a-zA-Z0-9]+)?"
-        match = re.match(version_regex, solc_version)
-
-        if match:
-            major, minor, patch = [int(i) for i in match.groups()[:3]]
-            if len(match.groups()) > 3:
-                commit = match.groups()[3].split(".")[-1]
-
-        return major, minor, patch, commit

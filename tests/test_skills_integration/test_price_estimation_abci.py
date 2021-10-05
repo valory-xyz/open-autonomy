@@ -40,7 +40,6 @@ class TestABCIPriceEstimationSkillMany(
     capture_log = True
     NB_AGENTS = 4
     NB_KEEPER_TIMEOUT = 5
-    SOLIDITY_VERSION = "v0.7.6"
     cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
@@ -104,10 +103,6 @@ class TestABCIPriceEstimationSkillMany(
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds",
                 self.NB_KEEPER_TIMEOUT,
-            )
-            self.set_config(
-                "vendor.valory.skills.price_estimation_abci.models.params.args.solidity_version",
-                self.SOLIDITY_VERSION,
             )
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
