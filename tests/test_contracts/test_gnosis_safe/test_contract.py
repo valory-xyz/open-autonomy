@@ -185,7 +185,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     ):
         """Test exceptions."""
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Threshold cannot be bigger than the number of unique owners"):
             # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
@@ -194,7 +194,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 threshold=1,
             )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Client does not have any funds"):
             # Tests for  `ValueError("Client does not have any funds")`.
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
@@ -219,8 +219,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.contract.get_state(None, None)
 
 
-@pytest.mark.skip
-class TestRawSafeTransaction(BaseContractTest):
+class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
 
     def test_run(self):
@@ -232,9 +231,14 @@ class TestRawSafeTransaction(BaseContractTest):
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
         )
 
+        self.deploy(
+            owners=self.owners(),
+            threshold=self.threshold()
+        )
+
         self.contract.get_raw_safe_transaction(
             self.ledger_api,
-            self.deployer_crypto.address,
+            self.contract_address,
             sender.address,
             self.owners(),
             receiver.address,
