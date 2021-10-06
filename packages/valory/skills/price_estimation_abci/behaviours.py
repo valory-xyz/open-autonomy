@@ -215,7 +215,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             self.shared_state.reset_state_time(self.state_id)
             return
 
-        if self.shared_state.has_keeper_timed_out(self.state_id): # pragma: nocover
+        if self.shared_state.has_keeper_timed_out(self.state_id):  # pragma: nocover
             self.context.logger.info("Keeper timeout. Skipping...")
             self.set_exit_a()
             self.shared_state.reset_state_time(self.state_id)
