@@ -215,7 +215,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             self.shared_state.reset_state_time(self.state_id)
             return
 
-        if self.shared_state.has_keeper_timed_out(self.state_id):
+        if self.shared_state.has_keeper_timed_out(self.state_id): # pragma: nocover
             self.context.logger.info("Keeper timeout. Skipping...")
             self.set_exit_a()
             self.shared_state.reset_state_time(self.state_id)
@@ -237,7 +237,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         self.context.logger.info(
             f"Safe contract address: {self.period_state.safe_contract_address}"
         )
-        yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
+        # here the wait conditions needs to time out based on keeper logic
+        yield from self.wait_until_round_end()
         self.set_done()
         self.shared_state.reset_state_time(self.state_id)
 
@@ -479,7 +480,8 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         )
         payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
         yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()  # here the wait conditions needs to time out based on keeper logic
+        # here the wait conditions needs to time out based on keeper logic
+        yield from self.wait_until_round_end()
         self.set_done()
         self.shared_state.reset_state_time(self.state_id)
 
