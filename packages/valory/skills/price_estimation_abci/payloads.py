@@ -31,6 +31,7 @@ class TransactionType(Enum):
     REGISTRATION = "registration"
     SELECT_KEEPER = "select_keeper"
     DEPLOY_SAFE = "deploy_safe"
+    VALIDATE_SAFE = "validate_safe"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
     TX_HASH = "tx_hash"
@@ -100,6 +101,31 @@ class DeploySafePayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(safe_contract_address=self.safe_contract_address)
+
+
+class ValidateSafePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'validate_safe'."""
+
+    transaction_type = TransactionType.VALIDATE_SAFE
+
+    def __init__(self, sender: str, vote: bool) -> None:
+        """Initialize an 'validate_safe' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param vote: the vote
+        """
+        super().__init__(sender)
+        self._vote = vote
+
+    @property
+    def vote(self) -> bool:
+        """Get the vote."""
+        return self._vote
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(vote=self.vote)
 
 
 class ObservationPayload(BasePriceEstimationPayload):
