@@ -19,6 +19,7 @@
 
 """Tests for valory/gnosis contract."""
 
+import binascii
 import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -230,11 +231,11 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         receiver = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
         )
-
         self.deploy(
             owners=self.owners(),
             threshold=self.threshold()
         )
+        signatures_by_owners = {}
 
         self.contract.get_raw_safe_transaction(
             self.ledger_api,
@@ -244,7 +245,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             receiver.address,
             10,
             b"",
-            {},
+            signatures_by_owners
         )
 
 
