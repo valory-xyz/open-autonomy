@@ -66,6 +66,24 @@ to extend it.
 This sequence diagram shows the sequence of messages
 and method calls between the software components. 
 
+The following diagram describes the addition of transactions to the transaction pool:
+<div class="mermaid">
+    sequenceDiagram
+        participant ConsensusEngine
+        participant ABCIHandler
+        participant Period
+        participant Round
+        activate Round
+        note over ConsensusEngine,ABCIHandler: client submits transaction tx
+        ConsensusEngine->>ABCIHandler: RequestCheckTx(tx)
+        ABCIHandler->>Period: check_tx(tx)
+        Period->>Round: check_tx(tx)
+        Round->>Period: OK
+        Period->>ABCIHandler: OK
+        ABCIHandler->>ConsensusEngine: ResponseCheckTx(tx)
+        note over ConsensusEngine,ABCIHandler: tx is added to tx pool
+</div>
+
 The following diagram describes the delivery of transactions in a block:
 
 <div class="mermaid">
