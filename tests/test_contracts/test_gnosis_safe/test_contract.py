@@ -19,7 +19,6 @@
 
 """Tests for valory/gnosis contract."""
 
-import binascii
 import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -186,7 +185,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     ):
         """Test exceptions."""
 
-        with pytest.raises(ValueError, match="Threshold cannot be bigger than the number of unique owners"):
+        with pytest.raises(
+            ValueError,
+            match="Threshold cannot be bigger than the number of unique owners",
+        ):
             # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
@@ -231,11 +233,13 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         receiver = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
         )
-        self.deploy(
-            owners=self.owners(),
-            threshold=self.threshold()
-        )
-        signatures_by_owners = {}
+        self.deploy(owners=self.owners(), threshold=self.threshold())
+        signatures_by_owners = {
+            owner: crypto.sign_message(b"most_voted_tx_hash")[2:]
+            for crypto, owner in zip(
+                [self.deployer_crypto, sender, receiver], self.owners()[:3]
+            )
+        }
 
         self.contract.get_raw_safe_transaction(
             self.ledger_api,
@@ -245,7 +249,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             receiver.address,
             10,
             b"",
-            signatures_by_owners
+            signatures_by_owners,
         )
 
 
