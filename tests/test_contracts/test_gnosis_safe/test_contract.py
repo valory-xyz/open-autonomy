@@ -257,3 +257,16 @@ class TestRawSafeTransactionHash(BaseContractTest):
         self.contract.get_raw_safe_transaction_hash(
             self.ledger_api, self.deployer_crypto.address, receiver.address, 10, b""
         )
+
+
+class TestVerifyContract(BaseContractTestHardHatSafeNet):
+    """Test `verify_contract` method."""
+
+    def test_run(self):
+        """Run tests."""
+        result = self.contract.get_state(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address
+        )
+
+        assert result["verified"] == True

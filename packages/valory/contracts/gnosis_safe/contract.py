@@ -453,4 +453,13 @@ class GnosisSafeContract(Contract):
         local_bytecode = contract_interface["deployedBytecode"]
         verified = blockchain_bytecode == local_bytecode
 
+        bc = contract_interface["bytecode"]
+        _logger.info('************************************************')
+        _logger.info(f"block {blockchain_bytecode[:50]}")
+        _logger.info(f"localDeployed {local_bytecode[:50]}")
+        _logger.info(f"localBytecode {bc[:50]}")
+        _logger.info(f"verified {verified}")
+        _logger.info(f"contract_address {contract_address}")
+        _logger.info('************************************************')
+
         return dict(verified=verified)
