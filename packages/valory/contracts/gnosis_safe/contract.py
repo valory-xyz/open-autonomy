@@ -95,7 +95,7 @@ class GnosisSafeContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        raise NotImplementedError
+        return cls.verify_contract(ledger_api, contract_address)
 
     @classmethod
     def get_deploy_transaction(
@@ -436,3 +436,30 @@ class GnosisSafeContract(Contract):
             ledger_api.api.toChecksumAddress(sender_address)
         )
         return transaction_dict
+
+    @classmethod
+    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+        """
+        Verify the contract's bytecode
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
+
+        blockchain_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        local_bytecode = contract_interface["deployedBytecode"]
+        verified = blockchain_bytecode == local_bytecode
+
+        bc = contract_interface["bytecode"]
+        _logger.info('************************************************')
+        _logger.info(f"block {blockchain_bytecode[:50]}")
+        _logger.info(f"localDeployed {local_bytecode[:50]}")
+        _logger.info(f"localBytecode {bc[:50]}")
+        _logger.info(f"verified {verified}")
+        _logger.info(f"contract_address {contract_address}")
+        _logger.info('************************************************')
+
+        return dict(verified=verified)
