@@ -491,7 +491,7 @@ class TestBaseState:
             BaseState, "_send_transaction_request"
         ):
             gen = self.behaviour.get_contract_api_response(
-                contract_address, "contract_id", "contract_callable"
+                "performative", contract_address, "contract_id", "contract_callable"
             )
             # first trigger
             try_send(gen, obj=None)
