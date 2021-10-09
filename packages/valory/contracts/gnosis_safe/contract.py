@@ -291,7 +291,7 @@ class GnosisSafeContract(Contract):
                 block_identifier="latest"
             )
         if chain_id is None:
-            chain_id = ledger_api.api.eth.chain_id
+            chain_id = ledger_api.api.eth.chainId
 
         data_ = HexBytes(data).hex()
 
@@ -419,7 +419,7 @@ class GnosisSafeContract(Contract):
             refund_receiver,
             signatures,
         )
-        tx_gas_price = gas_price or ledger_api.api.eth.gas_price
+        tx_gas_price = gas_price or ledger_api.api.eth.gasPrice
         tx_parameters = {
             "from": sender_address,
             "gasPrice": tx_gas_price,
@@ -428,7 +428,7 @@ class GnosisSafeContract(Contract):
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
         )
-        transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
+        transaction_dict["nonce"] = ledger_api.api.eth.getTransactionCount(
             ledger_api.api.toChecksumAddress(sender_address)
         )
         return transaction_dict
@@ -443,7 +443,7 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.getCode(contract_address).hex()
         # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
         # contract is created via a proxy
         local_bytecode = SAFE_DEPLOYED_BYTECODE
