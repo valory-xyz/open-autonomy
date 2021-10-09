@@ -22,7 +22,6 @@ from abc import ABC
 from typing import FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
-from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, Dialogues
 from aea.skills.base import Handler
@@ -40,7 +39,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ERROR_CODE,
     SignatureNotValidError,
     Transaction,
-    TransactionNotValidError,
+    TransactionTypeNotRecognizedError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
@@ -92,18 +91,15 @@ class ABCIRoundHandler(ABCIHandler):
     ) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
+        shared_state = cast(SharedState, self.context.state)
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            cast(SharedState, self.context.state).period.check_is_finished()
-            is_valid = cast(SharedState, self.context.state).period.deliver_tx(
-                transaction
-            )
-            enforce(is_valid, "transaction is not valid")
+            shared_state.period.check_is_finished()
+            shared_state.period.deliver_tx(transaction)
         except (
             SignatureNotValidError,
-            TransactionNotValidError,
-            ValueError,
+            TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
             return self._deliver_tx_failed(
