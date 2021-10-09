@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 aea = {version = "<2.0.0,>=1.0.0", extras = ["all"]}
+aea-ledger-ethereum = "<2.0.0,>=1.0.0"
 
 [dev-packages]
 bandit = "==1.7.0"
@@ -41,6 +42,7 @@ types-pyyaml = "*"
 types-protobuf = "*"
 types-requests = "*"
 vulture = "==2.3"
+aiohttp = "<3.8,>=3.7.4"
 
 [requires]
 python_version = "3.8"
