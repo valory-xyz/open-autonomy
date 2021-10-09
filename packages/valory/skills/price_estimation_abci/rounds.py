@@ -42,7 +42,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
-    ValidateSafePayload,
+    ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.tools import aggregate
 
@@ -70,7 +70,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        participant_to_votes: Optional[Mapping[str, ValidateSafePayload]] = None,
+        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
         estimate: Optional[float] = None,
@@ -126,13 +126,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
 
     @property
-    def participant_to_votes(self) -> Mapping[str, ValidateSafePayload]:
+    def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
         """Get the participant_to_votes."""
         enforce(
             self._participant_to_votes is not None,
             "'participant_to_votes' field is None",
         )
-        return cast(Mapping[str, ValidateSafePayload], self._participant_to_votes)
+        return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
 
     @property
     def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
@@ -436,9 +436,9 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         return None
 
 
-class ValidateSafeRound(PriceEstimationAbstractRound):
+class ValidateRound(PriceEstimationAbstractRound):
     """
-    This class represents the validate Safe round.
+    This class represents the validate round.
 
     Input: a period state with the set of participants and the Safe contract address.
     Output: a period state with the set of participants and the Safe contract address.
@@ -446,14 +446,15 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
     It schedules the ValidateSafeRound.
     """
 
-    round_id = "validate_safe"
+    positive_next_round_class: Type[PriceEstimationAbstractRound]
+    negative_next_round_class: Type[PriceEstimationAbstractRound]
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
-        self.participant_to_votes: Dict[str, ValidateSafePayload] = {}
+        self.participant_to_votes: Dict[str, ValidatePayload] = {}
 
-    def validate_safe(self, payload: ValidateSafePayload) -> None:
+    def validate(self, payload: ValidatePayload) -> None:
         """Handle a validate safe payload."""
         sender = payload.sender
 
@@ -467,12 +468,13 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
 
         self.participant_to_votes[sender] = payload
 
-    def check_validate_safe(self, payload: ValidateSafePayload) -> bool:
+    def check_validate(self, payload: ValidatePayload) -> bool:
         """
-        Check a validate safe payload can be applied to the current state.
+        Check a validate payload can be applied to the current state.
 
-        A deploy safe transaction can be applied only if:
+        A validate transaction can be applied only if:
         - the sender belongs to the set of participants
+        - the sender has not already submitted the transaction
 
         :param: payload: the payload.
         :return: True if the observation tx is allowed, False otherwise.
@@ -487,7 +489,7 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
         true_votes = sum(
             [payload.vote for payload in self.participant_to_votes.values()]
         )
-        # check that "true" has at least the consensu # of votes
+        # check that "true" has at least the consensus # of votes
         consensus_threshold = self._consensus_params.consensus_threshold
         return true_votes >= consensus_threshold
 
@@ -497,7 +499,7 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
         false_votes = len(self.participant_to_votes) - sum(
             [payload.vote for payload in self.participant_to_votes.values()]
         )
-        # check that "false" has at least the consensu # of votes
+        # check that "false" has at least the consensus # of votes
         consensus_threshold = self._consensus_params.consensus_threshold
         return false_votes >= consensus_threshold
 
@@ -508,11 +510,11 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
             state = self.period_state.update(
                 participant_to_votes=MappingProxyType(self.participant_to_votes)
             )
-            next_round = CollectObservationRound(state, self._consensus_params)
+            next_round = self.positive_next_round_class(state, self._consensus_params)
             return state, next_round
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
-            next_round_ = SelectKeeperARound(state, self._consensus_params)
+            next_round_ = self.negative_next_round_class(state, self._consensus_params)
             return state, next_round_
         return None
 
@@ -925,3 +927,73 @@ class ConsensusReachedRound(PriceEstimationAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         return None
+
+
+class ValidateSafeRound(ValidateRound):
+    """
+    This class represents the validate Safe round.
+
+    Input: a period state with the set of participants and the Safe contract address.
+    Output: a period state with the set of participants and the Safe contract address.
+
+    It schedules the ValidateSafeRound.
+    """
+
+    round_id = "validate_safe"
+    positive_next_round_class = CollectObservationRound
+    negative_next_round_class = SelectKeeperARound
+
+    def validate_safe(self, payload: ValidatePayload) -> None:
+        """
+        Handle a validate payload.
+
+        :param: payload: the payload.
+        """
+        super().validate(payload)
+
+    def check_validate_safe(self, payload: ValidatePayload) -> bool:
+        """
+        Check a validate safe payload can be applied to the current state.
+
+        A deploy safe transaction can be applied only if:
+        - the sender belongs to the set of participants
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        return super().check_validate(payload)
+
+
+class ValidateTransactionRound(ValidateRound):
+    """
+    This class represents the validate transaction round.
+
+    Input: a period state with the set of participants and the Safe contract address.
+    Output: a period state with the set of participants and the Safe contract address.
+
+    It schedules the ValidateTransactionRound.
+    """
+
+    round_id = "validate_transaction"
+    positive_next_round_class = ConsensusReachedRound
+    negative_next_round_class = SelectKeeperBRound
+
+    def validate_transaction(self, payload: ValidatePayload) -> None:
+        """
+        Handle a validate payload.
+
+        :param: payload: the payload.
+        """
+        super().validate(payload)
+
+    def check_validate_transaction(self, payload: ValidatePayload) -> bool:
+        """
+        Check a validate transaction payload can be applied to the current state.
+
+        A deploy safe transaction can be applied only if:
+        - the sender belongs to the set of participants
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        return super().check_validate(payload)

@@ -463,7 +463,9 @@ class GnosisSafeContract(Contract):
         ledger_api = cast(EthereumApi, ledger_api)
 
         try:
-            ledger_api.api.eth.getTransaction(tx_hash)
+            res = ledger_api.api.eth.getTransaction(tx_hash)
+            _logger.info(f"TX HASH: {tx_hash}RESULT:{res}")
+            # TOFIX: verify hash is of transaction to right contract
             return dict(verified=True)
         except TransactionNotFound:
             return dict(verified=False)
