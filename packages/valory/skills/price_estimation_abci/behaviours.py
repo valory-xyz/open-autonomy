@@ -274,7 +274,7 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="get_state",
+            contract_callable="verify_contract",
         )
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified

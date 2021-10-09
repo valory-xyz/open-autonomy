@@ -49,11 +49,6 @@ PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 SAFE_DEPLOYED_BYTECODE = "0x608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea2646970667358221220d1429297349653a4918076d650332de1a1068c5f3e07c5c82360c277770b955264736f6c63430007060033"
 
 
-def keccak256(input_: bytes) -> bytes:
-    """Compute hash."""
-    return bytes(bytearray.fromhex(EthereumApi.get_hash(input_)[2:]))
-
-
 def _get_nonce() -> int:
     """Generate a nonce for the Safe deployment."""
     return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
@@ -192,7 +187,7 @@ class GnosisSafeContract(Contract):
         if not ledger_api.api.eth.getCode(
             safe_contract_address
         ) or not ledger_api.api.eth.getCode(proxy_factory_address):
-            raise ValueError("Network not supported")
+            raise ValueError("Network not supported")  # pragma: nocover
 
         _logger.info(
             "Creating new Safe with owners=%s threshold=%s "
@@ -226,7 +221,7 @@ class GnosisSafeContract(Contract):
             )
         )
         if nonce is None:
-            raise ValueError("No nonce returned.")
+            raise ValueError("No nonce returned.")  # pragma: nocover
         # TOFIX: lazy import until contract dependencies supported in AEA
         from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (  # pylint: disable=import-outside-toplevel
             GnosisSafeProxyFactoryContract,
@@ -397,7 +392,7 @@ class GnosisSafeContract(Contract):
         signatures = b""
         for signer in sorted_owners:
             if signer not in signatures_by_owner:
-                continue
+                continue  # pragma: nocover
             signature = signatures_by_owner[signer]
             signature_bytes = binascii.unhexlify(signature)
             signatures += signature_bytes
