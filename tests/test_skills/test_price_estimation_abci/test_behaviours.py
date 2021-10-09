@@ -121,6 +121,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         self.abci_handler.handle(incoming_message)
 
+
 class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test case to test TendermintHealthcheckBehaviour."""
 
