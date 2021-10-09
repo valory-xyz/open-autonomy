@@ -453,7 +453,10 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def verify_tx(
-        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        tx_hash: str,  # pylint: disable=unused-argument
     ) -> JSONLike:
         """
         Verify a tx hash exists on the blockchain.
