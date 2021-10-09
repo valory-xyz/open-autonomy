@@ -452,11 +452,14 @@ class GnosisSafeContract(Contract):
         return dict(verified=verified)
 
     @classmethod
-    def verify_tx(cls, ledger_api: LedgerApi, tx_hash: str) -> JSONLike:
+    def verify_tx(
+        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+    ) -> JSONLike:
         """
         Verify a tx hash exists on the blockchain.
 
         :param ledger_api: the ledger API object
+        :param contract_address: the contract address
         :param tx_hash: the transaction hash
         :return: the verified status
         """

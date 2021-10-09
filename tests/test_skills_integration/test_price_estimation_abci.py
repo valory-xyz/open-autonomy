@@ -38,8 +38,8 @@ class TestABCIPriceEstimationSkillMany(
 
     IS_LOCAL = False
     capture_log = True
-    NB_AGENTS = 4
-    NB_KEEPER_TIMEOUT = 5
+    NB_AGENTS = 1
+    KEEPER_TIMEOUT = 10
     cli_log_options = ["-v", "DEBUG"]
 
     def test_run(self):
@@ -102,7 +102,7 @@ class TestABCIPriceEstimationSkillMany(
             )
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds",
-                self.NB_KEEPER_TIMEOUT,
+                self.KEEPER_TIMEOUT,
             )
             self.set_config(
                 "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
@@ -125,10 +125,16 @@ class TestABCIPriceEstimationSkillMany(
         )
 
         check_strings = (
+            "Entered in the 'tendermint_healthcheck' behaviour state",
+            "'tendermint_healthcheck' behaviour state is done",
             "Entered in the 'register' behaviour state",
             "'register' behaviour state is done",
+            "Entered in the 'select_keeper_a' behaviour state",
+            "'select_keeper_a' behaviour state is done",
             "Entered in the 'deploy_safe' behaviour state",
             "'deploy_safe' behaviour state is done",
+            "Entered in the 'validate_safe' behaviour state",
+            "'validate_safe' behaviour state is done",
             "Entered in the 'observe' behaviour state",
             "Got observation of BTC price in USD",
             "'observe' behaviour state is done",
@@ -143,6 +149,8 @@ class TestABCIPriceEstimationSkillMany(
             "Entered in the 'finalize' behaviour state",
             "'finalize' behaviour state is done",
             "Finalized estimate",
+            "Entered in the 'validate_transaction' behaviour state",
+            "'validate_transaction' behaviour state is done",
             "Period end",
         )
         # check that *each* AEA prints these messages
