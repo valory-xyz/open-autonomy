@@ -38,7 +38,7 @@ class TestABCIPriceEstimationSkillMany(
 
     IS_LOCAL = False
     capture_log = True
-    NB_AGENTS = 1
+    NB_AGENTS = 4
     KEEPER_TIMEOUT = 10
     cli_log_options = ["-v", "DEBUG"]
 
