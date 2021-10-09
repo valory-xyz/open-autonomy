@@ -531,7 +531,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             value=0,
-            data=self.period_state.encoded_estimate,
+            data=self.period_state.encoded_most_voted_estimate,
             signatures_by_owner=dict(self.period_state.participant_to_signature),
         )
         tx_hash, _ = yield from self.send_raw_transaction(
