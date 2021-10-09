@@ -61,9 +61,9 @@ It is already a concrete class, so the developer should not need
 to extend it.
 
 
-### ABCIApp sequence diagram
+### ABCIApp diagrams
 
-This sequence diagram shows the sequence of messages
+These sequence diagrams show the sequence of messages
 and method calls between the software components. 
 
 The following diagram describes the addition of transactions to the transaction pool:
@@ -143,13 +143,84 @@ submits the average BTC price on the Ethereum blockchain can be
 seen as a BTC price [oracle service](https://ethereum.org/en/developers/docs/oracles/).
 
 
-### FSMBehaviour in the Price Estimation demo
+### FSMBehaviour in the `valory/abstract_round_abci` skill
 
-TODO
+The FSMBehaviour abstraction is represented
+in the code by the `AbstractRoundBehaviour` abstract class,
+which inherits most of its functions from the
+[`aea.skills.behaviours.FSMBehaviour` class](https://fetchai.github.io/agents-aea/api/skills/behaviours/#fsmbehaviour-objects).
+
+The states of the `AbstractRoundBehaviour` behaviour are of type `BaseState`,
+a base class with several utility methods to make developer's life easier.
+In particular, it inherits from [`AsyncBehaviour`](./async_behaviour.md),
+and so the methods can use the asynchronous programming paradigm.
+
+A concrete class of `AbstractRoundBehaviour` looks like:
+
+```python
+class MyFSMBehaviour(AbstractRoundBehaviour):
+    initial_state_cls = StateA
+    transition_function = {
+        StateA: {
+            EVENT_1: StateB,
+            EVENT_2: StateC,
+        },
+        StateB: {...}
+        ...,
+    } 
+```
+
+Where:
+
+- `initial_state_cls` is the class of the initial state of the FSM;
+- `transition_function` is the transition function of the FSM, represented
+  as a nested dictionary: the first mapping is from a state to its outgoing
+  transitions, which in turn is represented as a mapping from events (strings)
+  to the class of the next state. 
+
+The class attribute `_event` can be set by the state behaviour 
+is read by the `AbstractRoundBehaviour.act` method.
+If set, the behaviour will schedule the next state according to the transition function.
+If not, the action of the state behaviour is repeated again. 
+
+### FSMBehaviour diagrams
+
+The following diagram shows how the FSM behaviour works
+together with the AEA event loop.
+
+<div class="mermaid">
+    sequenceDiagram
+        participant EventLoop
+        participant AbsRoundBehaviour
+        participant State1
+        participant State2
+        participant Period
+        note over AbsRoundBehaviour,State2: Let the FSMBehaviour start with State1<br/>it will schedule State2 on event e
+        loop while event not set
+          EventLoop->>AbsRoundBehaviour: act()
+          AbsRoundBehaviour->>State1: act()
+          activate State1
+          note over State1: during the execution, <br/> State1 may (or may not)<br/> set an event
+          State1->>AbsRoundBehaviour: return
+          deactivate State1
+          note over EventLoop: the loop now executes other routines
+        end
+        note over AbsRoundBehaviour: read event and pick next state<br/>in this example, State2
+        EventLoop->>AbsRoundBehaviour: act()
+        note over AbsRoundBehaviour: now State2.act is called
+        AbsRoundBehaviour->>State2: act()
+        activate State2
+        State2->>AbsRoundBehaviour: return
+        deactivate State2
+</div>
 
 ## ABCIApp-FSMBehaviour interaction
 
-TODO
+The interaction between the FSMBehaviour 
+(i.e. the `AbstractRoundBehaviour` in the code)
+and the ABCIApp
+(i.e. executions of the `AbciAbstractRound` in the code)
+
 
 ### ABCIApp-FSMBehaviour interaction in the Price Estimation demo
 
