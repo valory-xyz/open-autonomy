@@ -102,8 +102,15 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
 
     state_id = "tendermint_healthcheck"
 
-    def async_act(self) -> None:  # type: ignore
-        """Check whether tendermint is running or not."""
+    def async_act(self) -> Generator:
+        """
+        Check whether tendermint is running or not.
+
+        Steps:
+        - Do a http request to the tendermint health check endpoint
+        - Retry until healthcheck passes or timeout is hit. Raise if timed out.
+        - If healthcheck passes set done event.
+        """
         if self.params.is_health_check_timed_out():
             # if the tendermint node cannot start then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
@@ -128,15 +135,15 @@ class RegistrationBehaviour(PriceEstimationBaseState):
     state_id = "register"
     matching_round = RegistrationRound
 
-    def async_act(self) -> None:  # type: ignore
+    def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Build a registration transaction
+        - Build a registration transaction.
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state.
+        - Go to the next behaviour state (set done event).
         """
         payload = RegistrationPayload(self.context.agent_address)
         yield from self.send_a2a_transaction(payload)
@@ -147,15 +154,15 @@ class RegistrationBehaviour(PriceEstimationBaseState):
 class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
     """Select the keeper agent."""
 
-    def async_act(self) -> None:  # type: ignore
+    def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Select a new random keeper
-        - Send the transaction and wait for it to be mined.
+        - Select a keeper randomly.
+        - Send the transaction with the keeper and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state.
+        - Go to the next behaviour state (set done event).
         """
         keeper_address = random_selection(
             sorted(self.period_state.participants),
@@ -193,9 +200,10 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         """
         Do the action.
 
-        If the agent is the designated deployer, then prepare the
-        deployment transaction and send it.
-        Otherwise, wait until the next round.
+        Steps:
+        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - Otherwise, wait until the next round.
+        - If a timeout is hit, set exit A event, otherwise set done event.
         """
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_deployer_act()
@@ -264,9 +272,11 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
         """
         Do the action.
 
-        If the agent is the designated deployer, then prepare the
-        deployment transaction and send it.
-        Otherwise, wait until the next round.
+        Steps:
+        - Validate that the contract address provided by the keeper points to a valid contract.
+        - Send the transaction with the validation result and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
         """
         is_correct = yield from self.has_correct_contract_been_deployed()
         payload = ValidatePayload(self.context.agent_address, is_correct)
@@ -297,10 +307,11 @@ class ObserveBehaviour(PriceEstimationBaseState):
         Do the action.
 
         Steps:
-        - Ask the configured API the price of a currency
-        - Build an observation transaction
+        - Ask the configured API the price of a currency.
+        - If the request fails, retry until max retries are exceeded.
+        - Send an observation transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state.
+        - Go to the next behaviour state (set done event).
         """
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
@@ -332,6 +343,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id}"
             )
+            yield from self.sleep(1)
             self.context.price_api.increment_retries()
 
 
@@ -360,11 +372,10 @@ class EstimateBehaviour(PriceEstimationBaseState):
         Do the action.
 
         Steps:
-        - Run the script to compute the estimate starting from the shared observations
-        - Build an estimate transaction
-        - Send the transaction and wait for it to be mined
+        - Run the script to compute the estimate starting from the shared observations.
+        - Build an estimate transaction and send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state.
+        - Go to the next behaviour state (set done event).
         """
 
         currency_id = self.params.currency_id
@@ -394,7 +405,10 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         Do the action.
 
         Steps:
-        - TODO
+        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
         """
         data = self.period_state.encoded_most_voted_estimate
         contract_api_msg = yield from self.get_contract_api_response(
@@ -422,7 +436,15 @@ class SignatureBehaviour(PriceEstimationBaseState):
     matching_round = CollectSignatureRound
 
     def async_act(self) -> Generator:
-        """Do the act."""
+        """
+        Do the action.
+
+        Steps:
+        - Request the signature of the transaction hash.
+        - Send the signature as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
         self.context.logger.info(
             f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
         )
@@ -452,7 +474,14 @@ class FinalizeBehaviour(PriceEstimationBaseState):
     matching_round = FinalizationRound
 
     def async_act(self) -> Generator[None, None, None]:
-        """Do the act."""
+        """
+        Do the action.
+
+        Steps:
+        - If the agent is the keeper, then prepare the transaction and send it.
+        - Otherwise, wait until the next round.
+        - If a timeout is hit, set exit A event, otherwise set done event.
+        """
         self.shared_state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_sender_act()
@@ -522,9 +551,11 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         """
         Do the action.
 
-        If the agent is the designated deployer, then prepare the
-        deployment transaction and send it.
-        Otherwise, wait until the next round.
+        Steps:
+        - Validate that the transaction hash provided by the keeper points to a valid transaction.
+        - Send the transaction with the validation result and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
         """
         is_correct = yield from self.has_transaction_been_sent()
         payload = ValidatePayload(self.context.agent_address, is_correct)
@@ -552,7 +583,12 @@ class EndBehaviour(PriceEstimationBaseState):
     matching_round = ConsensusReachedRound
 
     def async_act(self) -> Generator:
-        """Do the act."""
+        """
+        Do the action.
+
+        Steps:
+        - Trivially log the state.
+        """
         self.context.logger.info(
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
