@@ -9,7 +9,7 @@ fingerprint:
   README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
   __init__.py: QmWLx43KXUA8iq4uRo1VDhFPqd6dFF7xfdiMpQLAoBBMoD
   build/GnosisSafe_V1_3_0.json: QmafMmPcVqiTLykozgjGwNL2S8b1g5bmgMP3z6EdecgMYh
-  contract.py: QmQSsMpebgSR3jkQoubRm5aDGT9aQZbWpTeEAoMAc6Nk6x
+  contract.py: QmXHH7bz19o4hQzSVdQCH4Z5wVYwpf9RTaD67NguctK1GY
 fingerprint_ignore_patterns: []
 class_name: GnosisSafeContract
 contract_interface_paths:

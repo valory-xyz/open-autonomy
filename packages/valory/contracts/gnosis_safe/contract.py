@@ -46,6 +46,7 @@ NULL_ADDRESS: str = "0x" + "0" * 40
 SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"
 PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
+SAFE_DEPLOYED_BYTECODE = "0x608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea2646970667358221220d1429297349653a4918076d650332de1a1068c5f3e07c5c82360c277770b955264736f6c63430007060033"
 
 
 def keccak256(input_: bytes) -> bytes:
@@ -95,7 +96,7 @@ class GnosisSafeContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        return cls.verify_contract(ledger_api, contract_address)
+        raise NotImplementedError
 
     @classmethod
     def get_deploy_transaction(
@@ -447,19 +448,9 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
-
-        blockchain_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
-        local_bytecode = contract_interface["deployedBytecode"]
-        verified = blockchain_bytecode == local_bytecode
-
-        bc = contract_interface["bytecode"]
-        _logger.info('************************************************')
-        _logger.info(f"block {blockchain_bytecode[:50]}")
-        _logger.info(f"localDeployed {local_bytecode[:50]}")
-        _logger.info(f"localBytecode {bc[:50]}")
-        _logger.info(f"verified {verified}")
-        _logger.info(f"contract_address {contract_address}")
-        _logger.info('************************************************')
-
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
+        # contract is created via a proxy
+        local_bytecode = SAFE_DEPLOYED_BYTECODE
+        verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)

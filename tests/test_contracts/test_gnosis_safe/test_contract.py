@@ -298,9 +298,9 @@ class TestVerifyContract(BaseContractTestHardHatSafeNet):
 
     def test_run(self):
         """Run tests."""
-        result = self.contract.get_state(
+        result = self.contract.verify_contract(
             ledger_api=self.ledger_api,
-            contract_address=self.contract_address
+            contract_address=self.contract_address,
         )
 
-        assert result["verified"] == True
+        assert result["verified"], "Contract not verified."
