@@ -1,7 +1,7 @@
 In this section, we describe more closely the 
 ABCI-based Finite-State Machine App (ABCIApp), 
 the Finite-State Machine Behaviour (FSMBehaviour),
-and the interplay between the two in the [price estimation demo](./price_estimation_demo.md).
+and the interplay between the two.
 
 It is recommended to read [this page](./abci.md)
 in order to have a good understanding of what
@@ -46,7 +46,10 @@ A round can validate, store and aggregate data coming from different participant
 transactions. The actual meaning of the data depends on the round and the specific
 use case, e.g. measurement of a quantity from different data sources,
 votes for reaching distributed consensus on a certain value.
-The ABCI server receives transactions through the 
+ABCI requests are received through the `ABCIConnection` and handled
+by the `ABCIHandler`. Therefore, the `ABCIHandler` handler, together with the `ABCIConnection`,
+acts as an ABCI server.
+The ABCIApp, through the `ABCIHandler`, receives transactions through the 
 [`RequestDeliverTx`](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
 ABCI requests, and forwards them to the current active round,
 which produces the server response. 
@@ -60,6 +63,11 @@ through the skill context.
 It is already a concrete class, so the developer should not need
 to extend it.
 
+We remark that the ABCIApp, which resides into the AEA process,
+is updated by the consensus engine
+through the ABCI requests handled by the ABCIHandler, and **NOT** by the AEA behaviours.
+The AEA behaviours can only send updates through the process of sending transactions
+to the consensus engine.
 
 ### ABCIApp diagrams
 
@@ -155,6 +163,12 @@ a base class with several utility methods to make developer's life easier.
 In particular, it inherits from [`AsyncBehaviour`](./async_behaviour.md),
 and so the methods can use the asynchronous programming paradigm.
 
+Concrete classes of the `BaseState` class must specify the 
+`matching_round` class attribute, which indicates the `AbstractRoundBehaviour`
+the ABCIApp round associated with the state behaviour. This is 
+useful to check whether the state behaviour should be changed
+according to the current ABCIApp round. 
+
 A concrete class of `AbstractRoundBehaviour` looks like:
 
 ```python
@@ -220,8 +234,33 @@ The interaction between the FSMBehaviour
 (i.e. the `AbstractRoundBehaviour` in the code)
 and the ABCIApp
 (i.e. executions of the `AbciAbstractRound` in the code)
+happens through the consensus engine and 
+the shared state among the concrete skill of 
+the `valory/abstract_abci_round` abstract skill.
 
+In particular, the usual workflow looks like this:
 
-### ABCIApp-FSMBehaviour interaction in the Price Estimation demo
-
-TODO
+1. At setup time, the consensus engine node creates connections
+  with the associated AEA and sync together. 
+  In the AEA process, the ABCIApp starts from the first round, 
+  waiting for transactions to update its state. 
+  The FSMBehaviour schedules the initial state behaviour 
+  for execution of the `act` method.
+2. The current state behaviour sends transactions to update
+  the state of the ABCIApp, and once its job is done waits until
+  the ABCIApp changes round, by checking read-only attributes of the ABCIApp,
+  accessible through the AEA's skill context. Observe that it is crucial
+  that the behaviour cannot update the ABCIApp state as it should only 
+  be updated by the consensus engine node.
+  The state behaviour may eventually repeat the job, 
+  according to the business logic and error handling.
+3. Once the transaction gets added
+  into a block accepted by the consensus engine, the consensus engine node
+  delivers the block and its transaction(s) to the ABCIApp, through the AEA's ABCIConnection
+  and ABCIHandler. The ABCIApp processes the transaction and, if the business
+  logic implemented by the ABCIApp satisfies the conditions to make a transition,
+  the ABCIApp changes round.
+4. The round change of the ABCIApp is detected by the state behaviour, which
+  stops the waiting loop. The FSMBehaviour, according to the current
+  ABCIApp or the event set by the behaviour, schedules the next state behaviour.
+5. Repeat the steps above from (2) until a final state is reached.
