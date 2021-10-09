@@ -19,12 +19,13 @@
 
 """This module contains the class to connect to an Gnosis Safe Proxy Factory contract."""
 import logging
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
+from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
 
 
@@ -126,3 +127,18 @@ class GnosisSafeProxyFactoryContract(Contract):
         # Auto estimation of gas does not work. We use a little more gas just in case
         transaction_dict["gas"] = Wei(transaction_dict["gas"] + 50000)
         return transaction_dict, contract_address
+
+    @classmethod
+    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+        """
+        Verify the contract's bytecode
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
+        verified = deployed_bytecode == local_bytecode
+        return dict(verified=verified)

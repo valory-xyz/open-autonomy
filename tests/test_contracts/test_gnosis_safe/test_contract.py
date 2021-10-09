@@ -227,6 +227,14 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         with pytest.raises(NotImplementedError):
             self.contract.get_state(None, None)
 
+    def test_verify(self):
+        """Run verify test."""
+        result = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+        )
+        assert result["verified"], "Contract not verified."
+
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
@@ -275,19 +283,4 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                     self.deployer_crypto.address
                 ]
             },
-        )
-
-
-@pytest.mark.skip
-class TestRawSafeTransactionHash(BaseContractTest):
-    """Test `get_raw_safe_transaction_hash` method."""
-
-    def test_run(self):
-        """Run tests."""
-        receiver = crypto_registry.make(
-            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
-        )
-
-        self.contract.get_raw_safe_transaction_hash(
-            self.ledger_api, self.deployer_crypto.address, receiver.address, 10, b""
         )
