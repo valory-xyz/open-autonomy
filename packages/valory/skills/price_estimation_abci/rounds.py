@@ -42,6 +42,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
+    ValidateSafePayload,
 )
 from packages.valory.skills.price_estimation_abci.tools import aggregate
 
@@ -69,6 +70,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
+        participant_to_votes: Optional[Mapping[str, ValidateSafePayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
         estimate: Optional[float] = None,
@@ -84,6 +86,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
         self._participant_to_selection = participant_to_selection
+        self._participant_to_votes = participant_to_votes
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
         self._most_voted_estimate = most_voted_estimate
@@ -121,6 +124,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'participant_to_selection' field is None",
         )
         return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
+
+    @property
+    def participant_to_votes(self) -> Mapping[str, ValidateSafePayload]:
+        """Get the participant_to_votes."""
+        enforce(
+            self._participant_to_votes is not None,
+            "'participant_to_votes' field is None",
+        )
+        return cast(Mapping[str, ValidateSafePayload], self._participant_to_votes)
 
     @property
     def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
@@ -300,7 +312,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
 
     def select_keeper(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
             # sender not in the set of participants.
@@ -439,8 +451,89 @@ class DeploySafeRound(PriceEstimationAbstractRound):
             state = self.period_state.update(
                 safe_contract_address=self._contract_address
             )
+            next_round = ValidateSafeRound(state, self._consensus_params)
+            return state, next_round
+        return None
+
+
+class ValidateSafeRound(PriceEstimationAbstractRound):
+    """
+    This class represents the validate Safe round.
+
+    Input: a period state with the set of participants and the Safe contract address.
+    Output: a period state with the set of participants and the Safe contract address.
+
+    It schedules the ValidateSafeRound.
+    """
+
+    round_id = "validate_safe"
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'collect-observation' round."""
+        super().__init__(*args, **kwargs)
+        self.participant_to_votes: Dict[str, ValidateSafePayload] = {}
+
+    def validate_safe(self, payload: ValidateSafePayload) -> None:
+        """Handle a validate safe payload."""
+        sender = payload.sender
+
+        if sender not in self.period_state.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender in self.participant_to_votes:
+            # sender has already sent its vote
+            return
+
+        self.participant_to_votes[sender] = payload
+
+    def check_validate_safe(self, payload: ValidateSafePayload) -> bool:
+        """
+        Check a validate safe payload can be applied to the current state.
+
+        A deploy safe transaction can be applied only if:
+        - the sender belongs to the set of participants
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender_has_not_sent_vote_yet = payload.sender not in self.participant_to_votes
+        return sender_in_participant_set and sender_has_not_sent_vote_yet
+
+    @property
+    def positive_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        true_votes = sum(
+            [payload.vote for payload in self.participant_to_votes.values()]
+        )
+        # check that "true" has at least the consensu # of votes
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return true_votes >= consensus_threshold
+
+    @property
+    def negative_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        false_votes = len(self.participant_to_votes) - sum(
+            [payload.vote for payload in self.participant_to_votes.values()]
+        )
+        # check that "false" has at least the consensu # of votes
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return false_votes >= consensus_threshold
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.positive_vote_threshold_reached:
+            state = self.period_state.update(
+                participant_to_votes=MappingProxyType(self.participant_to_votes)
+            )
             next_round = CollectObservationRound(state, self._consensus_params)
             return state, next_round
+        if self.negative_vote_threshold_reached:
+            state = self.period_state.update()
+            next_round_ = SelectKeeperARound(state, self._consensus_params)
+            return state, next_round_
         return None
 
 
@@ -821,7 +914,7 @@ class SelectKeeperARound(SelectKeeperRound):
     next_round_class = DeploySafeRound
 
     def select_keeper_a(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
     def check_select_keeper_a(self, payload: SelectKeeperPayload) -> bool:
@@ -836,7 +929,7 @@ class SelectKeeperBRound(SelectKeeperRound):
     next_round_class = FinalizationRound
 
     def select_keeper_b(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
     def check_select_keeper_b(self, payload: SelectKeeperPayload) -> bool:

@@ -75,6 +75,10 @@ class SendException(Exception):
     """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
 
 
+class TimeoutException(Exception):
+    """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
+
+
 class AsyncBehaviour(ABC):
     """
     MixIn behaviour class that support limited asynchronous programming.
@@ -149,10 +153,15 @@ class AsyncBehaviour(ABC):
 
     @classmethod
     def wait_for_condition(
-        cls, condition: Callable[[], bool]
+        cls, condition: Callable[[], bool], timeout: Optional[float] = None
     ) -> Generator[None, None, None]:
         """Wait for a condition to happen."""
+        if timeout is not None:
+            deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+
         while not condition():
+            if timeout is not None and datetime.datetime.now() > deadline:
+                raise TimeoutException()
             yield
 
     def sleep(self, seconds: float) -> Any:
@@ -297,10 +306,13 @@ class BaseState(AsyncBehaviour, State, ABC):
         """Get a callable to check whether the current round has ended."""
         return partial(self.check_not_in_round, round_id)
 
-    def wait_until_round_end(self) -> Generator[None, None, None]:
+    def wait_until_round_end(
+        self, timeout: Optional[float] = None
+    ) -> Generator[None, None, None]:
         """
         Wait until the ABCI application exits from a round.
 
+        :param timeout: the timeout for the wait
         :yield: None
         """
         if self.matching_round is None:
@@ -311,7 +323,7 @@ class BaseState(AsyncBehaviour, State, ABC):
                 f"Should be in matching round ({round_id}) or last round ({self.context.state.period.last_round_id}), actual round {self.context.state.period.current_round_id}!"
             )
         yield from self.wait_for_condition(
-            partial(self.check_round_has_finished, round_id)
+            partial(self.check_round_has_finished, round_id), timeout=timeout
         )
 
     def is_done(self) -> bool:
@@ -653,6 +665,7 @@ class BaseState(AsyncBehaviour, State, ABC):
 
     def get_contract_api_response(
         self,
+        performative: ContractApiMessage.Performative,
         contract_address: Optional[str],
         contract_id: str,
         contract_callable: str,
@@ -661,6 +674,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         """
         Request contract safe transaction hash
 
+        :param performative: the message performative
         :param contract_address: the contract address
         :param contract_id: the contract id
         :param contract_callable: the collable to call on the contract
@@ -672,19 +686,15 @@ class BaseState(AsyncBehaviour, State, ABC):
             ContractApiDialogues, self.context.contract_api_dialogues
         )
         kwargs = {
+            "performative": performative,
             "counterparty": LEDGER_API_ADDRESS,
             "ledger_id": self.context.default_ledger_id,
             "contract_id": contract_id,
             "callable": contract_callable,
             "kwargs": ContractApiMessage.Kwargs(kwargs),
         }
-        if contract_address is None:
-            kwargs[
-                "performative"
-            ] = ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION
-        else:
+        if contract_address is not None:
             kwargs["contract_address"] = contract_address
-            kwargs["performative"] = ContractApiMessage.Performative.GET_RAW_TRANSACTION
         contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
             **kwargs
         )
