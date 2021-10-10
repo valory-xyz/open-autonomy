@@ -38,6 +38,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
+    RandomnessPayload,
     RegistrationPayload,
     SelectKeeperPayload,
     SignaturePayload,
@@ -64,10 +65,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     This state is replicated by the tendermint application.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         participants: Optional[FrozenSet[str]] = None,
-        keeper_randomness: Optional[float] = 0.5,  # stub
+        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
+        most_voted_randomness: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
@@ -83,7 +85,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
-        self._keeper_randomness = keeper_randomness
+        self._participant_to_randomness = participant_to_randomness
+        self._most_voted_randomness = most_voted_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
         self._participant_to_selection = participant_to_selection
@@ -100,7 +103,26 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
-        return cast(float, self._keeper_randomness)
+        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
+        return cast(float, res / 10)
+
+    @property
+    def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
+        """Get the participant_to_randomness."""
+        enforce(
+            self._participant_to_randomness is not None,
+            "'participant_to_randomness' field is None",
+        )
+        return cast(Mapping[str, RandomnessPayload], self._participant_to_randomness)
+
+    @property
+    def most_voted_randomness(self) -> str:
+        """Get the most_voted_randomness."""
+        enforce(
+            self._most_voted_randomness is not None,
+            "'most_voted_randomness' field is None",
+        )
+        return cast(str, self._most_voted_randomness)
 
     @property
     def most_voted_keeper_address(self) -> str:
@@ -260,6 +282,91 @@ class RegistrationRound(PriceEstimationAbstractRound):
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
             state = PeriodState(participants=frozenset(self.participants))
+            next_round = RandomnessRound(state, self._consensus_params)
+            return state, next_round
+        return None
+
+
+class RandomnessRound(PriceEstimationAbstractRound, ABC):
+    """
+    This class represents the randomness round.
+
+    Input: a set of participants (addresses)
+    Output: a set of participants (addresses) and randomness
+
+    It schedules the SelectKeeperARound.
+    """
+
+    round_id = "randomness"
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'select-keeper' round."""
+        super().__init__(*args, **kwargs)
+        self.participant_to_randomness: Dict[str, RandomnessPayload] = {}
+
+    def randomness(self, payload: RandomnessPayload) -> None:
+        """Handle a 'randomness' payload."""
+        sender = payload.sender
+        if sender not in self.period_state.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender in self.participant_to_randomness:
+            # sender has already sent its randomness
+            return
+
+        self.participant_to_randomness[sender] = payload
+
+    def check_randomness(self, payload: SelectKeeperPayload) -> bool:
+        """
+        Check an randomness payload can be applied to the current state.
+
+        An randomness transaction can be applied only if:
+        - the round is in the 'randomness' state;
+        - the sender belongs to the set of participants
+        - the sender has not sent its selection yet
+
+        :param: payload: the payload.
+        :return: True if the selection is allowed, False otherwise.
+        """
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender_has_not_sent_randomness_yet = (
+            payload.sender not in self.participant_to_randomness
+        )
+        return sender_in_participant_set and sender_has_not_sent_randomness_yet
+
+    @property
+    def threshold_reached(self) -> bool:
+        """Check that the threshold has been reached."""
+        counter: CounterType = Counter()
+        counter.update(
+            payload.randomness for payload in self.participant_to_randomness.values()
+        )
+        # check that a single selection has at least the consensus # of votes
+        consensus_n = self._consensus_params.consensus_threshold
+        return any(count >= consensus_n for count in counter.values())
+
+    @property
+    def most_voted_randomness(self) -> float:
+        """Get the most voted randomness."""
+        counter = Counter()  # type: ignore
+        counter.update(
+            payload.randomness for payload in self.participant_to_randomness.values()
+        )
+        most_voted_randomness, max_votes = max(counter.items(), key=itemgetter(1))
+        if max_votes < self._consensus_params.consensus_threshold:
+            raise ValueError("keeper has not enough votes")
+        return most_voted_randomness
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_randomness=MappingProxyType(
+                    self.participant_to_randomness
+                ),
+                most_voted_randomness=self.most_voted_randomness,
+            )
             next_round = SelectKeeperARound(state, self._consensus_params)
             return state, next_round
         return None
