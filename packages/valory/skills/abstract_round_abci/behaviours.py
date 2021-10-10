@@ -76,7 +76,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
         current_state.act_wrapper()
 
         if current_state.is_done():
-            if current_state in self._final_states:
+            if current_state.name in self._final_states:
                 # we reached a final state - return.
                 self.current = None
                 return
@@ -131,6 +131,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
             enforce(
                 state_cls.matching_round.round_id not in self._round_to_state,
                 "round id already used",
+                exception_class=ValueError,
             )
             self._round_to_state[state_cls.matching_round.round_id] = name
         return super().register_state(
