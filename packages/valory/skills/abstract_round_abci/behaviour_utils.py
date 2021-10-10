@@ -375,6 +375,8 @@ class BaseState(AsyncBehaviour, State, ABC):
             yield from self.async_act()
         except (GeneratorExit, StopIteration):
             self.clean_up()
+            self._log_end()
+            return
         if self._is_done:
             self._log_end()
 
