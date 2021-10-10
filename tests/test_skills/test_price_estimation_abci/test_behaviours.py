@@ -39,6 +39,9 @@ from packages.fetchai.protocols.contract_api.message import (  # noqa: F401
 )
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
+from packages.fetchai.connections.ledger.connection import (
+    CONNECTION_ID as LEDGER_CLIENT_PUBLIC_ID
+)
 from packages.valory.connections.abci.connection import (  # noqa: F401
     PUBLIC_ID as ABCI_SERVER_PUBLIC_ID,
 )
@@ -456,22 +459,26 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address="safe_contract_address"
             ),
         )
         assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
 
-        # self.assert_quantity_in_outbox(1) # noqa: E800
-        # actual_contract_ledger_message = self.get_message_from_outbox() # noqa: E800
-        # has_attributes, error_str = self.message_has_attributes( # noqa: E800
-        #     actual_message=actual_contract_ledger_message, # noqa: E800
-        #     message_type=ContractApiMessage, # noqa: E800
-        #     performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION, # noqa: E800
-        #     to=str(LEDGER_CLIENT_PUBLIC_ID), # noqa: E800
-        #     sender=str(self.skill.skill_context.skill_id), # noqa: E800
-        # ) # noqa: E800
-        # assert has_attributes, error_str # noqa: E800
-        # self.price_estimation_behaviour.act_wrapper() # noqa: E800
+        self.assert_quantity_in_outbox(1)
+        actual_contract_ledger_message = self.get_message_from_outbox()
+        logging.debug(actual_contract_ledger_message)
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_contract_ledger_message,
+            message_type=ContractApiMessage,
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            message_id=1
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+
 
     def test_not_deployer_act(
         self,
@@ -485,6 +492,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address="safe_contract_address"
             ),
         )
         assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
@@ -506,6 +514,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address="safe_contract_address"
             ),
         )
         assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
@@ -925,6 +934,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 participants=participants,
                 estimate=1.0,
                 participant_to_signature=[],
+                most_voted_estimate=1.0
             ),
         )
         assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
@@ -947,5 +957,4 @@ class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         assert self.price_estimation_behaviour.current == EndBehaviour.state_id
-        self.price_estimation_behaviour.act_wrapper()
         self.price_estimation_behaviour.act_wrapper()
