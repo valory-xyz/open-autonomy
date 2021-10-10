@@ -68,7 +68,10 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     HttpHandler,
     SigningHandler,
 )
-from packages.valory.skills.price_estimation_abci.rounds import PeriodState
+from packages.valory.skills.price_estimation_abci.rounds import (
+    PeriodState,
+    RegistrationRound,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -111,6 +114,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             cls._skill.skill_context.behaviours.main,
         )
         cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
+        cls.abci_handler = cast(HttpHandler, cls._skill.skill_context.handlers.abci)
         cls.signing_handler = cast(
             SigningHandler, cls._skill.skill_context.handlers.signing
         )
@@ -160,6 +164,21 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+
+    def end_block_request(self) -> None:
+        """Process end block request."""
+        self._skill.skill_context.state.period.begin_block(None)
+        incoming_message = self.build_incoming_message(
+            message_type=AbciMessage,
+            dialogue_reference=("stub", ""),
+            performative=AbciMessage.Performative.REQUEST_END_BLOCK,
+            target=0,
+            message_id=1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(ABCI_SERVER_PUBLIC_ID),
+            height=100,
+        )
+        self.abci_handler.handle(incoming_message)  # type: ignore
 
 
 class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -269,14 +288,18 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             body=json.dumps({}).encode("utf-8"),
         )
         self.http_handler.handle(incoming_message)
-        with patch.object(
-            self.price_estimation_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.price_estimation_behaviour.act_wrapper()
-        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
         state = self.price_estimation_behaviour.get_state(
             TendermintHealthcheckBehaviour.state_id
         )
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            # need to call 'act' twice so to overcome
+            # the call to 'wait_until_round_end'
+            self.price_estimation_behaviour.act_wrapper()
+        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
+        self.end_block_request()
+        self.price_estimation_behaviour.act_wrapper()
         assert state.is_done()
 
 
@@ -290,6 +313,15 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
             RegistrationBehaviour.state_id,
             PeriodState(),
         )
+
+        # update period round
+        period = self.skill.skill_context.state.period
+        period_state = period.current_round.period_state
+        consensus_params = period.current_round._consensus_params
+        self.skill.skill_context.state.period._current_round = RegistrationRound(
+            period_state, consensus_params
+        )
+
         assert self.price_estimation_behaviour.current == RegistrationBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
         self.assert_quantity_in_decision_making_queue(1)

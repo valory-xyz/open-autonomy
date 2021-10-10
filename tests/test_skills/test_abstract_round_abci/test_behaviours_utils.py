@@ -37,8 +37,11 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseState,
     DONE_EVENT,
+    EXIT_A_EVENT,
+    EXIT_B_EVENT,
     FAIL_EVENT,
     SendException,
+    TimeoutException,
     _REQUEST_RETRY_DELAY,
 )
 
@@ -169,6 +172,31 @@ def test_async_behaviour_wait_for_condition():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
+def test_async_behaviour_wait_for_condition_with_timeout():
+    """Test 'wait_for_condition' method with timeout expired."""
+
+    class MyAsyncBehaviour(AsyncBehaviourTest):
+        counter = 0
+
+        def async_act(self) -> Generator:
+            self.counter += 1
+            yield from self.wait_for_condition(lambda: False, timeout=0.05)
+            self.counter += 1
+
+    behaviour = MyAsyncBehaviour()
+    assert behaviour.counter == 0
+    behaviour.act()
+    assert behaviour.counter == 1
+    assert behaviour.state == AsyncBehaviour.AsyncState.RUNNING
+
+    # sleep so the timeout expires
+    time.sleep(0.1)
+
+    # the next call to act raises TimeoutException
+    with pytest.raises(TimeoutException):
+        behaviour.act()
+
+
 def test_async_behaviour_sleep():
     """Test 'sleep' method."""
 
@@ -244,6 +272,23 @@ def test_async_behaviour_raise_stopiteration():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
+def test_async_behaviour_stop():
+    """Test AsyncBehaviour.stop method."""
+
+    class MyAsyncBehaviour(AsyncBehaviourTest):
+        def async_act(self) -> Generator:
+            yield
+
+    behaviour = MyAsyncBehaviour()
+    assert behaviour.is_stopped
+    behaviour.act()
+    assert not behaviour.is_stopped
+    behaviour.stop()
+    assert behaviour.is_stopped
+    behaviour.stop()
+    assert behaviour.is_stopped
+
+
 class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
@@ -287,14 +332,40 @@ class TestBaseState:
         func = self.behaviour.is_round_ended(expected_round_id)
         assert not func()
 
+    def test_check_in_last_round(self):
+        """Test 'BaseState' initialization."""
+        expected_round_id = "round"
+        self.context_mock.state.period.last_round_id = expected_round_id
+        assert self.behaviour.check_in_last_round(expected_round_id)
+        assert not self.behaviour.check_in_last_round("wrong round")
+
+        assert not self.behaviour.check_not_in_last_round(expected_round_id)
+        assert self.behaviour.check_not_in_last_round("wrong round")
+
+        assert self.behaviour.check_round_has_finished(expected_round_id)
+
     def test_wait_until_round_end_negative_no_matching_round(self):
         """Test 'wait_until_round_end' method, negative case (no matching round)."""
         self.behaviour.matching_round = None
         generator = self.behaviour.wait_until_round_end()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="No matching_round set!"):
+            generator.send(None)
+
+    def test_wait_until_round_end_negative_last_round_or_matching_round(self):
+        """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
+        self.behaviour.context.state.period.current_round_id = "current_round_id"
+        self.behaviour.context.state.period.last_round_id = "last_round_id"
+        self.behaviour.matching_round.round_id = "matching_round"
+        generator = self.behaviour.wait_until_round_end()
+        with pytest.raises(
+            ValueError,
+            match=r"Should be in matching round \(matching_round\) or last round \(last_round_id\), actual round current_round_id!",
+        ):
             generator.send(None)
 
     @mock.patch.object(BaseState, "wait_for_condition")
+    @mock.patch.object(BaseState, "check_not_in_round", return_value=False)
+    @mock.patch.object(BaseState, "check_not_in_last_round", return_value=False)
     def test_wait_until_round_end_positive(self, *_):
         """Test 'wait_until_round_end' method, positive case."""
         gen = self.behaviour.wait_until_round_end()
@@ -313,6 +384,20 @@ class TestBaseState:
         self.behaviour.set_fail()
         assert self.behaviour.is_done()
         assert self.behaviour._event == FAIL_EVENT
+
+    def test_set_exit_a(self):
+        """Test 'set_exit_a' method."""
+        assert not self.behaviour.is_done()
+        self.behaviour.set_exit_a()
+        assert self.behaviour.is_done()
+        assert self.behaviour._event == EXIT_A_EVENT
+
+    def test_set_exit_b(self):
+        """Test 'set_exit_b' method."""
+        assert not self.behaviour.is_done()
+        self.behaviour.set_exit_b()
+        assert self.behaviour.is_done()
+        assert self.behaviour._event == EXIT_B_EVENT
 
     def test_send_a2a_transaction_negative_no_matching_round(self):
         """Test 'send_a2a_transaction' method, negative case (no matching round)."""
@@ -333,6 +418,15 @@ class TestBaseState:
         try_send(gen)
         self.behaviour.set_done()
         try_send(gen)
+
+    @pytest.mark.parametrize("exception_cls", [GeneratorExit, StopIteration])
+    def test_async_act_wrapper_exception(self, exception_cls):
+        """Test 'async_act_wrapper'."""
+        with mock.patch.object(self.behaviour, "async_act", side_effect=exception_cls):
+            with mock.patch.object(self.behaviour, "clean_up") as clean_up_mock:
+                gen = self.behaviour.async_act_wrapper()
+                try_send(gen)
+                clean_up_mock.assert_called()
 
     def test_get_request_nonce_from_dialogue(self):
         """Test '_get_request_nonce_from_dialogue' helper method."""
@@ -430,10 +524,14 @@ class TestBaseState:
         ):
             self.behaviour._send_transaction_request(MagicMock())
 
-    @mock.patch.object(BaseState, "try_send")
-    def test_default_callback_request(self, *_):
-        """Test default callback request."""
-        self.behaviour.default_callback_request(MagicMock())
+    def test_send_transaction_receipt_request(self):
+        """Test '_send_transaction_receipt_request'."""
+        with mock.patch.object(
+            self.behaviour.context.ledger_api_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ):
+            self.behaviour._send_transaction_receipt_request(MagicMock())
 
     def test_build_http_request_message(self, *_):
         """Test '_build_http_request_message'."""
@@ -473,6 +571,7 @@ class TestBaseState:
             obj=MagicMock(performative=SigningMessage.Performative.SIGNED_TRANSACTION),
         )
         try_send(gen, obj=m)
+        try_send(gen, obj=m)
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
     def test_get_contract_api_response(self, contract_address):
@@ -497,3 +596,31 @@ class TestBaseState:
             try_send(gen, obj=None)
             # wait for message
             try_send(gen, obj=MagicMock())
+
+    def test_default_callback_request_stopped(self):
+        """Test 'default_callback_request' when stopped."""
+        message = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "info") as info_mock:
+            self.behaviour.default_callback_request(message)
+            info_mock.assert_called_with(
+                "dropping message as behaviour has stopped: %s", message
+            )
+
+    def test_default_callback_request_waiting_message(self, *_):
+        """Test 'default_callback_request' when waiting message."""
+        self.behaviour._AsyncBehaviour__stopped = False
+        self.behaviour._AsyncBehaviour__state = (
+            AsyncBehaviour.AsyncState.WAITING_MESSAGE
+        )
+        message = MagicMock()
+        self.behaviour.default_callback_request(message)
+
+    def test_default_callback_request_else(self, *_):
+        """Test 'default_callback_request' else branch."""
+        self.behaviour._AsyncBehaviour__stopped = False
+        message = MagicMock()
+        self.behaviour.default_callback_request(message)
+
+    def test_stop(self):
+        """Test the stop method."""
+        self.behaviour.stop()
