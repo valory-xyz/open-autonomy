@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the price_estimation app."""
 from abc import ABC
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -31,7 +31,7 @@ class TransactionType(Enum):
     REGISTRATION = "registration"
     SELECT_KEEPER = "select_keeper"
     DEPLOY_SAFE = "deploy_safe"
-    VALIDATE_SAFE = "validate_safe"
+    VALIDATE = "validate"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
     TX_HASH = "tx_hash"
@@ -58,13 +58,14 @@ class SelectKeeperPayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.SELECT_KEEPER
 
-    def __init__(self, sender: str, keeper: str) -> None:
+    def __init__(self, sender: str, keeper: str, id_: Optional[str] = None) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param keeper: the keeper selection
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._keeper = keeper
 
     @property
@@ -83,13 +84,16 @@ class DeploySafePayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.DEPLOY_SAFE
 
-    def __init__(self, sender: str, safe_contract_address: str) -> None:
+    def __init__(
+        self, sender: str, safe_contract_address: str, id_: Optional[str] = None
+    ) -> None:
         """Initialize a 'deploy_safe' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param safe_contract_address: the Safe contract address
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._safe_contract_address = safe_contract_address
 
     @property
@@ -103,18 +107,19 @@ class DeploySafePayload(BasePriceEstimationPayload):
         return dict(safe_contract_address=self.safe_contract_address)
 
 
-class ValidateSafePayload(BasePriceEstimationPayload):
-    """Represent a transaction payload of type 'validate_safe'."""
+class ValidatePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'validate'."""
 
-    transaction_type = TransactionType.VALIDATE_SAFE
+    transaction_type = TransactionType.VALIDATE
 
-    def __init__(self, sender: str, vote: bool) -> None:
-        """Initialize an 'validate_safe' transaction payload.
+    def __init__(self, sender: str, vote: bool, id_: Optional[str] = None) -> None:
+        """Initialize an 'validate' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param vote: the vote
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._vote = vote
 
     @property
@@ -133,13 +138,16 @@ class ObservationPayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.OBSERVATION
 
-    def __init__(self, sender: str, observation: float) -> None:
+    def __init__(
+        self, sender: str, observation: float, id_: Optional[str] = None
+    ) -> None:
         """Initialize an 'observation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param observation: the observation
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._observation = observation
 
     @property
@@ -158,13 +166,14 @@ class EstimatePayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.ESTIMATE
 
-    def __init__(self, sender: str, estimate: float) -> None:
+    def __init__(self, sender: str, estimate: float, id_: Optional[str] = None) -> None:
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param estimate: the estimate
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._estimate = estimate
 
     @property
@@ -183,13 +192,14 @@ class SignaturePayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.SIGNATURE
 
-    def __init__(self, sender: str, signature: str) -> None:
+    def __init__(self, sender: str, signature: str, id_: Optional[str] = None) -> None:
         """Initialize an 'signature' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param signature: the signature
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._signature = signature
 
     @property
@@ -208,13 +218,14 @@ class TransactionHashPayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.TX_HASH
 
-    def __init__(self, sender: str, tx_hash: str) -> None:
+    def __init__(self, sender: str, tx_hash: str, id_: Optional[str] = None) -> None:
         """Initialize an 'tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param tx_hash: the tx_hash
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._tx_hash = tx_hash
 
     @property
@@ -233,13 +244,14 @@ class FinalizationTxPayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.FINALIZATION
 
-    def __init__(self, sender: str, tx_hash: str) -> None:
+    def __init__(self, sender: str, tx_hash: str, id_: Optional[str] = None) -> None:
         """Initialize an 'finalization' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param tx_hash: the 'safe' transaction hash
+        :param id_: the id of the transaction
         """
-        super().__init__(sender)
+        super().__init__(sender, id_)
         self._tx_hash = tx_hash
 
     @property
