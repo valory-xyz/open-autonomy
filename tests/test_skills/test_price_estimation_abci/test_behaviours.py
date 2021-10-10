@@ -20,6 +20,7 @@
 """Tests for valory/price_estimation_abci skill's behaviours."""
 import json
 import logging
+import time
 from copy import copy
 from pathlib import Path
 from typing import cast
@@ -33,26 +34,53 @@ from aea.test_tools.test_skill import BaseSkillTestCase
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.fetchai.protocols.contract_api.message import (  # noqa: F401
+    ContractApiMessage,
+)
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.connections.abci.connection import (  # noqa: F401
     PUBLIC_ID as ABCI_SERVER_PUBLIC_ID,
 )
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
-from packages.valory.skills.abstract_round_abci.base import OK_CODE, _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import (
+    BasePeriodState,
+    OK_CODE,
+    _MetaPayload,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.behaviours import (
+    DeploySafeBehaviour,
+    EndBehaviour,
+    EstimateBehaviour,
+    FinalizeBehaviour,
+    ObserveBehaviour,
     PriceEstimationConsensusBehaviour,
     RegistrationBehaviour,
+    SelectKeeperABehaviour,
+    SignatureBehaviour,
     TendermintHealthcheckBehaviour,
+    TransactionHashBehaviour,
+    WaitBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
     HttpHandler,
     SigningHandler,
 )
+from packages.valory.skills.price_estimation_abci.rounds import PeriodState
 
 from tests.conftest import ROOT_DIR
+
+
+class DummyRoundId:
+    """Dummy class for setting round_id for exit condition."""
+
+    round_id: str
+
+    def __init__(self, round_id: str) -> None:
+        """Dummy class for setting round_id for exit condition."""
+        self.round_id = round_id
 
 
 class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
@@ -61,6 +89,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
     )
+    price_estimation_behaviour: PriceEstimationConsensusBehaviour
 
     @classmethod
     def setup(cls):
@@ -92,12 +121,40 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             == cls.price_estimation_behaviour.initial_state
         )
 
-    @staticmethod
-    def fast_forward_to_state(behaviour: AbstractRoundBehaviour, state_id: str) -> None:
+    def fast_forward_to_state(
+        self,
+        behaviour: AbstractRoundBehaviour,
+        state_id: str,
+        period_state: BasePeriodState,
+    ) -> None:
         """Fast forward the FSM to a state."""
         next_state = behaviour.get_state(state_id)
         assert next_state is not None, f"State {state_id} not found"
-        behaviour.current = cast(BaseState, next_state).state_id
+        next_state = cast(BaseState, next_state)
+        behaviour.current = next_state.state_id
+        self.skill.skill_context.state.period._round_results.append(period_state)
+        if next_state.matching_round is not None:
+            self.skill.skill_context.state.period._current_round = (
+                next_state.matching_round(
+                    period_state, self.skill.skill_context.params.consensus_params
+                )
+            )
+
+    def end_round(self) -> None:
+        """Ends round early to cover `wait_for_end` generator."""
+        if self.price_estimation_behaviour.current is None:
+            return
+        current_state = self.price_estimation_behaviour.get_state(
+            self.price_estimation_behaviour.current
+        )
+        if current_state is None:
+            return
+        current_state = cast(BaseState, current_state)
+        if current_state.matching_round is None:
+            return
+        current_state.context.state.period._last_round = DummyRoundId(
+            current_state.matching_round.round_id
+        )
 
     @classmethod
     def teardown(cls) -> None:
@@ -158,6 +215,8 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             TendermintHealthcheckBehaviour.state_id
         )
         assert not state.is_done()
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_not_live_raises(self):
         """Test the tendermint health check raises if not healthy for too long."""
@@ -227,7 +286,9 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
     def test_registration(self):
         """Test registration."""
         self.fast_forward_to_state(
-            self.price_estimation_behaviour, RegistrationBehaviour.state_id
+            self.price_estimation_behaviour,
+            RegistrationBehaviour.state_id,
+            PeriodState(),
         )
         assert self.price_estimation_behaviour.current == RegistrationBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
@@ -303,3 +364,574 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
         #     self.http_handler.handle(incoming_message)  # noqa: E800
         # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
         # assert state.is_done()  # noqa: E800
+        self.end_round()
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test SelectKeeperBehaviour."""
+
+    def test_observe_behaviour(
+        self,
+    ):
+        """Test select keeper agent."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=SelectKeeperABehaviour.state_id,
+            period_state=PeriodState(
+                participants,
+                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+            ),
+        )
+        assert (
+            self.price_estimation_behaviour.current == SelectKeeperABehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.end_round()
+        self.price_estimation_behaviour.act_wrapper()
+        state = self.price_estimation_behaviour.get_state(
+            SelectKeeperABehaviour.state_id
+        )
+        assert state.is_done()
+
+
+class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test DeploySafeBehaviour."""
+
+    def test_deployer_act(
+        self,
+    ):
+        """Run tests."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        most_voted_keeper_address = self.skill.skill_context.agent_address
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            DeploySafeBehaviour.state_id,
+            PeriodState(
+                participants=participants,
+                most_voted_keeper_address=most_voted_keeper_address,
+            ),
+        )
+        assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+
+        # self.assert_quantity_in_outbox(1) # noqa: E800
+        # actual_contract_ledger_message = self.get_message_from_outbox() # noqa: E800
+        # has_attributes, error_str = self.message_has_attributes( # noqa: E800
+        #     actual_message=actual_contract_ledger_message, # noqa: E800
+        #     message_type=ContractApiMessage, # noqa: E800
+        #     performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION, # noqa: E800
+        #     to=str(LEDGER_CLIENT_PUBLIC_ID), # noqa: E800
+        #     sender=str(self.skill.skill_context.skill_id), # noqa: E800
+        # ) # noqa: E800
+        # assert has_attributes, error_str # noqa: E800
+        # self.price_estimation_behaviour.act_wrapper() # noqa: E800
+
+    def test_not_deployer_act(
+        self,
+    ):
+        """Run tests."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        most_voted_keeper_address = "a_1"
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            DeploySafeBehaviour.state_id,
+            PeriodState(
+                participants=participants,
+                most_voted_keeper_address=most_voted_keeper_address,
+            ),
+        )
+        assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        self.end_round()
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test ObserveBehaviour."""
+
+    def test_observer_behaviour(
+        self,
+    ):
+        """Run tests."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
+        )
+        assert self.price_estimation_behaviour.current == ObserveBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(0)
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"bitcoin": {"usd": 54566}}).encode("utf-8"),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.end_round()
+        self.price_estimation_behaviour.act_wrapper()
+        state = self.price_estimation_behaviour.get_state(ObserveBehaviour.state_id)
+        assert state.is_done()
+
+    def test_obeserved_value_none(
+        self,
+    ):
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
+        )
+        assert self.price_estimation_behaviour.current == ObserveBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(0)
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body="".encode("utf-8"),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+    def test_setfail(
+        self,
+    ):
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
+        )
+        assert self.price_estimation_behaviour.current == ObserveBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        state = self.price_estimation_behaviour.get_state(ObserveBehaviour.state_id)
+        for _ in range(100):
+            state.context.price_api.increment_retries()
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestWaitBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test WaitBehaviour."""
+
+    def test_wait_behaviour(
+        self,
+    ):
+        """Run tests."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour, WaitBehaviour.state_id, PeriodState()
+        )
+        assert self.price_estimation_behaviour.current == WaitBehaviour.state_id
+        with pytest.raises(AEAActException):
+            self.price_estimation_behaviour.act_wrapper()
+
+
+class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test EstimateBehaviour."""
+
+    def test_estimate(
+        self,
+    ):
+        """Test estimate behaviour."""
+
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=EstimateBehaviour.state_id,
+            period_state=PeriodState(estimate=1.0),
+        )
+        assert self.price_estimation_behaviour.current == EstimateBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.end_round()
+        self.price_estimation_behaviour.act_wrapper()
+        state = self.price_estimation_behaviour.get_state(EstimateBehaviour.state_id)
+        assert state.is_done()
+
+
+class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test EstimateBehaviour."""
+
+    def test_estimate(
+        self,
+    ):
+        """Test estimate behaviour."""
+
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=TransactionHashBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=1.0,
+                safe_contract_address="safe_contract_address",
+                most_voted_keeper_address="most_voted_keeper_address",
+            ),
+        )
+        assert (
+            self.price_estimation_behaviour.current == TransactionHashBehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test SignatureBehaviour."""
+
+    def test_signature_behaviour(
+        self,
+    ):
+        """Test signature behaviour."""
+
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=SignatureBehaviour.state_id,
+            period_state=PeriodState(most_voted_tx_hash="68656c6c6f776f726c64"),
+        )
+        assert self.price_estimation_behaviour.current == SignatureBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.end_round()
+        self.price_estimation_behaviour.act_wrapper()
+        state = self.price_estimation_behaviour.get_state(SignatureBehaviour.state_id)
+        assert state.is_done()
+
+
+class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test FinalizeBehaviour."""
+
+    def test_non_sender_act(
+        self,
+    ):
+        """Test finalize behaviour."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_keeper_address="most_voted_keeper_address",
+                participants=participants,
+            ),
+        )
+        assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+
+    def test_sender_act(
+        self,
+    ):
+        """Test finalize behaviour."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_keeper_address=self.skill.skill_context.agent_address,
+                safe_contract_address="safe_contract_address",
+                participants=participants,
+                most_voted_estimate=1.0,
+                participant_to_signature=[],
+            ),
+        )
+        assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test EndBehaviour."""
+
+    def test_end_behaviour(
+        self,
+    ):
+        """Test end behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=EndBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_estimate="most_voted_estimate",
+                final_tx_hash="68656c6c6f776f726c64",
+            ),
+        )
+        assert self.price_estimation_behaviour.current == EndBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        self.price_estimation_behaviour.act_wrapper()

@@ -1,0 +1,101 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Test the payloads.py module of the skill."""
+
+from packages.valory.skills.price_estimation_abci.payloads import (
+    DeploySafePayload,
+    EstimatePayload,
+    FinalizationTxPayload,
+    ObservationPayload,
+    SelectKeeperPayload,
+    SignaturePayload,
+    TransactionHashPayload,
+    TransactionType,
+)
+
+
+def test_select_keeper_payload():
+    """Test `SelectKeeperPayload`."""
+
+    payload = SelectKeeperPayload(sender="sender", keeper="keeper")
+
+    assert payload.keeper == "keeper"
+    assert payload.data == {"keeper": "keeper"}
+    assert payload.transaction_type == TransactionType.SELECT_KEEPER
+
+
+def test_deploy_safe_payload():
+    """Test `DeploySafePayload`."""
+
+    payload = DeploySafePayload(sender="sender", safe_contract_address="address")
+
+    assert payload.safe_contract_address == "address"
+    assert payload.data == {"safe_contract_address": "address"}
+    assert payload.transaction_type == TransactionType.DEPLOY_SAFE
+
+
+def test_observation_payload():
+    """Test `ObservationPayload`."""
+
+    payload = ObservationPayload(sender="sender", observation=1.0)
+
+    assert payload.observation == 1.0
+    assert payload.data == {"observation": 1.0}
+    assert payload.transaction_type == TransactionType.OBSERVATION
+
+
+def test_estimate_payload():
+    """Test `EstimatePayload`."""
+
+    payload = EstimatePayload(sender="sender", estimate=1.0)
+
+    assert payload.estimate == 1.0
+    assert payload.data == {"estimate": 1.0}
+    assert payload.transaction_type == TransactionType.ESTIMATE
+
+
+def test_signature_payload():
+    """Test `SignaturePayload`."""
+
+    payload = SignaturePayload(sender="sender", signature="sign")
+
+    assert payload.signature == "sign"
+    assert payload.data == {"signature": "sign"}
+    assert payload.transaction_type == TransactionType.SIGNATURE
+
+
+def test_transaction_hash_payload():
+    """Test `TransactionHashPayload`."""
+
+    payload = TransactionHashPayload(sender="sender", tx_hash="hash")
+
+    assert payload.tx_hash == "hash"
+    assert payload.data == {"tx_hash": "hash"}
+    assert payload.transaction_type == TransactionType.TX_HASH
+
+
+def test_finalization_tx_payload():
+    """Test `FinalizationTxPayload`."""
+
+    payload = FinalizationTxPayload(sender="sender", tx_hash="hash")
+
+    assert payload.tx_hash == "hash"
+    assert payload.data == {"tx_hash": "hash"}
+    assert payload.transaction_type == TransactionType.FINALIZATION
