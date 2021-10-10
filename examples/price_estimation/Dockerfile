@@ -11,9 +11,6 @@ RUN sudo apt-get install wait-for-it -y
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install "aea[all]>=1.0.0,<2.0.0"
-RUN python -m pip install "gnosis-py>=3.1.16,<4.0.0"
-RUN python -m pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps
-
 
 COPY packages /home/ubuntu/packages
 

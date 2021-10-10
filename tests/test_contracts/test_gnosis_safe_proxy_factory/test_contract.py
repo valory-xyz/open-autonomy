@@ -80,3 +80,12 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
                 for key in result[0].keys()
             ]
         )
+
+    def test_verify(self):
+        """Test verification of deployed contract results."""
+        result = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+        )
+
+        assert result["verified"], "Contract not verified."

@@ -15,10 +15,6 @@ Distributed consensus meets the AEA framework.
 - Create and launch a virtual environment with Python 3.8 (any Python `>=` 3.6 works):
 
       pipenv --python 3.8 && pipenv shell
-      pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps
-
-  We need to add `--no-deps` flag because of conflicting subdependencies.
-  You can ignore the error message from the command `pip install`.
 
 - Install the package from source:
 

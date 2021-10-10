@@ -19,6 +19,7 @@
 
 """Tests for valory/gnosis contract."""
 
+import binascii
 import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -28,7 +29,12 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
 
-from tests.conftest import ETHEREUM_KEY_PATH_1, ETHEREUM_KEY_PATH_2, ROOT_DIR
+from tests.conftest import (
+    ETHEREUM_KEY_PATH_1,
+    ETHEREUM_KEY_PATH_2,
+    ETHEREUM_KEY_PATH_3,
+    ROOT_DIR,
+)
 from tests.helpers.contracts import get_register_contract
 from tests.test_contracts.base import BaseGanacheContractTest, BaseHardhatContractTest
 
@@ -185,7 +191,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     ):
         """Test exceptions."""
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="Threshold cannot be bigger than the number of unique owners",
+        ):
             # Tests for `ValueError("Threshold cannot be bigger than the number of unique owners")`.`
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
@@ -194,7 +203,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 threshold=1,
             )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Client does not have any funds"):
             # Tests for  `ValueError("Client does not have any funds")`.
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
@@ -218,42 +227,60 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         with pytest.raises(NotImplementedError):
             self.contract.get_state(None, None)
 
+    def test_verify(self):
+        """Run verify test."""
+        result = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+        )
+        assert result["verified"], "Contract not verified."
 
-@pytest.mark.skip
-class TestRawSafeTransaction(BaseContractTest):
+
+class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
 
     def test_run(self):
         """Run tests."""
+        value = 0
+        data = b""
         sender = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
         )
+        # note: sender.address == self.owners()[1]  # noqa:  E800
         receiver = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
         )
+        # note: receiver.address == self.owners()[2]  # noqa:  E800
+        fourth = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_3
+        )
+        # note: fourth.address == self.owners()[3]  # noqa:  E800
+        cryptos = [self.deployer_crypto, sender, receiver, fourth]
+        tx_hash = self.contract.get_raw_safe_transaction_hash(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            to_address=receiver.address,
+            value=value,
+            data=data,
+        )["tx_hash"]
+        b_tx_hash = binascii.unhexlify(tx_hash[2:])
+        signatures_by_owners = {
+            crypto.address: crypto.sign_message(b_tx_hash, is_deprecated_mode=True)[2:]
+            for crypto in cryptos
+        }
+        assert [key for key in signatures_by_owners.keys()] == self.owners()
 
         self.contract.get_raw_safe_transaction(
-            self.ledger_api,
-            self.deployer_crypto.address,
-            sender.address,
-            self.owners(),
-            receiver.address,
-            10,
-            b"",
-            {},
-        )
-
-
-@pytest.mark.skip
-class TestRawSafeTransactionHash(BaseContractTest):
-    """Test `get_raw_safe_transaction_hash` method."""
-
-    def test_run(self):
-        """Run tests."""
-        receiver = crypto_registry.make(
-            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
-        )
-
-        self.contract.get_raw_safe_transaction_hash(
-            self.ledger_api, self.deployer_crypto.address, receiver.address, 10, b""
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            sender_address=sender.address,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=receiver.address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
         )

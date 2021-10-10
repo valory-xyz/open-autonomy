@@ -33,6 +33,7 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
+from web3.exceptions import TransactionNotFound
 from web3.types import TxParams, Wei
 
 
@@ -46,11 +47,7 @@ NULL_ADDRESS: str = "0x" + "0" * 40
 SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"
 PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
-
-
-def keccak256(input_: bytes) -> bytes:
-    """Compute hash."""
-    return bytes(bytearray.fromhex(EthereumApi.get_hash(input_)[2:]))
+SAFE_DEPLOYED_BYTECODE = "0x608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea2646970667358221220d1429297349653a4918076d650332de1a1068c5f3e07c5c82360c277770b955264736f6c63430007060033"
 
 
 def _get_nonce() -> int:
@@ -191,7 +188,7 @@ class GnosisSafeContract(Contract):
         if not ledger_api.api.eth.getCode(
             safe_contract_address
         ) or not ledger_api.api.eth.getCode(proxy_factory_address):
-            raise ValueError("Network not supported")
+            raise ValueError("Network not supported")  # pragma: nocover
 
         _logger.info(
             "Creating new Safe with owners=%s threshold=%s "
@@ -225,7 +222,7 @@ class GnosisSafeContract(Contract):
             )
         )
         if nonce is None:
-            raise ValueError("No nonce returned.")
+            raise ValueError("No nonce returned.")  # pragma: nocover
         # TOFIX: lazy import until contract dependencies supported in AEA
         from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (  # pylint: disable=import-outside-toplevel
             GnosisSafeProxyFactoryContract,
@@ -295,7 +292,7 @@ class GnosisSafeContract(Contract):
                 block_identifier="latest"
             )
         if chain_id is None:
-            chain_id = ledger_api.api.eth.chain_id
+            chain_id = ledger_api.api.eth.chainId
 
         data_ = HexBytes(data).hex()
 
@@ -396,7 +393,7 @@ class GnosisSafeContract(Contract):
         signatures = b""
         for signer in sorted_owners:
             if signer not in signatures_by_owner:
-                continue
+                continue  # pragma: nocover
             signature = signatures_by_owner[signer]
             signature_bytes = binascii.unhexlify(signature)
             signatures += signature_bytes
@@ -423,7 +420,7 @@ class GnosisSafeContract(Contract):
             refund_receiver,
             signatures,
         )
-        tx_gas_price = gas_price or ledger_api.api.eth.gas_price
+        tx_gas_price = gas_price or ledger_api.api.eth.gasPrice
         tx_parameters = {
             "from": sender_address,
             "gasPrice": tx_gas_price,
@@ -432,7 +429,49 @@ class GnosisSafeContract(Contract):
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
         )
-        transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
+        transaction_dict["nonce"] = ledger_api.api.eth.getTransactionCount(
             ledger_api.api.toChecksumAddress(sender_address)
         )
         return transaction_dict
+
+    @classmethod
+    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+        """
+        Verify the contract's bytecode
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        deployed_bytecode = ledger_api.api.eth.getCode(contract_address).hex()
+        # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
+        # contract is created via a proxy
+        local_bytecode = SAFE_DEPLOYED_BYTECODE
+        verified = deployed_bytecode == local_bytecode
+        return dict(verified=verified)
+
+    @classmethod
+    def verify_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,  # pylint: disable=unused-argument
+        tx_hash: str,
+    ) -> JSONLike:
+        """
+        Verify a tx hash exists on the blockchain.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+
+        try:
+            res = ledger_api.api.eth.getTransaction(tx_hash)
+            _logger.info(f"TX HASH: {tx_hash}RESULT:{res}")
+            # TOFIX: verify hash is of transaction to right contract
+            return dict(verified=True)
+        except TransactionNotFound:
+            return dict(verified=False)
