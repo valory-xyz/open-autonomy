@@ -29,6 +29,7 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     REGISTRATION = "registration"
+    RANDOMNESS = "randomness"
     SELECT_KEEPER = "select_keeper"
     DEPLOY_SAFE = "deploy_safe"
     VALIDATE = "validate"
@@ -51,6 +52,41 @@ class RegistrationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
+
+
+class RandomnessPayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'randomness'."""
+
+    transaction_type = TransactionType.RANDOMNESS
+
+    def __init__(
+        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param round_id: the round id
+        :param randomness: the randomness
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._round_id = round_id
+        self._randomness = randomness
+
+    @property
+    def round_id(self) -> int:
+        """Get the round id."""
+        return self._round_id
+
+    @property
+    def randomness(self) -> str:
+        """Get the randomness."""
+        return self._randomness
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(round_id=self._round_id, randomness=self._randomness)
 
 
 class SelectKeeperPayload(BasePriceEstimationPayload):
