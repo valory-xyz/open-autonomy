@@ -39,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ERROR_CODE,
     SignatureNotValidError,
     Transaction,
+    TransactionNotValidError,
     TransactionTypeNotRecognizedError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
@@ -78,7 +79,11 @@ class ABCIRoundHandler(ABCIHandler):
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
             cast(SharedState, self.context.state).period.check_is_finished()
-        except (SignatureNotValidError, ValueError) as exception:
+        except (
+            SignatureNotValidError,
+            TransactionTypeNotRecognizedError,
+            TransactionNotValidError,
+        ) as exception:
             self._log_exception(exception)
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
@@ -100,6 +105,7 @@ class ABCIRoundHandler(ABCIHandler):
         except (
             SignatureNotValidError,
             TransactionTypeNotRecognizedError,
+            TransactionNotValidError,
         ) as exception:
             self._log_exception(exception)
             return self._deliver_tx_failed(

@@ -91,6 +91,10 @@ class TransactionTypeNotRecognizedError(ABCIAppException):
     """Error raised when a transaction type is not recognized."""
 
 
+class TransactionNotValidError(ABCIAppException):
+    """Error raised when a transaction is not valid."""
+
+
 class _MetaPayload(ABCMeta):
     """
     Payload metaclass.
