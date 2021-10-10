@@ -102,7 +102,7 @@ class AsyncBehaviour(ABC):
         self.__generator_act: Optional[Generator] = None
 
         # temporary variables for the waiting message state
-        self.__stopped: bool = False
+        self.__stopped: bool = True
         self.__notified: bool = False
         self.__message: Any = None
 

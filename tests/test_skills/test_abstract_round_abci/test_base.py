@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+import re
 from abc import ABC
 from copy import copy
 from enum import Enum
@@ -377,6 +378,12 @@ class TestBasePeriodState:
         actual = self.base_period_state.update(participants=participants)
         assert expected.participants == actual.participants
 
+    def test_repr(self):
+        """Test the '__repr__' magic method."""
+        actual_repr = repr(self.base_period_state)
+        expected_repr_regex = r"BasePeriodState\({(.*)}\)"
+        assert re.match(expected_repr_regex, actual_repr) is not None
+
 
 class TestAbstractRound:
     """Test the 'AbstractRound' class."""
@@ -455,6 +462,10 @@ class TestPeriod:
         assert not self.period.is_finished
         self.period._current_round = None
         assert self.period.is_finished
+
+    def test_last_round(self):
+        """Test 'last_round' property."""
+        assert self.period.last_round_id is None
 
     def test_check_is_finished_negative(self):
         """Test 'check_is_finished', negative case."""
