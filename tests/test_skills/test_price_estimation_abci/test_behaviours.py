@@ -373,7 +373,7 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=SelectKeeperABehaviour.state_id,
-            period_state=PeriodState(participants),
+            period_state=PeriodState(participants, most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"),
         )
         assert (
             self.price_estimation_behaviour.current == SelectKeeperABehaviour.state_id
@@ -488,29 +488,6 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
-        self.price_estimation_behaviour.act_wrapper()
-        self.end_round()
-        self.price_estimation_behaviour.act_wrapper()
-        time.sleep(1)
-        self.price_estimation_behaviour.act_wrapper()
-
-    def test_not_deployer_act_with_timeout(
-        self,
-    ):
-        """Run tests."""
-        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
-        most_voted_keeper_address = "a_1"
-        self.fast_forward_to_state(
-            self.price_estimation_behaviour,
-            DeploySafeBehaviour.state_id,
-            PeriodState(
-                participants=participants,
-                most_voted_keeper_address=most_voted_keeper_address,
-            ),
-        )
-        assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
-        state = self.price_estimation_behaviour.get_state(DeploySafeBehaviour.state_id)
-        state.shared_state.context.params.keeper_timeout_seconds = -1
         self.price_estimation_behaviour.act_wrapper()
         self.end_round()
         self.price_estimation_behaviour.act_wrapper()
@@ -923,7 +900,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 most_voted_keeper_address=self.skill.skill_context.agent_address,
                 safe_contract_address="safe_contract_address",
                 participants=participants,
-                estimate=1.0,
+                most_voted_estimate=1.0,
                 participant_to_signature=[],
             ),
         )
