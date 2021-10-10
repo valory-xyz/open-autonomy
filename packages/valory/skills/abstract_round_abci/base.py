@@ -68,15 +68,31 @@ def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
     return ceil((2 * n + 1) / 3)
 
 
-class SignatureNotValidError(ValueError):
+class ABCIAppException(Exception):
+    """A parent class for all exceptions related to the ABCIApp."""
+
+
+class SignatureNotValidError(ABCIAppException):
     """Error raised when a signature is invalid."""
 
 
-class AddBlockError(ValueError):
-    """Error raised when a block addition is not valid."""
+class AddBlockError(ABCIAppException):
+    """Exception raised when a block addition is not valid."""
 
 
-class TransactionNotValidError(ValueError):
+class ABCIAppInternalError(ABCIAppException):
+    """Internal error due to a bad implementation of the ABCIApp."""
+
+    def __init__(self, message: str, *args: Any) -> None:
+        """Initialize the error object."""
+        super().__init__("internal error: " + message, *args)
+
+
+class TransactionTypeNotRecognizedError(ABCIAppException):
+    """Error raised when a transaction type is not recognized."""
+
+
+class TransactionNotValidError(ABCIAppException):
     """Error raised when a transaction is not valid."""
 
 
@@ -231,7 +247,12 @@ class Transaction(ABC):
         return Transaction(payload, signature)
 
     def verify(self, ledger_id: str) -> None:
-        """Verify the signature is correct."""
+        """
+        Verify the signature is correct.
+
+        :param ledger_id: the ledger id of the address
+        :raises: SignatureNotValidError: if the signature is not valid.
+        """
         payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=payload_bytes, signature=self.signature
@@ -454,7 +475,7 @@ class AbstractRound(ABC):
         """Get the period state."""
         return self._state
 
-    def check_transaction(self, transaction: Transaction) -> bool:
+    def check_transaction(self, transaction: Transaction) -> None:
         """
         Check transaction against the current state.
 
@@ -462,16 +483,18 @@ class AbstractRound(ABC):
         of the class that is named 'check_{payload_name}'.
 
         :param transaction: the transaction
-        :return: True if the transaction can be applied to the current
-            state, False otherwise.
+        :raises:
+            TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
+        :return: None
         """
         tx_type = transaction.payload.transaction_type.value
-        payload_handler: Callable[[BaseTxPayload], bool] = getattr(
+        payload_handler: Callable[[BaseTxPayload], None] = getattr(
             self, "check_" + tx_type, None
         )
         if payload_handler is None:
-            # request not recognized
-            return False
+            raise TransactionTypeNotRecognizedError(
+                f"request '{tx_type}' not recognized"
+            )
         return payload_handler(transaction.payload)
 
     def process_transaction(self, transaction: Transaction) -> None:
@@ -486,9 +509,10 @@ class AbstractRound(ABC):
         tx_type = transaction.payload.transaction_type.value
         handler: Callable[[BaseTxPayload], None] = getattr(self, tx_type, None)
         if handler is None:
-            raise ValueError("request not recognized")
-        if not self.check_transaction(transaction):
-            raise TransactionNotValidError("transaction not valid")
+            raise TransactionTypeNotRecognizedError(
+                f"request '{tx_type}' not recognized"
+            )
+        self.check_transaction(transaction)
         handler(transaction.payload)
 
     @abstractmethod
@@ -604,12 +628,12 @@ class Period:
     def begin_block(self, header: Header) -> None:
         """Begin block."""
         if self.is_finished:
-            raise ValueError("period is finished, cannot accept new blocks")
+            raise ABCIAppInternalError("period is finished, cannot accept new blocks")
         if (
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         ):
-            raise ValueError("cannot accept a 'begin_block' request.")
+            raise ABCIAppInternalError("cannot accept a 'begin_block' request.")
 
         # skip degenerate rounds
         self._skip_degenerate_rounds()
@@ -621,27 +645,23 @@ class Period:
         self._block_builder.reset()
         self._block_builder.header = header
 
-    def deliver_tx(self, transaction: Transaction) -> bool:
+    def deliver_tx(self, transaction: Transaction) -> None:
         """
         Deliver a transaction.
 
         Appends the transaction to build the block on 'end_block' later.
 
         :param transaction: the transaction.
-        :return: True if the transaction delivery was successful, False otherwise.
+        :raises:  an Error otherwise.
         """
         if (
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
-            raise ValueError("cannot accept a 'deliver_tx' request.")
-        is_valid = cast(AbstractRound, self._current_round).check_transaction(
-            transaction
-        )
-        if is_valid:
-            self.current_round.process_transaction(transaction)
-            self._block_builder.add_transaction(transaction)
-        return is_valid
+            raise ABCIAppInternalError("cannot accept a 'deliver_tx' request")
+        cast(AbstractRound, self._current_round).check_transaction(transaction)
+        self.current_round.process_transaction(transaction)
+        self._block_builder.add_transaction(transaction)
 
     def end_block(self) -> None:
         """Process the 'end_block' request."""
@@ -649,7 +669,7 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
-            raise ValueError("cannot accept a 'end_block' request.")
+            raise ABCIAppInternalError("cannot accept a 'end_block' request.")
         # The ABCI app now waits again for the next block
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_COMMIT
@@ -661,7 +681,7 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_COMMIT
         ):
-            raise ValueError("cannot accept a 'commit' request.")
+            raise ABCIAppInternalError("cannot accept a 'commit' request.")
         block = self._block_builder.get_block()
         try:
             self._blockchain.add_block(block)

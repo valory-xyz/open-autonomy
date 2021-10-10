@@ -30,6 +30,7 @@ from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbstractRound,
     AddBlockError,
     BasePeriodState,
@@ -39,7 +40,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     Blockchain,
     ConsensusParams,
     Period,
+    SignatureNotValidError,
     Transaction,
+    TransactionTypeNotRecognizedError,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.serializer import (
@@ -150,7 +153,7 @@ class TestTransactions:
 def test_verify_transaction_negative_case(*_mocks):
     """Test verify() of transaction, negative case."""
     transaction = Transaction(MagicMock(sender="right_sender", json={}), b"")
-    with pytest.raises(ValueError, match="signature not valid."):
+    with pytest.raises(SignatureNotValidError, match="signature not valid."):
         transaction.verify("")
 
 
@@ -243,7 +246,7 @@ class TestBlockchain:
         wrong_height = 42
         block = Block(MagicMock(height=wrong_height), [])
         with pytest.raises(
-            ValueError,
+            AddBlockError,
             match=f"expected height {self.blockchain.height + 1}, got {wrong_height}",
         ):
             self.blockchain.add_block(block)
@@ -395,9 +398,14 @@ class TestAbstractRound:
 
     def test_check_transaction_unknown_payload(self):
         """Test 'check_transaction' method, with unknown payload type."""
+        tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = "unknown_payload"
-        assert not self.round.check_transaction(tx_mock)
+        tx_mock.payload.transaction_type.value = tx_type
+        with pytest.raises(
+            TransactionTypeNotRecognizedError,
+            match=f"request '{tx_type}' not recognized",
+        ):
+            self.round.check_transaction(tx_mock)
 
     def test_check_transaction_known_payload(self):
         """Test 'check_transaction' method, with known payload type."""
@@ -407,17 +415,24 @@ class TestAbstractRound:
 
     def test_process_transaction_negative_unknown_payload(self):
         """Test 'process_transaction' method, with unknown payload type."""
+        tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = "unknown_payload"
-        with pytest.raises(ValueError, match="request not recognized"):
+        tx_mock.payload.transaction_type.value = tx_type
+        with pytest.raises(
+            TransactionTypeNotRecognizedError,
+            match=f"request '{tx_type}' not recognized",
+        ):
             self.round.process_transaction(tx_mock)
 
     def test_process_transaction_negative_check_transaction_fails(self):
         """Test 'process_transaction' method, with 'check_transaction' failing."""
         tx_mock = MagicMock()
         tx_mock.payload.transaction_type.value = "payload_a"
-        with mock.patch.object(self.round, "check_transaction", return_value=False):
-            with pytest.raises(ValueError, match="transaction not valid"):
+        error_message = "transaction not valid"
+        with mock.patch.object(
+            self.round, "check_transaction", side_effect=ValueError(error_message)
+        ):
+            with pytest.raises(ValueError, match=error_message):
                 self.round.process_transaction(tx_mock)
 
     def test_process_transaction_positive(self):
@@ -471,14 +486,18 @@ class TestPeriod:
         """Test 'begin_block' method, negative case (period is finished)."""
         self.period._current_round = None
         with pytest.raises(
-            ValueError, match="period is finished, cannot accept new blocks"
+            ABCIAppInternalError,
+            match="internal error: period is finished, cannot accept new blocks",
         ):
             self.period.begin_block(MagicMock())
 
     def test_begin_block_negative_wrong_phase(self):
         """Test 'begin_block' method, negative case (wrong phase)."""
         self.period._block_construction_phase = MagicMock()
-        with pytest.raises(ValueError, match="cannot accept a 'begin_block' request."):
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: cannot accept a 'begin_block' request.",
+        ):
             self.period.begin_block(MagicMock())
 
     def test_begin_block_positive(self):
@@ -487,7 +506,10 @@ class TestPeriod:
 
     def test_deliver_tx_negative_wrong_phase(self):
         """Test 'begin_block' method, negative (wrong phase)."""
-        with pytest.raises(ValueError, match="cannot accept a 'deliver_tx' request."):
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: cannot accept a 'deliver_tx' request",
+        ):
             self.period.deliver_tx(MagicMock())
 
     def test_deliver_tx_positive_not_valid(self):
@@ -501,7 +523,10 @@ class TestPeriod:
 
     def test_end_block_negative_wrong_phase(self):
         """Test 'end_block' method, negative case (wrong phase)."""
-        with pytest.raises(ValueError, match="cannot accept a 'end_block' request."):
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: cannot accept a 'end_block' request.",
+        ):
             self.period.end_block()
 
     def test_end_block_positive(self):
@@ -511,7 +536,10 @@ class TestPeriod:
 
     def test_commit_negative_wrong_phase(self):
         """Test 'end_block' method, negative case (wrong phase)."""
-        with pytest.raises(ValueError, match="cannot accept a 'commit' request."):
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: cannot accept a 'commit' request.",
+        ):
             self.period.commit()
 
     def test_commit_negative_exception(self):
