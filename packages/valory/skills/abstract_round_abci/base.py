@@ -459,7 +459,6 @@ class AbstractRound(ABC):
     """
 
     round_id: str
-    is_degenerate: bool = False
 
     def __init__(
         self,
@@ -635,9 +634,6 @@ class Period:
         ):
             raise ABCIAppInternalError("cannot accept a 'begin_block' request.")
 
-        # skip degenerate rounds
-        self._skip_degenerate_rounds()
-
         # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
@@ -712,11 +708,6 @@ class Period:
         self._round_results.append(round_result)
         self._current_round = next_round
         self._last_round = current_round
-
-    def _skip_degenerate_rounds(self) -> None:
-        """Skip degenerate rounds."""
-        while self.current_round.is_degenerate:
-            self._update_round()
 
 
 class BehaviourNotification(Enum):
