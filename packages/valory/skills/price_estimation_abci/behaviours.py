@@ -50,6 +50,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
+    RandomnessPayload,
     RegistrationPayload,
     SelectKeeperPayload,
     SignaturePayload,
@@ -64,6 +65,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     EstimateConsensusRound,
     FinalizationRound,
     PeriodState,
+    RandomnessRound,
     RegistrationRound,
     SelectKeeperARound,
     SelectKeeperBRound,
@@ -152,6 +154,46 @@ class RegistrationBehaviour(PriceEstimationBaseState):
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
+
+
+class RandomnessBehaviour(PriceEstimationBaseState):
+    """Check whether Tendermint nodes are running."""
+
+    state_id = "retrieve_randomness"
+    matching_round = RandomnessRound
+
+    def async_act(self) -> Generator:
+        """
+        Check whether tendermint is running or not.
+
+        Steps:
+        - Do a http request to the tendermint health check endpoint
+        - Retry until healthcheck passes or timeout is hit. Raise if timed out.
+        - If healthcheck passes set done event.
+        """
+        if self.params.is_health_check_timed_out():
+            # if the tendermint node cannot start then the app cannot work
+            raise RuntimeError("DRAND values not retrived!")
+
+        http_message, http_dialogue = self._build_http_request_message(
+            method="GET",
+            url="https://drand.cloudflare.com/public/latest",
+        )
+        response = yield from self._do_request(http_message, http_dialogue)
+
+        try:
+            result = json.loads(response.body.decode())
+            self.context.logger.info(f"Retrieved DRAND values: {result}.")
+            payload = RandomnessPayload(
+                self.context.agent_address, result["round"], result["randomness"]
+            )
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+            self.set_done()
+        except json.JSONDecodeError:
+            self.context.logger.error("Tendermint not running, trying again!")
+            yield from self.sleep(1)
+            self.params.increment_retries()
 
 
 class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
@@ -485,7 +527,6 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
-        self.shared_state.set_state_time(self.state_id)
         if self.context.agent_address != self.period_state.most_voted_keeper_address:
             yield from self._not_sender_act()
         else:
@@ -607,7 +648,8 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     initial_state_cls = TendermintHealthcheckBehaviour
     transition_function: TransitionFunction = {
         TendermintHealthcheckBehaviour: {DONE_EVENT: RegistrationBehaviour},
-        RegistrationBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
+        RegistrationBehaviour: {DONE_EVENT: RandomnessBehaviour},
+        RandomnessBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
         SelectKeeperABehaviour: {DONE_EVENT: DeploySafeBehaviour},
         DeploySafeBehaviour: {
             DONE_EVENT: ValidateSafeBehaviour,
