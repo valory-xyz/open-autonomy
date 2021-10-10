@@ -42,6 +42,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
+    ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.tools import aggregate
 
@@ -66,9 +67,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def __init__(  # pylint: disable=too-many-arguments
         self,
         participants: Optional[FrozenSet[str]] = None,
+        keeper_randomness: Optional[float] = 0.5,  # stub
+        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
+        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
         estimate: Optional[float] = None,
@@ -77,13 +80,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         most_voted_tx_hash: Optional[str] = None,
         participant_to_signature: Optional[Mapping[str, str]] = None,
         final_tx_hash: Optional[str] = None,
-        keeper_randomness: Optional[float] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
+        self._keeper_randomness = keeper_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
         self._participant_to_selection = participant_to_selection
+        self._participant_to_votes = participant_to_votes
         self._participant_to_observations = participant_to_observations
         self._participant_to_estimate = participant_to_estimate
         self._most_voted_estimate = most_voted_estimate
@@ -92,8 +96,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_tx_hash = most_voted_tx_hash
         self._participant_to_signature = participant_to_signature
         self._final_tx_hash = final_tx_hash
-        self._keeper_randomness = keeper_randomness
-        self._keeper_randomness = 0.5  # stub
+
+    @property
+    def keeper_randomness(self) -> float:
+        """Get the keeper's random number [0-1]."""
+        return cast(float, self._keeper_randomness)
 
     @property
     def most_voted_keeper_address(self) -> str:
@@ -121,6 +128,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'participant_to_selection' field is None",
         )
         return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
+
+    @property
+    def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
+        """Get the participant_to_votes."""
+        enforce(
+            self._participant_to_votes is not None,
+            "'participant_to_votes' field is None",
+        )
+        return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
 
     @property
     def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
@@ -173,24 +189,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(float, self._most_voted_estimate)
 
     @property
-    def encoded_estimate(self) -> bytes:
-        """Get the encoded estimate."""
-        return encode_float(self.estimate)
-
-    @property
     def encoded_most_voted_estimate(self) -> bytes:
         """Get the encoded (most voted) estimate."""
         return encode_float(self.most_voted_estimate)
-
-    @property
-    def keeper_randomness(self) -> float:
-        """Get the keeper's random number [0-1]."""
-        return cast(float, self._keeper_randomness)
-
-    @property
-    def observations(self) -> Tuple[ObservationPayload, ...]:
-        """Get the tuple of observations."""
-        return tuple(self.participant_to_observations.values())
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -270,6 +271,8 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
 
     Input: a set of participants (addresses)
     Output: the selected keeper.
+
+    It schedules the next_round_class.
     """
 
     next_round_class: Type[PriceEstimationAbstractRound]
@@ -280,7 +283,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
 
     def select_keeper(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
             # sender not in the set of participants.
@@ -353,10 +356,10 @@ class DeploySafeRound(PriceEstimationAbstractRound):
     """
     This class represents the deploy Safe round.
 
-    Input: a set of participants (addresses)
-    Output: a period state with the set of participants and the Safe contract address.
+    Input: a set of participants (addresses) and a keeper
+    Output: a period state with the set of participants, the keeper and the Safe contract address.
 
-    It schedules the CollectObservationRound.
+    It schedules the ValidateSafeRound.
     """
 
     round_id = "deploy_safe"
@@ -419,8 +422,91 @@ class DeploySafeRound(PriceEstimationAbstractRound):
             state = self.period_state.update(
                 safe_contract_address=self._contract_address
             )
-            next_round = CollectObservationRound(state, self._consensus_params)
+            next_round = ValidateSafeRound(state, self._consensus_params)
             return state, next_round
+        return None
+
+
+class ValidateRound(PriceEstimationAbstractRound):
+    """
+    This class represents the validate round.
+
+    Input: a period state with the set of participants, the keeper and the Safe contract address.
+    Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
+
+    It schedules the positive_next_round_class or negative_next_round_class.
+    """
+
+    positive_next_round_class: Type[PriceEstimationAbstractRound]
+    negative_next_round_class: Type[PriceEstimationAbstractRound]
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'collect-observation' round."""
+        super().__init__(*args, **kwargs)
+        self.participant_to_votes: Dict[str, ValidatePayload] = {}
+
+    def validate(self, payload: ValidatePayload) -> None:
+        """Handle a validate safe payload."""
+        sender = payload.sender
+
+        if sender not in self.period_state.participants:
+            # sender not in the set of participants.
+            return
+
+        if sender in self.participant_to_votes:
+            # sender has already sent its vote
+            return
+
+        self.participant_to_votes[sender] = payload
+
+    def check_validate(self, payload: ValidatePayload) -> bool:
+        """
+        Check a validate payload can be applied to the current state.
+
+        A validate transaction can be applied only if:
+        - the sender belongs to the set of participants
+        - the sender has not already submitted the transaction
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender_has_not_sent_vote_yet = payload.sender not in self.participant_to_votes
+        return sender_in_participant_set and sender_has_not_sent_vote_yet
+
+    @property
+    def positive_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        true_votes = sum(
+            [payload.vote for payload in self.participant_to_votes.values()]
+        )
+        # check that "true" has at least the consensus # of votes
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return true_votes >= consensus_threshold
+
+    @property
+    def negative_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        false_votes = len(self.participant_to_votes) - sum(
+            [payload.vote for payload in self.participant_to_votes.values()]
+        )
+        # check that "false" has at least the consensus # of votes
+        consensus_threshold = self._consensus_params.consensus_threshold
+        return false_votes >= consensus_threshold
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.positive_vote_threshold_reached:
+            state = self.period_state.update(
+                participant_to_votes=MappingProxyType(self.participant_to_votes)
+            )
+            next_round = self.positive_next_round_class(state, self._consensus_params)
+            return state, next_round
+        if self.negative_vote_threshold_reached:
+            state = self.period_state.update()
+            next_round_ = self.negative_next_round_class(state, self._consensus_params)
+            return state, next_round_
         return None
 
 
@@ -428,8 +514,8 @@ class CollectObservationRound(PriceEstimationAbstractRound):
     """
     This class represents the 'collect-observation' round.
 
-    Input: a period state with the set of participants
-    Ouptut: a new period state with the set of participants and the observations
+    Input: a period state with the prior round data
+    Ouptut: a new period state with the prior round data and the observations
 
     It schedules the EstimateConsensusRound.
     """
@@ -503,8 +589,10 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
     """
     This class represents the 'estimate_consensus' round.
 
-    Input: a period state with the set of participants and the observations
-    Ouptut: a new period state with also the votes for each estimate
+    Input: a period state with the prior round data
+    Ouptut: a new period state with the prior round data and the votes for each estimate
+
+    It schedules the TxHashRound.
     """
 
     round_id = "estimate_consensus"
@@ -582,10 +670,13 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
 
 
 class TxHashRound(PriceEstimationAbstractRound):
-    """This class represents the 'tx-hash' round.
+    """
+    This class represents the 'tx-hash' round.
 
-    Input: a period state with the set of participants
-    Ouptut: a new period state with also the votes for each tx hash
+    Input: a period state with the prior round data
+    Ouptut: a new period state with the prior round data and the votes for each tx hash
+
+    It schedules the CollectSignatureRound.
     """
 
     round_id = "tx_hash"
@@ -662,7 +753,14 @@ class TxHashRound(PriceEstimationAbstractRound):
 
 
 class CollectSignatureRound(PriceEstimationAbstractRound):
-    """This class represents the 'collect-signature' round."""
+    """
+    This class represents the 'collect-signature' round.
+
+    Input: a period state with the prior round data
+    Ouptut: a new period state with the prior round data and the signatures
+
+    It schedules the FinalizationRound.
+    """
 
     round_id = "collect_signature"
 
@@ -725,10 +823,10 @@ class FinalizationRound(PriceEstimationAbstractRound):
     """
     This class represents the finalization Safe round.
 
-    Input: participants' signatures
-    Output: the hash of the Safe transaction
+    Input: a period state with the prior round data
+    Output: a new period state with the prior round data and the hash of the Safe transaction
 
-    It schedules the ConsensusReachedRound.
+    It schedules the ValidateTransactionRound.
     """
 
     round_id = "finalization"
@@ -789,7 +887,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
         # if reached participant threshold, set the result
         if self.tx_hash_set:
             state = self.period_state.update(final_tx_hash=self._tx_hash)
-            next_round = ConsensusReachedRound(state, self._consensus_params)
+            next_round = ValidateTransactionRound(state, self._consensus_params)
             return state, next_round
         return None
 
@@ -801,7 +899,7 @@ class SelectKeeperARound(SelectKeeperRound):
     next_round_class = DeploySafeRound
 
     def select_keeper_a(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
     def check_select_keeper_a(self, payload: SelectKeeperPayload) -> bool:
@@ -816,7 +914,7 @@ class SelectKeeperBRound(SelectKeeperRound):
     next_round_class = FinalizationRound
 
     def select_keeper_b(self, payload: SelectKeeperPayload) -> None:
-        """Handle an 'select_keeper' payload."""
+        """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
     def check_select_keeper_b(self, payload: SelectKeeperPayload) -> bool:
@@ -825,10 +923,80 @@ class SelectKeeperBRound(SelectKeeperRound):
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):
-    """This class represents the 'consensus-reached' round."""
+    """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "consensus_reached"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
         """Process the end of the block."""
         return None
+
+
+class ValidateSafeRound(ValidateRound):
+    """
+    This class represents the validate Safe round.
+
+    Input: a period state with the prior round data
+    Output: a new period state with the prior round data and the validation of the contract address
+
+    It schedules the CollectObservationRound or SelectKeeperARound.
+    """
+
+    round_id = "validate_safe"
+    positive_next_round_class = CollectObservationRound
+    negative_next_round_class = SelectKeeperARound
+
+    def validate_safe(self, payload: ValidatePayload) -> None:
+        """
+        Handle a validate payload.
+
+        :param: payload: the payload.
+        """
+        super().validate(payload)
+
+    def check_validate_safe(self, payload: ValidatePayload) -> bool:
+        """
+        Check a validate safe payload can be applied to the current state.
+
+        A deploy safe transaction can be applied only if:
+        - the sender belongs to the set of participants
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        return super().check_validate(payload)
+
+
+class ValidateTransactionRound(ValidateRound):
+    """
+    This class represents the validate transaction round.
+
+    Input: a period state with the prior round data
+    Output: a new period state with the prior round data and the validation of the transaction
+
+    It schedules the ConsensusReachedRound or SelectKeeperARound.
+    """
+
+    round_id = "validate_transaction"
+    positive_next_round_class = ConsensusReachedRound
+    negative_next_round_class = SelectKeeperBRound
+
+    def validate_transaction(self, payload: ValidatePayload) -> None:
+        """
+        Handle a validate payload.
+
+        :param: payload: the payload.
+        """
+        super().validate(payload)
+
+    def check_validate_transaction(self, payload: ValidatePayload) -> bool:
+        """
+        Check a validate transaction payload can be applied to the current state.
+
+        A deploy safe transaction can be applied only if:
+        - the sender belongs to the set of participants
+
+        :param: payload: the payload.
+        :return: True if the observation tx is allowed, False otherwise.
+        """
+        return super().check_validate(payload)

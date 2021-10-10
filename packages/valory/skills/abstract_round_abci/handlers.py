@@ -354,5 +354,6 @@ class ContractApiHandler(AbstractResponseHandler):
             ContractApiMessage.Performative.RAW_TRANSACTION,
             ContractApiMessage.Performative.RAW_MESSAGE,
             ContractApiMessage.Performative.ERROR,
+            ContractApiMessage.Performative.STATE,
         }
     )
