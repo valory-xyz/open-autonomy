@@ -223,6 +223,62 @@ class PriceEstimationAbstractRound(AbstractRound, ABC):
         """Return the period state."""
         return cast(PeriodState, self._state)
 
+    @classmethod
+    def _sender_not_in_participants_error_message(
+        cls, sender: str, participants: FrozenSet[str]
+    ) -> str:
+        """Get the error message for sender not in participants set."""
+        return (
+            f"sender {sender} is not in the set of participants: {sorted(participants)}"
+        )
+
+    @classmethod
+    def _sender_already_sent_item(
+        cls, sender: str, item_name: str, item_value: Any
+    ) -> str:
+        """Get the error message for sender already sent item."""
+        return f"sender {sender} has already sent {item_name}: {item_value}"
+
+    @classmethod
+    def _sender_already_sent_signature(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent signature."""
+        return cls._sender_already_sent_item(sender, "its signature", item_value)
+
+    @classmethod
+    def _sender_already_sent_observation(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent observation."""
+        return cls._sender_already_sent_item(sender, "its observation", item_value)
+
+    @classmethod
+    def _sender_already_sent_estimate(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent estimate."""
+        return cls._sender_already_sent_item(sender, "the estimate", item_value)
+
+    @classmethod
+    def _sender_already_sent_selection(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent selection."""
+        return cls._sender_already_sent_item(sender, "the selection", item_value)
+
+    @classmethod
+    def _sender_already_sent_tx_hash(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent the tx hash."""
+        return cls._sender_already_sent_item(sender, "the tx hash", item_value)
+
+    @classmethod
+    def _sender_already_sent_vote(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent its vote."""
+        return cls._sender_already_sent_item(sender, "its vote", item_value)
+
+    @classmethod
+    def _sender_already_sent_contract_address(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent the contract address."""
+        return cls._sender_already_sent_item(sender, "the contract address", item_value)
+
+    @classmethod
+    def _sender_not_elected(cls, sender: str, elected_sender: str) -> str:
+        """Get the error message for sender not being the elected sender."""
+        return f"sender {sender} is not the elected sender: {elected_sender}"
+
 
 class TendermintHealthCheckRound(PriceEstimationAbstractRound):
     """
@@ -315,10 +371,19 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         """Handle a 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender in self.participant_to_selection:
-            raise ABCIAppInternalError("sender has already sent its estimate")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_selection(
+                    sender,
+                    self.participant_to_selection[sender].keeper,
+                )
+            )
 
         self.participant_to_selection[sender] = payload
 
@@ -333,18 +398,22 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender '{payload.sender}' not in the set of participants: {sorted(self.period_state.participants)}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
-        sender_has_not_sent_selection_yet = (
-            payload.sender not in self.participant_to_selection
-        )
+        sender_has_not_sent_selection_yet = sender not in self.participant_to_selection
         if not sender_has_not_sent_selection_yet:
             raise TransactionNotValidError(
-                f"sender '{payload.sender}' already sent the selection: {self.participant_to_selection[payload.sender]}"
+                self._sender_already_sent_selection(
+                    sender,
+                    self.participant_to_selection[sender].keeper,
+                )
             )
 
     @property
@@ -369,7 +438,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
             keepers_counter.items(), key=itemgetter(1)
         )
         if max_votes < self._consensus_params.consensus_threshold:
-            raise ValueError("keeper has not enough votes")
+            raise ABCIAppInternalError("keeper has not enough votes")
         return most_voted_keeper_address
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
@@ -408,13 +477,25 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         sender = payload.sender
 
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants.")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender != self.period_state.most_voted_keeper_address:
-            raise ABCIAppInternalError("the sender is not the elected sender")
+            raise ABCIAppInternalError(
+                self._sender_not_elected(
+                    sender, self.period_state.most_voted_keeper_address
+                )
+            )
 
         if self._contract_address is not None:
-            raise ABCIAppInternalError("contract address already set")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_contract_address(
+                    sender, self._contract_address
+                )
+            )
 
         self._contract_address = payload.safe_contract_address
 
@@ -429,23 +510,30 @@ class DeploySafeRound(PriceEstimationAbstractRound):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
-        sender_is_elected_sender = (
-            payload.sender == self.period_state.most_voted_keeper_address
-        )
+        sender_is_elected_sender = sender == self.period_state.most_voted_keeper_address
         if not sender_is_elected_sender:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the elected sender: {self.period_state.most_voted_keeper_address}"
+                self._sender_not_elected(
+                    sender, self.period_state.most_voted_keeper_address
+                )
             )
 
         contract_address_not_set_yet = self._contract_address is None
         if not contract_address_not_set_yet:
-            raise TransactionNotValidError("contract address not set yet")
+            raise TransactionNotValidError(
+                self._sender_already_sent_contract_address(
+                    sender, self._contract_address
+                )
+            )
 
     @property
     def is_contract_set(self) -> bool:
@@ -487,11 +575,18 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
 
         if sender not in self.period_state.participants:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
         if sender in self.participant_to_votes:
-            raise ABCIAppInternalError("sender has already sent its vote")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_vote(
+                    sender,
+                    self.participant_to_votes[sender].vote,
+                )
+            )
 
         self.participant_to_votes[sender] = payload
 
@@ -504,16 +599,22 @@ class ValidateSafeRound(PriceEstimationAbstractRound):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
-        sender_has_not_sent_vote_yet = payload.sender not in self.participant_to_votes
+        sender_has_not_sent_vote_yet = sender not in self.participant_to_votes
         if not sender_has_not_sent_vote_yet:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent its vote: {self.participant_to_votes[payload.sender]}"
+                self._sender_already_sent_vote(
+                    sender,
+                    str(self.participant_to_votes[sender].vote),
+                )
             )
 
     @property
@@ -573,10 +674,19 @@ class CollectObservationRound(PriceEstimationAbstractRound):
         """Handle an 'observation' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender in self.participant_to_observations:
-            raise ABCIAppInternalError("sender has already sent its observation")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_observation(
+                    sender,
+                    self.participant_to_observations[sender].observation,
+                )
+            )
 
         self.participant_to_observations[sender] = payload
 
@@ -590,18 +700,24 @@ class CollectObservationRound(PriceEstimationAbstractRound):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
         sender_has_not_sent_observation_yet = (
-            payload.sender not in self.participant_to_observations
+            sender not in self.participant_to_observations
         )
         if not sender_has_not_sent_observation_yet:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent its observation: {self.period_state.participant_to_observations}"
+                self._sender_already_sent_observation(
+                    sender,
+                    self.participant_to_observations[sender].observation,
+                )
             )
 
     @property
@@ -651,10 +767,19 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         """Handle an 'estimate' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender in self.participant_to_estimate:
-            raise ABCIAppInternalError("sender has already sent its estimate")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_estimate(
+                    sender,
+                    self.participant_to_estimate[sender].estimate,
+                )
+            )
 
         self.participant_to_estimate[sender] = payload
 
@@ -668,18 +793,22 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         - the sender has not sent its estimate yet
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
-        sender_has_not_sent_estimate_yet = (
-            payload.sender not in self.participant_to_estimate
-        )
+        sender_has_not_sent_estimate_yet = sender not in self.participant_to_estimate
         if not sender_has_not_sent_estimate_yet:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent its estimate: {self.period_state.participant_to_estimate[payload.sender]}"
+                self._sender_already_sent_estimate(
+                    sender,
+                    self.participant_to_estimate[sender].estimate,
+                )
             )
 
     @property
@@ -704,7 +833,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
             estimates_counter.items(), key=itemgetter(1)
         )
         if max_votes < self._consensus_params.consensus_threshold:
-            raise ValueError("estimate has not enough votes")
+            raise ABCIAppInternalError("estimate has not enough votes")
         return most_voted_estimate
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
@@ -737,10 +866,19 @@ class TxHashRound(PriceEstimationAbstractRound):
         """Handle a 'tx_hash' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender in self.participant_to_tx_hash:
-            raise ABCIAppInternalError("sender has already sent its tx hash")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_tx_hash(
+                    sender,
+                    self.participant_to_tx_hash[sender].tx_hash,
+                )
+            )
 
         self.participant_to_tx_hash[sender] = payload
 
@@ -755,17 +893,21 @@ class TxHashRound(PriceEstimationAbstractRound):
 
         :param payload: the payload to check
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
-        sender_has_not_sent_tx_hash_yet = (
-            payload.sender not in self.participant_to_tx_hash
-        )
+        sender_has_not_sent_tx_hash_yet = sender not in self.participant_to_tx_hash
         if not sender_has_not_sent_tx_hash_yet:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent its tx hash: {self.participant_to_tx_hash[payload.sender]}"
+                self._sender_already_sent_tx_hash(
+                    sender,
+                    self.participant_to_tx_hash[sender].tx_hash,
+                )
             )
 
     @property
@@ -788,7 +930,7 @@ class TxHashRound(PriceEstimationAbstractRound):
         )
         most_voted_tx_hash, max_votes = max(tx_counter.items(), key=itemgetter(1))
         if max_votes < self._consensus_params.consensus_threshold:
-            raise ValueError("tx hash has not enough votes")
+            raise ABCIAppInternalError("tx hash has not enough votes")
         return most_voted_tx_hash
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
@@ -817,14 +959,23 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
         """Handle a 'signature' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender in self.signatures_by_participant:
-            raise ABCIAppInternalError("sender has already sent its signature")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_signature(
+                    sender,
+                    self.signatures_by_participant[sender],
+                )
+            )
 
         self.signatures_by_participant[sender] = payload.signature
 
-    def check_signature(self, payload: EstimatePayload) -> bool:
+    def check_signature(self, payload: EstimatePayload) -> None:
         """
         Check a signature payload can be applied to the current state.
 
@@ -835,18 +986,22 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
 
-        sender_has_not_sent_signature_yet = (
-            payload.sender not in self.signatures_by_participant
-        )
+        sender_has_not_sent_signature_yet = sender not in self.signatures_by_participant
         if not sender_has_not_sent_signature_yet:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent its signature: {self.signatures_by_participant[payload.sender]}"
+                self._sender_already_sent_signature(
+                    sender,
+                    self.signatures_by_participant[sender],
+                )
             )
 
     @property
@@ -890,13 +1045,23 @@ class FinalizationRound(PriceEstimationAbstractRound):
         sender = payload.sender
 
         if sender not in self.period_state.participants:
-            raise ABCIAppInternalError("sender not in the set of participants")
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender != self.period_state.most_voted_keeper_address:
-            raise ABCIAppInternalError("the sender is not the elected sender")
+            raise ABCIAppInternalError(
+                self._sender_not_elected(
+                    sender, self.period_state.most_voted_keeper_address
+                )
+            )
 
         if self._tx_hash is not None:
-            raise ABCIAppInternalError("transaction already set")
+            raise ABCIAppInternalError(
+                self._sender_already_sent_tx_hash(sender, self._tx_hash)
+            )
 
         self._tx_hash = payload.tx_hash
 
@@ -911,22 +1076,25 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the set of participants: {self.period_state.participants}"
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
             )
-        sender_is_elected_sender = (
-            payload.sender == self.period_state.most_voted_keeper_address
-        )
+        sender_is_elected_sender = sender == self.period_state.most_voted_keeper_address
         if not sender_is_elected_sender:
             raise TransactionNotValidError(
-                f"sender {payload.sender} is not in the elected sender: {self.period_state.most_voted_keeper_address}"
+                self._sender_not_elected(
+                    sender, self.period_state.most_voted_keeper_address
+                )
             )
         tx_hash_not_set_yet = self._tx_hash is None
         if not tx_hash_not_set_yet:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent the tx hash: {self._tx_hash}"
+                self._sender_already_sent_tx_hash(sender, self._tx_hash)
             )
 
     @property
@@ -954,7 +1122,7 @@ class SelectKeeperARound(SelectKeeperRound):
         """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
-    def check_select_keeper_a(self, payload: SelectKeeperPayload) -> bool:
+    def check_select_keeper_a(self, payload: SelectKeeperPayload) -> None:
         """Check an select_keeper payload can be applied to the current state."""
         return super().check_select_keeper(payload)
 
@@ -969,7 +1137,7 @@ class SelectKeeperBRound(SelectKeeperRound):
         """Handle a 'select_keeper' payload."""
         super().select_keeper(payload)
 
-    def check_select_keeper_b(self, payload: SelectKeeperPayload) -> bool:
+    def check_select_keeper_b(self, payload: SelectKeeperPayload) -> None:
         """Check an select_keeper payload can be applied to the current state."""
         return super().check_select_keeper(payload)
 
