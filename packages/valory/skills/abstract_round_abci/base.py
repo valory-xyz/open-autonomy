@@ -19,6 +19,7 @@
 
 """This module contains the base classes for the models classes of the skill."""
 import logging
+import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 from enum import Enum
@@ -159,12 +160,14 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     transaction_type: Any
 
-    def __init__(self, sender: str) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """
         Initialize a transaction payload.
 
         :param sender: the sender (Ethereum) address
+        :param id_: the id of the transaction
         """
+        self.id_ = uuid.uuid4().hex if id_ is None else id_
         self.sender = sender
 
     def encode(self) -> bytes:
@@ -188,7 +191,10 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
     def json(self) -> Dict:
         """Get the JSON representation of the payload."""
         return dict(
-            transaction_type=str(self.transaction_type), sender=self.sender, **self.data
+            transaction_type=str(self.transaction_type),
+            id_=self.id_,
+            sender=self.sender,
+            **self.data,
         )
 
     @property
@@ -211,7 +217,11 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return self.sender == other.sender and self.data == other.data
+        return (
+            self.id_ == other.id_
+            and self.sender == other.sender
+            and self.data == other.data
+        )
 
 
 class Transaction(ABC):

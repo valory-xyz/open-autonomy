@@ -33,6 +33,7 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
+from web3.exceptions import TransactionNotFound
 from web3.types import TxParams, Wei
 
 
@@ -449,3 +450,28 @@ class GnosisSafeContract(Contract):
         local_bytecode = SAFE_DEPLOYED_BYTECODE
         verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)
+
+    @classmethod
+    def verify_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,  # pylint: disable=unused-argument
+        tx_hash: str,
+    ) -> JSONLike:
+        """
+        Verify a tx hash exists on the blockchain.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+
+        try:
+            res = ledger_api.api.eth.getTransaction(tx_hash)
+            _logger.info(f"TX HASH: {tx_hash}RESULT:{res}")
+            # TOFIX: verify hash is of transaction to right contract
+            return dict(verified=True)
+        except TransactionNotFound:
+            return dict(verified=False)

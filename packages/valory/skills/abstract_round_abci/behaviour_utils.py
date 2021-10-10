@@ -158,6 +158,8 @@ class AsyncBehaviour(ABC):
         """Wait for a condition to happen."""
         if timeout is not None:
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+        else:
+            deadline = datetime.datetime.max
 
         while not condition():
             if timeout is not None and datetime.datetime.now() > deadline:

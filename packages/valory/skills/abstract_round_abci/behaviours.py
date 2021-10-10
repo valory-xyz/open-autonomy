@@ -81,6 +81,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
                 self.current = None
                 return
             # if next state is set, overwrite successor (regardless of the event)
+            # this branch also handle the case when matching round of current state is not set
             if self._next_state is not None:
                 self.current = self._next_state
                 self._next_state = None
@@ -141,17 +142,18 @@ class AbstractRoundBehaviour(FSMBehaviour):
     def _process_behaviour_message(self, _message: BehaviourNotification) -> None:
         """Process a behaviour message."""
         # if message == BehaviourNotification.COMMITTED_BLOCK
-        new_round_id = self.context.state.period.current_round_id
-        if self._last_round_id == new_round_id:
+        current_round_id = self.context.state.period.current_round_id
+        if self._last_round_id == current_round_id:
             # round has not changed - do nothing
             return
-        self._last_round_id = new_round_id
-        self._next_state = self._round_to_state[self._last_round_id]
+        self._last_round_id = current_round_id
+        # the state behaviour might not have the matching round
+        self._next_state = self._round_to_state.get(current_round_id, None)
 
         # checking if current state behaviour has a matching round.
         #  if so, stop it and replace it with the new state behaviour
         #  if not, then leave it running; the next state will be scheduled
-        #  when current is done
+        #  when current state is done
         current_state = self.current_state
         if (
             current_state is not None
