@@ -89,6 +89,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
     )
+    price_estimation_behaviour: PriceEstimationConsensusBehaviour
 
     @classmethod
     def setup(cls):
@@ -139,13 +140,18 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
                 )
             )
 
-    def end_round(
-        self,
-    ) -> None:
+    def end_round(self) -> None:
         """Ends round early to cover `wait_for_end` generator."""
+        if self.price_estimation_behaviour.current is None:
+            return
         current_state = self.price_estimation_behaviour.get_state(
             self.price_estimation_behaviour.current
         )
+        if current_state is None:
+            return
+        current_state = cast(BaseState, current_state)
+        if current_state.matching_round is None:
+            return
         current_state.context.state.period._last_round = DummyRoundId(
             current_state.matching_round.round_id
         )
@@ -373,7 +379,10 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=SelectKeeperABehaviour.state_id,
-            period_state=PeriodState(participants, most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"),
+            period_state=PeriodState(
+                participants,
+                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+            ),
         )
         assert (
             self.price_estimation_behaviour.current == SelectKeeperABehaviour.state_id
