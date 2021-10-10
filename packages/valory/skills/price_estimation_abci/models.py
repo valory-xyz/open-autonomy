@@ -27,9 +27,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    TendermintHealthCheckRound,
-)
+from packages.valory.skills.price_estimation_abci.rounds import RegistrationRound
 
 
 Requests = BaseRequests
@@ -40,7 +38,7 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, initial_round_cls=TendermintHealthCheckRound, **kwargs)
+        super().__init__(*args, initial_round_cls=RegistrationRound, **kwargs)
         self._state_start_times: Dict[str, Optional[datetime]] = {
             "deploy_safe": None,
             "finalize": None,

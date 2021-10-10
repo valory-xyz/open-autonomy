@@ -69,7 +69,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RegistrationRound,
     SelectKeeperARound,
     SelectKeeperBRound,
-    TendermintHealthCheckRound,
     TxHashRound,
     ValidateSafeRound,
     ValidateTransactionRound,
@@ -104,7 +103,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
-    matching_round = TendermintHealthCheckRound
+    matching_round = None
 
     def async_act(self) -> Generator:
         """
@@ -126,7 +125,6 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         try:
             json.loads(result.body.decode())
             self.context.logger.info("Tendermint running.")
-            yield from self.wait_until_round_end()
             self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
