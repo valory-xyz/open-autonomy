@@ -1266,7 +1266,7 @@ class ValidateSafeRound(ValidateRound):
         """
         super().validate(payload)
 
-    def check_validate_safe(self, payload: ValidatePayload) -> bool:
+    def check_validate_safe(self, payload: ValidatePayload) -> None:
         """
         Check a validate safe payload can be applied to the current state.
 
@@ -1274,9 +1274,8 @@ class ValidateSafeRound(ValidateRound):
         - the sender belongs to the set of participants
 
         :param: payload: the payload.
-        :return: True if the observation tx is allowed, False otherwise.
         """
-        return super().check_validate(payload)
+        super().check_validate(payload)
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1301,7 +1300,7 @@ class ValidateTransactionRound(ValidateRound):
         """
         super().validate(payload)
 
-    def check_validate_transaction(self, payload: ValidatePayload) -> bool:
+    def check_validate_transaction(self, payload: ValidatePayload) -> None:
         """
         Check a validate transaction payload can be applied to the current state.
 
@@ -1309,6 +1308,5 @@ class ValidateTransactionRound(ValidateRound):
         - the sender belongs to the set of participants
 
         :param: payload: the payload.
-        :return: True if the observation tx is allowed, False otherwise.
         """
-        return super().check_validate(payload)
+        super().check_validate(payload)
