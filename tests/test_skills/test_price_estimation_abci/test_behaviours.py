@@ -119,7 +119,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             sender=str(ABCI_SERVER_PUBLIC_ID),
             height=100,
         )
-        self.abci_handler.handle(incoming_message)
+        self.abci_handler.handle(incoming_message)  # type: ignore
 
 
 class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
