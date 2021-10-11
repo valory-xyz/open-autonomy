@@ -259,7 +259,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
                 timeout=self.context.params.keeper_timeout_seconds
             )
             self.set_done()
-        except TimeoutException:
+        except TimeoutException:  # pragma: nocover
             self.set_exit_a()
 
     def _deployer_act(self) -> Generator:

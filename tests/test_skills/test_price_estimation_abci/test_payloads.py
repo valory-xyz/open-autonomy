@@ -24,11 +24,11 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
+    RandomnessPayload,
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
     TransactionType,
-    RandomnessPayload
 )
 
 
@@ -110,6 +110,6 @@ def test_randomness_payload():
     assert payload.round_id == 1
     assert payload.randomness == "1"
     assert payload.id_ == "id"
-    assert payload.data == { "round_id": 1, "randomness": "1" }
+    assert payload.data == {"round_id": 1, "randomness": "1"}
 
     assert payload.transaction_type == TransactionType.RANDOMNESS
