@@ -23,7 +23,7 @@ import logging
 import time
 from copy import copy
 from pathlib import Path
-from typing import Dict, cast
+from typing import cast
 from unittest.mock import patch
 from packages.fetchai.protocols.contract_api.custom_types import Kwargs
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
@@ -224,13 +224,19 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         self,
     ) -> None:
         """Ends round early to cover `wait_for_end` generator."""
+        if self.price_estimation_behaviour.current is None:
+            return
         current_state = self.price_estimation_behaviour.get_state(
             self.price_estimation_behaviour.current
         )
+        if current_state is None:
+            return
+        current_state = cast(BaseState, current_state)
+        if current_state.matching_round is None:
+            return
         current_state.context.state.period._last_round = DummyRoundId(
             current_state.matching_round.round_id
         )
-        self.price_estimation_behaviour.act_wrapper()
 
     @classmethod
     def teardown(cls) -> None:
@@ -567,7 +573,7 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=SelectKeeperABehaviour.state_id,
             period_state=PeriodState(
                 participants,
-                most_voted_randomness="3"
+                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"
             ),
         )
         assert (
