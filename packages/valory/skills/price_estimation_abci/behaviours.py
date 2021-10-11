@@ -270,7 +270,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         try:
             # TOFIX: here the deploy needs to time out and raise TimeoutException; timeout=self.context.params.keeper_timeout_seconds
             contract_address = yield from self._send_deploy_transaction()
-        except TimeoutException:
+        except TimeoutException:  # pragma: nocover
             self.set_exit_a()
             return
         payload = DeploySafePayload(self.context.agent_address, contract_address)
@@ -536,7 +536,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
                 timeout=self.context.params.keeper_timeout_seconds
             )
             self.set_done()
-        except TimeoutException:
+        except TimeoutException:  # pragma: nocover
             self.set_exit_b()
 
     def _sender_act(self) -> Generator[None, None, None]:
@@ -547,7 +547,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         try:
             # TOFIX: here the deploy needs to time out and raise TimeoutException; timeout=self.context.params.keeper_timeout_seconds
             tx_hash = yield from self._send_safe_transaction()
-        except TimeoutException:
+        except TimeoutException:  # pragma: nocover
             self.set_exit_b()
             return
         self.context.logger.info(

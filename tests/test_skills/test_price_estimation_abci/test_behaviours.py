@@ -23,12 +23,14 @@ import logging
 import time
 from copy import copy
 from pathlib import Path
-from typing import cast
+from typing import Dict, cast
 from unittest.mock import patch
+from packages.fetchai.protocols.contract_api.custom_types import Kwargs
+from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 
 import pytest
 from aea.exceptions import AEAActException
-from aea.helpers.transaction.base import SignedMessage
+from aea.helpers.transaction.base import RawTransaction, SignedMessage, SignedTransaction, TransactionDigest, TransactionReceipt, State as TrState
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.fetchai.connections.http_client.connection import (
@@ -45,6 +47,9 @@ from packages.fetchai.connections.ledger.connection import (
 from packages.valory.connections.abci.connection import (  # noqa: F401
     PUBLIC_ID as ABCI_SERVER_PUBLIC_ID,
 )
+from packages.valory.contracts.gnosis_safe.contract import (
+    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID
+)
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
@@ -60,20 +65,30 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     FinalizeBehaviour,
     ObserveBehaviour,
     PriceEstimationConsensusBehaviour,
+    RandomnessBehaviour,
     RegistrationBehaviour,
     SelectKeeperABehaviour,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,
     TransactionHashBehaviour,
+    ValidateSafeBehaviour,
+    ValidateTransactionBehaviour,
     WaitBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
     HttpHandler,
     SigningHandler,
+    ContractApiHandler,
+    LedgerApiHandler,
 )
 from packages.valory.skills.price_estimation_abci.rounds import PeriodState
 
 from tests.conftest import ROOT_DIR
+
+"""
+TODO:
+    Implement logic to end rounds properly.
+"""
 
 
 class DummyRoundId:
@@ -116,6 +131,11 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.signing_handler = cast(
             SigningHandler, cls._skill.skill_context.handlers.signing
         )
+        cls.contract_handler = ContractApiHandler(
+            "contract_handler", cls._skill.skill_context)
+        cls.ledger_handler = LedgerApiHandler(
+            "ledger_handler", cls._skill.skill_context)
+
         cls.price_estimation_behaviour.setup()
         cls._skill.skill_context.state.setup()
         assert (
@@ -142,6 +162,64 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
                 )
             )
 
+    def perform_mock_a2a_transaction(self,):
+        """Performs mock a2a transaction."""
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
     def end_round(
         self,
     ) -> None:
@@ -152,6 +230,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state.context.state.period._last_round = DummyRoundId(
             current_state.matching_round.round_id
         )
+        self.price_estimation_behaviour.act_wrapper()
 
     @classmethod
     def teardown(cls) -> None:
@@ -362,7 +441,117 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
         # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
         # assert state.is_done()  # noqa: E800
         self.end_round()
+
+
+class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test RandomnessBehaviour."""
+
+    def test_randomness_behaviour(self,):
+        """Test RandomnessBehaviour."""
+
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            RandomnessBehaviour.state_id,
+            PeriodState(),
+        )
+        assert self.price_estimation_behaviour.current == RandomnessBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"round": 1283255, "randomness": "04d4866c26e03347d2431caa82ab2d7b7bdbec8b58bca9460c96f5265d878feb"}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.perform_mock_a2a_transaction()
+        self.end_round()
+
+    def test_invalid_response(self,):
+        """Test invalid json response."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            RandomnessBehaviour.state_id,
+            PeriodState(),
+        )
+        assert self.price_estimation_behaviour.current == RandomnessBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=b''
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
+
+    def test_max_retries_reached(self,):
+        """Test with max retries reached."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            RandomnessBehaviour.state_id,
+            PeriodState(),
+        )
+        assert self.price_estimation_behaviour.current == RandomnessBehaviour.state_id
+        state = self.price_estimation_behaviour.get_state(
+            self.price_estimation_behaviour.current
+        )
+        state.params._max_healthcheck = -1
+
+        with pytest.raises(AEAActException):
+            self.price_estimation_behaviour.act_wrapper()
 
 
 class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -376,7 +565,10 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=SelectKeeperABehaviour.state_id,
-            period_state=PeriodState(participants),
+            period_state=PeriodState(
+                participants,
+                most_voted_randomness="3"
+            ),
         )
         assert (
             self.price_estimation_behaviour.current == SelectKeeperABehaviour.state_id
@@ -437,7 +629,6 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.http_handler.handle(incoming_message)
         self.price_estimation_behaviour.act_wrapper()
         self.end_round()
-        self.price_estimation_behaviour.act_wrapper()
         state = self.price_estimation_behaviour.get_state(
             SelectKeeperABehaviour.state_id
         )
@@ -467,18 +658,126 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         self.assert_quantity_in_outbox(1)
         actual_contract_ledger_message = self.get_message_from_outbox()
-        logging.debug(actual_contract_ledger_message)
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_contract_ledger_message,
             message_type=ContractApiMessage,
             performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
             to=str(LEDGER_CLIENT_PUBLIC_ID),
             sender=str(self.skill.skill_context.skill_id),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             message_id=1
         )
         assert has_attributes, error_str
         self.price_estimation_behaviour.act_wrapper()
 
+        incoming_message = self.build_incoming_message(
+            message_type=ContractApiMessage,
+            dialogue_reference=(
+                actual_contract_ledger_message.dialogue_reference[0], "stub"),
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            target=actual_contract_ledger_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            callable="get_deploy_transaction",
+            raw_transaction=RawTransaction(
+                ledger_id="ethereum",
+                body={"contract_address": "safe_contract_address"}
+            )
+        )
+        self.contract_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_TRANSACTION,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_TRANSACTION,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_transaction=SignedTransaction(
+                ledger_id="ethereum",
+                body={
+
+                }
+            )
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_ledger_api_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_ledger_api_message,
+            message_type=LedgerApiMessage,
+            performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=LedgerApiMessage,
+            dialogue_reference=(
+                actual_ledger_api_message.dialogue_reference[0], "stub"),
+            performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+            target=actual_ledger_api_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id=str(LEDGER_CLIENT_PUBLIC_ID),
+            transaction_digest=TransactionDigest(
+                ledger_id="ethereum",
+                body="tx_hash"
+            )
+        )
+        self.ledger_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_ledger_api_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_ledger_api_message,
+            message_type=LedgerApiMessage,
+            performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=LedgerApiMessage,
+            dialogue_reference=(
+                actual_ledger_api_message.dialogue_reference[0], "stub"),
+            performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+            target=actual_ledger_api_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id=str(LEDGER_CLIENT_PUBLIC_ID),
+            transaction_receipt=TransactionReceipt(
+                ledger_id="ethereum",
+                receipt={},
+                transaction={}
+            )
+        )
+        self.ledger_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.perform_mock_a2a_transaction()
+        self.end_round()
 
     def test_not_deployer_act(
         self,
@@ -498,7 +797,6 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
         self.end_round()
-        self.price_estimation_behaviour.act_wrapper()
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
 
@@ -514,15 +812,129 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address="safe_contract_address"
+                safe_contract_address="safe_contract_address",
+                most_voted_randomness="3"
             ),
         )
         assert self.price_estimation_behaviour.current == DeploySafeBehaviour.state_id
         state = self.price_estimation_behaviour.get_state(DeploySafeBehaviour.state_id)
-        state.shared_state.context.params.keeper_timeout_seconds = -1
+        state.shared_state.context.params.keeper_timeout_seconds = 0
         self.price_estimation_behaviour.act_wrapper()
+
         self.end_round()
+
+
+class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test ValidateSafeBehaviour."""
+
+    def test_validate_safe_behaviour(self):
+        """Run test."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            ValidateSafeBehaviour.state_id,
+            PeriodState(
+                safe_contract_address="safe_contract_address"
+            ),
+        )
+        assert self.price_estimation_behaviour.current == ValidateSafeBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_contract_ledger_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_contract_ledger_message,
+            message_type=ContractApiMessage,
+            performative=ContractApiMessage.Performative.GET_STATE,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            message_id=1
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+
+        incoming_message = self.build_incoming_message(
+            message_type=ContractApiMessage,
+            dialogue_reference=(
+                actual_contract_ledger_message.dialogue_reference[0], "stub"),
+            performative=ContractApiMessage.Performative.STATE,
+            target=actual_contract_ledger_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            callable="verify_contract",
+            state=TrState(
+                ledger_id="ethereum",
+                body={"verified": True}
+            )
+        )
+        self.contract_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_MESSAGE,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_MESSAGE,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_message=SignedMessage(ledger_id="ethereum", body="stub_signature"),
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_http_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_http_message,
+            message_type=HttpMessage,
+            performative=HttpMessage.Performative.REQUEST,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            version="",
+            body=b"",
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_http_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.end_round()
+
+        state = self.price_estimation_behaviour.get_state(
+            ValidateSafeBehaviour.state_id
+        )
+        assert state.is_done()
 
 
 class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -533,7 +945,9 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
     ):
         """Run tests."""
         self.fast_forward_to_state(
-            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
+            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState(
+                estimate=1.0
+            )
         )
         assert self.price_estimation_behaviour.current == ObserveBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
@@ -627,7 +1041,6 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
 
         self.end_round()
-        self.price_estimation_behaviour.act_wrapper()
         state = self.price_estimation_behaviour.get_state(ObserveBehaviour.state_id)
         assert state.is_done()
 
@@ -674,6 +1087,9 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.http_handler.handle(incoming_message)
         self.price_estimation_behaviour.act_wrapper()
 
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
+
     def test_setfail(
         self,
     ):
@@ -682,9 +1098,8 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
         )
         assert self.price_estimation_behaviour.current == ObserveBehaviour.state_id
-        self.price_estimation_behaviour.act_wrapper()
         state = self.price_estimation_behaviour.get_state(ObserveBehaviour.state_id)
-        for _ in range(100):
+        for _ in range(10):
             state.context.price_api.increment_retries()
         self.price_estimation_behaviour.act_wrapper()
 
@@ -774,7 +1189,6 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.http_handler.handle(incoming_message)
         self.price_estimation_behaviour.act_wrapper()
         self.end_round()
-        self.price_estimation_behaviour.act_wrapper()
         state = self.price_estimation_behaviour.get_state(EstimateBehaviour.state_id)
         assert state.is_done()
 
@@ -800,6 +1214,44 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour.current == TransactionHashBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_contract_ledger_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_contract_ledger_message,
+            message_type=ContractApiMessage,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            message_id=1
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+
+        incoming_message = self.build_incoming_message(
+            message_type=ContractApiMessage,
+            dialogue_reference=(
+                actual_contract_ledger_message.dialogue_reference[0], "stub"),
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            target=actual_contract_ledger_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            callable="get_deploy_transaction",
+            raw_transaction=RawTransaction(
+                ledger_id="ethereum",
+                body={"tx_hash": "0x3b"}
+            )
+        )
+        self.contract_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.perform_mock_a2a_transaction()
+        self.end_round()
 
 
 class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -896,7 +1348,6 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.http_handler.handle(incoming_message)
         self.price_estimation_behaviour.act_wrapper()
         self.end_round()
-        self.price_estimation_behaviour.act_wrapper()
         state = self.price_estimation_behaviour.get_state(SignatureBehaviour.state_id)
         assert state.is_done()
 
@@ -919,6 +1370,28 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
+        self.end_round()
+
+    def test_non_sender_act_with_timeout(
+        self,
+    ):
+        """Test finalize behaviour."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_keeper_address="most_voted_keeper_address",
+                participants=participants,
+            ),
+        )
+        assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
+
+        state = self.price_estimation_behaviour.get_state(
+            self.price_estimation_behaviour.current
+        )
+        state.context.params.keeper_timeout_seconds = 0
+        self.price_estimation_behaviour.act_wrapper()
 
     def test_sender_act(
         self,
@@ -940,6 +1413,209 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
         self.price_estimation_behaviour.act_wrapper()
 
+        self.assert_quantity_in_outbox(1)
+        actual_contract_ledger_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_contract_ledger_message,
+            message_type=ContractApiMessage,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            message_id=1
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+
+        incoming_message = self.build_incoming_message(
+            message_type=ContractApiMessage,
+            dialogue_reference=(
+                actual_contract_ledger_message.dialogue_reference[0], "stub"),
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            target=actual_contract_ledger_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            callable="get_deploy_transaction",
+            raw_transaction=RawTransaction(
+                ledger_id="ethereum",
+                body={"tx_hash": "0x3b"}
+            )
+        )
+        self.contract_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_decision_making_queue(1)
+        actual_signing_message = self.get_message_from_decision_maker_inbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_signing_message,
+            message_type=SigningMessage,
+            performative=SigningMessage.Performative.SIGN_TRANSACTION,
+            to="dummy_decision_maker_address",
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=SigningMessage,
+            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
+            performative=SigningMessage.Performative.SIGNED_TRANSACTION,
+            target=actual_signing_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender="dummy_decision_maker_address",
+            signed_transaction=SignedTransaction(
+                ledger_id="ethereum",
+                body={
+
+                }
+            )
+        )
+        self.signing_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_ledger_api_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_ledger_api_message,
+            message_type=LedgerApiMessage,
+            performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=LedgerApiMessage,
+            dialogue_reference=(
+                actual_ledger_api_message.dialogue_reference[0], "stub"),
+            performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+            target=actual_ledger_api_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id=str(LEDGER_CLIENT_PUBLIC_ID),
+            transaction_digest=TransactionDigest(
+                ledger_id="ethereum",
+                body="tx_hash"
+            )
+        )
+        self.ledger_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.assert_quantity_in_outbox(1)
+        actual_ledger_api_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_ledger_api_message,
+            message_type=LedgerApiMessage,
+            performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+        )
+        assert has_attributes, error_str
+        incoming_message = self.build_incoming_message(
+            message_type=LedgerApiMessage,
+            dialogue_reference=(
+                actual_ledger_api_message.dialogue_reference[0], "stub"),
+            performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+            target=actual_ledger_api_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id=str(LEDGER_CLIENT_PUBLIC_ID),
+            transaction_receipt=TransactionReceipt(
+                ledger_id="ethereum",
+                receipt={},
+                transaction={}
+            )
+        )
+        self.ledger_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.perform_mock_a2a_transaction()
+        self.end_round()
+
+    def test_sender_act_with_timeout(
+        self,
+    ):
+        """Test finalize behaviour."""
+        participants = [self.skill.skill_context.agent_address, "a_1", "a_2"]
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=FinalizeBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_keeper_address=self.skill.skill_context.agent_address,
+                safe_contract_address="safe_contract_address",
+                participants=participants,
+                estimate=1.0,
+                participant_to_signature=[],
+                most_voted_estimate=1.0
+            ),
+        )
+        assert self.price_estimation_behaviour.current == FinalizeBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
+        state = self.price_estimation_behaviour.get_state(
+            self.price_estimation_behaviour.current
+        )
+        state.context.params.keeper_timeout_seconds = 0
+        self.price_estimation_behaviour.act_wrapper()
+
+
+class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test ValidateTransactionBehaviour."""
+
+    def test_validate_transaction_safe_behaviour(self,):
+        """Test ValidateTransactionBehaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=ValidateTransactionBehaviour.state_id,
+            period_state=PeriodState(
+                safe_contract_address="safe_contract_address",
+                final_tx_hash="final_tx_hash"
+            ),
+        )
+        assert self.price_estimation_behaviour.current == ValidateTransactionBehaviour.state_id
+
+        self.price_estimation_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        actual_contract_ledger_message = self.get_message_from_outbox()
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_contract_ledger_message,
+            message_type=ContractApiMessage,
+            performative=ContractApiMessage.Performative.GET_STATE,
+            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            message_id=1
+        )
+        assert has_attributes, error_str
+        self.price_estimation_behaviour.act_wrapper()
+
+        incoming_message = self.build_incoming_message(
+            message_type=ContractApiMessage,
+            dialogue_reference=(
+                actual_contract_ledger_message.dialogue_reference[0], "stub"),
+            performative=ContractApiMessage.Performative.STATE,
+            target=actual_contract_ledger_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            callable="get_deploy_transaction",
+            state=TrState(
+                ledger_id="ethereum",
+                body={"verified": True}
+            )
+        )
+        self.contract_handler.handle(incoming_message)
+        self.price_estimation_behaviour.act_wrapper()
+
+        self.perform_mock_a2a_transaction()
+        self.end_round()
+
 
 class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test EndBehaviour."""
@@ -957,4 +1633,5 @@ class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         assert self.price_estimation_behaviour.current == EndBehaviour.state_id
+        self.price_estimation_behaviour.act_wrapper()
         self.price_estimation_behaviour.act_wrapper()

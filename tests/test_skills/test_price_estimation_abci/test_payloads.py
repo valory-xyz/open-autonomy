@@ -28,6 +28,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SignaturePayload,
     TransactionHashPayload,
     TransactionType,
+    RandomnessPayload
 )
 
 
@@ -99,3 +100,16 @@ def test_finalization_tx_payload():
     assert payload.tx_hash == "hash"
     assert payload.data == {"tx_hash": "hash"}
     assert payload.transaction_type == TransactionType.FINALIZATION
+
+
+def test_randomness_payload():
+    """Test `RandomnessPayload`"""
+
+    payload = RandomnessPayload(sender="sender", round_id=1, randomness="1", id_="id")
+
+    assert payload.round_id == 1
+    assert payload.randomness == "1"
+    assert payload.id_ == "id"
+    assert payload.data == { "round_id": 1, "randomness": "1" }
+
+    assert payload.transaction_type == TransactionType.RANDOMNESS
