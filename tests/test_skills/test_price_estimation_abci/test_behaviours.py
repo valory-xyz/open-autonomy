@@ -37,17 +37,12 @@ from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.fetchai.connections.http_client.connection import (  # noqa: F401
+from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.fetchai.connections.ledger.connection import (  # noqa: F401
-    CONNECTION_ID as LEDGER_CLIENT_PUBLIC_ID,
-)
-from packages.fetchai.protocols.contract_api.message import (  # noqa: F401
-    ContractApiMessage,
-)
+from packages.fetchai.protocols.contract_api.message import ContractApiMessage
 from packages.fetchai.protocols.http import HttpMessage
-from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage  # noqa: F401
+from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
@@ -68,6 +63,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     EndBehaviour,
     EstimateBehaviour,
     FinalizeBehaviour,
+    LEDGER_CONNECTION_PUBLIC_ID,
     ObserveBehaviour,
     PriceEstimationConsensusBehaviour,
     RandomnessBehaviour,
@@ -181,7 +177,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_ledger_api_message,
             message_type=LedgerApiMessage,
-            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            to=str(LEDGER_CONNECTION_PUBLIC_ID),
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
@@ -196,8 +192,8 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             target=actual_ledger_api_message.message_id,
             message_id=-1,
             to=str(self.skill.skill_context.skill_id),
-            sender=str(LEDGER_CLIENT_PUBLIC_ID),
-            ledger_id=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(LEDGER_CONNECTION_PUBLIC_ID),
+            ledger_id=str(LEDGER_CONNECTION_PUBLIC_ID),
             **response_kwargs,
         )
         self.ledger_handler.handle(incoming_message)
@@ -218,7 +214,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_contract_ledger_message,
             message_type=ContractApiMessage,
-            to=str(LEDGER_CLIENT_PUBLIC_ID),
+            to=str(LEDGER_CONNECTION_PUBLIC_ID),
             sender=str(self.skill.skill_context.skill_id),
             ledger_id="ethereum",
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
@@ -237,7 +233,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             target=actual_contract_ledger_message.message_id,
             message_id=-1,
             to=str(self.skill.skill_context.skill_id),
-            sender=str(LEDGER_CLIENT_PUBLIC_ID),
+            sender=str(LEDGER_CONNECTION_PUBLIC_ID),
             ledger_id="ethereum",
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             **response_kwargs,
