@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+import datetime
 import re
 from abc import ABC
 from copy import copy
@@ -30,6 +31,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
+from packages.valory.protocols.abci.custom_types import Timestamp
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
@@ -466,6 +468,26 @@ class TestPeriod:
     def test_last_round(self):
         """Test 'last_round' property."""
         assert self.period.last_round_id is None
+
+    def test_last_timestamp_none(self):
+        """
+        Test 'last_timestamp' property.
+
+        The property is None because there are no blocks.
+        """
+        assert self.period.last_timestamp is None
+
+    def test_last_timestamp(self):
+        """Test 'last_timestamp' property, positive case."""
+        seconds = 1
+        nanoseconds = 1000
+        timestamp = Timestamp(seconds, nanoseconds)
+        self.period._blockchain.add_block(Block(MagicMock(time=timestamp), []))
+
+        expected_timestamp = datetime.datetime.fromtimestamp(
+            seconds + nanoseconds / 10 ** 9
+        )
+        assert self.period.last_timestamp == expected_timestamp
 
     def test_check_is_finished_negative(self):
         """Test 'check_is_finished', negative case."""
