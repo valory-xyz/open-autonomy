@@ -163,3 +163,19 @@ class TestABCIPriceEstimationSkillMany(
             assert self.is_successfully_terminated(
                 process
             ), "ABCI agent wasn't successfully terminated."
+
+
+class TestABCIPriceEstimationSingleAgent(
+    TestABCIPriceEstimationSkillMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
+):
+    """Test that the ABCI price_estimation skill with only one agent."""
+
+    NB_AGENTS = 1
+
+
+class TestABCIPriceEstimationTwoAgents(
+    TestABCIPriceEstimationSkillMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
+):
+    """Test that the ABCI price_estimation skill with two agents."""
+
+    NB_AGENTS = 2

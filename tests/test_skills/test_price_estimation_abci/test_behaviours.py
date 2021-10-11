@@ -37,10 +37,10 @@ from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.fetchai.connections.http_client.connection import (
+from packages.fetchai.connections.http_client.connection import (  # noqa: F401
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.fetchai.connections.ledger.connection import (  # type: ignore
+from packages.fetchai.connections.ledger.connection import (  # noqa: F401
     CONNECTION_ID as LEDGER_CLIENT_PUBLIC_ID,
 )
 from packages.fetchai.protocols.contract_api.message import (  # noqa: F401
@@ -49,9 +49,6 @@ from packages.fetchai.protocols.contract_api.message import (  # noqa: F401
 from packages.fetchai.protocols.http import HttpMessage
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage  # noqa: F401
 from packages.fetchai.protocols.signing import SigningMessage
-from packages.valory.connections.abci.connection import (  # noqa: F401
-    PUBLIC_ID as ABCI_SERVER_PUBLIC_ID,
-)
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
@@ -111,6 +108,8 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
     )
 
+    price_estimation_behaviour: PriceEstimationConsensusBehaviour
+
     @classmethod
     def setup(cls):
         """Setup the test class."""
@@ -134,11 +133,11 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.signing_handler = cast(
             SigningHandler, cls._skill.skill_context.handlers.signing
         )
-        cls.contract_handler = ContractApiHandler(
-            "contract_handler", cls._skill.skill_context
+        cls.contract_handler = cast(
+            ContractApiHandler, cls._skill.skill_context.handlers.contract_api
         )
-        cls.ledger_handler = LedgerApiHandler(
-            "ledger_handler", cls._skill.skill_context
+        cls.ledger_handler = cast(
+            LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
 
         cls.price_estimation_behaviour.setup()
@@ -397,13 +396,8 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         mock_logger.assert_any_call(
             logging.ERROR, "Tendermint not running, trying again!"
         )
-
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
-        state = self.price_estimation_behaviour.get_state(
-            TendermintHealthcheckBehaviour.state_id
-        )
-        assert not state.is_done()
 
     def test_tendermint_healthcheck_not_live_raises(self):
         """Test the tendermint health check raises if not healthy for too long."""

@@ -103,6 +103,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
+    matching_round = None
 
     def async_act(self) -> Generator:
         """
