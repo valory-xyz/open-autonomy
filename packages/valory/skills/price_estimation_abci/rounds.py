@@ -363,11 +363,11 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
     def randomness(self, payload: RandomnessPayload) -> None:
         """Handle a 'randomness' payload."""
         sender = payload.sender
-        if sender not in self.period_state.participants:
+        if sender not in self.period_state.participants:  # pragma: nocover
             # sender not in the set of participants.
             return
 
-        if sender in self.participant_to_randomness:
+        if sender in self.participant_to_randomness:  # pragma: nocover
             # sender has already sent its randomness
             return
 
