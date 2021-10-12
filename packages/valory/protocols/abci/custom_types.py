@@ -22,6 +22,7 @@ from enum import Enum
 from typing import List, Optional
 
 import google.protobuf.duration_pb2
+from aea.exceptions import enforce
 
 from packages.valory.protocols.abci import abci_pb2
 
@@ -1404,6 +1405,11 @@ class Timestamp:
         """
         self.seconds = seconds
         self.nanos = nanos
+        enforce(
+            0 <= nanos < 10 ** 9,
+            "nanos argument must be from 0 to 999,999,999 inclusive",
+            exception_class=ValueError,
+        )
 
     @staticmethod
     def encode(timestamp_protobuf_object, timestamp_object: "Timestamp") -> None:

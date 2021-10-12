@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the base classes for the models classes of the skill."""
+import datetime
 import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
@@ -44,7 +45,7 @@ from aea.exceptions import enforce
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.protocols.abci.custom_types import Header, Timestamp
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
@@ -285,6 +286,14 @@ class Block:  # pylint: disable=too-few-public-methods
     def transactions(self) -> Tuple[Transaction, ...]:
         """Get the transactions."""
         return self._transactions
+
+    @property
+    def timestamp(self) -> datetime.datetime:
+        """Get the block timestamp."""
+        timestamp: Timestamp = self.header.time
+        nanoseconds = timestamp.nanos / 10 ** 9
+        seconds = timestamp.seconds
+        return datetime.datetime.fromtimestamp(seconds + nanoseconds)
 
 
 class Blockchain:
@@ -618,6 +627,15 @@ class Period:
     def last_round_id(self) -> Optional[str]:
         """Get the last round id."""
         return self._last_round.round_id if self._last_round else None
+
+    @property
+    def last_timestamp(self) -> Optional[datetime.datetime]:
+        """Get the last timestamp."""
+        return (
+            self._blockchain.blocks[-1].timestamp
+            if self._blockchain.length != 0
+            else None
+        )
 
     @property
     def latest_result(self) -> Optional[Any]:
