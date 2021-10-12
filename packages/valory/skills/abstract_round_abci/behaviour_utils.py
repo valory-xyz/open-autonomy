@@ -715,11 +715,6 @@ class BaseState(AsyncBehaviour, State, ABC):
         response = yield from self.wait_for_message()
         return response
 
-    def stop(self) -> None:
-        """Stop the execution of the behaviour."""
-        super().stop()
-        self.set_done()
-        self._log_end()
-
     def clean_up(self) -> None:
         """Clean up the resources due to a 'stop' event."""
+        self.set_done()
