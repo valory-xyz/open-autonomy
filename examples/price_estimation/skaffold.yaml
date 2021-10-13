@@ -17,7 +17,6 @@ deploy:
     manifests:
     - kubernetes_configs/hardhat/hardhat-deployment.yaml
     - kubernetes_configs/hardhat/hardhat-service.yaml
-    - kubernetes_configs/agent-node/service.yaml
     - kubernetes_configs/agent-node/stateful-set.yaml
     # development dashboard 
     # - https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
