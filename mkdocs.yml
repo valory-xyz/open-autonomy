@@ -18,6 +18,7 @@ nav:
     - How it works: 'price_estimation.md'
     - System: 'poc-diagram.md'
     - FSM Diagram: 'fsm.md'
+    - POC FSM Diagram: 'poc-fsm.md'
     - FSM vs ABCI app: 'fsm_vs_abci_app.md'
   - API:
     - Connections:
