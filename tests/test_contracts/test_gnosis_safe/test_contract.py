@@ -29,6 +29,8 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
 
+from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
+
 from tests.conftest import (
     ETHEREUM_KEY_PATH_1,
     ETHEREUM_KEY_PATH_2,
@@ -270,7 +272,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         }
         assert [key for key in signatures_by_owners.keys()] == self.owners()
 
-        _ = self.contract.get_raw_safe_transaction(
+        tx = self.contract.get_raw_safe_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             sender_address=sender.address,
@@ -290,3 +292,11 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             contract_address=self.contract_address,
         )["verified"]
         assert verified, "Not verified"
+
+        verified = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=SAFE_CONTRACT,
+        )["verified"]
+        assert not verified, "Not verified"
+
+        assert tx == {}
