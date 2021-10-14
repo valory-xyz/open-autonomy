@@ -18,6 +18,7 @@ profiles:
       kubeContext: kind-kind
       kubectl:
         manifests:
+        - kubernetes_configs/secret.yaml
         - kubernetes_configs/hardhat/hardhat-deployment.yaml
         - kubernetes_configs/hardhat/hardhat-service.yaml
         - kubernetes_configs/agent-node/stateful-set.yaml

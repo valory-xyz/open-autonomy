@@ -27,7 +27,6 @@ spec:
             - "8545"
           command:
             - /bin/bash
-          # image: node:16.7.0
           image: valory/hardhat
           name: hardhat
           ports:
