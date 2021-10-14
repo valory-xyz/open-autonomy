@@ -126,6 +126,13 @@ In order to interact with skaffold, the local kubectl must be configured to poin
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/): kubernetes cli tool
 - [Docker](https://docs.docker.com/get-docker/): Container backend
 
+### Quick Cluster Deploy 
+```
+make localcluster-start
+make localcluster-deploy
+```
+
+## Cluster Development
 
 ### To Configure Local Cluster
 
@@ -142,7 +149,7 @@ docker login -u valory
 ```bash
 kubectl create secret generic regcred \
             --from-file=.dockerconfigjson=/home/$(whoami)/.docker/config.json \
-            --type=kubernetes.io/dockerconfigjson\
+            --type=kubernetes.io/dockerconfigjson
 ```
 4. set skaffold configuration to use a remote registry
 ```bash
@@ -157,6 +164,10 @@ skaffold run --profile dashboard
 
 # launch dashboard app in firefox
 ./kubernetes_configs/setup_dashboard.sh
+```
+6. optional retrieve the token for the dashboard
+```bash
+echo (kubectl describe secret (kubectl get secret | grep admin | awk '{print $1}') | grep token: | awk '{print $2}') 
 ```
 
 

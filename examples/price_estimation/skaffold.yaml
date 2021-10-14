@@ -15,6 +15,7 @@ profiles:
         docker:
           dockerfile: examples/price_estimation/DockerFiles/abci/Dockerfile
     deploy:
+      kubeContext: kind-kind
       kubectl:
         manifests:
         - kubernetes_configs/hardhat/hardhat-deployment.yaml
