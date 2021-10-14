@@ -123,6 +123,8 @@ In order to interact with skaffold, the local kubectl must be configured to poin
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/): kubernetes cli tool
+- [Docker](https://docs.docker.com/get-docker/): Container orchestration tool
 
 
 ### To Configure Local Cluster
