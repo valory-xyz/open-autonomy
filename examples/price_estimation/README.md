@@ -119,31 +119,62 @@ We use skaffold to orchestrate the deployment of the application to any kubernet
 
 In order to interact with skaffold, the local kubectl must be configured to point towards a cluster
 
-### Required Tools
+### Required Dependancies
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
 
 
-### To Run
-```
+### To Configure Local Cluster
+
+1. create a local cluster and save the kubeconfig locally
+```bash
 # build cluster and get kubeconfig
 kind create cluster
-
-# deploy monitoring & dashboard 
-# skip this step if dashboard is not required
+```
+2. login to docker
+```bash
+docker login -u valory
+```
+3. deploy registry credentials to the cluster
+```bash
+kubectl create secret generic regcred \
+            --from-file=.dockerconfigjson=/home/$(whoami)/.docker/config.json \
+            --type=kubernetes.io/dockerconfigjson\
+```
+4. set skaffold configuration to use a remote registry
+```bash
+skaffold config set local-cluster false
+```
+5. (optional) deploy monitoring and dashboard
+```bash
+# create dashboard user and deploy dashboard configuration
 kubectl create serviceaccount dashboard-admin-sa
 kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
 skaffold run --profile dashboard
 
-# launch dashboard app
+# launch dashboard app in firefox
 ./kubernetes_configs/setup_dashboard.sh
+```
 
+
+### To Deploy Poc
+
+```bash
 # deploy poc to cluster
 skaffold run --profile minikube
+```
 
+### Dev mode
+Watch for changes and automatically build tag and deploy and changes within the context of the build directories
+
+```bash
+# deploy poc to cluster
+skaffold dev --profile minikube
+```
 
 # tear down
+```
 kind delete cluster 
 ```
 
