@@ -270,7 +270,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         }
         assert [key for key in signatures_by_owners.keys()] == self.owners()
 
-        self.contract.get_raw_safe_transaction(
+        _ = self.contract.get_raw_safe_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             sender_address=sender.address,
@@ -284,3 +284,9 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                 ]
             },
         )
+
+        verified = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+        )["verified"]
+        assert verified, "Not verified"
