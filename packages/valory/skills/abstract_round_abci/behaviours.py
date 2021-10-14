@@ -78,17 +78,32 @@ class AbstractRoundBehaviour(FSMBehaviour):
         if current_state.is_done():
             if current_state.name in self._final_states:
                 # we reached a final state - return.
+                self.context.logger.debug("%s is a final state", current_state.name)
+                current_state._event = None
                 self.current = None
                 return
             # if next state is set, overwrite successor (regardless of the event)
             # this branch also handle the case when matching round of current state is not set
             if self._next_state is not None:
+                self.context.logger.debug(
+                    "overriding transition: current state: '%s', next state: '%s'",
+                    self.current,
+                    self._next_state,
+                )
                 self.current = self._next_state
+                current_state._event = None
                 self._next_state = None
                 return
             # otherwise, read the event and compute the next transition
             event = current_state.event
             next_state = self.transitions.get(self.current, {}).get(event, None)
+            current_state._event = None
+            self.context.logger.debug(
+                "current state: '%s', event: '%s', next state: '%s'",
+                self.current,
+                event,
+                next_state,
+            )
             self.current = next_state
 
     @property

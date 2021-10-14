@@ -387,6 +387,9 @@ class BaseState(AsyncBehaviour, State, ABC):
     def _log_end(self) -> None:
         """Log the exiting from the behaviour state."""
         self.context.logger.info(f"'{self.name}' behaviour state is done")
+        self.context.logger.debug(
+            "'%s' behaviour done with event: %s", self.name, self._event
+        )
 
     @classmethod
     def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:
