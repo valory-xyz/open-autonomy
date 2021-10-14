@@ -352,6 +352,12 @@ class BaseState(AsyncBehaviour, State, ABC):
         self._is_done = True
         self._event = EXIT_B_EVENT
 
+    def reset(self) -> None:
+        """Rese initial conditions."""
+        self._is_done = False
+        self._is_started = False
+        self._event = None
+
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.

@@ -65,9 +65,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
         if self.current is None:  # type: ignore
             return
 
-        while not self.notification_queue.empty():
-            message: BehaviourNotification = self.notification_queue.get_nowait()
-            self._process_behaviour_message(message)
+        self._process_current_round()
 
         current_state = self.current_state
         if current_state is None:
@@ -79,7 +77,7 @@ class AbstractRoundBehaviour(FSMBehaviour):
             if current_state.name in self._final_states:
                 # we reached a final state - return.
                 self.context.logger.debug("%s is a final state", current_state.name)
-                current_state._event = None
+                current_state.reset()
                 self.current = None
                 return
             # if next state is set, overwrite successor (regardless of the event)
@@ -91,13 +89,13 @@ class AbstractRoundBehaviour(FSMBehaviour):
                     self._next_state,
                 )
                 self.current = self._next_state
-                current_state._event = None
+                current_state.reset()
                 self._next_state = None
                 return
             # otherwise, read the event and compute the next transition
             event = current_state.event
             next_state = self.transitions.get(self.current, {}).get(event, None)
-            current_state._event = None
+            current_state.reset()
             self.context.logger.debug(
                 "current state: '%s', event: '%s', next state: '%s'",
                 self.current,
@@ -155,9 +153,8 @@ class AbstractRoundBehaviour(FSMBehaviour):
             initial=initial,
         )
 
-    def _process_behaviour_message(self, _message: BehaviourNotification) -> None:
-        """Process a behaviour message."""
-        # if message == BehaviourNotification.COMMITTED_BLOCK
+    def _process_current_round(self) -> None:
+        """Process current ABCIApp round."""
         current_round_id = self.context.state.period.current_round_id
         if self._last_round_id == current_round_id:
             # round has not changed - do nothing
