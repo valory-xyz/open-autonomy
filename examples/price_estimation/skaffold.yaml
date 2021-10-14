@@ -20,8 +20,12 @@ profiles:
         - kubernetes_configs/hardhat/hardhat-deployment.yaml
         - kubernetes_configs/hardhat/hardhat-service.yaml
         - kubernetes_configs/agent-node/stateful-set.yaml
-        # development dashboard 
-        # - https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
-        # - kubernetes_configs/dashboard/crb.yml
-        # - kubernetes_configs/dashboard/sa.yml
+  - name: dashboard
+    deploy:
+      kubectl:
+        manifests:
+        - https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
+        - kubernetes_configs/dashboard/crb.yaml
+        - kubernetes_configs/dashboard/sa.yaml
+
 
