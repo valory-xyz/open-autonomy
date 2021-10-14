@@ -24,6 +24,8 @@ from typing import cast
 from unittest.mock import MagicMock, patch
 
 from aea.configurations.data_types import PublicId
+from aea.protocols.base import Address, Message
+from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.valory.protocols.abci import AbciMessage
@@ -34,11 +36,38 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdate,
     ValidatorUpdates,
 )
+from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import OK_CODE
 
 from tests.conftest import ROOT_DIR
+
+
+class AbciDialoguesServer(BaseAbciDialogues):
+    """The dialogues class keeps track of all ABCI dialogues."""
+
+    def __init__(self, address) -> None:
+        """Initialize dialogues."""
+        self.address = address
+
+        def role_from_first_message(  # pylint: disable=unused-argument
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            """Infer the role of the agent from an incoming/outgoing first message
+
+            :param message: an incoming/outgoing first message
+            :param receiver_address: the address of the receiving agent
+            :return: The role of the agent
+            """
+            return AbciDialogue.Role.SERVER
+
+        BaseAbciDialogues.__init__(
+            self,
+            self_address=self.address,
+            role_from_first_message=role_from_first_message,
+            dialogue_class=AbciDialogue,
+        )
 
 
 class TestABCIHandlerOld(BaseSkillTestCase):
@@ -85,8 +114,10 @@ class TestABCIHandler:
 
     def setup(self):
         """Set up the tests."""
-        self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
-        self.dialogues = AbciDialogues(name="", skill_context=self.context)
+        self.skill_id = PublicId.from_str("dummy/skill:0.1.0")
+        self.context = MagicMock(skill_id=self.skill_id)
+        self.context.abci_dialogues = AbciDialogues(name="", skill_context=self.context)
+        self.dialogues = AbciDialoguesServer(address="server")
         self.handler = ABCIHandler(name="", skill_context=self.context)
 
     def test_setup(self):
@@ -96,6 +127,32 @@ class TestABCIHandler:
     def test_teardown(self):
         """Test the teardown method."""
         self.handler.teardown()
+
+    def test_handle(self):
+        """Test the message gets handled."""
+        message, _ = self.dialogues.create(
+            counterparty=str(self.skill_id),
+            performative=AbciMessage.Performative.REQUEST_INFO,
+            version="",
+            block_version=0,
+            p2p_version=0,
+        )
+        self.handler.handle(cast(AbciMessage, message))
+
+    def test_handle_log_exception(self):
+        """Test the message gets handled."""
+        message = AbciMessage(
+            dialogue_reference=("", ""),
+            performative=AbciMessage.Performative.REQUEST_INFO,
+            version="",
+            block_version=0,
+            p2p_version=0,
+            target=0,
+            message_id=1,
+        )
+        message._sender = "server"
+        message._to = str(self.skill_id)
+        self.handler.handle(message)
 
     def test_info(self):
         """Test the 'info' handler method."""

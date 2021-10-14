@@ -54,23 +54,16 @@ class ABCIHandler(Handler):
         abci_dialogue = cast(AbciDialogue, abci_dialogues.update(message))
 
         if abci_dialogue is None:
-            self.send_exception(abci_message, "Invalid dialogue.")
+            self.log_exception(abci_message, "Invalid dialogue.")
             return
 
         performative = message.performative.value
-        # if the message is of type "response", send error.
-        if "response_" in performative:
-            self.send_exception(
-                abci_message,
-                f"can only handle ABCI requests, received '{message.performative.value}'",
-            )
-            return
 
         # handle message
         request_type = performative.replace("request_", "")
         self.context.logger.debug(f"Received ABCI request of type {request_type}")
         handler = getattr(self, request_type, None)
-        if handler is None:
+        if handler is None:  # pragma: nocover
             self.context.logger.warning(
                 f"cannot handle request '{request_type}', ignoring..."
             )
@@ -86,18 +79,11 @@ class ABCIHandler(Handler):
         """Teardown the handler."""
         self.context.logger.debug("ABCI Handler: teardown method called.")
 
-    def send_exception(self, message: AbciMessage, error_message: str) -> None:
-        """Send a response exception."""
+    def log_exception(self, message: AbciMessage, error_message: str) -> None:
+        """Log a response exception."""
         self.context.logger.error(
-            f"Sending a response exception message with error message: {error_message}"
+            f"An exception occured: {error_message} for message: {message}"
         )
-        abci_dialogues = cast(AbciDialogues, self.context.abci_dialogues)
-        reply, _ = abci_dialogues.create(
-            counterparty=message.sender,
-            performative=AbciMessage.Performative.RESPONSE_EXCEPTION,
-            error=error_message,
-        )
-        self.context.outbox.put_message(message=reply)
 
     def info(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
