@@ -1,25 +1,27 @@
 apiVersion: skaffold/v2beta15
 kind: Config
 metadata:
-  name: price-estimation
-build:
-  artifacts:
-  - image: valory/hardhat
-    context: ./
-    docker:
-      dockerfile: DockerFiles/hardhat/Dockerfile
-  - image: valory/oracle-poc
-    context: ../..
-    docker:
-      dockerfile: examples/price_estimation/DockerFiles/abci/Dockerfile
-deploy:
-  kubectl:
-    manifests:
-    - kubernetes_configs/hardhat/hardhat-deployment.yaml
-    - kubernetes_configs/hardhat/hardhat-service.yaml
-    - kubernetes_configs/agent-node/stateful-set.yaml
-    # development dashboard 
-    # - https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
-    # - kubernetes_configs/dashboard/crb.yml
-    # - kubernetes_configs/dashboard/sa.yml
+  name: oracle-poc
+profiles:
+  - name: minikube
+    build:
+      artifacts:
+      - image: valory/hardhat
+        context: ./
+        docker:
+          dockerfile: DockerFiles/hardhat/Dockerfile
+      - image: valory/oracle-poc
+        context: ../..
+        docker:
+          dockerfile: examples/price_estimation/DockerFiles/abci/Dockerfile
+    deploy:
+      kubectl:
+        manifests:
+        - kubernetes_configs/hardhat/hardhat-deployment.yaml
+        - kubernetes_configs/hardhat/hardhat-service.yaml
+        - kubernetes_configs/agent-node/stateful-set.yaml
+        # development dashboard 
+        # - https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
+        # - kubernetes_configs/dashboard/crb.yml
+        # - kubernetes_configs/dashboard/sa.yml
 
