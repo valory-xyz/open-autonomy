@@ -105,6 +105,10 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     )
 
     price_estimation_behaviour: PriceEstimationConsensusBehaviour
+    ledger_handler: LedgerApiHandler
+    http_handler: HttpHandler
+    contract_handler: ContractApiHandler
+    signing_handler: SigningHandler
 
     @classmethod
     def setup(cls):
@@ -174,6 +178,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.assert_quantity_in_outbox(1)
         actual_ledger_api_message = self.get_message_from_outbox()
+        assert actual_ledger_api_message is not None, "No message in outbox."
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_ledger_api_message,
             message_type=LedgerApiMessage,
@@ -211,6 +216,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.assert_quantity_in_outbox(1)
         actual_contract_ledger_message = self.get_message_from_outbox()
+        assert actual_contract_ledger_message is not None, "No message in outbox."
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_contract_ledger_message,
             message_type=ContractApiMessage,
@@ -251,6 +257,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.assert_quantity_in_outbox(1)
         actual_http_message = self.get_message_from_outbox()
+        assert actual_http_message is not None, "No message in outbox."
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_http_message,
             message_type=HttpMessage,
@@ -279,6 +286,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         """Mock signing request."""
         self.assert_quantity_in_decision_making_queue(1)
         actual_signing_message = self.get_message_from_decision_maker_inbox()
+        assert actual_signing_message is not None, "No message in outbox."
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_signing_message,
             message_type=SigningMessage,

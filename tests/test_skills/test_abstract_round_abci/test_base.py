@@ -482,7 +482,9 @@ class TestPeriod:
         seconds = 1
         nanoseconds = 1000
         timestamp = Timestamp(seconds, nanoseconds)
-        self.period._blockchain.add_block(Block(MagicMock(height=1, time=timestamp), []))
+        self.period._blockchain.add_block(
+            Block(MagicMock(height=1, time=timestamp), [])
+        )
 
         expected_timestamp = datetime.datetime.fromtimestamp(
             seconds + nanoseconds / 10 ** 9
