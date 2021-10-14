@@ -237,6 +237,12 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         )
         assert result["verified"], "Contract not verified."
 
+        verified = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=SAFE_CONTRACT,
+        )["verified"]
+        assert not verified, "Not verified"
+
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
@@ -287,16 +293,19 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             },
         )
 
-        verified = self.contract.verify_contract(
+        assert all(
+            key
+            in ["chainId", "data", "from", "gas", "gasPrice", "nonce", "to", "value"]
+            for key in tx.keys()
+        ), "Missing key"
+
+        tx_signed = sender.sign_transaction(tx)
+        tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
+        assert tx_hash is not None, "Tx hash not none"
+
+        verified = self.contract.verify_tx(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            tx_hash=tx_hash,
         )["verified"]
         assert verified, "Not verified"
-
-        verified = self.contract.verify_contract(
-            ledger_api=self.ledger_api,
-            contract_address=SAFE_CONTRACT,
-        )["verified"]
-        assert not verified, "Not verified"
-
-        assert tx == {}
