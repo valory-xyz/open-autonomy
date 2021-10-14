@@ -111,3 +111,39 @@ info: [price_estimation] transaction signing was successful.
 info: [price_estimation] 'estimate' behaviour state is done
 info: [price_estimation] Consensus reached on estimate: 44172.06142864574
 ```
+
+
+## Deployment to a Cluster
+
+We use skaffold to orchestrate the deployment of the application to any kubernetes cluster.
+
+In order to interact with skaffold, the local kubectl must be configured to point towards a cluster
+
+### Required Tools
+
+- [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
+
+
+### To Run
+```
+# build cluster and get kubeconfig
+kind create cluster
+
+# deploy monitoring & dashboard 
+# skip this step if dashboard is not required
+kubectl create serviceaccount dashboard-admin-sa
+kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+skaffold run --profile dashboard
+
+# launch dashboard app
+./kubernetes_configs/setup_dashboard.sh
+
+# deploy poc to cluster
+skaffold run --profile minikube
+
+
+# tear down
+kind delete cluster 
+```
+
