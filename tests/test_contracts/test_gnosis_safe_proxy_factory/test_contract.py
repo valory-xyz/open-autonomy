@@ -24,6 +24,7 @@ from typing import Any, Dict
 
 from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
+    GnosisSafeProxyFactoryContract,
     PROXY_FACTORY_CONTRACT,
 )
 
@@ -37,20 +38,22 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
     )
+    contract: GnosisSafeProxyFactoryContract
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
         return dict(gas=10000000, gasPrice=10000000)
 
-    def test_deploy(self):
+    def test_deploy(self) -> None:
         """Test deployment results."""
         assert (
             self.contract_address != PROXY_FACTORY_CONTRACT
         ), "Contract addresses should differ as we don't use deterministic deployment here."
 
-    def test_build_tx_deploy_proxy_contract_with_nonce(self):
+    def test_build_tx_deploy_proxy_contract_with_nonce(self) -> None:
         """Test build_tx_deploy_proxy_contract_with_nonce method."""
+        assert self.contract_address is not None
         result = self.contract.build_tx_deploy_proxy_contract_with_nonce(
             self.ledger_api,
             self.contract_address,
@@ -81,8 +84,9 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
             ]
         )
 
-    def test_verify(self):
+    def test_verify(self) -> None:
         """Test verification of deployed contract results."""
+        assert self.contract_address is not None
         result = self.contract.verify_contract(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,

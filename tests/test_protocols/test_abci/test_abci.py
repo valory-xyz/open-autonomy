@@ -73,7 +73,7 @@ class BaseTestMessageConstruction:
     def build_message(self) -> AbciMessage:
         """Build the message to be used for testing."""
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run the test."""
         msg = self.build_message()
         msg.to = "receiver"
@@ -91,7 +91,7 @@ class BaseTestMessageConstruction:
         )
         assert expected_envelope.message != actual_envelope.message
 
-        actual_msg = AbciMessage.serializer.decode(actual_envelope.message)
+        actual_msg = AbciMessage.serializer.decode(actual_envelope.message_bytes)
         actual_msg.to = actual_envelope.to
         actual_msg.sender = actual_envelope.sender
         expected_msg = msg
@@ -116,7 +116,7 @@ class BaseTestMessageConstruction:
 class TestRequestEcho(BaseTestMessageConstruction):
     """Test ABCI request abci."""
 
-    def build_message(self):
+    def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
             performative=AbciMessage.Performative.REQUEST_ECHO,  # type: ignore
@@ -127,7 +127,7 @@ class TestRequestEcho(BaseTestMessageConstruction):
 class TestResponseEcho(BaseTestMessageConstruction):
     """Test ABCI response abci."""
 
-    def build_message(self):
+    def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_ECHO,  # type: ignore
@@ -561,7 +561,7 @@ class TestResponseApplySnapshotChunk(BaseTestMessageConstruction):
 class TestDummy(BaseTestMessageConstruction):
     """Test ABCI request abci."""
 
-    def build_message(self):
+    def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
             performative=AbciMessage.Performative.DUMMY,  # type: ignore
@@ -572,14 +572,14 @@ class TestDummy(BaseTestMessageConstruction):
 class TestResponseException(BaseTestMessageConstruction):
     """Test ABCI request abci."""
 
-    def build_message(self):
+    def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
             performative=AbciMessage.Performative.RESPONSE_EXCEPTION,  # type: ignore
         )
 
 
-def test_performative_string_value():
+def test_performative_string_value() -> None:
     """Test the string valoe of performatives."""
 
     assert str(AbciMessage.Performative.DUMMY) == "dummy", "The str value must be dummy"
@@ -678,7 +678,7 @@ def test_performative_string_value():
     ), "The str value must be response_query"
 
 
-def test_encoding_unknown_performative():
+def test_encoding_unknown_performative() -> None:
     """Test that we raise an exception when the performative is unknown during encoding."""
     msg = AbciMessage(
         performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"
@@ -689,7 +689,7 @@ def test_encoding_unknown_performative():
             AbciMessage.serializer.encode(msg)
 
 
-def test_decoding_unknown_performative():
+def test_decoding_unknown_performative() -> None:
     """Test that we raise an exception when the performative is unknown during encoding."""
     msg = AbciMessage(
         performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"
@@ -816,15 +816,20 @@ class ServerDialogues(AbciDialogues):
 class TestDialogues:
     """Tests abci dialogues."""
 
+    agent_addr: str
+    server_addr: str
+    agent_dialogues: AgentDialogues
+    server_dialogues: ServerDialogues
+
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         """Set up the test."""
         cls.agent_addr = "agent address"
         cls.server_addr = "server address"
         cls.agent_dialogues = AgentDialogues(cls.agent_addr)
         cls.server_dialogues = ServerDialogues(cls.server_addr)
 
-    def test_create_self_initiated(self):
+    def test_create_self_initiated(self) -> None:
         """Test the self initialisation of a dialogue."""
         result = self.agent_dialogues._create_self_initiated(
             dialogue_opponent_addr=self.server_addr,
@@ -834,7 +839,7 @@ class TestDialogues:
         assert isinstance(result, AbciDialogue)
         assert result.role == AbciDialogue.Role.CLIENT, "The role must be client."
 
-    def test_create_opponent_initiated(self):
+    def test_create_opponent_initiated(self) -> None:
         """Test the opponent initialisation of a dialogue."""
         result = self.agent_dialogues._create_opponent_initiated(
             dialogue_opponent_addr=self.server_addr,

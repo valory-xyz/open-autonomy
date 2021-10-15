@@ -29,7 +29,7 @@ from tests.helpers.constants import ROOT_DIR
 class TestLocate:
     """Test the helper function "locate"."""
 
-    def test_locate(self):
+    def test_locate(self) -> None:
         """Test the locate function to locate modules."""
         with cd(ROOT_DIR):
             package = locate("packages.valory.protocols.abci.message")
@@ -37,7 +37,7 @@ class TestLocate:
         assert package is not None
         assert non_existing_package is None
 
-    def test_locate_class(self):
+    def test_locate_class(self) -> None:
         """Test the locate function to locate classes."""
         with cd(ROOT_DIR):
             expected_class = AbciMessage
@@ -48,12 +48,12 @@ class TestLocate:
         assert actual_class is not None
         assert expected_class.__name__ == actual_class.__name__
 
-    def test_locate_with_builtins(self):
+    def test_locate_with_builtins(self) -> None:
         """Test that locate function returns the built-in."""
         result = locate("int.bit_length")
         assert int.bit_length == result
 
-    def test_locate_when_path_does_not_exist(self):
+    def test_locate_when_path_does_not_exist(self) -> None:
         """Test that locate function returns None when the dotted path does not exist."""
         result = locate("not.existing.path")
         assert result is None

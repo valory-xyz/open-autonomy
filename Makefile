@@ -57,7 +57,7 @@ security:
 .PHONY: static
 static:
 	mypy aea_consensus_algorithms packages/valory scripts --disallow-untyped-defs
-	mypy tests
+	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
 package_checks:

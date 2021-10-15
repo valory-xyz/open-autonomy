@@ -46,7 +46,7 @@ def tendermint_health_check(
     max_retries: int = MAX_RETRIES,
     sleep_interval: float = 1.0,
     timeout: float = DEFAULT_REQUESTS_TIMEOUT,
-):
+) -> bool:
     """Wait until a Tendermint RPC server is up."""
     attempt = 0
     while attempt < max_retries:

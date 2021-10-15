@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the handlers.py module of the skill."""
-from typing import cast
+from typing import Any, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -45,7 +45,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
-def test_exception_to_info_msg():
+def test_exception_to_info_msg() -> None:
     """Test 'exception_to_info_msg' helper function."""
     exception = Exception("exception message")
     expected_string = f"{exception.__class__.__name__}: {str(exception)}"
@@ -56,13 +56,13 @@ def test_exception_to_info_msg():
 class TestABCIRoundHandler:
     """Test 'ABCIRoundHandler'."""
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the tests."""
         self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
         self.dialogues = AbciDialogues(name="", skill_context=self.context)
         self.handler = ABCIRoundHandler(name="", skill_context=self.context)
 
-    def test_info(self):
+    def test_info(self) -> None:
         """Test the 'info' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -76,7 +76,7 @@ class TestABCIRoundHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_INFO
 
-    def test_begin_block(self):
+    def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -92,7 +92,7 @@ class TestABCIRoundHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_BEGIN_BLOCK
 
     @mock.patch("packages.valory.skills.abstract_round_abci.handlers.Transaction")
-    def test_check_tx(self, *_):
+    def test_check_tx(self, *_: Any) -> None:
         """Test the 'check_tx' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -110,7 +110,7 @@ class TestABCIRoundHandler:
         "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
         side_effect=SignatureNotValidError,
     )
-    def test_check_tx_negative(self, *_):
+    def test_check_tx_negative(self, *_: Any) -> None:
         """Test the 'check_tx' handler method, negative case."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -125,7 +125,7 @@ class TestABCIRoundHandler:
         assert response.code == ERROR_CODE
 
     @mock.patch("packages.valory.skills.abstract_round_abci.handlers.Transaction")
-    def test_deliver_tx(self, *_):
+    def test_deliver_tx(self, *_: Any) -> None:
         """Test the 'deliver_tx' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -142,7 +142,7 @@ class TestABCIRoundHandler:
         "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
         side_effect=SignatureNotValidError,
     )
-    def test_deliver_tx_negative(self, *_):
+    def test_deliver_tx_negative(self, *_: Any) -> None:
         """Test the 'deliver_tx' handler method, negative case."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -155,7 +155,7 @@ class TestABCIRoundHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == ERROR_CODE
 
-    def test_end_block(self):
+    def test_end_block(self) -> None:
         """Test the 'end_block' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -167,7 +167,7 @@ class TestABCIRoundHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_END_BLOCK
 
-    def test_commit(self):
+    def test_commit(self) -> None:
         """Test the 'commit' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -178,7 +178,7 @@ class TestABCIRoundHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_COMMIT
 
-    def test_commit_negative(self):
+    def test_commit_negative(self) -> None:
         """Test the 'commit' handler method, negative case."""
         self.context.state.period.commit.side_effect = AddBlockError()
         message, dialogue = self.dialogues.create(
@@ -201,12 +201,12 @@ class ConcreteResponseHandler(AbstractResponseHandler):
 class TestAbstractResponseHandler:
     """Test 'AbstractResponseHandler'."""
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the tests."""
         self.context = MagicMock()
         self.handler = ConcreteResponseHandler(name="", skill_context=self.context)
 
-    def test_handle(self):
+    def test_handle(self) -> None:
         """Test the 'handle' method."""
         callback = MagicMock()
         request_reference = "reference"
@@ -227,22 +227,24 @@ class TestAbstractResponseHandler:
     @mock.patch.object(
         AbstractResponseHandler, "_recover_protocol_dialogues", return_value=None
     )
-    def test_handle_negative_cannot_recover_dialogues(self, *_):
+    def test_handle_negative_cannot_recover_dialogues(self, *_: Any) -> None:
         """Test the 'handle' method, negative case (cannot recover dialogues)."""
         self.handler.handle(MagicMock())
 
     @mock.patch.object(AbstractResponseHandler, "_recover_protocol_dialogues")
-    def test_handle_negative_cannot_update_dialogues(self, mock_dialogues_fn):
+    def test_handle_negative_cannot_update_dialogues(
+        self, mock_dialogues_fn: Any
+    ) -> None:
         """Test the 'handle' method, negative case (cannot update dialogues)."""
         mock_dialogues = MagicMock(update=MagicMock(return_value=None))
         mock_dialogues_fn.return_value = mock_dialogues
         self.handler.handle(MagicMock())
 
-    def test_handle_negative_performative_not_allowed(self):
+    def test_handle_negative_performative_not_allowed(self) -> None:
         """Test the 'handle' method, negative case (performative not allowed)."""
         self.handler.handle(MagicMock())
 
-    def test_handle_negative_cannot_find_callback(self):
+    def test_handle_negative_cannot_find_callback(self) -> None:
         """Test the 'handle' method, negative case (cannot find callback)."""
         self.context.requests.request_id_to_callback.pop.return_value = None
         self.handler.handle(MagicMock(performative=HttpMessage.Performative.RESPONSE))

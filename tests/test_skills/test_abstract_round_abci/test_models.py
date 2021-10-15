@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -46,12 +46,12 @@ class TestSharedState:
     """Test SharedState(Model) class."""
 
     @mock.patch.object(SharedState, "_process_initial_round_cls")
-    def test_initialization(self, *_):
+    def test_initialization(self, *_: Any) -> None:
         """Test the initialization of the shared state."""
         SharedState(initial_round_cls=MagicMock(), name="", skill_context=MagicMock())
 
     @mock.patch.object(SharedState, "_process_initial_round_cls")
-    def test_setup(self, *_):
+    def test_setup(self, *_: Any) -> None:
         """Test setup method."""
         shared_state = SharedState(
             initial_round_cls=MagicMock, name="", skill_context=MagicMock()
@@ -60,7 +60,7 @@ class TestSharedState:
             shared_state.setup()
 
     @mock.patch.object(SharedState, "_process_initial_round_cls")
-    def test_period_state_negative_not_available(self, *_):
+    def test_period_state_negative_not_available(self, *_: Any) -> None:
         """Test 'period_state' property getter, negative case (not available)."""
         shared_state = SharedState(
             initial_round_cls=ConcreteRound, name="", skill_context=MagicMock()
@@ -71,7 +71,7 @@ class TestSharedState:
                 shared_state.period_state
 
     @mock.patch.object(SharedState, "_process_initial_round_cls")
-    def test_period_state_positive(self, *_):
+    def test_period_state_positive(self, *_: Any) -> None:
         """Test 'period_state' property getter, negative case (not available)."""
         shared_state = SharedState(
             initial_round_cls=ConcreteRound, name="", skill_context=MagicMock()
@@ -81,13 +81,15 @@ class TestSharedState:
             shared_state.period._round_results = [MagicMock()]
             shared_state.period_state
 
-    def test_process_initial_round_cls_negative_not_a_class(self):
+    def test_process_initial_round_cls_negative_not_a_class(self) -> None:
         """Test '_process_initial_round_cls', negative case (not a class)."""
         mock_obj = MagicMock()
         with pytest.raises(ValueError, match=f"The object {mock_obj} is not a class"):
             SharedState._process_initial_round_cls(mock_obj)
 
-    def test_process_initial_round_cls_negative_not_subclass_of_abstract_round(self):
+    def test_process_initial_round_cls_negative_not_subclass_of_abstract_round(
+        self,
+    ) -> None:
         """Test '_process_initial_round_cls', negative case (not subclass of AbstractRound)."""
         with pytest.raises(
             ValueError,
@@ -95,18 +97,18 @@ class TestSharedState:
         ):
             SharedState._process_initial_round_cls(MagicMock)
 
-    def test_process_initial_round_cls_positive(self):
+    def test_process_initial_round_cls_positive(self) -> None:
         """Test '_process_initial_round_cls', positive case."""
 
         SharedState._process_initial_round_cls(ConcreteRound)
 
 
-def test_requests_model_initialization():
+def test_requests_model_initialization() -> None:
     """Test initialization of the 'Requests(Model)' class."""
     Requests(name="", skill_context=MagicMock())
 
 
-def test_base_params_model_initialization():
+def test_base_params_model_initialization() -> None:
     """Test initialization of the 'BaseParams(Model)' class."""
     BaseParams(
         name="",

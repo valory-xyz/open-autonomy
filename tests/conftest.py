@@ -20,7 +20,7 @@
 """Conftest module for Pytest."""
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, Dict, Generator, List, Tuple
 
 import docker
 import pytest
@@ -80,11 +80,11 @@ def tendermint_port() -> int:
 @pytest.mark.ledger
 @pytest.fixture(scope="function")
 def tendermint(
-    tendermint_port,
+    tendermint_port: Any,
     proxy_app: str = DEFAULT_PROXY_APP,
     timeout: float = 2.0,
     max_attempts: int = 10,
-):
+) -> Generator:
     """Launch the Ganache image."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
@@ -114,11 +114,11 @@ def key_pairs() -> List[Tuple[str, str]]:
 @pytest.mark.ledger
 @pytest.fixture(scope="function")
 def gnosis_safe_hardhat(
-    hardhat_addr,
-    hardhat_port,
+    hardhat_addr: Any,
+    hardhat_port: Any,
     timeout: float = 3.0,
     max_attempts: int = 40,
-):
+) -> Generator:
     """Launch the HardHat node with Gnosis Safe contracts deployed."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
@@ -139,7 +139,7 @@ def ganache_port() -> int:
 
 
 @pytest.fixture(scope="session")
-def ganache_configuration():
+def ganache_configuration() -> Dict:
     """Get the Ganache configuration for testing purposes."""
     return GANACHE_CONFIGURATION
 
@@ -148,12 +148,12 @@ def ganache_configuration():
 @pytest.mark.ledger
 @pytest.fixture(scope="function")
 def ganache(
-    ganache_configuration,
-    ganache_addr,
-    ganache_port,
+    ganache_configuration: Any,
+    ganache_addr: Any,
+    ganache_port: Any,
     timeout: float = 2.0,
     max_attempts: int = 10,
-):
+) -> Generator:
     """Launch the Ganache image."""
     client = docker.from_env()
     image = GanacheDockerImage(

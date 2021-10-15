@@ -32,7 +32,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 )
 
 
-def test_select_keeper_payload():
+def test_select_keeper_payload() -> None:
     """Test `SelectKeeperPayload`."""
 
     payload = SelectKeeperPayload(sender="sender", keeper="keeper")
@@ -42,7 +42,7 @@ def test_select_keeper_payload():
     assert payload.transaction_type == TransactionType.SELECT_KEEPER
 
 
-def test_deploy_safe_payload():
+def test_deploy_safe_payload() -> None:
     """Test `DeploySafePayload`."""
 
     payload = DeploySafePayload(sender="sender", safe_contract_address="address")
@@ -52,7 +52,7 @@ def test_deploy_safe_payload():
     assert payload.transaction_type == TransactionType.DEPLOY_SAFE
 
 
-def test_observation_payload():
+def test_observation_payload() -> None:
     """Test `ObservationPayload`."""
 
     payload = ObservationPayload(sender="sender", observation=1.0)
@@ -62,7 +62,7 @@ def test_observation_payload():
     assert payload.transaction_type == TransactionType.OBSERVATION
 
 
-def test_estimate_payload():
+def test_estimate_payload() -> None:
     """Test `EstimatePayload`."""
 
     payload = EstimatePayload(sender="sender", estimate=1.0)
@@ -72,7 +72,7 @@ def test_estimate_payload():
     assert payload.transaction_type == TransactionType.ESTIMATE
 
 
-def test_signature_payload():
+def test_signature_payload() -> None:
     """Test `SignaturePayload`."""
 
     payload = SignaturePayload(sender="sender", signature="sign")
@@ -82,7 +82,7 @@ def test_signature_payload():
     assert payload.transaction_type == TransactionType.SIGNATURE
 
 
-def test_transaction_hash_payload():
+def test_transaction_hash_payload() -> None:
     """Test `TransactionHashPayload`."""
 
     payload = TransactionHashPayload(sender="sender", tx_hash="hash")
@@ -92,7 +92,7 @@ def test_transaction_hash_payload():
     assert payload.transaction_type == TransactionType.TX_HASH
 
 
-def test_finalization_tx_payload():
+def test_finalization_tx_payload() -> None:
     """Test `FinalizationTxPayload`."""
 
     payload = FinalizationTxPayload(sender="sender", tx_hash="hash")
@@ -102,7 +102,7 @@ def test_finalization_tx_payload():
     assert payload.transaction_type == TransactionType.FINALIZATION
 
 
-def test_randomness_payload():
+def test_randomness_payload() -> None:
     """Test `RandomnessPayload`"""
 
     payload = RandomnessPayload(sender="sender", round_id=1, randomness="1", id_="id")

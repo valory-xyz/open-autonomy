@@ -43,7 +43,7 @@ class DockerImage(ABC):
         """Initialize."""
         self._client = client
 
-    def check_skip(self):
+    def check_skip(self) -> None:
         """
         Check whether the test should be skipped.
 
@@ -51,28 +51,30 @@ class DockerImage(ABC):
         """
         self._check_docker_binary_available()
 
-    def _check_docker_binary_available(self):
+    def _check_docker_binary_available(self) -> None:
         """Check the 'Docker' CLI tool is in the OS PATH."""
         result = shutil.which("docker")
         if result is None:
             pytest.skip("Docker not in the OS Path; skipping the test")
 
-        result = subprocess.run(  # nosec
+        result_ = subprocess.run(  # nosec
             ["docker", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        if result.returncode != 0:
-            pytest.skip(f"'docker --version' failed with exit code {result.returncode}")
+        if result_.returncode != 0:
+            pytest.skip(
+                f"'docker --version' failed with exit code {result_.returncode}"
+            )
 
         match = re.search(
             r"Docker version ([0-9]+)\.([0-9]+)\.([0-9]+)",
-            result.stdout.decode("utf-8"),
+            result_.stdout.decode("utf-8"),
         )
         if match is None:
             pytest.skip("cannot read version from the output of 'docker --version'")
         version = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
         if version < self.MINIMUM_DOCKER_VERSION:
             pytest.skip(
-                f"expected Docker version to be at least {'.'.join(*self.MINIMUM_DOCKER_VERSION)}, found {'.'.join(*version)}"
+                f"expected Docker version to be at least {'.'.join(*[str(el) for el in self.MINIMUM_DOCKER_VERSION])}, found {'.'.join(*[str(el) for el in version])}"
             )
 
     @property
@@ -80,7 +82,7 @@ class DockerImage(ABC):
     def tag(self) -> str:
         """Return the tag of the image."""
 
-    def stop_if_already_running(self):
+    def stop_if_already_running(self) -> None:
         """Stop the running images with the same tag, if any."""
         client = docker.from_env()
         for container in client.containers.list():
@@ -147,7 +149,7 @@ class DockerBaseTest(ABC):
     _container: Container
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         """Setup up the test class."""
         cls._image = cls._build_image()
         cls._image.check_skip()
@@ -169,7 +171,7 @@ class DockerBaseTest(ABC):
         cls._setup_class(**cls.setup_class_kwargs())
 
     @classmethod
-    def teardown_class(cls):
+    def teardown_class(cls) -> None:
         """Tear down the test."""
         logger.info(f"Stopping the image {cls._image.tag}...")
         cls._container.stop()
@@ -183,7 +185,7 @@ class DockerBaseTest(ABC):
 
     @classmethod
     @abstractmethod
-    def _setup_class(cls, **setup_class_kwargs) -> None:
+    def _setup_class(cls, **setup_class_kwargs: Any) -> None:
         """Continue setting up the class."""
 
     @classmethod

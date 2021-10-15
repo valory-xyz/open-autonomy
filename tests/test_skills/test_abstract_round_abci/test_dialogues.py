@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the dialogues.py module of the skill."""
-from typing import cast
+from enum import Enum
+from typing import Type, cast
 from unittest.mock import MagicMock
 
 import pytest
 from aea.protocols.dialogue.base import Dialogues
+from aea.skills.base import Model
 
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
@@ -48,7 +50,9 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
         (ContractApiDialogues, ContractApiDialogue.Role.AGENT),
     ],
 )
-def test_dialogues_creation(dialogues_cls, expected_role_from_first_message):
+def test_dialogues_creation(
+    dialogues_cls: Type[Model], expected_role_from_first_message: Enum
+) -> None:
     """Test XDialogues creations."""
     dialogues = cast(Dialogues, dialogues_cls(name="", skill_context=MagicMock()))
     assert expected_role_from_first_message == dialogues._role_from_first_message(
@@ -56,7 +60,7 @@ def test_dialogues_creation(dialogues_cls, expected_role_from_first_message):
     )
 
 
-def test_contract_api_dialogue():
+def test_contract_api_dialogue() -> None:
     """Test 'ContractApiDialogue' creation."""
     dialogue = ContractApiDialogue(MagicMock(), "", MagicMock())
     with pytest.raises(ValueError, match="Terms not set!"):
