@@ -726,9 +726,3 @@ class Period:
         self._round_results.append(round_result)
         self._current_round = next_round
         self._last_round = current_round
-
-
-class BehaviourNotification(Enum):
-    """Behaviour message."""
-
-    COMMITTED_BLOCK = "committed_block"

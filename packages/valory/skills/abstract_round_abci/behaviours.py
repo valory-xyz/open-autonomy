@@ -18,13 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
-from queue import Queue
+
 from typing import Any, Dict, Optional, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
 
-from packages.valory.skills.abstract_round_abci.base import BehaviourNotification
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
@@ -42,10 +41,9 @@ class AbstractRoundBehaviour(FSMBehaviour):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
-        self.notification_queue: Queue = Queue()
 
         self._round_to_state: Dict[str, str] = {}
-        self._last_round_id: str = ""
+        self._last_round_id: Optional[str] = None
 
         # this variable overrides the actual next transition
         # due to ABCI app updates.
@@ -53,21 +51,20 @@ class AbstractRoundBehaviour(FSMBehaviour):
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self.notification_queue = Queue()
         self._register_states(self.transition_function)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
-        self.notification_queue = Queue()
 
     def act(self) -> None:
         """Implement the behaviour."""
+        if self._last_round_id is None:
+            self._last_round_id = self.context.state.period.current_round_id
+
         if self.current is None:  # type: ignore
             return
 
-        while not self.notification_queue.empty():
-            message: BehaviourNotification = self.notification_queue.get_nowait()
-            self._process_behaviour_message(message)
+        self._process_current_round()
 
         current_state = self.current_state
         if current_state is None:
@@ -78,18 +75,35 @@ class AbstractRoundBehaviour(FSMBehaviour):
         if current_state.is_done():
             if current_state.name in self._final_states:
                 # we reached a final state - return.
+                self.context.logger.debug("%s is a final state", current_state.name)
                 self.current = None
-                return
             # if next state is set, overwrite successor (regardless of the event)
             # this branch also handle the case when matching round of current state is not set
-            if self._next_state is not None:
+            elif self._next_state is not None:
+                self.context.logger.debug(
+                    "overriding transition: current state: '%s', next state: '%s'",
+                    self.current,
+                    self._next_state,
+                )
                 self.current = self._next_state
                 self._next_state = None
-                return
-            # otherwise, read the event and compute the next transition
-            event = current_state.event
-            next_state = self.transitions.get(self.current, {}).get(event, None)
-            self.current = next_state
+            else:
+                # otherwise, read the event and compute the next transition
+                event = current_state.event
+                next_state_name = self.transitions.get(self.current, {}).get(
+                    event, None
+                )
+                self.context.logger.debug(
+                    "current state: '%s', event: '%s', next state: '%s'",
+                    self.current,
+                    event,
+                    next_state_name,
+                )
+                self.current = next_state_name
+            # self.current_state now points to the next state
+            next_state = self.current_state
+            if next_state is not None:
+                next_state.reset()
 
     @property
     def current_state(self) -> Optional[BaseState]:
@@ -140,9 +154,8 @@ class AbstractRoundBehaviour(FSMBehaviour):
             initial=initial,
         )
 
-    def _process_behaviour_message(self, _message: BehaviourNotification) -> None:
-        """Process a behaviour message."""
-        # if message == BehaviourNotification.COMMITTED_BLOCK
+    def _process_current_round(self) -> None:
+        """Process current ABCIApp round."""
         current_round_id = self.context.state.period.current_round_id
         if self._last_round_id == current_round_id:
             # round has not changed - do nothing
