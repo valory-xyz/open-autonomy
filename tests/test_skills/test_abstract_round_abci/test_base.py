@@ -210,7 +210,7 @@ class TestMetaPayloadUtilityMethods:
     def test_get_field_negative(self) -> None:
         """Test the utility class method "_get_field", negative case"""
         with pytest.raises(ValueError):
-            _MetaPayload._get_field(object(), "field_name")
+            _MetaPayload._get_field(MagicMock, "field_name")
 
     def teardown(self) -> None:
         """Tear down the test."""

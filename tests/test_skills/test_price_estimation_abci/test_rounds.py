@@ -367,8 +367,11 @@ class TestDeploySafeRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
 
-        self.period_state = self.period_state.update(
-            most_voted_keeper_address=list(self.participants)[0]
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                most_voted_keeper_address=list(self.participants)[0]
+            ),
         )
 
         test_round = DeploySafeRound(
@@ -890,8 +893,11 @@ class TestFinalizationRound(BaseRoundTestClass):
     ) -> None:
         """Runs tests."""
 
-        self.period_state = self.period_state.update(
-            most_voted_keeper_address=list(self.participants)[0]
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                most_voted_keeper_address=list(self.participants)[0]
+            ),
         )
 
         test_round = FinalizationRound(
@@ -1118,7 +1124,6 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
             )
         )
 
-        test_round.next_round_class = DeploySafeRound
         res = test_round.end_block()
         assert res is not None
         state, next_round = res
@@ -1126,7 +1131,7 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
             cast(PeriodState, state).participant_to_selection.keys()
             == cast(PeriodState, actual_next_state).participant_to_selection.keys()
         )
-        assert isinstance(next_round, DeploySafeRound)
+        assert isinstance(next_round, FinalizationRound)
 
 
 class TestConsensusReachedRound(BaseRoundTestClass):

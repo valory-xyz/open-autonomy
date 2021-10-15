@@ -21,7 +21,7 @@
 import time
 from abc import ABC
 from datetime import datetime
-from typing import Any, Generator, Optional, Tuple
+from typing import Any, Generator, Optional, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -237,6 +237,7 @@ def test_async_behaviour_sleep() -> None:
     behaviour.act()
     assert behaviour.counter == 2
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
+    assert behaviour.last_datetime is not None and behaviour.first_datetime is not None
     assert (
         behaviour.last_datetime - behaviour.first_datetime
     ).total_seconds() > timedelta
@@ -303,7 +304,7 @@ class StateATest(BaseState):
     """Concrete BaseState class."""
 
     state_id = "state_a"
-    matching_round = RoundA
+    matching_round: Optional[Type[RoundA]] = RoundA
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
@@ -355,6 +356,7 @@ class TestBaseState:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
         self.behaviour.context.state.period.current_round_id = "current_round_id"
         self.behaviour.context.state.period.last_round_id = "last_round_id"
+        assert self.behaviour.matching_round is not None
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -552,8 +554,6 @@ class TestBaseState:
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_get_default_terms(self, *_: Any) -> None:
         """Test '_get_default_terms'."""
-        self.behaviour.context.default_ledger_id = "ledger_id"
-        self.behaviour.context.agent_address = "address"
         self.behaviour._get_default_terms()
 
     @mock.patch.object(BaseState, "_send_transaction_signing_request")
@@ -576,8 +576,6 @@ class TestBaseState:
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
     def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
         """Test 'get_contract_api_response'."""
-        self.behaviour.context.default_ledger_id = "ledger_id"
-        self.behaviour.context.agent_address = "address"
         with mock.patch.object(
             self.behaviour.context.contract_api_dialogues,
             "create",
@@ -608,8 +606,8 @@ class TestBaseState:
 
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when waiting message."""
-        self.behaviour._AsyncBehaviour__stopped = False
-        self.behaviour._AsyncBehaviour__state = (
+        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        self.behaviour._AsyncBehaviour__state = (  # type: ignore
             AsyncBehaviour.AsyncState.WAITING_MESSAGE
         )
         message = MagicMock()
@@ -617,7 +615,7 @@ class TestBaseState:
 
     def test_default_callback_request_else(self, *_: Any) -> None:
         """Test 'default_callback_request' else branch."""
-        self.behaviour._AsyncBehaviour__stopped = False
+        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
         self.behaviour.default_callback_request(message)
 

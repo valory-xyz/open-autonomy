@@ -1067,7 +1067,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
         self.signatures_by_participant[sender] = payload.signature
 
-    def check_signature(self, payload: EstimatePayload) -> None:
+    def check_signature(self, payload: SignaturePayload) -> None:
         """
         Check a signature payload can be applied to the current state.
 
@@ -1157,7 +1157,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
         self._tx_hash = payload.tx_hash
 
-    def check_finalization(self, payload: DeploySafePayload) -> None:
+    def check_finalization(self, payload: FinalizationTxPayload) -> None:
         """
         Check a finalization payload can be applied to the current state.
 
