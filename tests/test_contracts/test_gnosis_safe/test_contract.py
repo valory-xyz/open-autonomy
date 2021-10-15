@@ -29,6 +29,8 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
 
+from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
+
 from tests.conftest import (
     ETHEREUM_KEY_PATH_1,
     ETHEREUM_KEY_PATH_2,
@@ -235,6 +237,12 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         )
         assert result["verified"], "Contract not verified."
 
+        verified = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=SAFE_CONTRACT,
+        )["verified"]
+        assert not verified, "Not verified"
+
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
@@ -270,7 +278,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         }
         assert [key for key in signatures_by_owners.keys()] == self.owners()
 
-        self.contract.get_raw_safe_transaction(
+        tx = self.contract.get_raw_safe_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             sender_address=sender.address,
@@ -284,3 +292,29 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                 ]
             },
         )
+
+        assert all(
+            key
+            in ["chainId", "data", "from", "gas", "gasPrice", "nonce", "to", "value"]
+            for key in tx.keys()
+        ), "Missing key"
+
+        tx_signed = sender.sign_transaction(tx)
+        tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
+        assert tx_hash is not None, "Tx hash not none"
+
+        verified = self.contract.verify_tx(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            tx_hash=tx_hash,
+        )["verified"]
+        assert verified, "Not verified"
+
+    def test_verify_negative(self):
+        """Test verify negative."""
+        verified = self.contract.verify_tx(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+        )["verified"]
+        assert not verified, "Should not be verified"
