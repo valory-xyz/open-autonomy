@@ -29,11 +29,7 @@ Distributed consensus meets the AEA framework.
 
 - Install development dependencies:
 
-      pipenv install --dev --skip-lock
-      pip install "aea-ledger-ethereum>=1.0.0,<2.0.0" --no-deps
+      make new_env
+      pipenv shell
 
 - Install [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `v0.6.0`
- 
-- Clone the `packages/fetchai` from the AEA framework repository in `packages/`:
-
-      svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai
