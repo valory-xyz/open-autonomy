@@ -18,8 +18,8 @@ fingerprint:
   utils.py: QmdKy2tmK97xwD9HwyhygZzcw2sr3VDPGW98LPPB2ytaRJ
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/http_client:0.22.0
-- fetchai/ledger:0.18.0
+- fetchai/http_client:0.23.0
+- fetchai/ledger:0.19.0
 - valory/abci:0.1.0
 contracts: []
 protocols:

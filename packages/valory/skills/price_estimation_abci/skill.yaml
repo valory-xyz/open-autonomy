@@ -19,8 +19,8 @@ fingerprint:
   tools.py: QmccW1Gtt9iZvE4tWF5EQveH8ZsLrUvZaajr7XEUBoSu5F
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/http_client:0.22.0
-- fetchai/ledger:0.18.0
+- fetchai/http_client:0.23.0
+- fetchai/ledger:0.19.0
 - valory/abci:0.1.0
 contracts:
 - valory/gnosis_safe:0.1.0
