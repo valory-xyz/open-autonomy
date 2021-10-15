@@ -681,7 +681,7 @@ def test_performative_string_value() -> None:
 def test_encoding_unknown_performative() -> None:
     """Test that we raise an exception when the performative is unknown during encoding."""
     msg = AbciMessage(
-        performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"
+        performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"  # type: ignore
     )
 
     with pytest.raises(ValueError, match="Performative not valid:"):
@@ -692,7 +692,7 @@ def test_encoding_unknown_performative() -> None:
 def test_decoding_unknown_performative() -> None:
     """Test that we raise an exception when the performative is unknown during encoding."""
     msg = AbciMessage(
-        performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"
+        performative=AbciMessage.Performative.REQUEST_ECHO, message="Hello"  # type: ignore
     )
 
     encoded_msg = AbciMessage.serializer.encode(msg)

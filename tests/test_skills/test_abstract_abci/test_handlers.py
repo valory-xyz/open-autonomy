@@ -147,7 +147,7 @@ class TestABCIHandler:
         """Test the message gets handled."""
         message = AbciMessage(
             dialogue_reference=("", ""),
-            performative=AbciMessage.Performative.REQUEST_INFO,
+            performative=AbciMessage.Performative.REQUEST_INFO,  # type: ignore
             version="",
             block_version=0,
             p2p_version=0,
