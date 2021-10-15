@@ -469,11 +469,11 @@ class GnosisSafeContract(Contract):
         ledger_api = cast(EthereumApi, ledger_api)
 
         try:
-            tx = ledger_api.api.eth.getTransaction(tx_hash)
+            transaction = ledger_api.api.eth.getTransaction(tx_hash)
             receipt = ledger_api.get_transaction_receipt(tx_hash)
             if receipt is None:
                 raise ValueError  # pragma: nocover
-            verified = tx["to"] == contract_address and receipt["status"]
+            verified = transaction["to"] == contract_address and receipt["status"]
             # TOFIX: verify input field in tx
             return dict(verified=verified)
         except (TransactionNotFound, ValueError):  # pragma: nocover
