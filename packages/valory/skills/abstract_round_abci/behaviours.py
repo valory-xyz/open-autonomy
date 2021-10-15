@@ -18,13 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
-from queue import Queue
+
 from typing import Any, Dict, Optional, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.behaviours import FSMBehaviour
 
-from packages.valory.skills.abstract_round_abci.base import BehaviourNotification
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
@@ -42,7 +41,6 @@ class AbstractRoundBehaviour(FSMBehaviour):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
-        self.notification_queue: Queue = Queue()
 
         self._round_to_state: Dict[str, str] = {}
         self._last_round_id: str = ""
@@ -53,12 +51,10 @@ class AbstractRoundBehaviour(FSMBehaviour):
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self.notification_queue = Queue()
         self._register_states(self.transition_function)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
-        self.notification_queue = Queue()
 
     def act(self) -> None:
         """Implement the behaviour."""

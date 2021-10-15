@@ -356,7 +356,7 @@ class BaseState(AsyncBehaviour, State, ABC):
         """Reset initial conditions."""
         self._is_done = False
         self._is_started = False
-        self._event = None
+        self._event = None  # type: ignore
 
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """

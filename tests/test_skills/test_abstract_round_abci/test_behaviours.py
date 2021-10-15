@@ -23,7 +23,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import BehaviourNotification
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 
@@ -119,35 +118,30 @@ class TestAbstractRoundBehaviour:
 
         assert self.behaviour.current is None
 
-    def test_act_with_behaviour_notification_current_and_last_same(self):
-        """Test 'act' with a behaviour notification with current_round==last_round."""
+    def test_act_with_current_and_last_same(self):
+        """Test 'act' with current_round==last_round."""
         round_name = "round"
         self.behaviour.context.state.period.current_round_id = round_name
         self.behaviour._last_round_id = round_name
-        notification = BehaviourNotification.COMMITTED_BLOCK
-        self.behaviour.notification_queue.put_nowait(notification)
         self.behaviour.current = MagicMock()
         self.behaviour.act()
 
-    def test_act_with_behaviour_notification_current_and_last_different(self):
-        """Test 'act' with a behaviour notification with current_round!=last_round."""
+    def test_act_with_current_and_last_different(self):
+        """Test 'act' with current_round!=last_round."""
         round_name_1 = "round_1"
         round_name_2 = "round_2"
         self.behaviour.context.state.period.current_round_id = round_name_1
         self.behaviour._last_round_id = round_name_2
-        notification = BehaviourNotification.COMMITTED_BLOCK
-        self.behaviour.notification_queue.put_nowait(notification)
         self.behaviour.current = MagicMock()
         self.behaviour.act()
 
-    def test_act_with_behaviour_notification_current_and_last_different_matching_round(
+    def test_act_with_current_and_last_different_matching_round(
         self,
     ):
         """
         Test the 'act' method.
 
         Test 'act' with::
-        - a behaviour notification
         - current_round!=last_round
         - current state has a matching round
         """
@@ -155,7 +149,6 @@ class TestAbstractRoundBehaviour:
         round_name_2 = "round_2"
         self.behaviour.context.state.period.current_round_id = round_name_1
         self.behaviour._last_round_id = round_name_2
-        notification = BehaviourNotification.COMMITTED_BLOCK
 
         # register current_state so we can stop it
         current_state_name = MagicMock()
@@ -166,7 +159,6 @@ class TestAbstractRoundBehaviour:
         self.behaviour.register_state(current_state_name, current_state_mock)
         self.behaviour.current = current_state_name
 
-        self.behaviour.notification_queue.put_nowait(notification)
         self.behaviour.act()
 
         current_state_mock.stop.assert_called()
