@@ -309,3 +309,12 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             tx_hash=tx_hash,
         )["verified"]
         assert verified, "Not verified"
+
+    def test_verify_negative(self):
+        """Test verify negative."""
+        verified = self.contract.verify_tx(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+        )["verified"]
+        assert not verified, "Should not be verified"
