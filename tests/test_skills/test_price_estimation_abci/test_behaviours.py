@@ -721,7 +721,6 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state.shared_state.context.params.keeper_timeout_seconds = 0
         self.price_estimation_behaviour.act_wrapper()
 
-        self.end_round()
         state = self.price_estimation_behaviour.get_state(DeploySafeBehaviour.state_id)
         assert state.is_done()
 
