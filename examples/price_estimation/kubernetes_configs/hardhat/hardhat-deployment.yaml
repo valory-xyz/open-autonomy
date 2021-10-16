@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: hardhat
+  name: hardhat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: hardhat
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/localnet: "true"
+        io.kompose.service: hardhat
+    spec:
+      containers:
+        - args:
+            - /usr/local/bin/yarn
+            - run
+            - hardhat
+            - node
+            - --port
+            - "8545"
+          command:
+            - /bin/bash
+          image: valory/hardhat
+          name: hardhat
+          ports:
+            - containerPort: 8545
+          resources: {}
+          workingDir: /home/ubuntu/build
+          imagePullPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      restartPolicy: Always
+status: {}

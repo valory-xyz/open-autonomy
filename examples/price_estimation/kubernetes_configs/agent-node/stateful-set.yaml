@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-node
+spec:
+# serviceName: "agent-node"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-node
+  template:
+    metadata:
+      labels:
+        app: agent-node
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: aea
+        image: valory/oracle-poc
+        args: ["../run_kube.sh"]
+        command:
+          - /bin/bash
+        env: 
+          - name: AGENT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: agent-keys
+                key: agent-node-1
+      - name: tendermint
+        image: tendermint/localnode
+        env:
+          - name: ID
+            value: "0"
+        ports:
+          - containerPort: 26656
+          - containerPort: 26657
+        workingDir: /tendermint
+        args: ["tendermint","init;", "wrapper.sh",  "node", "--home", "/root/.tendermint/", "--consensus.create_empty_blocks=false", "--proxy_app=tcp://abci2:26658"]
+        command:
+          - /bin/bash

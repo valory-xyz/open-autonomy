@@ -1,0 +1,31 @@
+apiVersion: skaffold/v2beta15
+kind: Config
+metadata:
+  name: oracle-poc
+profiles:
+  - name: minikube
+    build:
+      artifacts:
+      - image: valory/hardhat
+        context: ./
+        docker:
+          dockerfile: DockerFiles/hardhat/Dockerfile
+      - image: valory/oracle-poc
+        context: ../..
+        docker:
+          dockerfile: examples/price_estimation/DockerFiles/abci/Dockerfile
+    deploy:
+      kubeContext: kind-kind
+      kubectl:
+        manifests:
+        - kubernetes_configs/secret.yaml
+        - kubernetes_configs/hardhat/hardhat-deployment.yaml
+        - kubernetes_configs/hardhat/hardhat-service.yaml
+        - kubernetes_configs/agent-node/stateful-set.yaml
+  - name: dashboard
+    deploy:
+      kubectl:
+        manifests:
+        - https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
+
+
