@@ -228,7 +228,7 @@ that makes the application layer and the consensus layer highly decoupled.
 
 ### Query the state
 
-The ABCI appplication state can be queried by means of the 
+The ABCI application state can be queried by means of the 
 [`abci_query`](https://docs.tendermint.com/master/rpc/#/ABCI/abci_query)
 request.
 The sender has to provide the `path` parameter (a string) and the `data`

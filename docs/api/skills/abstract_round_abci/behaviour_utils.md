@@ -4,6 +4,26 @@
 
 This module contains helper classes for behaviours.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.SendException"></a>
+
+## SendException Objects
+
+```python
+class SendException(Exception)
+```
+
+This exception is raised if the 'try_send' to an AsyncBehaviour failed.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TimeoutException"></a>
+
+## TimeoutException Objects
+
+```python
+class TimeoutException(Exception)
+```
+
+This exception is raised if the 'try_send' to an AsyncBehaviour failed.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour"></a>
 
 ## AsyncBehaviour Objects
@@ -61,6 +81,28 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.state"></a>
+
+#### state
+
+```python
+@property
+def state() -> AsyncState
+```
+
+Get the 'async state'.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.is_stopped"></a>
+
+#### is`_`stopped
+
+```python
+@property
+def is_stopped() -> bool
+```
+
+Check whether the behaviour has stopped.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.try_send"></a>
 
 #### try`_`send
@@ -72,10 +114,12 @@ def try_send(message: Any) -> None
 Try to send a message to a waiting behaviour.
 
 It will be send only if the behaviour is actually
-waiting for a message.
+waiting for a message and it was not already notified.
 
 **Arguments**:
 
+:raises: SendException if the behaviour was not waiting for a message,
+    or if it was already notified.
 - `message`: a Python object.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.wait_for_condition"></a>
@@ -84,7 +128,7 @@ waiting for a message.
 
 ```python
 @classmethod
-def wait_for_condition(cls, condition: Callable[[], bool]) -> Any
+def wait_for_condition(cls, condition: Callable[[], bool], timeout: Optional[float] = None) -> Generator[None, None, None]
 ```
 
 Wait for a condition to happen.
@@ -116,6 +160,17 @@ def wait_for_message(condition: Callable = lambda message: True) -> Any
 
 Wait for message.
 
+Care must be taken. This method does not handle concurrent requests.
+Use directly after a request is being sent.
+
+**Arguments**:
+
+- `condition`: a callable
+
+**Returns**:
+
+a message
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.act"></a>
 
 #### act
@@ -125,6 +180,16 @@ def act() -> None
 ```
 
 Do the act.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.stop"></a>
+
+#### stop
+
+```python
+def stop() -> None
+```
+
+Stop the execution of the behaviour.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
 
@@ -156,6 +221,16 @@ def check_in_round(round_id: str) -> bool
 
 Check that we entered in a specific round.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_in_last_round"></a>
+
+#### check`_`in`_`last`_`round
+
+```python
+def check_in_last_round(round_id: str) -> bool
+```
+
+Check that we entered in a specific round.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_not_in_round"></a>
 
 #### check`_`not`_`in`_`round
@@ -165,6 +240,26 @@ def check_not_in_round(round_id: str) -> bool
 ```
 
 Check that we are not in a specific round.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_not_in_last_round"></a>
+
+#### check`_`not`_`in`_`last`_`round
+
+```python
+def check_not_in_last_round(round_id: str) -> bool
+```
+
+Check that we are not in a specific round.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_round_has_finished"></a>
+
+#### check`_`round`_`has`_`finished
+
+```python
+def check_round_has_finished(round_id: str) -> bool
+```
+
+Check that the round has finished.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.is_round_ended"></a>
 
@@ -181,12 +276,15 @@ Get a callable to check whether the current round has ended.
 #### wait`_`until`_`round`_`end
 
 ```python
-def wait_until_round_end() -> Any
+def wait_until_round_end(timeout: Optional[float] = None) -> Generator[None, None, None]
 ```
 
 Wait until the ABCI application exits from a round.
 
+**Arguments**:
+
 :yield: None
+- `timeout`: the timeout for the wait
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.is_done"></a>
 
@@ -207,6 +305,46 @@ def set_done() -> None
 ```
 
 Set the behaviour to done.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_fail"></a>
+
+#### set`_`fail
+
+```python
+def set_fail() -> None
+```
+
+Set the behaviour to done.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_exit_a"></a>
+
+#### set`_`exit`_`a
+
+```python
+def set_exit_a() -> None
+```
+
+Set the behaviour to exit a.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_exit_b"></a>
+
+#### set`_`exit`_`b
+
+```python
+def set_exit_b() -> None
+```
+
+Set the behaviour to exit b.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.reset"></a>
+
+#### reset
+
+```python
+def reset() -> None
+```
+
+Reset initial conditions.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_a2a_transaction"></a>
 
@@ -248,7 +386,7 @@ Implement default callback request.
 #### send`_`raw`_`transaction
 
 ```python
-def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, str]
+def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, Tuple[str, Dict]]
 ```
 
 Send raw transactions to the ledger for mining.
@@ -258,13 +396,14 @@ Send raw transactions to the ledger for mining.
 #### get`_`contract`_`api`_`response
 
 ```python
-def get_contract_api_response(contract_address: Optional[str], contract_id: str, contract_callable: str, **kwargs: Any, ,) -> Generator[None, None, ContractApiMessage]
+def get_contract_api_response(performative: ContractApiMessage.Performative, contract_address: Optional[str], contract_id: str, contract_callable: str, **kwargs: Any, ,) -> Generator[None, None, ContractApiMessage]
 ```
 
 Request contract safe transaction hash
 
 **Arguments**:
 
+- `performative`: the message performative
 - `contract_address`: the contract address
 - `contract_id`: the contract id
 - `contract_callable`: the collable to call on the contract
@@ -273,4 +412,14 @@ Request contract safe transaction hash
 **Returns**:
 
 the contract api response
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.clean_up"></a>
+
+#### clean`_`up
+
+```python
+def clean_up() -> None
+```
+
+Clean up the resources due to a 'stop' event.
 

@@ -4,6 +4,26 @@
 
 This module contains the shared state for the price estimation ABCI application.
 
+<a id="packages.valory.skills.abstract_round_abci.models.BaseParams"></a>
+
+## BaseParams Objects
+
+```python
+class BaseParams(Model)
+```
+
+Parameters.
+
+<a id="packages.valory.skills.abstract_round_abci.models.BaseParams.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize the parameters object.
+
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState"></a>
 
 ## SharedState Objects
@@ -12,14 +32,14 @@ This module contains the shared state for the price estimation ABCI application.
 class SharedState(Model)
 ```
 
-Keep the current shared state.
+Keep the current shared state of the skill.
 
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(*args: Any, **kwargs: Any) -> None
+def __init__(*args: Any, *, initial_round_cls: Type[AbstractRound], **kwargs: Any) -> None
 ```
 
 Initialize the state.
@@ -64,24 +84,4 @@ def __init__(*args: Any, **kwargs: Any) -> None
 ```
 
 Initialize the state.
-
-<a id="packages.valory.skills.abstract_round_abci.models.BaseParams"></a>
-
-## BaseParams Objects
-
-```python
-class BaseParams(Model)
-```
-
-Parameters.
-
-<a id="packages.valory.skills.abstract_round_abci.models.BaseParams.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(*args: Any, **kwargs: Any) -> None
-```
-
-Initialize the parameters object.
 

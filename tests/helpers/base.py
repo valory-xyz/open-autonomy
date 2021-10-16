@@ -69,7 +69,6 @@ def try_send(gen: Generator, obj: Any = None) -> None:
 
     :param gen: the generator.
     :param obj: the object.
-    :return: None
     """
     with contextlib.suppress(StopIteration):
         gen.send(obj)

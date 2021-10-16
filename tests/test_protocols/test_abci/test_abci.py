@@ -717,7 +717,7 @@ class AgentDialogue(AbciDialogue):
         :param dialogue_label: the identifier of the dialogue
         :param self_address: the address of the entity for whom this dialogue is maintained
         :param role: the role of the agent this dialogue is maintained for
-        :return: None
+        :param message_class: the message class
         """
         AbciDialogue.__init__(
             self,
@@ -735,7 +735,7 @@ class AgentDialogues(AbciDialogues):
         """
         Initialize dialogues.
 
-        :return: None
+        :param self_address: the address of the entity for whom this dialogue is maintained
         """
 
         def role_from_first_message(  # pylint: disable=unused-argument
@@ -773,7 +773,7 @@ class ServerDialogue(AbciDialogue):
         :param dialogue_label: the identifier of the dialogue
         :param self_address: the address of the entity for whom this dialogue is maintained
         :param role: the role of the agent this dialogue is maintained for
-        :return: None
+        :param message_class: the message class
         """
         AbciDialogue.__init__(
             self,
@@ -791,7 +791,7 @@ class ServerDialogues(AbciDialogues):
         """
         Initialize dialogues.
 
-        :return: None
+        :param self_address: the address of the entity for whom this dialogue is maintained
         """
 
         def role_from_first_message(  # pylint: disable=unused-argument

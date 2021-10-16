@@ -76,56 +76,6 @@ Initialize dialogues.
 
 - `kwargs`: keyword arguments
 
-<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue"></a>
-
-## LedgerApiDialogue Objects
-
-```python
-class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
-    BaseLedgerApiDialogue)
-```
-
-The dialogue class maintains state of a dialogue and manages it.
-
-<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(dialogue_label: BaseDialogueLabel, self_address: Address, role: BaseDialogue.Role, message_class: Type[LedgerApiMessage] = LedgerApiMessage) -> None
-```
-
-Initialize a dialogue.
-
-**Arguments**:
-
-- `dialogue_label`: the identifier of the dialogue
-- `self_address`: the address of the entity for whom this dialogue is maintained
-- `role`: the role of the agent this dialogue is maintained for
-- `message_class`: the message class
-
-<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue.associated_signing_dialogue"></a>
-
-#### associated`_`signing`_`dialogue
-
-```python
-@property
-def associated_signing_dialogue() -> "BaseSigningDialogue"
-```
-
-Get the associated signing dialogue.
-
-<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue.associated_signing_dialogue"></a>
-
-#### associated`_`signing`_`dialogue
-
-```python
-@associated_signing_dialogue.setter
-def associated_signing_dialogue(associated_signing_dialogue: "BaseSigningDialogue") -> None
-```
-
-Set the associated signing dialogue.
-
 <a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogues"></a>
 
 ## LedgerApiDialogues Objects

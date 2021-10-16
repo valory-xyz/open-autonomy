@@ -159,7 +159,7 @@ class PrintBehaviour(OneShotBehaviour, AsyncBehaviour):
 
 Without `AsyncBehaviour`, one should take care of:
 
-- remembering the "state" of the behavioru (i.e. what is the last message printed)
+- remembering the "state" of the behaviour (i.e. what is the last message printed)
 - handling the sleep interval by hand
 
 This is a naive implementation
