@@ -5,7 +5,7 @@ build-docker-localnode:
 
 build-docker-aea:
 	-docker network ls | grep _localnet | cut -d' ' -f1 | xargs docker network rm
-	docker build -f ../../examples/price_estimation/Dockerfile -t valory/price_estimation:0.1.0 ../..
+	docker build -f ../../examples/price_estimation/Dockerfiles/aea/Dockerfile -t valory/price_estimation:0.1.0 ../..
 .PHONY: build-docker-aea
 
 localnet-start: localnet-stop build-docker-localnode build-docker-aea
@@ -20,7 +20,6 @@ localnet-stop:
 .PHONY: localnet-stop
 
 
-# make local cluster
 localcluster-start:
 	kind create cluster
 	TOKEN=$(shell ls /home/$(USER)/.docker/config.json)
@@ -28,7 +27,7 @@ localcluster-start:
 	if [$${TOKEN} == ""]; then \
 		echo "ensure you have an access token ready."; \
 		docker login -u valory; else\
-		echo "already logged in.";
+		echo "already logged in.";\
 	fi
 	kubectl create secret generic regcred \
 	            --from-file=.dockerconfigjson=$${TOKEN} \
