@@ -251,13 +251,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        try:
-            yield from self.wait_until_round_end(
-                timeout=self.context.params.keeper_timeout_seconds
-            )
-            self.set_done()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_a()
+        yield from self.wait_until_round_end()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
@@ -528,13 +522,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        try:
-            yield from self.wait_until_round_end(
-                timeout=self.context.params.keeper_timeout_seconds
-            )
-            self.set_done()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_b()
+        yield from self.wait_until_round_end()
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
@@ -631,9 +619,8 @@ class EndBehaviour(PriceEstimationBaseState):
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
-        # dummy 'yield' to return a generator
-        yield
-        self.set_done()
+        # wait forever
+        yield from self.wait_for_condition(lambda: False)
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
