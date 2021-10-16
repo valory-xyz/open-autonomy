@@ -21,6 +21,7 @@
 import struct
 from abc import ABC
 from collections import Counter
+from enum import Enum
 from operator import itemgetter
 from types import MappingProxyType
 from typing import AbstractSet, Any
@@ -38,11 +39,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     TransactionNotValidError,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    DONE_EVENT,
-    EXIT_A_EVENT,
-    EXIT_B_EVENT,
-)
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
     EstimatePayload,
@@ -58,7 +54,15 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.tools import aggregate
 
 
-EventType = str
+class Event(Enum):
+    """Event enumeration for the price estimation demo."""
+
+    DONE = "done"
+    EXIT_A = "exit_a"
+    EXIT_B = "exit_b"
+    RETRY_TIMEOUT = "retry_timeout"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
 
 
 def encode_float(value: float) -> bytes:
@@ -350,12 +354,12 @@ class RegistrationRound(PriceEstimationAbstractRound):
         """Check that the registration threshold has been reached."""
         return len(self.participants) == self._consensus_params.max_participants
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
             state = PeriodState(participants=self.participants)
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -450,7 +454,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
             raise ABCIAppInternalError("not enough randomness")
         return most_voted_randomness
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
@@ -459,7 +463,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
                 ),
                 most_voted_randomness=self.most_voted_randomness,
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -554,7 +558,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
             raise ABCIAppInternalError("keeper has not enough votes")
         return most_voted_keeper_address
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.selection_threshold_reached:
             state = self.period_state.update(
@@ -563,7 +567,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
                 ),
                 most_voted_keeper_address=self.most_voted_keeper_address,
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -653,14 +657,14 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         """Check that the contract has been set."""
         return self._contract_address is not None
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.is_contract_set:
             state = self.period_state.update(
                 safe_contract_address=self._contract_address
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -750,17 +754,17 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
         consensus_threshold = self._consensus_params.consensus_threshold
         return false_votes >= consensus_threshold
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
             state = self.period_state.update(
                 participant_to_votes=MappingProxyType(self.participant_to_votes)
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
-            return state, EXIT_A_EVENT
+            return state, Event.EXIT_A
         return None
 
 
@@ -840,7 +844,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
             >= self._consensus_params.consensus_threshold
         )
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.observation_threshold_reached:
@@ -855,7 +859,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
                 ),
                 estimate=estimate,
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -950,14 +954,14 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
             raise ABCIAppInternalError("estimate has not enough votes")
         return most_voted_estimate
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.estimate_threshold_reached:
             state = self.period_state.update(
                 participant_to_estimate=MappingProxyType(self.participant_to_estimate),
                 most_voted_estimate=self.most_voted_estimate,
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -1050,14 +1054,14 @@ class TxHashRound(PriceEstimationAbstractRound):
             raise ABCIAppInternalError("tx hash has not enough votes")
         return most_voted_tx_hash
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.tx_threshold_reached:
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.participant_to_tx_hash),
                 most_voted_tx_hash=self.most_voted_tx_hash,
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -1134,7 +1138,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
         consensus_threshold = self._consensus_params.consensus_threshold
         return len(self.signatures_by_participant) >= consensus_threshold
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.signature_threshold_reached:
             state = self.period_state.update(
@@ -1142,7 +1146,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
                     self.signatures_by_participant
                 ),
             )
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -1226,12 +1230,12 @@ class FinalizationRound(PriceEstimationAbstractRound):
         """Check that the tx hash has been set."""
         return self._tx_hash is not None
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.tx_hash_set:
             state = self.period_state.update(final_tx_hash=self._tx_hash)
-            return state, DONE_EVENT
+            return state, Event.DONE
         return None
 
 
@@ -1277,7 +1281,7 @@ class ConsensusReachedRound(PriceEstimationAbstractRound):
     def check_payload(self, payload: BaseTxPayload):
         pass
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         return None
 
@@ -1353,23 +1357,23 @@ class ValidateTransactionRound(ValidateRound):
 class PriceEstimationAbciApp(AbciApp[str]):
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {DONE_EVENT: RandomnessRound},
-        RandomnessRound: {DONE_EVENT: SelectKeeperARound},
-        SelectKeeperARound: {DONE_EVENT: DeploySafeRound},
+        RegistrationRound: {Event.DONE: RandomnessRound},
+        RandomnessRound: {Event.DONE: SelectKeeperARound},
+        SelectKeeperARound: {Event.DONE: DeploySafeRound},
         DeploySafeRound: {
-            DONE_EVENT: ValidateSafeRound,
-            EXIT_A_EVENT: SelectKeeperARound,
+            Event.DONE: ValidateSafeRound,
+            Event.EXIT_A: SelectKeeperARound,
         },
-        ValidateSafeRound: {DONE_EVENT: CollectObservationRound},
-        CollectObservationRound: {DONE_EVENT: EstimateConsensusRound},
-        EstimateConsensusRound: {DONE_EVENT: TxHashRound},
-        TxHashRound: {DONE_EVENT: CollectSignatureRound},
-        CollectSignatureRound: {DONE_EVENT: FinalizationRound},
+        ValidateSafeRound: {Event.DONE: CollectObservationRound},
+        CollectObservationRound: {Event.DONE: EstimateConsensusRound},
+        EstimateConsensusRound: {Event.DONE: TxHashRound},
+        TxHashRound: {Event.DONE: CollectSignatureRound},
+        CollectSignatureRound: {Event.DONE: FinalizationRound},
         FinalizationRound: {
-            DONE_EVENT: ValidateTransactionRound,
-            EXIT_B_EVENT: SelectKeeperBRound,
+            Event.DONE: ValidateTransactionRound,
+            Event.EXIT_B: SelectKeeperBRound,
         },
-        ValidateTransactionRound: {DONE_EVENT: ConsensusReachedRound},
-        SelectKeeperBRound: {DONE_EVENT: FinalizationRound},
+        ValidateTransactionRound: {Event.DONE: ConsensusReachedRound},
+        SelectKeeperBRound: {Event.DONE: FinalizationRound},
     }
     event_to_timeout: Dict[Any, float] = {}
