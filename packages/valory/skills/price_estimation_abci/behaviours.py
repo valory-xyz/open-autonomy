@@ -93,11 +93,6 @@ class PriceEstimationBaseState(BaseState, ABC):
         """Return the params."""
         return cast(Params, self.context.params)
 
-    @property
-    def shared_state(self) -> SharedState:
-        """Return the shared state."""
-        return cast(SharedState, self.context.state)
-
 
 class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""

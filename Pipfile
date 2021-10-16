@@ -23,7 +23,7 @@ ipfshttpclient = "==0.8.0a2"
 isort = "==5.9.3"
 markdown = "==3.3.4"
 markdown-include = "==0.6.0"
-mkdocs = "==1.2.1"
+mkdocs = "==1.2.3"
 mkdocs-mermaid-plugin = {git = "https://github.com/pugong/mkdocs-mermaid-plugin.git"}
 mkdocs-material = "==7.1.10"
 mypy = "==0.910"
