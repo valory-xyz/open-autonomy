@@ -119,7 +119,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.consensus_create_empty_blocks",
-                False,
+                True,
             )
 
             self.set_config(

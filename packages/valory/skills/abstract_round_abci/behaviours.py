@@ -19,39 +19,105 @@
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
 
-from typing import Any, Dict, Optional, Type, cast
+from typing import AbstractSet, Any, Dict, Optional, Type
 
-from aea.exceptions import enforce
-from aea.skills.behaviours import FSMBehaviour
+from aea.skills.base import Behaviour
 
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
+    AbstractRound,
+    EventType,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
-State = Type[BaseState]
+StateType = Type[BaseState]
 Action = Optional[str]
-TransitionFunction = Dict[State, Dict[Action, State]]
+TransitionFunction = Dict[StateType, Dict[Action, StateType]]
 
 
-class AbstractRoundBehaviour(FSMBehaviour):
-    """This behaviour implements an abstract round."""
+class AbstractRoundBehaviour(Behaviour):
+    """This behaviour implements an abstract round behaviour."""
 
-    initial_state_cls: State
-    transition_function: TransitionFunction = {}
+    abci_app_cls: Type[AbciApp[EventType]]
+    behaviour_states: AbstractSet[StateType]
+    initial_state_cls: StateType
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
+        self._state_id_to_states: Dict[
+            str, StateType
+        ] = self._get_state_id_to_state_mapping(self.behaviour_states)
+        self._round_to_state: Dict[
+            Type[AbstractRound], StateType
+        ] = self._get_round_to_state_mapping(self.behaviour_states)
+        self._check_initial_state_in_set_of_states(
+            self.initial_state_cls, self.behaviour_states
+        )
 
-        self._round_to_state: Dict[str, str] = {}
+        self.current_state: Optional[BaseState] = None
+
+        # keep track of last round id so to detect changes
+        # TODO: we should keep track of sequences of states,
+        #   because we may return to the same state and
+        #   don't detect the change, mistakenly.
         self._last_round_id: Optional[str] = None
 
-        # this variable overrides the actual next transition
-        # due to ABCI app updates.
-        self._next_state: Optional[str] = None
+        # this variable remembers the actual next transition
+        # when we cannot preemptively interrupt the current state
+        # because it has not a matching round.
+        self._next_state_cls: Optional[StateType] = None
+
+    @classmethod
+    def _get_state_id_to_state_mapping(
+        cls, behaviour_states: AbstractSet[StateType]
+    ) -> Dict[str, StateType]:
+        """Get state id to state mapping."""
+        result: Dict[str, StateType] = {}
+        for state_behaviour_cls in behaviour_states:
+            state_id = state_behaviour_cls.state_id
+            if state_id in result:
+                raise ValueError(
+                    f"the states '{state_id}' and '{result[state_id]}' point to the same state behaviour class '{state_behaviour_cls}'"
+                )
+            result[state_id] = state_behaviour_cls
+        return result
+
+    @classmethod
+    def _get_round_to_state_mapping(
+        cls, behaviour_states: AbstractSet[StateType]
+    ) -> Dict[Type[AbstractRound], StateType]:
+        """Get round-to-state mapping."""
+        result: Dict[Type[AbstractRound], StateType] = {}
+        for state_behaviour_cls in behaviour_states:
+            if state_behaviour_cls.matching_round is None:
+                continue
+            round_cls = state_behaviour_cls.matching_round
+            if round_cls in result:
+                raise ValueError(
+                    f"the states '{state_behaviour_cls.state_id}' and '{result[round_cls].state_id}' point to the same matching round '{round_cls.round_id}'"
+                )
+            result[round_cls] = state_behaviour_cls
+        return result
+
+    @classmethod
+    def _check_initial_state_in_set_of_states(
+        cls, initial_state: StateType, states: AbstractSet[StateType]
+    ):
+        """Check the initial state is in the set of states."""
+        if initial_state not in states:
+            raise ValueError(
+                f"initial state {initial_state.state_id} is not in the set of states"
+            )
+
+    def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
+        """Instantiate the state class."""
+        return state_cls(name=state_cls.name, skill_context=self.context)
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._register_states(self.transition_function)
+        self.current_state = self.instantiate_state_cls(self.initial_state_cls)
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
@@ -61,10 +127,10 @@ class AbstractRoundBehaviour(FSMBehaviour):
         if self._last_round_id is None:
             self._last_round_id = self.context.state.period.current_round_id
 
-        if self.current is None:  # type: ignore
-            return
-
         self._process_current_round()
+
+        if self.current_state is None:
+            return
 
         current_state = self.current_state
         if current_state is None:
@@ -73,86 +139,19 @@ class AbstractRoundBehaviour(FSMBehaviour):
         current_state.act_wrapper()
 
         if current_state.is_done():
-            if current_state.name in self._final_states:
-                # we reached a final state - return.
-                self.context.logger.debug("%s is a final state", current_state.name)
-                self.current = None
             # if next state is set, overwrite successor (regardless of the event)
             # this branch also handle the case when matching round of current state is not set
-            elif self._next_state is not None:
+            if self._next_state_cls is not None:
                 self.context.logger.debug(
                     "overriding transition: current state: '%s', next state: '%s'",
-                    self.current,
-                    self._next_state,
+                    self.current_state.state_id,
+                    self._next_state_cls.state_id,
                 )
-                self.current = self._next_state
-                self._next_state = None
+                self.current_state = self.instantiate_state_cls(self._next_state_cls)
+                self._next_state_cls = None
             else:
-                # otherwise, read the event and compute the next transition
-                event = current_state.event
-                next_state_name = self.transitions.get(self.current, {}).get(
-                    event, None
-                )
-                self.context.logger.debug(
-                    "current state: '%s', event: '%s', next state: '%s'",
-                    self.current,
-                    event,
-                    next_state_name,
-                )
-                self.current = next_state_name
-            # self.current_state now points to the next state
-            next_state = self.current_state
-            if next_state is not None:
-                next_state.reset()
-
-    @property
-    def current_state(self) -> Optional[BaseState]:
-        """Get the current state."""
-        if self.current is not None:
-            return cast(Optional[BaseState], self.get_state(self.current))
-        return None
-
-    def _register_states(self, transition_function: TransitionFunction) -> None:
-        """Register a list of states."""
-        enforce(
-            len(transition_function) != 0,
-            "empty list of state classes",
-            exception_class=ValueError,
-        )
-        for state, outgoing_transitions in transition_function.items():
-            self._register_state_if_not_registered(
-                state, initial=state == self.initial_state_cls
-            )
-            for event, next_state in outgoing_transitions.items():
-                self._register_state_if_not_registered(
-                    next_state, initial=next_state == self.initial_state_cls
-                )
-                self.register_transition(state.state_id, next_state.state_id, event)
-
-    def _register_state_if_not_registered(
-        self, state_cls: Type[BaseState], initial: bool = False
-    ) -> None:
-        """Register state, if not already registered."""
-        if state_cls.state_id not in self._name_to_state:
-            self._register_state(state_cls, initial=initial)
-
-    def _register_state(
-        self, state_cls: Type[BaseState], initial: bool = False
-    ) -> None:
-        """Register state."""
-        name = state_cls.state_id
-        if state_cls.matching_round is not None:
-            enforce(
-                state_cls.matching_round.round_id not in self._round_to_state,
-                "round id already used",
-                exception_class=ValueError,
-            )
-            self._round_to_state[state_cls.matching_round.round_id] = name
-        return super().register_state(
-            name,
-            state_cls(name=name, skill_context=self.context),
-            initial=initial,
-        )
+                # otherwise, set it to None
+                self.current_state = None
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
@@ -161,8 +160,9 @@ class AbstractRoundBehaviour(FSMBehaviour):
             # round has not changed - do nothing
             return
         self._last_round_id = current_round_id
+        current_round_cls = type(self.context.state.period.current_round)
         # the state behaviour might not have the matching round
-        self._next_state = self._round_to_state.get(current_round_id, None)
+        self._next_state_cls = self._round_to_state.get(current_round_cls, None)
 
         # checking if current state behaviour has a matching round.
         #  if so, stop it and replace it with the new state behaviour
@@ -172,8 +172,8 @@ class AbstractRoundBehaviour(FSMBehaviour):
         if (
             current_state is not None
             and current_state.matching_round is not None
-            and current_state.state_id != self._next_state
+            and current_state.state_id != self._next_state_cls.state_id
         ):
             current_state.stop()
-            self.current = self._next_state
+            self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return
