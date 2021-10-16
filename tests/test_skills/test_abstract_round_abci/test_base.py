@@ -120,11 +120,11 @@ class TestTransactions:
         assert expected_payload == actual_payload
 
         expected_payload_ = PayloadB(sender=sender)
-        actual_payload_ = PayloadB.decode(expected_payload.encode())
+        actual_payload_ = PayloadB.decode(expected_payload_.encode())
         assert expected_payload_ == actual_payload_
 
         expected_payload__ = PayloadC(sender=sender)
-        actual_payload__ = PayloadC.decode(expected_payload.encode())
+        actual_payload__ = PayloadC.decode(expected_payload__.encode())
         assert expected_payload__ == actual_payload__
 
     def test_encode_decode_transaction(self) -> None:

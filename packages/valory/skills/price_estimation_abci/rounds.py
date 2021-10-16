@@ -23,7 +23,7 @@ from abc import ABC
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
-from typing import Any
+from typing import AbstractSet, Any
 from typing import Counter as CounterType
 from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
 
@@ -69,7 +69,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
-        participants: Optional[FrozenSet[str]] = None,
+        participants: Optional[AbstractSet[str]] = None,
         participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
         most_voted_randomness: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
@@ -337,7 +337,7 @@ class RegistrationRound(PriceEstimationAbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
-            state = PeriodState(participants=frozenset(self.participants))
+            state = PeriodState(participants=self.participants)
             next_round = RandomnessRound(state, self._consensus_params)
             return state, next_round
         return None

@@ -21,7 +21,7 @@
 import logging  # noqa: F401
 import re
 from types import MappingProxyType
-from typing import Dict, Set, cast
+from typing import Dict, FrozenSet, cast
 
 import pytest
 from aea.exceptions import AEAEnforceError
@@ -69,13 +69,13 @@ MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> Set[str]:
+def get_participants() -> FrozenSet[str]:
     """Participants"""
-    return {f"agent_{i}" for i in range(MAX_PARTICIPANTS)}
+    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
 def get_participant_to_randomness(
-    participants: Set[str], round_id: int
+    participants: FrozenSet[str], round_id: int
 ) -> Dict[str, RandomnessPayload]:
     """participant_to_randomness"""
     return {
@@ -94,7 +94,7 @@ def get_most_voted_randomness() -> str:
 
 
 def get_participant_to_selection(
-    participants: Set[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
@@ -114,7 +114,7 @@ def get_safe_contract_address() -> str:
 
 
 def get_participant_to_votes(
-    participants: Set[str], vote: bool = True
+    participants: FrozenSet[str], vote: bool = True
 ) -> Dict[str, ValidatePayload]:
     """participant_to_votes"""
     return {
@@ -124,7 +124,7 @@ def get_participant_to_votes(
 
 
 def get_participant_to_observations(
-    participants: Set[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, ObservationPayload]:
     """participant_to_observations"""
     return {
@@ -134,7 +134,7 @@ def get_participant_to_observations(
 
 
 def get_participant_to_estimate(
-    participants: Set[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, EstimatePayload]:
     """participant_to_estimate"""
     return {
@@ -154,7 +154,7 @@ def get_most_voted_estimate() -> float:
 
 
 def get_participant_to_tx_hash(
-    participants: Set[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, TransactionHashPayload]:
     """participant_to_tx_hash"""
     return {
@@ -168,7 +168,7 @@ def get_most_voted_tx_hash() -> str:
     return "tx_hash"
 
 
-def get_participant_to_signature(participants: Set[str]) -> Dict[str, str]:
+def get_participant_to_signature(participants: FrozenSet[str]) -> Dict[str, str]:
     """participant_to_signature"""
     return {participant: "signature" for participant in participants}
 
@@ -183,7 +183,7 @@ class BaseRoundTestClass:
 
     period_state: PeriodState
     consensus_params: ConsensusParams
-    participants: Set[str]
+    participants: FrozenSet[str]
 
     @classmethod
     def setup(
@@ -192,7 +192,7 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(participants=frozenset(cls.participants))
+        cls.period_state = PeriodState(participants=cls.participants)
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
 
@@ -223,7 +223,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.registration(participant_payload)
         assert test_round.registration_threshold_reached
 
-        actual_next_state = PeriodState(participants=frozenset(test_round.participants))
+        actual_next_state = PeriodState(participants=test_round.participants)
 
         res = test_round.end_block()
         assert res is not None
@@ -251,7 +251,9 @@ class TestRandomnessRound(BaseRoundTestClass):
         assert "sender" not in test_round.participant_to_randomness
 
         randomness_payloads = get_participant_to_randomness(self.participants, 1)
-        first_payload = randomness_payloads.pop(list(randomness_payloads.keys())[0])
+        first_payload = randomness_payloads.pop(
+            sorted(list(randomness_payloads.keys()))[0]
+        )
         test_round.randomness(first_payload)
         assert (
             test_round.participant_to_randomness[first_payload.sender] == first_payload
@@ -299,7 +301,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
 
         select_keeper_payloads = get_participant_to_selection(self.participants)
         first_payload = select_keeper_payloads.pop(
-            list(select_keeper_payloads.keys())[0]
+            sorted(list(select_keeper_payloads.keys()))[0]
         )
 
         test_round.select_keeper(first_payload)
@@ -370,7 +372,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         self.period_state = cast(
             PeriodState,
             self.period_state.update(
-                most_voted_keeper_address=list(self.participants)[0]
+                most_voted_keeper_address=sorted(list(self.participants))[0]
             ),
         )
 
@@ -396,7 +398,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.check_deploy_safe(
                 DeploySafePayload(
-                    sender=list(self.participants)[1],
+                    sender=sorted(list(self.participants))[1],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
@@ -422,14 +424,14 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.deploy_safe(
                 DeploySafePayload(
-                    sender=list(self.participants)[1],
+                    sender=sorted(list(self.participants))[1],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
 
         test_round.deploy_safe(
             DeploySafePayload(
-                sender=list(self.participants)[0],
+                sender=sorted(list(self.participants))[0],
                 safe_contract_address=get_safe_contract_address(),
             )
         )
@@ -440,7 +442,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.deploy_safe(
                 DeploySafePayload(
-                    sender=list(self.participants)[0],
+                    sender=sorted(list(self.participants))[0],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
@@ -451,7 +453,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.check_deploy_safe(
                 DeploySafePayload(
-                    sender=list(self.participants)[0],
+                    sender=sorted(list(self.participants))[0],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
@@ -500,7 +502,7 @@ class TestValidateRound(BaseRoundTestClass):
 
         participant_to_votes_payloads = get_participant_to_votes(self.participants)
         first_payload = participant_to_votes_payloads.pop(
-            list(participant_to_votes_payloads.keys())[0]
+            sorted(list(participant_to_votes_payloads.keys()))[0]
         )
         test_round.validate(first_payload)
 
@@ -553,7 +555,7 @@ class TestValidateRound(BaseRoundTestClass):
             self.participants, vote=False
         )
         first_payload = participant_to_votes_payloads.pop(
-            list(participant_to_votes_payloads.keys())[0]
+            sorted(list(participant_to_votes_payloads.keys()))[0]
         )
         test_round.validate(first_payload)
 
@@ -618,7 +620,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
             self.participants
         )
         first_payload = participant_to_observations_payloads.pop(
-            list(participant_to_observations_payloads.keys())[0]
+            sorted(list(participant_to_observations_payloads.keys()))[0]
         )
 
         test_round.observation(first_payload)
@@ -641,7 +643,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
         ):
             test_round.check_observation(
                 ObservationPayload(
-                    sender=list(self.participants)[0],
+                    sender=sorted(list(self.participants))[0],
                     observation=1.0,
                 )
             )
@@ -698,7 +700,7 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
         )
 
         first_payload = participant_to_estimate_payloads.pop(
-            list(participant_to_estimate_payloads.keys())[0]
+            sorted(list(participant_to_estimate_payloads.keys()))[0]
         )
         test_round.estimate(first_payload)
 
@@ -720,7 +722,7 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
             match="sender agent_0 has already sent the estimate: 1.0",
         ):
             test_round.check_estimate(
-                EstimatePayload(sender=list(self.participants)[0], estimate=1.0)
+                EstimatePayload(sender=sorted(list(self.participants))[0], estimate=1.0)
             )
 
         for payload in participant_to_estimate_payloads.values():
@@ -759,7 +761,7 @@ class TestTxHashRound(BaseRoundTestClass):
 
         participant_to_tx_hash_payloads = get_participant_to_tx_hash(self.participants)
         first_payload = participant_to_tx_hash_payloads.pop(
-            list(participant_to_tx_hash_payloads.keys())[0]
+            sorted(list(participant_to_tx_hash_payloads.keys()))[0]
         )
 
         test_round.tx_hash(first_payload)
@@ -853,7 +855,7 @@ class TestCollectSignatureRound(BaseRoundTestClass):
             ).items()
         }
         first_payload = participant_to_signature.pop(
-            list(participant_to_signature.keys())[0]
+            sorted(list(participant_to_signature.keys()))[0]
         )
 
         test_round.signature(first_payload)
@@ -896,7 +898,7 @@ class TestFinalizationRound(BaseRoundTestClass):
         self.period_state = cast(
             PeriodState,
             self.period_state.update(
-                most_voted_keeper_address=list(self.participants)[0]
+                most_voted_keeper_address=sorted(list(self.participants))[0]
             ),
         )
 
@@ -931,7 +933,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.finalization(
                 FinalizationTxPayload(
-                    sender=list(self.participants)[1], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[1],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -941,7 +944,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.check_finalization(
                 FinalizationTxPayload(
-                    sender=list(self.participants)[1], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[1],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -950,7 +954,7 @@ class TestFinalizationRound(BaseRoundTestClass):
 
         test_round.finalization(
             FinalizationTxPayload(
-                sender=list(self.participants)[0], tx_hash=get_final_tx_hash()
+                sender=sorted(list(self.participants))[0], tx_hash=get_final_tx_hash()
             )
         )
 
@@ -962,7 +966,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.finalization(
                 FinalizationTxPayload(
-                    sender=list(self.participants)[0], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[0],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -972,7 +977,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.check_finalization(
                 FinalizationTxPayload(
-                    sender=list(self.participants)[0], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[0],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -1001,7 +1007,7 @@ class TestSelectKeeperARound(BaseRoundTestClass):
 
         select_keeper_payloads = get_participant_to_selection(self.participants)
         first_payload = select_keeper_payloads.pop(
-            list(select_keeper_payloads.keys())[0]
+            sorted(list(select_keeper_payloads.keys()))[0]
         )
 
         test_round.select_keeper(first_payload)
@@ -1075,7 +1081,7 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
 
         select_keeper_payloads = get_participant_to_selection(self.participants)
         first_payload = select_keeper_payloads.pop(
-            list(select_keeper_payloads.keys())[0]
+            sorted(list(select_keeper_payloads.keys()))[0]
         )
 
         test_round.select_keeper(first_payload)
@@ -1179,7 +1185,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
 
         participant_to_votes_payloads = get_participant_to_votes(self.participants)
         first_payload = participant_to_votes_payloads.pop(
-            list(participant_to_votes_payloads.keys())[0]
+            sorted(list(participant_to_votes_payloads.keys()))[0]
         )
         test_round.validate_safe(first_payload)
 
@@ -1231,7 +1237,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
             self.participants, vote=False
         )
         first_payload = participant_to_votes_payloads.pop(
-            list(participant_to_votes_payloads.keys())[0]
+            sorted(list(participant_to_votes_payloads.keys()))[0]
         )
         test_round.validate_safe(first_payload)
 
@@ -1285,7 +1291,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
 
         participant_to_votes_payloads = get_participant_to_votes(self.participants)
         first_payload = participant_to_votes_payloads.pop(
-            list(participant_to_votes_payloads.keys())[0]
+            sorted(list(participant_to_votes_payloads.keys()))[0]
         )
         test_round.validate_transaction(first_payload)
 
@@ -1337,7 +1343,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
             self.participants, vote=False
         )
         first_payload = participant_to_votes_payloads.pop(
-            list(participant_to_votes_payloads.keys())[0]
+            sorted(list(participant_to_votes_payloads.keys()))[0]
         )
         test_round.validate_transaction(first_payload)
 
@@ -1387,7 +1393,7 @@ def test_period_state() -> None:
     final_tx_hash = get_final_tx_hash()
 
     period_state = PeriodState(
-        participants=frozenset(participants),
+        participants=participants,
         participant_to_randomness=participant_to_randomness,
         most_voted_randomness=most_voted_randomness,
         participant_to_selection=participant_to_selection,
