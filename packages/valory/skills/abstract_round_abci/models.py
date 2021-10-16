@@ -25,6 +25,7 @@ from aea.exceptions import enforce
 from aea.skills.base import Model
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
     AbstractRound,
     BasePeriodState,
     ConsensusParams,
@@ -55,16 +56,14 @@ class SharedState(Model):
 
     period: Period
 
-    def __init__(
-        self, *args: Any, initial_round_cls: Type[AbstractRound], **kwargs: Any
-    ) -> None:
+    def __init__(self, *args: Any, abci_app_cls: Type[AbciApp], **kwargs: Any) -> None:
         """Initialize the state."""
-        self.initial_round_cls = self._process_initial_round_cls(initial_round_cls)
+        self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
         super().__init__(*args, **kwargs)
 
     def setup(self) -> None:
         """Set up the model."""
-        self.period = Period(self.initial_round_cls)
+        self.period = Period(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
         self.period.setup(BasePeriodState(), consensus_params)
 
@@ -77,19 +76,17 @@ class SharedState(Model):
         return period_state
 
     @classmethod
-    def _process_initial_round_cls(
-        cls, initial_round_cls: Type[AbstractRound]
-    ) -> Type[AbstractRound]:
+    def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
         """Process the 'initial_round_cls' parameter."""
-        if not inspect.isclass(initial_round_cls):
-            raise ValueError(f"The object {initial_round_cls} is not a class")
-        if not issubclass(initial_round_cls, AbstractRound):
-            cls_name = AbstractRound.__name__
-            cls_module = AbstractRound.__module__
+        if not inspect.isclass(abci_app_cls):
+            raise ValueError(f"The object {abci_app_cls} is not a class")
+        if not issubclass(abci_app_cls, AbciApp):
+            cls_name = AbciApp.__name__
+            cls_module = AbciApp.__module__
             raise ValueError(
-                f"The class {initial_round_cls} is not an instance of {cls_module}.{cls_name}"
+                f"The class {abci_app_cls} is not an instance of {cls_module}.{cls_name}"
             )
-        return initial_round_cls
+        return abci_app_cls
 
 
 class Requests(Model):

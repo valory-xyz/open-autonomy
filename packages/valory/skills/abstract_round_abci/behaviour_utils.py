@@ -335,12 +335,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def set_done(self) -> None:
         """Set the behaviour to done."""
         self._is_done = True
-        self._event = DONE_EVENT
 
     def set_fail(self) -> None:
         """Set the behaviour to done."""
         self._is_done = True
-        self._event = FAIL_EVENT
 
     def set_exit_a(self) -> None:
         """Set the behaviour to exit a."""
@@ -349,13 +347,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def set_exit_b(self) -> None:
         """Set the behaviour to exit b."""
         self._is_done = True
-        self._event = EXIT_B_EVENT
 
     def reset(self) -> None:
         """Reset initial conditions."""
         self._is_done = False
         self._is_started = False
-        self._event = None  # type: ignore
 
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
@@ -392,9 +388,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _log_end(self) -> None:
         """Log the exiting from the behaviour state."""
         self.context.logger.info(f"'{self.name}' behaviour state is done")
-        self.context.logger.debug(
-            "'%s' behaviour done with event: %s", self.name, self._event
-        )
 
     @classmethod
     def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:

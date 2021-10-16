@@ -113,7 +113,7 @@ class AbstractRoundBehaviour(Behaviour):
 
     def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
         """Instantiate the state class."""
-        return state_cls(name=state_cls.name, skill_context=self.context)
+        return state_cls(name=state_cls.state_id, skill_context=self.context)
 
     def setup(self) -> None:
         """Set up the behaviour."""
@@ -124,9 +124,6 @@ class AbstractRoundBehaviour(Behaviour):
 
     def act(self) -> None:
         """Implement the behaviour."""
-        if self._last_round_id is None:
-            self._last_round_id = self.context.state.period.current_round_id
-
         self._process_current_round()
 
         if self.current_state is None:

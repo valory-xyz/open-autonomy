@@ -483,6 +483,19 @@ class AbstractRound(ABC):
         self._consensus_params = consensus_params
         self._state = state
 
+        self._check_class_attributes()
+
+    def _check_class_attributes(self):
+        """Check that required class attributes are set."""
+        try:
+            self.round_id
+        except AttributeError:
+            raise ABCIAppInternalError("round id not set")
+        try:
+            self.allowed_tx_type
+        except AttributeError:
+            raise ABCIAppInternalError("allowed tx type not set")
+
     @property
     def period_state(self) -> BasePeriodState:
         """Get the period state."""
@@ -537,7 +550,7 @@ class AbstractRound(ABC):
         :raises:
             TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
         """
-        tx_type = transaction.payload.transaction_type.value
+        tx_type = transaction.payload.transaction_type
         if tx_type != self.allowed_tx_type is None:
             raise TransactionTypeNotRecognizedError(
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
@@ -552,7 +565,7 @@ class AbstractRound(ABC):
         """Process payload."""
 
 
-AbciAppTransitionFunction = MappingProxyType[
+AbciAppTransitionFunction = Dict[
     Type[AbstractRound], Dict[EventType, Type[AbstractRound]]
 ]
 
@@ -581,6 +594,11 @@ class Timeouts:
 
         # Mapping from entry id to task
         self._entry_finder = {}
+
+    @property
+    def size(self) -> int:
+        """Get the size of the timeout queue."""
+        return len(self._heap)
 
     def add_timeout(self, deadline: datetime.datetime, event: Any) -> int:
         """Add a timeout."""
@@ -713,7 +731,9 @@ class AbciApp(Generic[EventType]):
 
     def process_event(self, event: Any, result: Optional[Any] = None):
         """Process a round event."""
-        next_round_cls = self.transition_function[self._current_round_cls][event]
+        next_round_cls = self.transition_function[self._current_round_cls].get(
+            event, None
+        )
         self._previous_rounds.append(self.current_round)
         if result is not None:
             self._round_results.append(result)
@@ -721,13 +741,17 @@ class AbciApp(Generic[EventType]):
             # we duplicate the state since the round was preemptively ended
             self._round_results.append(self.current_round.period_state)
 
+        last_result = self._round_results[-1]
         self._current_round_cls = next_round_cls
-        self._current_round = next_round_cls(
-            self.current_round.period_state, self.consensus_params
-        )
+        if next_round_cls is not None:
+            self._current_round = next_round_cls(last_result, self.consensus_params)
+        else:
+            self._current_round = None
 
-    def update_time(self, timestamp: datetime.datetime):
+    def update_time(self, timestamp: datetime.datetime) -> None:
         """Observe timestamp from last block."""
+        if self._timeouts.size == 0:
+            return
         deadline, _ = self._timeouts.get_earliest_timeout()
         while deadline >= timestamp:
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
@@ -786,6 +810,7 @@ class Period:
         :param kwargs: the keyword-arguments to pass to the round constructor.
         """
         self._abci_app = self._abci_app_cls(*args, **kwargs)
+        self._abci_app.setup()
 
     @property
     def is_finished(self) -> bool:
@@ -900,10 +925,11 @@ class Period:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        round_result, event = self.current_round.end_block()
-        if event is None:
+        result = self.current_round.end_block()
+        if result is None:
             return
+        round_result, event = result
         _logger.debug(
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
-        self._abci_app.process_event(event)
+        self._abci_app.process_event(event, result=round_result)

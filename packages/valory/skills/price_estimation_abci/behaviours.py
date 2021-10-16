@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Generator, cast
+from typing import AbstractSet, Generator, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -65,6 +65,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     EstimateConsensusRound,
     FinalizationRound,
     PeriodState,
+    PriceEstimationAbciApp,
     RandomnessRound,
     RegistrationRound,
     SelectKeeperARound,
@@ -639,25 +640,21 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    transition_function: TransitionFunction = {
-        TendermintHealthcheckBehaviour: {DONE_EVENT: RegistrationBehaviour},
-        RegistrationBehaviour: {DONE_EVENT: RandomnessBehaviour},
-        RandomnessBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
-        SelectKeeperABehaviour: {DONE_EVENT: DeploySafeBehaviour},
-        DeploySafeBehaviour: {
-            DONE_EVENT: ValidateSafeBehaviour,
-            EXIT_A_EVENT: SelectKeeperABehaviour,
-        },
-        ValidateSafeBehaviour: {DONE_EVENT: ObserveBehaviour},
-        ObserveBehaviour: {DONE_EVENT: EstimateBehaviour, FAIL_EVENT: WaitBehaviour},
-        EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
-        TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
-        SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
-        FinalizeBehaviour: {
-            DONE_EVENT: ValidateTransactionBehaviour,
-            EXIT_B_EVENT: SelectKeeperBBehaviour,
-        },
-        ValidateTransactionBehaviour: {DONE_EVENT: EndBehaviour},
-        SelectKeeperBBehaviour: {DONE_EVENT: FinalizeBehaviour},
-        EndBehaviour: {},
+    abci_app_cls: PriceEstimationAbciApp
+    behaviour_states: AbstractSet[PriceEstimationBaseState] = {
+        TendermintHealthcheckBehaviour,
+        RegistrationBehaviour,
+        RandomnessBehaviour,
+        SelectKeeperABehaviour,
+        DeploySafeBehaviour,
+        ValidateSafeBehaviour,
+        ObserveBehaviour,
+        EstimateBehaviour,
+        WaitBehaviour,
+        TransactionHashBehaviour,
+        SignatureBehaviour,
+        FinalizeBehaviour,
+        ValidateTransactionBehaviour,
+        SelectKeeperBBehaviour,
+        EndBehaviour,
     }

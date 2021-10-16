@@ -336,7 +336,7 @@ class TendermintNode:
             f"--rpc.laddr={self.params.rpc_laddr}",
             f"--p2p.laddr={self.params.p2p_laddr}",
             f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
-            f"--consensus.create_empty_blocks={self.params.consensus_create_empty_blocks}",
+            f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
