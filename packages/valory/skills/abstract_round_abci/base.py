@@ -653,10 +653,16 @@ class AbciApp(Generic[EventType]):
     transition_function: AbciAppTransitionFunction
     event_to_timeout: Dict[EventType, float]
 
-    def __init__(self, state: BasePeriodState, consensus_params: ConsensusParams):
+    def __init__(
+        self,
+        state: BasePeriodState,
+        consensus_params: ConsensusParams,
+        logger: logging.Logger,
+    ):
         """Initialize the AbciApp."""
         self.state = state
         self.consensus_params = consensus_params
+        self.logger = logger
 
         self._current_round_cls: Optional[Type[AbstractRound]] = None
         self._current_round: Optional[AbstractRound] = None
@@ -681,6 +687,17 @@ class AbciApp(Generic[EventType]):
         """Set up the behaviour."""
         self._current_round_cls = self.initial_round_cls
         self._current_round = self.initial_round_cls(self.state, self.consensus_params)
+        self._log_start()
+
+    def _log_start(self) -> None:
+        """Log the entering in the round."""
+        self.logger.info(f"Entered in the '{self.current_round.round_id}' round")
+
+    def _log_end(self, event: Any) -> None:
+        """Log the exiting from the round."""
+        self.logger.info(
+            f"'{self.current_round.round_id}' round is done with event: {event}"
+        )
 
     @property
     def current_round(self) -> AbstractRound:
@@ -744,8 +761,11 @@ class AbciApp(Generic[EventType]):
         last_result = self._round_results[-1]
         self._current_round_cls = next_round_cls
         if next_round_cls is not None:
+            self._log_end(event)
             self._current_round = next_round_cls(last_result, self.consensus_params)
+            self._log_start()
         else:
+            self.logger.info("AbciApp has reached a dead end.")
             self._current_round = None
 
     def update_time(self, timestamp: datetime.datetime) -> None:

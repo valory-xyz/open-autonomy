@@ -65,7 +65,7 @@ class SharedState(Model):
         """Set up the model."""
         self.period = Period(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
-        self.period.setup(BasePeriodState(), consensus_params)
+        self.period.setup(BasePeriodState(), consensus_params, self.context.logger)
 
     @property
     def period_state(self) -> BasePeriodState:
