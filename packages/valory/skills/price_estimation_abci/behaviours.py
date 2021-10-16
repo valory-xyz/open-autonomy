@@ -284,7 +284,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         owners = sorted(self.period_state.participants)
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
             contract_address=None,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_deploy_transaction",
@@ -330,7 +330,7 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
     def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
         contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_contract",
@@ -455,7 +455,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """
         data = self.period_state.encoded_most_voted_estimate
         contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
@@ -565,7 +565,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
         contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction",
@@ -608,7 +608,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
         contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
