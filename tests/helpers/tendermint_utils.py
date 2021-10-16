@@ -80,7 +80,7 @@ class TendermintLocalNetworkBuilder:
 
         self._create()
 
-    def _create(self):
+    def _create(self) -> None:
         """Create a Tendermint local network."""
         self._create_testnet()
         self.nodes = [
@@ -128,7 +128,7 @@ class TendermintLocalNetworkBuilder:
             "tendermint",
             "node",
             "--home",
-            n.home,
+            str(n.home),
             f"--rpc.laddr={n.rpc_laddr}",
             f"--p2p.laddr={n.p2p_laddr}",
             f"--p2p.seeds={','.join(self.get_p2p_seeds())}",

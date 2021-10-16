@@ -14,22 +14,12 @@ def exception_to_info_msg(exception: Exception) -> str
 
 Trnasform an exception to an info string message.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.HandlerUtils"></a>
-
-## HandlerUtils Objects
-
-```python
-class HandlerUtils(ABC)
-```
-
-MixIn class with handler utils.
-
 <a id="packages.valory.skills.abstract_round_abci.handlers.ABCIRoundHandler"></a>
 
 ## ABCIRoundHandler Objects
 
 ```python
-class ABCIRoundHandler(HandlerUtils,  ABCIHandler)
+class ABCIRoundHandler(ABCIHandler)
 ```
 
 ABCI handler.
@@ -94,17 +84,26 @@ def commit(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'commit' request.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.HttpHandler"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.AbstractResponseHandler"></a>
 
-## HttpHandler Objects
+## AbstractResponseHandler Objects
 
 ```python
-class HttpHandler(HandlerUtils,  Handler)
+class AbstractResponseHandler(Handler,  ABC)
 ```
 
-The HTTP response handler.
+Abstract response Handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.HttpHandler.setup"></a>
+This abstract handler works in tandem with the 'Requests' model.
+Whenever a message of 'response' type arrives, the handler
+tries to dispatch it to a pending request previously registered
+in 'Requests' by some other code in the same skill.
+
+The concrete classes must set the 'allowed_response_performatives'
+class attribute to the (frozen)set of performative the developer
+wants the handler to handle.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.AbstractResponseHandler.setup"></a>
 
 #### setup
 
@@ -114,7 +113,7 @@ def setup() -> None
 
 Set up the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.HttpHandler.teardown"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.AbstractResponseHandler.teardown"></a>
 
 #### teardown
 
@@ -124,7 +123,7 @@ def teardown() -> None
 
 Tear down the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.HttpHandler.handle"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.AbstractResponseHandler.handle"></a>
 
 #### handle
 
@@ -132,145 +131,61 @@ Tear down the handler.
 def handle(message: Message) -> None
 ```
 
-Handle a message.
+Handle the response message.
+
+Steps:
+    1. Try to recover the 'dialogues' instance, for the protocol of this handler,
+        from the skill context. The attribute name used to read the attribute
+        is computed by '_get_dialogues_attribute_name()' method.
+        If no dialogues instance is found, log a message and return.
+    2. Try to recover the dialogue; if no dialogue is present, log a message and return.
+    3. Check whether the performative is in the set of allowed performative;
+        if not, log a message and return.
+    4. Try to recover the callback of the request associated to the response
+        from the 'Requests' model; if no callback is present, log a message and return.
+    5. If the above check have passed, then call the callback with the received message.
+
+**Arguments**:
+
+- `message`: the message to handle.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.HttpHandler"></a>
+
+## HttpHandler Objects
+
+```python
+class HttpHandler(AbstractResponseHandler)
+```
+
+The HTTP response handler.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.SigningHandler"></a>
 
 ## SigningHandler Objects
 
 ```python
-class SigningHandler(HandlerUtils,  Handler)
+class SigningHandler(AbstractResponseHandler)
 ```
 
 Implement the transaction handler.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.SigningHandler.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Implement the setup for the handler.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.SigningHandler.teardown"></a>
-
-#### teardown
-
-```python
-def teardown() -> None
-```
-
-Implement the handler teardown.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.SigningHandler.handle"></a>
-
-#### handle
-
-```python
-def handle(message: Message) -> None
-```
-
-Implement the reaction to a message.
-
-**Arguments**:
-
-- `message`: the message
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.LedgerApiHandler"></a>
 
 ## LedgerApiHandler Objects
 
 ```python
-class LedgerApiHandler(HandlerUtils,  Handler)
+class LedgerApiHandler(AbstractResponseHandler)
 ```
 
 Implement the ledger handler.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.LedgerApiHandler.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Implement the setup for the handler.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.LedgerApiHandler.handle"></a>
-
-#### handle
-
-```python
-def handle(message: Message) -> None
-```
-
-Implement the reaction to a message.
-
-**Arguments**:
-
-- `message`: the message
-
-**Returns**:
-
-None
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.LedgerApiHandler.teardown"></a>
-
-#### teardown
-
-```python
-def teardown() -> None
-```
-
-Implement the handler teardown.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.ContractApiHandler"></a>
 
 ## ContractApiHandler Objects
 
 ```python
-class ContractApiHandler(HandlerUtils,  Handler)
+class ContractApiHandler(AbstractResponseHandler)
 ```
 
 Implement the contract api handler.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.ContractApiHandler.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Implement the setup for the handler.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.ContractApiHandler.handle"></a>
-
-#### handle
-
-```python
-def handle(message: Message) -> None
-```
-
-Implement the reaction to a message.
-
-**Arguments**:
-
-- `message`: the message
-
-**Returns**:
-
-None
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.ContractApiHandler.teardown"></a>
-
-#### teardown
-
-```python
-def teardown() -> None
-```
-
-Implement the handler teardown.
 

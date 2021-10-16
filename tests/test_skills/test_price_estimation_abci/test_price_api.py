@@ -19,10 +19,13 @@
 
 """Test the price_api.py module of the skill."""
 
+from typing import cast
+
 import pytest
 from aea.skills.base import SkillContext
 from requests import get
 
+from packages.fetchai.protocols.http import HttpMessage
 from packages.valory.skills.price_estimation_abci.price_api import (
     ApiSpecs,
     BinanceApiSpecs,
@@ -57,7 +60,7 @@ class BaseApiSpecTest:
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run tests."""
         specs = self.api.get_spec(self.currency_id, self.convert_id)
         assert all([key in specs for key in ["url", "api_id", "headers", "parameters"]])
@@ -65,11 +68,13 @@ class BaseApiSpecTest:
             url=specs["url"], params=specs["parameters"], headers=specs["headers"]
         )
         response = DummyMessage(http_response.content)
-        observation = self.api.post_request_process(response)
+        observation = self.api.post_request_process(cast(HttpMessage, response))
         assert isinstance(observation, float)
 
         fake_response = DummyMessage(b"")
-        fake_observation = self.api.post_request_process(fake_response)
+        fake_observation = self.api.post_request_process(
+            cast(HttpMessage, fake_response)
+        )
         assert fake_observation is None
 
 
@@ -78,7 +83,7 @@ class TestCoinbaseApiSpecs(BaseApiSpecTest):
 
     def setup(
         self,
-    ):
+    ) -> None:
         """Setup test."""
         self.api = CoinbaseApiSpecs()
 
@@ -88,7 +93,7 @@ class TestCoinGeckoApiSpecs(BaseApiSpecTest):
 
     def setup(
         self,
-    ):
+    ) -> None:
         """Setup test."""
         self.api = CoinGeckoApiSpecs()
 
@@ -98,7 +103,7 @@ class TestCoinMarketCapApiSpecs(BaseApiSpecTest):
 
     def setup(
         self,
-    ):
+    ) -> None:
         """Setup test."""
         self.api = CoinMarketCapApiSpecs(api_key=COINMARKETCAP_API_KEY)
 
@@ -108,13 +113,13 @@ class TestBinanceApiSpecs(BaseApiSpecTest):
 
     def setup(
         self,
-    ):
+    ) -> None:
         """Setup test."""
         self.api = BinanceApiSpecs()
         self.convert_id = Currency.USDT
 
 
-def test_price_api():
+def test_price_api() -> None:
     """Test `PriceApi` class."""
 
     api = CoinMarketCapApiSpecs(api_key=COINMARKETCAP_API_KEY)
@@ -139,14 +144,14 @@ def test_price_api():
         headers=api_specs["headers"],
     )
     response = DummyMessage(http_response.content)
-    observation = price_api.post_request_process(response)
+    observation = price_api.post_request_process(cast(HttpMessage, response))
     assert isinstance(observation, float)
 
     price_api.increment_retries()
     assert not price_api.is_retries_exceeded()
 
 
-def test_price_api_exceptions():
+def test_price_api_exceptions() -> None:
     """Test excpetions in PriceApi."""
 
     with pytest.raises(ValueError, match="'source_id' is a mandatory configuration"):

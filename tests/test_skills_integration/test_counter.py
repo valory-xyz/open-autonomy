@@ -46,7 +46,7 @@ class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run the ABCI skill."""
         self.generate_private_key("ethereum")
         self.add_private_key("ethereum", "ethereum_private_key.txt")
@@ -91,7 +91,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
     NB_AGENTS = 4
     NB_TX = 15
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run the ABCI skill."""
         self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
         processes = []
@@ -186,7 +186,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
         for agent_id in range(self.NB_AGENTS):
             self._query_agent(expected_value, agent_id)
 
-    def _send_tx(self, value: int, agent_id: int, expected_status_code: int):
+    def _send_tx(self, value: int, agent_id: int, expected_status_code: int) -> None:
         """
         Send a transaction to a certain agent.
 
@@ -204,7 +204,7 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
         )
         assert result.status_code == expected_status_code
 
-    def _query_agent(self, expected_value: int, agent_id: int):
+    def _query_agent(self, expected_value: int, agent_id: int) -> None:
         """
         Send a query to the ith agent about the state of the replicated counter.
 

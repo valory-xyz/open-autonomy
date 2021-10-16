@@ -53,13 +53,13 @@ class TestSharedState:
 
     def test_initialization(
         self,
-    ):
+    ) -> None:
         """Test initialization."""
         SharedState(name="", skill_context=DummyContext())
 
     def test_reset_state_time(
         self,
-    ):
+    ) -> None:
         """Test `reset_state_time` method."""
 
         shared_state = SharedState(name="", skill_context=DummyContext())
@@ -72,7 +72,7 @@ class TestSharedState:
 
     def test_set_state_time(
         self,
-    ):
+    ) -> None:
         """Test `set_state_time`."""
 
         shared_state = SharedState(name="", skill_context=DummyContext())
@@ -87,7 +87,7 @@ class TestSharedState:
 
     def test_has_keeper_timed_out(
         self,
-    ):
+    ) -> None:
         """Test `has_keeper_timed_out` method."""
 
         shared_state = SharedState(name="", skill_context=DummyContext())

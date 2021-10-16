@@ -34,7 +34,7 @@ class TestABCISkill(AEATestCaseEmpty, UseTendermint):
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run the ABCI skill."""
         self.generate_private_key("ethereum")
         self.add_private_key("ethereum", "ethereum_private_key.txt")

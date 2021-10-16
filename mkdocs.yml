@@ -20,16 +20,33 @@ nav:
     - FSM Diagram: 'fsm.md'
     - POC FSM Diagram: 'poc-fsm.md'
     - FSM vs ABCI app: 'fsm_vs_abci_app.md'
+    - Abstract Round ABCI: 'abstract_round_abci.md'
   - API:
     - Connections:
       - ABCI:
+        - Check Dependencies: 'api/connections/abci/check_dependencies.md'
         - Connection: 'api/connections/abci/connection.md'
+        - Dialogues: 'api/connections/abci/dialogues.md'
+        - Tendermint Decoder: 'api/connections/abci/tendermint_decoder.md'
+        - Tendermint Encoder: 'api/connections/abci/tendermint_encoder.md'
+        - Scripts: 'api/connections/abci/scripts/genproto.md'
+    - Contracts:
+      - Gnosis Safe:
+        - Contract: 'api/contracts/gnosis_safe/contract.md'
+      - Gnosis Safe Proxy Factory:
+        - Contract: 'api/contracts/gnosis_safe_proxy_factory/contract.md'
+    - Protocols:
+      - ABCI:
+        - Custom Types: 'api/protocols/abci/custom_types.md'
+        - Dialogues: 'api/protocols/abci/dialogues.md'
+        - Message: 'api/protocols/abci/message.md'
+        - Serialization: 'api/protocols/abci/serialization.md'
     - Skills:
       - Abstract ABCI:
         - Dialogues: 'api/skills/abstract_abci/dialogues.md'
         - Handlers: 'api/skills/abstract_abci/handlers.md'
       - Abstract Round ABCI:
-        - Base Models: 'api/skills/abstract_round_abci/base_models.md'
+        - Base: 'api/skills/abstract_round_abci/base.md'
         - Behaviour Utils: 'api/skills/abstract_round_abci/behaviour_utils.md'
         - Behaviour: 'api/skills/abstract_round_abci/behaviours.md'
         - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
@@ -37,6 +54,15 @@ nav:
         - Models: 'api/skills/abstract_round_abci/models.md'
         - Serializer: 'api/skills/abstract_round_abci/serializer.md'
         - Utils: 'api/skills/abstract_round_abci/utils.md'
+      - Price Estimation ABCI:
+        - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
+        - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
+        - Handlers: 'api/skills/price_estimation_abci/handlers.md'
+        - Models: 'api/skills/price_estimation_abci/models.md'
+        - Payloads: 'api/skills/price_estimation_abci/payloads.md'
+        - PriceAPI: 'api/skills/price_estimation_abci/price_api.md'
+        - Rounds: 'api/skills/price_estimation_abci/rounds.md'
+        - Tools: 'api/skills/price_estimation_abci/tools.md'
     - Exceptions: exceptions.md
 
 

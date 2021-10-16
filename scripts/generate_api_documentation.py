@@ -37,9 +37,12 @@ AEA_DIR = Path("aea_consensus_algorithms")
 PACKAGES_DIR = Path(PACKAGES)
 DEFAULT_PACKAGES = {
     (ComponentType.CONNECTION, "valory/abci:latest"),
+    (ComponentType.CONTRACT, "valory/gnosis_safe:latest"),
+    (ComponentType.CONTRACT, "valory/gnosis_safe_proxy_factory:latest"),
     (ComponentType.PROTOCOL, "valory/abci:latest"),
     (ComponentType.SKILL, "valory/abstract_abci:latest"),
     (ComponentType.SKILL, "valory/abstract_round_abci:latest"),
+    (ComponentType.SKILL, "valory/price_estimation_abci:latest"),
 }
 
 IGNORE_NAMES = {r"^__init__\.py$", r"^__version__\.py$", r"^py\.typed$", r"^.*_pb2.py$"}

@@ -1782,6 +1782,90 @@ def __eq__(other) -> bool
 
 Compare with another object.
 
+<a id="packages.valory.protocols.abci.custom_types.PublicKey"></a>
+
+## PublicKey Objects
+
+```python
+class PublicKey()
+```
+
+This class represents an instance of PublicKey.
+
+<a id="packages.valory.protocols.abci.custom_types.PublicKey.PublicKeyType"></a>
+
+## PublicKeyType Objects
+
+```python
+class PublicKeyType(Enum)
+```
+
+Enumeration of public key types supported by Tendermint.
+
+<a id="packages.valory.protocols.abci.custom_types.PublicKey.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(data: bytes, key_type: PublicKeyType) -> None
+```
+
+Initialize the public key object.
+
+**Arguments**:
+
+- `data`: the data of the public key.
+- `key_type`: the type of the public key.
+
+<a id="packages.valory.protocols.abci.custom_types.PublicKey.encode"></a>
+
+#### encode
+
+```python
+@staticmethod
+def encode(public_key_protobuf_object, public_key_object: "PublicKey") -> None
+```
+
+Encode an instance of this class into the protocol buffer object.
+
+The protocol buffer object in the public_key_protobuf_object argument is matched with the instance of this class in the 'public_key_object' argument.
+
+**Arguments**:
+
+- `public_key_protobuf_object`: the protocol buffer object whose type corresponds with this class.
+- `public_key_object`: an instance of this class to be encoded in the protocol buffer object.
+
+<a id="packages.valory.protocols.abci.custom_types.PublicKey.decode"></a>
+
+#### decode
+
+```python
+@classmethod
+def decode(cls, public_key_protobuf_object) -> "PublicKey"
+```
+
+Decode a protocol buffer object that corresponds with this class into an instance of this class.
+
+A new instance of this class is created that matches the protocol buffer object in the 'public_key_protobuf_object' argument.
+
+**Arguments**:
+
+- `public_key_protobuf_object`: the protocol buffer object whose type corresponds with this class.
+
+**Returns**:
+
+A new instance of this class that matches the protocol buffer object in the 'public_key_protobuf_object' argument.
+
+<a id="packages.valory.protocols.abci.custom_types.PublicKey.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(other)
+```
+
+Compare with another object.
+
 <a id="packages.valory.protocols.abci.custom_types.ValidatorUpdate"></a>
 
 ## ValidatorUpdate Objects
@@ -1797,7 +1881,7 @@ This class represents an instance of ValidatorUpdate.
 #### `__`init`__`
 
 ```python
-def __init__(pub_key: bytes, power: int)
+def __init__(pub_key: PublicKey, power: int)
 ```
 
 Initialise an instance of ValidatorUpdate.

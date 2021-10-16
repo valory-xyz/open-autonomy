@@ -21,7 +21,7 @@
 import logging  # noqa: F401
 import re
 from types import MappingProxyType
-from typing import List, Set, Tuple
+from typing import Dict, FrozenSet, cast
 
 import pytest
 from aea.exceptions import AEAEnforceError
@@ -69,26 +69,23 @@ MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> List[str]:
+def get_participants() -> FrozenSet[str]:
     """Participants"""
-    return sorted([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
+    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
 def get_participant_to_randomness(
-    participants: Set[str], round_id: int
-) -> List[Tuple[str, RandomnessPayload]]:
+    participants: FrozenSet[str], round_id: int
+) -> Dict[str, RandomnessPayload]:
     """participant_to_randomness"""
-    return [
-        (
-            participant,
-            RandomnessPayload(
-                sender=participant,
-                round_id=round_id,
-                randomness=RANDOMNESS,
-            ),
+    return {
+        participant: RandomnessPayload(
+            sender=participant,
+            round_id=round_id,
+            randomness=RANDOMNESS,
         )
         for participant in participants
-    ]
+    }
 
 
 def get_most_voted_randomness() -> str:
@@ -97,13 +94,13 @@ def get_most_voted_randomness() -> str:
 
 
 def get_participant_to_selection(
-    participants: Set[str],
-) -> List[Tuple[str, SelectKeeperPayload]]:
+    participants: FrozenSet[str],
+) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
-    return [
-        (participant, SelectKeeperPayload(sender=participant, keeper="keeper"))
+    return {
+        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
         for participant in participants
-    ]
+    }
 
 
 def get_most_voted_keeper_address() -> str:
@@ -117,33 +114,33 @@ def get_safe_contract_address() -> str:
 
 
 def get_participant_to_votes(
-    participants: Set[str], vote: bool = True
-) -> List[Tuple[str, ValidatePayload]]:
+    participants: FrozenSet[str], vote: bool = True
+) -> Dict[str, ValidatePayload]:
     """participant_to_votes"""
-    return [
-        (participant, ValidatePayload(sender=participant, vote=vote))
+    return {
+        participant: ValidatePayload(sender=participant, vote=vote)
         for participant in participants
-    ]
+    }
 
 
 def get_participant_to_observations(
-    participants: Set[str],
-) -> List[Tuple[str, ObservationPayload]]:
+    participants: FrozenSet[str],
+) -> Dict[str, ObservationPayload]:
     """participant_to_observations"""
-    return [
-        (participant, ObservationPayload(sender=participant, observation=1.0))
+    return {
+        participant: ObservationPayload(sender=participant, observation=1.0)
         for participant in participants
-    ]
+    }
 
 
 def get_participant_to_estimate(
-    participants: Set[str],
-) -> List[Tuple[str, EstimatePayload]]:
+    participants: FrozenSet[str],
+) -> Dict[str, EstimatePayload]:
     """participant_to_estimate"""
-    return [
-        (participant, EstimatePayload(sender=participant, estimate=1.0))
+    return {
+        participant: EstimatePayload(sender=participant, estimate=1.0)
         for participant in participants
-    ]
+    }
 
 
 def get_estimate() -> float:
@@ -157,13 +154,13 @@ def get_most_voted_estimate() -> float:
 
 
 def get_participant_to_tx_hash(
-    participants: Set[str],
-) -> List[Tuple[str, TransactionHashPayload]]:
+    participants: FrozenSet[str],
+) -> Dict[str, TransactionHashPayload]:
     """participant_to_tx_hash"""
-    return [
-        (participant, TransactionHashPayload(sender=participant, tx_hash="tx_hash"))
+    return {
+        participant: TransactionHashPayload(sender=participant, tx_hash="tx_hash")
         for participant in participants
-    ]
+    }
 
 
 def get_most_voted_tx_hash() -> str:
@@ -171,9 +168,9 @@ def get_most_voted_tx_hash() -> str:
     return "tx_hash"
 
 
-def get_participant_to_signature(participants: Set[str]) -> List[Tuple[str, str]]:
+def get_participant_to_signature(participants: FrozenSet[str]) -> Dict[str, str]:
     """participant_to_signature"""
-    return [(participant, "signature") for participant in participants]
+    return {participant: "signature" for participant in participants}
 
 
 def get_final_tx_hash() -> str:
@@ -186,12 +183,12 @@ class BaseRoundTestClass:
 
     period_state: PeriodState
     consensus_params: ConsensusParams
-    participants: List[str]
+    participants: FrozenSet[str]
 
     @classmethod
     def setup(
         cls,
-    ):
+    ) -> None:
         """Setup the test class."""
 
         cls.participants = get_participants()
@@ -204,7 +201,7 @@ class TestRegistrationRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run test."""
 
         test_round = RegistrationRound(
@@ -226,10 +223,15 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.registration(participant_payload)
         assert test_round.registration_threshold_reached
 
-        actual_next_state = PeriodState(participants=frozenset(test_round.participants))
+        actual_next_state = PeriodState(participants=test_round.participants)
 
-        state, next_round = test_round.end_block()
-        assert state.participants == actual_next_state.participants
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
+        assert (
+            cast(PeriodState, state).participants
+            == cast(PeriodState, actual_next_state).participants
+        )
         assert isinstance(next_round, RandomnessRound)
 
 
@@ -238,33 +240,54 @@ class TestRandomnessRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run tests."""
 
         test_round = RandomnessRound(self.period_state, self.consensus_params)
 
-        test_round.randomness(
-            RandomnessPayload(sender="sender", round_id=0, randomness=RANDOMNESS)
-        )
-        assert "sender" not in test_round.participant_to_randomness
-
         randomness_payloads = get_participant_to_randomness(self.participants, 1)
-        _, first_payload = randomness_payloads.pop(0)
+        first_payload = randomness_payloads.pop(
+            sorted(list(randomness_payloads.keys()))[0]
+        )
         test_round.randomness(first_payload)
 
-        assert test_round.randomness(first_payload) is None
         assert (
             test_round.participant_to_randomness[first_payload.sender] == first_payload
         )
-        assert not test_round.check_randomness(
-            SelectKeeperPayload(sender=first_payload.sender, keeper="agent_0")
-        )
         assert not test_round.threshold_reached
-        with pytest.raises(ValueError, match="keeper has not enough votes"):
-            _ = test_round.most_voted_randomness
         assert test_round.end_block() is None
 
-        for _, randomness_payload in randomness_payloads:
+        with pytest.raises(ABCIAppInternalError, match="not enough randomness"):
+            _ = test_round.most_voted_randomness
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape(
+                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
+        ):
+            test_round.randomness(
+                RandomnessPayload(sender="sender", round_id=0, randomness="")
+            )
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"internal error: sender agent_0 has already sent the randomness: {RANDOMNESS}",
+        ):
+            test_round.randomness(first_payload)
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"sender agent_0 has already sent the randomness: {RANDOMNESS}",
+        ):
+            test_round.check_randomness(first_payload)
+
+        with pytest.raises(TransactionNotValidError):
+            test_round.check_randomness(
+                RandomnessPayload(sender="sender", round_id=0, randomness="")
+            )
+
+        for randomness_payload in randomness_payloads.values():
             test_round.randomness(randomness_payload)
         assert test_round.most_voted_randomness == RANDOMNESS
         assert test_round.threshold_reached
@@ -275,10 +298,12 @@ class TestRandomnessRound(BaseRoundTestClass):
             )
         )
 
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_randomness.keys()
-            == actual_next_state.participant_to_randomness.keys()
+            cast(PeriodState, state).participant_to_randomness.keys()
+            == cast(PeriodState, actual_next_state).participant_to_randomness.keys()
         )
         assert isinstance(next_round, SelectKeeperARound)
 
@@ -288,7 +313,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run tests."""
 
         test_round = SelectKeeperRound(
@@ -296,7 +321,9 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         )
 
         select_keeper_payloads = get_participant_to_selection(self.participants)
-        _, first_payload = select_keeper_payloads.pop(0)
+        first_payload = select_keeper_payloads.pop(
+            sorted(list(select_keeper_payloads.keys()))[0]
+        )
 
         test_round.select_keeper(first_payload)
         assert (
@@ -333,7 +360,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
                 SelectKeeperPayload(sender="sender", keeper="keeper")
             )
 
-        for _, payload in select_keeper_payloads:
+        for payload in select_keeper_payloads.values():
             test_round.select_keeper(payload)
         assert test_round.selection_threshold_reached
         assert test_round.most_voted_keeper_address == "keeper"
@@ -345,10 +372,12 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         )
 
         test_round.next_round_class = DeploySafeRound
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_selection.keys()
-            == actual_next_state.participant_to_selection.keys()
+            cast(PeriodState, state).participant_to_selection.keys()
+            == cast(PeriodState, actual_next_state).participant_to_selection.keys()
         )
         assert isinstance(next_round, DeploySafeRound)
 
@@ -358,11 +387,14 @@ class TestDeploySafeRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run tests."""
 
-        self.period_state = self.period_state.update(
-            most_voted_keeper_address=self.participants[0]
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                most_voted_keeper_address=sorted(list(self.participants))[0]
+            ),
         )
 
         test_round = DeploySafeRound(
@@ -387,7 +419,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.check_deploy_safe(
                 DeploySafePayload(
-                    sender=self.participants[1],
+                    sender=sorted(list(self.participants))[1],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
@@ -413,14 +445,14 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.deploy_safe(
                 DeploySafePayload(
-                    sender=self.participants[1],
+                    sender=sorted(list(self.participants))[1],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
 
         test_round.deploy_safe(
             DeploySafePayload(
-                sender=self.participants[0],
+                sender=sorted(list(self.participants))[0],
                 safe_contract_address=get_safe_contract_address(),
             )
         )
@@ -431,7 +463,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.deploy_safe(
                 DeploySafePayload(
-                    sender=self.participants[0],
+                    sender=sorted(list(self.participants))[0],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
@@ -442,7 +474,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         ):
             test_round.check_deploy_safe(
                 DeploySafePayload(
-                    sender=self.participants[0],
+                    sender=sorted(list(self.participants))[0],
                     safe_contract_address=get_safe_contract_address(),
                 )
             )
@@ -451,8 +483,13 @@ class TestDeploySafeRound(BaseRoundTestClass):
         actual_state = self.period_state.update(
             safe_contract_address=get_safe_contract_address()
         )
-        state, next_round = test_round.end_block()
-        assert state.safe_contract_address == actual_state.safe_contract_address
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
+        assert (
+            cast(PeriodState, state).safe_contract_address
+            == cast(PeriodState, actual_state).safe_contract_address
+        )
         assert isinstance(next_round, ValidateSafeRound)
 
 
@@ -461,7 +498,7 @@ class TestValidateRound(BaseRoundTestClass):
 
     def test_positive_votes(
         self,
-    ):
+    ) -> None:
         """Test ValidateRound."""
 
         test_round = ValidateRound(
@@ -485,7 +522,9 @@ class TestValidateRound(BaseRoundTestClass):
             test_round.check_validate(ValidatePayload(sender="sender", vote=True))
 
         participant_to_votes_payloads = get_participant_to_votes(self.participants)
-        _, first_payload = participant_to_votes_payloads.pop(0)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
         test_round.validate(first_payload)
 
         with pytest.raises(
@@ -504,7 +543,7 @@ class TestValidateRound(BaseRoundTestClass):
 
         assert test_round.end_block() is None
         assert not test_round.positive_vote_threshold_reached
-        for _, payload in participant_to_votes_payloads:
+        for payload in participant_to_votes_payloads.values():
             test_round.validate(payload)
 
         assert test_round.positive_vote_threshold_reached
@@ -515,16 +554,18 @@ class TestValidateRound(BaseRoundTestClass):
                 dict(get_participant_to_votes(self.participants))
             )
         )
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_votes.keys()
-            == actual_next_state.participant_to_votes.keys()
+            cast(PeriodState, state).participant_to_votes.keys()
+            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
         )
         assert isinstance(next_round, CollectObservationRound)
 
     def test_negative_votes(
         self,
-    ):
+    ) -> None:
         """Test ValidateRound."""
 
         test_round = ValidateRound(
@@ -534,25 +575,28 @@ class TestValidateRound(BaseRoundTestClass):
         participant_to_votes_payloads = get_participant_to_votes(
             self.participants, vote=False
         )
-        _, first_payload = participant_to_votes_payloads.pop(0)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
         test_round.validate(first_payload)
 
         assert test_round.participant_to_votes[first_payload.sender] == first_payload
         assert test_round.end_block() is None
         assert not test_round.negative_vote_threshold_reached
-        for _, payload in participant_to_votes_payloads:
+        for payload in participant_to_votes_payloads.values():
             test_round.validate(payload)
 
         assert test_round.negative_vote_threshold_reached
 
         test_round.negative_next_round_class = CollectObservationRound
-        state, next_round = test_round.end_block()
-
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert isinstance(next_round, CollectObservationRound)
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
-            _ = state.participant_to_votes
+            _ = cast(PeriodState, state).participant_to_votes
 
 
 class TestCollectObservationRound(BaseRoundTestClass):
@@ -560,7 +604,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Runs tests."""
 
         test_round = CollectObservationRound(
@@ -596,7 +640,9 @@ class TestCollectObservationRound(BaseRoundTestClass):
         participant_to_observations_payloads = get_participant_to_observations(
             self.participants
         )
-        _, first_payload = participant_to_observations_payloads.pop(0)
+        first_payload = participant_to_observations_payloads.pop(
+            sorted(list(participant_to_observations_payloads.keys()))[0]
+        )
 
         test_round.observation(first_payload)
         assert (
@@ -618,12 +664,12 @@ class TestCollectObservationRound(BaseRoundTestClass):
         ):
             test_round.check_observation(
                 ObservationPayload(
-                    sender=self.participants[0],
+                    sender=sorted(list(self.participants))[0],
                     observation=1.0,
                 )
             )
 
-        for _, payload in participant_to_observations_payloads:
+        for payload in participant_to_observations_payloads.values():
             test_round.observation(payload)
 
         assert test_round.observation_threshold_reached
@@ -632,11 +678,12 @@ class TestCollectObservationRound(BaseRoundTestClass):
                 get_participant_to_observations(self.participants)
             )
         )
-        state, next_round = test_round.end_block()
-
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_observations.keys()
-            == actual_next_state.participant_to_observations.keys()
+            cast(PeriodState, state).participant_to_observations.keys()
+            == cast(PeriodState, actual_next_state).participant_to_observations.keys()
         )
         assert isinstance(next_round, EstimateConsensusRound)
 
@@ -646,7 +693,7 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Runs test."""
 
         test_round = EstimateConsensusRound(
@@ -673,7 +720,9 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
             self.participants
         )
 
-        _, first_payload = participant_to_estimate_payloads.pop(0)
+        first_payload = participant_to_estimate_payloads.pop(
+            sorted(list(participant_to_estimate_payloads.keys()))[0]
+        )
         test_round.estimate(first_payload)
 
         assert test_round.participant_to_estimate[first_payload.sender] == first_payload
@@ -694,10 +743,10 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
             match="sender agent_0 has already sent the estimate: 1.0",
         ):
             test_round.check_estimate(
-                EstimatePayload(sender=self.participants[0], estimate=1.0)
+                EstimatePayload(sender=sorted(list(self.participants))[0], estimate=1.0)
             )
 
-        for _, payload in participant_to_estimate_payloads:
+        for payload in participant_to_estimate_payloads.values():
             test_round.estimate(payload)
 
         assert test_round.estimate_threshold_reached
@@ -709,11 +758,12 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
             ),
             most_voted_estimate=test_round.most_voted_estimate,
         )
-        state, next_round = test_round.end_block()
-
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_estimate.keys()
-            == actual_next_state.participant_to_estimate.keys()
+            cast(PeriodState, state).participant_to_estimate.keys()
+            == cast(PeriodState, actual_next_state).participant_to_estimate.keys()
         )
         assert isinstance(next_round, TxHashRound)
 
@@ -723,7 +773,7 @@ class TestTxHashRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Runs test."""
 
         test_round = TxHashRound(
@@ -731,7 +781,9 @@ class TestTxHashRound(BaseRoundTestClass):
         )
 
         participant_to_tx_hash_payloads = get_participant_to_tx_hash(self.participants)
-        _, first_payload = participant_to_tx_hash_payloads.pop(0)
+        first_payload = participant_to_tx_hash_payloads.pop(
+            sorted(list(participant_to_tx_hash_payloads.keys()))[0]
+        )
 
         test_round.tx_hash(first_payload)
 
@@ -774,12 +826,14 @@ class TestTxHashRound(BaseRoundTestClass):
         ):
             test_round.check_tx_hash(first_payload)
 
-        for _, payload in participant_to_tx_hash_payloads:
+        for payload in participant_to_tx_hash_payloads.values():
             test_round.tx_hash(payload)
 
         assert test_round.tx_threshold_reached
         assert test_round.most_voted_tx_hash == "tx_hash"
-        _, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        _, next_round = res
         assert isinstance(next_round, CollectSignatureRound)
 
 
@@ -788,7 +842,7 @@ class TestCollectSignatureRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Runs tests."""
 
         test_round = CollectSignatureRound(
@@ -815,13 +869,15 @@ class TestCollectSignatureRound(BaseRoundTestClass):
                 SignaturePayload(sender="sender", signature="signature")
             )
 
-        participant_to_signature = [
-            (participant, SignaturePayload(sender=participant, signature=signature))
+        participant_to_signature = {
+            participant: SignaturePayload(sender=participant, signature=signature)
             for participant, signature in get_participant_to_signature(
                 self.participants
-            )
-        ]
-        _, first_payload = participant_to_signature.pop(0)
+            ).items()
+        }
+        first_payload = participant_to_signature.pop(
+            sorted(list(participant_to_signature.keys()))[0]
+        )
 
         test_round.signature(first_payload)
         assert not test_round.signature_threshold_reached
@@ -843,10 +899,12 @@ class TestCollectSignatureRound(BaseRoundTestClass):
         ):
             test_round.check_signature(first_payload)
 
-        for _, payload in participant_to_signature:
+        for payload in participant_to_signature.values():
             test_round.signature(payload)
 
-        _, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        _, next_round = res
         assert isinstance(next_round, FinalizationRound)
 
 
@@ -855,11 +913,14 @@ class TestFinalizationRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Runs tests."""
 
-        self.period_state = self.period_state.update(
-            most_voted_keeper_address=self.participants[0]
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                most_voted_keeper_address=sorted(list(self.participants))[0]
+            ),
         )
 
         test_round = FinalizationRound(
@@ -893,7 +954,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.finalization(
                 FinalizationTxPayload(
-                    sender=self.participants[1], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[1],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -903,7 +965,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.check_finalization(
                 FinalizationTxPayload(
-                    sender=self.participants[1], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[1],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -912,7 +975,7 @@ class TestFinalizationRound(BaseRoundTestClass):
 
         test_round.finalization(
             FinalizationTxPayload(
-                sender=self.participants[0], tx_hash=get_final_tx_hash()
+                sender=sorted(list(self.participants))[0], tx_hash=get_final_tx_hash()
             )
         )
 
@@ -924,7 +987,8 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.finalization(
                 FinalizationTxPayload(
-                    sender=self.participants[0], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[0],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
@@ -934,14 +998,19 @@ class TestFinalizationRound(BaseRoundTestClass):
         ):
             test_round.check_finalization(
                 FinalizationTxPayload(
-                    sender=self.participants[0], tx_hash=get_final_tx_hash()
+                    sender=sorted(list(self.participants))[0],
+                    tx_hash=get_final_tx_hash(),
                 )
             )
 
         actual_next_state = self.period_state.update(final_tx_hash=get_final_tx_hash())
-        state, next_round = test_round.end_block()
-
-        assert state.final_tx_hash == actual_next_state.final_tx_hash
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
+        assert (
+            cast(PeriodState, state).final_tx_hash
+            == cast(PeriodState, actual_next_state).final_tx_hash
+        )
         assert isinstance(next_round, ValidateTransactionRound)
 
 
@@ -950,7 +1019,7 @@ class TestSelectKeeperARound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run tests."""
 
         test_round = SelectKeeperARound(
@@ -958,7 +1027,9 @@ class TestSelectKeeperARound(BaseRoundTestClass):
         )
 
         select_keeper_payloads = get_participant_to_selection(self.participants)
-        _, first_payload = select_keeper_payloads.pop(0)
+        first_payload = select_keeper_payloads.pop(
+            sorted(list(select_keeper_payloads.keys()))[0]
+        )
 
         test_round.select_keeper(first_payload)
         assert (
@@ -995,7 +1066,7 @@ class TestSelectKeeperARound(BaseRoundTestClass):
                 SelectKeeperPayload(sender="sender", keeper="keeper")
             )
 
-        for _, payload in select_keeper_payloads:
+        for payload in select_keeper_payloads.values():
             test_round.select_keeper_a(payload)
         assert test_round.selection_threshold_reached
         assert test_round.most_voted_keeper_address == "keeper"
@@ -1007,10 +1078,12 @@ class TestSelectKeeperARound(BaseRoundTestClass):
         )
 
         test_round.next_round_class = DeploySafeRound
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_selection.keys()
-            == actual_next_state.participant_to_selection.keys()
+            cast(PeriodState, state).participant_to_selection.keys()
+            == cast(PeriodState, actual_next_state).participant_to_selection.keys()
         )
         assert isinstance(next_round, DeploySafeRound)
 
@@ -1020,7 +1093,7 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
 
     def test_run(
         self,
-    ):
+    ) -> None:
         """Run tests."""
 
         test_round = SelectKeeperBRound(
@@ -1028,7 +1101,9 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
         )
 
         select_keeper_payloads = get_participant_to_selection(self.participants)
-        _, first_payload = select_keeper_payloads.pop(0)
+        first_payload = select_keeper_payloads.pop(
+            sorted(list(select_keeper_payloads.keys()))[0]
+        )
 
         test_round.select_keeper(first_payload)
         assert (
@@ -1065,7 +1140,7 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
                 SelectKeeperPayload(sender="sender", keeper="keeper")
             )
 
-        for _, payload in select_keeper_payloads:
+        for payload in select_keeper_payloads.values():
             test_round.select_keeper_b(payload)
         assert test_round.selection_threshold_reached
         assert test_round.most_voted_keeper_address == "keeper"
@@ -1076,13 +1151,14 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
             )
         )
 
-        test_round.next_round_class = DeploySafeRound
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_selection.keys()
-            == actual_next_state.participant_to_selection.keys()
+            cast(PeriodState, state).participant_to_selection.keys()
+            == cast(PeriodState, actual_next_state).participant_to_selection.keys()
         )
-        assert isinstance(next_round, DeploySafeRound)
+        assert isinstance(next_round, FinalizationRound)
 
 
 class TestConsensusReachedRound(BaseRoundTestClass):
@@ -1090,7 +1166,7 @@ class TestConsensusReachedRound(BaseRoundTestClass):
 
     def test_runs(
         self,
-    ):
+    ) -> None:
         """Runs tests."""
 
         test_round = ConsensusReachedRound(
@@ -1105,7 +1181,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
 
     def test_positive_votes(
         self,
-    ):
+    ) -> None:
         """Test ValidateRound."""
 
         test_round = ValidateSafeRound(
@@ -1129,7 +1205,9 @@ class TestValidateSafeRound(BaseRoundTestClass):
             test_round.check_validate_safe(ValidatePayload(sender="sender", vote=True))
 
         participant_to_votes_payloads = get_participant_to_votes(self.participants)
-        _, first_payload = participant_to_votes_payloads.pop(0)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
         test_round.validate_safe(first_payload)
 
         with pytest.raises(
@@ -1148,7 +1226,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
 
         assert test_round.end_block() is None
         assert not test_round.positive_vote_threshold_reached
-        for _, payload in participant_to_votes_payloads:
+        for payload in participant_to_votes_payloads.values():
             test_round.validate_safe(payload)
 
         assert test_round.positive_vote_threshold_reached
@@ -1158,16 +1236,18 @@ class TestValidateSafeRound(BaseRoundTestClass):
                 dict(get_participant_to_votes(self.participants))
             )
         )
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_votes.keys()
-            == actual_next_state.participant_to_votes.keys()
+            cast(PeriodState, state).participant_to_votes.keys()
+            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
         )
         assert isinstance(next_round, CollectObservationRound)
 
     def test_negative_votes(
         self,
-    ):
+    ) -> None:
         """Test ValidateRound."""
 
         test_round = ValidateSafeRound(
@@ -1177,24 +1257,27 @@ class TestValidateSafeRound(BaseRoundTestClass):
         participant_to_votes_payloads = get_participant_to_votes(
             self.participants, vote=False
         )
-        _, first_payload = participant_to_votes_payloads.pop(0)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
         test_round.validate_safe(first_payload)
 
         assert test_round.participant_to_votes[first_payload.sender] == first_payload
         assert test_round.end_block() is None
         assert not test_round.negative_vote_threshold_reached
-        for _, payload in participant_to_votes_payloads:
+        for payload in participant_to_votes_payloads.values():
             test_round.validate_safe(payload)
 
         assert test_round.negative_vote_threshold_reached
 
-        state, next_round = test_round.end_block()
-
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert isinstance(next_round, SelectKeeperARound)
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
-            _ = state.participant_to_votes
+            _ = cast(PeriodState, state).participant_to_votes
 
 
 class TestValidateTransactionRound(BaseRoundTestClass):
@@ -1202,7 +1285,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
 
     def test_positive_votes(
         self,
-    ):
+    ) -> None:
         """Test ValidateRound."""
 
         test_round = ValidateTransactionRound(
@@ -1228,7 +1311,9 @@ class TestValidateTransactionRound(BaseRoundTestClass):
             )
 
         participant_to_votes_payloads = get_participant_to_votes(self.participants)
-        _, first_payload = participant_to_votes_payloads.pop(0)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
         test_round.validate_transaction(first_payload)
 
         with pytest.raises(
@@ -1247,7 +1332,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
 
         assert test_round.end_block() is None
         assert not test_round.positive_vote_threshold_reached
-        for _, payload in participant_to_votes_payloads:
+        for payload in participant_to_votes_payloads.values():
             test_round.validate_transaction(payload)
 
         assert test_round.positive_vote_threshold_reached
@@ -1257,16 +1342,18 @@ class TestValidateTransactionRound(BaseRoundTestClass):
                 dict(get_participant_to_votes(self.participants))
             )
         )
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
         assert (
-            state.participant_to_votes.keys()
-            == actual_next_state.participant_to_votes.keys()
+            cast(PeriodState, state).participant_to_votes.keys()
+            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
         )
         assert isinstance(next_round, ConsensusReachedRound)
 
     def test_negative_votes(
         self,
-    ):
+    ) -> None:
         """Test ValidateRound."""
 
         test_round = ValidateTransactionRound(
@@ -1276,34 +1363,38 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         participant_to_votes_payloads = get_participant_to_votes(
             self.participants, vote=False
         )
-        _, first_payload = participant_to_votes_payloads.pop(0)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
         test_round.validate_transaction(first_payload)
 
         assert test_round.participant_to_votes[first_payload.sender] == first_payload
         assert test_round.end_block() is None
         assert not test_round.negative_vote_threshold_reached
-        for _, payload in participant_to_votes_payloads:
+        for payload in participant_to_votes_payloads.values():
             test_round.validate_transaction(payload)
 
         assert test_round.negative_vote_threshold_reached
 
-        state, next_round = test_round.end_block()
+        res = test_round.end_block()
+        assert res is not None
+        state, next_round = res
 
         assert isinstance(next_round, SelectKeeperRound)
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
-            _ = state.participant_to_votes
+            _ = cast(PeriodState, state).participant_to_votes
 
 
-def test_rotate_list_method():
+def test_rotate_list_method() -> None:
     """Test `rotate_list` method."""
 
     ex_list = [1, 2, 3, 4, 5]
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
-def test_period_state():
+def test_period_state() -> None:
     """Test PeriodState."""
 
     participants = get_participants()

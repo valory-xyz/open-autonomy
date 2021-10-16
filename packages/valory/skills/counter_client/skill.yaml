@@ -15,7 +15,7 @@ fingerprint:
   utils.py: QmY2xRWb47YR1Ngk5rYjKfnd7FV1HeppM8T2VT3odQybA4
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/http_client:0.22.0
+- fetchai/http_client:0.23.0
 contracts: []
 protocols:
 - fetchai/http:1.0.0

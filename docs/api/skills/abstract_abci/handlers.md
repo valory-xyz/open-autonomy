@@ -48,15 +48,15 @@ def teardown() -> None
 
 Teardown the handler.
 
-<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.send_exception"></a>
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.log_exception"></a>
 
-#### send`_`exception
+#### log`_`exception
 
 ```python
-def send_exception(message: AbciMessage, error_message: str) -> None
+def log_exception(message: AbciMessage, error_message: str) -> None
 ```
 
-Send a response exception.
+Log a response exception.
 
 <a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.info"></a>
 

@@ -42,7 +42,7 @@ class TestABCIPriceEstimationSkillMany(
     KEEPER_TIMEOUT = 10
     cli_log_options = ["-v", "DEBUG"]
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run the ABCI skill."""
         self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
         processes = []

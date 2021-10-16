@@ -53,6 +53,7 @@ class GanacheDockerImage(DockerImage):
         :param addr: the address.
         :param port: the port.
         :param config: optional configuration to command line.
+        :param gas_limit: the gas limit.
         """
         super().__init__(client)
         self._addr = addr

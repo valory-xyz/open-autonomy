@@ -22,14 +22,17 @@
 import binascii
 import secrets
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import pytest
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
 
-from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SAFE_CONTRACT,
+)
 
 from tests.conftest import (
     ETHEREUM_KEY_PATH_1,
@@ -50,11 +53,12 @@ class BaseContractTest(BaseGanacheContractTest):
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
     )
+    contract: GnosisSafeContract
 
     @classmethod
     def setup_class(
         cls,
-    ):
+    ) -> None:
         """Setup test."""
         # workaround for the fact that contract dependencies are not possible yet
         directory = Path(
@@ -104,11 +108,12 @@ class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
     )
     sanitize_from_deploy_tx = ["contract_address"]
+    contract: GnosisSafeContract
 
     @classmethod
     def setup_class(
         cls,
-    ):
+    ) -> None:
         """Setup test."""
         directory = Path(
             ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
@@ -151,7 +156,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
 class TestDeployTransactionGanache(BaseContractTest):
     """Test."""
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run tests."""
         # TOFIX: predeploy gnosis safe factory
 
@@ -159,7 +164,7 @@ class TestDeployTransactionGanache(BaseContractTest):
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
-    def test_deployed(self):
+    def test_deployed(self) -> None:
         """Run tests."""
 
         result = self.contract.get_deploy_transaction(
@@ -168,9 +173,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             owners=self.owners(),
             threshold=int(self.threshold()),
         )
-
+        assert type(result) == dict
         assert len(result) == 9
         data = result.pop("data")
+        assert type(data) == str
         assert len(data) > 0 and data.startswith("0x")
         assert all(
             [
@@ -190,7 +196,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
     def test_exceptions(
         self,
-    ):
+    ) -> None:
         """Test exceptions."""
 
         with pytest.raises(
@@ -218,19 +224,20 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
     def test_non_implemented_methods(
         self,
-    ):
+    ) -> None:
         """Test not implemented methods."""
         with pytest.raises(NotImplementedError):
-            self.contract.get_raw_transaction(None, None)
+            self.contract.get_raw_transaction(self.ledger_api, "")
 
         with pytest.raises(NotImplementedError):
-            self.contract.get_raw_message(None, None)
+            self.contract.get_raw_message(self.ledger_api, "")
 
         with pytest.raises(NotImplementedError):
-            self.contract.get_state(None, None)
+            self.contract.get_state(self.ledger_api, "")
 
-    def test_verify(self):
+    def test_verify(self) -> None:
         """Run verify test."""
+        assert self.contract_address is not None
         result = self.contract.verify_contract(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
@@ -247,8 +254,9 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run tests."""
+        assert self.contract_address is not None
         value = 0
         data = b""
         sender = crypto_registry.make(
@@ -271,7 +279,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             value=value,
             data=data,
         )["tx_hash"]
-        b_tx_hash = binascii.unhexlify(tx_hash[2:])
+        b_tx_hash = binascii.unhexlify(cast(str, tx_hash)[2:])
         signatures_by_owners = {
             crypto.address: crypto.sign_message(b_tx_hash, is_deprecated_mode=True)[2:]
             for crypto in cryptos
@@ -310,8 +318,9 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         )["verified"]
         assert verified, "Not verified"
 
-    def test_verify_negative(self):
+    def test_verify_negative(self) -> None:
         """Test verify negative."""
+        assert self.contract_address is not None
         verified = self.contract.verify_tx(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
