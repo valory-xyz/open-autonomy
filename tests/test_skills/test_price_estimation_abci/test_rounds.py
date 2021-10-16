@@ -245,26 +245,47 @@ class TestRandomnessRound(BaseRoundTestClass):
 
         test_round = RandomnessRound(self.period_state, self.consensus_params)
 
-        test_round.randomness(
-            RandomnessPayload(sender="sender", round_id=0, randomness=RANDOMNESS)
-        )
-        assert "sender" not in test_round.participant_to_randomness
-
         randomness_payloads = get_participant_to_randomness(self.participants, 1)
         first_payload = randomness_payloads.pop(
             sorted(list(randomness_payloads.keys()))[0]
         )
         test_round.randomness(first_payload)
+
         assert (
             test_round.participant_to_randomness[first_payload.sender] == first_payload
         )
-        assert not test_round.check_randomness(
-            SelectKeeperPayload(sender=first_payload.sender, keeper="agent_0")
-        )
         assert not test_round.threshold_reached
-        with pytest.raises(ValueError, match="keeper has not enough votes"):
-            _ = test_round.most_voted_randomness
         assert test_round.end_block() is None
+
+        with pytest.raises(ABCIAppInternalError, match="not enough randomness"):
+            _ = test_round.most_voted_randomness
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape(
+                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
+        ):
+            test_round.randomness(
+                RandomnessPayload(sender="sender", round_id=0, randomness="")
+            )
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"internal error: sender agent_0 has already sent the randomness: {RANDOMNESS}",
+        ):
+            test_round.randomness(first_payload)
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"sender agent_0 has already sent the randomness: {RANDOMNESS}",
+        ):
+            test_round.check_randomness(first_payload)
+
+        with pytest.raises(TransactionNotValidError):
+            test_round.check_randomness(
+                RandomnessPayload(sender="sender", round_id=0, randomness="")
+            )
 
         for randomness_payload in randomness_payloads.values():
             test_round.randomness(randomness_payload)
