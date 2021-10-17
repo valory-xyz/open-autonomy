@@ -488,12 +488,12 @@ class AbstractRound(ABC):
         """Check that required class attributes are set."""
         try:
             self.round_id
-        except AttributeError:
-            raise ABCIAppInternalError("round id not set")
+        except AttributeError as exc:
+            raise ABCIAppInternalError("round id not set") from exc
         try:
             self.allowed_tx_type
-        except AttributeError:
-            raise ABCIAppInternalError("allowed tx type not set")
+        except AttributeError as exc:
+            raise ABCIAppInternalError("allowed tx type not set") from exc
 
     @property
     def period_state(self) -> BasePeriodState:
@@ -647,7 +647,7 @@ class Timeouts(Generic[EventType]):
         return entry.deadline, entry.event
 
 
-class AbciApp(Generic[EventType]):
+class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attributes
     """
     Base class for ABCI apps.
 
@@ -688,12 +688,12 @@ class AbciApp(Generic[EventType]):
         """Check that required class attributes are set."""
         try:
             self.initial_round_cls
-        except AttributeError:
-            raise ABCIAppInternalError("initial round class not set")
+        except AttributeError as exc:
+            raise ABCIAppInternalError("initial round class not set") from exc
         try:
             self.transition_function
-        except AttributeError:
-            raise ABCIAppInternalError("transition function not set")
+        except AttributeError as exc:
+            raise ABCIAppInternalError("transition function not set") from exc
 
     @classmethod
     def _check_class_attributes_consistency(

@@ -35,7 +35,6 @@ from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
-    AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
     BasePeriodState,
@@ -44,7 +43,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BlockBuilder,
     Blockchain,
     ConsensusParams,
-    EventType,
     Period,
     SignatureNotValidError,
     Transaction,
@@ -99,9 +97,8 @@ class ConcreteRound(AbstractRound):
     def end_block(self) -> None:
         """End block."""
 
-    def check_payload(self, payload: BaseTxPayload) -> bool:
+    def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payloads of type 'payload_a'."""
-        return True
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payloads of type 'payload_a'."""
@@ -111,8 +108,10 @@ class AbciAppTest(AbciApp[str]):
     """A dummy AbciApp for testing purposes."""
 
     initial_round_cls: Type[AbstractRound] = ConcreteRound
-    transition_function: AbciAppTransitionFunction = {ConcreteRound: {}}
-    event_to_timeout: Dict[EventType, float] = {}
+    transition_function: Dict[Type[AbstractRound], Dict[str, Type[AbstractRound]]] = {
+        ConcreteRound: {}
+    }
+    event_to_timeout: Dict[str, float] = {}
 
 
 class TestTransactions:

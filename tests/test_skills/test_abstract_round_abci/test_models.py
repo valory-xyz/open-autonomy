@@ -70,7 +70,7 @@ class TestSharedState:
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
-            shared_state.period.abci_app.latest_result = None
+            shared_state.period.abci_app._latest_result = None  # type: ignore
             with pytest.raises(ValueError, match="period_state not available"):
                 shared_state.period_state
 
@@ -82,7 +82,7 @@ class TestSharedState:
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
-            shared_state.period._round_results = [MagicMock()]
+            shared_state.period.abci_app._round_results = [MagicMock()]
             shared_state.period_state
 
     def test_process_abci_app_cls_negative_not_a_class(self) -> None:

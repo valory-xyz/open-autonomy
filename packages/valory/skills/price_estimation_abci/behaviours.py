@@ -373,20 +373,6 @@ class ObserveBehaviour(PriceEstimationBaseState):
             self.context.price_api.increment_retries()
 
 
-class WaitBehaviour(PriceEstimationBaseState):
-    """
-    Wait behaviour.
-
-    This behaviour is used to regroup the agents after a failure.
-    """
-
-    state_id = "wait"
-
-    def async_act(self) -> Generator:
-        """Do the action."""
-        raise NotImplementedError
-
-
 class EstimateBehaviour(PriceEstimationBaseState):
     """Estimate price."""
 
@@ -630,7 +616,6 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         ValidateSafeBehaviour,
         ObserveBehaviour,
         EstimateBehaviour,
-        WaitBehaviour,
         TransactionHashBehaviour,
         SignatureBehaviour,
         FinalizeBehaviour,

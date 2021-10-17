@@ -59,9 +59,6 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
         self.current_state: Optional[BaseState] = None
 
         # keep track of last round id so to detect changes
-        # TODO: we should keep track of sequences of states,
-        #   because we may return to the same state and
-        #   don't detect the change, mistakenly.
         self._last_round_id: Optional[str] = None
 
         # this variable remembers the actual next transition
@@ -138,7 +135,7 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
             if self._next_state_cls is not None:
                 self.context.logger.debug(
                     "overriding transition: current state: '%s', next state: '%s'",
-                    self.current_state.state_id,
+                    self.current_state.state_id if self.current_state else None,
                     self._next_state_cls.state_id,
                 )
                 self.current_state = self.instantiate_state_cls(self._next_state_cls)
