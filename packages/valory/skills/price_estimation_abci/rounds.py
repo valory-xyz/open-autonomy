@@ -679,6 +679,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
     """
 
     allowed_tx_type = ValidatePayload.transaction_type
+    exit_event: Event
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
@@ -764,7 +765,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
             return state, Event.DONE
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
-            return state, Event.EXIT_A
+            return state, self.exit_event
         return None
 
 
@@ -1297,6 +1298,7 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
+    exit_event = Event.EXIT_A
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1310,6 +1312,7 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
+    exit_event = Event.EXIT_B
 
 
 class PriceEstimationAbciApp(AbciApp[str]):
