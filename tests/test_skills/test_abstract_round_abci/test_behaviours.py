@@ -41,7 +41,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = StateA
     transition_function = {StateA: {"loop": StateA}}
-    behaviour_states = {StateA}
+    behaviour_states = {StateA}  # type: ignore
 
 
 class TestAbstractRoundBehaviour:
