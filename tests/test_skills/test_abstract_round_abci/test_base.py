@@ -23,7 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any
+from typing import Any, Dict, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -32,9 +32,10 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
-from packages.valory.protocols.abci.custom_types import Timestamp
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciApp,
+    AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
     BasePeriodState,
@@ -43,6 +44,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BlockBuilder,
     Blockchain,
     ConsensusParams,
+    EventType,
     Period,
     SignatureNotValidError,
     Transaction,
@@ -92,16 +94,25 @@ class ConcreteRound(AbstractRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete"
+    allowed_tx_type = "payload_a"
 
     def end_block(self) -> None:
         """End block."""
 
-    def check_payload_a(self, *args: Any, **kwargs: Any) -> bool:
+    def check_payload(self, payload: BaseTxPayload) -> bool:
         """Check payloads of type 'payload_a'."""
         return True
 
-    def payload_a(self, *args: Any, **kwargs: Any) -> None:
+    def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payloads of type 'payload_a'."""
+
+
+class AbciAppTest(AbciApp[str]):
+    """A dummy AbciApp for testing purposes."""
+
+    initial_round_cls: Type[AbstractRound] = ConcreteRound
+    transition_function: AbciAppTransitionFunction = {ConcreteRound: {}}
+    event_to_timeout: Dict[EventType, float] = {}
 
 
 class TestTransactions:
@@ -393,7 +404,7 @@ class TestAbstractRound:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.known_payload_type = ConcreteRound.payload_a.__name__
+        self.known_payload_type = ConcreteRound.allowed_tx_type
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(participants=self.participants)
         self.params = ConsensusParams(
@@ -410,7 +421,7 @@ class TestAbstractRound:
         """Test 'check_transaction' method, with unknown payload type."""
         tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = tx_type
+        tx_mock.payload.transaction_type = tx_type
         with pytest.raises(
             TransactionTypeNotRecognizedError,
             match=f"request '{tx_type}' not recognized",
@@ -420,14 +431,14 @@ class TestAbstractRound:
     def test_check_transaction_known_payload(self) -> None:
         """Test 'check_transaction' method, with known payload type."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = self.known_payload_type
+        tx_mock.payload.transaction_type = self.known_payload_type
         self.round.check_transaction(tx_mock)
 
     def test_process_transaction_negative_unknown_payload(self) -> None:
         """Test 'process_transaction' method, with unknown payload type."""
         tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = tx_type
+        tx_mock.payload.transaction_type = tx_type
         with pytest.raises(
             TransactionTypeNotRecognizedError,
             match=f"request '{tx_type}' not recognized",
@@ -437,10 +448,10 @@ class TestAbstractRound:
     def test_process_transaction_negative_check_transaction_fails(self) -> None:
         """Test 'process_transaction' method, with 'check_transaction' failing."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = "payload_a"
+        tx_mock.payload.transaction_type = "payload_a"
         error_message = "transaction not valid"
         with mock.patch.object(
-            self.round, "check_transaction", side_effect=ValueError(error_message)
+            self.round, "check_allowed_tx_type", side_effect=ValueError(error_message)
         ):
             with pytest.raises(ValueError, match=error_message):
                 self.round.process_transaction(tx_mock)
@@ -448,7 +459,7 @@ class TestAbstractRound:
     def test_process_transaction_positive(self) -> None:
         """Test 'process_transaction' method, positive case."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = "payload_a"
+        tx_mock.payload.transaction_type = "payload_a"
         self.round.process_transaction(tx_mock)
 
 
@@ -457,13 +468,13 @@ class TestPeriod:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.period = Period(starting_round_cls=ConcreteRound)
-        self.period.setup(MagicMock(), MagicMock())
+        self.period = Period(abci_app_cls=AbciAppTest)
+        self.period.setup(MagicMock(), MagicMock(), MagicMock())
 
     def test_is_finished(self) -> None:
         """Test 'is_finished' property."""
         assert not self.period.is_finished
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         assert self.period.is_finished
 
     def test_last_round(self) -> None:
@@ -482,19 +493,17 @@ class TestPeriod:
         """Test 'last_timestamp' property, positive case."""
         seconds = 1
         nanoseconds = 1000
-        timestamp = Timestamp(seconds, nanoseconds)
-        self.period._blockchain.add_block(
-            Block(MagicMock(height=1, time=timestamp), [])
-        )
-
         expected_timestamp = datetime.datetime.fromtimestamp(
             seconds + nanoseconds / 10 ** 9
+        )
+        self.period._blockchain.add_block(
+            Block(MagicMock(height=1, timestamp=expected_timestamp), [])
         )
         assert self.period.last_timestamp == expected_timestamp
 
     def test_check_is_finished_negative(self) -> None:
         """Test 'check_is_finished', negative case."""
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         with pytest.raises(
             ValueError, match="period is finished, cannot accept new transactions"
         ):
@@ -506,7 +515,7 @@ class TestPeriod:
 
     def test_current_round_negative_current_round_not_set(self) -> None:
         """Test 'current_round' property getter, negative case (current round not set)."""
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         with pytest.raises(ValueError, match="current_round not set!"):
             self.period.current_round
 
@@ -520,7 +529,7 @@ class TestPeriod:
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: period is finished, cannot accept new blocks",
@@ -606,5 +615,5 @@ class TestPeriod:
             return_value=(round_result, next_round),
         ):
             self.period.commit()
-        assert not isinstance(self.period.current_round, ConcreteRound)
+        assert not isinstance(self.period.abci_app._current_round, ConcreteRound)
         assert self.period.latest_result == round_result

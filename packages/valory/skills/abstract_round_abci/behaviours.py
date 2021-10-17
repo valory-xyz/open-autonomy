@@ -126,9 +126,6 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
         """Implement the behaviour."""
         self._process_current_round()
 
-        if self.current_state is None:
-            return
-
         current_state = self.current_state
         if current_state is None:
             return

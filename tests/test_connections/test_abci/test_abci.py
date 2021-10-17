@@ -283,9 +283,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
     def setup(self) -> None:
         """Set up the test."""
         super().setup()
-        self.agent_identity = Identity(
-            "name", address=self.ADDRESS, public_key=self.PUBLIC_KEY
-        )
+        self.agent_identity = Identity("name", address=self.ADDRESS)
         self.configuration = ConnectionConfig(
             connection_id=ABCIServerConnection.connection_id,
             host=DEFAULT_LISTEN_ADDRESS,
@@ -405,9 +403,7 @@ class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
 @pytest.mark.asyncio
 async def test_connection_standalone_tendermint_setup() -> None:
     """Test the setup of the connection configured with Tendermint."""
-    agent_identity = Identity(
-        "name", address="agent_address", public_key="agent_public_key"
-    )
+    agent_identity = Identity("name", address="agent_address")
     configuration = ConnectionConfig(
         connection_id=ABCIServerConnection.connection_id,
         host=DEFAULT_LISTEN_ADDRESS,
