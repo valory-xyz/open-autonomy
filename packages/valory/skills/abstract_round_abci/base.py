@@ -37,7 +37,6 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Type,
     TypeVar,
@@ -485,7 +484,7 @@ class AbstractRound(ABC):
 
         self._check_class_attributes()
 
-    def _check_class_attributes(self):
+    def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
         try:
             self.round_id
@@ -542,7 +541,7 @@ class AbstractRound(ABC):
         only after each block, and not after each transaction.
         """
 
-    def check_allowed_tx_type(self, transaction: Transaction):
+    def check_allowed_tx_type(self, transaction: Transaction) -> None:
         """
         Check the transaction is of the allowed transaction type.
 
@@ -561,11 +560,11 @@ class AbstractRound(ABC):
             )
 
     @abstractmethod
-    def check_payload(self, payload: BaseTxPayload):
+    def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
 
     @abstractmethod
-    def process_payload(self, payload: BaseTxPayload):
+    def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
 
 
@@ -587,7 +586,7 @@ class TimeoutEvent:
 class Timeouts:
     """Class to keep track of pending timeouts."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize."""
         # The entry count serves as a tie-breaker so that two tasks with
         # the same priority are returned in the order they were added
@@ -677,15 +676,15 @@ class AbciApp(Generic[EventType]):
         self._previous_rounds: List[AbstractRound] = []
         self._round_results: List[Any] = []
         self._last_timestamp: Optional[datetime.datetime] = None
-        self._current_timeout_entries: Set[int] = set()
+        self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts()
 
         self._check_class_attributes()
         self._check_class_attributes_consistency(
-            self.initial_round_cls, self.transition_function
+            self.initial_round_cls, self.transition_function, self.event_to_timeout
         )
 
-    def _check_class_attributes(self):
+    def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
         try:
             self.initial_round_cls
@@ -701,15 +700,20 @@ class AbciApp(Generic[EventType]):
         cls,
         initial_round_cls: Type[AbstractRound],
         transition_function: AbciAppTransitionFunction,
+        event_to_timeout: Dict[EventType, float],
     ) -> None:
         """
         Check that required class attributes values are consistent.
 
         I.e.:
-        - check the initial state is in the set of states specified by the transition function.
+        - check that the initial state is in the set of states specified by the transition function.
+        - check that the initial state has outgoing transitions
+        - check that the initial state does not trigger timeout events. This is because we need at
+          least one block/timestamp to start timeouts.
 
         :param initial_round_cls: the initial round class
         :param transition_function: the transition function
+        :param event_to_timeout: mapping from events to its timeout in seconds.
         :raises:
             ValueError if the initial round class is not in the set of rounds.
         """
@@ -722,6 +726,25 @@ class AbciApp(Generic[EventType]):
             initial_round_cls in states,
             f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
         )
+        enforce(
+            initial_round_cls in transition_function,
+            f"initial round class {initial_round_cls} does not have outgoing transitions",
+        )
+
+        timeout_events_from_initial_state = {
+            e for e in transition_function[initial_round_cls] if e in event_to_timeout
+        }
+        enforce(
+            len(timeout_events_from_initial_state) == 0,
+            f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
+        )
+
+    @property
+    def last_timestamp(self) -> datetime.datetime:
+        """Get last timestamp."""
+        if self._last_timestamp is None:
+            raise ABCIAppInternalError("last timestamp is None")
+        return self._last_timestamp
 
     def setup(self) -> None:
         """Set up the behaviour."""
@@ -756,7 +779,9 @@ class AbciApp(Generic[EventType]):
         for event in next_events:
             timeout = self.event_to_timeout.get(event, None)
             if timeout is not None:
-                deadline = self._last_timestamp + datetime.timedelta(0, timeout)
+                # last_timestamp is not None because we are not in the first round
+                # (see consistency check)
+                deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self._current_timeout_entries.append(entry_id)
 
@@ -836,15 +861,22 @@ class AbciApp(Generic[EventType]):
             self._current_round = None
 
     def update_time(self, timestamp: datetime.datetime) -> None:
-        """Observe timestamp from last block."""
-        self._last_timestamp = timestamp
+        """
+        Observe timestamp from last block.
+
+        :param timestamp: the latest block's timestamp.
+        """
         self._timeouts.pop_earliest_cancelled_timeouts()
 
         if self._timeouts.size == 0:
+            # if no pending timeouts, then it is safe to
+            # move forward the last known timestamp to the
+            # latest block's timestamp.
+            self._last_timestamp = timestamp
             return
 
         earliest_deadline, _ = self._timeouts.get_earliest_timeout()
-        while earliest_deadline <= self._last_timestamp:
+        while earliest_deadline <= timestamp:
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
@@ -861,6 +893,11 @@ class AbciApp(Generic[EventType]):
             if self._timeouts.size == 0:
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()
+
+        # at this point, there is no timeout event left to be triggered
+        # so it is safe to move forward the last known timestamp to the
+        # new block's timestamp
+        self._last_timestamp = timestamp
 
 
 class Period:
