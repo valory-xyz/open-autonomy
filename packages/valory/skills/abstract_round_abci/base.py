@@ -38,6 +38,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -668,9 +669,14 @@ class AbciApp(Generic[EventType]):
         self._current_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._round_results: List[Any] = []
+        self._last_timestamp: Optional[datetime.datetime] = None
+        self._current_timeout_entries: Set[int] = set()
         self._timeouts = Timeouts()
 
         self._check_class_attributes()
+        self._check_class_attributes_consistency(
+            self.initial_round_cls, self.transition_function
+        )
 
     def _check_class_attributes(self):
         """Check that required class attributes are set."""
@@ -682,6 +688,28 @@ class AbciApp(Generic[EventType]):
             self.transition_function
         except AttributeError:
             raise ABCIAppInternalError("transition function not set")
+
+    @classmethod
+    def _check_class_attributes_consistency(
+        cls,
+        initial_round_cls: Type[AbstractRound],
+        transition_function: AbciAppTransitionFunction,
+    ):
+        """
+        Check that required class attributes values are consistent.
+
+        I.e.:
+        - check the initial state is in the set of states specified by the transition function.
+        """
+        states = set()
+        for start_state, transitions in transition_function.items():
+            states.add(start_state)
+            for event, end_state in transitions.items():
+                states.add(end_state)
+        enforce(
+            initial_round_cls in states,
+            f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
+        )
 
     def setup(self) -> None:
         """Set up the behaviour."""
@@ -698,6 +726,35 @@ class AbciApp(Generic[EventType]):
         self.logger.info(
             f"'{self.current_round.round_id}' round is done with event: {event}"
         )
+
+    def _schedule_round(self, round_cls: Type[AbstractRound]) -> None:
+        """
+        Schedule a round class.
+
+        this means:
+        - cancel timeout events belonging to the current round;
+        - instantiate the new round class and set it as current round;
+        - create new timeout events and schedule them according to latest timestamp.
+
+        :param round_cls: the class of the new round.
+        :return: None
+        """
+        for entry_id in self._current_timeout_entries:
+            self._timeouts.remove_timeout(entry_id)
+
+        self._current_timeout_entries = []
+        next_events = list(self.transition_function.get(round_cls, {}).values())
+        for event in next_events:
+            timeout = self.event_to_timeout.get(event, None)
+            if timeout is not None:
+                deadline = self._last_timestamp + datetime.timedelta(0, timeout)
+                entry_id = self._timeouts.add_timeout(deadline, event)
+                self._current_timeout_entries.append(entry_id)
+
+        last_result = self._round_results[-1]
+        self._current_round_cls = round_cls
+        self._current_round = round_cls(last_result, self.consensus_params)
+        self._log_start()
 
     @property
     def current_round(self) -> AbstractRound:
@@ -758,23 +815,23 @@ class AbciApp(Generic[EventType]):
             # we duplicate the state since the round was preemptively ended
             self._round_results.append(self.current_round.period_state)
 
-        last_result = self._round_results[-1]
-        self._current_round_cls = next_round_cls
+        self._log_end(event)
         if next_round_cls is not None:
-            self._log_end(event)
-            self._current_round = next_round_cls(last_result, self.consensus_params)
-            self._log_start()
+            self._schedule_round(next_round_cls)
         else:
             self.logger.info("AbciApp has reached a dead end.")
+            self._current_round_cls = None
             self._current_round = None
 
     def update_time(self, timestamp: datetime.datetime) -> None:
         """Observe timestamp from last block."""
+        self._last_timestamp = timestamp
         if self._timeouts.size == 0:
             return
         deadline, _ = self._timeouts.get_earliest_timeout()
-        while deadline >= timestamp:
+        while deadline >= self._last_timestamp:
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
+            self._last_timestamp = expired_deadline
             self.process_event(timeout_event)
 
 

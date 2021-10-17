@@ -685,7 +685,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.participant_to_votes: Dict[str, ValidatePayload] = {}
 
-    def validate(self, payload: ValidatePayload) -> None:
+    def process_payload(self, payload: ValidatePayload) -> None:
         """Handle a validate safe payload."""
         sender = payload.sender
 
@@ -706,7 +706,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
 
         self.participant_to_votes[sender] = payload
 
-    def check_validate(self, payload: ValidatePayload) -> None:
+    def check_payload(self, payload: ValidatePayload) -> None:
         """
         Check a validate payload can be applied to the current state.
 
@@ -1297,27 +1297,6 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    positive_next_round_class = CollectObservationRound
-    negative_next_round_class = SelectKeeperARound
-
-    def process_payload(self, payload: ValidatePayload) -> None:
-        """
-        Handle a validate payload.
-
-        :param: payload: the payload.
-        """
-        super().validate(payload)
-
-    def check_payload(self, payload: ValidatePayload) -> None:
-        """
-        Check a validate safe payload can be applied to the current state.
-
-        A deploy safe transaction can be applied only if:
-        - the sender belongs to the set of participants
-
-        :param: payload: the payload.
-        """
-        super().check_validate(payload)
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1331,27 +1310,6 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    positive_next_round_class = ConsensusReachedRound
-    negative_next_round_class = SelectKeeperBRound
-
-    def process_payload(self, payload: ValidatePayload) -> None:
-        """
-        Handle a validate payload.
-
-        :param: payload: the payload.
-        """
-        super().validate(payload)
-
-    def check_payload(self, payload: ValidatePayload) -> None:
-        """
-        Check a validate transaction payload can be applied to the current state.
-
-        A deploy safe transaction can be applied only if:
-        - the sender belongs to the set of participants
-
-        :param: payload: the payload.
-        """
-        super().check_validate(payload)
 
 
 class PriceEstimationAbciApp(AbciApp[str]):
@@ -1376,4 +1334,9 @@ class PriceEstimationAbciApp(AbciApp[str]):
         ValidateTransactionRound: {Event.DONE: ConsensusReachedRound},
         SelectKeeperBRound: {Event.DONE: FinalizationRound},
     }
-    event_to_timeout: Dict[Any, float] = {}
+    event_to_timeout: Dict[Event, float] = {
+        Event.EXIT_A: 5.0,
+        Event.EXIT_B: 5.0,
+        Event.RETRY_TIMEOUT: 10.0,
+        Event.ROUND_TIMEOUT: 30.0,
+    }
