@@ -620,8 +620,8 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls: PriceEstimationAbciApp
-    behaviour_states: AbstractSet[PriceEstimationBaseState] = {
+    abci_app_cls: PriceEstimationAbciApp  # type: ignore
+    behaviour_states: AbstractSet[PriceEstimationBaseState] = {  # type: ignore
         TendermintHealthcheckBehaviour,
         RegistrationBehaviour,
         RandomnessBehaviour,

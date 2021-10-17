@@ -19,7 +19,7 @@
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
 
-from typing import AbstractSet, Any, Dict, Optional, Type
+from typing import AbstractSet, Any, Dict, Generic, Optional, Type, cast
 
 from aea.skills.base import Behaviour
 
@@ -36,7 +36,7 @@ Action = Optional[str]
 TransitionFunction = Dict[StateType, Dict[Action, StateType]]
 
 
-class AbstractRoundBehaviour(Behaviour):
+class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
     """This behaviour implements an abstract round behaviour."""
 
     abci_app_cls: Type[AbciApp[EventType]]
@@ -104,7 +104,7 @@ class AbstractRoundBehaviour(Behaviour):
     @classmethod
     def _check_initial_state_in_set_of_states(
         cls, initial_state: StateType, states: AbstractSet[StateType]
-    ):
+    ) -> None:
         """Check the initial state is in the set of states."""
         if initial_state not in states:
             raise ValueError(
@@ -158,23 +158,23 @@ class AbstractRoundBehaviour(Behaviour):
             return
         self._last_round_id = current_round_id
         current_round_cls = type(self.context.state.period.current_round)
-        # the state behaviour might not have the matching round
-        self._next_state_cls = self._round_to_state.get(current_round_cls, None)
+        # each round has a state behaviour associated to it
+        self._next_state_cls = self._round_to_state[current_round_cls]
 
         # checking if current state behaviour has a matching round.
         #  if so, stop it and replace it with the new state behaviour
         #  if not, then leave it running; the next state will be scheduled
         #  when current state is done
         current_state = self.current_state
-        if (
-            current_state is not None
-            and current_state.matching_round is not None
-            and current_state.state_id != self._next_state_cls.state_id
-        ):
-            current_state.stop()
+        if current_state is None:
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return
 
-        if current_state is None:
+        current_state = cast(BaseState, current_state)
+        if (
+            current_state.matching_round is not None
+            and current_state.state_id != self._next_state_cls.state_id
+        ):
+            current_state.stop()
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return

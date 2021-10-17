@@ -331,14 +331,14 @@ class RegistrationRound(PriceEstimationAbstractRound):
         # a collection of addresses
         self.participants: Set[str] = set()
 
-    def process_payload(self, payload: RegistrationPayload) -> None:
+    def process_payload(self, payload: RegistrationPayload) -> None:  # type: ignore
         """Handle a registration payload."""
         sender = payload.sender
 
         # we don't care if it was already there
         self.participants.add(sender)
 
-    def check_payload(  # pylint: disable=no-self-use
+    def check_payload(  # type: ignore  # pylint: disable=no-self-use
         self, _payload: RegistrationPayload
     ) -> None:
         """
@@ -381,7 +381,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.participant_to_randomness: Dict[str, RandomnessPayload] = {}
 
-    def process_payload(self, payload: RandomnessPayload) -> None:
+    def process_payload(self, payload: RandomnessPayload) -> None:  # type: ignore
         """Handle a 'randomness' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -401,7 +401,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
 
         self.participant_to_randomness[sender] = payload
 
-    def check_payload(self, payload: RandomnessPayload) -> None:
+    def check_payload(self, payload: RandomnessPayload) -> None:  # type: ignore
         """
         Check an randomness payload can be applied to the current state.
 
@@ -484,7 +484,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
 
-    def select_keeper(self, payload: SelectKeeperPayload) -> None:
+    def process_payload(self, payload: SelectKeeperPayload) -> None:  # type: ignore
         """Handle a 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -504,7 +504,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
 
         self.participant_to_selection[sender] = payload
 
-    def check_select_keeper(self, payload: SelectKeeperPayload) -> None:
+    def check_payload(self, payload: SelectKeeperPayload) -> None:  # type: ignore
         """
         Check an select_keeper payload can be applied to the current state.
 
@@ -589,7 +589,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         super().__init__(*args, **kwargs)
         self._contract_address: Optional[str] = None
 
-    def process_payload(self, payload: DeploySafePayload) -> None:
+    def process_payload(self, payload: DeploySafePayload) -> None:  # type: ignore
         """Handle a deploy safe payload."""
         sender = payload.sender
 
@@ -616,7 +616,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
 
         self._contract_address = payload.safe_contract_address
 
-    def check_payload(self, payload: DeploySafePayload) -> None:
+    def check_payload(self, payload: DeploySafePayload) -> None:  # type: ignore
         """
         Check a deploy safe payload can be applied to the current state.
 
@@ -686,7 +686,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.participant_to_votes: Dict[str, ValidatePayload] = {}
 
-    def process_payload(self, payload: ValidatePayload) -> None:
+    def process_payload(self, payload: ValidatePayload) -> None:  # type: ignore
         """Handle a validate safe payload."""
         sender = payload.sender
 
@@ -707,7 +707,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
 
         self.participant_to_votes[sender] = payload
 
-    def check_payload(self, payload: ValidatePayload) -> None:
+    def check_payload(self, payload: ValidatePayload) -> None:  # type: ignore
         """
         Check a validate payload can be applied to the current state.
 
@@ -787,7 +787,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
         super().__init__(*args, **kwargs)
         self.participant_to_observations: Dict[str, ObservationPayload] = {}
 
-    def process_payload(self, payload: ObservationPayload) -> None:
+    def process_payload(self, payload: ObservationPayload) -> None:  # type: ignore
         """Handle an 'observation' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -807,7 +807,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
 
         self.participant_to_observations[sender] = payload
 
-    def check_payload(self, payload: ObservationPayload) -> None:
+    def check_payload(self, payload: ObservationPayload) -> None:  # type: ignore
         """
         Check an observation payload can be applied to the current state.
 
@@ -882,7 +882,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         super().__init__(*args, **kwargs)
         self.participant_to_estimate: Dict[str, EstimatePayload] = {}
 
-    def process_payload(self, payload: EstimatePayload) -> None:
+    def process_payload(self, payload: EstimatePayload) -> None:  # type: ignore
         """Handle an 'estimate' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -902,7 +902,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
 
         self.participant_to_estimate[sender] = payload
 
-    def check_payload(self, payload: EstimatePayload) -> None:
+    def check_payload(self, payload: EstimatePayload) -> None:  # type: ignore
         """
         Check an estimate payload can be applied to the current state.
 
@@ -984,7 +984,7 @@ class TxHashRound(PriceEstimationAbstractRound):
         super().__init__(*args, **kwargs)
         self.participant_to_tx_hash: Dict[str, TransactionHashPayload] = {}
 
-    def process_payload(self, payload: TransactionHashPayload) -> None:
+    def process_payload(self, payload: TransactionHashPayload) -> None:  # type: ignore
         """Handle a 'tx_hash' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -1004,7 +1004,7 @@ class TxHashRound(PriceEstimationAbstractRound):
 
         self.participant_to_tx_hash[sender] = payload
 
-    def check_payload(self, payload: TransactionHashPayload) -> None:
+    def check_payload(self, payload: TransactionHashPayload) -> None:  # type: ignore
         """
         Check a signature payload can be applied to the current state.
 
@@ -1084,7 +1084,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
         super().__init__(*args, **kwargs)
         self.signatures_by_participant: Dict[str, str] = {}
 
-    def process_payload(self, payload: SignaturePayload) -> None:
+    def process_payload(self, payload: SignaturePayload) -> None:  # type: ignore
         """Handle a 'signature' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -1104,7 +1104,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
         self.signatures_by_participant[sender] = payload.signature
 
-    def check_payload(self, payload: SignaturePayload) -> None:
+    def check_payload(self, payload: SignaturePayload) -> None:  # type: ignore
         """
         Check a signature payload can be applied to the current state.
 
@@ -1169,7 +1169,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
         super().__init__(*args, **kwargs)
         self._tx_hash: Optional[str] = None
 
-    def process_payload(self, payload: FinalizationTxPayload) -> None:
+    def process_payload(self, payload: FinalizationTxPayload) -> None:  # type: ignore
         """Handle a finalization payload."""
         sender = payload.sender
 
@@ -1194,7 +1194,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
         self._tx_hash = payload.tx_hash
 
-    def check_payload(self, payload: FinalizationTxPayload) -> None:
+    def check_payload(self, payload: FinalizationTxPayload) -> None:  # type: ignore
         """
         Check a finalization payload can be applied to the current state.
 
@@ -1246,28 +1246,12 @@ class SelectKeeperARound(SelectKeeperRound):
     round_id = "select_keeper_a"
     next_round_class = DeploySafeRound
 
-    def process_payload(self, payload: SelectKeeperPayload) -> None:
-        """Handle a 'select_keeper' payload."""
-        super().select_keeper(payload)
-
-    def check_payload(self, payload: SelectKeeperPayload) -> None:
-        """Check an select_keeper payload can be applied to the current state."""
-        return super().check_select_keeper(payload)
-
 
 class SelectKeeperBRound(SelectKeeperRound):
     """This class represents the select keeper B round."""
 
     round_id = "select_keeper_b"
     next_round_class = FinalizationRound
-
-    def process_payload(self, payload: SelectKeeperPayload) -> None:
-        """Handle a 'select_keeper' payload."""
-        super().select_keeper(payload)
-
-    def check_payload(self, payload: SelectKeeperPayload) -> None:
-        """Check an select_keeper payload can be applied to the current state."""
-        return super().check_select_keeper(payload)
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):
@@ -1276,11 +1260,11 @@ class ConsensusReachedRound(PriceEstimationAbstractRound):
     round_id = "consensus_reached"
     allowed_tx_type = None
 
-    def process_payload(self, payload: BaseTxPayload) -> None:
+    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Process the payload."""
         raise ABCIAppInternalError("this round does not accept transactions")
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
+    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Check the payload"""
         raise TransactionNotValidError("this round does not accept transactions")
 
@@ -1317,7 +1301,7 @@ class ValidateTransactionRound(ValidateRound):
     exit_event = Event.EXIT_B
 
 
-class PriceEstimationAbciApp(AbciApp[str]):
+class PriceEstimationAbciApp(AbciApp[Event]):
     """Price estimation ABCI application."""
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
