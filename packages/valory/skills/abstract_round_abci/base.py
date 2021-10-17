@@ -609,17 +609,20 @@ class Timeouts:
         self._entry_finder[entry_count] = timeout_event
         return entry_count
 
-    def remove_timeout(self, entry_count: int) -> None:
+    def cancel_timeout(self, entry_count: int) -> None:
         """
         Remove a timeout.
 
         :param entry_count: the entry id to remove.
         :raises: KeyError: if the entry count is not found.
         """
-        self._entry_finder[entry_count].cancelled = True
+        if entry_count in self._entry_finder:
+            self._entry_finder[entry_count].cancelled = True
 
-    def _pop_cancelled_timeouts(self):
-        """Pop cancelled timeouts."""
+    def pop_earliest_cancelled_timeouts(self) -> None:
+        """Pop earliest cancelled timeouts."""
+        if self.size == 0:
+            return
         entry = self._heap[0]
         while entry.cancelled:
             self._entry_finder.pop(entry.entry_count)
@@ -630,13 +633,13 @@ class Timeouts:
 
     def get_earliest_timeout(self) -> Tuple[datetime.datetime, Any]:
         """Get the earliest timeout-event pair."""
-        self._pop_cancelled_timeouts()
+        self.pop_earliest_cancelled_timeouts()
         entry = self._heap[0]
         return entry.deadline, entry.event
 
     def pop_timeout(self) -> Tuple[datetime.datetime, Any]:
         """Remove and return the earliest timeout-event pair."""
-        self._pop_cancelled_timeouts()
+        self.pop_earliest_cancelled_timeouts()
         entry = heapq.heappop(self._heap)
         del self._entry_finder[entry.entry_count]
         return entry.deadline, entry.event
@@ -667,6 +670,7 @@ class AbciApp(Generic[EventType]):
 
         self._current_round_cls: Optional[Type[AbstractRound]] = None
         self._current_round: Optional[AbstractRound] = None
+        self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._round_results: List[Any] = []
         self._last_timestamp: Optional[datetime.datetime] = None
@@ -713,9 +717,7 @@ class AbciApp(Generic[EventType]):
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._current_round_cls = self.initial_round_cls
-        self._current_round = self.initial_round_cls(self.state, self.consensus_params)
-        self._log_start()
+        self._schedule_round(self.initial_round_cls)
 
     def _log_start(self) -> None:
         """Log the entering in the round."""
@@ -740,10 +742,10 @@ class AbciApp(Generic[EventType]):
         :return: None
         """
         for entry_id in self._current_timeout_entries:
-            self._timeouts.remove_timeout(entry_id)
+            self._timeouts.cancel_timeout(entry_id)
 
         self._current_timeout_entries = []
-        next_events = list(self.transition_function.get(round_cls, {}).values())
+        next_events = list(self.transition_function.get(round_cls, {}).keys())
         for event in next_events:
             timeout = self.event_to_timeout.get(event, None)
             if timeout is not None:
@@ -751,7 +753,10 @@ class AbciApp(Generic[EventType]):
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self._current_timeout_entries.append(entry_id)
 
-        last_result = self._round_results[-1]
+        last_result = (
+            self._round_results[-1] if len(self._round_results) > 0 else self.state
+        )
+        self._last_round = self._current_round
         self._current_round_cls = round_cls
         self._current_round = round_cls(last_result, self.consensus_params)
         self._log_start()
@@ -771,7 +776,7 @@ class AbciApp(Generic[EventType]):
     @property
     def last_round_id(self) -> Optional[str]:
         """Get the last round id."""
-        return self._current_round.round_id if self._current_round else None
+        return self._last_round.round_id if self._current_round else None
 
     @property
     def is_finished(self) -> bool:
@@ -826,13 +831,29 @@ class AbciApp(Generic[EventType]):
     def update_time(self, timestamp: datetime.datetime) -> None:
         """Observe timestamp from last block."""
         self._last_timestamp = timestamp
+        self._timeouts.pop_earliest_cancelled_timeouts()
+
         if self._timeouts.size == 0:
             return
-        deadline, _ = self._timeouts.get_earliest_timeout()
-        while deadline >= self._last_timestamp:
+
+        earliest_deadline, _ = self._timeouts.get_earliest_timeout()
+        while earliest_deadline <= self._last_timestamp:
+            # the earliest deadline is expired. Pop it from the
+            # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
+
+            # the last timestamp now becomes the expired deadline
+            # clearly, it is earlier than the current highest known
+            # timestamp that comes from the consensus engine.
+            # However, we need it to correctly simulate the timeouts
+            # of the next rounds.
             self._last_timestamp = expired_deadline
+
             self.process_event(timeout_event)
+
+            if self._timeouts.size == 0:
+                break
+            earliest_deadline, _ = self._timeouts.get_earliest_timeout()
 
 
 class Period:
