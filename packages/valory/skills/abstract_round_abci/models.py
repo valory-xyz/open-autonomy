@@ -26,7 +26,6 @@ from aea.skills.base import Model
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
-    AbstractRound,
     BasePeriodState,
     ConsensusParams,
     Period,

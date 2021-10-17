@@ -1276,11 +1276,13 @@ class ConsensusReachedRound(PriceEstimationAbstractRound):
     round_id = "consensus_reached"
     allowed_tx_type = None
 
-    def process_payload(self, payload: BaseTxPayload):
-        pass
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process the payload."""
+        raise ABCIAppInternalError("this round does not accept transactions")
 
-    def check_payload(self, payload: BaseTxPayload):
-        pass
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check the payload"""
+        raise TransactionNotValidError("this round does not accept transactions")
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -1316,6 +1318,8 @@ class ValidateTransactionRound(ValidateRound):
 
 
 class PriceEstimationAbciApp(AbciApp[str]):
+    """Price estimation ABCI application."""
+
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessRound},

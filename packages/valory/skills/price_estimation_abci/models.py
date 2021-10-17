@@ -27,10 +27,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    PriceEstimationAbciApp,
-    RegistrationRound,
-)
+from packages.valory.skills.price_estimation_abci.rounds import PriceEstimationAbciApp
 
 
 Requests = BaseRequests

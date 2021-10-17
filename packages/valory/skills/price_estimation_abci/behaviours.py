@@ -34,16 +34,9 @@ from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
-    DONE_EVENT,
-    EXIT_A_EVENT,
-    EXIT_B_EVENT,
-    FAIL_EVENT,
     TimeoutException,
 )
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    TransitionFunction,
-)
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,

@@ -28,7 +28,6 @@ from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
-from types import MappingProxyType
 from typing import (
     AbstractSet,
     Any,
@@ -552,6 +551,10 @@ class AbstractRound(ABC):
             TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
         """
         tx_type = str(transaction.payload.transaction_type)
+        if self.allowed_tx_type is None:
+            raise TransactionTypeNotRecognizedError(
+                "current round does not allow transactions"
+            )
         if tx_type != str(self.allowed_tx_type):
             raise TransactionTypeNotRecognizedError(
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
@@ -698,17 +701,22 @@ class AbciApp(Generic[EventType]):
         cls,
         initial_round_cls: Type[AbstractRound],
         transition_function: AbciAppTransitionFunction,
-    ):
+    ) -> None:
         """
         Check that required class attributes values are consistent.
 
         I.e.:
         - check the initial state is in the set of states specified by the transition function.
+
+        :param initial_round_cls: the initial round class
+        :param transition_function: the transition function
+        :raises:
+            ValueError if the initial round class is not in the set of rounds.
         """
         states = set()
         for start_state, transitions in transition_function.items():
             states.add(start_state)
-            for event, end_state in transitions.items():
+            for _event, end_state in transitions.items():
                 states.add(end_state)
         enforce(
             initial_round_cls in states,
@@ -739,7 +747,6 @@ class AbciApp(Generic[EventType]):
         - create new timeout events and schedule them according to latest timestamp.
 
         :param round_cls: the class of the new round.
-        :return: None
         """
         for entry_id in self._current_timeout_entries:
             self._timeouts.cancel_timeout(entry_id)
