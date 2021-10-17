@@ -551,8 +551,8 @@ class AbstractRound(ABC):
         :raises:
             TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
         """
-        tx_type = transaction.payload.transaction_type
-        if tx_type != self.allowed_tx_type is None:
+        tx_type = str(transaction.payload.transaction_type)
+        if tx_type != str(self.allowed_tx_type):
             raise TransactionTypeNotRecognizedError(
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
             )
