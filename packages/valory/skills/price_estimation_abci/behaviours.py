@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import AbstractSet, Generator, Type, cast
+from typing import Generator, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -608,18 +608,18 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls: PriceEstimationAbciApp  # type: ignore
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,
-        RegistrationBehaviour,
-        RandomnessBehaviour,
-        SelectKeeperABehaviour,
-        DeploySafeBehaviour,
-        ValidateSafeBehaviour,
-        ObserveBehaviour,
-        EstimateBehaviour,
-        TransactionHashBehaviour,
-        SignatureBehaviour,
-        FinalizeBehaviour,
-        ValidateTransactionBehaviour,
-        SelectKeeperBBehaviour,
-        EndBehaviour,
+        TendermintHealthcheckBehaviour,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        RandomnessBehaviour,  # type: ignore
+        SelectKeeperABehaviour,  # type: ignore
+        DeploySafeBehaviour,  # type: ignore
+        ValidateSafeBehaviour,  # type: ignore
+        ObserveBehaviour,  # type: ignore
+        EstimateBehaviour,  # type: ignore
+        TransactionHashBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
+        ValidateTransactionBehaviour,  # type: ignore
+        SelectKeeperBBehaviour,  # type: ignore
+        EndBehaviour,  # type: ignore
     }
