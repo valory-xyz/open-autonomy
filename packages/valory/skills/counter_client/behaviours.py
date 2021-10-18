@@ -28,7 +28,9 @@ from aea.skills.behaviours import TickerBehaviour
 from packages.fetchai.connections.http_client.connection import (  # type: ignore # pylint: disable=no-name-in-module,import-error
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,  # type: ignore
 )
-from packages.fetchai.protocols.http import HttpMessage  # type: ignore # pylint: disable=no-name-in-module,import-error
+
+# type: ignore # pylint: disable=no-name-in-module,import-error
+from packages.fetchai.protocols.http import HttpMessage
 from packages.valory.skills.counter_client.dialogues import HttpDialogues
 from packages.valory.skills.counter_client.handlers import curdatetime
 
