@@ -25,7 +25,7 @@ import pytest
 from aea.skills.base import SkillContext
 from requests import get
 
-from packages.fetchai.protocols.http import HttpMessage
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.price_estimation_abci.price_api import (
     ApiSpecs,
     BinanceApiSpecs,

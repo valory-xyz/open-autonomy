@@ -10,10 +10,10 @@ connections:
 - valory/abci:0.1.0
 contracts: []
 protocols:
-- fetchai/default:1.0.0
-- fetchai/signing:1.0.0
-- fetchai/state_update:1.0.0
 - valory/abci:0.1.0
+- valory/default:1.0.0
+- valory/signing:1.0.0
+- valory/state_update:1.0.0
 skills:
 - valory/abstract_abci:0.1.0
 - valory/counter:0.1.0

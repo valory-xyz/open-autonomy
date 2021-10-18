@@ -21,7 +21,6 @@
 from enum import Enum
 from typing import List, Optional
 
-import google.protobuf.duration_pb2
 from aea.exceptions import enforce
 
 from packages.valory.protocols.abci import abci_pb2
@@ -656,6 +655,8 @@ class Evidences:
 
 
 class CheckTxTypeEnum(Enum):
+    """CheckTxTypeEnum for tx check."""
+
     NEW = 0
     RECHECK = 1
 
@@ -846,10 +847,10 @@ class BlockID:
         )
 
 
-class Header:
+class Header:  # pylint: disable=too-many-instance-attributes
     """This class represents an instance of Header."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         version: ConsensusVersion,
         chain_id: str,
@@ -918,7 +919,9 @@ class Header:
         header_protobuf_object.proposer_address = header_object.proposer_address
 
     @classmethod
-    def decode(cls, header_protobuf_object) -> "Header":
+    def decode(  # pylint: disable=too-many-locals
+        cls, header_protobuf_object
+    ) -> "Header":
         """
         Decode a protocol buffer object that corresponds with this class into an instance of this class.
 

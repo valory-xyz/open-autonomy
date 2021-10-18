@@ -42,7 +42,7 @@ from typing import (
 from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
 
-from packages.fetchai.connections.ledger.base import (
+from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header, Timestamp

@@ -32,14 +32,14 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import State
 
-from packages.fetchai.connections.http_client.connection import (
+from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.fetchai.protocols.contract_api import ContractApiMessage
-from packages.fetchai.protocols.http import HttpMessage
-from packages.fetchai.protocols.ledger_api import LedgerApiMessage
-from packages.fetchai.protocols.signing import SigningMessage
-from packages.fetchai.protocols.signing.custom_types import (
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.signing import SigningMessage
+from packages.valory.protocols.signing.custom_types import (
     RawMessage,
     RawTransaction,
     Terms,
