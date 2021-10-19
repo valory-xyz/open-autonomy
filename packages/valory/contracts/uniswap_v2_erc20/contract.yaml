@@ -14,5 +14,4 @@ fingerprint_ignore_patterns: []
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
-dependencies:
-  py-eth-sig-utils: {}
+dependencies: {}
