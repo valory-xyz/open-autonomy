@@ -498,8 +498,6 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
 
     Input: a set of participants (addresses)
     Output: the selected keeper.
-
-    It schedules the next_round_class.
     """
 
     allowed_tx_type = SelectKeeperPayload.transaction_type
@@ -699,8 +697,6 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
 
     Input: a period state with the set of participants, the keeper and the Safe contract address.
     Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
-
-    It schedules the positive_next_round_class or negative_next_round_class.
     """
 
     allowed_tx_type = ValidatePayload.transaction_type
@@ -1269,14 +1265,12 @@ class SelectKeeperARound(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
     round_id = "select_keeper_a"
-    next_round_class = DeploySafeRound
 
 
 class SelectKeeperBRound(SelectKeeperRound):
     """This class represents the select keeper B round."""
 
     round_id = "select_keeper_b"
-    next_round_class = FinalizationRound
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):
