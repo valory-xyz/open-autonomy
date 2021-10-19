@@ -603,7 +603,7 @@ class Timeouts(Generic[EventType]):
         """Get the size of the timeout queue."""
         return len(self._heap)
 
-    def add_timeout(self, deadline: datetime.datetime, event: Any) -> int:
+    def add_timeout(self, deadline: datetime.datetime, event: EventType) -> int:
         """Add a timeout."""
         entry_count = next(self._counter)
         timeout_event = TimeoutEvent[EventType](deadline, entry_count, event)
@@ -754,7 +754,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         """Log the entering in the round."""
         self.logger.info(f"Entered in the '{self.current_round.round_id}' round")
 
-    def _log_end(self, event: Any) -> None:
+    def _log_end(self, event: EventType) -> None:
         """Log the exiting from the round."""
         self.logger.info(
             f"'{self.current_round.round_id}' round is done with event: {event}"
@@ -840,7 +840,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         """
         self.current_round.process_transaction(transaction)
 
-    def process_event(self, event: Any, result: Optional[Any] = None) -> None:
+    def process_event(self, event: EventType, result: Optional[Any] = None) -> None:
         """Process a round event."""
         if self._current_round_cls is None:
             self.logger.info(
