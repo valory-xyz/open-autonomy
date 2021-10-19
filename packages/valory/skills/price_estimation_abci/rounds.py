@@ -24,9 +24,20 @@ from collections import Counter
 from enum import Enum
 from operator import itemgetter
 from types import MappingProxyType
-from typing import AbstractSet, Any, Sequence
+from typing import AbstractSet, Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
+from typing import (
+    Dict,
+    FrozenSet,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    cast,
+)
 
 from aea.exceptions import enforce
 
@@ -126,9 +137,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def sorted_participants(self) -> Sequence[str]:
         """
-        Get the sorted participants.
+        Get the sorted participants' addresses.
 
-        This is useful when interacting with the Safe contract.
+        The addresses are sorted according to their hexadecimal value;
+        this is the reason we use key=str.lower as comparator.
+
+        This property is useful when interacting with the Safe contract.
+
+        :return: the sorted participants' addresses
         """
         return sorted(self.participants, key=str.lower)
 
