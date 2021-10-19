@@ -32,10 +32,7 @@ from packages.fetchai.connections.ledger.base import (
 from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    TimeoutException,
-)
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -251,12 +248,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         self.context.logger.info(
             "I am the designated sender, deploying the safe contract..."
         )
-        try:
-            # TOFIX: here the deploy needs to time out and raise TimeoutException; timeout=self.context.params.keeper_timeout_seconds
-            contract_address = yield from self._send_deploy_transaction()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_a()
-            return
+        contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
         yield from self.send_a2a_transaction(payload)
         self.context.logger.info(f"Safe contract address: {contract_address}")
@@ -341,7 +333,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
         """
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            self.set_fail()
+            self.set_done()
+            yield from self.wait_until_round_end()
 
         currency_id = self.params.currency_id
         convert_id = self.params.convert_id
@@ -508,12 +501,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         self.context.logger.info(
             "I am the designated sender, sending the safe transaction..."
         )
-        try:
-            # TOFIX: here the deploy needs to time out and raise TimeoutException; timeout=self.context.params.keeper_timeout_seconds
-            tx_hash = yield from self._send_safe_transaction()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_b()
-            return
+        tx_hash = yield from self._send_safe_transaction()
         self.context.logger.info(
             f"Transaction hash of the final transaction: {tx_hash}"
         )

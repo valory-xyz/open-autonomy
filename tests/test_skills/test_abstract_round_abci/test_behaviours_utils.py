@@ -375,24 +375,6 @@ class TestBaseState:
         self.behaviour.set_done()
         assert self.behaviour.is_done()
 
-    def test_set_fail(self) -> None:
-        """Test 'set_fail' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_fail()
-        assert self.behaviour.is_done()
-
-    def test_set_exit_a(self) -> None:
-        """Test 'set_exit_a' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_exit_a()
-        assert self.behaviour.is_done()
-
-    def test_set_exit_b(self) -> None:
-        """Test 'set_exit_b' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_exit_b()
-        assert self.behaviour.is_done()
-
     def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
         """Test 'send_a2a_transaction' method, negative case (no matching round)."""
         self.behaviour.matching_round = None

@@ -336,18 +336,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Set the behaviour to done."""
         self._is_done = True
 
-    def set_fail(self) -> None:
-        """Set the behaviour to done."""
-        self._is_done = True
-
-    def set_exit_a(self) -> None:
-        """Set the behaviour to exit a."""
-        self._is_done = True
-
-    def set_exit_b(self) -> None:
-        """Set the behaviour to exit b."""
-        self._is_done = True
-
     def reset(self) -> None:
         """Reset initial conditions."""
         self._is_done = False
