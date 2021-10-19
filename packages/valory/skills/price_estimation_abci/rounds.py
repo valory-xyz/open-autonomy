@@ -266,7 +266,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._most_voted_tx_hash)
 
 
-class PriceEstimationAbstractRound(AbstractRound, ABC):
+class PriceEstimationAbstractRound(AbstractRound[Event], ABC):
     """Abstract round for the price estimation skill."""
 
     @property

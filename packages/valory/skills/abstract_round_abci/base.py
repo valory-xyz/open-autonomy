@@ -461,7 +461,7 @@ class BasePeriodState:
         return f"BasePeriodState({self.__dict__})"
 
 
-class AbstractRound(ABC):
+class AbstractRound(Generic[EventType], ABC):
     """
     This class represents an abstract round.
 
@@ -522,7 +522,7 @@ class AbstractRound(ABC):
         self.process_payload(transaction.payload)
 
     @abstractmethod
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Any]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """
         Process the end of the block.
 
