@@ -152,7 +152,7 @@ class UniswapV2Router02(Contract):
         cls,
         amountIn: int,
         amountOutMin: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int
     ):
@@ -163,7 +163,7 @@ class UniswapV2Router02(Contract):
         cls,
         amountOut: int,
         amountInMax: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int
     ):
@@ -172,7 +172,7 @@ class UniswapV2Router02(Contract):
     @classmethod
     def swapExactETHForTokens(
         cls,amountOutMin: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int):
             pass
@@ -181,7 +181,7 @@ class UniswapV2Router02(Contract):
     def swapTokensForExactETH(
         cls,amountOut: int,
         amountInMax: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int):
             pass
@@ -190,7 +190,7 @@ class UniswapV2Router02(Contract):
     def swapExactTokensForETH(
         cls,amountIn: int,
         amountOutMin: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int):
             pass
@@ -198,7 +198,7 @@ class UniswapV2Router02(Contract):
     @classmethod
     def swapETHForExactTokens(
         cls,amountOut: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int):
             pass
@@ -208,7 +208,7 @@ class UniswapV2Router02(Contract):
         cls,
         amountIn: int,
         amountOutMin: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int
     ):
@@ -218,7 +218,7 @@ class UniswapV2Router02(Contract):
     def swapExactETHForTokensSupportingFeeOnTransferTokens(
         cls,
         amountOutMin: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int
     ):
@@ -229,7 +229,7 @@ class UniswapV2Router02(Contract):
         cls,
         amountIn: int,
         amountOutMin: int,
-        address[] calldata path,
+        path: list,
         to: str,
         deadline: int
     ):
@@ -252,10 +252,10 @@ class UniswapV2Router02(Contract):
 
     @classmethod
     def getAmountsOut(
-        cls, amountIn: int, address[] memory path):
+        cls, amountIn: int, path: list):
             pass
 
     @classmethod
     def getAmountsIn(
-        cls, amountOut: int, address[] memory path):
+        cls, amountOut: int, path: list):
             pass
