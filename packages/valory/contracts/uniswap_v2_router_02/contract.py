@@ -38,12 +38,12 @@ class UniswapV2Router02(Contract):
     @classmethod
     def add_liquidity(
         cls,
-        tokenA: str,
-        tokenB: str,
-        amountADesired: int,
-        amountBDesired: int,
-        amountAMin: int,
-        amountBMin: int,
+        token_a: str,
+        token_b: str,
+        amount_a_desired: int,
+        amount_b_desired: int,
+        amount_a_min: int,
+        amount_b_min: int,
         to: str,
         deadline,
     ) -> JSONLike:
@@ -54,9 +54,9 @@ class UniswapV2Router02(Contract):
     def add_liquidity_ETH(
         cls,
         token: str,
-        amountTokenDesired: int,
-        amountTokenMin: int,
-        amountETHMin: int,
+        amount_token_desired: int,
+        amount_token_min: int,
+        amount_ETH_min: int,
         to: str,
         deadline,
     ) -> JSONLike:
@@ -66,11 +66,11 @@ class UniswapV2Router02(Contract):
     @classmethod
     def remove_liquidity(
         cls,
-        tokenA: str,
-        tokenB: str,
+        token_a: str,
+        token_b: str,
         liquidity: int,
-        amountAMin: int,
-        amountBMin: int,
+        amount_a_min: int,
+        amount_b_min: int,
         to: str,
         deadline: int,
     ) -> JSONLike:
@@ -82,8 +82,8 @@ class UniswapV2Router02(Contract):
         cls,
         token: str,
         liquidity: int,
-        amountTokenMin: int,
-        amountETHMin: int,
+        amount_token_min: int,
+        amount_ETH_min: int,
         to: str,
         deadline: int,
     ) -> JSONLike:
@@ -93,14 +93,14 @@ class UniswapV2Router02(Contract):
     @classmethod
     def remove_liquidity_with_permit(
         cls,
-        tokenA: str,
-        tokenB: str,
+        token_a: str,
+        token_b: str,
         liquidity: int,
-        amountAMin: int,
-        amountBMin: int,
+        amount_a_min: int,
+        amount_b_min: int,
         to: str,
         deadline: int,
-        approveMax: bool,
+        approve_max: bool,
         v: int,
         r: bytes,
         s: bytes,
@@ -113,11 +113,11 @@ class UniswapV2Router02(Contract):
         cls,
         token: str,
         liquidity: int,
-        amountTokenMin: int,
-        amountETHMin: int,
+        amount_token_min: int,
+        amount_ETH_min: int,
         to: str,
         deadline: int,
-        approveMax: bool,
+        approve_max: bool,
         v: int,
         r: bytes,
         s: bytes,
@@ -130,8 +130,8 @@ class UniswapV2Router02(Contract):
         cls,
         token: str,
         liquidity: int,
-        amountTokenMin: int,
-        amountETHMin: int,
+        amount_token_min: int,
+        amount_ETH_min: int,
         to: str,
         deadline: int,
     ) -> JSONLike:
@@ -143,11 +143,11 @@ class UniswapV2Router02(Contract):
         cls,
         token: str,
         liquidity: int,
-        amountTokenMin: int,
-        amountETHMin: int,
+        amount_token_min: int,
+        amount_ETH_min: int,
         to: str,
         deadline: int,
-        approveMax: bool,
+        approve_max: bool,
         v: int,
         r: bytes,
         s: bytes,
@@ -157,88 +157,88 @@ class UniswapV2Router02(Contract):
 
     @classmethod
     def swap_exact_tokens_for_tokens(
-        cls, amountIn: int, amountOutMin: int, path: list, to: str, deadline: int
+        cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap exact tokens for tokens."""
         pass
 
     @classmethod
     def swap_tokens_for_exact_tokens(
-        cls, amountOut: int, amountInMax: int, path: list, to: str, deadline: int
+        cls, amount_out: int, amount_in_max: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap tokens for exact tokens."""
         pass
 
     @classmethod
     def swap_exact_ETH_for_tokens(
-        cls, amountOutMin: int, path: list, to: str, deadline: int
+        cls, amount_out_min: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap exact ETH for tokens."""
         pass
 
     @classmethod
     def swap_tokens_for_exact_ETH(
-        cls, amountOut: int, amountInMax: int, path: list, to: str, deadline: int
+        cls, amount_out: int, amount_in_max: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap tokens for exact ETH."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_ETH(
-        cls, amountIn: int, amountOutMin: int, path: list, to: str, deadline: int
+        cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap exact tokens for ETH."""
         pass
 
     @classmethod
     def swap_ETH_for_exact_tokens(
-        cls, amountOut: int, path: list, to: str, deadline: int
+        cls, amount_out: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap ETH tokens for exact tokens."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_tokens_supporting_fee_on_transfer_tokens(
-        cls, amountIn: int, amountOutMin: int, path: list, to: str, deadline: int
+        cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap exact tokens for tokens supporting fee on transfer tokens."""
         pass
 
     @classmethod
     def swap_exact_ETH_for_tokens_supporting_fee_on_transfer_tokens(
-        cls, amountOutMin: int, path: list, to: str, deadline: int
+        cls, amount_out_min: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap exact ETH for tokens supporting fee on transfer tokens."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_ETH_supporting_fee_on_transfer_tokens(
-        cls, amountIn: int, amountOutMin: int, path: list, to: str, deadline: int
+        cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
     ) -> JSONLike:
         """Swap exact tokens for ETH supporting fee on transfer tokens."""
         pass
 
     @classmethod
-    def quote(cls, amountA: int, reserveA: int, reserveB: int) -> JSONLike:
+    def quote(cls, amount_a: int, reserve_a: int, reserve_b: int) -> JSONLike:
         """Quote."""
         pass
 
     @classmethod
-    def get_amount_out(cls, amountIn: int, reserveIn, reserveOut: int) -> JSONLike:
+    def get_amount_out(cls, amount_in: int, reserve_in, reserve_out: int) -> JSONLike:
         """Get amount out."""
         pass
 
     @classmethod
-    def get_amount_in(cls, amountOut: int, reserveIn, reserveOut: int) -> JSONLike:
+    def get_amount_in(cls, amount_out: int, reserve_in, reserve_out: int) -> JSONLike:
         """Get amount in."""
         pass
 
     @classmethod
-    def get_amounts_out(cls, amountIn: int, path: list) -> JSONLike:
+    def get_amounts_out(cls, amount_in: int, path: list) -> JSONLike:
         """Get amounts out."""
         pass
 
     @classmethod
-    def get_amounts_in(cls, amountOut: int, path: list) -> JSONLike:
+    def get_amounts_in(cls, amount_out: int, path: list) -> JSONLike:
         """Get amounts in."""
         pass
