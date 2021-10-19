@@ -32,7 +32,6 @@ _logger = logging.getLogger(
 )
 
 class UniswapV2Router02(Contract):
-
     """The Uniswap V2 Router02 contract."""
 
     @classmethod
@@ -47,6 +46,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline
     ):
+        """Add liquidity."""
         pass
 
     @classmethod
@@ -59,6 +59,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline
     ):
+        """Add liquidity ETH."""
         pass
 
     @classmethod
@@ -72,6 +73,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Remove liquidity."""
         pass
 
     @classmethod
@@ -84,6 +86,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Remove liquidity ETH."""
         pass
 
     @classmethod
@@ -101,6 +104,7 @@ class UniswapV2Router02(Contract):
         r: bytes,
         s: bytes
     ):
+        """Remove liquidity with permit."""
         pass
 
     @classmethod
@@ -117,6 +121,7 @@ class UniswapV2Router02(Contract):
         r: bytes,
         s: bytes
     ):
+        """Remove liquidity ETH with permit."""
         pass
 
     @classmethod
@@ -129,6 +134,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Remove liquidity ETH supportinmg fee on transfer tokens."""
         pass
 
     @classmethod
@@ -145,6 +151,7 @@ class UniswapV2Router02(Contract):
         r: bytes,
         s: bytes
     ):
+        """Remove liquidity ETH with permit supportinmg fee on transfer tokens."""
         pass
 
     @classmethod
@@ -156,6 +163,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Swap exact tokens for tokens."""
         pass
 
     @classmethod
@@ -167,6 +175,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Swap tokens for exact tokens."""
         pass
 
     @classmethod
@@ -175,6 +184,7 @@ class UniswapV2Router02(Contract):
         path: list,
         to: str,
         deadline: int):
+            """Swap exact ETH for tokens."""
             pass
 
     @classmethod
@@ -184,6 +194,7 @@ class UniswapV2Router02(Contract):
         path: list,
         to: str,
         deadline: int):
+            """Swap tokens for exact ETH."""
             pass
 
     @classmethod
@@ -193,6 +204,7 @@ class UniswapV2Router02(Contract):
         path: list,
         to: str,
         deadline: int):
+            """Swap exact tokens for ETH."""
             pass
 
     @classmethod
@@ -201,6 +213,7 @@ class UniswapV2Router02(Contract):
         path: list,
         to: str,
         deadline: int):
+            """Swap ETH tokens for exact tokens."""
             pass
 
     @classmethod
@@ -212,6 +225,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Swap exact tokens for tokens supporting fee on transfer tokens."""
         pass
 
     @classmethod
@@ -222,6 +236,7 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Swap exact ETH for tokens supporting fee on transfer tokens."""
         pass
 
     @classmethod
@@ -233,29 +248,35 @@ class UniswapV2Router02(Contract):
         to: str,
         deadline: int
     ):
+        """Swap exact tokens for ETH supporting fee on transfer tokens."""
         pass
 
     @classmethod
     def quote(
         cls, amountA: int, reserveA: int, reserveB: int):
+            """Quote."""
             pass
 
     @classmethod
     def getAmountOut(
         cls, amountIn: int, reserveIn, reserveOut: int):
+            """Get amount out."""
             pass
 
     @classmethod
     def getAmountIn(
         cls, amountOut: int, reserveIn, reserveOut: int):
+            """Get amount in."""
             pass
 
     @classmethod
     def getAmountsOut(
         cls, amountIn: int, path: list):
+            """Get amounts out."""
             pass
 
     @classmethod
     def getAmountsIn(
         cls, amountOut: int, path: list):
+            """Get amounts in."""
             pass

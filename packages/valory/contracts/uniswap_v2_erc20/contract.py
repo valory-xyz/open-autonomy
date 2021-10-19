@@ -34,16 +34,26 @@ class UniswapV2ERC20(Contract):
 
     @classmethod
     def approve(cls, spender_address: int, value: int):
+        """Set the allowance."""
         pass
 
     @classmethod
     def transfer(cls, to_address: str, value: int):
+        """Transfer funds to an account."""
         pass
 
     @classmethod
     def transferFrom(cls, from_address: str, to_address: str, value: int):
+        """Transfer funds between accounts."""
         pass
 
     @classmethod
-    def permit(cls, owner_address: str, spender_address: str, value: int, deadline: int, v: int, r: bytes, s: bytes):
+    def permit(cls,
+               owner_address: str,
+               spender_address: str,
+               value: int, deadline: int,
+               v: int,
+               r: bytes,
+               s: bytes):
+        """Modify the allowance mapping using a signed message."""
         pass
