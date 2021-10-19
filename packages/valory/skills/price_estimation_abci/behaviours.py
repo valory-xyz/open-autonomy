@@ -264,7 +264,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
-        owners = sorted(self.period_state.participants)
+        owners = self.period_state.sorted_participants
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore

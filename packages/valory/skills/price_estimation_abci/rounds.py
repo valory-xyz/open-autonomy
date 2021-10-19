@@ -24,7 +24,7 @@ from collections import Counter
 from enum import Enum
 from operator import itemgetter
 from types import MappingProxyType
-from typing import AbstractSet, Any
+from typing import AbstractSet, Any, Sequence
 from typing import Counter as CounterType
 from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
 
@@ -122,6 +122,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get the keeper's random number [0-1]."""
         res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
         return cast(float, res / 10)
+
+    @property
+    def sorted_participants(self) -> Sequence[str]:
+        """
+        Get the sorted participants.
+
+        This is useful when interacting with the Safe contract.
+        """
+        return sorted(self.participants, key=str.lower)
 
     @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
