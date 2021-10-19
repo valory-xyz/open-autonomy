@@ -43,7 +43,7 @@ class UniswapV2ERC20(Contract):
         pass
 
     @classmethod
-    def transferFrom(cls, from_address: str, to_address: str, value: int):
+    def transfer_from(cls, from_address: str, to_address: str, value: int):
         """Transfer funds between accounts."""
         pass
 

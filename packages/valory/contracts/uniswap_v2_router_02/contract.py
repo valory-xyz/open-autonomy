@@ -33,7 +33,7 @@ class UniswapV2Router02(Contract):
     """The Uniswap V2 Router02 contract."""
 
     @classmethod
-    def addLiquidity(
+    def add_liquidity(
         cls,
         tokenA: str,
         tokenB: str,
@@ -48,7 +48,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def addLiquidityETH(
+    def add_liquidity_ETH(
         cls,
         token: str,
         amountTokenDesired: int,
@@ -61,7 +61,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def removeLiquidity(
+    def remove_liquidity(
         cls,
         tokenA: str,
         tokenB: str,
@@ -75,7 +75,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def removeLiquidityETH(
+    def remove_liquidity_ETH(
         cls,
         token: str,
         liquidity: int,
@@ -88,7 +88,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def removeLiquidityWithPermit(
+    def remove_liquidity_with_permit(
         cls,
         tokenA: str,
         tokenB: str,
@@ -106,7 +106,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def removeLiquidityETHWithPermit(
+    def remove_liquidity_ETH_with_permit(
         cls,
         token: str,
         liquidity: int,
@@ -123,7 +123,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def removeLiquidityETHSupportingFeeOnTransferTokens(
+    def remove_liquidity_ETH_Supporting_fee_on_transfer_tokens(
         cls,
         token: str,
         liquidity: int,
@@ -136,7 +136,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
+    def remove_liquidity_ETH_with_permit_supporting_fee_on_transfer_tokens(
         cls,
         token: str,
         liquidity: int,
@@ -153,7 +153,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def swapExactTokensForTokens(
+    def swap_exact_tokens_for_tokens(
         cls,
         amountIn: int,
         amountOutMin: int,
@@ -165,7 +165,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def swapTokensForExactTokens(
+    def swap_tokens_for_exact_tokens(
         cls,
         amountOut: int,
         amountInMax: int,
@@ -177,7 +177,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def swapExactETHForTokens(
+    def swap_exact_ETH_for_tokens(
         cls,amountOutMin: int,
         path: list,
         to: str,
@@ -186,7 +186,7 @@ class UniswapV2Router02(Contract):
             pass
 
     @classmethod
-    def swapTokensForExactETH(
+    def swap_tokens_for_exact_ETH(
         cls,amountOut: int,
         amountInMax: int,
         path: list,
@@ -196,7 +196,7 @@ class UniswapV2Router02(Contract):
             pass
 
     @classmethod
-    def swapExactTokensForETH(
+    def swap_exact_tokens_for_ETH(
         cls,amountIn: int,
         amountOutMin: int,
         path: list,
@@ -206,7 +206,7 @@ class UniswapV2Router02(Contract):
             pass
 
     @classmethod
-    def swapETHForExactTokens(
+    def swap_ETH_for_exact_tokens(
         cls,amountOut: int,
         path: list,
         to: str,
@@ -215,7 +215,7 @@ class UniswapV2Router02(Contract):
             pass
 
     @classmethod
-    def swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    def swap_exact_tokens_for_tokens_supporting_fee_on_transfer_tokens(
         cls,
         amountIn: int,
         amountOutMin: int,
@@ -227,7 +227,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def swapExactETHForTokensSupportingFeeOnTransferTokens(
+    def swap_exact_ETH_for_tokens_supporting_fee_on_transfer_tokens(
         cls,
         amountOutMin: int,
         path: list,
@@ -238,7 +238,7 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def swapExactTokensForETHSupportingFeeOnTransferTokens(
+    def swap_exact_tokens_for_ETH_supporting_fee_on_transfer_tokens(
         cls,
         amountIn: int,
         amountOutMin: int,
@@ -256,25 +256,25 @@ class UniswapV2Router02(Contract):
             pass
 
     @classmethod
-    def getAmountOut(
+    def get_amount_out(
         cls, amountIn: int, reserveIn, reserveOut: int):
             """Get amount out."""
             pass
 
     @classmethod
-    def getAmountIn(
+    def get_amount_in(
         cls, amountOut: int, reserveIn, reserveOut: int):
             """Get amount in."""
             pass
 
     @classmethod
-    def getAmountsOut(
+    def get_amounts_out(
         cls, amountIn: int, path: list):
             """Get amounts out."""
             pass
 
     @classmethod
-    def getAmountsIn(
+    def get_amounts_in(
         cls, amountOut: int, path: list):
             """Get amounts in."""
             pass
