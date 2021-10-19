@@ -36,18 +36,6 @@ class UniswapV2Router02(Contract):
     """The Uniswap V2 Router02 contract."""
 
     @classmethod
-    def _addLiquidity(
-        cls,
-        tokenA: str,
-        tokenB: str,
-        amountADesired: int,
-        amountBDesired: int,
-        amountAMin: int,
-        amountBMin: int
-    ):
-        pass
-
-    @classmethod
     def addLiquidity(
         cls,
         tokenA: str,
@@ -160,13 +148,6 @@ class UniswapV2Router02(Contract):
         pass
 
     @classmethod
-    def _swap(
-        cls,
-        uint[] memory amounts,
-        address[] memory path, _to):
-            pass
-
-    @classmethod
     def swapExactTokensForTokens(
         cls,
         amountIn: int,
@@ -220,13 +201,6 @@ class UniswapV2Router02(Contract):
         address[] calldata path,
         to: str,
         deadline: int):
-            pass
-
-    @classmethod
-    def _swapSupportingFeeOnTransferTokens(
-        cls,
-        address[] memory path,
-        _to: str):
             pass
 
     @classmethod

@@ -32,23 +32,6 @@ _logger = logging.getLogger(
 class UniswapV2ERC20(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
-
-    @classmethod
-    def _mint(cls, to_address: str, value: int):
-        pass
-
-    @classmethod
-    def _burn(cls, from_address: str, value: int):
-        pass
-
-    @classmethod
-    def _approve(cls, owner_address: str, spender_address: str, value: int):
-        pass
-
-    @classmethod
-    def _transfer(cls, from_address: str, to_address: str, value: int):
-        pass
-
     @classmethod
     def approve(cls, spender_address: int, value: int):
         pass
