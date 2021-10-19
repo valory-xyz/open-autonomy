@@ -35,8 +35,11 @@ from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
-from aiohttp.client_reqrep import ClientResponse
-from multidict import CIMultiDict, CIMultiDictProxy
+from aiohttp.client_reqrep import ClientResponse  # pylint: disable=wrong-import-order
+from multidict import (  # pylint: disable=wrong-import-order
+    CIMultiDict,
+    CIMultiDictProxy,
+)
 
 from packages.valory.protocols.http.dialogues import HttpDialogue as BaseHttpDialogue
 from packages.valory.protocols.http.dialogues import HttpDialogues as BaseHttpDialogues
