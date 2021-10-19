@@ -20,8 +20,9 @@
 """This module contains the class to connect to a ERC20 contract."""
 import logging
 
-from aea.contracts.base import Contract
 from aea.configurations.base import PublicId
+from aea.contracts.base import Contract
+
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
 
@@ -29,31 +30,35 @@ _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
+
 class UniswapV2ERC20(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
     @classmethod
-    def approve(cls, spender_address: int, value: int):
+    def approve(cls, spender_address: int, value: int) -> bool:
         """Set the allowance."""
-        pass
+        return False
 
     @classmethod
-    def transfer(cls, to_address: str, value: int):
+    def transfer(cls, to_address: str, value: int) -> bool:
         """Transfer funds to an account."""
-        pass
+        return False
 
     @classmethod
-    def transfer_from(cls, from_address: str, to_address: str, value: int):
+    def transfer_from(cls, from_address: str, to_address: str, value: int) -> bool:
         """Transfer funds between accounts."""
-        pass
+        return False
 
     @classmethod
-    def permit(cls,
-               owner_address: str,
-               spender_address: str,
-               value: int, deadline: int,
-               v: int,
-               r: bytes,
-               s: bytes):
+    def permit(
+        cls,
+        owner_address: str,
+        spender_address: str,
+        value: int,
+        deadline: int,
+        v: int,
+        r: bytes,
+        s: bytes,
+    ) -> None:
         """Modify the allowance mapping using a signed message."""
-        pass
+        return None
