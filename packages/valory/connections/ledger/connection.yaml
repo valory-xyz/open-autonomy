@@ -1,6 +1,6 @@
 name: ledger
 author: valory
-version: 0.18.0
+version: 0.1.0
 type: connection
 description: A connection to interact with any ledger API and contract API.
 license: Apache-2.0

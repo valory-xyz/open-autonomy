@@ -1,6 +1,6 @@
 name: http_client
 author: valory
-version: 0.22.0
+version: 0.1.0
 type: connection
 description: The HTTP_client connection that wraps a web-based client connecting to
   a RESTful API specification.

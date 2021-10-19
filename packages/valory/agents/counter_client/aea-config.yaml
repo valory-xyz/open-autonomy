@@ -7,7 +7,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
 connections:
-- valoey/http_client:0.1.0
+- valory/http_client:0.1.0
 contracts: []
 protocols:
 - valory/default:1.0.0
