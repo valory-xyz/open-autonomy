@@ -1,0 +1,18 @@
+name: uniswap_v2_erc20
+author: valory
+version: 0.1.0
+type: contract
+description: Uniswap V2 ERC20 contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
+  __init__.py: QmWLx43KXUA8iq4uRo1VDhFPqd6dFF7xfdiMpQLAoBBMoD
+  build/GnosisSafe_V1_3_0.json: QmafMmPcVqiTLykozgjGwNL2S8b1g5bmgMP3z6EdecgMYh
+  contract.py: QmZeMKhqaqxnnngoTyPJqQ64gRuauodsANwer6Zzkd59hn
+fingerprint_ignore_patterns: []
+class_name: GnosisSafeContract
+contract_interface_paths:
+  ethereum: build/GnosisSafe_V1_3_0.json
+dependencies:
+  py-eth-sig-utils: {}
