@@ -9,7 +9,7 @@ RUN pip install "aea-ledger-ethereum>=1.0.0,<2.0.0"
 
 COPY packages /home/ubuntu/packages
 
-RUN aea fetch valory/counter:0.1.0
+RUN aea fetch --local valory/counter:0.1.0
 RUN cd counter && aea generate-key ethereum
 
 WORKDIR /home/ubuntu/counter
