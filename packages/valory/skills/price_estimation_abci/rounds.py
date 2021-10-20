@@ -70,8 +70,7 @@ class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
     DONE = "done"
-    EXIT_A = "exit_a"
-    EXIT_B = "exit_b"
+    EXIT = "exit"
     RETRY_TIMEOUT = "retry_timeout"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
@@ -347,6 +346,8 @@ class RegistrationRound(PriceEstimationAbstractRound):
     It schedules the SelectKeeperARound.
     """
 
+    # REFACTOR: collect-different-until-all
+
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
 
@@ -398,6 +399,8 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
 
     It schedules the SelectKeeperARound.
     """
+
+    # REFACTOR: collect-same-until-threshold
 
     round_id = "randomness"
     allowed_tx_type = RandomnessPayload.transaction_type
@@ -490,6 +493,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
                 most_voted_randomness=self.most_voted_randomness,
             )
             return state, Event.DONE
+        # TODO: threshold cannot be reached, Event.FAIL
         return None
 
 
@@ -500,6 +504,8 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
     Input: a set of participants (addresses)
     Output: the selected keeper.
     """
+
+    # REFACTOR: collect-same-until-threshold
 
     allowed_tx_type = SelectKeeperPayload.transaction_type
 
@@ -592,6 +598,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
                 most_voted_keeper_address=self.most_voted_keeper_address,
             )
             return state, Event.DONE
+        # TODO: threshold cannot be reached, Event.FAIL
         return None
 
 
@@ -604,6 +611,8 @@ class DeploySafeRound(PriceEstimationAbstractRound):
 
     It schedules the ValidateSafeRound.
     """
+
+    # REFACTOR: keeper-only-sends
 
     round_id = "deploy_safe"
     allowed_tx_type = DeploySafePayload.transaction_type
@@ -700,6 +709,8 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
     Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
     """
 
+    # REFACTOR: voting-round
+
     allowed_tx_type = ValidatePayload.transaction_type
     exit_event: Event
 
@@ -788,6 +799,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
             return state, self.exit_event
+        # TODO: no threshold can be reached, Event.FAIL
         return None
 
 
@@ -800,6 +812,8 @@ class CollectObservationRound(PriceEstimationAbstractRound):
 
     It schedules the EstimateConsensusRound.
     """
+
+    # REFACTOR: collect-different-until-threshold
 
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
@@ -896,6 +910,8 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
     It schedules the TxHashRound.
     """
 
+    # REFACTOR: collect-same-until-threshold
+
     round_id = "estimate_consensus"
     allowed_tx_type = EstimatePayload.transaction_type
 
@@ -985,6 +1001,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
                 most_voted_estimate=self.most_voted_estimate,
             )
             return state, Event.DONE
+        # TODO: if threshold can no longer be reached, Event.FAIL
         return None
 
 
@@ -997,6 +1014,8 @@ class TxHashRound(PriceEstimationAbstractRound):
 
     It schedules the CollectSignatureRound.
     """
+
+    # REFACTOR: collect-same-until-threshold
 
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
@@ -1085,6 +1104,7 @@ class TxHashRound(PriceEstimationAbstractRound):
                 most_voted_tx_hash=self.most_voted_tx_hash,
             )
             return state, Event.DONE
+        # TODO: if threshold can no longer be reached, Event.FAIL
         return None
 
 
@@ -1097,6 +1117,8 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
     It schedules the FinalizationRound.
     """
+
+    # REFACTOR: collect-different-until-threshold
 
     round_id = "collect_signature"
     allowed_tx_type = SignaturePayload.transaction_type
@@ -1185,6 +1207,8 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
+
+    # REFACTOR: keeper-only-sends
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'finalization' round."""
@@ -1304,7 +1328,7 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    exit_event = Event.EXIT_A
+    exit_event = Event.EXIT
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1318,7 +1342,7 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    exit_event = Event.EXIT_B
+    exit_event = Event.EXIT
 
 
 class PriceEstimationAbciApp(AbciApp[Event]):
@@ -1327,27 +1351,52 @@ class PriceEstimationAbciApp(AbciApp[Event]):
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {Event.DONE: SelectKeeperARound},
-        SelectKeeperARound: {Event.DONE: DeploySafeRound},
+        RandomnessRound: {
+            Event.DONE: SelectKeeperARound,
+            Event.FAIL: RegistrationRound,
+        },
+        SelectKeeperARound: {
+            Event.DONE: DeploySafeRound,
+            Event.FAIL: RegistrationRound,
+        },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT_A: SelectKeeperARound,
+            Event.EXIT: SelectKeeperARound,
         },
-        ValidateSafeRound: {Event.DONE: CollectObservationRound},
-        CollectObservationRound: {Event.DONE: EstimateConsensusRound},
-        EstimateConsensusRound: {Event.DONE: TxHashRound},
-        TxHashRound: {Event.DONE: CollectSignatureRound},
+        ValidateSafeRound: {
+            Event.DONE: CollectObservationRound,
+            Event.EXIT: DeploySafeRound,
+            Event.FAIL: RegistrationRound,
+        },
+        CollectObservationRound: {
+            Event.DONE: EstimateConsensusRound,
+        },
+        EstimateConsensusRound: {
+            Event.DONE: TxHashRound,
+            Event.FAIL: RegistrationRound,
+        },
+        TxHashRound: {
+            Event.DONE: CollectSignatureRound,
+            Event.FAIL: RegistrationRound,
+        },
         CollectSignatureRound: {Event.DONE: FinalizationRound},
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.EXIT_B: SelectKeeperBRound,
+            Event.EXIT: SelectKeeperBRound,
         },
-        ValidateTransactionRound: {Event.DONE: ConsensusReachedRound},
-        SelectKeeperBRound: {Event.DONE: FinalizationRound},
+        ValidateTransactionRound: {
+            Event.DONE: ConsensusReachedRound,
+            Event.EXIT: FinalizationRound,
+            Event.FAIL: RegistrationRound,
+        },
+        SelectKeeperBRound: {
+            Event.DONE: FinalizationRound,
+            Event.FAIL: RegistrationRound,
+        },
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.EXIT_A: 5.0,
-        Event.EXIT_B: 5.0,
-        Event.RETRY_TIMEOUT: 10.0,
-        Event.ROUND_TIMEOUT: 30.0,
+        Event.EXIT: 5.0,
+        Event.FAIL: 5.0,
+        Event.RETRY_TIMEOUT: 10.0,  # TODO: incorporate in mappings
+        Event.ROUND_TIMEOUT: 30.0,  # TODO: incorporate in mappings
     }
