@@ -99,7 +99,7 @@ class TestIncrementerBehaviour(BaseTestClass):
             body=json.dumps({}).encode("utf-8"),
         )
         self.http_handler.handle(incoming_message)
-        self.behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(0)
 
 
 class TestMonitorBehaviour(BaseTestClass):
@@ -144,4 +144,66 @@ class TestMonitorBehaviour(BaseTestClass):
             ),
         )
         self.http_handler.handle(incoming_message)
+        self.assert_quantity_in_outbox(0)
+
+
+class TestHttpHandler(BaseTestClass):
+    """Test `handle` method from HttpHandle."""
+
+    behaviour_name = "monitor"
+
+    def test_handle(
+        self,
+    ) -> None:
+        """Run tests."""
+
         self.behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+
+        actual_message = self.get_message_from_outbox()
+        has_attr, msg = self.message_has_attributes(
+            actual_message=actual_message,
+            message_type=HttpMessage,
+            to=str(HTTP_CLIENT_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            method="GET",
+            headers="",
+            url=self.behaviour.tendermint_url + "/abci_query",
+        )
+
+        assert has_attr, msg
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=("stub", "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"response": {"value": "AAAACg=="}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)
+
+        incoming_message = self.build_incoming_message(
+            message_type=HttpMessage,
+            dialogue_reference=(actual_message.dialogue_reference[0], "stub"),
+            performative=HttpMessage.Performative.RESPONSE,
+            target=actual_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(HTTP_CLIENT_PUBLIC_ID),
+            version="",
+            status_code=201,
+            status_text="",
+            headers="",
+            body=json.dumps({"result": {"response": {"value": "AAAACg=="}}}).encode(
+                "utf-8"
+            ),
+        )
+        self.http_handler.handle(incoming_message)

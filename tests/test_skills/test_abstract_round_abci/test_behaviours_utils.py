@@ -373,6 +373,13 @@ class TestBaseState:
         gen = self.behaviour.wait_until_round_end()
         try_send(gen)
 
+    def test_clean_up(self) -> None:
+        """Test 'clean_up' method."""
+        assert not self.behaviour.is_done()
+        self.behaviour.clean_up()
+        assert self.behaviour.is_done()
+        assert self.behaviour._event == DONE_EVENT
+
     def test_set_done(self) -> None:
         """Test 'set_done' method."""
         assert not self.behaviour.is_done()
