@@ -30,7 +30,7 @@ from tests.fixture_helpers import UseTendermint
 class TestABCISkill(AEATestCaseEmpty, UseTendermint):
     """Test that the ABCI skill works together with Tendermint."""
 
-    IS_LOCAL = False
+    IS_LOCAL = True
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
 
