@@ -60,6 +60,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
+    TransactionType,
     ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.tools import aggregate
@@ -266,7 +267,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._most_voted_tx_hash)
 
 
-class PriceEstimationAbstractRound(AbstractRound[Event], ABC):
+class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the price estimation skill."""
 
     @property

@@ -63,6 +63,7 @@ ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 EventType = TypeVar("EventType")
+TransactionType = TypeVar("TransactionType")
 
 
 def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
@@ -461,17 +462,21 @@ class BasePeriodState:
         return f"BasePeriodState({self.__dict__})"
 
 
-class AbstractRound(Generic[EventType], ABC):
+class AbstractRound(Generic[EventType, TransactionType], ABC):
     """
     This class represents an abstract round.
 
     A round is a state of a period. It usually involves
     interactions between participants in the period,
     although this is not enforced at this level of abstraction.
+
+    Concrete classes must set:
+    - round_id: the identifier for the concrete round class;
+    - allowed_tx_type: the transaction type that is allowed for this round.
     """
 
     round_id: str
-    allowed_tx_type: Any
+    allowed_tx_type: Optional[TransactionType]
 
     def __init__(
         self,
@@ -1080,7 +1085,7 @@ class Period:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        result = self.current_round.end_block()
+        result: Optional[Tuple[BasePeriodState, Any]] = self.current_round.end_block()
         if result is None:
             return
         round_result, event = result
