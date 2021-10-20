@@ -20,7 +20,7 @@
 """This module contains the class to connect to a Uniswap V2 Router02 contract."""
 import logging
 
-from aea.common import JSONLike
+from aea.common import Optional[JSONLike]
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 
@@ -46,7 +46,7 @@ class UniswapV2Router02(Contract):
         amount_b_min: int,
         to: str,
         deadline,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Add liquidity."""
         pass
 
@@ -59,7 +59,7 @@ class UniswapV2Router02(Contract):
         amount_ETH_min: int,
         to: str,
         deadline,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Add liquidity ETH."""
         pass
 
@@ -73,7 +73,7 @@ class UniswapV2Router02(Contract):
         amount_b_min: int,
         to: str,
         deadline: int,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Remove liquidity."""
         pass
 
@@ -86,7 +86,7 @@ class UniswapV2Router02(Contract):
         amount_ETH_min: int,
         to: str,
         deadline: int,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Remove liquidity ETH."""
         pass
 
@@ -104,7 +104,7 @@ class UniswapV2Router02(Contract):
         v: int,
         r: bytes,
         s: bytes,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Remove liquidity with permit."""
         pass
 
@@ -121,7 +121,7 @@ class UniswapV2Router02(Contract):
         v: int,
         r: bytes,
         s: bytes,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Remove liquidity ETH with permit."""
         pass
 
@@ -134,7 +134,7 @@ class UniswapV2Router02(Contract):
         amount_ETH_min: int,
         to: str,
         deadline: int,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Remove liquidity ETH supportinmg fee on transfer tokens."""
         pass
 
@@ -151,94 +151,94 @@ class UniswapV2Router02(Contract):
         v: int,
         r: bytes,
         s: bytes,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Remove liquidity ETH with permit supportinmg fee on transfer tokens."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_tokens(
         cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap exact tokens for tokens."""
         pass
 
     @classmethod
     def swap_tokens_for_exact_tokens(
         cls, amount_out: int, amount_in_max: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap tokens for exact tokens."""
         pass
 
     @classmethod
     def swap_exact_ETH_for_tokens(
         cls, amount_out_min: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap exact ETH for tokens."""
         pass
 
     @classmethod
     def swap_tokens_for_exact_ETH(
         cls, amount_out: int, amount_in_max: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap tokens for exact ETH."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_ETH(
         cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap exact tokens for ETH."""
         pass
 
     @classmethod
     def swap_ETH_for_exact_tokens(
         cls, amount_out: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap ETH tokens for exact tokens."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_tokens_supporting_fee_on_transfer_tokens(
         cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap exact tokens for tokens supporting fee on transfer tokens."""
         pass
 
     @classmethod
     def swap_exact_ETH_for_tokens_supporting_fee_on_transfer_tokens(
         cls, amount_out_min: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap exact ETH for tokens supporting fee on transfer tokens."""
         pass
 
     @classmethod
     def swap_exact_tokens_for_ETH_supporting_fee_on_transfer_tokens(
         cls, amount_in: int, amount_out_min: int, path: list, to: str, deadline: int
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """Swap exact tokens for ETH supporting fee on transfer tokens."""
         pass
 
     @classmethod
-    def quote(cls, amount_a: int, reserve_a: int, reserve_b: int) -> JSONLike:
+    def quote(cls, amount_a: int, reserve_a: int, reserve_b: int) -> Optional[JSONLike]:
         """Quote."""
         pass
 
     @classmethod
-    def get_amount_out(cls, amount_in: int, reserve_in, reserve_out: int) -> JSONLike:
+    def get_amount_out(cls, amount_in: int, reserve_in, reserve_out: int) -> Optional[JSONLike]:
         """Get amount out."""
         pass
 
     @classmethod
-    def get_amount_in(cls, amount_out: int, reserve_in, reserve_out: int) -> JSONLike:
+    def get_amount_in(cls, amount_out: int, reserve_in, reserve_out: int) -> Optional[JSONLike]:
         """Get amount in."""
         pass
 
     @classmethod
-    def get_amounts_out(cls, amount_in: int, path: list) -> JSONLike:
+    def get_amounts_out(cls, amount_in: int, path: list) -> Optional[JSONLike]:
         """Get amounts out."""
         pass
 
     @classmethod
-    def get_amounts_in(cls, amount_out: int, path: list) -> JSONLike:
+    def get_amounts_in(cls, amount_out: int, path: list) -> Optional[JSONLike]:
         """Get amounts in."""
         pass

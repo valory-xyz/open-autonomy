@@ -22,6 +22,11 @@ import logging
 
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
+from aea.common import JSONLike
+from typing import Optional, cast
+from aea_ledger_ethereum import EthereumApi
+from aea.crypto.base import LedgerApi
+from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -35,23 +40,83 @@ class UniswapV2ERC20(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
     @classmethod
-    def approve(cls, spender_address: int, value: int) -> bool:
+    def approve(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        contract_abi: str,
+        owner_address: str,
+        spender_address: int,
+        value: int,
+    ) -> Optional[JSONLike]:
         """Set the allowance."""
-        return False
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = ledger_api.api.eth.contract(address=contract_address, abi=contract_abi)
+        tx_hash = contract.functions.approve(spender_address, value).transact({'from': owner_address})
+
+        try:
+            tx_receipt = ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
+            if tx_receipt is None:
+                raise ValueError
+            return dict(success=True, tx_hash=tx_hash, tx_receipt=tx_receipt)
+        except (TransactionNotFound, ValueError):
+            return dict(success=False, tx_hash=tx_hash)
 
     @classmethod
-    def transfer(cls, to_address: str, value: int) -> bool:
-        """Transfer funds to an account."""
-        return False
+    def transfer(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        contract_abi: str,
+        from_address: str,
+        to_address: str,
+        value: int
+    ) -> Optional[JSONLike]:
+        """Transfer funds from from_address to to_address."""
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = ledger_api.api.eth.contract(address=contract_address, abi=contract_abi)
+        tx_hash = contract.functions.transfer(to_address, value).transact({'from': from_address})
+
+        try:
+            tx_receipt = ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
+            if tx_receipt is None:
+                raise ValueError
+            return dict(success=True, tx_hash=tx_hash, tx_receipt=tx_receipt)
+        except (TransactionNotFound, ValueError):
+            return dict(success=False, tx_hash=tx_hash)
 
     @classmethod
-    def transfer_from(cls, from_address: str, to_address: str, value: int) -> bool:
-        """Transfer funds between accounts."""
-        return False
+    def transfer_from(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        contract_abi: str,
+        from_address: str,
+        to_address: str,
+        value: int
+    ) -> Optional[JSONLike]:
+        """(Third-party) transfer funds from from_address to to_address."""
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = ledger_api.api.eth.contract(address=contract_address, abi=contract_abi)
+        tx_hash = contract.functions.transferFrom(from_address, to_address, value).transact({'from': to_address}) # Check this last from
+
+        try:
+            tx_receipt = ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
+            if tx_receipt is None:
+                raise ValueError
+            return dict(success=True, tx_hash=tx_hash, tx_receipt=tx_receipt)
+        except (TransactionNotFound, ValueError):
+            return dict(success=False, tx_hash=tx_hash)
 
     @classmethod
     def permit(
         cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        contract_abi: str,
         owner_address: str,
         spender_address: str,
         value: int,
@@ -59,6 +124,20 @@ class UniswapV2ERC20(Contract):
         v: int,
         r: bytes,
         s: bytes,
-    ) -> None:
+    ) -> Optional[JSONLike]:
         """Modify the allowance mapping using a signed message."""
-        return None
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = ledger_api.api.eth.contract(address=contract_address, abi=contract_abi)
+
+        # Can't find API reference for permit
+        # https://web3py.readthedocs.io/en/stable/examples.html#working-with-an-erc20-token-contract
+
+        raise NotImplementedError
+
+        try:
+            if tx_receipt is None:
+                raise ValueError
+            return dict(success=True, tx_hash=tx_hash, tx_receipt=tx_receipt)
+        except (TransactionNotFound, ValueError):
+            return dict(success=False, tx_hash=tx_hash)
