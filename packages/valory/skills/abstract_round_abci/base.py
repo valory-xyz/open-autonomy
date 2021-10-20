@@ -494,11 +494,11 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         try:
             self.round_id
         except AttributeError as exc:
-            raise ABCIAppInternalError("round id not set") from exc
+            raise ABCIAppInternalError("'round_id' field not set") from exc
         try:
             self.allowed_tx_type
         except AttributeError as exc:
-            raise ABCIAppInternalError("allowed tx type not set") from exc
+            raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
 
     @property
     def period_state(self) -> BasePeriodState:

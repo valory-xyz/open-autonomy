@@ -23,7 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -43,8 +43,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     BlockBuilder,
     Blockchain,
     ConsensusParams,
+    EventType,
     Period,
     SignatureNotValidError,
+    Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
     _MetaPayload,
@@ -411,6 +413,70 @@ class TestAbstractRound:
         )
         self.round = ConcreteRound(self.base_period_state, self.params)
 
+    def test_must_set_round_id(self) -> None:
+        """Test that the 'round_id' must be set in concrete classes."""
+
+        class MyConcreteRound(AbstractRound):
+            # here round_id is missing
+            # ...
+            allowed_tx_type = MagicMock()
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(ABCIAppInternalError, match="'round_id' field not set"):
+            MyConcreteRound(MagicMock(), MagicMock())
+
+    def test_must_set_allowed_tx_type(self) -> None:
+        """Test that the 'allowed_tx_type' must be set in concrete classes."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = ""
+            # here allowed_tx_type is missing
+            # ...
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(
+            ABCIAppInternalError, match="'allowed_tx_type' field not set"
+        ):
+            MyConcreteRound(MagicMock(), MagicMock())
+
+    def test_check_allowed_tx_type(self) -> None:
+        """Test check 'allowed_tx_type'."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = ""
+            allowed_tx_type = None
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(
+            TransactionTypeNotRecognizedError,
+            match="current round does not allow transactions",
+        ):
+            MyConcreteRound(MagicMock(), MagicMock()).check_allowed_tx_type(MagicMock())
+
     def test_period_state_getter(self) -> None:
         """Test 'period_state' property getter."""
         state = self.round.period_state
@@ -460,6 +526,91 @@ class TestAbstractRound:
         tx_mock = MagicMock()
         tx_mock.payload.transaction_type = "payload_a"
         self.round.process_transaction(tx_mock)
+
+
+class TestTimeouts:
+    """Test the 'Timeouts' class."""
+
+    def setup(self) -> None:
+        """Set up the test."""
+        self.timeouts = Timeouts()
+
+    def test_size(self) -> None:
+        """Test the 'size' property."""
+        assert self.timeouts.size == 0
+        self.timeouts._heap.append(MagicMock())
+        assert self.timeouts.size == 1
+
+    def test_add_timeout(self) -> None:
+        """Test the 'add_timeout' method."""
+        # the first time, entry_count = 0
+        entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        assert entry_count == 0
+
+        # the second time, entry_count is incremented
+        entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        assert entry_count == 1
+
+    def test_cancel_timeout(self) -> None:
+        """Test the 'cancel_timeout' method."""
+        entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        assert self.timeouts.size == 1
+
+        self.timeouts.cancel_timeout(entry_count)
+
+        # cancelling timeouts does not remove them from the heap
+        assert self.timeouts.size == 1
+
+    def test_pop_earliest_cancelled_timeouts(self) -> None:
+        """Test the 'pop_earliest_cancelled_timeouts' method."""
+        entry_count_1 = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        entry_count_2 = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        self.timeouts.cancel_timeout(entry_count_1)
+        self.timeouts.cancel_timeout(entry_count_2)
+        self.timeouts.pop_earliest_cancelled_timeouts()
+        assert self.timeouts.size == 0
+
+    def test_get_earliest_timeout(self) -> None:
+        """Test the 'get_earliest_timeout' method."""
+        deadline_1 = datetime.datetime.now()
+        event_1 = MagicMock()
+
+        deadline_2 = datetime.datetime.now()
+        event_2 = MagicMock()
+        assert deadline_1 < deadline_2
+
+        self.timeouts.add_timeout(deadline_2, event_2)
+        self.timeouts.add_timeout(deadline_1, event_1)
+
+        assert self.timeouts.size == 2
+        # test that we get the event with the earliest deadline
+        timeout, event = self.timeouts.get_earliest_timeout()
+        assert timeout == deadline_1
+        assert event == event_1
+
+        # test that get_earliest_timeout does not remove elements
+        assert self.timeouts.size == 2
+
+    def test_pop_timeout(self) -> None:
+        """Test the 'pop_timeout' method."""
+        deadline_1 = datetime.datetime.now()
+        event_1 = MagicMock()
+
+        deadline_2 = datetime.datetime.now()
+        event_2 = MagicMock()
+        assert deadline_1 < deadline_2
+
+        self.timeouts.add_timeout(deadline_2, event_2)
+        self.timeouts.add_timeout(deadline_1, event_1)
+
+        assert self.timeouts.size == 2
+        # test that we get the event with the earliest deadline
+        timeout, event = self.timeouts.pop_timeout()
+        assert timeout == deadline_1
+        assert event == event_1
+
+        # test that pop_timeout removes elements
+        assert self.timeouts.size == 1
 
 
 class TestPeriod:
