@@ -42,7 +42,7 @@ from tests.helpers.tendermint_utils import (
 class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
     """Test that the ABCI counter skill works together with Tendermint."""
 
-    IS_LOCAL = False
+    IS_LOCAL = True
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
 
@@ -86,7 +86,7 @@ class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
 class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
     """Test that the ABCI counter skill works together with Tendermint."""
 
-    IS_LOCAL = False
+    IS_LOCAL = True
     capture_log = True
     NB_AGENTS = 4
     NB_TX = 15
