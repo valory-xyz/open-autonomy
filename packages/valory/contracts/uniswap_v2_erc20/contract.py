@@ -40,14 +40,20 @@ class UniswapV2ERC20(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
     @classmethod
-    def _get_contract(cls, ledger_api: LedgerApi, contract_address: str, contract_abi: str):
+    def _get_contract(
+        cls, ledger_api: LedgerApi, contract_address: str, contract_abi: str
+    ):
         """Get the contract's instance."""
         ledger_api = cast(EthereumApi, ledger_api)
-        contract = ledger_api.api.eth.contract(address=contract_address, abi=contract_abi)
+        contract = ledger_api.api.eth.contract(
+            address=contract_address, abi=contract_abi
+        )
         return contract
 
     @classmethod
-    def _send_tx_hash_and_wait_for_receipt(cls, ledger_api: LedgerApi, tx_hash: str)-> Optional[JSONLike]:
+    def _send_tx_hash_and_wait_for_receipt(
+        cls, ledger_api: LedgerApi, tx_hash: str
+    ) -> Optional[JSONLike]:
         """Send a tx hash and wait for its receipt."""
         try:
             tx_receipt = ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
@@ -70,7 +76,9 @@ class UniswapV2ERC20(Contract):
         """Set the allowance."""
 
         contract = cls._get_contract(ledger_api, contract_address, contract_abi)
-        tx_hash = contract.functions.approve(spender_address, value).transact({'from': owner_address})
+        tx_hash = contract.functions.approve(spender_address, value).transact(
+            {"from": owner_address}
+        )
         return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
 
     @classmethod
@@ -81,12 +89,14 @@ class UniswapV2ERC20(Contract):
         contract_abi: str,
         from_address: str,
         to_address: str,
-        value: int
+        value: int,
     ) -> Optional[JSONLike]:
         """Transfer funds from from_address to to_address."""
 
         contract = cls._get_contract(ledger_api, contract_address, contract_abi)
-        tx_hash = contract.functions.transfer(to_address, value).transact({'from': from_address})
+        tx_hash = contract.functions.transfer(to_address, value).transact(
+            {"from": from_address}
+        )
         return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
 
     @classmethod
@@ -97,12 +107,16 @@ class UniswapV2ERC20(Contract):
         contract_abi: str,
         from_address: str,
         to_address: str,
-        value: int
+        value: int,
     ) -> Optional[JSONLike]:
         """(Third-party) transfer funds from from_address to to_address."""
 
         contract = cls._get_contract(ledger_api, contract_address, contract_abi)
-        tx_hash = contract.functions.transferFrom(from_address, to_address, value).transact({'from': to_address}) # Check this last from
+        tx_hash = contract.functions.transferFrom(
+            from_address, to_address, value
+        ).transact(
+            {"from": to_address}
+        )  # Check this last from
         return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
 
     @classmethod
