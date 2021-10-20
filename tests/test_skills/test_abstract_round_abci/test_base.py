@@ -35,6 +35,7 @@ from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
+    AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
     BasePeriodState,
@@ -111,7 +112,7 @@ class AbciAppTest(AbciApp[str]):
 
     initial_round_cls: Type[AbstractRound] = ConcreteRound
     transition_function: Dict[Type[AbstractRound], Dict[str, Type[AbstractRound]]] = {
-        ConcreteRound: {}
+        ConcreteRound: {"a": ConcreteRound}
     }
     event_to_timeout: Dict[str, float] = {}
 
@@ -533,7 +534,7 @@ class TestTimeouts:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.timeouts = Timeouts()
+        self.timeouts: Timeouts = Timeouts()
 
     def test_size(self) -> None:
         """Test the 'size' property."""
@@ -611,6 +612,51 @@ class TestTimeouts:
 
         # test that pop_timeout removes elements
         assert self.timeouts.size == 1
+
+
+class TestAbciApp:
+    """Test the 'AbciApp' class."""
+
+    def setup(self) -> None:
+        """Set up the test."""
+        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+
+    def test_initial_round_cls_not_set(self) -> None:
+        """Test when 'initial_round_cls' is not set."""
+
+        class MyAbciApp(AbciApp):
+            # here 'initial_round_cls' should be defined.
+            # ...
+            transition_function: AbciAppTransitionFunction = {}
+
+        with pytest.raises(
+            ABCIAppInternalError, match="'initial_round_cls' field not set"
+        ):
+            MyAbciApp(MagicMock(), MagicMock(), MagicMock())
+
+    def test_transition_function_not_set(self) -> None:
+        """Test when 'transition_function' is not set."""
+
+        class MyAbciApp(AbciApp):
+            initial_round_cls = ConcreteRound
+            # here 'transition_function' should be defined.
+            # ...
+
+        with pytest.raises(
+            ABCIAppInternalError, match="'transition_function' field not set"
+        ):
+            MyAbciApp(MagicMock(), MagicMock(), MagicMock())
+
+    def test_last_timestamp_negative(self) -> None:
+        """Test the 'last_timestamp' property, negative case."""
+        with pytest.raises(ABCIAppInternalError, match="last timestamp is None"):
+            self.abci_app.last_timestamp
+
+    def test_last_timestamp_positive(self) -> None:
+        """Test the 'last_timestamp' property, positive case."""
+        expected = MagicMock()
+        self.abci_app._last_timestamp = expected
+        assert expected == self.abci_app.last_timestamp
 
 
 class TestPeriod:

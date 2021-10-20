@@ -662,7 +662,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
     initial_round_cls: Type[AbstractRound]
     transition_function: AbciAppTransitionFunction
-    event_to_timeout: Dict[EventType, float]
+    event_to_timeout: Dict[EventType, float] = {}
 
     def __init__(
         self,
@@ -694,11 +694,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         try:
             self.initial_round_cls
         except AttributeError as exc:
-            raise ABCIAppInternalError("initial round class not set") from exc
+            raise ABCIAppInternalError("'initial_round_cls' field not set") from exc
         try:
             self.transition_function
         except AttributeError as exc:
-            raise ABCIAppInternalError("transition function not set") from exc
+            raise ABCIAppInternalError("'transition_function' field not set") from exc
 
     @classmethod
     def _check_class_attributes_consistency(
