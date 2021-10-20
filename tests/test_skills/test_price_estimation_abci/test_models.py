@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from datetime import datetime
 from typing import Optional, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
