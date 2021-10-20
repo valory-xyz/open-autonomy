@@ -14,7 +14,7 @@ RUN python -m pip install "aea[all]>=1.0.0,<2.0.0"
 
 COPY packages /home/ubuntu/packages
 
-RUN aea fetch valory/price_estimation:0.1.0
+RUN aea fetch --local valory/price_estimation:0.1.0
 
 WORKDIR /home/ubuntu/price_estimation
 RUN aea install

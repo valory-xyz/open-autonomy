@@ -36,7 +36,7 @@ class TestABCIPriceEstimationSkillMany(
 ):
     """Test that the ABCI price_estimation skill works together with Tendermint."""
 
-    IS_LOCAL = False
+    IS_LOCAL = True
     capture_log = True
     NB_AGENTS = 4
     KEEPER_TIMEOUT = 10
