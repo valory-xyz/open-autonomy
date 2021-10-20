@@ -72,7 +72,7 @@ class TestABCIPriceEstimationSkillMany(
             )
             self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.consensus_create_empty_blocks",
-                False,
+                True,
             )
 
             self.set_config(
@@ -124,35 +124,37 @@ class TestABCIPriceEstimationSkillMany(
             self.tendermint_net_builder, max_retries=20, sleep_interval=3.0
         )
 
+        # check log messages of the happy path
         check_strings = (
             "Entered in the 'tendermint_healthcheck' behaviour state",
             "'tendermint_healthcheck' behaviour state is done",
-            "Entered in the 'register' behaviour state",
-            "'register' behaviour state is done",
-            "Entered in the 'select_keeper_a' behaviour state",
-            "'select_keeper_a' behaviour state is done",
-            "Entered in the 'deploy_safe' behaviour state",
-            "'deploy_safe' behaviour state is done",
-            "Entered in the 'validate_safe' behaviour state",
-            "'validate_safe' behaviour state is done",
-            "Entered in the 'observe' behaviour state",
+            "Entered in the 'registration' round",
+            "'registration' round is done",
+            "Entered in the 'select_keeper_a' round",
+            "'select_keeper_a' round is done",
+            "Entered in the 'deploy_safe' round",
+            "'deploy_safe' round is done",
+            "Entered in the 'validate_safe' round",
+            "'validate_safe' round is done",
+            "Entered in the 'collect_observation' round",
             "Got observation of BTC price in USD",
-            "'observe' behaviour state is done",
-            "Entered in the 'estimate' behaviour state",
+            "'collect_observation' round is done",
+            "Entered in the 'estimate_consensus' round",
             "Got estimate of BTC price in USD:",
-            "'estimate' behaviour state is done",
-            "Entered in the 'tx_hash' behaviour state",
-            "'tx_hash' behaviour state is done",
-            "Entered in the 'sign' behaviour state",
+            "'estimate_consensus' round is done",
+            "Entered in the 'tx_hash' round",
+            "'tx_hash' round is done",
+            "Entered in the 'collect_signature' round",
             "Signature:",
-            "'sign' behaviour state is done",
-            "Entered in the 'finalize' behaviour state",
-            "'finalize' behaviour state is done",
+            "'collect_signature' round is done",
+            "Entered in the 'finalization' round",
+            "'finalization' round is done",
             "Finalized estimate",
-            "Entered in the 'validate_transaction' behaviour state",
-            "'validate_transaction' behaviour state is done",
+            "Entered in the 'validate_transaction' round",
+            "'validate_transaction' round is done",
             "Period end",
         )
+
         # check that *each* AEA prints these messages
         for process in processes:
             missing_strings = self.missing_from_output(process, check_strings)

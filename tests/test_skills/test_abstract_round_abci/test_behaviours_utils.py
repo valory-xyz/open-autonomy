@@ -36,10 +36,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseState,
-    DONE_EVENT,
-    EXIT_A_EVENT,
-    EXIT_B_EVENT,
-    FAIL_EVENT,
     SendException,
     TimeoutException,
     _REQUEST_RETRY_DELAY,
@@ -378,28 +374,6 @@ class TestBaseState:
         assert not self.behaviour.is_done()
         self.behaviour.set_done()
         assert self.behaviour.is_done()
-        assert self.behaviour._event == DONE_EVENT
-
-    def test_set_fail(self) -> None:
-        """Test 'set_fail' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_fail()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == FAIL_EVENT
-
-    def test_set_exit_a(self) -> None:
-        """Test 'set_exit_a' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_exit_a()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == EXIT_A_EVENT
-
-    def test_set_exit_b(self) -> None:
-        """Test 'set_exit_b' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_exit_b()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == EXIT_B_EVENT
 
     def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
         """Test 'send_a2a_transaction' method, negative case (no matching round)."""

@@ -19,23 +19,27 @@
 
 """This module contains the base classes for the models classes of the skill."""
 import datetime
+import heapq
+import itertools
 import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
+from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
 from typing import (
     AbstractSet,
     Any,
-    Callable,
     Dict,
     FrozenSet,
+    Generic,
     List,
     Optional,
     Sequence,
     Tuple,
     Type,
+    TypeVar,
     cast,
 )
 
@@ -45,7 +49,7 @@ from aea.exceptions import enforce
 from packages.fetchai.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.protocols.abci.custom_types import Header, Timestamp
+from packages.valory.protocols.abci.custom_types import Header
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
@@ -57,6 +61,9 @@ _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base
 OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
+
+EventType = TypeVar("EventType")
+TransactionType = TypeVar("TransactionType")
 
 
 def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
@@ -290,10 +297,7 @@ class Block:  # pylint: disable=too-few-public-methods
     @property
     def timestamp(self) -> datetime.datetime:
         """Get the block timestamp."""
-        timestamp: Timestamp = self.header.time
-        nanoseconds = timestamp.nanos / 10 ** 9
-        seconds = timestamp.seconds
-        return datetime.datetime.fromtimestamp(seconds + nanoseconds)
+        return self.header.timestamp
 
 
 class Blockchain:
@@ -458,16 +462,21 @@ class BasePeriodState:
         return f"BasePeriodState({self.__dict__})"
 
 
-class AbstractRound(ABC):
+class AbstractRound(Generic[EventType, TransactionType], ABC):
     """
     This class represents an abstract round.
 
     A round is a state of a period. It usually involves
     interactions between participants in the period,
     although this is not enforced at this level of abstraction.
+
+    Concrete classes must set:
+    - round_id: the identifier for the concrete round class;
+    - allowed_tx_type: the transaction type that is allowed for this round.
     """
 
     round_id: str
+    allowed_tx_type: Optional[TransactionType]
 
     def __init__(
         self,
@@ -478,6 +487,19 @@ class AbstractRound(ABC):
         self._consensus_params = consensus_params
         self._state = state
 
+        self._check_class_attributes()
+
+    def _check_class_attributes(self) -> None:
+        """Check that required class attributes are set."""
+        try:
+            self.round_id
+        except AttributeError as exc:
+            raise ABCIAppInternalError("'round_id' field not set") from exc
+        try:
+            self.allowed_tx_type
+        except AttributeError as exc:
+            raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
+
     @property
     def period_state(self) -> BasePeriodState:
         """Get the period state."""
@@ -487,23 +509,10 @@ class AbstractRound(ABC):
         """
         Check transaction against the current state.
 
-        By convention, the payload handler should be a method
-        of the class that is named 'check_{payload_name}'.
-
         :param transaction: the transaction
-        :raises:
-            TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
-        :return: None
         """
-        tx_type = transaction.payload.transaction_type.value
-        payload_handler: Callable[[BaseTxPayload], None] = getattr(
-            self, "check_" + tx_type, None
-        )
-        if payload_handler is None:
-            raise TransactionTypeNotRecognizedError(
-                f"request '{tx_type}' not recognized"
-            )
-        return payload_handler(transaction.payload)
+        self.check_allowed_tx_type(transaction)
+        self.check_payload(transaction.payload)
 
     def process_transaction(self, transaction: Transaction) -> None:
         """
@@ -514,34 +523,392 @@ class AbstractRound(ABC):
 
         :param transaction: the transaction.
         """
-        tx_type = transaction.payload.transaction_type.value
-        handler: Callable[[BaseTxPayload], None] = getattr(self, tx_type, None)
-        if handler is None:
-            raise TransactionTypeNotRecognizedError(
-                f"request '{tx_type}' not recognized"
-            )
-        self.check_transaction(transaction)
-        handler(transaction.payload)
+        self.check_allowed_tx_type(transaction)
+        self.process_payload(transaction.payload)
 
     @abstractmethod
-    def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """
         Process the end of the block.
 
         The role of this method is check whether the round
         is considered ended.
 
-        If the round is ended, the return value
-         - return the final result of the round.
-         - schedule the next round (if any). If None, the period
+        If the round is ended, the return value is
+         - the final result of the round.
+         - the event that triggers a transition. If None, the period
             in which the round was executed is considered ended.
 
-        This is done after each block because we consider the Tendermint
+        This is done after each block because we consider the consensus engine's
         block, and not the transaction, as the smallest unit
         on which the consensus is reached; in other words,
         each read operation on the state should be done
         only after each block, and not after each transaction.
         """
+
+    def check_allowed_tx_type(self, transaction: Transaction) -> None:
+        """
+        Check the transaction is of the allowed transaction type.
+
+        :param transaction: the transaction
+        :raises:
+            TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
+        """
+        if self.allowed_tx_type is None:
+            raise TransactionTypeNotRecognizedError(
+                "current round does not allow transactions"
+            )
+        tx_type = transaction.payload.transaction_type
+        if str(tx_type) != str(self.allowed_tx_type):
+            raise TransactionTypeNotRecognizedError(
+                f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
+            )
+
+    @abstractmethod
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    @abstractmethod
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+
+AbciAppTransitionFunction = Dict[
+    Type[AbstractRound], Dict[EventType, Type[AbstractRound]]
+]
+
+
+@dataclass(order=True)
+class TimeoutEvent(Generic[EventType]):
+    """Timeout event."""
+
+    deadline: datetime.datetime
+    entry_count: int
+    event: EventType = field(compare=False)
+    cancelled: bool = field(default=False, compare=False)
+
+
+class Timeouts(Generic[EventType]):
+    """Class to keep track of pending timeouts."""
+
+    def __init__(self) -> None:
+        """Initialize."""
+        # The entry count serves as a tie-breaker so that two tasks with
+        # the same priority are returned in the order they were added
+        self._counter = itertools.count()
+
+        # The timeout priority queue keeps the the earliest deadline at the top.
+        self._heap: List[TimeoutEvent[EventType]] = []
+
+        # Mapping from entry id to task
+        self._entry_finder: Dict[int, TimeoutEvent[EventType]] = {}
+
+    @property
+    def size(self) -> int:
+        """Get the size of the timeout queue."""
+        return len(self._heap)
+
+    def add_timeout(self, deadline: datetime.datetime, event: EventType) -> int:
+        """Add a timeout."""
+        entry_count = next(self._counter)
+        timeout_event = TimeoutEvent[EventType](deadline, entry_count, event)
+        heapq.heappush(self._heap, timeout_event)
+        self._entry_finder[entry_count] = timeout_event
+        return entry_count
+
+    def cancel_timeout(self, entry_count: int) -> None:
+        """
+        Remove a timeout.
+
+        :param entry_count: the entry id to remove.
+        :raises: KeyError: if the entry count is not found.
+        """
+        if entry_count in self._entry_finder:
+            self._entry_finder[entry_count].cancelled = True
+
+    def pop_earliest_cancelled_timeouts(self) -> None:
+        """Pop earliest cancelled timeouts."""
+        if self.size == 0:
+            return
+        entry = self._heap[0]
+        while entry.cancelled:
+            self._entry_finder.pop(entry.entry_count)
+            heapq.heappop(self._heap)
+            if len(self._heap) == 0:
+                break
+            entry = self._heap[0]
+
+    def get_earliest_timeout(self) -> Tuple[datetime.datetime, Any]:
+        """Get the earliest timeout-event pair."""
+        self.pop_earliest_cancelled_timeouts()
+        entry = self._heap[0]
+        return entry.deadline, entry.event
+
+    def pop_timeout(self) -> Tuple[datetime.datetime, Any]:
+        """Remove and return the earliest timeout-event pair."""
+        self.pop_earliest_cancelled_timeouts()
+        entry = heapq.heappop(self._heap)
+        del self._entry_finder[entry.entry_count]
+        return entry.deadline, entry.event
+
+
+class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attributes
+    """
+    Base class for ABCI apps.
+
+    Concrete classes of this class implement the ABCI App.
+    It requires to set
+    """
+
+    initial_round_cls: Type[AbstractRound]
+    transition_function: AbciAppTransitionFunction
+    event_to_timeout: Dict[EventType, float] = {}
+
+    def __init__(
+        self,
+        state: BasePeriodState,
+        consensus_params: ConsensusParams,
+        logger: logging.Logger,
+    ):
+        """Initialize the AbciApp."""
+        self.state = state
+        self.consensus_params = consensus_params
+        self.logger = logger
+
+        self._current_round_cls: Optional[Type[AbstractRound]] = None
+        self._current_round: Optional[AbstractRound] = None
+        self._last_round: Optional[AbstractRound] = None
+        self._previous_rounds: List[AbstractRound] = []
+        self._round_results: List[Any] = []
+        self._last_timestamp: Optional[datetime.datetime] = None
+        self._current_timeout_entries: List[int] = []
+        self._timeouts = Timeouts[EventType]()
+
+        self._check_class_attributes()
+        self._check_class_attributes_consistency(
+            self.initial_round_cls, self.transition_function, self.event_to_timeout
+        )
+
+    def _check_class_attributes(self) -> None:
+        """Check that required class attributes are set."""
+        try:
+            self.initial_round_cls
+        except AttributeError as exc:
+            raise ABCIAppInternalError("'initial_round_cls' field not set") from exc
+        try:
+            self.transition_function
+        except AttributeError as exc:
+            raise ABCIAppInternalError("'transition_function' field not set") from exc
+
+    @classmethod
+    def _check_class_attributes_consistency(
+        cls,
+        initial_round_cls: Type[AbstractRound],
+        transition_function: AbciAppTransitionFunction,
+        event_to_timeout: Dict[EventType, float],
+    ) -> None:
+        """
+        Check that required class attributes values are consistent.
+
+        I.e.:
+        - check that the initial state is in the set of states specified by the transition function.
+        - check that the initial state has outgoing transitions
+        - check that the initial state does not trigger timeout events. This is because we need at
+          least one block/timestamp to start timeouts.
+
+        :param initial_round_cls: the initial round class
+        :param transition_function: the transition function
+        :param event_to_timeout: mapping from events to its timeout in seconds.
+        :raises:
+            ValueError if the initial round class is not in the set of rounds.
+        """
+        states = set()
+        for start_state, transitions in transition_function.items():
+            states.add(start_state)
+            for _event, end_state in transitions.items():
+                states.add(end_state)
+        enforce(
+            initial_round_cls in states,
+            f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
+        )
+        enforce(
+            initial_round_cls in transition_function,
+            f"initial round class {initial_round_cls} does not have outgoing transitions",
+        )
+
+        timeout_events_from_initial_state = {
+            e for e in transition_function[initial_round_cls] if e in event_to_timeout
+        }
+        enforce(
+            len(timeout_events_from_initial_state) == 0,
+            f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
+        )
+
+    @property
+    def last_timestamp(self) -> datetime.datetime:
+        """Get last timestamp."""
+        if self._last_timestamp is None:
+            raise ABCIAppInternalError("last timestamp is None")
+        return self._last_timestamp
+
+    def setup(self) -> None:
+        """Set up the behaviour."""
+        self._schedule_round(self.initial_round_cls)
+
+    def _log_start(self) -> None:
+        """Log the entering in the round."""
+        self.logger.info(f"Entered in the '{self.current_round.round_id}' round")
+
+    def _log_end(self, event: EventType) -> None:
+        """Log the exiting from the round."""
+        self.logger.info(
+            f"'{self.current_round.round_id}' round is done with event: {event}"
+        )
+
+    def _schedule_round(self, round_cls: Type[AbstractRound]) -> None:
+        """
+        Schedule a round class.
+
+        this means:
+        - cancel timeout events belonging to the current round;
+        - instantiate the new round class and set it as current round;
+        - create new timeout events and schedule them according to latest timestamp.
+
+        :param round_cls: the class of the new round.
+        """
+        for entry_id in self._current_timeout_entries:
+            self._timeouts.cancel_timeout(entry_id)
+
+        self._current_timeout_entries = []
+        next_events = list(self.transition_function.get(round_cls, {}).keys())
+        for event in next_events:
+            timeout = self.event_to_timeout.get(event, None)
+            if timeout is not None:
+                # last_timestamp is not None because we are not in the first round
+                # (see consistency check)
+                deadline = self.last_timestamp + datetime.timedelta(0, timeout)
+                entry_id = self._timeouts.add_timeout(deadline, event)
+                self._current_timeout_entries.append(entry_id)
+
+        last_result = (
+            self._round_results[-1] if len(self._round_results) > 0 else self.state
+        )
+        self._last_round = self._current_round
+        self._current_round_cls = round_cls
+        self._current_round = round_cls(last_result, self.consensus_params)
+        self._log_start()
+
+    @property
+    def current_round(self) -> AbstractRound:
+        """Get the current round."""
+        if self._current_round is None:
+            raise ValueError("current_round not set!")
+        return self._current_round
+
+    @property
+    def current_round_id(self) -> Optional[str]:
+        """Get the current round id."""
+        return self._current_round.round_id if self._current_round else None
+
+    @property
+    def last_round_id(self) -> Optional[str]:
+        """Get the last round id."""
+        return self._last_round.round_id if self._last_round else None
+
+    @property
+    def is_finished(self) -> bool:
+        """Check whether the AbciApp execution has finished."""
+        return self._current_round is None
+
+    @property
+    def latest_result(self) -> Optional[Any]:
+        """Get the latest result of the round."""
+        return None if len(self._round_results) == 0 else self._round_results[-1]
+
+    def check_transaction(self, transaction: Transaction) -> None:
+        """
+        Check a transaction.
+
+        Forward the call to the current round object.
+
+        :param transaction: the transaction.
+        """
+        self.current_round.check_transaction(transaction)
+
+    def process_transaction(self, transaction: Transaction) -> None:
+        """
+        Process a transaction.
+
+        Forward the call to the current round object.
+
+        :param transaction: the transaction.
+        """
+        self.current_round.process_transaction(transaction)
+
+    def process_event(self, event: EventType, result: Optional[Any] = None) -> None:
+        """Process a round event."""
+        if self._current_round_cls is None:
+            self.logger.info(
+                f"cannot process event {event} as current state is not set"
+            )
+            return
+
+        next_round_cls = self.transition_function[self._current_round_cls].get(
+            event, None
+        )
+        self._previous_rounds.append(self.current_round)
+        if result is not None:
+            self._round_results.append(result)
+        else:
+            # we duplicate the state since the round was preemptively ended
+            self._round_results.append(self.current_round.period_state)
+
+        self._log_end(event)
+        if next_round_cls is not None:
+            self._schedule_round(next_round_cls)
+        else:
+            self.logger.info("AbciApp has reached a dead end.")
+            self._current_round_cls = None
+            self._current_round = None
+
+    def update_time(self, timestamp: datetime.datetime) -> None:
+        """
+        Observe timestamp from last block.
+
+        :param timestamp: the latest block's timestamp.
+        """
+        self._timeouts.pop_earliest_cancelled_timeouts()
+
+        if self._timeouts.size == 0:
+            # if no pending timeouts, then it is safe to
+            # move forward the last known timestamp to the
+            # latest block's timestamp.
+            self._last_timestamp = timestamp
+            return
+
+        earliest_deadline, _ = self._timeouts.get_earliest_timeout()
+        while earliest_deadline <= timestamp:
+            # the earliest deadline is expired. Pop it from the
+            # priority queue and process the timeout event.
+            expired_deadline, timeout_event = self._timeouts.pop_timeout()
+
+            # the last timestamp now becomes the expired deadline
+            # clearly, it is earlier than the current highest known
+            # timestamp that comes from the consensus engine.
+            # However, we need it to correctly simulate the timeouts
+            # of the next rounds.
+            self._last_timestamp = expired_deadline
+
+            self.process_event(timeout_event)
+
+            if self._timeouts.size == 0:
+                break
+            earliest_deadline, _ = self._timeouts.get_earliest_timeout()
+
+        # at this point, there is no timeout event left to be triggered
+        # so it is safe to move forward the last known timestamp to the
+        # new block's timestamp
+        self._last_timestamp = timestamp
 
 
 class Period:
@@ -576,7 +943,7 @@ class Period:
         WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
         WAITING_FOR_COMMIT = "waiting_for_commit"
 
-    def __init__(self, starting_round_cls: Type[AbstractRound]):
+    def __init__(self, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
         self._blockchain = Blockchain()
 
@@ -585,12 +952,8 @@ class Period:
         )
 
         self._block_builder = BlockBuilder()
-        self._starting_round_cls = starting_round_cls
-        self._current_round: Optional[AbstractRound] = None
-        self._last_round: Optional[AbstractRound] = None
-
-        self._previous_rounds: List[AbstractRound] = []
-        self._round_results: List[Any] = []
+        self._abci_app_cls = abci_app_cls
+        self._abci_app: Optional[AbciApp] = None
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -599,12 +962,20 @@ class Period:
         :param args: the arguments to pass to the round constructor.
         :param kwargs: the keyword-arguments to pass to the round constructor.
         """
-        self._current_round = self._starting_round_cls(*args, **kwargs)
+        self._abci_app = self._abci_app_cls(*args, **kwargs)
+        self._abci_app.setup()
+
+    @property
+    def abci_app(self) -> AbciApp:
+        """Get the AbciApp."""
+        if self._abci_app is None:
+            raise ABCIAppInternalError("AbciApp not set")
+        return self._abci_app
 
     @property
     def is_finished(self) -> bool:
         """Check if a period has finished."""
-        return self._current_round is None
+        return self.abci_app.is_finished
 
     def check_is_finished(self) -> None:
         """Check if a period has finished."""
@@ -614,19 +985,17 @@ class Period:
     @property
     def current_round(self) -> AbstractRound:
         """Get current round."""
-        if self._current_round is None:
-            raise ValueError("current_round not set!")
-        return self._current_round
+        return self.abci_app.current_round
 
     @property
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
-        return self._current_round.round_id if self._current_round else None
+        return self.abci_app.current_round_id
 
     @property
     def last_round_id(self) -> Optional[str]:
         """Get the last round id."""
-        return self._last_round.round_id if self._last_round else None
+        return self.abci_app.last_round_id
 
     @property
     def last_timestamp(self) -> Optional[datetime.datetime]:
@@ -640,7 +1009,7 @@ class Period:
     @property
     def latest_result(self) -> Optional[Any]:
         """Get the latest result of the round."""
-        return None if len(self._round_results) == 0 else self._round_results[-1]
+        return self.abci_app.latest_result
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""
@@ -658,6 +1027,7 @@ class Period:
         )
         self._block_builder.reset()
         self._block_builder.header = header
+        self.abci_app.update_time(header.timestamp)
 
     def deliver_tx(self, transaction: Transaction) -> None:
         """
@@ -673,8 +1043,9 @@ class Period:
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
             raise ABCIAppInternalError("cannot accept a 'deliver_tx' request")
-        cast(AbstractRound, self._current_round).check_transaction(transaction)
-        self.current_round.process_transaction(transaction)
+
+        self.abci_app.check_transaction(transaction)
+        self.abci_app.process_transaction(transaction)
         self._block_builder.add_transaction(transaction)
 
     def end_block(self) -> None:
@@ -684,7 +1055,7 @@ class Period:
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
             raise ABCIAppInternalError("cannot accept a 'end_block' request.")
-        # The ABCI app now waits again for the next block
+        # The ABCI app waits for the commit
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_COMMIT
         )
@@ -714,15 +1085,11 @@ class Period:
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        current_round = self.current_round
-        result = current_round.end_block()
+        result: Optional[Tuple[BasePeriodState, Any]] = self.current_round.end_block()
         if result is None:
             return
-        round_result, next_round = result
+        round_result, event = result
         _logger.debug(
-            f"updating round, current_round {current_round.round_id}, next_round {next_round.round_id}, round result {round_result}"
+            f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
-        self._previous_rounds.append(current_round)
-        self._round_results.append(round_result)
-        self._current_round = next_round
-        self._last_round = current_round
+        self.abci_app.process_event(event, result=round_result)

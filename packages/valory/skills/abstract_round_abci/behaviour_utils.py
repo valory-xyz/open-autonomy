@@ -30,7 +30,7 @@ from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, cast
 from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
-from aea.skills.behaviours import State
+from aea.skills.behaviours import SimpleBehaviour
 
 from packages.fetchai.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
@@ -269,7 +269,7 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-class BaseState(AsyncBehaviour, State, ABC):
+class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -279,7 +279,7 @@ class BaseState(AsyncBehaviour, State, ABC):
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
-        State.__init__(self, **kwargs)
+        SimpleBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")
@@ -335,28 +335,11 @@ class BaseState(AsyncBehaviour, State, ABC):
     def set_done(self) -> None:
         """Set the behaviour to done."""
         self._is_done = True
-        self._event = DONE_EVENT
-
-    def set_fail(self) -> None:
-        """Set the behaviour to done."""
-        self._is_done = True
-        self._event = FAIL_EVENT
-
-    def set_exit_a(self) -> None:
-        """Set the behaviour to exit a."""
-        self._is_done = True
-        self._event = EXIT_A_EVENT
-
-    def set_exit_b(self) -> None:
-        """Set the behaviour to exit b."""
-        self._is_done = True
-        self._event = EXIT_B_EVENT
 
     def reset(self) -> None:
         """Reset initial conditions."""
         self._is_done = False
         self._is_started = False
-        self._event = None  # type: ignore
 
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
@@ -393,9 +376,6 @@ class BaseState(AsyncBehaviour, State, ABC):
     def _log_end(self) -> None:
         """Log the exiting from the behaviour state."""
         self.context.logger.info(f"'{self.name}' behaviour state is done")
-        self.context.logger.debug(
-            "'%s' behaviour done with event: %s", self.name, self._event
-        )
 
     @classmethod
     def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:

@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Generator, cast
+from typing import Generator, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -32,18 +32,8 @@ from packages.fetchai.connections.ledger.base import (
 from packages.fetchai.protocols.contract_api import ContractApiMessage
 from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseState,
-    DONE_EVENT,
-    EXIT_A_EVENT,
-    EXIT_B_EVENT,
-    FAIL_EVENT,
-    TimeoutException,
-)
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    TransitionFunction,
-)
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
@@ -65,6 +55,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     EstimateConsensusRound,
     FinalizationRound,
     PeriodState,
+    PriceEstimationAbciApp,
     RandomnessRound,
     RegistrationRound,
     SelectKeeperARound,
@@ -250,25 +241,14 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        try:
-            yield from self.wait_until_round_end(
-                timeout=self.context.params.keeper_timeout_seconds
-            )
-            self.set_done()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_a()
+        yield from self.wait_until_round_end()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
         self.context.logger.info(
             "I am the designated sender, deploying the safe contract..."
         )
-        try:
-            # TOFIX: here the deploy needs to time out and raise TimeoutException; timeout=self.context.params.keeper_timeout_seconds
-            contract_address = yield from self._send_deploy_transaction()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_a()
-            return
+        contract_address = yield from self._send_deploy_transaction()
         payload = DeploySafePayload(self.context.agent_address, contract_address)
         yield from self.send_a2a_transaction(payload)
         self.context.logger.info(f"Safe contract address: {contract_address}")
@@ -276,7 +256,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
-        owners = sorted(self.period_state.participants)
+        owners = self.period_state.sorted_participants
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
@@ -353,7 +333,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
         """
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            self.set_fail()
+            self.set_done()
+            yield from self.wait_until_round_end()
 
         currency_id = self.params.currency_id
         convert_id = self.params.convert_id
@@ -383,20 +364,6 @@ class ObserveBehaviour(PriceEstimationBaseState):
             )
             yield from self.sleep(1)
             self.context.price_api.increment_retries()
-
-
-class WaitBehaviour(PriceEstimationBaseState):
-    """
-    Wait behaviour.
-
-    This behaviour is used to regroup the agents after a failure.
-    """
-
-    state_id = "wait"
-
-    def async_act(self) -> Generator:
-        """Do the action."""
-        raise NotImplementedError
 
 
 class EstimateBehaviour(PriceEstimationBaseState):
@@ -527,25 +494,14 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        try:
-            yield from self.wait_until_round_end(
-                timeout=self.context.params.keeper_timeout_seconds
-            )
-            self.set_done()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_b()
+        yield from self.wait_until_round_end()
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
         self.context.logger.info(
             "I am the designated sender, sending the safe transaction..."
         )
-        try:
-            # TOFIX: here the deploy needs to time out and raise TimeoutException; timeout=self.context.params.keeper_timeout_seconds
-            tx_hash = yield from self._send_safe_transaction()
-        except TimeoutException:  # pragma: nocover
-            self.set_exit_b()
-            return
+        tx_hash = yield from self._send_safe_transaction()
         self.context.logger.info(
             f"Transaction hash of the final transaction: {tx_hash}"
         )
@@ -630,34 +586,28 @@ class EndBehaviour(PriceEstimationBaseState):
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
-        # dummy 'yield' to return a generator
-        yield
-        self.set_done()
+        # wait forever
+        yield from self.wait_for_condition(lambda: False)
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    transition_function: TransitionFunction = {
-        TendermintHealthcheckBehaviour: {DONE_EVENT: RegistrationBehaviour},
-        RegistrationBehaviour: {DONE_EVENT: RandomnessBehaviour},
-        RandomnessBehaviour: {DONE_EVENT: SelectKeeperABehaviour},
-        SelectKeeperABehaviour: {DONE_EVENT: DeploySafeBehaviour},
-        DeploySafeBehaviour: {
-            DONE_EVENT: ValidateSafeBehaviour,
-            EXIT_A_EVENT: SelectKeeperABehaviour,
-        },
-        ValidateSafeBehaviour: {DONE_EVENT: ObserveBehaviour},
-        ObserveBehaviour: {DONE_EVENT: EstimateBehaviour, FAIL_EVENT: WaitBehaviour},
-        EstimateBehaviour: {DONE_EVENT: TransactionHashBehaviour},
-        TransactionHashBehaviour: {DONE_EVENT: SignatureBehaviour},
-        SignatureBehaviour: {DONE_EVENT: FinalizeBehaviour},
-        FinalizeBehaviour: {
-            DONE_EVENT: ValidateTransactionBehaviour,
-            EXIT_B_EVENT: SelectKeeperBBehaviour,
-        },
-        ValidateTransactionBehaviour: {DONE_EVENT: EndBehaviour},
-        SelectKeeperBBehaviour: {DONE_EVENT: FinalizeBehaviour},
-        EndBehaviour: {},
+    abci_app_cls: PriceEstimationAbciApp  # type: ignore
+    behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        RandomnessBehaviour,  # type: ignore
+        SelectKeeperABehaviour,  # type: ignore
+        DeploySafeBehaviour,  # type: ignore
+        ValidateSafeBehaviour,  # type: ignore
+        ObserveBehaviour,  # type: ignore
+        EstimateBehaviour,  # type: ignore
+        TransactionHashBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
+        ValidateTransactionBehaviour,  # type: ignore
+        SelectKeeperBBehaviour,  # type: ignore
+        EndBehaviour,  # type: ignore
     }
