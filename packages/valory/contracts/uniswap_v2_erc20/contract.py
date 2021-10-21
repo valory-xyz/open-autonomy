@@ -40,91 +40,94 @@ class UniswapV2ERC20(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
     @classmethod
-    def _get_contract(
-        cls, ledger_api: LedgerApi, contract_address: str, contract_abi: str
-    ):
-        """Get the contract's instance."""
-        ledger_api = cast(EthereumApi, ledger_api)
-        contract = ledger_api.api.eth.contract(
-            address=contract_address, abi=contract_abi
-        )
-        return contract
-
-    @classmethod
-    def _send_tx_hash_and_wait_for_receipt(
-        cls, ledger_api: LedgerApi, tx_hash: str
-    ) -> Optional[JSONLike]:
-        """Send a tx hash and wait for its receipt."""
-        try:
-            tx_receipt = ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
-            if tx_receipt is None:
-                raise ValueError
-            return dict(success=True, tx_hash=tx_hash, tx_receipt=tx_receipt)
-        except (TransactionNotFound, ValueError):
-            return dict(success=False, tx_hash=tx_hash)
-
-    @classmethod
     def approve(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        contract_abi: str,
         owner_address: str,
         spender_address: int,
         value: int,
+        gas: int = 300000
     ) -> Optional[JSONLike]:
         """Set the allowance."""
 
-        contract = cls._get_contract(ledger_api, contract_address, contract_abi)
-        tx_hash = contract.functions.approve(spender_address, value).transact(
-            {"from": owner_address}
+        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        tx = contract.functions.approve(
+            spender_address, value
+        ).buildTransaction(
+            {
+                "gas": gas,
+                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "nonce": nonce,
+            }
         )
-        return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
+        tx = ledger_api.update_with_gas_estimate(tx)
+
+        return tx
 
     @classmethod
     def transfer(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        contract_abi: str,
         from_address: str,
         to_address: str,
         value: int,
+        gas: int = 300000
     ) -> Optional[JSONLike]:
         """Transfer funds from from_address to to_address."""
 
-        contract = cls._get_contract(ledger_api, contract_address, contract_abi)
-        tx_hash = contract.functions.transfer(to_address, value).transact(
-            {"from": from_address}
+        nonce = ledger_api.api.eth.getTransactionCount(from_address)
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        tx = contract.functions.transfer(
+            to_address, value
+        ).buildTransaction(
+            {
+                "gas": gas,
+                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "nonce": nonce,
+            }
         )
-        return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
+        tx = ledger_api.update_with_gas_estimate(tx)
+
+        return tx
 
     @classmethod
     def transfer_from(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        contract_abi: str,
         from_address: str,
         to_address: str,
         value: int,
+        gas: int = 300000
     ) -> Optional[JSONLike]:
         """(Third-party) transfer funds from from_address to to_address."""
 
-        contract = cls._get_contract(ledger_api, contract_address, contract_abi)
-        tx_hash = contract.functions.transferFrom(
+        nonce = ledger_api.api.eth.getTransactionCount(from_address)
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        tx = contract.functions.transferFrom(
             from_address, to_address, value
-        ).transact(
-            {"from": to_address}
-        )  # Check this last from
-        return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
+        ).buildTransaction(
+            {
+                "gas": gas,
+                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "nonce": nonce,
+            }
+        )
+        tx = ledger_api.update_with_gas_estimate(tx)
+
+        return tx
 
     @classmethod
     def permit(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        contract_abi: str,
         owner_address: str,
         spender_address: str,
         value: int,
@@ -132,14 +135,22 @@ class UniswapV2ERC20(Contract):
         v: int,
         r: bytes,
         s: bytes,
+        gas: int = 300000
     ) -> Optional[JSONLike]:
         """Modify the allowance mapping using a signed message."""
 
-        contract = cls._get_contract(ledger_api, contract_address, contract_abi)
+        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
+        contract = cls.get_instance(ledger_api, contract_address)
 
-        # Can't find API reference for permit
-        # https://web3py.readthedocs.io/en/stable/examples.html#working-with-an-erc20-token-contract
+        tx = contract.functions.permit(
+            owner_address, spender_address, value, deadline, v, r, s
+        ).buildTransaction(
+            {
+                "gas": gas,
+                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "nonce": nonce,
+            }
+        )
+        tx = ledger_api.update_with_gas_estimate(tx)
 
-        raise NotImplementedError
-
-        # return cls._send_tx_hash_and_wait_for_receipt(ledger_api, tx_hash)
+        return tx
