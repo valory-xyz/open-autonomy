@@ -349,3 +349,6 @@ Pipfile.lock
 packages/fetchai
 !packages/valory/contracts/gnosis_safe/build
 !packages/valory/contracts/gnosis_safe_proxy_factory/build
+
+# Log files
+benchmark/price_estimation/logs
