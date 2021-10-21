@@ -6,12 +6,11 @@ description: Uniswap V2 ERC20 contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qmd5NcJnij2d19rhtNJgsTSBU7ErTdYVH2c621j6TKN7Qz
-  __init__.py: QmWLx43KXUA8iq4uRo1VDhFPqd6dFF7xfdiMpQLAoBBMoD
-  build/GnosisSafe_V1_3_0.json: QmafMmPcVqiTLykozgjGwNL2S8b1g5bmgMP3z6EdecgMYh
-  contract.py: QmZeMKhqaqxnnngoTyPJqQ64gRuauodsANwer6Zzkd59hn
+  __init__.py: QmQVHdKLbvg2LmuujxGysznbfRVbwaoKLJBrw8ZNb9FyCi
+  build/IUniswapV2ERC20.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
+  contract.py: QmdFXk26NjPHeCF8upzs1RWDptG6LxxuuoDVnzjBX9CYDZ
 fingerprint_ignore_patterns: []
 class_name: GnosisSafeContract
 contract_interface_paths:
-  ethereum: build/GnosisSafe_V1_3_0.json
+  ethereum: build/IUniswapV2ERC20.json
 dependencies: {}
