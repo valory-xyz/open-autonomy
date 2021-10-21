@@ -10,7 +10,7 @@ fingerprint:
   build/IUniswapV2ERC20.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
   contract.py: QmdFXk26NjPHeCF8upzs1RWDptG6LxxuuoDVnzjBX9CYDZ
 fingerprint_ignore_patterns: []
-class_name: GnosisSafeContract
+class_name: UniswapV2ERC20
 contract_interface_paths:
   ethereum: build/IUniswapV2ERC20.json
 dependencies: {}
