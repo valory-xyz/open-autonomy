@@ -19,14 +19,12 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
+from typing import Optional
 
+from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea.common import JSONLike
-from typing import Optional, cast
-from aea_ledger_ethereum import EthereumApi
 from aea.crypto.base import LedgerApi
-from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -36,7 +34,7 @@ _logger = logging.getLogger(
 )
 
 
-class UniswapV2ERC20(Contract):
+class UniswapV2ERC20Contract(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
     @classmethod
@@ -47,16 +45,14 @@ class UniswapV2ERC20(Contract):
         owner_address: str,
         spender_address: int,
         value: int,
-        gas: int = 300000
+        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
 
         nonce = ledger_api.api.eth.getTransactionCount(owner_address)
         contract = cls.get_instance(ledger_api, contract_address)
 
-        tx = contract.functions.approve(
-            spender_address, value
-        ).buildTransaction(
+        tx = contract.functions.approve(spender_address, value).buildTransaction(
             {
                 "gas": gas,
                 "gasPrice": ledger_api.api.toWei("50", "gwei"),
@@ -75,16 +71,14 @@ class UniswapV2ERC20(Contract):
         from_address: str,
         to_address: str,
         value: int,
-        gas: int = 300000
+        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Transfer funds from from_address to to_address."""
 
         nonce = ledger_api.api.eth.getTransactionCount(from_address)
         contract = cls.get_instance(ledger_api, contract_address)
 
-        tx = contract.functions.transfer(
-            to_address, value
-        ).buildTransaction(
+        tx = contract.functions.transfer(to_address, value).buildTransaction(
             {
                 "gas": gas,
                 "gasPrice": ledger_api.api.toWei("50", "gwei"),
@@ -103,7 +97,7 @@ class UniswapV2ERC20(Contract):
         from_address: str,
         to_address: str,
         value: int,
-        gas: int = 300000
+        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """(Third-party) transfer funds from from_address to to_address."""
 
@@ -135,7 +129,7 @@ class UniswapV2ERC20(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        gas: int = 300000
+        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Modify the allowance mapping using a signed message."""
 
