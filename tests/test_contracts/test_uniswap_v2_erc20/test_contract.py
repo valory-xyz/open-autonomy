@@ -41,3 +41,27 @@ class TestUniswapV2ERC20(BaseGanacheContractTest):
     ) -> None:
         """Setup test."""
         super().setup_class()
+
+    def test_aprove(self) -> None:
+        """Test approve."""
+        # check tx fields
+        # check allowance increase
+        pass
+
+    def test_transfer(self) -> None:
+        """Test transfer."""
+        # check tx fields
+        # check new balances from from and to addresses
+        pass
+
+    def test_transfer_from(self) -> None:
+        """Test transfer_from."""
+        # check tx fields
+        # check new balances from from and to addresses
+        pass
+
+    def test_permit(self) -> None:
+        """Test permit."""
+        # check tx fields
+        # check allowance increase
+        pass
