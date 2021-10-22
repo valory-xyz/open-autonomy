@@ -131,7 +131,7 @@ class UniswapV2ERC20Contract(Contract):
         s: bytes,
         gas: int = 300000,
     ) -> Optional[JSONLike]:
-        """Modify the allowance mapping using a signed message."""
+        """Sets the allowance for a spender where approval is granted via a signature."""
 
         nonce = ledger_api.api.eth.getTransactionCount(owner_address)
         contract = cls.get_instance(ledger_api, contract_address)
