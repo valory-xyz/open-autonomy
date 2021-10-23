@@ -41,7 +41,7 @@ class DummyContext:
 
 
 class ConcreteRound(AbstractRound):
-    """A ConcreteRound for testing purposes."""
+    """A ConcreteRoundA for testing purposes."""
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
         """Handle the end of the block."""
