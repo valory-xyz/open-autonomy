@@ -76,7 +76,7 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
             state_id = state_behaviour_cls.state_id
             if state_id in result:
                 raise ValueError(
-                    f"the states '{state_id}' and '{result[state_id]}' point to the same state behaviour class '{state_behaviour_cls}'"
+                    f"cannot have two states with the same id; got {state_behaviour_cls} and {result[state_id]} both with id '{state_id}'"
                 )
             result[state_id] = state_behaviour_cls
         return result
@@ -119,8 +119,18 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
+    def _initialize_last_round_id_if_none(self) -> None:
+        """Initialize last round id field if it is not initialized yet."""
+        if self._last_round_id is None:
+            self._last_round_id = self.context.state.period.current_round_id
+
     def act(self) -> None:
         """Implement the behaviour."""
+        # initialize last round id to current round id if not initialized yet
+        # we cannot do this in the setup because the behaviour may load
+        # before the state model
+        self._initialize_last_round_id_if_none()
+
         self._process_current_round()
 
         current_state = self.current_state
@@ -130,7 +140,7 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
         current_state.act_wrapper()
 
         if current_state.is_done():
-            # if next state is set, overwrite successor (regardless of the event)
+            # if next state is set, take the FSM behaviour transition
             # this branch also handle the case when matching round of current state is not set
             if self._next_state_cls is not None:
                 self.context.logger.debug(
