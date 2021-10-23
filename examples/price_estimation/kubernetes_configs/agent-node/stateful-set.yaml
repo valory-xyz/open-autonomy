@@ -16,17 +16,17 @@ spec:
       imagePullSecrets:
       - name: regcred
       containers:
-      - name: aea
-        image: valory/oracle-poc
-        args: ["../run_kube.sh"]
-        command:
-          - /bin/bash
-        env: 
-          - name: AGENT_KEY
-            valueFrom:
-              secretKeyRef:
-                name: agent-keys
-                key: agent-node-1
+   #  - name: aea
+   #    image: valory/oracle-poc
+   #    args: ["../run.sh"]
+   #    command:
+   #      - /bin/bash
+   #    env: 
+   #      - name: AGENT_KEY
+   #        valueFrom:
+   #          secretKeyRef:
+   #            name: agent-keys
+   #            key: agent-node-1
       - name: tendermint
         image: tendermint/localnode
         env:
