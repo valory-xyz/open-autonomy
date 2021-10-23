@@ -17,7 +17,8 @@ spec:
       - name: regcred
       containers:
       - name: tendermint
-        image: tendermint/localnode
+        image: valory/test_tender
+        # image: tendermint/localnode
         env:
           - name: ID
             value: "0"
