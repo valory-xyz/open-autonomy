@@ -21,7 +21,7 @@
 import time
 from abc import ABC
 from datetime import datetime
-from typing import Generator, Optional, Tuple
+from typing import Any, Generator, Optional, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -59,13 +59,13 @@ class AsyncBehaviourTest(AsyncBehaviour, ABC):
         """Do 'async_act'."""
 
 
-def async_behaviour_initial_state_is_ready():
+def async_behaviour_initial_state_is_ready() -> None:
     """Check that the initial async state is "READY"."""
     behaviour = AsyncBehaviourTest()
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
-def test_async_behaviour_ticks():
+def test_async_behaviour_ticks() -> None:
     """Test "AsyncBehaviour", only ticks."""
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
@@ -91,7 +91,7 @@ def test_async_behaviour_ticks():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
-def test_async_behaviour_wait_for_message():
+def test_async_behaviour_wait_for_message() -> None:
     """Test 'wait_for_message'."""
 
     expected_message = "message"
@@ -141,7 +141,7 @@ def test_async_behaviour_wait_for_message():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
-def test_async_behaviour_wait_for_condition():
+def test_async_behaviour_wait_for_condition() -> None:
     """Test 'wait_for_condition' method."""
 
     condition = False
@@ -172,7 +172,7 @@ def test_async_behaviour_wait_for_condition():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
-def test_async_behaviour_wait_for_condition_with_timeout():
+def test_async_behaviour_wait_for_condition_with_timeout() -> None:
     """Test 'wait_for_condition' method with timeout expired."""
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
@@ -197,7 +197,7 @@ def test_async_behaviour_wait_for_condition_with_timeout():
         behaviour.act()
 
 
-def test_async_behaviour_sleep():
+def test_async_behaviour_sleep() -> None:
     """Test 'sleep' method."""
 
     timedelta = 0.5
@@ -237,12 +237,13 @@ def test_async_behaviour_sleep():
     behaviour.act()
     assert behaviour.counter == 2
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
+    assert behaviour.last_datetime is not None and behaviour.first_datetime is not None
     assert (
         behaviour.last_datetime - behaviour.first_datetime
     ).total_seconds() > timedelta
 
 
-def test_async_behaviour_without_yield():
+def test_async_behaviour_without_yield() -> None:
     """Test AsyncBehaviour, async_act without yield/yield from."""
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
@@ -257,7 +258,7 @@ def test_async_behaviour_without_yield():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
-def test_async_behaviour_raise_stopiteration():
+def test_async_behaviour_raise_stopiteration() -> None:
     """Test AsyncBehaviour, async_act raising 'StopIteration'."""
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
@@ -272,7 +273,7 @@ def test_async_behaviour_raise_stopiteration():
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
-def test_async_behaviour_stop():
+def test_async_behaviour_stop() -> None:
     """Test AsyncBehaviour.stop method."""
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
@@ -303,7 +304,7 @@ class StateATest(BaseState):
     """Concrete BaseState class."""
 
     state_id = "state_a"
-    matching_round = RoundA
+    matching_round: Optional[Type[RoundA]] = RoundA
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
@@ -313,13 +314,13 @@ class StateATest(BaseState):
 class TestBaseState:
     """Tests for the 'BaseState' class."""
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_mock.state.period.current_round_id = "round_a"
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
-    def test_check_in_round(self):
+    def test_check_in_round(self) -> None:
         """Test 'BaseState' initialization."""
         expected_round_id = "round"
         self.context_mock.state.period.current_round_id = expected_round_id
@@ -332,7 +333,7 @@ class TestBaseState:
         func = self.behaviour.is_round_ended(expected_round_id)
         assert not func()
 
-    def test_check_in_last_round(self):
+    def test_check_in_last_round(self) -> None:
         """Test 'BaseState' initialization."""
         expected_round_id = "round"
         self.context_mock.state.period.last_round_id = expected_round_id
@@ -344,17 +345,18 @@ class TestBaseState:
 
         assert self.behaviour.check_round_has_finished(expected_round_id)
 
-    def test_wait_until_round_end_negative_no_matching_round(self):
+    def test_wait_until_round_end_negative_no_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (no matching round)."""
         self.behaviour.matching_round = None
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(ValueError, match="No matching_round set!"):
             generator.send(None)
 
-    def test_wait_until_round_end_negative_last_round_or_matching_round(self):
+    def test_wait_until_round_end_negative_last_round_or_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (not in matching nor last round)."""
         self.behaviour.context.state.period.current_round_id = "current_round_id"
         self.behaviour.context.state.period.last_round_id = "last_round_id"
+        assert self.behaviour.matching_round is not None
         self.behaviour.matching_round.round_id = "matching_round"
         generator = self.behaviour.wait_until_round_end()
         with pytest.raises(
@@ -366,40 +368,40 @@ class TestBaseState:
     @mock.patch.object(BaseState, "wait_for_condition")
     @mock.patch.object(BaseState, "check_not_in_round", return_value=False)
     @mock.patch.object(BaseState, "check_not_in_last_round", return_value=False)
-    def test_wait_until_round_end_positive(self, *_):
+    def test_wait_until_round_end_positive(self, *_: Any) -> None:
         """Test 'wait_until_round_end' method, positive case."""
         gen = self.behaviour.wait_until_round_end()
         try_send(gen)
 
-    def test_set_done(self):
+    def test_set_done(self) -> None:
         """Test 'set_done' method."""
         assert not self.behaviour.is_done()
         self.behaviour.set_done()
         assert self.behaviour.is_done()
         assert self.behaviour._event == DONE_EVENT
 
-    def test_set_fail(self):
+    def test_set_fail(self) -> None:
         """Test 'set_fail' method."""
         assert not self.behaviour.is_done()
         self.behaviour.set_fail()
         assert self.behaviour.is_done()
         assert self.behaviour._event == FAIL_EVENT
 
-    def test_set_exit_a(self):
+    def test_set_exit_a(self) -> None:
         """Test 'set_exit_a' method."""
         assert not self.behaviour.is_done()
         self.behaviour.set_exit_a()
         assert self.behaviour.is_done()
         assert self.behaviour._event == EXIT_A_EVENT
 
-    def test_set_exit_b(self):
+    def test_set_exit_b(self) -> None:
         """Test 'set_exit_b' method."""
         assert not self.behaviour.is_done()
         self.behaviour.set_exit_b()
         assert self.behaviour.is_done()
         assert self.behaviour._event == EXIT_B_EVENT
 
-    def test_send_a2a_transaction_negative_no_matching_round(self):
+    def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
         """Test 'send_a2a_transaction' method, negative case (no matching round)."""
         self.behaviour.matching_round = None
         generator = self.behaviour.send_a2a_transaction(MagicMock())
@@ -407,12 +409,12 @@ class TestBaseState:
             try_send(generator)
 
     @mock.patch.object(BaseState, "_send_transaction")
-    def test_send_a2a_transaction_positive(self, *_):
+    def test_send_a2a_transaction_positive(self, *_: Any) -> None:
         """Test 'send_a2a_transaction' method, positive case."""
         gen = self.behaviour.send_a2a_transaction(MagicMock())
         try_send(gen)
 
-    def test_async_act_wrapper(self):
+    def test_async_act_wrapper(self) -> None:
         """Test 'async_act_wrapper'."""
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
@@ -420,7 +422,7 @@ class TestBaseState:
         try_send(gen)
 
     @pytest.mark.parametrize("exception_cls", [GeneratorExit, StopIteration])
-    def test_async_act_wrapper_exception(self, exception_cls):
+    def test_async_act_wrapper_exception(self, exception_cls: Exception) -> None:
         """Test 'async_act_wrapper'."""
         with mock.patch.object(self.behaviour, "async_act", side_effect=exception_cls):
             with mock.patch.object(self.behaviour, "clean_up") as clean_up_mock:
@@ -428,7 +430,7 @@ class TestBaseState:
                 try_send(gen)
                 clean_up_mock.assert_called()
 
-    def test_get_request_nonce_from_dialogue(self):
+    def test_get_request_nonce_from_dialogue(self) -> None:
         """Test '_get_request_nonce_from_dialogue' helper method."""
         dialogue_mock = MagicMock()
         expected_value = "dialogue_reference"
@@ -436,7 +438,7 @@ class TestBaseState:
         result = BaseState._get_request_nonce_from_dialogue(dialogue_mock)
         assert result == expected_value
 
-    def test_send_transaction_positive_false_condition(self):
+    def test_send_transaction_positive_false_condition(self) -> None:
         """Test '_send_transaction', positive case (false condition)"""
         try_send(
             self.behaviour._send_transaction(MagicMock(), stop_condition=lambda: True)
@@ -452,7 +454,7 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
     @mock.patch.object(BaseState, "_check_transaction_delivered", return_value=True)
     @mock.patch("json.loads")
-    def test_send_transaction_positive(self, *_):
+    def test_send_transaction_positive(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
         m = MagicMock()
         gen = self.behaviour._send_transaction(m)
@@ -463,7 +465,7 @@ class TestBaseState:
         try_send(gen, obj=m)
 
     @mock.patch.object(BaseState, "_send_signing_request")
-    def test_send_transaction_signing_error(self, *_):
+    def test_send_transaction_signing_error(self, *_: Any) -> None:
         """Test '_send_transaction', signing error."""
         m = MagicMock(performative=SigningMessage.Performative.ERROR)
         gen = self.behaviour._send_transaction(m)
@@ -480,7 +482,7 @@ class TestBaseState:
         return_value=(MagicMock(), MagicMock()),
     )
     @mock.patch("json.loads")
-    def test_send_transaction_error_status_code(self, *_):
+    def test_send_transaction_error_status_code(self, *_: Any) -> None:
         """Test '_send_transaction', erorr status code."""
         m = MagicMock()
         gen = self.behaviour._send_transaction(m)
@@ -494,7 +496,7 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_send_signing_request(self, *_):
+    def test_send_signing_request(self, *_: Any) -> None:
         """Test '_send_signing_request'."""
         with mock.patch.object(
             self.behaviour.context.signing_dialogues,
@@ -506,7 +508,7 @@ class TestBaseState:
     @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_send_transaction_signing_request(self, *_):
+    def test_send_transaction_signing_request(self, *_: Any) -> None:
         """Test '_send_signing_request'."""
         with mock.patch.object(
             self.behaviour.context.signing_dialogues,
@@ -515,7 +517,7 @@ class TestBaseState:
         ):
             self.behaviour._send_transaction_signing_request(MagicMock(), MagicMock())
 
-    def test_send_transaction_request(self):
+    def test_send_transaction_request(self) -> None:
         """Test '_send_transaction_request'."""
         with mock.patch.object(
             self.behaviour.context.ledger_api_dialogues,
@@ -524,7 +526,7 @@ class TestBaseState:
         ):
             self.behaviour._send_transaction_request(MagicMock())
 
-    def test_send_transaction_receipt_request(self):
+    def test_send_transaction_receipt_request(self) -> None:
         """Test '_send_transaction_receipt_request'."""
         with mock.patch.object(
             self.behaviour.context.ledger_api_dialogues,
@@ -533,7 +535,7 @@ class TestBaseState:
         ):
             self.behaviour._send_transaction_receipt_request(MagicMock())
 
-    def test_build_http_request_message(self, *_):
+    def test_build_http_request_message(self, *_: Any) -> None:
         """Test '_build_http_request_message'."""
         with mock.patch.object(
             self.behaviour.context.http_dialogues,
@@ -544,23 +546,21 @@ class TestBaseState:
                 "", "", parameters=dict(foo="bar"), headers=dict(foo="bar")
             )
 
-    def test_check_transaction_delivered(self):
+    def test_check_transaction_delivered(self) -> None:
         """Test '_check_transaction_delivered' method."""
         response = MagicMock(body='{"result": {"deliver_tx": {"code": 0}}}')
         assert self.behaviour._check_transaction_delivered(response)
 
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_get_default_terms(self, *_):
+    def test_get_default_terms(self, *_: Any) -> None:
         """Test '_get_default_terms'."""
-        self.behaviour.context.default_ledger_id = "ledger_id"
-        self.behaviour.context.agent_address = "address"
         self.behaviour._get_default_terms()
 
     @mock.patch.object(BaseState, "_send_transaction_signing_request")
     @mock.patch.object(BaseState, "_send_transaction_request")
     @mock.patch.object(BaseState, "_send_transaction_receipt_request")
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
-    def test_send_raw_transaction(self, *_):
+    def test_send_raw_transaction(self, *_: Any) -> None:
         """Test 'send_raw_transaction'."""
         m = MagicMock()
         gen = self.behaviour.send_raw_transaction(m)
@@ -574,10 +574,8 @@ class TestBaseState:
         try_send(gen, obj=m)
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
-    def test_get_contract_api_response(self, contract_address):
+    def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
         """Test 'get_contract_api_response'."""
-        self.behaviour.context.default_ledger_id = "ledger_id"
-        self.behaviour.context.agent_address = "address"
         with mock.patch.object(
             self.behaviour.context.contract_api_dialogues,
             "create",
@@ -590,14 +588,14 @@ class TestBaseState:
             BaseState, "_send_transaction_request"
         ):
             gen = self.behaviour.get_contract_api_response(
-                "performative", contract_address, "contract_id", "contract_callable"
+                MagicMock(), contract_address, "contract_id", "contract_callable"
             )
             # first trigger
             try_send(gen, obj=None)
             # wait for message
             try_send(gen, obj=MagicMock())
 
-    def test_default_callback_request_stopped(self):
+    def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "info") as info_mock:
@@ -606,21 +604,21 @@ class TestBaseState:
                 "dropping message as behaviour has stopped: %s", message
             )
 
-    def test_default_callback_request_waiting_message(self, *_):
+    def test_default_callback_request_waiting_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when waiting message."""
-        self.behaviour._AsyncBehaviour__stopped = False
-        self.behaviour._AsyncBehaviour__state = (
+        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        self.behaviour._AsyncBehaviour__state = (  # type: ignore
             AsyncBehaviour.AsyncState.WAITING_MESSAGE
         )
         message = MagicMock()
         self.behaviour.default_callback_request(message)
 
-    def test_default_callback_request_else(self, *_):
+    def test_default_callback_request_else(self, *_: Any) -> None:
         """Test 'default_callback_request' else branch."""
-        self.behaviour._AsyncBehaviour__stopped = False
+        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
         self.behaviour.default_callback_request(message)
 
-    def test_stop(self):
+    def test_stop(self) -> None:
         """Test the stop method."""
         self.behaviour.stop()

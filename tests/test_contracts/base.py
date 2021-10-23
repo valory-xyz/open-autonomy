@@ -45,7 +45,7 @@ class BaseContractTest(ABC):
     contract_address: Optional[str] = None
 
     @classmethod
-    def _setup_class(cls, **kwargs):
+    def _setup_class(cls, **kwargs: Any) -> None:
         """Setup test."""
         key_pairs: List[Tuple[str, str]] = kwargs.pop("key_pairs")
         url: str = kwargs.pop("url")
@@ -65,7 +65,7 @@ class BaseContractTest(ABC):
         assert cls.contract_address is not None, "Contract not deployed."
 
     @classmethod
-    def deploy(cls, **kwargs: Any):
+    def deploy(cls, **kwargs: Any) -> None:
         """Deploy the contract."""
         tx = cls.contract.get_deploy_transaction(
             ledger_api=cls.ledger_api,

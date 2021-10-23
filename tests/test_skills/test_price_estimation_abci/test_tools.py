@@ -25,13 +25,13 @@ from packages.valory.skills.price_estimation_abci.tools import (
 )
 
 
-def test_aggregate_function():
+def test_aggregate_function() -> None:
     """Test `aggregate` function."""
 
     assert aggregate(1, 2, 3, 4, 5) == 3.0
 
 
-def test_random_selection_function():
+def test_random_selection_function() -> None:
     """Test `random_selection` function."""
 
     assert random_selection(["hello", "world", "!"], 0.1) == "hello"

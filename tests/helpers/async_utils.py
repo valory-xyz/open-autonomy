@@ -23,10 +23,15 @@ import logging
 import time
 from asyncio import AbstractEventLoop
 from threading import Thread
-from typing import Any, Awaitable, Optional
+from typing import Any, Awaitable, Callable, Optional
 
 
-def wait_for_condition(condition_checker, timeout=2, error_msg="Timeout", period=0.001):
+def wait_for_condition(
+    condition_checker: Callable,
+    timeout: int = 2,
+    error_msg: str = "Timeout",
+    period: float = 0.001,
+) -> None:
     """Wait for condition occures in selected timeout."""
     start_time = time.time()
 
@@ -145,7 +150,7 @@ class BaseThreadedAsyncLoop:
     loop: ThreadedAsyncRunner
     thread: Thread
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the class."""
         self.loop = ThreadedAsyncRunner()
         self.loop.start()
@@ -155,7 +160,7 @@ class BaseThreadedAsyncLoop:
         task: AnotherThreadTask = self.loop.call(coro)
         return task.result(timeout=timeout)
 
-    def teardown(self):
+    def teardown(self) -> None:
         """Teardown the class."""
         self.loop.start()
         self.loop.join(5.0)

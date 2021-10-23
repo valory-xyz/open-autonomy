@@ -33,8 +33,11 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
+from packages.valory.connections.abci.connection import ABCIServerConnection
 from packages.valory.connections.abci.connection import (
-    ABCIServerConnection,
+    AbciDialogues as ConnectionAbciDialogues,
+)
+from packages.valory.connections.abci.connection import (
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
     _TendermintABCISerializer,
@@ -72,7 +75,7 @@ class ABCIAppTest:
     class AbciDialogues(BaseAbciDialogues):
         """The dialogues class keeps track of all ABCI dialogues."""
 
-        def __init__(self, address) -> None:
+        def __init__(self, address: str) -> None:
             """Initialize dialogues."""
             self.address = address
 
@@ -134,7 +137,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def flush(self, request: AbciMessage):
+    def flush(self, request: AbciMessage) -> AbciMessage:
         """Process a flush request."""
         abci_dialogue = self._update_dialogues(request)
         response = abci_dialogue.reply(
@@ -142,7 +145,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def init_chain(self, request: AbciMessage):
+    def init_chain(self, request: AbciMessage) -> AbciMessage:
         """Process an init_chain request."""
         abci_dialogue = self._update_dialogues(request)
         app_hash = b""
@@ -204,7 +207,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def begin_block(self, request: AbciMessage):
+    def begin_block(self, request: AbciMessage) -> AbciMessage:
         """Process a begin_block request."""
         abci_dialogue = self._update_dialogues(request)
         response = abci_dialogue.reply(
@@ -213,7 +216,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def end_block(self, request: AbciMessage):
+    def end_block(self, request: AbciMessage) -> AbciMessage:
         """Process an end_block request."""
         abci_dialogue = self._update_dialogues(request)
         response = abci_dialogue.reply(
@@ -224,7 +227,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def commit(self, request: AbciMessage):
+    def commit(self, request: AbciMessage) -> AbciMessage:
         """Process a commit request."""
         abci_dialogue = self._update_dialogues(request)
         response = abci_dialogue.reply(
@@ -234,7 +237,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def no_match(self, request: AbciMessage):
+    def no_match(self, request: AbciMessage) -> None:
         """No match."""
         raise Exception(
             f"Received request with performative {request.performative.value}, but no handler available"
@@ -275,11 +278,14 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
 
     TARGET_SKILL_ID = "dummy_author/dummy:0.1.0"
     ADDRESS = "agent_address"
+    PUBLIC_KEY = "agent_public_key"
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the test."""
         super().setup()
-        self.agent_identity = Identity("name", address=self.ADDRESS)
+        self.agent_identity = Identity(
+            "name", address=self.ADDRESS, public_key=self.PUBLIC_KEY
+        )
         self.configuration = ConnectionConfig(
             connection_id=ABCIServerConnection.connection_id,
             host=DEFAULT_LISTEN_ADDRESS,
@@ -307,7 +313,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
         """Make an ABCI app."""
         raise NotImplementedError
 
-    def health_check(self):
+    def health_check(self) -> bool:
         """Do a health-check."""
         try:
             result = requests.get(self.tendermint_url() + "/health").status_code == 200
@@ -320,21 +326,22 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
         """Get the current Tendermint URL."""
         return f"{HTTP_LOCALHOST}:{self.tendermint_port}"
 
-    def teardown(self):
+    def teardown(self) -> None:
         """Tear down the test."""
         self.stopped = True
         self.receiving_task.cancel()
         self.execute(self.connection.disconnect())
         super().teardown()
 
-    async def process_incoming_messages(self):
+    async def process_incoming_messages(self) -> None:
         """Receive requests and send responses from/to the Tendermint node"""
         while not self.stopped:
             try:
                 request_envelope = await self.connection.receive()
             except asyncio.CancelledError:
                 break
-            request_type = request_envelope.message.performative.value
+            assert request_envelope is not None
+            request_type = cast(Message, request_envelope.message).performative.value
             logging.debug(f"Received request {request_type}")
             response = self.app.handle(cast(AbciMessage, request_envelope.message))
             if response is not None:
@@ -353,7 +360,7 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
 
     SECONDS = 5
 
-    def test_run(self):
+    def test_run(self) -> None:
         """
         Run the test.
 
@@ -366,7 +373,7 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
 class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint with a query."""
 
-    def test_run(self):
+    def test_run(self) -> None:
         """
         Run the test.
 
@@ -381,7 +388,7 @@ class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
 class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration ABCI-Tendermint by sending a transaction."""
 
-    def test_run(self):
+    def test_run(self) -> None:
         """
         Run the test.
 
@@ -396,9 +403,11 @@ class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
 
 
 @pytest.mark.asyncio
-async def test_connection_standalone_tendermint_setup():
+async def test_connection_standalone_tendermint_setup() -> None:
     """Test the setup of the connection configured with Tendermint."""
-    agent_identity = Identity("name", address="agent_address")
+    agent_identity = Identity(
+        "name", address="agent_address", public_key="agent_public_key"
+    )
     configuration = ConnectionConfig(
         connection_id=ABCIServerConnection.connection_id,
         host=DEFAULT_LISTEN_ADDRESS,
@@ -418,29 +427,37 @@ async def test_connection_standalone_tendermint_setup():
     await connection.disconnect()
 
 
-def test_not_implemented_errors():
+def test_not_implemented_errors() -> None:
     """Test _TendermintProtocolDecoder method implementations."""
     with pytest.raises(NotImplementedError):
-        _TendermintProtocolDecoder.request_list_snapshots(None, None, None)
+        _TendermintProtocolDecoder.request_list_snapshots(
+            None, ConnectionAbciDialogues(), ""
+        )
 
     with pytest.raises(NotImplementedError):
-        _TendermintProtocolDecoder.request_offer_snapshot(None, None, None)
+        _TendermintProtocolDecoder.request_offer_snapshot(
+            None, ConnectionAbciDialogues(), ""
+        )
 
     with pytest.raises(NotImplementedError):
-        _TendermintProtocolDecoder.request_load_snapshot_chunk(None, None, None)
+        _TendermintProtocolDecoder.request_load_snapshot_chunk(
+            None, ConnectionAbciDialogues(), ""
+        )
 
     with pytest.raises(NotImplementedError):
-        _TendermintProtocolDecoder.request_apply_snapshot_chunk(None, None, None)
+        _TendermintProtocolDecoder.request_apply_snapshot_chunk(
+            None, ConnectionAbciDialogues(), ""
+        )
 
 
-def test_encode_varint_method():
+def test_encode_varint_method() -> None:
     """Test encode_varint method for _TendermintABCISerializer"""
     assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
     assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
     assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
 
 
-def test_dep_util():
+def test_dep_util() -> None:
     """Test dependency utils."""
 
     assert dep_utils.nth([0, 1, 2, 3], 1, -1) == 1

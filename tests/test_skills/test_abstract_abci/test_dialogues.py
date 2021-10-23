@@ -18,7 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Test the dialogues.py module of the skill."""
-from typing import cast
+from enum import Enum
+from typing import Type, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -33,7 +34,9 @@ from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDia
         (AbciDialogues, AbciDialogue.Role.CLIENT),
     ],
 )
-def test_dialogues_creation(dialogues_cls, expected_role_from_first_message):
+def test_dialogues_creation(
+    dialogues_cls: Type[AbciDialogues], expected_role_from_first_message: Enum
+) -> None:
     """Test XDialogues creations."""
     dialogues = cast(Dialogues, dialogues_cls(name="", skill_context=MagicMock()))
     assert expected_role_from_first_message == dialogues._role_from_first_message(

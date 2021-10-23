@@ -20,7 +20,7 @@
 """Tests for valory/counter skill."""
 import logging
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from unittest.mock import patch
 
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -35,9 +35,12 @@ class TestCounterHandler(BaseSkillTestCase):
     """Test ABCICounterHandler methods."""
 
     path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "counter")
+    abci_counter_handler: ABCICounterHandler
+    logger: logging.Logger
+    abci_dialogues: AbciDialogues
 
     @classmethod
-    def setup(cls):
+    def setup(cls, **kwargs: Any) -> None:
         """Setup the test class."""
         super().setup()
         cls.abci_counter_handler = cast(
@@ -49,10 +52,10 @@ class TestCounterHandler(BaseSkillTestCase):
             AbciDialogues, cls._skill.skill_context.abci_dialogues
         )
 
-    def test_setup(self):
+    def test_setup(self) -> None:
         """Test the setup method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
-            assert self.abci_counter_handler.setup() is None
+            self.abci_counter_handler.setup()
             mock_logger.assert_any_call(
                 logging.DEBUG, "ABCI Handler: setup method called."
             )
@@ -60,10 +63,10 @@ class TestCounterHandler(BaseSkillTestCase):
         # after
         self.assert_quantity_in_outbox(0)
 
-    def test_teardown(self):
+    def test_teardown(self) -> None:
         """Test the teardown method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
-            assert self.abci_counter_handler.teardown() is None
+            self.abci_counter_handler.teardown()
             mock_logger.assert_any_call(
                 logging.DEBUG, "ABCI Handler: teardown method called."
             )

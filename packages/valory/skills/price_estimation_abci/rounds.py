@@ -23,7 +23,7 @@ from abc import ABC
 from collections import Counter
 from operator import itemgetter
 from types import MappingProxyType
-from typing import Any
+from typing import AbstractSet, Any
 from typing import Counter as CounterType
 from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
 
@@ -69,7 +69,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
-        participants: Optional[FrozenSet[str]] = None,
+        participants: Optional[AbstractSet[str]] = None,
         participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
         most_voted_randomness: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
@@ -271,6 +271,11 @@ class PriceEstimationAbstractRound(AbstractRound, ABC):
         return cls._sender_already_sent_item(sender, "the selection", item_value)
 
     @classmethod
+    def _sender_already_sent_randomness(cls, sender: str, item_value: Any) -> str:
+        """Get the error message for sender already sent randomness."""
+        return cls._sender_already_sent_item(sender, "the randomness", item_value)
+
+    @classmethod
     def _sender_already_sent_tx_hash(cls, sender: str, item_value: Any) -> str:
         """Get the error message for sender already sent the tx hash."""
         return cls._sender_already_sent_item(sender, "the tx hash", item_value)
@@ -337,7 +342,7 @@ class RegistrationRound(PriceEstimationAbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
-            state = PeriodState(participants=frozenset(self.participants))
+            state = PeriodState(participants=self.participants)
             next_round = RandomnessRound(state, self._consensus_params)
             return state, next_round
         return None
@@ -364,16 +369,23 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
         """Handle a 'randomness' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
-            # sender not in the set of participants.
-            return
+            raise ABCIAppInternalError(
+                self._sender_not_in_participants_error_message(
+                    sender, self.period_state.participants
+                )
+            )
 
         if sender in self.participant_to_randomness:
-            # sender has already sent its randomness
-            return
+            raise ABCIAppInternalError(
+                self._sender_already_sent_randomness(
+                    sender,
+                    self.participant_to_randomness[sender].randomness,
+                )
+            )
 
         self.participant_to_randomness[sender] = payload
 
-    def check_randomness(self, payload: SelectKeeperPayload) -> bool:
+    def check_randomness(self, payload: RandomnessPayload) -> None:
         """
         Check an randomness payload can be applied to the current state.
 
@@ -383,13 +395,25 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
         - the sender has not sent its selection yet
 
         :param: payload: the payload.
-        :return: True if the selection is allowed, False otherwise.
         """
         sender_in_participant_set = payload.sender in self.period_state.participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                self._sender_not_in_participants_error_message(
+                    payload.sender, self.period_state.participants
+                )
+            )
+
         sender_has_not_sent_randomness_yet = (
             payload.sender not in self.participant_to_randomness
         )
-        return sender_in_participant_set and sender_has_not_sent_randomness_yet
+        if not sender_has_not_sent_randomness_yet:
+            raise TransactionNotValidError(
+                self._sender_already_sent_randomness(
+                    payload.sender,
+                    self.participant_to_randomness[payload.sender].randomness,
+                )
+            )
 
     @property
     def threshold_reached(self) -> bool:
@@ -411,7 +435,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
         )
         most_voted_randomness, max_votes = max(counter.items(), key=itemgetter(1))
         if max_votes < self._consensus_params.consensus_threshold:
-            raise ValueError("keeper has not enough votes")
+            raise ABCIAppInternalError("not enough randomness")
         return most_voted_randomness
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
@@ -1067,7 +1091,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
         self.signatures_by_participant[sender] = payload.signature
 
-    def check_signature(self, payload: EstimatePayload) -> None:
+    def check_signature(self, payload: SignaturePayload) -> None:
         """
         Check a signature payload can be applied to the current state.
 
@@ -1157,7 +1181,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
         self._tx_hash = payload.tx_hash
 
-    def check_finalization(self, payload: DeploySafePayload) -> None:
+    def check_finalization(self, payload: FinalizationTxPayload) -> None:
         """
         Check a finalization payload can be applied to the current state.
 

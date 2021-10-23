@@ -13,7 +13,7 @@ profiles:
       - image: valory/oracle-poc
         context: ../..
         docker:
-          dockerfile: examples/price_estimation/DockerFiles/abci/Dockerfile
+          dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     deploy:
       kubeContext: kind-kind
       kubectl:

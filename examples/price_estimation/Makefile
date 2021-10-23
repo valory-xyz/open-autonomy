@@ -5,7 +5,7 @@ build-docker-localnode:
 
 build-docker-aea:
 	-docker network ls | grep _localnet | cut -d' ' -f1 | xargs docker network rm
-	docker build -f ../../examples/price_estimation/Dockerfile -t valory/price_estimation:0.1.0 ../..
+	docker build -f ../../examples/price_estimation/Dockerfiles/aea/Dockerfile -t valory/price_estimation:0.1.0 ../..
 .PHONY: build-docker-aea
 
 localnet-start: localnet-stop build-docker-localnode build-docker-aea
@@ -19,25 +19,33 @@ localnet-stop:
 	sudo rm -rf build
 .PHONY: localnet-stop
 
+CLUSTERS := $(shell kind get clusters)
+TOKENPATH := $(shell ls ~/.docker/config.json)
 
-# make local cluster
 localcluster-start:
-	kind create cluster
-	TOKEN=$(shell ls /home/$(USER)/.docker/config.json)
-	echo "$${TOKEN}"
-	if [$${TOKEN} == ""]; then \
+	if [[ "${CLUSTERS}" == "" ]]; then \
+		kind create cluster;\
+	fi
+	if [[ "${TOKENPATH}" == "" ]]; then \
 		echo "ensure you have an access token ready."; \
-		docker login -u valory; else\
-		echo "already logged in.";
+		docker login -u valory; \
 	fi
 	kubectl create secret generic regcred \
-	            --from-file=.dockerconfigjson=$${TOKEN} \
+	            --from-file=.dockerconfigjson=${TOKENPATH} \
 	            --type=kubernetes.io/dockerconfigjson
 	skaffold config set local-cluster false
 	kubectl create serviceaccount dashboard-admin-sa
 	kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
 	skaffold run --profile dashboard
 .ONESHELL: localcluster-start
+
+# 	if [[ "${OSTYPE}" == "linux-gnu"* ]]; then \
+# 	    TOKEN="$(shell ls /home/$(USER)/.docker/config.json)"; \
+# 	elif [[ "${OSTYPE}" == "darwin"* ]]; then \
+# 	    TOKEN="$(shell ls ~/.docker/config.json)"; \
+# 	else \
+# 	    TOKEN="$(shell ls /home/$(USER)/.docker/config.json)"; \
+# 	fi
 
 localcluster-deploy:
 	skaffold run --profile minikube

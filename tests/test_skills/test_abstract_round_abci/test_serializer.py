@@ -26,7 +26,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 )
 
 
-def test_encode_decode_i():
+def test_encode_decode_i() -> None:
     """Test encode decode logic."""
     case = {
         "key1": True,
@@ -44,7 +44,7 @@ def test_encode_decode_i():
     assert case == decoded
 
 
-def test_encode_decode_ii():
+def test_encode_decode_ii() -> None:
     """Test encode decode logic."""
     case = {
         "key1": True,

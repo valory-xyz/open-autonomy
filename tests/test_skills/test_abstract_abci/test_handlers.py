@@ -20,20 +20,24 @@
 """Test the handlers.py module of the skill."""
 import logging
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 from aea.configurations.data_types import PublicId
+from aea.protocols.base import Address, Message
+from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
+    PublicKey,
     Timestamp,
     ValidatorUpdate,
     ValidatorUpdates,
 )
+from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import OK_CODE
@@ -41,13 +45,42 @@ from packages.valory.skills.abstract_round_abci.base import OK_CODE
 from tests.conftest import ROOT_DIR
 
 
+class AbciDialoguesServer(BaseAbciDialogues):
+    """The dialogues class keeps track of all ABCI dialogues."""
+
+    def __init__(self, address: str) -> None:
+        """Initialize dialogues."""
+        self.address = address
+
+        def role_from_first_message(  # pylint: disable=unused-argument
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            """Infer the role of the agent from an incoming/outgoing first message
+
+            :param message: an incoming/outgoing first message
+            :param receiver_address: the address of the receiving agent
+            :return: The role of the agent
+            """
+            return AbciDialogue.Role.SERVER
+
+        BaseAbciDialogues.__init__(
+            self,
+            self_address=self.address,
+            role_from_first_message=role_from_first_message,
+            dialogue_class=AbciDialogue,
+        )
+
+
 class TestABCIHandlerOld(BaseSkillTestCase):
     """Test ABCIHandler methods."""
 
     path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "abstract_abci")
+    abci_handler: ABCIHandler
+    logger: logging.Logger
+    abci_dialogues: AbciDialogues
 
     @classmethod
-    def setup(cls):
+    def setup(cls, **kwargs: Any) -> None:
         """Setup the test class."""
         super().setup()
         cls.abci_handler = cast(ABCIHandler, cls._skill.skill_context.handlers.abci)
@@ -57,20 +90,20 @@ class TestABCIHandlerOld(BaseSkillTestCase):
             AbciDialogues, cls._skill.skill_context.abci_dialogues
         )
 
-    def test_setup(self):
+    def test_setup(self) -> None:
         """Test the setup method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
-            assert self.abci_handler.setup() is None
+            self.abci_handler.setup()
 
         # after
         self.assert_quantity_in_outbox(0)
 
         mock_logger.assert_any_call(logging.DEBUG, "ABCI Handler: setup method called.")
 
-    def test_teardown(self):
+    def test_teardown(self) -> None:
         """Test the teardown method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
-            assert self.abci_handler.teardown() is None
+            self.abci_handler.teardown()
 
         # after
         self.assert_quantity_in_outbox(0)
@@ -83,21 +116,49 @@ class TestABCIHandlerOld(BaseSkillTestCase):
 class TestABCIHandler:
     """Test 'ABCIHandler'."""
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the tests."""
-        self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
-        self.dialogues = AbciDialogues(name="", skill_context=self.context)
+        self.skill_id = PublicId.from_str("dummy/skill:0.1.0")
+        self.context = MagicMock(skill_id=self.skill_id)
+        self.context.abci_dialogues = AbciDialogues(name="", skill_context=self.context)
+        self.dialogues = AbciDialoguesServer(address="server")
         self.handler = ABCIHandler(name="", skill_context=self.context)
 
-    def test_setup(self):
+    def test_setup(self) -> None:
         """Test the setup method."""
         self.handler.setup()
 
-    def test_teardown(self):
+    def test_teardown(self) -> None:
         """Test the teardown method."""
         self.handler.teardown()
 
-    def test_info(self):
+    def test_handle(self) -> None:
+        """Test the message gets handled."""
+        message, _ = self.dialogues.create(
+            counterparty=str(self.skill_id),
+            performative=AbciMessage.Performative.REQUEST_INFO,
+            version="",
+            block_version=0,
+            p2p_version=0,
+        )
+        self.handler.handle(cast(AbciMessage, message))
+
+    def test_handle_log_exception(self) -> None:
+        """Test the message gets handled."""
+        message = AbciMessage(
+            dialogue_reference=("", ""),
+            performative=AbciMessage.Performative.REQUEST_INFO,  # type: ignore
+            version="",
+            block_version=0,
+            p2p_version=0,
+            target=0,
+            message_id=1,
+        )
+        message._sender = "server"
+        message._to = str(self.skill_id)
+        self.handler.handle(message)
+
+    def test_info(self) -> None:
         """Test the 'info' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -111,7 +172,7 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_INFO
 
-    def test_begin_block(self):
+    def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -126,7 +187,7 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_BEGIN_BLOCK
 
-    def test_check_tx(self, *_):
+    def test_check_tx(self, *_: Any) -> None:
         """Test the 'check_tx' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -140,7 +201,7 @@ class TestABCIHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_CHECK_TX
         assert response.code == OK_CODE
 
-    def test_deliver_tx(self, *_):
+    def test_deliver_tx(self, *_: Any) -> None:
         """Test the 'deliver_tx' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -153,7 +214,7 @@ class TestABCIHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == OK_CODE
 
-    def test_end_block(self):
+    def test_end_block(self) -> None:
         """Test the 'end_block' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -165,7 +226,7 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_END_BLOCK
 
-    def test_commit(self):
+    def test_commit(self) -> None:
         """Test the 'commit' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -176,7 +237,7 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_COMMIT
 
-    def test_flush(self):
+    def test_flush(self) -> None:
         """Test the 'flush' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
@@ -187,14 +248,20 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_FLUSH
 
-    def test_init_chain(self):
+    def test_init_chain(self) -> None:
         """Test the 'init_chain' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
             time=Timestamp(1, 1),
             chain_id="",
-            validators=ValidatorUpdates([ValidatorUpdate(b"", 1)]),
+            validators=ValidatorUpdates(
+                [
+                    ValidatorUpdate(
+                        PublicKey(data=b"", key_type=PublicKey.PublicKeyType.ed25519), 1
+                    )
+                ]
+            ),
             app_state_bytes=b"",
             initial_height=0,
         )
@@ -203,7 +270,7 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN
 
-    def test_query(self):
+    def test_query(self) -> None:
         """Test the 'init_chain' handler method."""
         message, dialogue = self.dialogues.create(
             counterparty="",

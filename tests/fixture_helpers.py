@@ -48,7 +48,7 @@ class UseTendermint:
     """Inherit from this class to use Tendermint."""
 
     @pytest.fixture(autouse=True)
-    def _start_tendermint(self, tendermint, tendermint_port):
+    def _start_tendermint(self, tendermint: Any, tendermint_port: Any) -> None:
         """Start a Tendermint image."""
         self.tendermint_port = tendermint_port
 
@@ -61,7 +61,9 @@ class UseGnosisSafeHardHatNet:
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_hardhat(cls, gnosis_safe_hardhat, hardhat_port, key_pairs) -> None:
+    def _start_hardhat(
+        cls, gnosis_safe_hardhat: Any, hardhat_port: Any, key_pairs: Any
+    ) -> None:
         """Start an HardHat instance."""
         cls.key_pairs = key_pairs
 
@@ -74,7 +76,7 @@ class UseGanache:
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_ganache(cls, ganache, ganache_configuration) -> None:
+    def _start_ganache(cls, ganache: Any, ganache_configuration: Any) -> None:
         """Start Ganache instance."""
         cls.key_pairs = cast(
             List[Tuple[str, str]],
