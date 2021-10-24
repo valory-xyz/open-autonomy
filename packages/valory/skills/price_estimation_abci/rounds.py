@@ -70,8 +70,7 @@ class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
     DONE = "done"
-    EXIT_A = "exit_a"
-    EXIT_B = "exit_b"
+    EXIT = "exit"
     RETRY_TIMEOUT = "retry_timeout"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
@@ -1304,7 +1303,7 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    exit_event = Event.EXIT_A
+    exit_event = Event.EXIT
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1318,7 +1317,7 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    exit_event = Event.EXIT_B
+    exit_event = Event.EXIT
 
 
 class PriceEstimationAbciApp(AbciApp[Event]):
@@ -1337,7 +1336,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT_A: SelectKeeperARound,
+            Event.EXIT: SelectKeeperARound,
         },
         ValidateSafeRound: {
             Event.DONE: CollectObservationRound,
@@ -1361,7 +1360,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.EXIT_B: SelectKeeperBRound,
+            Event.EXIT: SelectKeeperBRound,
         },
         ValidateTransactionRound: {
             Event.DONE: ConsensusReachedRound,
@@ -1373,8 +1372,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.EXIT_A: 5.0,
-        Event.EXIT_B: 5.0,
+        Event.EXIT: 5.0,
         Event.RETRY_TIMEOUT: 10.0,
         Event.ROUND_TIMEOUT: 30.0,
     }

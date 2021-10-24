@@ -511,7 +511,7 @@ class TestValidateRound(BaseRoundTestClass):
     def setup(cls) -> None:
         """Set up the test."""
         super().setup()
-        ValidateRound.exit_event = Event.EXIT_A
+        ValidateRound.exit_event = Event.EXIT
         ValidateRound.round_id = "round_id"
 
     def teardown(self) -> None:
@@ -613,7 +613,7 @@ class TestValidateRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert event == Event.EXIT_A
+        assert event == Event.EXIT
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
@@ -1303,7 +1303,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert event == Event.EXIT_A
+        assert event == Event.EXIT
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
@@ -1408,7 +1408,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
 
-        assert event == Event.EXIT_B
+        assert event == Event.EXIT
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):

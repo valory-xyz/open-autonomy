@@ -63,11 +63,6 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
 
 
-DONE_EVENT = "done"
-FAIL_EVENT = "fail"
-EXIT_A_EVENT = "exit_a"
-EXIT_B_EVENT = "exit_b"
-
 _REQUEST_RETRY_DELAY = 1.0
 
 
