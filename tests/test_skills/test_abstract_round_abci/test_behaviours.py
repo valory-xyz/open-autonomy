@@ -302,3 +302,28 @@ class TestAbstractRoundBehaviour:
         # the next act schedules the next state
         self.behaviour.act()
         assert isinstance(self.behaviour.current_state, StateB)
+
+    def test_act_with_round_change_after_current_state_is_none(self) -> None:
+        """Test the 'act' method of the behaviour, with round change, after cur state is none."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundA.round_id
+
+        # instantiate state
+        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateA)  # type: ignore
+
+        # check that after act(), current state is same state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateA)
+
+        # check that after the state is done, current state is None
+        self.behaviour.current_state.set_done()
+        self.behaviour.act()
+        assert self.behaviour.current_state is None
+
+        # change the round
+        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundB.round_id
+
+        # check that if the round is changed, the behaviour transition is taken
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateB)

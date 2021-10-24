@@ -171,12 +171,11 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
         #  if so, stop it and replace it with the new state behaviour
         #  if not, then leave it running; the next state will be scheduled
         #  when current state is done
-        current_state = self.current_state
-        if current_state is None:
+        if self.current_state is None:
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return
 
-        current_state = cast(BaseState, current_state)
+        current_state = cast(BaseState, self.current_state)
         # current state cannot be replaced if matching_round is None
         if (
             current_state.matching_round is not None
