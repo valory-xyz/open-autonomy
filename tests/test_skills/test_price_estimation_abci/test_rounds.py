@@ -22,6 +22,7 @@ import logging  # noqa: F401
 import re
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
+from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
@@ -1193,6 +1194,16 @@ class TestConsensusReachedRound(BaseRoundTestClass):
         )
 
         assert test_round.end_block() is None
+
+        with pytest.raises(
+            TransactionNotValidError, match="this round does not accept transactions"
+        ):
+            test_round.check_payload(MagicMock())
+
+        with pytest.raises(
+            ABCIAppInternalError, match="this round does not accept transactions"
+        ):
+            test_round.process_payload(MagicMock())
 
 
 class TestValidateSafeRound(BaseRoundTestClass):

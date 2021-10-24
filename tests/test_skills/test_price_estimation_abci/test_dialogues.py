@@ -22,5 +22,5 @@
 import packages.valory.skills.price_estimation_abci.dialogues  # noqa
 
 
-def test_import():
+def test_import() -> None:
     """Test that the 'dialogues.py' Python module can be imported."""
