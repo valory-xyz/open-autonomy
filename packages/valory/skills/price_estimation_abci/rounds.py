@@ -1327,23 +1327,50 @@ class PriceEstimationAbciApp(AbciApp[Event]):
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {Event.DONE: SelectKeeperARound},
-        SelectKeeperARound: {Event.DONE: DeploySafeRound},
+        RandomnessRound: {
+            Event.DONE: SelectKeeperARound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        SelectKeeperARound: {
+            Event.DONE: DeploySafeRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
             Event.EXIT_A: SelectKeeperARound,
         },
-        ValidateSafeRound: {Event.DONE: CollectObservationRound},
-        CollectObservationRound: {Event.DONE: EstimateConsensusRound},
-        EstimateConsensusRound: {Event.DONE: TxHashRound},
-        TxHashRound: {Event.DONE: CollectSignatureRound},
-        CollectSignatureRound: {Event.DONE: FinalizationRound},
+        ValidateSafeRound: {
+            Event.DONE: CollectObservationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        CollectObservationRound: {
+            Event.DONE: EstimateConsensusRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        EstimateConsensusRound: {
+            Event.DONE: TxHashRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        TxHashRound: {
+            Event.DONE: CollectSignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        CollectSignatureRound: {
+            Event.DONE: FinalizationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.EXIT_B: SelectKeeperBRound,
         },
-        ValidateTransactionRound: {Event.DONE: ConsensusReachedRound},
-        SelectKeeperBRound: {Event.DONE: FinalizationRound},
+        ValidateTransactionRound: {
+            Event.DONE: ConsensusReachedRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        SelectKeeperBRound: {
+            Event.DONE: FinalizationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT_A: 5.0,
