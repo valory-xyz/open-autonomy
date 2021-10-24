@@ -157,7 +157,9 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
         current_round_id = self.context.state.period.current_round_id
-        if self.current_state is not None and self._last_round_id == current_round_id:
+        if (
+            self.current_state is not None and self._last_round_id == current_round_id
+        ) and self.current_state.matching_round is not None:
             # round has not changed - do nothing
             return
         self._last_round_id = current_round_id
@@ -175,6 +177,7 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
             return
 
         current_state = cast(BaseState, current_state)
+        # current state cannot be replaced if matching_round is None
         if (
             current_state.matching_round is not None
             and current_state.state_id != self._next_state_cls.state_id

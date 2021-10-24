@@ -42,6 +42,7 @@ ROUND_B_ID = "round_b"
 
 
 class RoundA(AbstractRound):
+    """Round A."""
 
     round_id = ROUND_A_ID
     allowed_tx_type = "payload_a"
@@ -57,6 +58,7 @@ class RoundA(AbstractRound):
 
 
 class RoundB(AbstractRound):
+    """Round B."""
 
     round_id = ROUND_B_ID
     allowed_tx_type = "payload_b"
@@ -108,7 +110,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     """Concrete round behaviour."""
 
     abci_app_cls = MagicMock()
-    behaviour_states = {StateA, StateB}
+    behaviour_states = {StateA, StateB}  # type: ignore
     initial_state_cls = StateA
 
 
@@ -253,20 +255,18 @@ class TestAbstractRoundBehaviour:
         self.period_mock.current_round_id = RoundA.round_id
 
         # instantiate state with matching round = None
-        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)
+        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
 
         # check that after act(), current state is same state
         self.behaviour.act()
         assert isinstance(self.behaviour.current_state, StateC)
 
-        # check that round does not change until done flag is set
+        # check that state does not change until done flag is set
         self.behaviour.act()
         assert isinstance(self.behaviour.current_state, StateC)
 
         # after behaviour is done, the transition can be taken
         self.behaviour.current_state.set_done()
-        # the first act removes the current state
-        self.behaviour.act()
         # the next act schedules the next state
         self.behaviour.act()
         assert isinstance(self.behaviour.current_state, StateA)
@@ -279,7 +279,7 @@ class TestAbstractRoundBehaviour:
         self.period_mock.current_round_id = RoundA.round_id
 
         # instantiate state with matching round = None
-        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)
+        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
 
         # check that after act(), current state is same state
         self.behaviour.act()
@@ -293,10 +293,12 @@ class TestAbstractRoundBehaviour:
         self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
         self.period_mock.current_round_id = RoundB.round_id
 
+        # check that even if round changes behaviour stays in the same state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateC)
+
         # after behaviour is done, the transition can be taken
         self.behaviour.current_state.set_done()
-        # the first act removes the current state
-        self.behaviour.act()
         # the next act schedules the next state
         self.behaviour.act()
         assert isinstance(self.behaviour.current_state, StateB)
