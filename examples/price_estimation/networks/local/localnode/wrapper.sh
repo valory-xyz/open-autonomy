@@ -4,7 +4,8 @@
 ## Input parameters
 ##
 BINARY="$(which tendermint)"
-ID=${ID:-0}
+# ID=${HOSTNAME##*-}
+ID=$(cat /etc/hostname | grep -Eo '[0-9]{1,4}')
 LOG=${LOG:-tendermint.log}
 
 ##
@@ -33,3 +34,5 @@ fi
 
 chmod 777 -R /tendermint
 
+# node --consensus.create_empty_blocks=false --proxy_app=tcp://abci${ID}:26658
+          

@@ -19,6 +19,7 @@ localnet-stop:
 	sudo rm -rf build
 .PHONY: localnet-stop
 
+SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
 
@@ -37,6 +38,7 @@ localcluster-start:
 	kubectl create serviceaccount dashboard-admin-sa
 	kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
 	skaffold run --profile dashboard
+	skaffold run --profile configure
 .ONESHELL: localcluster-start
 
 # 	if [[ "${OSTYPE}" == "linux-gnu"* ]]; then \
@@ -51,12 +53,12 @@ localcluster-deploy:
 	skaffold run --profile minikube
 .ONESHELL: localcluster-deploy
 
-kubernetes-dashboard-start:
+localcluster-dashboard-start:
 	kubernetes-dashboard-stop
 	bash ./kubernetes_configs/setup_dashboard.sh
 .ONESHELL: kubernetes-dashboard-start
 
-kubernetes-dashboard-stop:
+localcluster-dashboard-stop:
 	pkill -9 -f "kubectl proxy"
 .ONESHELL: kubernetes-dashboard-stop
 

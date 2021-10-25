@@ -14,14 +14,25 @@ profiles:
         context: ../..
         docker:
           dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      - image: valory/localnode
+        context: ./networks/local/localnode/
+        docker:
+          dockerfile: Dockerfile
     deploy:
       kubeContext: kind-kind
       kubectl:
         manifests:
-        - kubernetes_configs/secret.yaml
         - kubernetes_configs/hardhat/hardhat-deployment.yaml
         - kubernetes_configs/hardhat/hardhat-service.yaml
-        - kubernetes_configs/agent-node/stateful-set.yaml
+#       - kubernetes_configs/agent-node/stateful-set.yaml
+        - kubernetes_configs/agent-node/deployment-node-0.yaml
+  - name: configure
+    deploy:
+      kubectl:
+        manifests:
+        - kubernetes_configs/secret.yaml
+        - kubernetes_configs/config_job.yaml
+        - kubernetes_configs/networking/calico.yaml
   - name: dashboard
     deploy:
       kubectl:
