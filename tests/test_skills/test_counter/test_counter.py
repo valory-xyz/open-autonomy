@@ -100,16 +100,6 @@ class TestCounterHandler(BaseSkillTestCase):
             p2p_version=0,
         )
 
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            message_type=AbciMessage,
-            performative=AbciMessage.Performative.REQUEST_INFO,
-            version="",
-            block_version=0,
-            p2p_version=0,
-        )
-        assert has_attr, msg
-
         reply = self.abci_counter_handler.info(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(
             actual_message=reply,
@@ -135,16 +125,6 @@ class TestCounterHandler(BaseSkillTestCase):
             p2p_version=0,
         )
 
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
-            message_type=AbciMessage,
-            version="",
-            block_version=0,
-            p2p_version=0,
-        )
-        assert has_attr, msg
-
         reply = self.abci_counter_handler.init_chain(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(
             actual_message=reply,
@@ -169,18 +149,6 @@ class TestCounterHandler(BaseSkillTestCase):
             height=1,
             prove=True,
         )
-
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            performative=AbciMessage.Performative.REQUEST_QUERY,
-            message_type=AbciMessage,
-            version="",
-            query_data=b"",
-            path="/",
-            height=1,
-            prove=True,
-        )
-        assert has_attr, msg
 
         reply = self.abci_counter_handler.query(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(
@@ -214,16 +182,6 @@ class TestCounterHandler(BaseSkillTestCase):
             type=CheckTxType(CheckTxTypeEnum.NEW),
         )
 
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            performative=AbciMessage.Performative.REQUEST_CHECK_TX,
-            message_type=AbciMessage,
-            version="",
-            tx=tx.to_bytes(4, "big"),
-            type=CheckTxType(CheckTxTypeEnum.NEW),
-        )
-        assert has_attr, msg
-
         reply = self.abci_counter_handler.check_tx(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(
             actual_message=reply,
@@ -244,16 +202,6 @@ class TestCounterHandler(BaseSkillTestCase):
             tx=tx.to_bytes(4, "big"),
             type=CheckTxType(CheckTxTypeEnum.NEW),
         )
-
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            performative=AbciMessage.Performative.REQUEST_CHECK_TX,
-            message_type=AbciMessage,
-            version="",
-            tx=tx.to_bytes(4, "big"),
-            type=CheckTxType(CheckTxTypeEnum.NEW),
-        )
-        assert has_attr, msg
 
         reply = self.abci_counter_handler.check_tx(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(
@@ -277,15 +225,6 @@ class TestCounterHandler(BaseSkillTestCase):
             version="",
             tx=b"",
         )
-
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
-            message_type=AbciMessage,
-            version="",
-            tx=b"",
-        )
-        assert has_attr, msg
 
         reply = self.abci_counter_handler.deliver_tx(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(
@@ -313,14 +252,6 @@ class TestCounterHandler(BaseSkillTestCase):
             counterparty="address",
             version="",
         )
-
-        has_attr, msg = self.message_has_attributes(
-            actual_message=abci_message,
-            performative=AbciMessage.Performative.REQUEST_COMMIT,
-            message_type=AbciMessage,
-            version="",
-        )
-        assert has_attr, msg
 
         reply = self.abci_counter_handler.commit(abci_message, abci_dialogue)
         has_attr, msg = self.message_has_attributes(

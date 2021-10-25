@@ -71,7 +71,7 @@ class TendermintLocalNetworkBuilder:
         self,
         nb_nodes: int,
         directory: Path,
-        consensus_create_empty_blocks: bool = False,
+        consensus_create_empty_blocks: bool = True,
     ) -> None:
         """Initialize the builder."""
         self.nb_nodes = nb_nodes

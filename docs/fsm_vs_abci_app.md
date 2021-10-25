@@ -1,6 +1,6 @@
 In this section, we describe more closely the 
 ABCI-based Finite-State Machine App (ABCIApp), 
-the Finite-State Machine Behaviour (FSMBehaviour),
+the Finite-State Machine Behaviour (AbstractRoundBehaviour),
 and the interplay between the two.
 
 It is recommended to read [this page](./abci.md)
@@ -25,6 +25,32 @@ The transactions, sent by the agents' FSMBehaviour,
 perform state updates and eventually trigger the transitions of the
 ABCIApp.
 
+Each round has its own business logic,
+that specifies how the participants' transactions are validated
+or the conditions that trigger a transition to another round 
+(e.g. enough votes received for the same value).
+The transitions are triggered by means of _events_, i.e. values
+that are set by the round implementation and 
+are processed by the framework in order to compute the round successor.
+
+There are two kinds of events: _normal_ events and _timeout_ events.
+Normal events are set by the round according to certain conditions,
+whereas timeout events are automatically triggered in case the
+timeout associated to the event has expired. The timeout
+is checked against the "global clock", which is a side-effect
+of block validation: each block header carries the timestamp 
+of the event of block proposal.
+
+For example, consider a block $b_1$ with timestamp $t_1$, 
+and block $b_2$ with timestamp $t_2 = t_1 + 10s$.
+Assume that after $b_1$ is processed by the AbciApp, we are 
+in round $r_1$, and that $r_1$ can trigger a timeout event
+with timeout $T=5s$. At the time that $b_2$ gets delivered,
+the timeout event was already triggered ($T<t_2$), and the associated
+transition is already taken in the FSM, regardless of the 
+content of $b_2$.
+
+
 ### ABCIApp in the `valory/abstract_round_abci` skill
 
 The `valory/abstract_round_abci` skill provides several code abstractions
@@ -41,6 +67,14 @@ Concrete subclasses of `BaseTxPayload` specify the allowed transaction payloads
 and depend on the actual use case. The signature is an
 Ethereum digital signature of the binary encoding of the payload.
 
+In our code, the core abstraction that represents the ABCIApp is the `AbciApp` base class.
+It relies on the `AbstractRound` building block (more below).
+Concrete classes of `AbciApp` must specify:
+
+- `initial_round_cls`: a concrete class of `AbstractRound` that determines the initial round of the FSM;
+- `transition_function`: a nested mapping from state to another mapping from events to successor states; 
+- `event_to_timeout`: a mapping from event to its associated timeout; it implicitly defines the set of normal events and timeout events.
+
 Concrete subclasses of `AbstractRound` specify a round (i.e. a state), of the ABCIApp.
 A round can validate, store and aggregate data coming from different participant by means of
 transactions. The actual meaning of the data depends on the round and the specific
@@ -54,8 +88,8 @@ The ABCIApp, through the `ABCIHandler`, receives transactions through the
 ABCI requests, and forwards them to the current active round,
 which produces the server response. 
 The `end_block` abstract method is called on the ABCI request 
-`RequestEndBlock`, and determines the round successor according to
-the business logic of the ABCIApp.
+`RequestEndBlock`, and determines the round successor
+by setting the event to take the transition to the next state.
 
 The `Period` class keeps track of an execution of the ABCIApp.
 It is instantiated in the state of the skill and accessible
@@ -155,8 +189,7 @@ seen as a BTC price [oracle service](https://ethereum.org/en/developers/docs/ora
 
 The FSMBehaviour abstraction is represented
 in the code by the `AbstractRoundBehaviour` abstract class,
-which inherits most of its functions from the
-[`aea.skills.behaviours.FSMBehaviour` class](https://fetchai.github.io/agents-aea/api/skills/behaviours/#fsmbehaviour-objects).
+which implements the [`Behaviour` interface](https://fetchai.github.io/agents-aea/api/skills/behaviours).
 
 The states of the `AbstractRoundBehaviour` behaviour are of type `BaseState`,
 a base class with several utility methods to make developer's life easier.
@@ -173,29 +206,30 @@ A concrete class of `AbstractRoundBehaviour` looks like:
 
 ```python
 class MyFSMBehaviour(AbstractRoundBehaviour):
-    initial_state_cls = StateA
-    transition_function = {
-        StateA: {
-            EVENT_1: StateB,
-            EVENT_2: StateC,
-        },
-        StateB: {...}
-        ...,
-    } 
+    abci_app_cls = MyAbciApp
+    behaviour_states = {
+      StateA,
+      StateB,
+      ...
+    }
+    initial_state_cls: StateA
+
 ```
 
 Where:
 
+- `abci_app_cls` is the `AbciApp` concrete class associated to this behaviour
 - `initial_state_cls` is the class of the initial state of the FSM;
-- `transition_function` is the transition function of the FSM, represented
-  as a nested dictionary: the first mapping is from a state to its outgoing
-  transitions, which in turn is represented as a mapping from events (strings)
-  to the class of the next state. 
+- `behaviour_states` is the set of `BaseState` concrete classes that constitute
+  the FSMBehaviour.
 
-The class attribute `_event` can be set by the state behaviour 
-is read by the `AbstractRoundBehaviour.act` method.
-If set, the behaviour will schedule the next state according to the transition function.
-If not, the action of the state behaviour is repeated again. 
+The transitions are not set by the developer; rather, the execution
+of the FSMBehaviour slavishly follows the underlying AbciApp.
+Whenever a round change in the AbciApp is detected, the `AbstractRoundBehaviour`
+promptly schedules the state behaviour associated to the current round,
+by preemptively replacing the current state behaviour.
+In this way, the FSMBehaviour is always in the correct state behaviour
+according to the current period.
 
 ### FSMBehaviour diagrams
 
@@ -210,16 +244,16 @@ together with the AEA event loop.
         participant State2
         participant Period
         note over AbsRoundBehaviour,State2: Let the FSMBehaviour start with State1<br/>it will schedule State2 on event e
-        loop while event not set
+        loop while round does not change
           EventLoop->>AbsRoundBehaviour: act()
           AbsRoundBehaviour->>State1: act()
           activate State1
-          note over State1: during the execution, <br/> State1 may (or may not)<br/> set an event
+          note over State1: during the execution, <br/> the current round may<br/>(or may not) change
           State1->>AbsRoundBehaviour: return
           deactivate State1
           note over EventLoop: the loop now executes other routines
         end
-        note over AbsRoundBehaviour: read event and pick next state<br/>in this example, State2
+        note over AbsRoundBehaviour: read current AbciApp round and pick matching state<br/>in this example, State2
         EventLoop->>AbsRoundBehaviour: act()
         note over AbsRoundBehaviour: now State2.act is called
         AbsRoundBehaviour->>State2: act()
@@ -262,5 +296,5 @@ In particular, the usual workflow looks like this:
   the ABCIApp changes round.
 4. The round change of the ABCIApp is detected by the state behaviour, which
   stops the waiting loop. The FSMBehaviour, according to the current
-  ABCIApp or the event set by the behaviour, schedules the next state behaviour.
+  ABCIApp, schedules the next state behaviour.
 5. Repeat the steps above from (2) until a final state is reached.

@@ -36,10 +36,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseState,
-    DONE_EVENT,
-    EXIT_A_EVENT,
-    EXIT_B_EVENT,
-    FAIL_EVENT,
     SendException,
     TimeoutException,
     _REQUEST_RETRY_DELAY,
@@ -373,40 +369,11 @@ class TestBaseState:
         gen = self.behaviour.wait_until_round_end()
         try_send(gen)
 
-    def test_clean_up(self) -> None:
-        """Test 'clean_up' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.clean_up()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == DONE_EVENT
-
     def test_set_done(self) -> None:
         """Test 'set_done' method."""
         assert not self.behaviour.is_done()
         self.behaviour.set_done()
         assert self.behaviour.is_done()
-        assert self.behaviour._event == DONE_EVENT
-
-    def test_set_fail(self) -> None:
-        """Test 'set_fail' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_fail()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == FAIL_EVENT
-
-    def test_set_exit_a(self) -> None:
-        """Test 'set_exit_a' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_exit_a()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == EXIT_A_EVENT
-
-    def test_set_exit_b(self) -> None:
-        """Test 'set_exit_b' method."""
-        assert not self.behaviour.is_done()
-        self.behaviour.set_exit_b()
-        assert self.behaviour.is_done()
-        assert self.behaviour._event == EXIT_B_EVENT
 
     def test_send_a2a_transaction_negative_no_matching_round(self) -> None:
         """Test 'send_a2a_transaction' method, negative case (no matching round)."""
@@ -625,6 +592,15 @@ class TestBaseState:
         self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
         self.behaviour.default_callback_request(message)
+
+    def test_reset(
+        self,
+    ) -> None:
+        """Test reset method."""
+        self.behaviour.reset()
+
+        assert not self.behaviour._is_done
+        assert not self.behaviour._is_started
 
     def test_stop(self) -> None:
         """Test the stop method."""
