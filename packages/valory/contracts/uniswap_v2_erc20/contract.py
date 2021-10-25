@@ -47,10 +47,13 @@ class UniswapV2ERC20Contract(Contract):
         value: int,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        tx = contract.functions.approve(spender_address, value)
-        tx = cls._build_transaction(ledger_api, owner_address, tx)
-        return tx
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "approve",
+            owner_address,
+            (spender_address, value),
+        )
 
     @classmethod
     def transfer(
@@ -62,10 +65,9 @@ class UniswapV2ERC20Contract(Contract):
         value: int,
     ) -> Optional[JSONLike]:
         """Transfer funds from from_address to to_address."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        tx = contract.functions.transfer(to_address, value)
-        tx = cls._build_transaction(ledger_api, from_address, tx)
-        return tx
+        return cls._call(
+            ledger_api, contract_address, "transfer", from_address, (to_address, value)
+        )
 
     @classmethod
     def transfer_from(
@@ -77,10 +79,13 @@ class UniswapV2ERC20Contract(Contract):
         value: int,
     ) -> Optional[JSONLike]:
         """(Third-party) transfer funds from from_address to to_address."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        tx = contract.functions.transferFrom(from_address, to_address, value)
-        tx = cls._build_transaction(ledger_api, from_address, tx)
-        return tx
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "transferFrom",
+            from_address,
+            (from_address, to_address, value),
+        )
 
     @classmethod
     def permit(
@@ -96,12 +101,13 @@ class UniswapV2ERC20Contract(Contract):
         s: bytes,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender where approval is granted via a signature."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        tx = contract.functions.permit(
-            owner_address, spender_address, value, deadline, v, r, s
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "permit",
+            owner_address,
+            (owner_address, spender_address, value, deadline, v, r, s),
         )
-        tx = cls._build_transaction(ledger_api, owner_address, tx)
-        return tx
 
     @classmethod
     def allowance(
@@ -112,24 +118,40 @@ class UniswapV2ERC20Contract(Contract):
         spender_address: str,
     ) -> Optional[JSONLike]:
         """Gets the allowance for a spender."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        tx = contract.functions.allowance(
-            owner_address, spender_address
-        ).buildTransaction()
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "allowance",
+            None,
+            (owner_address, spender_address),
+        )
 
     @classmethod
     def balance_of(
         cls, ledger_api: LedgerApi, contract_address: str, owner_address: str
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        tx = contract.functions.balanceOf(owner_address).buildTransaction()
-        tx = ledger_api.update_with_gas_estimate(tx)
+        return cls._call(
+            ledger_api, contract_address, "balanceOf", None, (owner_address,)
+        )
 
-        return tx
+    @classmethod
+    def _call(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        method_name: str,
+        owner_address: str = None,
+        *method_args: tuple,
+    ) -> Optional[JSONLike]:
+        """Call method."""
+        contract = cls.get_instance(ledger_api, contract_address)
+        method = getattr(contract.functions, method_name)
+        tx = method(method_args)
+
+        if owner_address:
+            return cls._build_transaction(ledger_api, owner_address, tx)
+        return tx.buildTransaction()
 
     @classmethod
     def _build_transaction(
