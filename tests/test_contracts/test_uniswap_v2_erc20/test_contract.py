@@ -21,47 +21,85 @@
 
 from pathlib import Path
 
+from aea.common import JSONLike
+from aea.test_tools.test_contract import BaseContractTestCase
+
 from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 
 from tests.conftest import ROOT_DIR
-from tests.test_contracts.base import BaseGanacheContractTest
 
 
-class TestUniswapV2ERC20(BaseGanacheContractTest):
+class TestUniswapV2ERC20(BaseContractTestCase):
     """Test deployment of the proxy to Ganache."""
 
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
     )
     contract: UniswapV2ERC20Contract
-
-    @classmethod
-    def setup_class(
-        cls,
-    ) -> None:
-        """Setup test."""
-        super().setup_class()
+    owner_address = ""
+    spender_address = ""
 
     def test_aprove(self) -> None:
         """Test approve."""
-        # check tx fields
-        # check allowance increase
-        pass
+        result = self.contract.approve(
+            self.ledger_api,
+            self.contract_address,
+            self.owner_address,
+            self.spender_address,
+            100,
+        )
+        assert type(result) == JSONLike
 
     def test_transfer(self) -> None:
         """Test transfer."""
-        # check tx fields
-        # check new balances from from and to addresses
-        pass
+        result = self.contract.transfer(
+            self.ledger_api,
+            self.contract_address,
+            self.owner_address,
+            self.spender_address,
+            100,
+        )
+        assert type(result) == JSONLike
 
     def test_transfer_from(self) -> None:
         """Test transfer_from."""
-        # check tx fields
-        # check new balances from from and to addresses
-        pass
+        result = self.contract.transfer_from(
+            self.ledger_api,
+            self.contract_address,
+            self.owner_address,
+            self.spender_address,
+            100,
+        )
+        assert type(result) == JSONLike
 
     def test_permit(self) -> None:
         """Test permit."""
-        # check tx fields
-        # check allowance increase
-        pass
+        result = self.contract.permit(
+            self.ledger_api,
+            self.contract_address,
+            self.owner_address,
+            self.spender_address,
+            100,
+            # deadline,
+            # v,
+            # r,
+            # s,
+        )
+        assert type(result) == JSONLike
+
+    def test_allowance(self) -> None:
+        """Test allowance."""
+        result = self.contract.allowance(
+            self.ledger_api,
+            self.contract_address,
+            self.owner_address,
+            self.spender_address,
+        )
+        assert type(result) == JSONLike
+
+    def test_balance_of(self) -> None:
+        """Test balance_of."""
+        result = self.contract.balance_of(
+            self.ledger_api, self.contract_address, self.owner_address
+        )
+        assert type(result) == JSONLike
