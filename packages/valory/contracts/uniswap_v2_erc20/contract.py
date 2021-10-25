@@ -19,7 +19,7 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -45,22 +45,11 @@ class UniswapV2ERC20Contract(Contract):
         owner_address: str,
         spender_address: str,
         value: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
         contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.approve(spender_address, value).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
-        )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
+        tx = contract.functions.approve(spender_address, value)
+        tx = cls._build_transaction(ledger_api, owner_address, tx)
         return tx
 
     @classmethod
@@ -71,22 +60,11 @@ class UniswapV2ERC20Contract(Contract):
         from_address: str,
         to_address: str,
         value: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Transfer funds from from_address to to_address."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(from_address)
         contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.transfer(to_address, value).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
-        )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
+        tx = contract.functions.transfer(to_address, value)
+        tx = cls._build_transaction(ledger_api, from_address, tx)
         return tx
 
     @classmethod
@@ -97,24 +75,11 @@ class UniswapV2ERC20Contract(Contract):
         from_address: str,
         to_address: str,
         value: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """(Third-party) transfer funds from from_address to to_address."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(from_address)
         contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.transferFrom(
-            from_address, to_address, value
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
-        )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
+        tx = contract.functions.transferFrom(from_address, to_address, value)
+        tx = cls._build_transaction(ledger_api, from_address, tx)
         return tx
 
     @classmethod
@@ -129,24 +94,13 @@ class UniswapV2ERC20Contract(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender where approval is granted via a signature."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
         contract = cls.get_instance(ledger_api, contract_address)
-
         tx = contract.functions.permit(
             owner_address, spender_address, value, deadline, v, r, s
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
+        tx = cls._build_transaction(ledger_api, owner_address, tx)
         return tx
 
     @classmethod
@@ -155,12 +109,10 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         owner_address: str,
-        spender_address: str
+        spender_address: str,
     ) -> Optional[JSONLike]:
         """Gets the allowance for a spender."""
-
         contract = cls.get_instance(ledger_api, contract_address)
-
         tx = contract.functions.allowance(
             owner_address, spender_address
         ).buildTransaction()
@@ -170,18 +122,28 @@ class UniswapV2ERC20Contract(Contract):
 
     @classmethod
     def balance_of(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        owner_address: str
+        cls, ledger_api: LedgerApi, contract_address: str, owner_address: str
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
-
         contract = cls.get_instance(ledger_api, contract_address)
+        tx = contract.functions.balanceOf(owner_address).buildTransaction()
+        tx = ledger_api.update_with_gas_estimate(tx)
 
-        tx = contract.functions.balanceOf(
-            owner_address
-        ).buildTransaction()
+        return tx
+
+    @classmethod
+    def _build_transaction(
+        cls, ledger_api: LedgerApi, owner_address: str, tx: Any, gas: int = 300000
+    ) -> Optional[JSONLike]:
+        """Set the allowance."""
+        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
+        tx = tx.buildTransaction(
+            {
+                "gas": gas,
+                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "nonce": nonce,
+            }
+        )
         tx = ledger_api.update_with_gas_estimate(tx)
 
         return tx
