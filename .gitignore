@@ -351,4 +351,4 @@ packages/fetchai
 !packages/valory/contracts/gnosis_safe_proxy_factory/build
 
 # Log files
-benchmark/price_estimation/logs
+benchmark/check_consensus_time/logs

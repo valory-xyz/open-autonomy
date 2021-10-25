@@ -22,7 +22,6 @@
 
 import json
 from glob import glob
-from os import get_terminal_size
 from typing import Dict, List
 
 

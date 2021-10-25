@@ -100,7 +100,7 @@ services:
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: benchmark/price_estimation/Dockerfile
+      dockerfile: benchmark/check_consensus_time/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
@@ -118,7 +118,7 @@ services:
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: benchmark/price_estimation/Dockerfile
+      dockerfile: benchmark/check_consensus_time/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
@@ -136,7 +136,7 @@ services:
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: benchmark/price_estimation/Dockerfile
+      dockerfile: benchmark/check_consensus_time/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
@@ -154,7 +154,7 @@ services:
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: benchmark/price_estimation/Dockerfile
+      dockerfile: benchmark/check_consensus_time/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z

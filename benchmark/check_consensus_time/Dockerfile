@@ -19,8 +19,8 @@ RUN aea fetch --local valory/price_estimation:0.1.0
 WORKDIR /home/ubuntu/price_estimation
 RUN aea install
 
-COPY benchmark/price_estimation/run.sh /home/ubuntu/run.sh
-COPY benchmark/price_estimation/configure_agents /home/ubuntu/configure_agents
+COPY benchmark/check_consensus_time/run.sh /home/ubuntu/run.sh
+COPY benchmark/check_consensus_time/configure_agents /home/ubuntu/configure_agents
 RUN sudo chown -R ubuntu:ubuntu /home/ubuntu/configure_agents
 
 CMD ["aea", "run"]

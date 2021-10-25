@@ -74,9 +74,9 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     ValidateTransactionRound,
 )
 from packages.valory.skills.price_estimation_abci.tools import (
-    BenchmarkRound,
     random_selection,
 )
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkRound
 
 
 SIGNATURE_LENGTH = 65
