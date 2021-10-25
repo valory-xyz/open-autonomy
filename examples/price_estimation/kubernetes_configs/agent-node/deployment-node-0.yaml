@@ -1,0 +1,217 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-node-0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-node-0
+  template:
+    metadata:
+      labels:
+        app: agent-node-0
+        io.kompose.network/localnet: "true"
+      annotations:
+        cni.projectcalico.org/ipAddrs: "[\"192.167.11.3\"]"
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      restartPolicy: Always
+      containers:
+      - name: tendermint
+        image: valory/localnode
+        ports:
+          - containerPort: 26656
+          - containerPort: 26657
+        workingDir: /tendermint
+        command: ["/bin/bash"]
+        env:
+          - name: HOSTNAME
+            value: "agent-node-0"
+        args:
+          - wrapper.sh
+          - node
+          - "--consensus.create_empty_blocks=false"
+          - "--proxy_app=tcp://localhost:26658"
+        volumeMounts:
+          - mountPath: /tendermint
+            name: build
+      - name: aea
+        image: valory/oracle-poc
+        args: ["../run.sh", ]
+        command:
+          - /bin/bash
+        env: 
+          - name: HOSTNAME
+            value: "agent-node-0"
+          - name: CLUSTERED
+            value: "1"
+      volumes:
+        - name: build
+          persistentVolumeClaim:
+            claimName: 'build-vol'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-node-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-node-1
+  template:
+    metadata:
+      labels:
+        app: agent-node-1
+        io.kompose.network/localnet: "true"
+      annotations:
+        cni.projectcalico.org/ipAddrs: "[\"192.167.11.4\"]"
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: tendermint
+        image: valory/localnode
+        ports:
+          - containerPort: 26656
+          - containerPort: 26657
+        workingDir: /tendermint
+        command: ["/bin/bash"]
+        env:
+          - name: HOSTNAME
+            value: "agent-node-1"
+        args:
+          - wrapper.sh
+          - node
+          - "--consensus.create_empty_blocks=false"
+          - "--proxy_app=tcp://localhost:26658"
+        volumeMounts:
+          - mountPath: /tendermint
+            name: build
+      - name: aea
+        image: valory/oracle-poc
+        args: ["../run.sh", ]
+        command:
+          - /bin/bash
+        env: 
+          - name: HOSTNAME
+            value: "agent-node-1"
+          - name: CLUSTERED
+            value: "1"
+      volumes:
+        - name: build
+          persistentVolumeClaim:
+            claimName: 'build-vol'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-node-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-node-2
+  template:
+    metadata:
+      labels:
+        app: agent-node-2
+        io.kompose.network/localnet: "true"
+      annotations:
+        cni.projectcalico.org/ipAddrs: "[\"192.167.11.5\"]"
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: tendermint
+        image: valory/localnode
+        ports:
+          - containerPort: 26656
+          - containerPort: 26657
+        workingDir: /tendermint
+        command: ["/bin/bash"]
+        env:
+          - name: HOSTNAME
+            value: "agent-node-2"
+        args:
+          - wrapper.sh
+          - node
+          - "--consensus.create_empty_blocks=false"
+          - "--proxy_app=tcp://localhost:26658"
+        volumeMounts:
+          - mountPath: /tendermint
+            name: build
+      - name: aea
+        image: valory/oracle-poc
+        args: ["../run.sh", ]
+        command:
+          - /bin/bash
+        env: 
+          - name: HOSTNAME
+            value: "agent-node-2"
+          - name: CLUSTERED
+            value: "1"
+      volumes:
+        - name: build
+          persistentVolumeClaim:
+            claimName: 'build-vol'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-node-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-node-3
+  template:
+    metadata:
+      labels:
+        app: agent-node-3
+        io.kompose.network/localnet: "true"
+      annotations:
+        cni.projectcalico.org/ipAddrs: "[\"192.167.11.6\"]"
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: tendermint
+        image: valory/localnode
+        ports:
+          - containerPort: 26656
+          - containerPort: 26657
+        workingDir: /tendermint
+        command: ["/bin/bash"]
+        env:
+          - name: HOSTNAME
+            value: "agent-node-3"
+        args:
+          - wrapper.sh
+          - node
+          - "--consensus.create_empty_blocks=false"
+          - "--proxy_app=tcp://localhost:26658"
+        volumeMounts:
+          - mountPath: /tendermint
+            name: build
+      - name: aea
+        image: valory/oracle-poc
+        args: ["../run.sh", ]
+        command:
+          - /bin/bash
+        env: 
+          - name: HOSTNAME
+            value: "agent-node-3"
+          - name: CLUSTERED
+            value: "1"
+      volumes:
+        - name: build
+          persistentVolumeClaim:
+            claimName: 'build-vol'
+
+
