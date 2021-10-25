@@ -148,3 +148,40 @@ class UniswapV2ERC20Contract(Contract):
         tx = ledger_api.update_with_gas_estimate(tx)
 
         return tx
+
+    @classmethod
+    def allowance(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner_address: str,
+        spender_address: str
+    ) -> Optional[JSONLike]:
+        """Gets the allowance for a spender."""
+
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        tx = contract.functions.allowance(
+            owner_address, spender_address
+        ).buildTransaction()
+        tx = ledger_api.update_with_gas_estimate(tx)
+
+        return tx
+
+    @classmethod
+    def balance_of(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner_address: str
+    ) -> Optional[JSONLike]:
+        """Gets an account's balance."""
+
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        tx = contract.functions.balanceOf(
+            owner_address
+        ).buildTransaction()
+        tx = ledger_api.update_with_gas_estimate(tx)
+
+        return tx
