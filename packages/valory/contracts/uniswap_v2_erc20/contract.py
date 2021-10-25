@@ -43,7 +43,7 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         owner_address: str,
-        spender_address: int,
+        spender_address: str,
         value: int,
         gas: int = 300000,
     ) -> Optional[JSONLike]:
