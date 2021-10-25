@@ -4,8 +4,8 @@
 ## Input parameters
 ##
 BINARY="$(which tendermint)"
-# ID=${HOSTNAME##*-}
 ID=$(cat /etc/hostname | grep -Eo '[0-9]{1,4}')
+ID=${HOSTNAME##*-}
 LOG=${LOG:-tendermint.log}
 
 ##
