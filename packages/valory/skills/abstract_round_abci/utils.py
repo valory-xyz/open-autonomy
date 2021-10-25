@@ -21,6 +21,7 @@
 import builtins
 import importlib.util
 import json
+import logging
 import os
 import types
 from importlib.machinery import ModuleSpec
@@ -71,7 +72,6 @@ def locate(path: str) -> Any:
     return object_
 
 
-
 class Benchmark:
     """Benchmark"""
 
@@ -105,6 +105,7 @@ class BenchmarkRound:
     consensus_time: List[Tuple[str, float]]
     agent: Optional[str]
     agent_address: Optional[str]
+    rounds: List[str]
 
     def __init__(
         self,
@@ -113,6 +114,7 @@ class BenchmarkRound:
         self.agent = None
         self.agent_address = None
         self.consensus_time = []
+        self.rounds = []
 
     def log(
         self,
@@ -122,7 +124,7 @@ class BenchmarkRound:
         print(f"Agent : {self.agent}")
         print(f"Agent Address : {self.agent_address}")
 
-        max_length = len(max(self.consensus_time, key=lambda x: len(x[0]))[0]) + 4
+        max_length = len(max(self.rounds)) + 4
 
         print(f"\nRound{' '*(max_length-5)}Time\n{'='*(max_length+20)}")
         for round_name, total_time in self.consensus_time:
@@ -132,17 +134,21 @@ class BenchmarkRound:
         self,
     ) -> None:
         """Save logs to a file."""
-        with open(
-            f"/logs/{self.agent_address}.json", "w+", encoding="utf-8"
-        ) as outfile:
-            json.dump(
-                {
-                    "agent_address": self.agent_address,
-                    "agent": self.agent,
-                    "logs": self.consensus_time,
-                },
-                outfile,
-            )
+        try:
+            with open(
+                f"/logs/{self.agent_address}.json", "w+", encoding="utf-8"
+            ) as outfile:
+                json.dump(
+                    {
+                        "agent_address": self.agent_address,
+                        "agent": self.agent,
+                        "data": dict(self.consensus_time),
+                        "rounds": self.rounds,
+                    },
+                    outfile,
+                )
+        except (PermissionError, FileNotFoundError):
+            logging.info("Error saving benchmark data.")
 
     def measure(self, behaviour: AbstractRoundBehaviour) -> Benchmark:
         """Measure time to complete round."""
@@ -150,5 +156,6 @@ class BenchmarkRound:
         if self.agent is None:
             self.agent_address = behaviour.context.agent_address
             self.agent = behaviour.context.agent_name
-        return Benchmark(behaviour, self.consensus_time)
+
+        self.rounds.append(behaviour.matching_round.round_id)
         return Benchmark(behaviour, self.consensus_time)

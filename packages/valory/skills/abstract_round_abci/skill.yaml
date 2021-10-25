@@ -8,14 +8,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base.py: QmQN6imazmTZELdaZdotY6Y5EvKrdA76EveF9isdjNCyD3
-  behaviour_utils.py: QmZUaQA5rvXVuM94D1xHWhaNG4Avz5ZJA8mMSh5SuR1uiL
-  behaviours.py: Qmch6bg6r7wwGefcJeS4DjGSXKGsKccXGmZ7X4fELH39co
+  base.py: QmRjA29eN1JqTsguQYW1deXDCxYwmnfADeETNfyXaCzkKo
+  behaviour_utils.py: QmNs3Nds62AsVKJgPZv9CxYjWKmAD77DnxZozCwB69ievZ
+  behaviours.py: QmTsSiv49o2SkdeUcSLRfzEo4daeL6b162pqSFXtHB7JZW
   dialogues.py: Qmd18GNB7jQnH3NwkEFJq2rNJUGRqyAvUwYrAqpGhDgngB
   handlers.py: QmaiBswUZDRPWTkSaU7r5pG8PY8c2srEjMSLQ4nQnac2cE
-  models.py: QmWetYPK8mxbsstUA1eU8X2bBgn28zfr8zbVHCDn1Xm3Pt
+  models.py: QmbFa3hJfp9vgFkN9AfEjKWsL8Uegb1UyyDHE1SxWJuzm3
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
-  utils.py: QmVZiLXtQ3spTnFn1nqHbXkKJmVvDP4ZDaoabwZ7xCpGfP
+  utils.py: QmXnBxjkdfMzu2977B1jLUvvZGo4HqhBTgXLFAZNfaUPDN
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.23.0

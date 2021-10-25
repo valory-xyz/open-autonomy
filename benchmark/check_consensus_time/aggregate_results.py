@@ -22,7 +22,11 @@
 
 import json
 from glob import glob
-from typing import Dict, List
+from statistics import mean, stdev
+from typing import Callable, Dict, List
+
+
+MAX_COL_LENGTH = 7
 
 
 def get_file_list() -> List[str]:
@@ -30,24 +34,65 @@ def get_file_list() -> List[str]:
     return glob("./logs/*.json")
 
 
-def get_logs() -> List[Dict]:
+def read_benchmarks() -> List[Dict]:
     """Returns logs."""
     return [json.load(open(file, "r", encoding="utf-8")) for file in get_file_list()]
+
+
+def aggregate_round(round_id: str, benchmarks: List[Dict], aggregate_method: Callable) -> float:
+    """Aggregate value for round_id over agents."""
+    round_data = map(lambda x: x["data"][round_id], benchmarks)
+    return aggregate_method(list(round_data))
 
 
 def main() -> None:
     """Run main function."""
 
-    benchmarks = get_logs()
-    cols = [c_name for c_name, _ in max(
-        benchmarks, key=lambda x: len(x['logs'])).get("logs")]
+    print ("\nConsensus Benchmark\n")
 
-    header = f"address | " + " | ".join([f"{col[:8]}..." for col in cols])
-    print(f"{'-'*len(header)}\n{header}\n{'-'*len(header)}")
+    benchmarks = read_benchmarks()
+    benchmark = benchmarks[0]
+    rounds = benchmark["rounds"]
+    columns = ["agent  "] + rounds + ["total"]
+
+    separator = " | ".join(["-" * len(col) for col in columns])
+    header = " | ".join(columns)
+
+    benchmarks += [
+        {
+            "agent": "separator"
+        },
+        {
+            "agent_address": "average",
+            "agent": benchmark["agent"],
+            "data":dict([
+                (round_id, aggregate_round(round_id, benchmarks, mean))
+                for round_id in benchmark["rounds"]
+            ])
+        },
+        {
+            "agent": "separator"
+        },
+        {
+            "agent_address": "std_dev",
+            "agent": benchmark["agent"],
+            "data":dict([
+                (round_id, aggregate_round(round_id, benchmarks, stdev))
+                for round_id in benchmark["rounds"]
+            ])
+        }
+    ]
+
+    print(header + "\n" + separator)
     for benchmark in benchmarks:
-        time_values = [f"{t_value:.9f}" for _, t_value in benchmark["logs"]]
-        print(f"{benchmark['agent_address'][:4]}... |" + " | ".join(time_values))
-
+        if benchmark["agent"] == "separator":
+            print(separator)
+        else:
+            benchmark["data"]["total"] = sum(benchmark["data"].values())
+            row = " | ".join(
+                [benchmark["agent_address"][:MAX_COL_LENGTH]] + [f"{str(benchmark['data'][round_id])[:MAX_COL_LENGTH]}{' '*(len(round_id)-MAX_COL_LENGTH)}" for round_id in columns[1:]])
+            print(row)
+    print()
 
 if __name__ == "__main__":
     main()

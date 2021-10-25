@@ -25,6 +25,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
     AbstractRound,
     BasePeriodState,
 )
@@ -33,6 +34,8 @@ from packages.valory.skills.abstract_round_abci.models import (
     Requests,
     SharedState,
 )
+
+from tests.test_skills.test_abstract_round_abci.test_base import AbciAppTest
 
 
 class ConcreteRound(AbstractRound):
@@ -45,62 +48,63 @@ class ConcreteRound(AbstractRound):
 class TestSharedState:
     """Test SharedState(Model) class."""
 
-    @mock.patch.object(SharedState, "_process_initial_round_cls")
+    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_initialization(self, *_: Any) -> None:
         """Test the initialization of the shared state."""
-        SharedState(initial_round_cls=MagicMock(), name="", skill_context=MagicMock())
+        SharedState(abci_app_cls=MagicMock(), name="", skill_context=MagicMock())
 
-    @mock.patch.object(SharedState, "_process_initial_round_cls")
+    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
         shared_state = SharedState(
-            initial_round_cls=MagicMock, name="", skill_context=MagicMock()
+            abci_app_cls=MagicMock, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
 
-    @mock.patch.object(SharedState, "_process_initial_round_cls")
+    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_period_state_negative_not_available(self, *_: Any) -> None:
         """Test 'period_state' property getter, negative case (not available)."""
         shared_state = SharedState(
-            initial_round_cls=ConcreteRound, name="", skill_context=MagicMock()
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
+            shared_state.period.abci_app.latest_result = None  # type: ignore
             with pytest.raises(ValueError, match="period_state not available"):
                 shared_state.period_state
 
-    @mock.patch.object(SharedState, "_process_initial_round_cls")
+    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_period_state_positive(self, *_: Any) -> None:
         """Test 'period_state' property getter, negative case (not available)."""
         shared_state = SharedState(
-            initial_round_cls=ConcreteRound, name="", skill_context=MagicMock()
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
         with mock.patch.object(shared_state.context, "params"):
             shared_state.setup()
-            shared_state.period._round_results = [MagicMock()]
+            shared_state.period.abci_app._round_results = [MagicMock()]
             shared_state.period_state
 
-    def test_process_initial_round_cls_negative_not_a_class(self) -> None:
-        """Test '_process_initial_round_cls', negative case (not a class)."""
+    def test_process_abci_app_cls_negative_not_a_class(self) -> None:
+        """Test '_process_abci_app_cls', negative case (not a class)."""
         mock_obj = MagicMock()
         with pytest.raises(ValueError, match=f"The object {mock_obj} is not a class"):
-            SharedState._process_initial_round_cls(mock_obj)
+            SharedState._process_abci_app_cls(mock_obj)
 
-    def test_process_initial_round_cls_negative_not_subclass_of_abstract_round(
+    def test_process_abci_app_cls_negative_not_subclass_of_abstract_round(
         self,
     ) -> None:
-        """Test '_process_initial_round_cls', negative case (not subclass of AbstractRound)."""
+        """Test '_process_abci_app_cls', negative case (not subclass of AbstractRound)."""
         with pytest.raises(
             ValueError,
-            match=f"The class {MagicMock} is not an instance of {AbstractRound.__module__}.{AbstractRound.__name__}",
+            match=f"The class {MagicMock} is not an instance of {AbciApp.__module__}.{AbciApp.__name__}",
         ):
-            SharedState._process_initial_round_cls(MagicMock)
+            SharedState._process_abci_app_cls(MagicMock)
 
-    def test_process_initial_round_cls_positive(self) -> None:
-        """Test '_process_initial_round_cls', positive case."""
+    def test_process_abci_app_cls_positive(self) -> None:
+        """Test '_process_abci_app_cls', positive case."""
 
-        SharedState._process_initial_round_cls(ConcreteRound)
+        SharedState._process_abci_app_cls(AbciAppTest)
 
 
 def test_requests_model_initialization() -> None:

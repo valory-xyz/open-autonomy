@@ -21,18 +21,33 @@
 import struct
 from abc import ABC
 from collections import Counter
+from enum import Enum
 from operator import itemgetter
 from types import MappingProxyType
 from typing import AbstractSet, Any
 from typing import Counter as CounterType
-from typing import Dict, FrozenSet, List, Mapping, Optional, Set, Tuple, Type, cast
+from typing import (
+    Dict,
+    FrozenSet,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    cast,
+)
 
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciApp,
+    AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
+    BaseTxPayload,
     TransactionNotValidError,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -45,9 +60,21 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
+    TransactionType,
     ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.tools import aggregate
+
+
+class Event(Enum):
+    """Event enumeration for the price estimation demo."""
+
+    DONE = "done"
+    EXIT_A = "exit_a"
+    EXIT_B = "exit_b"
+    RETRY_TIMEOUT = "retry_timeout"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
 
 
 def encode_float(value: float) -> bytes:
@@ -107,6 +134,20 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get the keeper's random number [0-1]."""
         res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
         return cast(float, res / 10)
+
+    @property
+    def sorted_participants(self) -> Sequence[str]:
+        """
+        Get the sorted participants' addresses.
+
+        The addresses are sorted according to their hexadecimal value;
+        this is the reason we use key=str.lower as comparator.
+
+        This property is useful when interacting with the Safe contract.
+
+        :return: the sorted participants' addresses
+        """
+        return sorted(self.participants, key=str.lower)
 
     @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
@@ -226,7 +267,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._most_voted_tx_hash)
 
 
-class PriceEstimationAbstractRound(AbstractRound, ABC):
+class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the price estimation skill."""
 
     @property
@@ -307,6 +348,7 @@ class RegistrationRound(PriceEstimationAbstractRound):
     """
 
     round_id = "registration"
+    allowed_tx_type = RegistrationPayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the registration round."""
@@ -315,14 +357,14 @@ class RegistrationRound(PriceEstimationAbstractRound):
         # a collection of addresses
         self.participants: Set[str] = set()
 
-    def registration(self, payload: RegistrationPayload) -> None:
+    def process_payload(self, payload: RegistrationPayload) -> None:  # type: ignore
         """Handle a registration payload."""
         sender = payload.sender
 
         # we don't care if it was already there
         self.participants.add(sender)
 
-    def check_registration(  # pylint: disable=no-self-use
+    def check_payload(  # type: ignore  # pylint: disable=no-self-use
         self, _payload: RegistrationPayload
     ) -> None:
         """
@@ -338,13 +380,12 @@ class RegistrationRound(PriceEstimationAbstractRound):
         """Check that the registration threshold has been reached."""
         return len(self.participants) == self._consensus_params.max_participants
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.registration_threshold_reached:
             state = PeriodState(participants=self.participants)
-            next_round = RandomnessRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -359,13 +400,14 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
     """
 
     round_id = "randomness"
+    allowed_tx_type = RandomnessPayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'select-keeper' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_randomness: Dict[str, RandomnessPayload] = {}
 
-    def randomness(self, payload: RandomnessPayload) -> None:
+    def process_payload(self, payload: RandomnessPayload) -> None:  # type: ignore
         """Handle a 'randomness' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -385,7 +427,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
 
         self.participant_to_randomness[sender] = payload
 
-    def check_randomness(self, payload: RandomnessPayload) -> None:
+    def check_payload(self, payload: RandomnessPayload) -> None:  # type: ignore
         """
         Check an randomness payload can be applied to the current state.
 
@@ -438,7 +480,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
             raise ABCIAppInternalError("not enough randomness")
         return most_voted_randomness
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
@@ -447,8 +489,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
                 ),
                 most_voted_randomness=self.most_voted_randomness,
             )
-            next_round = SelectKeeperARound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -458,18 +499,16 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
 
     Input: a set of participants (addresses)
     Output: the selected keeper.
-
-    It schedules the next_round_class.
     """
 
-    next_round_class: Type[PriceEstimationAbstractRound]
+    allowed_tx_type = SelectKeeperPayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'select-keeper' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_selection: Dict[str, SelectKeeperPayload] = {}
 
-    def select_keeper(self, payload: SelectKeeperPayload) -> None:
+    def process_payload(self, payload: SelectKeeperPayload) -> None:  # type: ignore
         """Handle a 'select_keeper' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -489,7 +528,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
 
         self.participant_to_selection[sender] = payload
 
-    def check_select_keeper(self, payload: SelectKeeperPayload) -> None:
+    def check_payload(self, payload: SelectKeeperPayload) -> None:  # type: ignore
         """
         Check an select_keeper payload can be applied to the current state.
 
@@ -543,7 +582,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
             raise ABCIAppInternalError("keeper has not enough votes")
         return most_voted_keeper_address
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.selection_threshold_reached:
             state = self.period_state.update(
@@ -552,8 +591,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
                 ),
                 most_voted_keeper_address=self.most_voted_keeper_address,
             )
-            next_round = self.next_round_class(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -568,13 +606,14 @@ class DeploySafeRound(PriceEstimationAbstractRound):
     """
 
     round_id = "deploy_safe"
+    allowed_tx_type = DeploySafePayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
         self._contract_address: Optional[str] = None
 
-    def deploy_safe(self, payload: DeploySafePayload) -> None:
+    def process_payload(self, payload: DeploySafePayload) -> None:  # type: ignore
         """Handle a deploy safe payload."""
         sender = payload.sender
 
@@ -601,7 +640,7 @@ class DeploySafeRound(PriceEstimationAbstractRound):
 
         self._contract_address = payload.safe_contract_address
 
-    def check_deploy_safe(self, payload: DeploySafePayload) -> None:
+    def check_payload(self, payload: DeploySafePayload) -> None:  # type: ignore
         """
         Check a deploy safe payload can be applied to the current state.
 
@@ -642,37 +681,34 @@ class DeploySafeRound(PriceEstimationAbstractRound):
         """Check that the contract has been set."""
         return self._contract_address is not None
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.is_contract_set:
             state = self.period_state.update(
                 safe_contract_address=self._contract_address
             )
-            next_round = ValidateSafeRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
-class ValidateRound(PriceEstimationAbstractRound):
+class ValidateRound(PriceEstimationAbstractRound, ABC):
     """
     This class represents the validate round.
 
     Input: a period state with the set of participants, the keeper and the Safe contract address.
     Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
-
-    It schedules the positive_next_round_class or negative_next_round_class.
     """
 
-    positive_next_round_class: Type[PriceEstimationAbstractRound]
-    negative_next_round_class: Type[PriceEstimationAbstractRound]
+    allowed_tx_type = ValidatePayload.transaction_type
+    exit_event: Event
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_votes: Dict[str, ValidatePayload] = {}
 
-    def validate(self, payload: ValidatePayload) -> None:
+    def process_payload(self, payload: ValidatePayload) -> None:  # type: ignore
         """Handle a validate safe payload."""
         sender = payload.sender
 
@@ -693,7 +729,7 @@ class ValidateRound(PriceEstimationAbstractRound):
 
         self.participant_to_votes[sender] = payload
 
-    def check_validate(self, payload: ValidatePayload) -> None:
+    def check_payload(self, payload: ValidatePayload) -> None:  # type: ignore
         """
         Check a validate payload can be applied to the current state.
 
@@ -741,19 +777,17 @@ class ValidateRound(PriceEstimationAbstractRound):
         consensus_threshold = self._consensus_params.consensus_threshold
         return false_votes >= consensus_threshold
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
             state = self.period_state.update(
                 participant_to_votes=MappingProxyType(self.participant_to_votes)
             )
-            next_round = self.positive_next_round_class(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
-            next_round_ = self.negative_next_round_class(state, self._consensus_params)
-            return state, next_round_
+            return state, self.exit_event
         return None
 
 
@@ -768,13 +802,14 @@ class CollectObservationRound(PriceEstimationAbstractRound):
     """
 
     round_id = "collect_observation"
+    allowed_tx_type = ObservationPayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_observations: Dict[str, ObservationPayload] = {}
 
-    def observation(self, payload: ObservationPayload) -> None:
+    def process_payload(self, payload: ObservationPayload) -> None:  # type: ignore
         """Handle an 'observation' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -794,7 +829,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
 
         self.participant_to_observations[sender] = payload
 
-    def check_observation(self, payload: ObservationPayload) -> None:
+    def check_payload(self, payload: ObservationPayload) -> None:  # type: ignore
         """
         Check an observation payload can be applied to the current state.
 
@@ -832,7 +867,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
             >= self._consensus_params.consensus_threshold
         )
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.observation_threshold_reached:
@@ -847,8 +882,7 @@ class CollectObservationRound(PriceEstimationAbstractRound):
                 ),
                 estimate=estimate,
             )
-            next_round = EstimateConsensusRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -863,13 +897,14 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
     """
 
     round_id = "estimate_consensus"
+    allowed_tx_type = EstimatePayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'estimate consensus' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_estimate: Dict[str, EstimatePayload] = {}
 
-    def estimate(self, payload: EstimatePayload) -> None:
+    def process_payload(self, payload: EstimatePayload) -> None:  # type: ignore
         """Handle an 'estimate' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -889,7 +924,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
 
         self.participant_to_estimate[sender] = payload
 
-    def check_estimate(self, payload: EstimatePayload) -> None:
+    def check_payload(self, payload: EstimatePayload) -> None:  # type: ignore
         """
         Check an estimate payload can be applied to the current state.
 
@@ -942,15 +977,14 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
             raise ABCIAppInternalError("estimate has not enough votes")
         return most_voted_estimate
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.estimate_threshold_reached:
             state = self.period_state.update(
                 participant_to_estimate=MappingProxyType(self.participant_to_estimate),
                 most_voted_estimate=self.most_voted_estimate,
             )
-            next_round = TxHashRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -965,13 +999,14 @@ class TxHashRound(PriceEstimationAbstractRound):
     """
 
     round_id = "tx_hash"
+    allowed_tx_type = TransactionHashPayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
         self.participant_to_tx_hash: Dict[str, TransactionHashPayload] = {}
 
-    def tx_hash(self, payload: TransactionHashPayload) -> None:
+    def process_payload(self, payload: TransactionHashPayload) -> None:  # type: ignore
         """Handle a 'tx_hash' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -991,7 +1026,7 @@ class TxHashRound(PriceEstimationAbstractRound):
 
         self.participant_to_tx_hash[sender] = payload
 
-    def check_tx_hash(self, payload: TransactionHashPayload) -> None:
+    def check_payload(self, payload: TransactionHashPayload) -> None:  # type: ignore
         """
         Check a signature payload can be applied to the current state.
 
@@ -1042,15 +1077,14 @@ class TxHashRound(PriceEstimationAbstractRound):
             raise ABCIAppInternalError("tx hash has not enough votes")
         return most_voted_tx_hash
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.tx_threshold_reached:
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.participant_to_tx_hash),
                 most_voted_tx_hash=self.most_voted_tx_hash,
             )
-            next_round = CollectSignatureRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -1065,13 +1099,14 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
     """
 
     round_id = "collect_signature"
+    allowed_tx_type = SignaturePayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-signature' round."""
         super().__init__(*args, **kwargs)
         self.signatures_by_participant: Dict[str, str] = {}
 
-    def signature(self, payload: SignaturePayload) -> None:
+    def process_payload(self, payload: SignaturePayload) -> None:  # type: ignore
         """Handle a 'signature' payload."""
         sender = payload.sender
         if sender not in self.period_state.participants:
@@ -1091,7 +1126,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
         self.signatures_by_participant[sender] = payload.signature
 
-    def check_signature(self, payload: SignaturePayload) -> None:
+    def check_payload(self, payload: SignaturePayload) -> None:  # type: ignore
         """
         Check a signature payload can be applied to the current state.
 
@@ -1126,7 +1161,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
         consensus_threshold = self._consensus_params.consensus_threshold
         return len(self.signatures_by_participant) >= consensus_threshold
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.signature_threshold_reached:
             state = self.period_state.update(
@@ -1134,8 +1169,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
                     self.signatures_by_participant
                 ),
             )
-            next_round = FinalizationRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -1150,13 +1184,14 @@ class FinalizationRound(PriceEstimationAbstractRound):
     """
 
     round_id = "finalization"
+    allowed_tx_type = FinalizationTxPayload.transaction_type
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'finalization' round."""
         super().__init__(*args, **kwargs)
         self._tx_hash: Optional[str] = None
 
-    def finalization(self, payload: FinalizationTxPayload) -> None:
+    def process_payload(self, payload: FinalizationTxPayload) -> None:  # type: ignore
         """Handle a finalization payload."""
         sender = payload.sender
 
@@ -1181,7 +1216,7 @@ class FinalizationRound(PriceEstimationAbstractRound):
 
         self._tx_hash = payload.tx_hash
 
-    def check_finalization(self, payload: FinalizationTxPayload) -> None:
+    def check_payload(self, payload: FinalizationTxPayload) -> None:  # type: ignore
         """
         Check a finalization payload can be applied to the current state.
 
@@ -1218,13 +1253,12 @@ class FinalizationRound(PriceEstimationAbstractRound):
         """Check that the tx hash has been set."""
         return self._tx_hash is not None
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.tx_hash_set:
             state = self.period_state.update(final_tx_hash=self._tx_hash)
-            next_round = ValidateTransactionRound(state, self._consensus_params)
-            return state, next_round
+            return state, Event.DONE
         return None
 
 
@@ -1232,38 +1266,29 @@ class SelectKeeperARound(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
     round_id = "select_keeper_a"
-    next_round_class = DeploySafeRound
-
-    def select_keeper_a(self, payload: SelectKeeperPayload) -> None:
-        """Handle a 'select_keeper' payload."""
-        super().select_keeper(payload)
-
-    def check_select_keeper_a(self, payload: SelectKeeperPayload) -> None:
-        """Check an select_keeper payload can be applied to the current state."""
-        return super().check_select_keeper(payload)
 
 
 class SelectKeeperBRound(SelectKeeperRound):
     """This class represents the select keeper B round."""
 
     round_id = "select_keeper_b"
-    next_round_class = FinalizationRound
-
-    def select_keeper_b(self, payload: SelectKeeperPayload) -> None:
-        """Handle a 'select_keeper' payload."""
-        super().select_keeper(payload)
-
-    def check_select_keeper_b(self, payload: SelectKeeperPayload) -> None:
-        """Check an select_keeper payload can be applied to the current state."""
-        return super().check_select_keeper(payload)
 
 
 class ConsensusReachedRound(PriceEstimationAbstractRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "consensus_reached"
+    allowed_tx_type = None
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, AbstractRound]]:
+    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+        """Process the payload."""
+        raise ABCIAppInternalError("this round does not accept transactions")
+
+    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+        """Check the payload"""
+        raise TransactionNotValidError("this round does not accept transactions")
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         return None
 
@@ -1279,27 +1304,7 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    positive_next_round_class = CollectObservationRound
-    negative_next_round_class = SelectKeeperARound
-
-    def validate_safe(self, payload: ValidatePayload) -> None:
-        """
-        Handle a validate payload.
-
-        :param: payload: the payload.
-        """
-        super().validate(payload)
-
-    def check_validate_safe(self, payload: ValidatePayload) -> None:
-        """
-        Check a validate safe payload can be applied to the current state.
-
-        A deploy safe transaction can be applied only if:
-        - the sender belongs to the set of participants
-
-        :param: payload: the payload.
-        """
-        super().check_validate(payload)
+    exit_event = Event.EXIT_A
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1313,24 +1318,36 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    positive_next_round_class = ConsensusReachedRound
-    negative_next_round_class = SelectKeeperBRound
+    exit_event = Event.EXIT_B
 
-    def validate_transaction(self, payload: ValidatePayload) -> None:
-        """
-        Handle a validate payload.
 
-        :param: payload: the payload.
-        """
-        super().validate(payload)
+class PriceEstimationAbciApp(AbciApp[Event]):
+    """Price estimation ABCI application."""
 
-    def check_validate_transaction(self, payload: ValidatePayload) -> None:
-        """
-        Check a validate transaction payload can be applied to the current state.
-
-        A deploy safe transaction can be applied only if:
-        - the sender belongs to the set of participants
-
-        :param: payload: the payload.
-        """
-        super().check_validate(payload)
+    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    transition_function: AbciAppTransitionFunction = {
+        RegistrationRound: {Event.DONE: RandomnessRound},
+        RandomnessRound: {Event.DONE: SelectKeeperARound},
+        SelectKeeperARound: {Event.DONE: DeploySafeRound},
+        DeploySafeRound: {
+            Event.DONE: ValidateSafeRound,
+            Event.EXIT_A: SelectKeeperARound,
+        },
+        ValidateSafeRound: {Event.DONE: CollectObservationRound},
+        CollectObservationRound: {Event.DONE: EstimateConsensusRound},
+        EstimateConsensusRound: {Event.DONE: TxHashRound},
+        TxHashRound: {Event.DONE: CollectSignatureRound},
+        CollectSignatureRound: {Event.DONE: FinalizationRound},
+        FinalizationRound: {
+            Event.DONE: ValidateTransactionRound,
+            Event.EXIT_B: SelectKeeperBRound,
+        },
+        ValidateTransactionRound: {Event.DONE: ConsensusReachedRound},
+        SelectKeeperBRound: {Event.DONE: FinalizationRound},
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.EXIT_A: 5.0,
+        Event.EXIT_B: 5.0,
+        Event.RETRY_TIMEOUT: 10.0,
+        Event.ROUND_TIMEOUT: 30.0,
+    }
