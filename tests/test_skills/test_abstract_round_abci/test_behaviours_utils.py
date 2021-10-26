@@ -593,15 +593,6 @@ class TestBaseState:
         message = MagicMock()
         self.behaviour.default_callback_request(message)
 
-    def test_reset(
-        self,
-    ) -> None:
-        """Test reset method."""
-        self.behaviour.reset()
-
-        assert not self.behaviour._is_done
-        assert not self.behaviour._is_started
-
     def test_stop(self) -> None:
         """Test the stop method."""
         self.behaviour.stop()
