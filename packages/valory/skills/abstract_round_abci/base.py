@@ -450,6 +450,11 @@ class BasePeriodState:
             raise ValueError("'participants' field is None")
         return self._participants
 
+    @property
+    def nb_participants(self) -> int:
+        """Get the number of participants."""
+        return len(self.participants)
+
     def update(self, **kwargs: Any) -> "BasePeriodState":
         """Copy and update the state."""
         # remove leading underscore from keys

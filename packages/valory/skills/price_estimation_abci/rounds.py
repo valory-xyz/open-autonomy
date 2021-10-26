@@ -21,6 +21,7 @@
 import struct
 from abc import ABC
 from collections import Counter
+from copy import copy
 from enum import Enum
 from operator import itemgetter
 from types import MappingProxyType
@@ -42,6 +43,7 @@ from typing import (
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppException,
     ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
@@ -49,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     TransactionNotValidError,
+    consensus_threshold,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
@@ -265,6 +268,10 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
         return cast(str, self._most_voted_tx_hash)
 
+    def reset(self) -> "PeriodState":
+        """Return the initial period state."""
+        return PeriodState(self.participants)
+
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the price estimation skill."""
@@ -273,6 +280,113 @@ class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     def period_state(self) -> PeriodState:
         """Return the period state."""
         return cast(PeriodState, self._state)
+
+    @classmethod
+    def check_majority_possible_with_new_voter(
+        cls,
+        votes_by_participant: Dict[Any, Any],
+        new_voter: Any,
+        new_vote: Any,
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException,
+    ) -> None:
+        """
+        Check that a Byzantine majority is still achievable, once a new vote is added.
+
+         :param votes_by_participant: a mapping from a participant to its vote, before the new vote is added
+         :param new_voter: the new voter
+         :param new_vote: the new vote
+         :param nb_participants: the total number of participants
+         :param exception_cls: the class of the exception to raise in case the check fails.
+         :raises: exception_cls: in case the check does not pass.
+        """
+        # check preconditions
+        enforce(
+            new_voter not in votes_by_participant,
+            "voter has already voted",
+            ABCIAppInternalError,
+        )
+        enforce(
+            len(votes_by_participant) <= nb_participants - 1,
+            "nb_participants not consistent with votes_by_participants",
+            ABCIAppInternalError,
+        )
+
+        # copy the input dictionary to avoid side-effects
+        votes_by_participant = copy(votes_by_participant)
+
+        # add the new vote
+        votes_by_participant[new_voter] = new_vote
+
+        cls.check_majority_possible(
+            votes_by_participant, nb_participants, exception_cls=exception_cls
+        )
+
+    @classmethod
+    def check_majority_possible(
+        cls,
+        votes_by_participant: Dict[Any, Any],
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException,
+    ) -> None:
+        """
+        Check that a Byzantine majority is still achievable.
+
+        The idea is that, even if all the votes have not been delivered yet,
+        it can be deduced whether a quorum cannot be reached due to
+        divergent preferences among the voters and due to a too small
+        number of other participants whose vote has not been delivered yet.
+
+        The check fails iff:
+
+            nb_remaining_votes + largest_nb_votes < quorum
+
+        That is, if the number of remaining votes is not enough to make
+        the most voted item so far to exceed the quorm.
+
+        Preconditions on the input:
+        - the size of votes_by_participant should not be greater than "nb_participants - 1" voters
+        - new voter must not be in the current votes_by_participant
+
+        :param votes_by_participant: a mapping from a participant to its vote
+        :param nb_participants: the total number of participants
+        :param exception_cls: the class of the exception to raise in case the check fails.
+        :raises exception_cls: in case the check does not pass.
+        """
+        enforce(
+            len(votes_by_participant) <= nb_participants,
+            "nb_participants not consistent with votes_by_participants",
+            ABCIAppInternalError,
+        )
+
+        nb_votes_by_item = Counter(list(votes_by_participant.values()))
+        largest_nb_votes = max(nb_votes_by_item.values())
+        nb_votes_received = sum(nb_votes_by_item.values())
+        nb_remaining_votes = nb_participants - nb_votes_received
+
+        threshold = consensus_threshold(nb_participants)
+
+        if nb_remaining_votes + largest_nb_votes < threshold:
+            raise exception_cls(
+                f"cannot reach quorum={threshold}, number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
+            )
+
+    @classmethod
+    def is_majority_possible(
+        cls, votes_by_participant: Dict[Any, Any], nb_participants: int
+    ) -> bool:
+        """
+        Return true if a Byzantine majority is still achievable, false otherwise.
+
+        :param votes_by_participant: a mapping from a participant to its vote
+        :param nb_participants: the total number of participants
+        :return: True if the majority is still possible, false otherwise.
+        """
+        try:
+            cls.check_majority_possible(votes_by_participant, nb_participants)
+        except ABCIAppException:
+            return False
+        return True
 
     @classmethod
     def _sender_not_in_participants_error_message(
@@ -424,6 +538,13 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_randomness,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=ABCIAppInternalError,
+        )
         self.participant_to_randomness[sender] = payload
 
     def check_payload(self, payload: RandomnessPayload) -> None:  # type: ignore
@@ -437,24 +558,32 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
 
         :param: payload: the payload.
         """
-        sender_in_participant_set = payload.sender in self.period_state.participants
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
         if not sender_in_participant_set:
             raise TransactionNotValidError(
                 self._sender_not_in_participants_error_message(
-                    payload.sender, self.period_state.participants
+                    sender, self.period_state.participants
                 )
             )
 
         sender_has_not_sent_randomness_yet = (
-            payload.sender not in self.participant_to_randomness
+            sender not in self.participant_to_randomness
         )
         if not sender_has_not_sent_randomness_yet:
             raise TransactionNotValidError(
                 self._sender_already_sent_randomness(
-                    payload.sender,
-                    self.participant_to_randomness[payload.sender].randomness,
+                    sender,
+                    self.participant_to_randomness[sender].randomness,
                 )
             )
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_randomness,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=TransactionNotValidError,
+        )
 
     @property
     def threshold_reached(self) -> bool:
@@ -489,6 +618,10 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
                 most_voted_randomness=self.most_voted_randomness,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.participant_to_randomness, self.period_state.nb_participants
+        ):
+            return self.period_state.reset(), Event.NO_MAJORITY
         return None
 
 
@@ -525,6 +658,13 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_selection,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=ABCIAppInternalError,
+        )
         self.participant_to_selection[sender] = payload
 
     def check_payload(self, payload: SelectKeeperPayload) -> None:  # type: ignore
@@ -555,6 +695,13 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
                     self.participant_to_selection[sender].keeper,
                 )
             )
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_selection,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=TransactionNotValidError,
+        )
 
     @property
     def selection_threshold_reached(self) -> bool:
@@ -591,6 +738,10 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
                 most_voted_keeper_address=self.most_voted_keeper_address,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.participant_to_selection, self.period_state.nb_participants
+        ):
+            return self.period_state.reset(), Event.NO_MAJORITY
         return None
 
 
@@ -726,6 +877,13 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_votes,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=ABCIAppInternalError,
+        )
         self.participant_to_votes[sender] = payload
 
     def check_payload(self, payload: ValidatePayload) -> None:  # type: ignore
@@ -755,6 +913,13 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
                     str(self.participant_to_votes[sender].vote),
                 )
             )
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_votes,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=TransactionNotValidError,
+        )
 
     @property
     def positive_vote_threshold_reached(self) -> bool:
@@ -763,8 +928,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
             [payload.vote for payload in self.participant_to_votes.values()]
         )
         # check that "true" has at least the consensus # of votes
-        consensus_threshold = self._consensus_params.consensus_threshold
-        return true_votes >= consensus_threshold
+        return true_votes >= self._consensus_params.consensus_threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
@@ -773,8 +937,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
             [payload.vote for payload in self.participant_to_votes.values()]
         )
         # check that "false" has at least the consensus # of votes
-        consensus_threshold = self._consensus_params.consensus_threshold
-        return false_votes >= consensus_threshold
+        return false_votes >= self._consensus_params.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -787,6 +950,10 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
             return state, self.exit_event
+        if not self.is_majority_possible(
+            self.participant_to_votes, self.period_state.nb_participants
+        ):
+            return self.period_state.reset(), Event.NO_MAJORITY
         return None
 
 
@@ -921,6 +1088,13 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_estimate,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=ABCIAppInternalError,
+        )
         self.participant_to_estimate[sender] = payload
 
     def check_payload(self, payload: EstimatePayload) -> None:  # type: ignore
@@ -951,6 +1125,14 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_estimate,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=TransactionNotValidError,
+        )
+
     @property
     def estimate_threshold_reached(self) -> bool:
         """Check that the estimate threshold has been reached."""
@@ -958,9 +1140,11 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         estimates_counter.update(
             payload.estimate for payload in self.participant_to_estimate.values()
         )
-        # check that a single estimate has at least the consensu # of votes
-        consensus_threshold = self._consensus_params.consensus_threshold
-        return any(count >= consensus_threshold for count in estimates_counter.values())
+        # check that a single estimate has at least the consensus # of votes
+        return any(
+            count >= self._consensus_params.consensus_threshold
+            for count in estimates_counter.values()
+        )
 
     @property
     def most_voted_estimate(self) -> float:
@@ -984,6 +1168,10 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
                 most_voted_estimate=self.most_voted_estimate,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.participant_to_estimate, self.period_state.nb_participants
+        ):
+            return self.period_state.reset(), Event.NO_MAJORITY
         return None
 
 
@@ -1023,6 +1211,12 @@ class TxHashRound(PriceEstimationAbstractRound):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_tx_hash,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+        )
         self.participant_to_tx_hash[sender] = payload
 
     def check_payload(self, payload: TransactionHashPayload) -> None:  # type: ignore
@@ -1053,6 +1247,14 @@ class TxHashRound(PriceEstimationAbstractRound):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.participant_to_tx_hash,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=TransactionNotValidError,
+        )
+
     @property
     def tx_threshold_reached(self) -> bool:
         """Check that the tx threshold has been reached."""
@@ -1061,8 +1263,10 @@ class TxHashRound(PriceEstimationAbstractRound):
             payload.tx_hash for payload in self.participant_to_tx_hash.values()
         )
         # check that a single estimate has at least the consensus # of votes
-        consensus_threshold = self._consensus_params.consensus_threshold
-        return any(count >= consensus_threshold for count in tx_counter.values())
+        return any(
+            count >= self._consensus_params.consensus_threshold
+            for count in tx_counter.values()
+        )
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -1084,6 +1288,10 @@ class TxHashRound(PriceEstimationAbstractRound):
                 most_voted_tx_hash=self.most_voted_tx_hash,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.participant_to_tx_hash, self.period_state.nb_participants
+        ):
+            return self.period_state.reset(), Event.NO_MAJORITY
         return None
 
 
@@ -1117,12 +1325,19 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
 
         if sender in self.signatures_by_participant:
             raise ABCIAppInternalError(
-                self._sender_already_sent_signature(
+                self._sender_already_sent_item(
                     sender,
+                    "its signature",
                     self.signatures_by_participant[sender],
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.signatures_by_participant,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+        )
         self.signatures_by_participant[sender] = payload.signature
 
     def check_payload(self, payload: SignaturePayload) -> None:  # type: ignore
@@ -1154,11 +1369,21 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
                 )
             )
 
+        self.check_majority_possible_with_new_voter(
+            self.signatures_by_participant,
+            sender,
+            payload,
+            self.period_state.nb_participants,
+            exception_cls=TransactionNotValidError,
+        )
+
     @property
     def signature_threshold_reached(self) -> bool:
         """Check that the signature threshold has been reached."""
-        consensus_threshold = self._consensus_params.consensus_threshold
-        return len(self.signatures_by_participant) >= consensus_threshold
+        return (
+            len(self.signatures_by_participant)
+            >= self._consensus_params.consensus_threshold
+        )
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -1169,6 +1394,10 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
                 ),
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.signatures_by_participant, self.period_state.nb_participants
+        ):
+            return self.period_state.reset(), Event.NO_MAJORITY
         return None
 
 
