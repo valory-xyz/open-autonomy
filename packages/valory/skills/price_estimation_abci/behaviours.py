@@ -143,7 +143,6 @@ class RegistrationBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-
         self.set_done()  # pragma: no cover
 
 
@@ -359,8 +358,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 self,
             ):
                 yield from self.wait_until_round_end()
-                self.set_done()  # pragma: no cover
-                return  # pragma: no cover
+            self.set_done()  # pragma: no cover
+            return  # pragma: no cover
 
         currency_id = self.params.currency_id
         convert_id = self.params.convert_id
