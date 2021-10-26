@@ -28,6 +28,7 @@ from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    BaseTxPayload,
     ConsensusParams,
     TransactionNotValidError,
 )
@@ -1191,6 +1192,16 @@ class TestConsensusReachedRound(BaseRoundTestClass):
         test_round = ConsensusReachedRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
+
+        with pytest.raises(
+            ABCIAppInternalError, match="this round does not accept transactions"
+        ):
+            test_round.process_payload(BaseTxPayload("sender"))
+
+        with pytest.raises(
+            TransactionNotValidError, match="this round does not accept transactions"
+        ):
+            test_round.check_payload(BaseTxPayload("sender"))
 
         assert test_round.end_block() is None
 
