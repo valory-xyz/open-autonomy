@@ -10,7 +10,7 @@ fingerprint:
   build/IUniswapV2Router02.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
   contract.py: Qmf1Y9eKnSUiPSf6nJeExMVLpaA98mkDuMdZr7b9k46PzA
 fingerprint_ignore_patterns: []
-class_name: GnosisSafeContract
+class_name: UniswapV2Router02Contract
 contract_interface_paths:
   ethereum: build/IUniswapV2Router02.json
 dependencies: {}

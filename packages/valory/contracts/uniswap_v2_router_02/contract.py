@@ -19,7 +19,7 @@
 
 """This module contains the class to connect to a Uniswap V2 Router02 contract."""
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -34,7 +34,7 @@ _logger = logging.getLogger(
 )
 
 
-class UniswapV2Router02(Contract):
+class UniswapV2Router02Contract(Contract):
     """The Uniswap V2 Router02 contract."""
 
     @classmethod
@@ -50,33 +50,25 @@ class UniswapV2Router02(Contract):
         amount_a_min: int,
         amount_b_min: int,
         to_address: str,
-        deadline,
-        gas: int = 300000,
+        deadline: int,
     ) -> Optional[JSONLike]:
         """Add liquidity."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.addLiquidity(
-            token_a,
-            token_b,
-            amount_a_desired,
-            amount_b_desired,
-            amount_a_min,
-            amount_b_min,
-            to_address,
-            deadline,
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "addLiquidity",
+            owner_address,
+            (
+                token_a,
+                token_b,
+                amount_a_desired,
+                amount_b_desired,
+                amount_a_min,
+                amount_b_min,
+                to_address,
+                deadline,
+            ),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def add_liquidity_ETH(
@@ -89,31 +81,23 @@ class UniswapV2Router02(Contract):
         amount_token_min: int,
         amount_ETH_min: int,
         to_address: str,
-        deadline,
-        gas: int = 300000,
+        deadline: int,
     ) -> Optional[JSONLike]:
         """Add liquidity ETH."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.addLiquidityETH(
-            token,
-            amount_token_desired,
-            amount_token_min,
-            amount_ETH_min,
-            to_address,
-            deadline,
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "addLiquidityETH",
+            owner_address,
+            (
+                token,
+                amount_token_desired,
+                amount_token_min,
+                amount_ETH_min,
+                to_address,
+                deadline,
+            ),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def remove_liquidity(
@@ -128,31 +112,23 @@ class UniswapV2Router02(Contract):
         amount_b_min: int,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Remove liquidity."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.removeLiquidity(
-            token_a,
-            token_b,
-            liquidity,
-            amount_a_min,
-            amount_b_min,
-            to_address,
-            deadline,
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "removeLiquidity",
+            owner_address,
+            (
+                token_a,
+                token_b,
+                liquidity,
+                amount_a_min,
+                amount_b_min,
+                to_address,
+                deadline,
+            ),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def remove_liquidity_ETH(
@@ -166,25 +142,15 @@ class UniswapV2Router02(Contract):
         amount_ETH_min: int,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Remove liquidity ETH."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.removeLiquidityETH(
-            token, liquidity, amount_token_min, amount_ETH_min, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "removeLiquidityETH",
+            owner_address,
+            (token, liquidity, amount_token_min, amount_ETH_min, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def remove_liquidity_with_permit(
@@ -203,32 +169,27 @@ class UniswapV2Router02(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Remove liquidity with permit."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.removeLiquidityWithPermit(
-            token_a,
-            token_b,
-            liquidity,
-            amount_a_min,
-            amount_b_min,
-            to_address,
-            deadline,
-            approve_max,
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "removeLiquidityWithPermit",
+            owner_address,
+            (
+                token_a,
+                token_b,
+                liquidity,
+                amount_a_min,
+                amount_b_min,
+                to_address,
+                deadline,
+                approve_max,
+                v,
+                r,
+                s,
+            ),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def remove_liquidity_ETH_with_permit(
@@ -246,34 +207,26 @@ class UniswapV2Router02(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Remove liquidity ETH with permit."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.removeLiquidityETHWithPermit(
-            token,
-            liquidity,
-            amount_token_min,
-            amount_ETH_min,
-            to_address,
-            deadline,
-            approve_max,
-            v,
-            r,
-            s,
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "removeLiquidityETHWithPermit",
+            owner_address,
+            (
+                token,
+                liquidity,
+                amount_token_min,
+                amount_ETH_min,
+                to_address,
+                deadline,
+                approve_max,
+                v,
+                r,
+                s,
+            ),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def remove_liquidity_ETH_Supporting_fee_on_transfer_tokens(
@@ -287,25 +240,15 @@ class UniswapV2Router02(Contract):
         amount_ETH_min: int,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Remove liquidity ETH supportinmg fee on transfer tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.removeLiquidityETHSupportingFeeOnTransferTokens(
-            token, liquidity, amount_token_min, amount_ETH_min, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "removeLiquidityETHSupportingFeeOnTransferTokens",
+            owner_address,
+            (token, liquidity, amount_token_min, amount_ETH_min, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def remove_liquidity_ETH_with_permit_supporting_fee_on_transfer_tokens(
@@ -323,34 +266,26 @@ class UniswapV2Router02(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Remove liquidity ETH with permit supportinmg fee on transfer tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-            token,
-            liquidity,
-            amount_token_min,
-            amount_ETH_min,
-            to_address,
-            deadline,
-            approve_max,
-            v,
-            r,
-            s,
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
+            owner_address,
+            (
+                token,
+                liquidity,
+                amount_token_min,
+                amount_ETH_min,
+                to_address,
+                deadline,
+                approve_max,
+                v,
+                r,
+                s,
+            ),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_exact_tokens_for_tokens(
@@ -363,25 +298,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap exact tokens for tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapExactTokensForTokens(
-            amount_in, amount_out_min, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapExactTokensForTokens",
+            owner_address,
+            (amount_in, amount_out_min, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_tokens_for_exact_tokens(
@@ -394,25 +319,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap tokens for exact tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapTokensForExactTokens(
-            amount_out, amount_in_max, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapTokensForExactTokens",
+            owner_address,
+            (amount_out, amount_in_max, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_exact_ETH_for_tokens(
@@ -424,25 +339,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap exact ETH for tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapExactETHForTokens(
-            amount_out_min, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapExactETHForTokens",
+            owner_address,
+            (amount_out_min, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_tokens_for_exact_ETH(
@@ -455,25 +360,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap tokens for exact ETH."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapTokensForExactETH(
-            amount_out, amount_in_max, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapTokensForExactETH",
+            owner_address,
+            (amount_out, amount_in_max, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_exact_tokens_for_ETH(
@@ -486,25 +381,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap exact tokens for ETH."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapExactTokensForETH(
-            amount_in, amount_out_min, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapExactTokensForETH",
+            owner_address,
+            (amount_in, amount_out_min, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_ETH_for_exact_tokens(
@@ -516,25 +401,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap ETH tokens for exact tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapETHExactTokens(
-            amount_out, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapETHExactTokens",
+            owner_address,
+            (amount_out, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_exact_tokens_for_tokens_supporting_fee_on_transfer_tokens(
@@ -547,25 +422,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap exact tokens for tokens supporting fee on transfer tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            amount_in, amount_out_min, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapExactTokensForTokensSupportingFeeOnTransferTokens",
+            owner_address,
+            (amount_in, amount_out_min, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_exact_ETH_for_tokens_supporting_fee_on_transfer_tokens(
@@ -577,25 +442,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap exact ETH for tokens supporting fee on transfer tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapExactETHForTokensSupportingFeeOnTransferTokens(
-            amount_out_min, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapExactETHForTokensSupportingFeeOnTransferTokens",
+            owner_address,
+            (amount_out_min, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def swap_exact_tokens_for_ETH_supporting_fee_on_transfer_tokens(
@@ -608,25 +463,15 @@ class UniswapV2Router02(Contract):
         path: list,
         to_address: str,
         deadline: int,
-        gas: int = 300000,
     ) -> Optional[JSONLike]:
         """Swap exact tokens for ETH supporting fee on transfer tokens."""
-
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            amount_in, amount_out_min, path, to_address, deadline
-        ).buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
-                "nonce": nonce,
-            }
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "swapExactTokensForETHSupportingFeeOnTransferTokens",
+            owner_address,
+            (amount_in, amount_out_min, path, to_address, deadline),
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
 
     @classmethod
     def quote(
@@ -638,13 +483,13 @@ class UniswapV2Router02(Contract):
         reserve_b: int,
     ) -> Optional[JSONLike]:
         """Quote."""
-
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.quote(amount_a, reserve_a, reserve_b).buildTransaction()
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "quote",
+            None,
+            (amount_a, reserve_a, reserve_b),
+        )
 
     @classmethod
     def get_amount_out(
@@ -656,15 +501,13 @@ class UniswapV2Router02(Contract):
         reserve_out: int,
     ) -> Optional[JSONLike]:
         """Get amount out."""
-
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.getAmountOut(
-            amount_in, reserve_in, reserve_out
-        ).buildTransaction()
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "getAmountOut",
+            None,
+            (amount_in, reserve_in, reserve_out),
+        )
 
     @classmethod
     def get_amount_in(
@@ -676,38 +519,63 @@ class UniswapV2Router02(Contract):
         reserve_out: int,
     ) -> Optional[JSONLike]:
         """Get amount in."""
-
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.getAmountIn(
-            amount_out, reserve_in, reserve_out
-        ).buildTransaction()
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "getAmountIn",
+            None,
+            (amount_out, reserve_in, reserve_out),
+        )
 
     @classmethod
     def get_amounts_out(
         cls, ledger_api: LedgerApi, contract_address: str, amount_in: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts out."""
-
-        contract = cls.get_instance(ledger_api, contract_address)
-
-        tx = contract.functions.getAmountsOut(amount_in, path).buildTransaction()
-        tx = ledger_api.update_with_gas_estimate(tx)
-
-        return tx
+        return cls._call(
+            ledger_api, contract_address, "getAmountsOut", None, (amount_in, path)
+        )
 
     @classmethod
     def get_amounts_in(
         cls, ledger_api: LedgerApi, contract_address: str, amount_out: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts in."""
+        return cls._call(
+            ledger_api, contract_address, "getAmountsIn", None, (amount_out, path)
+        )
 
+    @classmethod
+    def _call(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        method_name: str,
+        owner_address: str = None,
+        *method_args: tuple,
+    ) -> Optional[JSONLike]:
+        """Call method."""
         contract = cls.get_instance(ledger_api, contract_address)
+        method = getattr(contract.functions, method_name)
+        tx = method(method_args)
 
-        tx = contract.functions.getAmountsIn(amount_out, path).buildTransaction()
+        if owner_address:
+            return cls._build_transaction(ledger_api, owner_address, tx)
+        return tx.buildTransaction()
+
+    @classmethod
+    def _build_transaction(
+        cls, ledger_api: LedgerApi, owner_address: str, tx: Any, gas: int = 300000
+    ) -> Optional[JSONLike]:
+        """Set the allowance."""
+        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
+        tx = tx.buildTransaction(
+            {
+                "gas": gas,
+                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "nonce": nonce,
+            }
+        )
         tx = ledger_api.update_with_gas_estimate(tx)
 
         return tx

@@ -29,8 +29,8 @@ from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Co
 from tests.conftest import ROOT_DIR
 
 
-class TestUniswapV2ERC20(BaseContractTestCase):
-    """Test deployment of the proxy to Ganache."""
+class TestUniswapV2ERC20Contract(BaseContractTestCase):
+    """Test TestUniswapV2ERC20Contract."""
 
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
