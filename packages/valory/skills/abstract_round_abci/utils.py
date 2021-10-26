@@ -26,7 +26,7 @@ import os
 import types
 from importlib.machinery import ModuleSpec
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 
@@ -80,11 +80,15 @@ class Benchmark:
     consensus_time: List[Tuple[str, float]]
 
     def __init__(
-        self, behaviour: AbstractRoundBehaviour, consensus_time: List[Tuple[str, float]]
+        self,
+        behaviour: AbstractRoundBehaviour,
+        consensus_time: List[Tuple[str, float]],
+        save_function: Callable,
     ) -> None:
         """Benchmark for single round."""
         self.behaviour = behaviour
         self.consensus_time = consensus_time
+        self.save_function = save_function
 
     def __enter__(
         self,
@@ -97,6 +101,7 @@ class Benchmark:
 
         total_time = time() - self.tick
         self.consensus_time.append((self.behaviour.matching_round.round_id, total_time))
+        self.save_function()
 
 
 class BenchmarkRound:
@@ -158,4 +163,4 @@ class BenchmarkRound:
             self.agent = behaviour.context.agent_name
 
         self.rounds.append(behaviour.matching_round.round_id)
-        return Benchmark(behaviour, self.consensus_time)
+        return Benchmark(behaviour, self.consensus_time, self.save)

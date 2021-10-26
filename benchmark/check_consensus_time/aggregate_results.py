@@ -55,7 +55,7 @@ def main() -> None:
     rounds = benchmark["rounds"]
     columns = ["agent  "] + rounds + ["total"]
 
-    separator = " | ".join(["-" * len(col) for col in columns])
+    separator = "-|-".join(["-" * len(col) for col in columns])
     header = " | ".join(columns)
 
     benchmarks += [

@@ -22,5 +22,6 @@ RUN aea install
 COPY benchmark/check_consensus_time/run.sh /home/ubuntu/run.sh
 COPY benchmark/check_consensus_time/configure_agents /home/ubuntu/configure_agents
 RUN sudo chown -R ubuntu:ubuntu /home/ubuntu/configure_agents
+RUN sudo chmod +x /home/ubuntu/configure_agents/*.sh
 
 CMD ["aea", "run"]

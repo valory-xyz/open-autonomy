@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   hardhat:
@@ -10,7 +10,7 @@ services:
       - ../../third_party/safe-contracts:/home/ubuntu/build
     working_dir: /home/ubuntu/build
     entrypoint: "/bin/bash"
-    command: [ "/usr/local/bin/yarn", "run", "hardhat", "node", "--port", "8545"]
+    command: ["/usr/local/bin/yarn", "run", "hardhat", "node", "--port", "8545"]
     networks:
       localnet:
         ipv4_address: 192.167.11.2
@@ -20,7 +20,7 @@ services:
     image: "tendermint/localnode"
     cpus: 0.1
     ports:
-      - "26656-26657:26656-26657"
+      - "26606-26607:26656-26657"
     environment:
       - ID=0
       - LOG=${LOG:-tendermint.log}
@@ -33,14 +33,14 @@ services:
       localnet:
         ipv4_address: 192.167.11.3
     depends_on:
-    - hardhat
+      - hardhat
 
   node1:
     container_name: node1
     image: "tendermint/localnode"
     cpus: 0.1
     ports:
-      - "26666-26667:26656-26657"
+      - "26616-26617:26656-26657"
     environment:
       - ID=1
       - LOG=${LOG:-tendermint.log}
@@ -59,11 +59,11 @@ services:
     container_name: node2
     image: "tendermint/localnode"
     cpus: 0.1
+    ports:
+      - "26626-26627:26656-26657"
     environment:
       - ID=2
       - LOG=${LOG:-tendermint.log}
-    ports:
-      - "26676-26677:26656-26657"
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
@@ -79,11 +79,11 @@ services:
     container_name: node3
     image: "tendermint/localnode"
     cpus: 0.1
+    ports:
+      - "26636-26637:26656-26657"
     environment:
       - ID=3
       - LOG=${LOG:-tendermint.log}
-    ports:
-      - "26686-26687:26656-26657"
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
@@ -92,6 +92,46 @@ services:
     networks:
       localnet:
         ipv4_address: 192.167.11.6
+    depends_on:
+      - hardhat
+
+  node4:
+    container_name: node4
+    image: "tendermint/localnode"
+    cpus: 0.1
+    ports:
+      - "26646-26647:26656-26657"
+    environment:
+      - ID=4
+      - LOG=${LOG:-tendermint.log}
+    volumes:
+      - ./build:/tendermint:Z
+    working_dir: /tendermint
+    entrypoint: /bin/bash
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci4:26658
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.7
+    depends_on:
+      - hardhat
+
+  node5:
+    container_name: node5
+    image: "tendermint/localnode"
+    cpus: 0.1
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=5
+      - LOG=${LOG:-tendermint.log}
+    volumes:
+      - ./build:/tendermint:Z
+    working_dir: /tendermint
+    entrypoint: /bin/bash
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci5:26658
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.8
     depends_on:
       - hardhat
 
@@ -105,10 +145,19 @@ services:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci0"]
+    command:
+      [
+        "/usr/bin/wait-for-it",
+        "-t",
+        "120",
+        "hardhat:8545",
+        "--",
+        "../run.sh",
+        "abci0",
+      ]
     networks:
       localnet:
-        ipv4_address: 192.167.11.7
+        ipv4_address: 192.167.11.9
     depends_on:
       - hardhat
       - node0
@@ -123,10 +172,19 @@ services:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci1"]
+    command:
+      [
+        "/usr/bin/wait-for-it",
+        "-t",
+        "120",
+        "hardhat:8545",
+        "--",
+        "../run.sh",
+        "abci1",
+      ]
     networks:
       localnet:
-        ipv4_address: 192.167.11.8
+        ipv4_address: 192.167.11.10
     depends_on:
       - hardhat
       - node1
@@ -141,10 +199,19 @@ services:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci2"]
+    command:
+      [
+        "/usr/bin/wait-for-it",
+        "-t",
+        "120",
+        "hardhat:8545",
+        "--",
+        "../run.sh",
+        "abci2",
+      ]
     networks:
       localnet:
-        ipv4_address: 192.167.11.9
+        ipv4_address: 192.167.11.11
     depends_on:
       - hardhat
       - node2
@@ -159,13 +226,76 @@ services:
       - ./:/home/ubuntu/build
       - ./logs/:/logs:z
     entrypoint: /bin/bash
-    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci3"]
+    command:
+      [
+        "/usr/bin/wait-for-it",
+        "-t",
+        "120",
+        "hardhat:8545",
+        "--",
+        "../run.sh",
+        "abci3",
+      ]
     networks:
       localnet:
-        ipv4_address: 192.167.11.10
+        ipv4_address: 192.167.11.12
     depends_on:
       - hardhat
       - node3
+
+  abci4:
+    container_name: abci4
+    image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: benchmark/check_consensus_time/Dockerfile
+    volumes:
+      - ./:/home/ubuntu/build
+      - ./logs/:/logs:z
+    entrypoint: /bin/bash
+    command:
+      [
+        "/usr/bin/wait-for-it",
+        "-t",
+        "120",
+        "hardhat:8545",
+        "--",
+        "../run.sh",
+        "abci4",
+      ]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.13
+    depends_on:
+      - hardhat
+      - node4
+
+  abci5:
+    container_name: abci5
+    image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: benchmark/check_consensus_time/Dockerfile
+    volumes:
+      - ./:/home/ubuntu/build
+      - ./logs/:/logs:z
+    entrypoint: /bin/bash
+    command:
+      [
+        "/usr/bin/wait-for-it",
+        "-t",
+        "120",
+        "hardhat:8545",
+        "--",
+        "../run.sh",
+        "abci5",
+      ]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.14
+    depends_on:
+      - hardhat
+      - node5
 
 networks:
   localnet:

@@ -186,7 +186,7 @@ def build_tendermint_node_config(node_id: int) -> str:
     return TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
         localnet_address_postfix=node_id + 3,
-        localnet_port_range=node_id + 5
+        localnet_port_range=node_id
     )
 
 
