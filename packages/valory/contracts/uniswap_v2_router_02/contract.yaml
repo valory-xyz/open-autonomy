@@ -1,0 +1,16 @@
+name: uniswap_v2_router_02
+author: valory
+version: 0.1.0
+type: contract
+description: UniSwap V2 Router02 contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmevsUxqaoqkrvyQL4RJhaGBLagpGStUUBggwWbpHa2A5o
+  build/IUniswapV2Router02.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
+  contract.py: Qmf1Y9eKnSUiPSf6nJeExMVLpaA98mkDuMdZr7b9k46PzA
+fingerprint_ignore_patterns: []
+class_name: UniswapV2Router02Contract
+contract_interface_paths:
+  ethereum: build/IUniswapV2Router02.json
+dependencies: {}
