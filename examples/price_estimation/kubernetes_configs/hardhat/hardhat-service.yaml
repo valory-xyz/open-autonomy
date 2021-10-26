@@ -6,7 +6,7 @@ metadata:
   name: hardhat
 spec:
   ports:
-    - name: "8545"
+    - protocol: TCP 
       port: 8545
       targetPort: 8545
   selector:

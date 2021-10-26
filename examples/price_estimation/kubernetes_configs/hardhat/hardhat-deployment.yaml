@@ -25,12 +25,15 @@ spec:
             - node
             - --port
             - "8545"
+            - --hostname
+            - "0.0.0.0"
           command:
             - /bin/bash
           image: valory/hardhat
           name: hardhat
           ports:
-            - containerPort: 8545
+            - name: http
+              containerPort: 8545
           resources: {}
           workingDir: /home/ubuntu/build
           imagePullPolicy: Always
