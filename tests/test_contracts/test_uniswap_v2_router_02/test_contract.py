@@ -20,6 +20,7 @@
 """Tests for valory/uniswap_v2_router02 contract."""
 
 from pathlib import Path
+from typing import List
 
 from aea.common import JSONLike
 from aea.test_tools.test_contract import BaseContractTestCase
@@ -34,9 +35,10 @@ from tests.conftest import ROOT_DIR
 class TestUniswapV2Router02Contract(BaseContractTestCase):
     """Test TestUniswapV2Router02Contract."""
 
-    contract_directory = Path(
+    path_to_contract = Path(
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
     )
+    ledger_identifier = "ethereum"
     contract: UniswapV2Router02Contract
     owner_address = ""
     to_address = ""
@@ -66,7 +68,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
     s = bytes(0)
 
     # Swap
-    path = []
+    path: List[str] = []
     amount_in = 10
     amount_out_min = 10
     amount_out = 10
@@ -80,6 +82,12 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
     # Get amount
     reserve_in = 10
     reserve_out = 10
+
+    @classmethod
+    def finish_contract_deployment(cls) -> str:
+        """Finish the contract deployment."""
+        contract_address = "stub"
+        return contract_address
 
     def test_add_liquidity(self) -> None:
         """Test add_liquidity."""

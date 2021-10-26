@@ -7,8 +7,7 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmevsUxqaoqkrvyQL4RJhaGBLagpGStUUBggwWbpHa2A5o
-  build/IUniswapV2Router02.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
-  contract.py: Qmf1Y9eKnSUiPSf6nJeExMVLpaA98mkDuMdZr7b9k46PzA
+  contract.py: QmdogzK8UjAwXSUE9Kza3xUaTUJi7KRrKAusHKQKBcxPRo
 fingerprint_ignore_patterns: []
 class_name: UniswapV2Router02Contract
 contract_interface_paths:

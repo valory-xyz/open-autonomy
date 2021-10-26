@@ -42,17 +42,22 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
         spender_address: str,
         value: int,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
-        return cls._call(
+        return cls._prepare_tx(
             ledger_api,
             contract_address,
             "approve",
-            owner_address,
-            (spender_address, value),
+            sender_address,
+            gas,
+            gas_price,
+            spender_address,  # can this ever be different from sender_address? I doubt it
+            value,
         )
 
     @classmethod
@@ -60,13 +65,22 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        from_address: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
         to_address: str,
         value: int,
     ) -> Optional[JSONLike]:
         """Transfer funds from from_address to to_address."""
-        return cls._call(
-            ledger_api, contract_address, "transfer", from_address, (to_address, value)
+        return cls._prepare_tx(
+            ledger_api,
+            contract_address,
+            "transfer",
+            sender_address,
+            gas,
+            gas_price,
+            to_address,
+            value,
         )
 
     @classmethod
@@ -74,17 +88,24 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
         from_address: str,
         to_address: str,
         value: int,
     ) -> Optional[JSONLike]:
         """(Third-party) transfer funds from from_address to to_address."""
-        return cls._call(
+        return cls._prepare_tx(
             ledger_api,
             contract_address,
             "transferFrom",
+            sender_address,  # this should be allowed to differ from the from address fed to args; a sender might transfer on behalf of another EOA
+            gas,
+            gas_price,
             from_address,
-            (from_address, to_address, value),
+            to_address,
+            value,
         )
 
     @classmethod
@@ -92,6 +113,9 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
         owner_address: str,
         spender_address: str,
         value: int,
@@ -101,12 +125,20 @@ class UniswapV2ERC20Contract(Contract):
         s: bytes,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender where approval is granted via a signature."""
-        return cls._call(
+        return cls._prepare_tx(
             ledger_api,
             contract_address,
             "permit",
+            sender_address,  # see above, should be allowed to differ
+            gas,
+            gas_price,
             owner_address,
-            (owner_address, spender_address, value, deadline, v, r, s),
+            spender_address,
+            value,
+            deadline,
+            v,
+            r,
+            s,
         )
 
     @classmethod
@@ -122,9 +154,10 @@ class UniswapV2ERC20Contract(Contract):
             ledger_api,
             contract_address,
             "allowance",
-            None,
-            (owner_address, spender_address),
+            owner_address,
+            spender_address,
         )
+        # this doesn't look right, this is a getter / call to read the state
 
     @classmethod
     def balance_of(
@@ -132,7 +165,10 @@ class UniswapV2ERC20Contract(Contract):
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
         return cls._call(
-            ledger_api, contract_address, "balanceOf", None, (owner_address,)
+            ledger_api,
+            contract_address,
+            "balanceOf",
+            owner_address,
         )
 
     @classmethod
@@ -141,31 +177,50 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         method_name: str,
-        owner_address: str = None,
-        *method_args: tuple,
+        *method_args: Any,
     ) -> Optional[JSONLike]:
         """Call method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)
-        tx = method(method_args)
+        result = method(*method_args)
+        return result
 
-        if owner_address:
-            return cls._build_transaction(ledger_api, owner_address, tx)
-        return tx.buildTransaction()
+    @classmethod
+    def _prepare_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        method_name: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
+        *method_args: Any,
+    ) -> Optional[JSONLike]:
+        """Call method."""
+        contract = cls.get_instance(ledger_api, contract_address)
+        method = getattr(contract.functions, method_name)
+        tx = method(*method_args)
+        tx = cls._build_transaction(ledger_api, sender_address, tx, gas, gas_price)
+        return tx
 
     @classmethod
     def _build_transaction(
-        cls, ledger_api: LedgerApi, owner_address: str, tx: Any, gas: int = 300000
+        cls,
+        ledger_api: LedgerApi,
+        sender_address: str,
+        tx: Any,
+        gas: int,
+        gas_price: int,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
+        nonce = ledger_api.api.eth.getTransactionCount(sender_address)
         tx = tx.buildTransaction(
             {
                 "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "gasPrice": gas_price,
                 "nonce": nonce,
             }
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
+        # # why not do this for all of them?
+        # # tx = ledger_api.update_with_gas_estimate(tx)  # this is a sideeffect, let's not do it
         return tx

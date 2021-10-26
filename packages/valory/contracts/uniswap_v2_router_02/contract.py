@@ -497,7 +497,7 @@ class UniswapV2Router02Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         amount_in: int,
-        reserve_in,
+        reserve_in: int,
         reserve_out: int,
     ) -> Optional[JSONLike]:
         """Get amount out."""
@@ -515,7 +515,7 @@ class UniswapV2Router02Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         amount_out: int,
-        reserve_in,
+        reserve_in: int,
         reserve_out: int,
     ) -> Optional[JSONLike]:
         """Get amount in."""
