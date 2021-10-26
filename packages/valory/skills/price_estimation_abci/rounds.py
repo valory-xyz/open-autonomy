@@ -70,8 +70,7 @@ class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
     DONE = "done"
-    EXIT_A = "exit_a"
-    EXIT_B = "exit_b"
+    EXIT = "exit"
     RETRY_TIMEOUT = "retry_timeout"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
@@ -1304,7 +1303,7 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    exit_event = Event.EXIT_A
+    exit_event = Event.EXIT
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -1318,7 +1317,7 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    exit_event = Event.EXIT_B
+    exit_event = Event.EXIT
 
 
 class PriceEstimationAbciApp(AbciApp[Event]):
@@ -1327,27 +1326,53 @@ class PriceEstimationAbciApp(AbciApp[Event]):
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {Event.DONE: SelectKeeperARound},
-        SelectKeeperARound: {Event.DONE: DeploySafeRound},
+        RandomnessRound: {
+            Event.DONE: SelectKeeperARound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        SelectKeeperARound: {
+            Event.DONE: DeploySafeRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT_A: SelectKeeperARound,
+            Event.EXIT: SelectKeeperARound,
         },
-        ValidateSafeRound: {Event.DONE: CollectObservationRound},
-        CollectObservationRound: {Event.DONE: EstimateConsensusRound},
-        EstimateConsensusRound: {Event.DONE: TxHashRound},
-        TxHashRound: {Event.DONE: CollectSignatureRound},
-        CollectSignatureRound: {Event.DONE: FinalizationRound},
+        ValidateSafeRound: {
+            Event.DONE: CollectObservationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        CollectObservationRound: {
+            Event.DONE: EstimateConsensusRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        EstimateConsensusRound: {
+            Event.DONE: TxHashRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        TxHashRound: {
+            Event.DONE: CollectSignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        CollectSignatureRound: {
+            Event.DONE: FinalizationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.EXIT_B: SelectKeeperBRound,
+            Event.EXIT: SelectKeeperBRound,
         },
-        ValidateTransactionRound: {Event.DONE: ConsensusReachedRound},
-        SelectKeeperBRound: {Event.DONE: FinalizationRound},
+        ValidateTransactionRound: {
+            Event.DONE: ConsensusReachedRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        SelectKeeperBRound: {
+            Event.DONE: FinalizationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.EXIT_A: 5.0,
-        Event.EXIT_B: 5.0,
+        Event.EXIT: 5.0,
         Event.RETRY_TIMEOUT: 10.0,
         Event.ROUND_TIMEOUT: 30.0,
     }

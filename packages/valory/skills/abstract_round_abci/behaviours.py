@@ -76,7 +76,7 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
             state_id = state_behaviour_cls.state_id
             if state_id in result:
                 raise ValueError(
-                    f"the states '{state_id}' and '{result[state_id]}' point to the same state behaviour class '{state_behaviour_cls}'"
+                    f"cannot have two states with the same id; got {state_behaviour_cls} and {result[state_id]} both with id '{state_id}'"
                 )
             result[state_id] = state_behaviour_cls
         return result
@@ -119,8 +119,18 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
+    def _initialize_last_round_id_if_none(self) -> None:
+        """Initialize last round id field if it is not initialized yet."""
+        if self._last_round_id is None:
+            self._last_round_id = self.context.state.period.current_round_id
+
     def act(self) -> None:
         """Implement the behaviour."""
+        # initialize last round id to current round id if not initialized yet
+        # we cannot do this in the setup because the behaviour may load
+        # before the state model
+        self._initialize_last_round_id_if_none()
+
         self._process_current_round()
 
         current_state = self.current_state
@@ -130,7 +140,7 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
         current_state.act_wrapper()
 
         if current_state.is_done():
-            # if next state is set, overwrite successor (regardless of the event)
+            # if next state is set, take the FSM behaviour transition
             # this branch also handle the case when matching round of current state is not set
             if self._next_state_cls is not None:
                 self.context.logger.debug(
@@ -147,7 +157,9 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
         current_round_id = self.context.state.period.current_round_id
-        if self.current_state is not None and self._last_round_id == current_round_id:
+        if (
+            self.current_state is not None and self._last_round_id == current_round_id
+        ) and self.current_state.matching_round is not None:
             # round has not changed - do nothing
             return
         self._last_round_id = current_round_id
@@ -159,12 +171,12 @@ class AbstractRoundBehaviour(Behaviour, Generic[EventType]):
         #  if so, stop it and replace it with the new state behaviour
         #  if not, then leave it running; the next state will be scheduled
         #  when current state is done
-        current_state = self.current_state
-        if current_state is None:
+        if self.current_state is None:
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return
 
-        current_state = cast(BaseState, current_state)
+        current_state = cast(BaseState, self.current_state)
+        # current state cannot be replaced if matching_round is None
         if (
             current_state.matching_round is not None
             and current_state.state_id != self._next_state_cls.state_id
