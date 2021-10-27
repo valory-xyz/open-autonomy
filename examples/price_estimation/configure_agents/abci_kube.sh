@@ -8,4 +8,5 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.con
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657
 aea config set vendor.fetchai.connections.ledger.config.ledger_apis.ethereum.address http://hardhat:8545
+sed -i "s/gas_price_api_key: null/gas_price_api_key: null\n      chain_id: 31337/" vendor/fetchai/connections/ledger/connection.yaml
 aea build
