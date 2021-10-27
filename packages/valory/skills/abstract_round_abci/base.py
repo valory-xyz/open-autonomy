@@ -24,19 +24,21 @@ import itertools
 import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
+from collections import Counter
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
+from typing import AbstractSet, Any
+from typing import Counter as CounterType
 from typing import (
-    AbstractSet,
-    Any,
     Dict,
     FrozenSet,
     Generic,
     List,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -477,6 +479,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     round_id: str
     allowed_tx_type: Optional[TransactionType]
+    period_attribute: str
 
     def __init__(
         self,
@@ -564,13 +567,187 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
             )
 
-    @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
 
-    @abstractmethod
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+
+
+class CollectionRound(AbstractRound):
+    """Collection round."""
+
+    collection: Dict[str, BaseTxPayload]
+    period_attribute: str
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+        sender = payload.sender
+        if sender not in self.period_state.participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        if sender in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {sender} has already sent value for round : {self.round_id}"
+            )
+
+        self.collection[sender] = payload
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{payload.sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        sender_has_not_sent_randomness_yet = payload.sender not in self.collection
+        if not sender_has_not_sent_randomness_yet:
+            raise TransactionNotValidError(
+                f"sender {payload.sender} has already sent value for round : {self.round_id}"
+            )
+
+
+class CollectDifferentUntilAllRound(AbstractRound):
+    """Need to collect different payloads from each agent"""
+
+    collection: Set[Any]
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+        sender = payload.sender
+        if sender not in self.period_state.participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        if sender in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {sender} has already sent value for round : {self.round_id}"
+            )
+
+        self.collection.add(payload)
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{payload.sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        sender_has_not_sent_randomness_yet = payload.sender not in self.collection
+        if not sender_has_not_sent_randomness_yet:
+            raise TransactionNotValidError(
+                f"sender {payload.sender} has already sent value for round : {self.round_id}"
+            )
+
+    @property
+    def collection_threshold_reached(
+        self,
+    ) -> bool:
+        """Check that the collection threshold has been reached."""
+        return len(self.collection) == self._consensus_params.max_participants
+
+
+class CollectSameUntilThresholdRound(CollectionRound):
+    """Need to collect same payload from k of n agents"""
+
+    @property
+    def threshold_reached(
+        self,
+    ) -> bool:
+        """Check if the threshold has been reached."""
+
+        counter: CounterType = Counter()
+        counter.update(
+            getattr(payload, self.period_attribute)
+            for payload in self.collection.values()
+        )
+
+        return any(
+            count >= self._consensus_params.consensus_threshold
+            for count in counter.values()
+        )
+
+
+class OnlyKeeperSendsRound(AbstractRound):
+    """Only one agent sends a payload"""
+
+    keeper_payload: Optional[Any]
+    payload_attribute: str
+
+    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+        """Handle a deploy safe payload."""
+        sender = payload.sender
+
+        if sender not in self.period_state.participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        if sender != self.period_state.most_voted_keeper_address:  # type: ignore
+            raise ABCIAppInternalError(f"{sender} not elected as keeper.")
+
+        if self.keeper_payload is not None:
+            raise ABCIAppInternalError("keeper already set the payload.")
+
+        self.keeper_payload = getattr(payload, self.payload_attribute)
+
+    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+        """Check a deploy safe payload can be applied to the current state."""
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        sender_is_elected_sender = sender == self.period_state.most_voted_keeper_address  # type: ignore
+        if not sender_is_elected_sender:
+            raise TransactionNotValidError(f"{sender} not elected as keeper.")
+
+        if self.keeper_payload is not None:
+            raise TransactionNotValidError("keeper payload value already set.")
+
+
+class VotingRound(CollectionRound):
+    """Need to collect votes from agents, pass if k same votes of n agents"""
+
+    @property
+    def positive_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        true_votes = sum(
+            [payload.vote for payload in self.collection.values()]  # type: ignore
+        )
+        # check that "true" has at least the consensus # of votes
+        return true_votes >= self._consensus_params.consensus_threshold
+
+    @property
+    def negative_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        false_votes = len(self.collection) - sum(
+            [payload.vote for payload in self.collection.values()]  # type: ignore
+        )
+        # check that "false" has at least the consensus # of votes
+        return false_votes >= self._consensus_params.consensus_threshold
+
+
+class CollectDifferentUntilThresholdRound(CollectionRound):
+    """Need to collect different payloads from k of n agents"""
+
+    @property
+    def collection_threshold_reached(
+        self,
+    ) -> bool:
+        """Check if the threshold has been reached."""
+        return len(self.collection) == self._consensus_params.max_participants
 
 
 AbciAppTransitionFunction = Dict[
