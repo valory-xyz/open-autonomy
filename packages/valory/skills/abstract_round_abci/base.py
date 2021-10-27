@@ -29,6 +29,7 @@ from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
+from operator import itemgetter
 from typing import AbstractSet, Any
 from typing import Counter as CounterType
 from typing import (
@@ -479,7 +480,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     round_id: str
     allowed_tx_type: Optional[TransactionType]
-    period_attribute: str
+    payload_attribute: str
 
     def __init__(
         self,
@@ -577,7 +578,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 class CollectionRound(AbstractRound):
     """Collection round."""
 
-    collection: Dict[str, BaseTxPayload]
+    collection: Dict[str, Any]
     period_attribute: str
 
     def process_payload(self, payload: BaseTxPayload) -> None:
@@ -605,8 +606,7 @@ class CollectionRound(AbstractRound):
                 f"{payload.sender} not in list of participants: {sorted(self.period_state.participants)}"
             )
 
-        sender_has_not_sent_randomness_yet = payload.sender not in self.collection
-        if not sender_has_not_sent_randomness_yet:
+        if payload.sender in self.collection:
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round : {self.round_id}"
             )
@@ -619,34 +619,10 @@ class CollectDifferentUntilAllRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-
-        sender = payload.sender
-        if sender not in self.period_state.participants:
-            raise ABCIAppInternalError(
-                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
-            )
-
-        if sender in self.collection:
-            raise ABCIAppInternalError(
-                f"sender {sender} has already sent value for round : {self.round_id}"
-            )
-
-        self.collection.add(payload)
+        self.collection.add(getattr(payload, self.payload_attribute))
 
     def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check Payload"""
-
-        sender_in_participant_set = payload.sender in self.period_state.participants
-        if not sender_in_participant_set:
-            raise TransactionNotValidError(
-                f"{payload.sender} not in list of participants: {sorted(self.period_state.participants)}"
-            )
-
-        sender_has_not_sent_randomness_yet = payload.sender not in self.collection
-        if not sender_has_not_sent_randomness_yet:
-            raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent value for round : {self.round_id}"
-            )
+        """Check Payload."""
 
     @property
     def collection_threshold_reached(
@@ -659,6 +635,8 @@ class CollectDifferentUntilAllRound(AbstractRound):
 class CollectSameUntilThresholdRound(CollectionRound):
     """Need to collect same payload from k of n agents"""
 
+    payload_attribute: str
+
     @property
     def threshold_reached(
         self,
@@ -667,14 +645,28 @@ class CollectSameUntilThresholdRound(CollectionRound):
 
         counter: CounterType = Counter()
         counter.update(
-            getattr(payload, self.period_attribute)
+            getattr(payload, self.payload_attribute)
             for payload in self.collection.values()
         )
-
         return any(
             count >= self._consensus_params.consensus_threshold
             for count in counter.values()
         )
+
+    @property
+    def most_voted_payload(
+        self,
+    ) -> Any:
+        """Get the most voted payload."""
+        counter = Counter()  # type: ignore
+        counter.update(
+            getattr(payload, self.payload_attribute)
+            for payload in self.collection.values()
+        )
+        most_voted_payload, max_votes = max(counter.items(), key=itemgetter(1))
+        if max_votes < self._consensus_params.consensus_threshold:
+            raise ABCIAppInternalError("not enough randomness")
+        return most_voted_payload
 
 
 class OnlyKeeperSendsRound(AbstractRound):
@@ -715,6 +707,14 @@ class OnlyKeeperSendsRound(AbstractRound):
 
         if self.keeper_payload is not None:
             raise TransactionNotValidError("keeper payload value already set.")
+
+    @property
+    def has_keeper_sent_payload(
+        self,
+    ) -> bool:
+        """Check if keeper has sent the payload."""
+
+        return self.keeper_payload is not None
 
 
 class VotingRound(CollectionRound):
