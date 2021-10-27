@@ -209,6 +209,8 @@ spec:
             value: "agent-node-3"
           - name: CLUSTERED
             value: "1"
+          - name: DEBUG
+            value: "0"
       volumes:
         - name: build
           persistentVolumeClaim:
