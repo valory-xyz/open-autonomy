@@ -41,7 +41,7 @@ CHAIN_ID = 1
 class TestUniswapV2Router02Contract(BaseContractTestCase):
     """Test TestUniswapV2Router02Contract."""
 
-    contract_directory = Path(
+    path_to_contract = Path(
         ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
     )
     ledger_identifier = "ethereum"
