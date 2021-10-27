@@ -354,3 +354,5 @@ packages/fetchai
 
 benchmark/*/logs
 benchmark/*/build
+benchmark/*/configure_agents
+benchmark/*/*.yml
