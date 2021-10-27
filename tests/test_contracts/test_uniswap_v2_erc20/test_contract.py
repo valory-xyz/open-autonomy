@@ -66,6 +66,9 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         gas = 100
         spender_address = ADDRESS_THREE
         approval_value = 100
+        data = self.contract.get_instance(
+            self.ledger_api, self.contract_address
+        ).encodeABI(fn_name="approve", args=[spender_address, approval_value])
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
         ):
@@ -83,7 +86,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 )
         assert result == {
             "chainId": CHAIN_ID,
-            "data": "0x095ea7b30000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce60000000000000000000000000000000000000000000000000000000000000064",
+            "data": data,
             "gas": gas,
             "gasPrice": self.gas_price,
             "nonce": NONCE,
@@ -97,6 +100,9 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         gas = 100
         spender_address = ADDRESS_THREE
         value = 100
+        data = self.contract.get_instance(
+            self.ledger_api, self.contract_address
+        ).encodeABI(fn_name="transfer", args=[spender_address, value])
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
         ):
@@ -114,7 +120,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 )
         assert result == {
             "chainId": CHAIN_ID,
-            "data": "0xa9059cbb0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce60000000000000000000000000000000000000000000000000000000000000064",
+            "data": data,
             "gas": gas,
             "gasPrice": self.gas_price,
             "nonce": NONCE,
@@ -129,6 +135,9 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         from_address = ADDRESS_THREE
         to_address = ADDRESS_ONE
         value = 100
+        data = self.contract.get_instance(
+            self.ledger_api, self.contract_address
+        ).encodeABI(fn_name="transferFrom", args=[from_address, to_address, value])
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
         ):
@@ -147,7 +156,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 )
         assert result == {
             "chainId": CHAIN_ID,
-            "data": "0x23b872dd0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce600000000000000000000000046f415f7bf30f4227f98def9d2b22ff62738fd680000000000000000000000000000000000000000000000000000000000000064",
+            "data": data,
             "gas": gas,
             "gasPrice": self.gas_price,
             "nonce": NONCE,
@@ -166,23 +175,35 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         v = 10
         r = b""
         s = b""
-        result = self.contract.permit(
-            self.ledger_api,
-            self.contract_address,
-            self.sender_address,
-            gas,
-            self.gas_price,
-            owner_address,
-            spender_address,
-            value,
-            deadline,
-            v,
-            r,
-            s,
+        data = self.contract.get_instance(
+            self.ledger_api, self.contract_address
+        ).encodeABI(
+            fn_name="permit",
+            args=[owner_address, spender_address, value, deadline, v, r, s],
         )
+        with mock.patch.object(
+            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+        ):
+            with mock.patch.object(
+                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+            ):
+                result = self.contract.permit(
+                    self.ledger_api,
+                    self.contract_address,
+                    self.sender_address,
+                    gas,
+                    self.gas_price,
+                    owner_address,
+                    spender_address,
+                    value,
+                    deadline,
+                    v,
+                    r,
+                    s,
+                )
         assert result == {
             "chainId": CHAIN_ID,
-            "data": "0x23b872dd0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce600000000000000000000000046f415f7bf30f4227f98def9d2b22ff62738fd680000000000000000000000000000000000000000000000000000000000000064",
+            "data": data,
             "gas": gas,
             "gasPrice": self.gas_price,
             "nonce": NONCE,
@@ -192,32 +213,31 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
 
     def test_allowance(self) -> None:
         """Test allowance."""
-        owner_address = ADDRESS_THREE
-        spender_address = CONTRACT_ADDRESS
-        result = self.contract.allowance(
-            self.ledger_api,
-            self.contract_address,
-            owner_address,
-            spender_address,
-        )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": "0x23b872dd0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce600000000000000000000000046f415f7bf30f4227f98def9d2b22ff62738fd680000000000000000000000000000000000000000000000000000000000000064",
-        }
+        owner_address = ADDRESS_ONE
+        spender_address = ADDRESS_THREE
+        allowance = 0
+        with mock.patch.object(
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
+        ):
+            result = self.contract.allowance(
+                self.ledger_api,
+                self.contract_address,
+                owner_address,
+                spender_address,
+            )
+        assert result == 0
 
     def test_balance_of(self) -> None:
         """Test balance_of."""
         owner_address = ADDRESS_THREE
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
         ):
-            with mock.patch.object(
-                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-            ):
-                result = self.contract.balance_of(
-                    self.ledger_api, self.contract_address, owner_address
-                )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": "0x70a082310000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce6",
-        }
+            result = self.contract.balance_of(
+                self.ledger_api, self.contract_address, owner_address
+            )
+        assert result == 0

@@ -48,7 +48,7 @@ class UniswapV2ERC20Contract(Contract):
         spender_address: str,
         value: int,
     ) -> Optional[JSONLike]:
-        """Set the allowance."""
+        """Set the allowance for spender_address on behalf of sender_address."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
@@ -56,7 +56,7 @@ class UniswapV2ERC20Contract(Contract):
             sender_address,
             gas,
             gas_price,
-            spender_address,  # can this ever be different from sender_address? I doubt it
+            spender_address,
             value,
         )
 
@@ -71,7 +71,7 @@ class UniswapV2ERC20Contract(Contract):
         to_address: str,
         value: int,
     ) -> Optional[JSONLike]:
-        """Transfer funds from from_address to to_address."""
+        """Transfer funds from sender_address to to_address."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
@@ -95,12 +95,12 @@ class UniswapV2ERC20Contract(Contract):
         to_address: str,
         value: int,
     ) -> Optional[JSONLike]:
-        """(Third-party) transfer funds from from_address to to_address."""
+        """As sender_address (third-party) transfer funds from from_address to to_address."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
             "transferFrom",
-            sender_address,  # this should be allowed to differ from the from address fed to args; a sender might transfer on behalf of another EOA
+            sender_address,
             gas,
             gas_price,
             from_address,
@@ -124,11 +124,14 @@ class UniswapV2ERC20Contract(Contract):
         r: bytes,
         s: bytes,
     ) -> Optional[JSONLike]:
-        """Sets the allowance for a spender where approval is granted via a signature."""
-        return cls._call(
+        """Sets the allowance for a spender on behalf of owner where approval is granted via a signature. Sender can differ from owner."""
+        return cls._prepare_tx(
             ledger_api,
             contract_address,
             "permit",
+            sender_address,
+            gas,
+            gas_price,
             owner_address,
             spender_address,
             value,
@@ -154,7 +157,6 @@ class UniswapV2ERC20Contract(Contract):
             owner_address,
             spender_address,
         )
-        # this doesn't look right, this is a getter / call to read the state
 
     @classmethod
     def balance_of(
@@ -179,7 +181,7 @@ class UniswapV2ERC20Contract(Contract):
         """Call method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)
-        result = method(*method_args)
+        result = method(*method_args).call()
         return result
 
     @classmethod
@@ -193,7 +195,7 @@ class UniswapV2ERC20Contract(Contract):
         gas_price: int,
         *method_args: Any,
     ) -> Optional[JSONLike]:
-        """Call method."""
+        """Prepare tx method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)
         tx = method(*method_args)
@@ -208,6 +210,7 @@ class UniswapV2ERC20Contract(Contract):
         tx: Any,
         gas: int,
         gas_price: int,
+        eth_value: int = 0,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
         nonce = ledger_api.api.eth.getTransactionCount(sender_address)
@@ -216,8 +219,7 @@ class UniswapV2ERC20Contract(Contract):
                 "gas": gas,
                 "gasPrice": gas_price,
                 "nonce": nonce,
+                "value": eth_value,
             }
         )
-        # # why not do this for all of them?
-        # # tx = ledger_api.update_with_gas_estimate(tx)  # this is a sideeffect, let's not do it
         return tx

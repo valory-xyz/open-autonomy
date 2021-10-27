@@ -25,7 +25,9 @@ from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
 
-from packages.valory.contracts.uniswap_v2_router_02.contract import UniswapV2Router02Contract
+from packages.valory.contracts.uniswap_v2_router_02.contract import (
+    UniswapV2Router02Contract,
+)
 
 from tests.conftest import ROOT_DIR
 
