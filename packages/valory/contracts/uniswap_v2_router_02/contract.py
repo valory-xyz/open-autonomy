@@ -27,7 +27,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_router02:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_router_02:0.1.0")
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -42,7 +42,9 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
         token_a: str,
         token_b: str,
         amount_a_desired: int,
@@ -53,21 +55,21 @@ class UniswapV2Router02Contract(Contract):
         deadline: int,
     ) -> Optional[JSONLike]:
         """Add liquidity."""
-        return cls._call(
+        return cls._prepare_tx(
             ledger_api,
             contract_address,
             "addLiquidity",
-            owner_address,
-            (
-                token_a,
-                token_b,
-                amount_a_desired,
-                amount_b_desired,
-                amount_a_min,
-                amount_b_min,
-                to_address,
-                deadline,
-            ),
+            sender_address,
+            gas,
+            gas_price,
+            token_a,
+            token_b,
+            amount_a_desired,
+            amount_b_desired,
+            amount_a_min,
+            amount_b_min,
+            to_address,
+            deadline,
         )
 
     @classmethod
@@ -75,7 +77,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token: str,
         amount_token_desired: int,
         amount_token_min: int,
@@ -88,7 +90,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "addLiquidityETH",
-            owner_address,
+            sender_address,
             (
                 token,
                 amount_token_desired,
@@ -104,7 +106,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token_a: str,
         token_b: str,
         liquidity: int,
@@ -118,7 +120,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "removeLiquidity",
-            owner_address,
+            sender_address,
             (
                 token_a,
                 token_b,
@@ -135,7 +137,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token: str,
         liquidity: int,
         amount_token_min: int,
@@ -148,7 +150,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "removeLiquidityETH",
-            owner_address,
+            sender_address,
             (token, liquidity, amount_token_min, amount_ETH_min, to_address, deadline),
         )
 
@@ -157,7 +159,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token_a: str,
         token_b: str,
         liquidity: int,
@@ -175,7 +177,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "removeLiquidityWithPermit",
-            owner_address,
+            sender_address,
             (
                 token_a,
                 token_b,
@@ -196,7 +198,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token: str,
         liquidity: int,
         amount_token_min: int,
@@ -213,7 +215,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "removeLiquidityETHWithPermit",
-            owner_address,
+            sender_address,
             (
                 token,
                 liquidity,
@@ -233,7 +235,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token: str,
         liquidity: int,
         amount_token_min: int,
@@ -246,7 +248,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "removeLiquidityETHSupportingFeeOnTransferTokens",
-            owner_address,
+            sender_address,
             (token, liquidity, amount_token_min, amount_ETH_min, to_address, deadline),
         )
 
@@ -255,7 +257,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         token: str,
         liquidity: int,
         amount_token_min: int,
@@ -272,7 +274,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
-            owner_address,
+            sender_address,
             (
                 token,
                 liquidity,
@@ -292,7 +294,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_in: int,
         amount_out_min: int,
         path: list,
@@ -304,7 +306,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapExactTokensForTokens",
-            owner_address,
+            sender_address,
             (amount_in, amount_out_min, path, to_address, deadline),
         )
 
@@ -313,7 +315,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_out: int,
         amount_in_max: int,
         path: list,
@@ -325,7 +327,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapTokensForExactTokens",
-            owner_address,
+            sender_address,
             (amount_out, amount_in_max, path, to_address, deadline),
         )
 
@@ -334,7 +336,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_out_min: int,
         path: list,
         to_address: str,
@@ -345,7 +347,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapExactETHForTokens",
-            owner_address,
+            sender_address,
             (amount_out_min, path, to_address, deadline),
         )
 
@@ -354,7 +356,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_out: int,
         amount_in_max: int,
         path: list,
@@ -366,7 +368,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapTokensForExactETH",
-            owner_address,
+            sender_address,
             (amount_out, amount_in_max, path, to_address, deadline),
         )
 
@@ -375,7 +377,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_in: int,
         amount_out_min: int,
         path: list,
@@ -387,7 +389,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapExactTokensForETH",
-            owner_address,
+            sender_address,
             (amount_in, amount_out_min, path, to_address, deadline),
         )
 
@@ -396,7 +398,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_out: int,
         path: list,
         to_address: str,
@@ -407,7 +409,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapETHExactTokens",
-            owner_address,
+            sender_address,
             (amount_out, path, to_address, deadline),
         )
 
@@ -416,7 +418,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_in: int,
         amount_out_min: int,
         path: list,
@@ -428,7 +430,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapExactTokensForTokensSupportingFeeOnTransferTokens",
-            owner_address,
+            sender_address,
             (amount_in, amount_out_min, path, to_address, deadline),
         )
 
@@ -437,7 +439,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_out_min: int,
         path: list,
         to_address: str,
@@ -448,7 +450,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapExactETHForTokensSupportingFeeOnTransferTokens",
-            owner_address,
+            sender_address,
             (amount_out_min, path, to_address, deadline),
         )
 
@@ -457,7 +459,7 @@ class UniswapV2Router02Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        owner_address: str,
+        sender_address: str,
         amount_in: int,
         amount_out_min: int,
         path: list,
@@ -469,7 +471,7 @@ class UniswapV2Router02Contract(Contract):
             ledger_api,
             contract_address,
             "swapExactTokensForETHSupportingFeeOnTransferTokens",
-            owner_address,
+            sender_address,
             (amount_in, amount_out_min, path, to_address, deadline),
         )
 
@@ -551,31 +553,50 @@ class UniswapV2Router02Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         method_name: str,
-        owner_address: str = None,
-        *method_args: tuple,
+        *method_args: Any,
     ) -> Optional[JSONLike]:
         """Call method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)
-        tx = method(method_args)
+        result = method(*method_args)
+        return result
 
-        if owner_address:
-            return cls._build_transaction(ledger_api, owner_address, tx)
-        return tx.buildTransaction()
+    @classmethod
+    def _prepare_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        method_name: str,
+        sender_address: str,
+        gas: int,
+        gas_price: int,
+        *method_args: Any,
+    ) -> Optional[JSONLike]:
+        """Call method."""
+        contract = cls.get_instance(ledger_api, contract_address)
+        method = getattr(contract.functions, method_name)
+        tx = method(*method_args)
+        tx = cls._build_transaction(ledger_api, sender_address, tx, gas, gas_price)
+        return tx
 
     @classmethod
     def _build_transaction(
-        cls, ledger_api: LedgerApi, owner_address: str, tx: Any, gas: int = 300000
+        cls,
+        ledger_api: LedgerApi,
+        sender_address: str,
+        tx: Any,
+        gas: int,
+        gas_price: int,
     ) -> Optional[JSONLike]:
         """Set the allowance."""
-        nonce = ledger_api.api.eth.getTransactionCount(owner_address)
+        nonce = ledger_api.api.eth.getTransactionCount(sender_address)
         tx = tx.buildTransaction(
             {
                 "gas": gas,
-                "gasPrice": ledger_api.api.toWei("50", "gwei"),
+                "gasPrice": gas_price,
                 "nonce": nonce,
             }
         )
-        tx = ledger_api.update_with_gas_estimate(tx)
-
+        # # why not do this for all of them?
+        # # tx = ledger_api.update_with_gas_estimate(tx)  # this is a sideeffect, let's not do it
         return tx

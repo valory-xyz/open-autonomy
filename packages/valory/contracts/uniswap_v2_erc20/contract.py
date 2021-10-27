@@ -125,13 +125,10 @@ class UniswapV2ERC20Contract(Contract):
         s: bytes,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender where approval is granted via a signature."""
-        return cls._prepare_tx(
+        return cls._call(
             ledger_api,
             contract_address,
             "permit",
-            sender_address,  # see above, should be allowed to differ
-            gas,
-            gas_price,
             owner_address,
             spender_address,
             value,

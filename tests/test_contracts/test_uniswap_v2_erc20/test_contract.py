@@ -23,7 +23,6 @@ from pathlib import Path
 from typing import Dict
 from unittest import mock
 
-from aea.common import JSONLike
 from aea.test_tools.test_contract import BaseContractTestCase
 
 from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
@@ -94,43 +93,74 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
 
     def test_transfer(self) -> None:
         """Test transfer."""
+        eth_value = 0
         gas = 100
-        spender_address = "0x1"
+        spender_address = ADDRESS_THREE
         value = 100
-        result = self.contract.transfer(
-            self.ledger_api,
-            self.contract_address,
-            self.sender_address,
-            gas,
-            self.gas_price,
-            spender_address,
-            value,
-        )
-        assert type(result) == JSONLike
+        with mock.patch.object(
+            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+        ):
+            with mock.patch.object(
+                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+            ):
+                result = self.contract.transfer(
+                    self.ledger_api,
+                    self.contract_address,
+                    self.sender_address,
+                    gas,
+                    self.gas_price,
+                    spender_address,
+                    value,
+                )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": "0xa9059cbb0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce60000000000000000000000000000000000000000000000000000000000000064",
+            "gas": gas,
+            "gasPrice": self.gas_price,
+            "nonce": NONCE,
+            "to": CONTRACT_ADDRESS,
+            "value": eth_value,
+        }
 
     def test_transfer_from(self) -> None:
         """Test transfer_from."""
+        eth_value = 0
         gas = 100
-        from_address = "0x1"
-        to_address = "0x2"
+        from_address = ADDRESS_THREE
+        to_address = ADDRESS_ONE
         value = 100
-        result = self.contract.transfer_from(
-            self.ledger_api,
-            self.contract_address,
-            self.sender_address,
-            gas,
-            self.gas_price,
-            from_address,
-            to_address,
-            value,
-        )
-        assert type(result) == JSONLike
+        with mock.patch.object(
+            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+        ):
+            with mock.patch.object(
+                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+            ):
+                result = self.contract.transfer_from(
+                    self.ledger_api,
+                    self.contract_address,
+                    self.sender_address,
+                    gas,
+                    self.gas_price,
+                    from_address,
+                    to_address,
+                    value,
+                )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": "0x23b872dd0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce600000000000000000000000046f415f7bf30f4227f98def9d2b22ff62738fd680000000000000000000000000000000000000000000000000000000000000064",
+            "gas": gas,
+            "gasPrice": self.gas_price,
+            "nonce": NONCE,
+            "to": CONTRACT_ADDRESS,
+            "value": eth_value,
+        }
 
     def test_permit(self) -> None:
         """Test permit."""
+        eth_value = 0
         gas = 100
-        owner_address = "0x1"
-        spender_address = "0x2"
+        owner_address = ADDRESS_THREE
+        spender_address = CONTRACT_ADDRESS
         value = 100
         deadline = 10
         v = 10
@@ -150,24 +180,44 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             r,
             s,
         )
-        assert type(result) == JSONLike
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": "0x23b872dd0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce600000000000000000000000046f415f7bf30f4227f98def9d2b22ff62738fd680000000000000000000000000000000000000000000000000000000000000064",
+            "gas": gas,
+            "gasPrice": self.gas_price,
+            "nonce": NONCE,
+            "to": CONTRACT_ADDRESS,
+            "value": eth_value,
+        }
 
     def test_allowance(self) -> None:
         """Test allowance."""
-        owner_address = "0x1"
-        spender_address = "0x2"
+        owner_address = ADDRESS_THREE
+        spender_address = CONTRACT_ADDRESS
         result = self.contract.allowance(
             self.ledger_api,
             self.contract_address,
             owner_address,
             spender_address,
         )
-        assert type(result) == JSONLike
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": "0x23b872dd0000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce600000000000000000000000046f415f7bf30f4227f98def9d2b22ff62738fd680000000000000000000000000000000000000000000000000000000000000064",
+        }
 
     def test_balance_of(self) -> None:
         """Test balance_of."""
-        owner_address = "0x1"
-        result = self.contract.balance_of(
-            self.ledger_api, self.contract_address, owner_address
-        )
-        assert type(result) == JSONLike
+        owner_address = ADDRESS_THREE
+        with mock.patch.object(
+            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+        ):
+            with mock.patch.object(
+                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+            ):
+                result = self.contract.balance_of(
+                    self.ledger_api, self.contract_address, owner_address
+                )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": "0x70a082310000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce6",
+        }

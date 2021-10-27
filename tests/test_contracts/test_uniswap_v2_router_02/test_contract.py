@@ -20,26 +20,36 @@
 """Tests for valory/uniswap_v2_router02 contract."""
 
 from pathlib import Path
-from typing import List
+from typing import Dict
+from unittest import mock
 
-from aea.common import JSONLike
 from aea.test_tools.test_contract import BaseContractTestCase
 
-from packages.valory.contracts.uniswap_v2_router_02.contract import (
-    UniswapV2Router02Contract,
-)
+from packages.valory.contracts.uniswap_v2_router_02.contract import UniswapV2Router02Contract
 
 from tests.conftest import ROOT_DIR
+
+
+CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
+ADDRESS_ONE = "0x46F415F7BF30f4227F98def9d2B22ff62738fD68"
+ADDRESS_TWO = "0x7A1236d5195e31f1F573AD618b2b6FEFC85C5Ce6"
+ADDRESS_THREE = "0x7A1236d5195e31f1F573AD618b2b6FEFC85C5Ce6"
+NONCE = 0
+CHAIN_ID = 1
 
 
 class TestUniswapV2Router02Contract(BaseContractTestCase):
     """Test TestUniswapV2Router02Contract."""
 
-    path_to_contract = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
+    contract_directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
     )
     ledger_identifier = "ethereum"
     contract: UniswapV2Router02Contract
+    owner_address = ADDRESS_ONE
+    sender_address = ADDRESS_TWO
+    gas_price = 100
+
     owner_address = ""
     to_address = ""
     deadline = 10
@@ -68,7 +78,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
     s = bytes(0)
 
     # Swap
-    path: List[str] = []
+    path = []
     amount_in = 10
     amount_out_min = 10
     amount_out = 10
@@ -86,25 +96,47 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
     @classmethod
     def finish_contract_deployment(cls) -> str:
         """Finish the contract deployment."""
-        contract_address = "stub"
+        contract_address = CONTRACT_ADDRESS
         return contract_address
+
+    @classmethod
+    def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:
+        return {}
 
     def test_add_liquidity(self) -> None:
         """Test add_liquidity."""
-        result = self.contract.add_liquidity(
-            self.ledger_api,
-            self.contract_address,
-            self.owner_address,
-            self.token_a,
-            self.token_b,
-            self.amount_a_desired,
-            self.amount_b_desired,
-            self.amount_a_min,
-            self.amount_b_min,
-            self.to_address,
-            self.deadline,
-        )
-        assert type(result) == JSONLike
+        eth_value = 0
+        gas = 100
+        with mock.patch.object(
+            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+        ):
+            with mock.patch.object(
+                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+            ):
+                result = self.contract.add_liquidity(
+                    self.ledger_api,
+                    self.contract_address,
+                    self.owner_address,
+                    gas,
+                    self.gas_price,
+                    self.token_a,
+                    self.token_b,
+                    self.amount_a_desired,
+                    self.amount_b_desired,
+                    self.amount_a_min,
+                    self.amount_b_min,
+                    self.to_address,
+                    self.deadline,
+                )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": "0x095ea7b30000000000000000000000007a1236d5195e31f1f573ad618b2b6fefc85c5ce60000000000000000000000000000000000000000000000000000000000000064",
+            "gas": gas,
+            "gasPrice": self.gas_price,
+            "nonce": NONCE,
+            "to": CONTRACT_ADDRESS,
+            "value": eth_value,
+        }
 
     def test_add_liquidity_ETH(self) -> None:
         """Test add_liquidity_ETH."""
