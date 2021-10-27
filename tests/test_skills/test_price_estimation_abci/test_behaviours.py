@@ -24,6 +24,7 @@ import time
 from copy import copy
 from pathlib import Path
 from typing import Any, Dict, Type, cast
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -822,7 +823,32 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == EstimateBehaviour.state_id
 
-    def test_obeserved_value_none(
+    def test_observer_behaviour_retries_exceeded(
+        self,
+    ) -> None:
+        """Run tests."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            ObserveBehaviour.state_id,
+            PeriodState(estimate=1.0),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == ObserveBehaviour.state_id
+        )
+        with mock.patch.object(
+            self.price_estimation_behaviour.context.price_api,
+            "is_retries_exceeded",
+            return_value=True,
+        ):
+            self.price_estimation_behaviour.act_wrapper()
+            state = cast(BaseState, self.price_estimation_behaviour.current_state)
+            assert state.state_id == ObserveBehaviour.state_id
+
+    def test_observed_value_none(
         self,
     ) -> None:
         """Test when `observed` value is none."""

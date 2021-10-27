@@ -63,11 +63,6 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
 from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
 
 
-DONE_EVENT = "done"
-FAIL_EVENT = "fail"
-EXIT_A_EVENT = "exit_a"
-EXIT_B_EVENT = "exit_b"
-
 _REQUEST_RETRY_DELAY = 1.0
 
 
@@ -336,11 +331,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Set the behaviour to done."""
         self._is_done = True
 
-    def reset(self) -> None:
-        """Reset initial conditions."""
-        self._is_done = False
-        self._is_started = False
-
     def send_a2a_transaction(self, payload: BaseTxPayload) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
@@ -364,6 +354,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             yield from self.async_act()
         except (GeneratorExit, StopIteration):
             self.clean_up()
+            self.set_done()
             self._log_end()
             return
         if self._is_done:
@@ -705,5 +696,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return response
 
     def clean_up(self) -> None:
-        """Clean up the resources due to a 'stop' event."""
-        self.set_done()
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """

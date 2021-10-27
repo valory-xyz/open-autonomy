@@ -138,14 +138,13 @@ class RegistrationBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         payload = RegistrationPayload(self.context.agent_address)
-
         with benchmark.measure(
             self,
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
 
 class RandomnessBehaviour(PriceEstimationBaseState):
@@ -184,7 +183,7 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             ):
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
-            self.set_done()
+            self.set_done()  # pragma: no cover
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
@@ -216,7 +215,7 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
@@ -272,8 +271,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             self.context.logger.info(f"Safe contract address: {contract_address}")
-        yield from self.wait_until_round_end()
-        self.set_done()
+            yield from self.wait_until_round_end()
+        self.set_done()  # pragma: no cover
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = self.period_state.sorted_participants
@@ -323,7 +322,7 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
     def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -356,11 +355,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
         """
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            self.set_done()
             with benchmark.measure(
                 self,
             ):
                 yield from self.wait_until_round_end()
+                self.set_done()  # pragma: no cover
+                return  # pragma: no cover
 
         currency_id = self.params.currency_id
         convert_id = self.params.convert_id
@@ -386,7 +386,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
             ):
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
-            self.set_done()
+            self.set_done()  # pragma: no cover
         else:
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id}"
@@ -428,7 +428,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
 
 class TransactionHashBehaviour(PriceEstimationBaseState):
@@ -466,7 +466,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
 
 class SignatureBehaviour(PriceEstimationBaseState):
@@ -495,7 +495,7 @@ class SignatureBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
@@ -555,7 +555,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
@@ -601,7 +601,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
+        self.set_done()  # pragma: no cover
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""

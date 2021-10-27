@@ -22,12 +22,14 @@ import logging  # noqa: F401
 import re
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
+from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    BaseTxPayload,
     ConsensusParams,
     TransactionNotValidError,
 )
@@ -510,7 +512,7 @@ class TestValidateRound(BaseRoundTestClass):
     def setup(cls) -> None:
         """Set up the test."""
         super().setup()
-        ValidateRound.exit_event = Event.EXIT_A
+        ValidateRound.exit_event = Event.EXIT
         ValidateRound.round_id = "round_id"
 
     def teardown(self) -> None:
@@ -612,7 +614,7 @@ class TestValidateRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert event == Event.EXIT_A
+        assert event == Event.EXIT
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
@@ -1192,7 +1194,27 @@ class TestConsensusReachedRound(BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
+        with pytest.raises(
+            ABCIAppInternalError, match="this round does not accept transactions"
+        ):
+            test_round.process_payload(BaseTxPayload("sender"))
+
+        with pytest.raises(
+            TransactionNotValidError, match="this round does not accept transactions"
+        ):
+            test_round.check_payload(BaseTxPayload("sender"))
+
         assert test_round.end_block() is None
+
+        with pytest.raises(
+            TransactionNotValidError, match="this round does not accept transactions"
+        ):
+            test_round.check_payload(MagicMock())
+
+        with pytest.raises(
+            ABCIAppInternalError, match="this round does not accept transactions"
+        ):
+            test_round.process_payload(MagicMock())
 
 
 class TestValidateSafeRound(BaseRoundTestClass):
@@ -1292,7 +1314,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert event == Event.EXIT_A
+        assert event == Event.EXIT
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
@@ -1397,7 +1419,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
 
-        assert event == Event.EXIT_B
+        assert event == Event.EXIT
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):

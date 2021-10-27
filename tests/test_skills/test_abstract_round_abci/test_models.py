@@ -39,7 +39,7 @@ from tests.test_skills.test_abstract_round_abci.test_base import AbciAppTest
 
 
 class ConcreteRound(AbstractRound):
-    """A ConcreteRound for testing purposes."""
+    """A ConcreteRoundA for testing purposes."""
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
         """Handle the end of the block."""

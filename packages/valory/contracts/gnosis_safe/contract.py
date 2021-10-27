@@ -388,6 +388,7 @@ class GnosisSafeContract(Contract):
         :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
         :return: the raw Safe transaction
         """
+        to_address = ledger_api.api.toChecksumAddress(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
         sorted_owners = sorted(owners, key=str.lower)
         signatures = b""

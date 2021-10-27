@@ -849,7 +849,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         """Process a round event."""
         if self._current_round_cls is None:
             self.logger.info(
-                f"cannot process event {event} as current state is not set"
+                f"cannot process event '{event}' as current state is not set"
             )
             return
 

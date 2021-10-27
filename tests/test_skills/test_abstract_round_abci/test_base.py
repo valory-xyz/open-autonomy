@@ -91,10 +91,10 @@ class PayloadC(BasePayload):
     transaction_type = PayloadEnum.C
 
 
-class ConcreteRound(AbstractRound):
+class ConcreteRoundA(AbstractRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    round_id = "concrete"
+    round_id = "concrete_a"
     allowed_tx_type = "payload_a"
 
     def end_block(self) -> None:
@@ -107,14 +107,52 @@ class ConcreteRound(AbstractRound):
         """Process payloads of type 'payload_a'."""
 
 
+class ConcreteRoundB(AbstractRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    round_id = "concrete_b"
+    allowed_tx_type = "payload_b"
+
+    def end_block(self) -> None:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payloads of type 'payload_b'."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payloads of type 'payload_b'."""
+
+
+class ConcreteRoundC(AbstractRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    round_id = "concrete_c"
+    allowed_tx_type = "payload_c"
+
+    def end_block(self) -> None:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payloads of type 'payload_c'."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payloads of type 'payload_c'."""
+
+
 class AbciAppTest(AbciApp[str]):
     """A dummy AbciApp for testing purposes."""
 
-    initial_round_cls: Type[AbstractRound] = ConcreteRound
+    TIMEOUT: float = 1.0
+
+    initial_round_cls: Type[AbstractRound] = ConcreteRoundA
     transition_function: Dict[Type[AbstractRound], Dict[str, Type[AbstractRound]]] = {
-        ConcreteRound: {"a": ConcreteRound}
+        ConcreteRoundA: {"a": ConcreteRoundA, "b": ConcreteRoundB, "c": ConcreteRoundC},
+        ConcreteRoundB: {"b": ConcreteRoundB, "timeout": ConcreteRoundA},
+        ConcreteRoundC: {"timeout": ConcreteRoundC},
     }
-    event_to_timeout: Dict[str, float] = {}
+    event_to_timeout: Dict[str, float] = {
+        "timeout": TIMEOUT,
+    }
 
 
 class TestTransactions:
@@ -406,13 +444,13 @@ class TestAbstractRound:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.known_payload_type = ConcreteRound.allowed_tx_type
+        self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(participants=self.participants)
         self.params = ConsensusParams(
             max_participants=len(self.participants),
         )
-        self.round = ConcreteRound(self.base_period_state, self.params)
+        self.round = ConcreteRoundA(self.base_period_state, self.params)
 
     def test_must_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
@@ -638,7 +676,7 @@ class TestAbciApp:
         """Test when 'transition_function' is not set."""
 
         class MyAbciApp(AbciApp):
-            initial_round_cls = ConcreteRound
+            initial_round_cls = ConcreteRoundA
             # here 'transition_function' should be defined.
             # ...
 
@@ -657,6 +695,48 @@ class TestAbciApp:
         expected = MagicMock()
         self.abci_app._last_timestamp = expected
         assert expected == self.abci_app.last_timestamp
+
+    def test_process_event(self) -> None:
+        """Test the 'process_event' method, positive case, with timeout events."""
+        self.abci_app.setup()
+        self.abci_app._last_timestamp = MagicMock()
+        assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+        self.abci_app.process_event("b")
+        assert isinstance(self.abci_app.current_round, ConcreteRoundB)
+        self.abci_app.process_event("timeout")
+        assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+
+    def test_process_event_negative_case(self) -> None:
+        """Test the 'process_event' method, negative case."""
+        with mock.patch.object(self.abci_app.logger, "info") as mock_info:
+            self.abci_app.process_event("a")
+            mock_info.assert_called_with(
+                "cannot process event 'a' as current state is not set"
+            )
+
+    def test_update_time(self) -> None:
+        """Test the 'update_time' method."""
+        # schedule round_a
+        current_time = datetime.datetime.now()
+        self.abci_app.setup()
+        self.abci_app._last_timestamp = current_time
+
+        # move to round_b that schedules timeout events
+        self.abci_app.process_event("b")
+
+        # simulate most recent timestamp beyond earliest deadline
+        # after pop, len(timeouts) == 0, because round_a does not schedule new timeout events
+        current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
+        self.abci_app.update_time(current_time)
+
+        # now we are back to round_a
+        # move to round_c that schedules timeout events to itself
+        self.abci_app.process_event("c")
+
+        # simulate most recent timestamp beyond earliest deadline
+        # after pop, len(timeouts) == 0, because round_c schedules timeout events
+        current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
+        self.abci_app.update_time(current_time)
 
 
 class TestPeriod:
@@ -697,6 +777,12 @@ class TestPeriod:
         )
         assert self.period.last_timestamp == expected_timestamp
 
+    def test_abci_app_negative(self) -> None:
+        """Test 'abci_app' property, negative case."""
+        self.period._abci_app = None
+        with pytest.raises(ABCIAppInternalError, match="AbciApp not set"):
+            self.period.abci_app
+
     def test_check_is_finished_negative(self) -> None:
         """Test 'check_is_finished', negative case."""
         self.period.abci_app._current_round = None
@@ -707,7 +793,7 @@ class TestPeriod:
 
     def test_current_round_positive(self) -> None:
         """Test 'current_round' property getter, positive case."""
-        assert isinstance(self.period.current_round, ConcreteRound)
+        assert isinstance(self.period.current_round, ConcreteRoundA)
 
     def test_current_round_negative_current_round_not_set(self) -> None:
         """Test 'current_round' property getter, negative case (current round not set)."""
@@ -717,7 +803,7 @@ class TestPeriod:
 
     def test_current_round_id(self) -> None:
         """Test 'current_round_id' property getter"""
-        assert self.period.current_round_id == ConcreteRound.round_id
+        assert self.period.current_round_id == ConcreteRoundA.round_id
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
@@ -798,7 +884,7 @@ class TestPeriod:
         self.period.begin_block(MagicMock(height=1))
         self.period.end_block()
         self.period.commit()
-        assert isinstance(self.period.current_round, ConcreteRound)
+        assert isinstance(self.period.current_round, ConcreteRoundA)
 
     def test_commit_positive_with_change_round(self) -> None:
         """Test 'end_block' method, positive (with change round)."""
@@ -811,5 +897,5 @@ class TestPeriod:
             return_value=(round_result, next_round),
         ):
             self.period.commit()
-        assert not isinstance(self.period.abci_app._current_round, ConcreteRound)
+        assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
         assert self.period.latest_result == round_result
