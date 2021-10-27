@@ -24,6 +24,7 @@ import itertools
 import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
+from collections import Counter
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
@@ -568,6 +569,115 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             raise TransactionTypeNotRecognizedError(
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
             )
+
+    @classmethod
+    def check_majority_possible_with_new_voter(
+        cls,
+        votes_by_participant: Dict[Any, Any],
+        new_voter: Any,
+        new_vote: Any,
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException,
+    ) -> None:
+        """
+        Check that a Byzantine majority is still achievable, once a new vote is added.
+
+         :param votes_by_participant: a mapping from a participant to its vote, before the new vote is added
+         :param new_voter: the new voter
+         :param new_vote: the new vote
+         :param nb_participants: the total number of participants
+         :param exception_cls: the class of the exception to raise in case the check fails.
+         :raises: exception_cls: in case the check does not pass.
+        """
+        # check preconditions
+        enforce(
+            new_voter not in votes_by_participant,
+            "voter has already voted",
+            ABCIAppInternalError,
+        )
+        enforce(
+            len(votes_by_participant) <= nb_participants - 1,
+            "nb_participants not consistent with votes_by_participants",
+            ABCIAppInternalError,
+        )
+
+        # copy the input dictionary to avoid side-effects
+        votes_by_participant = copy(votes_by_participant)
+
+        # add the new vote
+        votes_by_participant[new_voter] = new_vote
+
+        cls.check_majority_possible(
+            votes_by_participant, nb_participants, exception_cls=exception_cls
+        )
+
+    @classmethod
+    def check_majority_possible(
+        cls,
+        votes_by_participant: Dict[Any, Any],
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException,
+    ) -> None:
+        """
+        Check that a Byzantine majority is still achievable.
+
+        The idea is that, even if all the votes have not been delivered yet,
+        it can be deduced whether a quorum cannot be reached due to
+        divergent preferences among the voters and due to a too small
+        number of other participants whose vote has not been delivered yet.
+
+        The check fails iff:
+
+            nb_remaining_votes + largest_nb_votes < quorum
+
+        That is, if the number of remaining votes is not enough to make
+        the most voted item so far to exceed the quorm.
+
+        Preconditions on the input:
+        - the size of votes_by_participant should not be greater than "nb_participants - 1" voters
+        - new voter must not be in the current votes_by_participant
+
+        :param votes_by_participant: a mapping from a participant to its vote
+        :param nb_participants: the total number of participants
+        :param exception_cls: the class of the exception to raise in case the check fails.
+        :raises exception_cls: in case the check does not pass.
+        """
+        enforce(
+            nb_participants > 0 and len(votes_by_participant) <= nb_participants,
+            "nb_participants not consistent with votes_by_participants",
+            ABCIAppInternalError,
+        )
+        if len(votes_by_participant) == 0:
+            return
+
+        nb_votes_by_item = Counter(list(votes_by_participant.values()))
+        largest_nb_votes = max(nb_votes_by_item.values())
+        nb_votes_received = sum(nb_votes_by_item.values())
+        nb_remaining_votes = nb_participants - nb_votes_received
+
+        threshold = consensus_threshold(nb_participants)
+
+        if nb_remaining_votes + largest_nb_votes < threshold:
+            raise exception_cls(
+                f"cannot reach quorum={threshold}, number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
+            )
+
+    @classmethod
+    def is_majority_possible(
+        cls, votes_by_participant: Dict[Any, Any], nb_participants: int
+    ) -> bool:
+        """
+        Return true if a Byzantine majority is still achievable, false otherwise.
+
+        :param votes_by_participant: a mapping from a participant to its vote
+        :param nb_participants: the total number of participants
+        :return: True if the majority is still possible, false otherwise.
+        """
+        try:
+            cls.check_majority_possible(votes_by_participant, nb_participants)
+        except ABCIAppException:
+            return False
+        return True
 
     @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
