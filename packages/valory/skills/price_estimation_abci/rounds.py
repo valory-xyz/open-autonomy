@@ -477,7 +477,10 @@ class CollectObservationRound(
         """Process the end of the block."""
         # if reached observation threshold, set the result
         if self.collection_threshold_reached:
-            observations = [payload.observation for payload in self.collection.values()]
+            observations = [
+                getattr(payload, self.payload_attribute)
+                for payload in self.collection.values()
+            ]
             estimate = aggregate(*observations)
             state = self.period_state.update(
                 participant_to_observations=MappingProxyType(self.collection),
@@ -577,7 +580,7 @@ class FinalizationRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
-    paylaod_attribute = "tx_hash"
+    payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""

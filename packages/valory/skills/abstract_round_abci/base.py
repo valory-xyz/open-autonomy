@@ -584,8 +584,6 @@ class CollectionRound(AbstractRound):
     maybe same for a voting round or different like estimate round.
     """
 
-    collection: Dict[str, Any]
-
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the collection round."""
         super().__init__(*args, **kwargs)
@@ -630,8 +628,6 @@ class CollectDifferentUntilAllRound(AbstractRound):
     different payloads from each agent.
     """
 
-    collection: Set[Any]
-
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the registration round."""
         super().__init__(*args, **kwargs)
@@ -645,12 +641,17 @@ class CollectDifferentUntilAllRound(AbstractRound):
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload."""
 
+        if getattr(payload, self.payload_attribute) in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {payload.sender} has already sent value for round : {self.round_id}"
+            )
+
     @property
     def collection_threshold_reached(
         self,
     ) -> bool:
         """Check that the collection threshold has been reached."""
-        return len(self.collection) == self._consensus_params.max_participants
+        return len(self.collection) >= self._consensus_params.max_participants
 
 
 class CollectSameUntilThresholdRound(CollectionRound):
@@ -689,7 +690,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
         )
         most_voted_payload, max_votes = max(counter.items(), key=itemgetter(1))
         if max_votes < self._consensus_params.consensus_threshold:
-            raise ABCIAppInternalError("not enough randomness")
+            raise ABCIAppInternalError("not enough votes")
         return most_voted_payload
 
 
@@ -790,7 +791,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-        return len(self.collection) == self._consensus_params.max_participants
+        return len(self.collection) >= self._consensus_params.consensus_threshold
 
 
 AbciAppTransitionFunction = Dict[
