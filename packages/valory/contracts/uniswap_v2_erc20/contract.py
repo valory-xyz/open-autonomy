@@ -52,10 +52,10 @@ class UniswapV2ERC20Contract(Contract):
         return cls._prepare_tx(
             ledger_api,
             contract_address,
-            "approve",
             sender_address,
             gas,
             gas_price,
+            "approve",
             spender_address,
             value,
         )
@@ -75,10 +75,10 @@ class UniswapV2ERC20Contract(Contract):
         return cls._prepare_tx(
             ledger_api,
             contract_address,
-            "transfer",
             sender_address,
             gas,
             gas_price,
+            "transfer",
             to_address,
             value,
         )
@@ -99,10 +99,10 @@ class UniswapV2ERC20Contract(Contract):
         return cls._prepare_tx(
             ledger_api,
             contract_address,
-            "transferFrom",
             sender_address,
             gas,
             gas_price,
+            "transferFrom",
             from_address,
             to_address,
             value,
@@ -128,10 +128,10 @@ class UniswapV2ERC20Contract(Contract):
         return cls._prepare_tx(
             ledger_api,
             contract_address,
-            "permit",
             sender_address,
             gas,
             gas_price,
+            "permit",
             owner_address,
             spender_address,
             value,
@@ -189,10 +189,10 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        method_name: str,
         sender_address: str,
         gas: int,
         gas_price: int,
+        method_name: str,
         *method_args: Any,
     ) -> Optional[JSONLike]:
         """Prepare tx method."""
