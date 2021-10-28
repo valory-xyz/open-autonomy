@@ -31,7 +31,6 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Type,
     cast,
@@ -353,13 +352,6 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the registration round."""
-        super().__init__(*args, **kwargs)
-
-        # a collection of addresses
-        self.collection: Set[str] = set()
-
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
@@ -383,11 +375,6 @@ class RandomnessRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRou
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'select-keeper' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, RandomnessPayload] = {}
-
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
@@ -409,11 +396,6 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, PriceEstimationAbstractR
 
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'select-keeper' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, SelectKeeperPayload] = {}
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -440,11 +422,6 @@ class DeploySafeRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
     allowed_tx_type = DeploySafePayload.transaction_type
     payload_attribute = "safe_contract_address"
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-observation' round."""
-        super().__init__(*args, **kwargs)
-        self.keeper_payload: Optional[str] = None
-
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
@@ -464,11 +441,7 @@ class ValidateRound(VotingRound, PriceEstimationAbstractRound):
 
     allowed_tx_type = ValidatePayload.transaction_type
     exit_event: Event
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-observation' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, ValidatePayload] = {}
+    payload_attribute = "vote"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -498,11 +471,7 @@ class CollectObservationRound(
 
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-observation' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, ObservationPayload] = {}
+    payload_attribute = "observation"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -534,11 +503,6 @@ class EstimateConsensusRound(
     allowed_tx_type = EstimatePayload.transaction_type
     payload_attribute = "estimate"
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'estimate consensus' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, EstimatePayload] = {}
-
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
@@ -563,11 +527,6 @@ class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-signature' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, TransactionHashPayload] = {}
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -594,11 +553,7 @@ class CollectSignatureRound(
 
     round_id = "collect_signature"
     allowed_tx_type = SignaturePayload.transaction_type
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-signature' round."""
-        super().__init__(*args, **kwargs)
-        self.collection: Dict[str, str] = {}
+    payload_attribute = "signature"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -622,11 +577,7 @@ class FinalizationRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'finalization' round."""
-        super().__init__(*args, **kwargs)
-        self.keeper_payload: Optional[str] = None
+    paylaod_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""

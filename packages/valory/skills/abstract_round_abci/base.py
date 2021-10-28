@@ -585,7 +585,11 @@ class CollectionRound(AbstractRound):
     """
 
     collection: Dict[str, Any]
-    period_attribute: str
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the collection round."""
+        super().__init__(*args, **kwargs)
+        self.collection: Dict[str, BaseTxPayload] = {}
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -628,6 +632,12 @@ class CollectDifferentUntilAllRound(AbstractRound):
 
     collection: Set[Any]
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the registration round."""
+        super().__init__(*args, **kwargs)
+
+        self.collection: Set[Any] = set()
+
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
         self.collection.add(getattr(payload, self.payload_attribute))
@@ -650,8 +660,6 @@ class CollectSameUntilThresholdRound(CollectionRound):
     This class represents logic for rounds where a round needs to collect
     same payload from k of n agents.
     """
-
-    payload_attribute: str
 
     @property
     def threshold_reached(
@@ -694,7 +702,11 @@ class OnlyKeeperSendsRound(AbstractRound):
     """
 
     keeper_payload: Optional[Any]
-    payload_attribute: str
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'collect-observation' round."""
+        super().__init__(*args, **kwargs)
+        self.keeper_payload: Optional[Any] = None
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Handle a deploy safe payload."""
