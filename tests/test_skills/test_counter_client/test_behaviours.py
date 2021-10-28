@@ -73,6 +73,7 @@ class TestIncrementerBehaviour(BaseTestClass):
         self.assert_quantity_in_outbox(1)
 
         actual_message = self.get_message_from_outbox()
+        assert actual_message is not None, "No message in outbox."
         has_attr, msg = self.message_has_attributes(
             actual_message=actual_message,
             message_type=HttpMessage,
@@ -116,6 +117,7 @@ class TestMonitorBehaviour(BaseTestClass):
         self.assert_quantity_in_outbox(1)
 
         actual_message = self.get_message_from_outbox()
+        assert actual_message is not None, "No message in outbox."
         has_attr, msg = self.message_has_attributes(
             actual_message=actual_message,
             message_type=HttpMessage,
@@ -161,6 +163,7 @@ class TestHttpHandler(BaseTestClass):
         self.assert_quantity_in_outbox(1)
 
         actual_message = self.get_message_from_outbox()
+        assert actual_message is not None, "No message in outbox."
         has_attr, msg = self.message_has_attributes(
             actual_message=actual_message,
             message_type=HttpMessage,

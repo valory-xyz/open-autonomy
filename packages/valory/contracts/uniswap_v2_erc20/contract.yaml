@@ -1,0 +1,16 @@
+name: uniswap_v2_erc20
+author: valory
+version: 0.1.0
+type: contract
+description: Uniswap V2 ERC20 contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmQVHdKLbvg2LmuujxGysznbfRVbwaoKLJBrw8ZNb9FyCi
+  build/IUniswapV2ERC20.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
+  contract.py: QmRAynYPqyXM8j4eL5oDv5RbH8PHWzyq4qtQ4mKfcYR6U3
+fingerprint_ignore_patterns: []
+class_name: UniswapV2ERC20Contract
+contract_interface_paths:
+  ethereum: build/IUniswapV2ERC20.json
+dependencies: {}
