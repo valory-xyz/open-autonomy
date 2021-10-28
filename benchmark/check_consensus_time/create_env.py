@@ -128,8 +128,6 @@ TENDERMINT_NODE_TEMPLATE: str = """
     container_name: node{node_id}
     image: "tendermint/localnode"
     cpus: 0.1
-    #ports:
-    #  - "266{localnet_port_range}6-266{localnet_port_range}7:26656-26657"
     environment:
       - ID={node_id}
       - LOG=${{LOG:-tendermint.log}}
