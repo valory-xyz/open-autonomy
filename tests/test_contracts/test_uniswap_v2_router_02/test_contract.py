@@ -79,7 +79,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
     s = bytes(0)
 
     # Swap
-    path = []
+    path = [ADDRESS_ONE, ADDRESS_TWO, ADDRESS_THREE]
     amount_in = 10
     amount_out_min = 10
     amount_out = 10
