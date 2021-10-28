@@ -2,8 +2,11 @@
 
 AGENT_ID=$(echo $HOSTNAME | grep -Eo '[0-9]{1,4}')
 
-cp ../configure_agents/keys/ethereum_private_key_"${AGENT_ID}".txt ethereum_private_key.txt
+echo -n $AEA_KEY  ethereum_private_key.txt
+
+# cp ../configure_agents/keys/ethereum_private_key_"${AGENT_ID}".txt ethereum_private_key.txt
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.source_id coingecko
+# aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.source_id $API_ID
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657

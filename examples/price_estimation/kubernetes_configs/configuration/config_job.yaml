@@ -32,20 +32,35 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: config-nodes
-        image: valory/localnode:b02256b@sha256:23eab91d75025d1184af3a4dd719a7b8c4caaa72baae1ba3b7afb6d2d5fe4449
+        image: valory/localnode
+        # image: valory/localnode:b02256b@sha256:23eab91d75025d1184af3a4dd719a7b8c4caaa72baae1ba3b7afb6d2d5fe4449
         args: ["testnet",
          "--config",
          "/etc/tendermint/config-template.toml",
          "--o",  ".", "--starting-ip-address",
-         "192.167.11.3"
-         #"10.244.0.21"
+         "192.167.11.3",
+         "--v", "6" # number of nodes
          ]
         volumeMounts:
           - mountPath: /tendermint
             name: build
-#           subPath: app2
+
+      - name: aea
+        image: valory/oracle-poc
+        command:
+          - /usr/bin/python
+        env: 
+          - name: NUMBER_OF_NODES
+            value: "6"
+        args: ["../configure_agents/create_env.py", "-n", "$(NUMBER_OF_NODES)", "-b"]
+        volumeMounts:
+          - mountPath: /build
+            name: build
+
       volumes:
         - name: build
           persistentVolumeClaim:

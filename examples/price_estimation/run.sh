@@ -1,12 +1,20 @@
 #!/usr/bin/env sh
 
+if [ "$DEBUG" == "1" ];
+then
+    while true; do foo; sleep 2; done
+fi
 
 if [ "$CLUSTERED" == "1" ];
 then
-    ../configure_agents/abci_kube.sh &&\
+    AGENT_ID=$(cat /etc/hostname | grep -Eo '[0-9]{1,4}' | head -n 1)
+    echo "configuring $AGENT_ID for cluster"
+    cp -r /build/configs/* ../configure_agents
+    sudo chown -R  $(whoami) /build/configs
+    bash ../configure_agents/abci"${AGENT_ID}".sh &&\
      python3 -m aea.cli -v DEBUG run
 else
-    AGENT_ID=$(echo /etc/hostname | grep -Eo '[0-9]{1,4}')
-    ../configure_agents/abci"${AGENT_ID}".sh &&\
+    echo "configuring $ID"
+    ../configure_agents/abci"${ID}".sh &&\
      python3 -m aea.cli -v DEBUG run
 fi

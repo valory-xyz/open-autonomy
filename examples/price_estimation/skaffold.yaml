@@ -3,7 +3,7 @@ kind: Config
 metadata:
   name: oracle-poc
 profiles:
-  - name: minikube
+  - name: deploy
     build:
       artifacts:
       - image: valory/hardhat
@@ -22,17 +22,31 @@ profiles:
       kubeContext: kind-kind
       kubectl:
         manifests:
-        - kubernetes_configs/hardhat/hardhat-deployment.yaml
-        - kubernetes_configs/hardhat/hardhat-service.yaml
-#       - kubernetes_configs/agent-node/stateful-set.yaml
-        - kubernetes_configs/agent-node/deployment-node-0.yaml
+        - kubernetes_configs/build/agent_node_deployment*.yaml
   - name: configure
+    build:
+      artifacts:
+      - image: valory/hardhat
+        context: ./
+        docker:
+          dockerfile: DockerFiles/hardhat/Dockerfile
+      - image: valory/oracle-poc
+        context: ../..
+        docker:
+          dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      - image: valory/localnode
+        context: ./networks/local/localnode/
+        docker:
+          dockerfile: Dockerfile
     deploy:
       kubectl:
         manifests:
-        - kubernetes_configs/secret.yaml
-        - kubernetes_configs/config_job.yaml
-        - kubernetes_configs/networking/calico.yaml
+        - kubernetes_configs/build/config_job.yaml
+        - kubernetes_configs/hardhat/hardhat-deployment.yaml
+        - kubernetes_configs/hardhat/hardhat-service.yaml
+        - kubernetes_configs/configuration/secret.yaml
+        - kubernetes_configs/configuration/networking/calico.yaml
+        - kubernetes_configs/configuration/networking/localnet-networkpolicy.yaml
   - name: dashboard
     deploy:
       kubectl:

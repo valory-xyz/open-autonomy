@@ -22,6 +22,8 @@ localnet-stop:
 SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
+NUMBER_OF_NODES := 8
+RESULT := ""
 
 localcluster-start:
 	if [[ "${CLUSTERS}" == "" ]]; then \
@@ -38,7 +40,10 @@ localcluster-start:
 	kubectl create serviceaccount dashboard-admin-sa
 	kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
 	skaffold run --profile dashboard
+	sudo configure_agents/create_env.py -n ${NUMBER_OF_NODES}
 	skaffold run --profile configure
+	echo "Waiting for cluster configuration to be completed..."
+	kubectl wait --for=condition=complete job/config-nodes --timeout=300s
 .ONESHELL: localcluster-start
 
 # 	if [[ "${OSTYPE}" == "linux-gnu"* ]]; then \
@@ -49,13 +54,27 @@ localcluster-start:
 # 	    TOKEN="$(shell ls /home/$(USER)/.docker/config.json)"; \
 # 	fi
 
-localcluster-deploy:
-	skaffold run --profile minikube
+localcluster-create-deployments: 
+
+	echo "creating deployment configs for ${NUMBER_OF_NODES}"
+	RESULT = $(shell python create_env.py ${NUMBER_OF_NODES})
+	if [[ "${RESULT}" == "" ]]; then \
+		echo "Error creating deployments ${NUMBER_OF_NODES} agents";
+	else\
+	fi
+#	if [[ "${RESULT}" == ""]]; then \
+#		echo "Error creating deployments ${NUMBER_OF_NODES} agents";\
+#		exit 1;\
+	skaffold run --profile minikube;
+.ONESHELL: localcluster-create-deployment
+
+localcluster-deploy: 
+	skaffold run --profile deploy
 .ONESHELL: localcluster-deploy
 
 localcluster-dashboard-start:
 	kubernetes-dashboard-stop
-	bash ./kubernetes_configs/setup_dashboard.sh
+	bash ./kubernetes_configs/configuration/setup_dashboard.sh
 .ONESHELL: kubernetes-dashboard-start
 
 localcluster-dashboard-stop:
@@ -65,3 +84,16 @@ localcluster-dashboard-stop:
 localcluster-stop:
 	kind delete cluster
 .PHONY: localcluster-stop
+
+PODS := $(shell kubectl get pods | grep agent | awk '{print $$1}')
+DEPLOYMENTS := $(shell kubectl get deployments | grep agent | awk '{print $$1}')
+localcluster-remove-deploy:
+	for pod in ${DEPLOYMENTS} ; do \
+		kubectl delete deployment $$pod --force;\
+	done
+	for pod in ${PODS} ; do \
+		kubectl delete pod $$pod --force;\
+	done
+	kubectl delete job config-nodes
+
+.PHONY: localcluster-remove-deploy
