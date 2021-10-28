@@ -22,6 +22,7 @@ import logging  # noqa: F401
 import re
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
@@ -29,6 +30,7 @@ from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbstractRound,
     BaseTxPayload,
     ConsensusParams,
     TransactionNotValidError,
@@ -198,6 +200,14 @@ class BaseRoundTestClass:
         cls.period_state = PeriodState(participants=cls.participants)
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
+    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
+        """Test the NO_MAJORITY event."""
+        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
+            result = round_obj.end_block()
+            assert result is not None
+            state, event = result
+            assert event == Event.NO_MAJORITY
+
 
 class TestRegistrationRound(BaseRoundTestClass):
     """Test RegistrationRound."""
@@ -309,6 +319,11 @@ class TestRandomnessRound(BaseRoundTestClass):
             == cast(PeriodState, actual_next_state).participant_to_randomness.keys()
         )
         assert event == Event.DONE
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestSelectKeeperRound(BaseRoundTestClass):
@@ -789,6 +804,11 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
         )
         assert event == Event.DONE
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = EstimateConsensusRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestTxHashRound(BaseRoundTestClass):
     """Test TxHashRound."""
@@ -857,6 +877,11 @@ class TestTxHashRound(BaseRoundTestClass):
         assert res is not None
         _, event = res
         assert event == Event.DONE
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = TxHashRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestCollectSignatureRound(BaseRoundTestClass):
@@ -928,6 +953,11 @@ class TestCollectSignatureRound(BaseRoundTestClass):
         assert res is not None
         _, event = res
         assert event == Event.DONE
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = CollectSignatureRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestFinalizationRound(BaseRoundTestClass):
@@ -1108,6 +1138,11 @@ class TestSelectKeeperARound(BaseRoundTestClass):
         )
         assert event == Event.DONE
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = SelectKeeperARound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestSelectKeeperBRound(BaseRoundTestClass):
     """Test SelectKeeperBRound."""
@@ -1180,6 +1215,11 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
             == cast(PeriodState, actual_next_state).participant_to_selection.keys()
         )
         assert event == Event.DONE
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = SelectKeeperARound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestConsensusReachedRound(BaseRoundTestClass):
@@ -1320,6 +1360,11 @@ class TestValidateSafeRound(BaseRoundTestClass):
         ):
             _ = cast(PeriodState, state).participant_to_votes
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = ValidateSafeRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestValidateTransactionRound(BaseRoundTestClass):
     """Test ValidateRound."""
@@ -1425,6 +1470,11 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         ):
             _ = cast(PeriodState, state).participant_to_votes
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = ValidateTransactionRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 def test_rotate_list_method() -> None:
     """Test `rotate_list` method."""
@@ -1489,3 +1539,5 @@ def test_period_state() -> None:
     assert period_state.final_tx_hash == final_tx_hash
 
     assert period_state.encoded_most_voted_estimate == encode_float(most_voted_estimate)
+
+    assert period_state.reset().participants == period_state.participants

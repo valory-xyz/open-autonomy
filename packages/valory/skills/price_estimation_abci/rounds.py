@@ -505,7 +505,7 @@ class RandomnessRound(PriceEstimationAbstractRound, ABC):
         if not self.is_majority_possible(
             self.participant_to_randomness, self.period_state.nb_participants
         ):
-            self._return_no_majority_event()
+            return self._return_no_majority_event()
         return None
 
 
@@ -611,7 +611,7 @@ class SelectKeeperRound(PriceEstimationAbstractRound, ABC):
         if not self.is_majority_possible(
             self.participant_to_selection, self.period_state.nb_participants
         ):
-            self._return_no_majority_event()
+            return self._return_no_majority_event()
         return None
 
 
@@ -809,7 +809,7 @@ class ValidateRound(PriceEstimationAbstractRound, ABC):
         if not self.is_majority_possible(
             self.participant_to_votes, self.period_state.nb_participants
         ):
-            self._return_no_majority_event()
+            return self._return_no_majority_event()
         return None
 
 
@@ -1012,7 +1012,7 @@ class EstimateConsensusRound(PriceEstimationAbstractRound):
         if not self.is_majority_possible(
             self.participant_to_estimate, self.period_state.nb_participants
         ):
-            self._return_no_majority_event()
+            return self._return_no_majority_event()
         return None
 
 
@@ -1118,7 +1118,7 @@ class TxHashRound(PriceEstimationAbstractRound):
         if not self.is_majority_possible(
             self.participant_to_tx_hash, self.period_state.nb_participants
         ):
-            self._return_no_majority_event()
+            return self._return_no_majority_event()
         return None
 
 
@@ -1210,7 +1210,7 @@ class CollectSignatureRound(PriceEstimationAbstractRound):
         if not self.is_majority_possible(
             self.signatures_by_participant, self.period_state.nb_participants
         ):
-            self._return_no_majority_event()
+            return self._return_no_majority_event()
         return None
 
 
