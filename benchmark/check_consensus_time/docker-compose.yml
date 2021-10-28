@@ -20,8 +20,8 @@ services:
     container_name: node0
     image: "tendermint/localnode"
     cpus: 0.1
-    ports:
-      - "26606-26607:26656-26657"
+    #ports:
+    #  - "26606-26607:26656-26657"
     environment:
       - ID=0
       - LOG=${LOG:-tendermint.log}
@@ -40,8 +40,8 @@ services:
     container_name: node1
     image: "tendermint/localnode"
     cpus: 0.1
-    ports:
-      - "26616-26617:26656-26657"
+    #ports:
+    #  - "26616-26617:26656-26657"
     environment:
       - ID=1
       - LOG=${LOG:-tendermint.log}
@@ -60,8 +60,8 @@ services:
     container_name: node2
     image: "tendermint/localnode"
     cpus: 0.1
-    ports:
-      - "26626-26627:26656-26657"
+    #ports:
+    #  - "26626-26627:26656-26657"
     environment:
       - ID=2
       - LOG=${LOG:-tendermint.log}
@@ -80,8 +80,8 @@ services:
     container_name: node3
     image: "tendermint/localnode"
     cpus: 0.1
-    ports:
-      - "26636-26637:26656-26657"
+    #ports:
+    #  - "26636-26637:26656-26657"
     environment:
       - ID=3
       - LOG=${LOG:-tendermint.log}
