@@ -34,6 +34,7 @@ _logger = logging.getLogger(
 )
 
 
+# pylint: disable=too-many-arguments,invalid-name,too-many-locals,too-many-public-methods
 class UniswapV2Router02Contract(Contract):
     """The Uniswap V2 Router02 contract."""
 

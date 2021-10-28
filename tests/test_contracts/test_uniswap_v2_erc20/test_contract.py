@@ -57,7 +57,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         return contract_address
 
     @classmethod
-    def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:
+    def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:  # type: ignore
         """Deploy contract."""
         return {}
 

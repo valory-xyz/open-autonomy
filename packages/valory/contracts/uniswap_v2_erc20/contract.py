@@ -34,6 +34,7 @@ _logger = logging.getLogger(
 )
 
 
+# pylint: disable=too-many-arguments,invalid-name
 class UniswapV2ERC20Contract(Contract):
     """The Uniswap V2 ERC-20 contract."""
 
