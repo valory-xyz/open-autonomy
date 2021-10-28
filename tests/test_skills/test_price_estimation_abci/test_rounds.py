@@ -222,6 +222,18 @@ class TestRegistrationRound(BaseRoundTestClass):
         }
         assert test_round.end_block() is None
 
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: registration",
+        ):
+            test_round.check_payload(first_participant)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: registration",
+        ):
+            test_round.process_payload(first_participant)
+
         for participant_payload in registration_payloads:
             test_round.process_payload(participant_payload)
         assert test_round.collection_threshold_reached
@@ -275,13 +287,13 @@ class TestRandomnessRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : randomness",
+            match="internal error: sender agent_0 has already sent value for round: randomness",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : randomness",
+            match="sender agent_0 has already sent value for round: randomness",
         ):
             test_round.check_payload(first_payload)
 
@@ -358,13 +370,13 @@ class TestSelectKeeperRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : round_id",
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : round_id",
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
@@ -553,14 +565,14 @@ class TestValidateRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : round_id",
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         assert test_round.collection[first_payload.sender] == first_payload
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : round_id",
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
@@ -672,13 +684,13 @@ class TestCollectObservationRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : collect_observation",
+            match="internal error: sender agent_0 has already sent value for round: collect_observation",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : collect_observation",
+            match="sender agent_0 has already sent value for round: collect_observation",
         ):
             test_round.check_payload(
                 ObservationPayload(
@@ -754,13 +766,13 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : estimate_consensus",
+            match="internal error: sender agent_0 has already sent value for round: estimate_consensus",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : estimate_consensus",
+            match="sender agent_0 has already sent value for round: estimate_consensus",
         ):
             test_round.check_payload(
                 EstimatePayload(sender=sorted(list(self.participants))[0], estimate=1.0)
@@ -838,13 +850,13 @@ class TestTxHashRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : tx_hash",
+            match="internal error: sender agent_0 has already sent value for round: tx_hash",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : tx_hash",
+            match="sender agent_0 has already sent value for round: tx_hash",
         ):
             test_round.check_payload(first_payload)
 
@@ -904,20 +916,20 @@ class TestCollectSignatureRound(BaseRoundTestClass):
         test_round.process_payload(first_payload)
         assert not test_round.collection_threshold_reached
         assert (
-            test_round.collection[first_payload.sender].signature # type: ignore
+            test_round.collection[first_payload.sender].signature  # type: ignore
             == first_payload.signature
         )
         assert test_round.end_block() is None
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : collect_signature",
+            match="internal error: sender agent_0 has already sent value for round: collect_signature",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : collect_signature",
+            match="sender agent_0 has already sent value for round: collect_signature",
         ):
             test_round.check_payload(first_payload)
 
@@ -1068,13 +1080,13 @@ class TestSelectKeeperARound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : select_keeper_a",
+            match="internal error: sender agent_0 has already sent value for round: select_keeper_a",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : select_keeper_a",
+            match="sender agent_0 has already sent value for round: select_keeper_a",
         ):
             test_round.check_payload(first_payload)
 
@@ -1142,13 +1154,13 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : select_keeper_b",
+            match="internal error: sender agent_0 has already sent value for round: select_keeper_b",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : select_keeper_b",
+            match="sender agent_0 has already sent value for round: select_keeper_b",
         ):
             test_round.check_payload(first_payload)
 
@@ -1254,7 +1266,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : validate_safe",
+            match="internal error: sender agent_0 has already sent value for round: validate_safe",
         ):
             test_round.process_payload(first_payload)
 
@@ -1262,7 +1274,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : validate_safe",
+            match="sender agent_0 has already sent value for round: validate_safe",
         ):
             test_round.check_payload(first_payload)
 
@@ -1358,7 +1370,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round : validate_transaction",
+            match="internal error: sender agent_0 has already sent value for round: validate_transaction",
         ):
             test_round.process_payload(first_payload)
 
@@ -1366,7 +1378,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round : validate_transaction",
+            match="sender agent_0 has already sent value for round: validate_transaction",
         ):
             test_round.check_payload(first_payload)
 

@@ -568,9 +568,11 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
             )
 
+    @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
 
+    @abstractmethod
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
 
@@ -600,7 +602,7 @@ class CollectionRound(AbstractRound):
 
         if sender in self.collection:
             raise ABCIAppInternalError(
-                f"sender {sender} has already sent value for round : {self.round_id}"
+                f"sender {sender} has already sent value for round: {self.round_id}"
             )
 
         self.collection[sender] = payload
@@ -616,7 +618,7 @@ class CollectionRound(AbstractRound):
 
         if payload.sender in self.collection:
             raise TransactionNotValidError(
-                f"sender {payload.sender} has already sent value for round : {self.round_id}"
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
 
@@ -636,14 +638,19 @@ class CollectDifferentUntilAllRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        self.collection.add(getattr(payload, self.payload_attribute))
+        payload_attribute = getattr(payload, self.payload_attribute)
+        if payload_attribute in self.collection:
+            raise ABCIAppInternalError(
+                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
+            )
+        self.collection.add(payload_attribute)
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload."""
-
-        if getattr(payload, self.payload_attribute) in self.collection:
-            raise ABCIAppInternalError(
-                f"sender {payload.sender} has already sent value for round : {self.round_id}"
+        payload_attribute = getattr(payload, self.payload_attribute)
+        if payload_attribute in self.collection:
+            raise TransactionNotValidError(
+                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
             )
 
     @property

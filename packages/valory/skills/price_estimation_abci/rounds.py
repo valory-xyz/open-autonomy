@@ -24,9 +24,7 @@ from enum import Enum
 from types import MappingProxyType
 from typing import (
     AbstractSet,
-    Any,
     Dict,
-    FrozenSet,
     List,
     Mapping,
     Optional,
@@ -275,67 +273,6 @@ class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     def period_state(self) -> PeriodState:
         """Return the period state."""
         return cast(PeriodState, self._state)
-
-    @classmethod
-    def _sender_not_in_participants_error_message(
-        cls, sender: str, participants: FrozenSet[str]
-    ) -> str:
-        """Get the error message for sender not in participants set."""
-        return (
-            f"sender {sender} is not in the set of participants: {sorted(participants)}"
-        )
-
-    @classmethod
-    def _sender_already_sent_item(
-        cls, sender: str, item_name: str, item_value: Any
-    ) -> str:
-        """Get the error message for sender already sent item."""
-        return f"sender {sender} has already sent {item_name}: {item_value}"
-
-    @classmethod
-    def _sender_already_sent_signature(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent signature."""
-        return cls._sender_already_sent_item(sender, "its signature", item_value)
-
-    @classmethod
-    def _sender_already_sent_observation(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent observation."""
-        return cls._sender_already_sent_item(sender, "its observation", item_value)
-
-    @classmethod
-    def _sender_already_sent_estimate(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent estimate."""
-        return cls._sender_already_sent_item(sender, "the estimate", item_value)
-
-    @classmethod
-    def _sender_already_sent_selection(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent selection."""
-        return cls._sender_already_sent_item(sender, "the selection", item_value)
-
-    @classmethod
-    def _sender_already_sent_randomness(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent randomness."""
-        return cls._sender_already_sent_item(sender, "the randomness", item_value)
-
-    @classmethod
-    def _sender_already_sent_tx_hash(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent the tx hash."""
-        return cls._sender_already_sent_item(sender, "the tx hash", item_value)
-
-    @classmethod
-    def _sender_already_sent_vote(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent its vote."""
-        return cls._sender_already_sent_item(sender, "its vote", item_value)
-
-    @classmethod
-    def _sender_already_sent_contract_address(cls, sender: str, item_value: Any) -> str:
-        """Get the error message for sender already sent the contract address."""
-        return cls._sender_already_sent_item(sender, "the contract address", item_value)
-
-    @classmethod
-    def _sender_not_elected(cls, sender: str, elected_sender: str) -> str:
-        """Get the error message for sender not being the elected sender."""
-        return f"sender {sender} is not the elected sender: {elected_sender}"
 
 
 class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
