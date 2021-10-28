@@ -58,6 +58,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
 
     @classmethod
     def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:
+        """Deploy contract."""
         return {}
 
     def test_aprove(self) -> None:
@@ -215,7 +216,6 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         """Test allowance."""
         owner_address = ADDRESS_ONE
         spender_address = ADDRESS_THREE
-        allowance = 0
         with mock.patch.object(
             self.ledger_api.api.manager,
             "request_blocking",

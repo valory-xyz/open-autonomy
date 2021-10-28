@@ -100,7 +100,7 @@ class UniswapV2Router02Contract(Contract):
             amount_token_min,
             amount_ETH_min,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -164,7 +164,7 @@ class UniswapV2Router02Contract(Contract):
             amount_token_min,
             amount_ETH_min,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -205,7 +205,7 @@ class UniswapV2Router02Contract(Contract):
             approve_max,
             v,
             r,
-            s
+            s,
         )
 
     @classmethod
@@ -244,7 +244,7 @@ class UniswapV2Router02Contract(Contract):
             approve_max,
             v,
             r,
-            s
+            s,
         )
 
     @classmethod
@@ -275,7 +275,7 @@ class UniswapV2Router02Contract(Contract):
             amount_token_min,
             amount_ETH_min,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -314,7 +314,7 @@ class UniswapV2Router02Contract(Contract):
             approve_max,
             v,
             r,
-            s
+            s,
         )
 
     @classmethod
@@ -343,7 +343,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out_min,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -372,7 +372,7 @@ class UniswapV2Router02Contract(Contract):
             amount_in_max,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -399,7 +399,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out_min,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -428,7 +428,7 @@ class UniswapV2Router02Contract(Contract):
             amount_in_max,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -457,7 +457,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out_min,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -484,7 +484,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -513,7 +513,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out_min,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -540,7 +540,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out_min,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -569,7 +569,7 @@ class UniswapV2Router02Contract(Contract):
             amount_out_min,
             path,
             to_address,
-            deadline
+            deadline,
         )
 
     @classmethod
@@ -583,12 +583,7 @@ class UniswapV2Router02Contract(Contract):
     ) -> Optional[JSONLike]:
         """Quote."""
         return cls._call(
-            ledger_api,
-            contract_address,
-            "quote",
-            amount_a,
-            reserve_a,
-            reserve_b
+            ledger_api, contract_address, "quote", amount_a, reserve_a, reserve_b
         )
 
     @classmethod
@@ -607,7 +602,7 @@ class UniswapV2Router02Contract(Contract):
             "getAmountOut",
             amount_in,
             reserve_in,
-            reserve_out
+            reserve_out,
         )
 
     @classmethod
@@ -626,7 +621,7 @@ class UniswapV2Router02Contract(Contract):
             "getAmountIn",
             amount_out,
             reserve_in,
-            reserve_out
+            reserve_out,
         )
 
     @classmethod
@@ -634,18 +629,14 @@ class UniswapV2Router02Contract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, amount_in: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts out."""
-        return cls._call(
-            ledger_api, contract_address, "getAmountsOut", amount_in, path
-        )
+        return cls._call(ledger_api, contract_address, "getAmountsOut", amount_in, path)
 
     @classmethod
     def get_amounts_in(
         cls, ledger_api: LedgerApi, contract_address: str, amount_out: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts in."""
-        return cls._call(
-            ledger_api, contract_address, "getAmountsIn", amount_out, path
-        )
+        return cls._call(ledger_api, contract_address, "getAmountsIn", amount_out, path)
 
     @classmethod
     def _call(

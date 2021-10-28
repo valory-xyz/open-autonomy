@@ -102,6 +102,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
 
     @classmethod
     def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:
+        """Deploy contract."""
         return {}
 
     def test_add_liquidity(self) -> None:
@@ -112,7 +113,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="addLiquidity",
-            args= [
+            args=[
                 self.token_a,
                 self.token_b,
                 self.amount_a_desired,
@@ -120,8 +121,8 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.amount_a_min,
                 self.amount_b_min,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -162,14 +163,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="addLiquidityETH",
-            args= [
+            args=[
                 self.token,
                 self.amount_token_desired,
                 self.amount_token_min,
                 self.amount_ETH_min,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -208,15 +209,15 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="removeLiquidity",
-            args= [
+            args=[
                 self.token_a,
                 self.token_b,
                 self.liquidity,
                 self.amount_a_min,
                 self.amount_b_min,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -256,14 +257,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="removeLiquidityETH",
-            args= [
+            args=[
                 self.token,
                 self.liquidity,
                 self.amount_token_min,
                 self.amount_ETH_min,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -302,7 +303,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="removeLiquidityWithPermit",
-            args= [
+            args=[
                 self.token_a,
                 self.token_b,
                 self.liquidity,
@@ -313,8 +314,8 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.approve_max,
                 self.v,
                 self.r,
-                self.s
-            ]
+                self.s,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -339,7 +340,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.v,
                     self.r,
                     self.s,
-        )
+                )
         assert result == {
             "chainId": CHAIN_ID,
             "data": data,
@@ -358,7 +359,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="removeLiquidityETHWithPermit",
-            args= [
+            args=[
                 self.token,
                 self.liquidity,
                 self.amount_token_min,
@@ -368,8 +369,8 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.approve_max,
                 self.v,
                 self.r,
-                self.s
-            ]
+                self.s,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -412,14 +413,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="removeLiquidityETHSupportingFeeOnTransferTokens",
-            args= [
+            args=[
                 self.token,
                 self.liquidity,
                 self.amount_token_min,
                 self.amount_ETH_min,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -460,7 +461,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
-            args= [
+            args=[
                 self.token,
                 self.liquidity,
                 self.amount_token_min,
@@ -470,8 +471,8 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.approve_max,
                 self.v,
                 self.r,
-                self.s
-            ]
+                self.s,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -514,13 +515,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapExactTokensForTokens",
-            args= [
+            args=[
                 self.amount_in,
                 self.amount_out_min,
                 self.path,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -558,13 +559,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapTokensForExactTokens",
-            args= [
+            args=[
                 self.amount_out,
                 self.amount_in_max,
                 self.path,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -602,12 +603,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapExactETHForTokens",
-            args= [
-                self.amount_out_min,
-                self.path,
-                self.to_address,
-                self.deadline
-            ]
+            args=[self.amount_out_min, self.path, self.to_address, self.deadline],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -644,13 +640,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapTokensForExactETH",
-            args= [
+            args=[
                 self.amount_out,
                 self.amount_in_max,
                 self.path,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -688,13 +684,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapExactTokensForETH",
-            args= [
+            args=[
                 self.amount_in,
                 self.amount_out_min,
                 self.path,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -732,12 +728,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapETHForExactTokens",
-            args= [
-                self.amount_out,
-                self.path,
-                self.to_address,
-                self.deadline
-            ]
+            args=[self.amount_out, self.path, self.to_address, self.deadline],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -776,13 +767,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapExactTokensForTokensSupportingFeeOnTransferTokens",
-            args= [
+            args=[
                 self.amount_in,
                 self.amount_out_min,
                 self.path,
                 self.to_address,
-                self.deadline
-            ]
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -820,12 +811,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapExactETHForTokensSupportingFeeOnTransferTokens",
-            args= [
-                self.amount_out_min,
-                self.path,
-                self.to_address,
-                self.deadline
-            ]
+            args=[self.amount_out_min, self.path, self.to_address, self.deadline],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -842,7 +828,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.amount_out_min,
                     self.path,
                     self.to_address,
-                    self.deadline
+                    self.deadline,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -862,13 +848,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(
             fn_name="swapExactTokensForETHSupportingFeeOnTransferTokens",
-            args= [
-                    self.amount_in,
-                    self.amount_out_min,
-                    self.path,
-                    self.to_address,
-                    self.deadline
-            ]
+            args=[
+                self.amount_in,
+                self.amount_out_min,
+                self.path,
+                self.to_address,
+                self.deadline,
+            ],
         )
         with mock.patch.object(
             self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
@@ -886,7 +872,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.amount_out_min,
                     self.path,
                     self.to_address,
-                    self.deadline
+                    self.deadline,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -895,174 +881,77 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             "gasPrice": self.gas_price,
             "nonce": NONCE,
             "to": CONTRACT_ADDRESS,
-            "value": eth_value
+            "value": eth_value,
         }
 
     def test_quote(self) -> None:
         """Test quote."""
-        eth_value = 0
-        gas = 100
-        data = self.contract.get_instance(
-            self.ledger_api, self.contract_address
-        ).encodeABI(
-            fn_name="quote",
-            args= [
+        with mock.patch.object(
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
+        ):
+            result = self.contract.quote(
+                self.ledger_api,
+                self.contract_address,
                 self.amount_a,
                 self.reserve_a,
-                self.reserve_b
-            ]
-        )
-        with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
-        ):
-            with mock.patch.object(
-                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-            ):
-                result = self.contract.quote(
-                    self.ledger_api,
-                    self.contract_address,
-                    self.amount_a,
-                    self.reserve_a,
-                    self.reserve_b
-                )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": data,
-            "gas": gas,
-            "gasPrice": self.gas_price,
-            "nonce": NONCE,
-            "to": CONTRACT_ADDRESS,
-            "value": eth_value
-        }
+                self.reserve_b,
+            )
+        assert result == 0
 
     def test_get_amount_out(self) -> None:
         """Test get_amount_out."""
-        eth_value = 0
-        gas = 100
-        data = self.contract.get_instance(
-            self.ledger_api, self.contract_address
-        ).encodeABI(
-            fn_name="getAmountOut",
-            args= [
+        with mock.patch.object(
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
+        ):
+            result = self.contract.get_amount_out(
+                self.ledger_api,
+                self.contract_address,
                 self.amount_in,
                 self.reserve_in,
-                self.reserve_out
-            ]
-        )
-        with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
-        ):
-            with mock.patch.object(
-                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-            ):
-                result = self.contract.get_amount_out(
-                    self.ledger_api,
-                    self.contract_address,
-                    self.amount_in,
-                    self.reserve_in,
-                    self.reserve_out
-                )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": data,
-            "gas": gas,
-            "gasPrice": self.gas_price,
-            "nonce": NONCE,
-            "to": CONTRACT_ADDRESS,
-            "value": eth_value
-        }
+                self.reserve_out,
+            )
+        assert result == 0
 
     def test_get_amount_in(self) -> None:
         """Test get_amount_in."""
-        eth_value = 0
-        gas = 100
-        data = self.contract.get_instance(
-            self.ledger_api, self.contract_address
-        ).encodeABI(
-            fn_name="getAmountIn",
-            args= [
+        with mock.patch.object(
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
+        ):
+            result = self.contract.get_amount_in(
+                self.ledger_api,
+                self.contract_address,
                 self.amount_out,
                 self.reserve_in,
-                self.reserve_out
-            ]
-        )
-        with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
-        ):
-            with mock.patch.object(
-                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-            ):
-                result = self.contract.get_amount_in(
-                    self.ledger_api,
-                    self.contract_address,
-                    self.amount_out,
-                    self.reserve_in,
-                    self.reserve_out
-                )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": data,
-            "gas": gas,
-            "gasPrice": self.gas_price,
-            "nonce": NONCE,
-            "to": CONTRACT_ADDRESS,
-            "value": eth_value
-        }
+                self.reserve_out,
+            )
+        assert result == 0
 
     def test_get_amounts_out(self) -> None:
         """Test get_amounts_out."""
-        eth_value = 0
-        gas = 100
-        data = self.contract.get_instance(
-            self.ledger_api, self.contract_address
-        ).encodeABI(
-            fn_name="getAmountsOut",
-            args= [self.amount_in, self.path]
-        )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
         ):
-            with mock.patch.object(
-                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-            ):
-                result = self.contract.get_amounts_out(
-                    self.ledger_api, self.contract_address, self.amount_in, self.path
-                )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": data,
-            "gas": gas,
-            "gasPrice": self.gas_price,
-            "nonce": NONCE,
-            "to": CONTRACT_ADDRESS,
-            "value": eth_value
-        }
+            result = self.contract.get_amounts_out(
+                self.ledger_api, self.contract_address, self.amount_in, self.path
+            )
+        assert result == []
 
     def test_get_amounts_in(self) -> None:
         """Test get_amounts_in."""
-        eth_value = 0
-        gas = 100
-        data = self.contract.get_instance(
-            self.ledger_api, self.contract_address
-        ).encodeABI(
-            fn_name="getAmountsIn",
-            args= [self.amount_out, self.path]
-        )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.manager,
+            "request_blocking",
+            return_value="0x0000000000000000000000000000000000000000000000000000000000000000",
         ):
-            with mock.patch.object(
-                self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-            ):
-                result = self.contract.get_amounts_in(
-                    self.ledger_api, self.contract_address, self.amount_out, self.path
-                )
-        assert result == {
-            "chainId": CHAIN_ID,
-            "data": data,
-            "gas": gas,
-            "gasPrice": self.gas_price,
-            "nonce": NONCE,
-            "to": CONTRACT_ADDRESS,
-            "value": eth_value
-        }
+            result = self.contract.get_amounts_in(
+                self.ledger_api, self.contract_address, self.amount_out, self.path
+            )
+        assert result == []
