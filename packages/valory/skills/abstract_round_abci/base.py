@@ -576,7 +576,13 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
 
 class CollectionRound(AbstractRound):
-    """Collection round."""
+    """
+    CollectionRound.
+
+    This class represents abstract logic for collection based rounds where
+    the round object needs to collect data from different agents. The data
+    maybe same for a voting round or different like estimate round.
+    """
 
     collection: Dict[str, Any]
     period_attribute: str
@@ -613,7 +619,12 @@ class CollectionRound(AbstractRound):
 
 
 class CollectDifferentUntilAllRound(AbstractRound):
-    """Need to collect different payloads from each agent"""
+    """
+    CollectDifferentUntilAllRound
+
+    This class represents logic for rounds where a round needs to collect
+    different payloads from each agent.
+    """
 
     collection: Set[Any]
 
@@ -633,7 +644,12 @@ class CollectDifferentUntilAllRound(AbstractRound):
 
 
 class CollectSameUntilThresholdRound(CollectionRound):
-    """Need to collect same payload from k of n agents"""
+    """
+    CollectSameUntilThresholdRound
+
+    This class represents logic for rounds where a round needs to collect
+    same payload from k of n agents.
+    """
 
     payload_attribute: str
 
@@ -670,7 +686,12 @@ class CollectSameUntilThresholdRound(CollectionRound):
 
 
 class OnlyKeeperSendsRound(AbstractRound):
-    """Only one agent sends a payload"""
+    """
+    OnlyKeeperSendsRound
+
+    This class represents logic for rounds where only one agent sends a
+    payload
+    """
 
     keeper_payload: Optional[Any]
     payload_attribute: str
@@ -718,7 +739,12 @@ class OnlyKeeperSendsRound(AbstractRound):
 
 
 class VotingRound(CollectionRound):
-    """Need to collect votes from agents, pass if k same votes of n agents"""
+    """
+    VotingRound
+
+    This class represents logic for rounds where a round needs votes from
+    agents, pass if k same votes of n agents
+    """
 
     @property
     def positive_vote_threshold_reached(self) -> bool:
@@ -740,7 +766,12 @@ class VotingRound(CollectionRound):
 
 
 class CollectDifferentUntilThresholdRound(CollectionRound):
-    """Need to collect different payloads from k of n agents"""
+    """
+    CollectDifferentUntilThresholdRound
+
+    This class represents logic for rounds where a round needs to collect
+    different payloads from k of n agents
+    """
 
     @property
     def collection_threshold_reached(

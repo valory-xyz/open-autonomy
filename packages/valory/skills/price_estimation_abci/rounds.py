@@ -364,7 +364,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.collection_threshold_reached:
-            state = PeriodState(participants=set(self.collection))
+            state = PeriodState(participants=self.collection)
             return state, Event.DONE
         return None
 
