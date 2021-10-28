@@ -33,6 +33,7 @@ from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppException,
     ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
@@ -419,6 +420,10 @@ class TestBasePeriodState:
         """Test 'participants' property getter."""
         assert self.participants == self.base_period_state.participants
 
+    def test_nb_participants_getter(self) -> None:
+        """Test 'participants' property getter."""
+        assert len(self.participants) == self.base_period_state.nb_participants
+
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
         base_period_state = BasePeriodState()
@@ -565,6 +570,95 @@ class TestAbstractRound:
         tx_mock = MagicMock()
         tx_mock.payload.transaction_type = "payload_a"
         self.round.process_transaction(tx_mock)
+
+    def test_check_majority_possible_raises_error_when_nb_participants_is_0(
+        self,
+    ) -> None:
+        """Check that 'check_majority_possible' raises error when nb_participants=0."""
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="nb_participants not consistent with votes_by_participants",
+        ):
+            AbstractRound.check_majority_possible({}, 0)
+
+    def test_check_majority_possible_passes_when_vote_set_is_empty(self) -> None:
+        """Check that 'check_majority_possible' passes when the set of votes is empty."""
+        AbstractRound.check_majority_possible({}, 1)
+
+    def test_check_majority_possible_passes_when_vote_set_nonempty_and_check_passes(
+        self,
+    ) -> None:
+        """
+        Check that 'check_majority_possible' passes when set of votes is non-empty.
+
+        The check passes because:
+        - the threshold is 2
+        - the other voter can vote for the same item of the first voter
+        """
+        AbstractRound.check_majority_possible({"voter": "item"}, 2)
+
+    def test_check_majority_possible_passes_when_vote_set_nonempty_and_check_doesnt_pass(
+        self,
+    ) -> None:
+        """
+        Check that 'check_majority_possible' doesn't pass when set of votes is non-empty.
+
+        the check does not pass because:
+        - the threshold is 2
+        - both voters have already voted for different items
+        """
+        with pytest.raises(
+            ABCIAppException,
+            match="cannot reach quorum=2, number of remaining votes=0, number of most voted item's votes=1",
+        ):
+            AbstractRound.check_majority_possible(
+                {"voter_1": "item_1", "voter_2": "item_2"}, 2
+            )
+
+    def test_is_majority_possible_positive_case(self) -> None:
+        """Test 'is_majority_possible', positive case."""
+        assert AbstractRound.is_majority_possible({"voter": "item"}, 2)
+
+    def test_is_majority_possible_negative_case(self) -> None:
+        """Test 'is_majority_possible', negative case."""
+        assert not AbstractRound.is_majority_possible(
+            {"voter_1": "item_1", "voter_2": "item_2"}, 2
+        )
+
+    def test_check_majority_possible_raises_error_when_new_voter_already_voted(
+        self,
+    ) -> None:
+        """Test 'check_majority_possible_with_new_vote' raises when new voter already voted."""
+        with pytest.raises(ABCIAppInternalError, match="voter has already voted"):
+            AbstractRound.check_majority_possible_with_new_voter(
+                {"voter": "item"}, "voter", "another_item", 2
+            )
+
+    def test_check_majority_possible_raises_error_when_nb_participants_inconsistent(
+        self,
+    ) -> None:
+        """Test 'check_majority_possible_with_new_vote' raises when 'nb_participants' inconsistent with other args."""
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="nb_participants not consistent with votes_by_participants",
+        ):
+            AbstractRound.check_majority_possible_with_new_voter(
+                {"voter_1": "item"}, "voter_2", "another_item", 1
+            )
+
+    def test_check_majority_possible_when_check_passes(
+        self,
+    ) -> None:
+        """
+        Test 'check_majority_possible_with_new_vote' when the check passes.
+
+        The test passes because:
+        - the number of participants is 2, and so the threshold is 2
+        - the new voter votes for the same item already voted by voter 1.
+        """
+        AbstractRound.check_majority_possible_with_new_voter(
+            {"voter_1": "item"}, "voter_2", "item", 2
+        )
 
 
 class TestTimeouts:
