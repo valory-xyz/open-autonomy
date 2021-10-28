@@ -28,7 +28,7 @@ services:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci0:26658
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci0:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.3
@@ -48,7 +48,7 @@ services:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci1:26658
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci1:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.4
@@ -68,7 +68,7 @@ services:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci2:26658
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci2:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.5
@@ -88,7 +88,7 @@ services:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci3:26658
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci3:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.6
@@ -98,9 +98,11 @@ services:
   abci0:
     container_name: abci0
     image: "valory/price_estimation:0.1.0"
+    environment:
+      - ID=0
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -115,9 +117,11 @@ services:
   abci1:
     container_name: abci1
     image: "valory/price_estimation:0.1.0"
+    environment:
+      - ID=1
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -132,9 +136,11 @@ services:
   abci2:
     container_name: abci2
     image: "valory/price_estimation:0.1.0"
+    environment:
+      - ID=2
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -148,10 +154,12 @@ services:
 
   abci3:
     container_name: abci3
+    environment:
+      - ID=3
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -170,3 +178,4 @@ networks:
       driver: default
       config:
         - subnet: 192.167.11.0/16
+
