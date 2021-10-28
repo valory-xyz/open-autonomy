@@ -108,7 +108,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         most_voted_estimate: Optional[float] = None,
         participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
         most_voted_tx_hash: Optional[str] = None,
-        participant_to_signature: Optional[Mapping[str, str]] = None,
+        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
         final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
@@ -221,13 +221,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, EstimatePayload], self._participant_to_estimate)
 
     @property
-    def participant_to_signature(self) -> Mapping[str, str]:
+    def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
         enforce(
             self._participant_to_signature is not None,
             "'participant_to_signature' field is None",
         )
-        return cast(Mapping[str, str], self._participant_to_signature)
+        return cast(Mapping[str, SignaturePayload], self._participant_to_signature)
 
     @property
     def final_tx_hash(self) -> str:

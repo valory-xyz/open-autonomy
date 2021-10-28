@@ -171,9 +171,14 @@ def get_most_voted_tx_hash() -> str:
     return "tx_hash"
 
 
-def get_participant_to_signature(participants: FrozenSet[str]) -> Dict[str, str]:
+def get_participant_to_signature(
+    participants: FrozenSet[str],
+) -> Dict[str, SignaturePayload]:
     """participant_to_signature"""
-    return {participant: "signature" for participant in participants}
+    return {
+        participant: SignaturePayload(sender=participant, signature="signature")
+        for participant in participants
+    }
 
 
 def get_final_tx_hash() -> str:
@@ -903,12 +908,7 @@ class TestCollectSignatureRound(BaseRoundTestClass):
                 SignaturePayload(sender="sender", signature="signature")
             )
 
-        participant_to_signature = {
-            participant: SignaturePayload(sender=participant, signature=signature)
-            for participant, signature in get_participant_to_signature(
-                self.participants
-            ).items()
-        }
+        participant_to_signature = get_participant_to_signature(self.participants)
         first_payload = participant_to_signature.pop(
             sorted(list(participant_to_signature.keys()))[0]
         )
