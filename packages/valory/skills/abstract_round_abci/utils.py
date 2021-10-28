@@ -128,7 +128,7 @@ class BenchmarkRound:
         print(f"Agent : {self.agent}")
         print(f"Agent Address : {self.agent_address}")
 
-        max_length = len(max(self.rounds)) + 4
+        max_length = len(self.rounds) + 4
 
         print(f"\nRound{' '*(max_length-5)}Time\n{'='*(max_length+20)}")
         for round_name, total_time in self.consensus_time:
