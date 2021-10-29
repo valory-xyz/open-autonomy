@@ -173,9 +173,14 @@ def get_most_voted_tx_hash() -> str:
     return "tx_hash"
 
 
-def get_participant_to_signature(participants: FrozenSet[str]) -> Dict[str, str]:
+def get_participant_to_signature(
+    participants: FrozenSet[str],
+) -> Dict[str, SignaturePayload]:
     """participant_to_signature"""
-    return {participant: "signature" for participant in participants}
+    return {
+        participant: SignaturePayload(sender=participant, signature="signature")
+        for participant in participants
+    }
 
 
 def get_final_tx_hash() -> str:
@@ -227,16 +232,28 @@ class TestRegistrationRound(BaseRoundTestClass):
 
         first_participant = registration_payloads.pop(0)
         test_round.process_payload(first_participant)
-        assert test_round.participants == {
+        assert test_round.collection == {
             first_participant.sender,
         }
         assert test_round.end_block() is None
 
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: registration",
+        ):
+            test_round.check_payload(first_participant)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: registration",
+        ):
+            test_round.process_payload(first_participant)
+
         for participant_payload in registration_payloads:
             test_round.process_payload(participant_payload)
-        assert test_round.registration_threshold_reached
+        assert test_round.collection_threshold_reached
 
-        actual_next_state = PeriodState(participants=test_round.participants)
+        actual_next_state = PeriodState(participants=test_round.collection)
 
         res = test_round.end_block()
         assert res is not None
@@ -264,19 +281,19 @@ class TestRandomnessRound(BaseRoundTestClass):
         )
         test_round.process_payload(first_payload)
 
-        assert (
-            test_round.participant_to_randomness[first_payload.sender] == first_payload
-        )
+        assert test_round.collection[first_payload.sender] == first_payload
         assert not test_round.threshold_reached
         assert test_round.end_block() is None
 
-        with pytest.raises(ABCIAppInternalError, match="not enough randomness"):
-            _ = test_round.most_voted_randomness
+        with pytest.raises(
+            ABCIAppInternalError, match="internal error: not enough votes"
+        ):
+            _ = test_round.most_voted_payload
 
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(
@@ -285,13 +302,13 @@ class TestRandomnessRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match=f"internal error: sender agent_0 has already sent the randomness: {RANDOMNESS}",
+            match="internal error: sender agent_0 has already sent value for round: randomness",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match=f"sender agent_0 has already sent the randomness: {RANDOMNESS}",
+            match="sender agent_0 has already sent value for round: randomness",
         ):
             test_round.check_payload(first_payload)
 
@@ -302,7 +319,7 @@ class TestRandomnessRound(BaseRoundTestClass):
 
         for randomness_payload in randomness_payloads.values():
             test_round.process_payload(randomness_payload)
-        assert test_round.most_voted_randomness == RANDOMNESS
+        assert test_round.most_voted_payload == RANDOMNESS
         assert test_round.threshold_reached
 
         actual_next_state = self.period_state.update(
@@ -354,32 +371,32 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         )
 
         test_round.process_payload(first_payload)
-        assert (
-            test_round.participant_to_selection[first_payload.sender] == first_payload
-        )
-        assert not test_round.selection_threshold_reached
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.threshold_reached
         assert test_round.end_block() is None
 
-        with pytest.raises(ABCIAppInternalError, match="keeper has not enough votes"):
-            _ = test_round.most_voted_keeper_address
+        with pytest.raises(
+            ABCIAppInternalError, match="internal error: not enough votes"
+        ):
+            _ = test_round.most_voted_payload
 
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(SelectKeeperPayload(sender="sender", keeper=""))
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the selection: keeper",
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the selection: keeper",
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
@@ -390,8 +407,8 @@ class TestSelectKeeperRound(BaseRoundTestClass):
 
         for payload in select_keeper_payloads.values():
             test_round.process_payload(payload)
-        assert test_round.selection_threshold_reached
-        assert test_round.most_voted_keeper_address == "keeper"
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == "keeper"
 
         actual_next_state = self.period_state.update(
             participant_to_selection=MappingProxyType(
@@ -431,7 +448,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
@@ -442,7 +459,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_1 is not the elected sender: agent_0",
+            match="agent_1 not elected as keeper",
         ):
             test_round.check_payload(
                 DeploySafePayload(
@@ -451,13 +468,13 @@ class TestDeploySafeRound(BaseRoundTestClass):
                 )
             )
 
-        assert not test_round.is_contract_set
+        assert not test_round.has_keeper_sent_payload
         assert test_round.end_block() is None
 
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(
@@ -468,7 +485,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_1 is not the elected sender: agent_0",
+            match="internal error: agent_1 not elected as keeper.",
         ):
             test_round.process_payload(
                 DeploySafePayload(
@@ -486,7 +503,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the contract address: 0x6f6ab56aca12",
+            match="internal error: keeper already set the payload.",
         ):
             test_round.process_payload(
                 DeploySafePayload(
@@ -497,7 +514,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the contract address: 0x6f6ab56aca12",
+            match="keeper payload value already set.",
         ):
             test_round.check_payload(
                 DeploySafePayload(
@@ -506,7 +523,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
                 )
             )
 
-        assert test_round.is_contract_set
+        assert test_round.has_keeper_sent_payload
         actual_state = self.period_state.update(
             safe_contract_address=get_safe_contract_address()
         )
@@ -545,9 +562,9 @@ class TestValidateRound(BaseRoundTestClass):
         )
 
         with pytest.raises(
-            TransactionNotValidError,
+            ABCIAppInternalError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(ValidatePayload(sender="sender", vote=True))
@@ -555,7 +572,7 @@ class TestValidateRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(ValidatePayload(sender="sender", vote=True))
@@ -568,15 +585,14 @@ class TestValidateRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent its vote: True",
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_votes[first_payload.sender] == first_payload
-
+        assert test_round.collection[first_payload.sender] == first_payload
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent its vote: True",
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
@@ -618,7 +634,7 @@ class TestValidateRound(BaseRoundTestClass):
         )
         test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_votes[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
         assert test_round.end_block() is None
         assert not test_round.negative_vote_threshold_reached
         for payload in participant_to_votes_payloads.values():
@@ -651,7 +667,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(
@@ -664,7 +680,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
@@ -682,22 +698,19 @@ class TestCollectObservationRound(BaseRoundTestClass):
         )
 
         test_round.process_payload(first_payload)
-        assert (
-            test_round.participant_to_observations[first_payload.sender]
-            == first_payload
-        )
-        assert not test_round.observation_threshold_reached
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.collection_threshold_reached
         assert test_round.end_block() is None
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent its observation: 1.0",
+            match="internal error: sender agent_0 has already sent value for round: collect_observation",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent its observation: 1.0",
+            match="sender agent_0 has already sent value for round: collect_observation",
         ):
             test_round.check_payload(
                 ObservationPayload(
@@ -709,7 +722,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
         for payload in participant_to_observations_payloads.values():
             test_round.process_payload(payload)
 
-        assert test_round.observation_threshold_reached
+        assert test_round.collection_threshold_reached
         actual_next_state = self.period_state.update(
             participant_to_observations=dict(
                 get_participant_to_observations(self.participants)
@@ -740,7 +753,7 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(EstimatePayload(sender="sender", estimate=1.0))
@@ -748,7 +761,7 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(EstimatePayload(sender="sender", estimate=1.0))
@@ -762,22 +775,24 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
         )
         test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_estimate[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
         assert test_round.end_block() is None
-        assert not test_round.estimate_threshold_reached
+        assert not test_round.threshold_reached
 
-        with pytest.raises(ABCIAppInternalError, match="estimate has not enough votes"):
-            _ = test_round.most_voted_estimate
+        with pytest.raises(
+            ABCIAppInternalError, match="internal error: not enough votes"
+        ):
+            _ = test_round.most_voted_payload
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the estimate: 1.0",
+            match="internal error: sender agent_0 has already sent value for round: estimate_consensus",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the estimate: 1.0",
+            match="sender agent_0 has already sent value for round: estimate_consensus",
         ):
             test_round.check_payload(
                 EstimatePayload(sender=sorted(list(self.participants))[0], estimate=1.0)
@@ -786,14 +801,14 @@ class TestEstimateConsensusRound(BaseRoundTestClass):
         for payload in participant_to_estimate_payloads.values():
             test_round.process_payload(payload)
 
-        assert test_round.estimate_threshold_reached
-        assert test_round.most_voted_estimate == 1.0
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == 1.0
 
         actual_next_state = self.period_state.update(
             participant_to_estimate=dict(
                 get_participant_to_estimate(self.participants)
             ),
-            most_voted_estimate=test_round.most_voted_estimate,
+            most_voted_estimate=test_round.most_voted_payload,
         )
         res = test_round.end_block()
         assert res is not None
@@ -832,7 +847,7 @@ class TestTxHashRound(BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(
@@ -842,37 +857,39 @@ class TestTxHashRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
                 TransactionHashPayload(sender="sender", tx_hash="tx_hash")
             )
 
-        assert test_round.participant_to_tx_hash[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
         assert test_round.end_block() is None
-        assert not test_round.tx_threshold_reached
+        assert not test_round.threshold_reached
 
-        with pytest.raises(ABCIAppInternalError, match="tx hash has not enough votes"):
-            _ = test_round.most_voted_tx_hash
+        with pytest.raises(
+            ABCIAppInternalError, match="internal error: not enough votes"
+        ):
+            _ = test_round.most_voted_payload
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the tx hash: tx_hash",
+            match="internal error: sender agent_0 has already sent value for round: tx_hash",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the tx hash: tx_hash",
+            match="sender agent_0 has already sent value for round: tx_hash",
         ):
             test_round.check_payload(first_payload)
 
         for payload in participant_to_tx_hash_payloads.values():
             test_round.process_payload(payload)
 
-        assert test_round.tx_threshold_reached
-        assert test_round.most_voted_tx_hash == "tx_hash"
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == "tx_hash"
         res = test_round.end_block()
         assert res is not None
         _, event = res
@@ -899,7 +916,7 @@ class TestCollectSignatureRound(BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(
@@ -909,40 +926,35 @@ class TestCollectSignatureRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
                 SignaturePayload(sender="sender", signature="signature")
             )
 
-        participant_to_signature = {
-            participant: SignaturePayload(sender=participant, signature=signature)
-            for participant, signature in get_participant_to_signature(
-                self.participants
-            ).items()
-        }
+        participant_to_signature = get_participant_to_signature(self.participants)
         first_payload = participant_to_signature.pop(
             sorted(list(participant_to_signature.keys()))[0]
         )
 
         test_round.process_payload(first_payload)
-        assert not test_round.signature_threshold_reached
+        assert not test_round.collection_threshold_reached
         assert (
-            test_round.signatures_by_participant[first_payload.sender]
+            test_round.collection[first_payload.sender].signature  # type: ignore
             == first_payload.signature
         )
         assert test_round.end_block() is None
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent its signature: signature",
+            match="internal error: sender agent_0 has already sent value for round: collect_signature",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent its signature: signature",
+            match="sender agent_0 has already sent value for round: collect_signature",
         ):
             test_round.check_payload(first_payload)
 
@@ -983,7 +995,7 @@ class TestFinalizationRound(BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(
@@ -993,7 +1005,7 @@ class TestFinalizationRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
@@ -1002,7 +1014,7 @@ class TestFinalizationRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_1 is not the elected sender: agent_0",
+            match="internal error: agent_1 not elected as keeper",
         ):
             test_round.process_payload(
                 FinalizationTxPayload(
@@ -1013,7 +1025,7 @@ class TestFinalizationRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_1 is not the elected sender: agent_0",
+            match="agent_1 not elected as keeper",
         ):
             test_round.check_payload(
                 FinalizationTxPayload(
@@ -1022,7 +1034,7 @@ class TestFinalizationRound(BaseRoundTestClass):
                 )
             )
 
-        assert not test_round.tx_hash_set
+        assert not test_round.has_keeper_sent_payload
         assert test_round.end_block() is None
 
         test_round.process_payload(
@@ -1031,11 +1043,11 @@ class TestFinalizationRound(BaseRoundTestClass):
             )
         )
 
-        assert test_round.tx_hash_set
+        assert test_round.has_keeper_sent_payload
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the tx hash: tx_hash",
+            match="internal error: keeper already set the payload.",
         ):
             test_round.process_payload(
                 FinalizationTxPayload(
@@ -1046,7 +1058,7 @@ class TestFinalizationRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the tx hash: tx_hash",
+            match="keeper payload value already set.",
         ):
             test_round.check_payload(
                 FinalizationTxPayload(
@@ -1084,34 +1096,34 @@ class TestSelectKeeperARound(BaseRoundTestClass):
         )
 
         test_round.process_payload(first_payload)
-        assert (
-            test_round.participant_to_selection[first_payload.sender] == first_payload
-        )
-        assert not test_round.selection_threshold_reached
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.threshold_reached
         assert test_round.end_block() is None
 
-        with pytest.raises(ABCIAppInternalError, match="keeper has not enough votes"):
-            _ = test_round.most_voted_keeper_address
+        with pytest.raises(
+            ABCIAppInternalError, match="internal error: not enough votes"
+        ):
+            _ = test_round.most_voted_payload
 
         with pytest.raises(ABCIAppInternalError):
             test_round.process_payload(SelectKeeperPayload(sender="sender", keeper=""))
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the selection: keeper",
+            match="internal error: sender agent_0 has already sent value for round: select_keeper_a",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the selection: keeper",
+            match="sender agent_0 has already sent value for round: select_keeper_a",
         ):
             test_round.check_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
@@ -1120,8 +1132,8 @@ class TestSelectKeeperARound(BaseRoundTestClass):
 
         for payload in select_keeper_payloads.values():
             test_round.process_payload(payload)
-        assert test_round.selection_threshold_reached
-        assert test_round.most_voted_keeper_address == "keeper"
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == "keeper"
 
         actual_next_state = self.period_state.update(
             participant_to_selection=MappingProxyType(
@@ -1162,34 +1174,35 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
         )
 
         test_round.process_payload(first_payload)
-        assert (
-            test_round.participant_to_selection[first_payload.sender] == first_payload
-        )
-        assert not test_round.selection_threshold_reached
+        assert test_round.collection[first_payload.sender] == first_payload
+
+        assert not test_round.threshold_reached
         assert test_round.end_block() is None
 
-        with pytest.raises(ABCIAppInternalError, match="keeper has not enough votes"):
-            _ = test_round.most_voted_keeper_address
+        with pytest.raises(
+            ABCIAppInternalError, match="internal error: not enough votes"
+        ):
+            _ = test_round.most_voted_payload
 
         with pytest.raises(ABCIAppInternalError):
             test_round.process_payload(SelectKeeperPayload(sender="sender", keeper=""))
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent the selection: keeper",
+            match="internal error: sender agent_0 has already sent value for round: select_keeper_b",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent the selection: keeper",
+            match="sender agent_0 has already sent value for round: select_keeper_b",
         ):
             test_round.check_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(
@@ -1198,8 +1211,8 @@ class TestSelectKeeperBRound(BaseRoundTestClass):
 
         for payload in select_keeper_payloads.values():
             test_round.process_payload(payload)
-        assert test_round.selection_threshold_reached
-        assert test_round.most_voted_keeper_address == "keeper"
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == "keeper"
 
         actual_next_state = self.period_state.update(
             participant_to_selection=MappingProxyType(
@@ -1272,7 +1285,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(ValidatePayload(sender="sender", vote=True))
@@ -1280,7 +1293,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(ValidatePayload(sender="sender", vote=True))
@@ -1293,15 +1306,15 @@ class TestValidateSafeRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent its vote: True",
+            match="internal error: sender agent_0 has already sent value for round: validate_safe",
         ):
             test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_votes[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent its vote: True",
+            match="sender agent_0 has already sent value for round: validate_safe",
         ):
             test_round.check_payload(first_payload)
 
@@ -1343,7 +1356,7 @@ class TestValidateSafeRound(BaseRoundTestClass):
         )
         test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_votes[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
         assert test_round.end_block() is None
         assert not test_round.negative_vote_threshold_reached
         for payload in participant_to_votes_payloads.values():
@@ -1379,9 +1392,9 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         )
 
         with pytest.raises(
-            TransactionNotValidError,
+            ABCIAppInternalError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.process_payload(ValidatePayload(sender="sender", vote=True))
@@ -1389,7 +1402,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender sender is not in the set of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
             test_round.check_payload(ValidatePayload(sender="sender", vote=True))
@@ -1402,15 +1415,15 @@ class TestValidateTransactionRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent its vote: True",
+            match="internal error: sender agent_0 has already sent value for round: validate_transaction",
         ):
             test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_votes[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent its vote: True",
+            match="sender agent_0 has already sent value for round: validate_transaction",
         ):
             test_round.check_payload(first_payload)
 
@@ -1452,7 +1465,7 @@ class TestValidateTransactionRound(BaseRoundTestClass):
         )
         test_round.process_payload(first_payload)
 
-        assert test_round.participant_to_votes[first_payload.sender] == first_payload
+        assert test_round.collection[first_payload.sender] == first_payload
         assert test_round.end_block() is None
         assert not test_round.negative_vote_threshold_reached
         for payload in participant_to_votes_payloads.values():

@@ -29,15 +29,17 @@ from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
+from operator import itemgetter
+from typing import AbstractSet, Any
+from typing import Counter as CounterType
 from typing import (
-    AbstractSet,
-    Any,
     Dict,
     FrozenSet,
     Generic,
     List,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -483,6 +485,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     round_id: str
     allowed_tx_type: Optional[TransactionType]
+    payload_attribute: str
 
     def __init__(
         self,
@@ -686,6 +689,230 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     @abstractmethod
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+
+
+class CollectionRound(AbstractRound):
+    """
+    CollectionRound.
+
+    This class represents abstract logic for collection based rounds where
+    the round object needs to collect data from different agents. The data
+    maybe same for a voting round or different like estimate round.
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the collection round."""
+        super().__init__(*args, **kwargs)
+        self.collection: Dict[str, BaseTxPayload] = {}
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+        sender = payload.sender
+        if sender not in self.period_state.participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        if sender in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {sender} has already sent value for round: {self.round_id}"
+            )
+
+        self.collection[sender] = payload
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+
+        sender_in_participant_set = payload.sender in self.period_state.participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{payload.sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        if payload.sender in self.collection:
+            raise TransactionNotValidError(
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
+            )
+
+
+class CollectDifferentUntilAllRound(AbstractRound):
+    """
+    CollectDifferentUntilAllRound
+
+    This class represents logic for rounds where a round needs to collect
+    different payloads from each agent.
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the registration round."""
+        super().__init__(*args, **kwargs)
+
+        self.collection: Set[Any] = set()
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+        payload_attribute = getattr(payload, self.payload_attribute)
+        if payload_attribute in self.collection:
+            raise ABCIAppInternalError(
+                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
+            )
+        self.collection.add(payload_attribute)
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload."""
+        payload_attribute = getattr(payload, self.payload_attribute)
+        if payload_attribute in self.collection:
+            raise TransactionNotValidError(
+                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
+            )
+
+    @property
+    def collection_threshold_reached(
+        self,
+    ) -> bool:
+        """Check that the collection threshold has been reached."""
+        return len(self.collection) >= self._consensus_params.max_participants
+
+
+class CollectSameUntilThresholdRound(CollectionRound):
+    """
+    CollectSameUntilThresholdRound
+
+    This class represents logic for rounds where a round needs to collect
+    same payload from k of n agents.
+    """
+
+    @property
+    def threshold_reached(
+        self,
+    ) -> bool:
+        """Check if the threshold has been reached."""
+
+        counter: CounterType = Counter()
+        counter.update(
+            getattr(payload, self.payload_attribute)
+            for payload in self.collection.values()
+        )
+        return any(
+            count >= self._consensus_params.consensus_threshold
+            for count in counter.values()
+        )
+
+    @property
+    def most_voted_payload(
+        self,
+    ) -> Any:
+        """Get the most voted payload."""
+        counter = Counter()  # type: ignore
+        counter.update(
+            getattr(payload, self.payload_attribute)
+            for payload in self.collection.values()
+        )
+        most_voted_payload, max_votes = max(counter.items(), key=itemgetter(1))
+        if max_votes < self._consensus_params.consensus_threshold:
+            raise ABCIAppInternalError("not enough votes")
+        return most_voted_payload
+
+
+class OnlyKeeperSendsRound(AbstractRound):
+    """
+    OnlyKeeperSendsRound
+
+    This class represents logic for rounds where only one agent sends a
+    payload
+    """
+
+    keeper_payload: Optional[Any]
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Initialize the 'collect-observation' round."""
+        super().__init__(*args, **kwargs)
+        self.keeper_payload: Optional[Any] = None
+
+    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+        """Handle a deploy safe payload."""
+        sender = payload.sender
+
+        if sender not in self.period_state.participants:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        if sender != self.period_state.most_voted_keeper_address:  # type: ignore
+            raise ABCIAppInternalError(f"{sender} not elected as keeper.")
+
+        if self.keeper_payload is not None:
+            raise ABCIAppInternalError("keeper already set the payload.")
+
+        self.keeper_payload = getattr(payload, self.payload_attribute)
+
+    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+        """Check a deploy safe payload can be applied to the current state."""
+        sender = payload.sender
+        sender_in_participant_set = sender in self.period_state.participants
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{sender} not in list of participants: {sorted(self.period_state.participants)}"
+            )
+
+        sender_is_elected_sender = sender == self.period_state.most_voted_keeper_address  # type: ignore
+        if not sender_is_elected_sender:
+            raise TransactionNotValidError(f"{sender} not elected as keeper.")
+
+        if self.keeper_payload is not None:
+            raise TransactionNotValidError("keeper payload value already set.")
+
+    @property
+    def has_keeper_sent_payload(
+        self,
+    ) -> bool:
+        """Check if keeper has sent the payload."""
+
+        return self.keeper_payload is not None
+
+
+class VotingRound(CollectionRound):
+    """
+    VotingRound
+
+    This class represents logic for rounds where a round needs votes from
+    agents, pass if k same votes of n agents
+    """
+
+    @property
+    def positive_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        true_votes = sum(
+            [payload.vote for payload in self.collection.values()]  # type: ignore
+        )
+        # check that "true" has at least the consensus # of votes
+        return true_votes >= self._consensus_params.consensus_threshold
+
+    @property
+    def negative_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        false_votes = len(self.collection) - sum(
+            [payload.vote for payload in self.collection.values()]  # type: ignore
+        )
+        # check that "false" has at least the consensus # of votes
+        return false_votes >= self._consensus_params.consensus_threshold
+
+
+class CollectDifferentUntilThresholdRound(CollectionRound):
+    """
+    CollectDifferentUntilThresholdRound
+
+    This class represents logic for rounds where a round needs to collect
+    different payloads from k of n agents
+    """
+
+    @property
+    def collection_threshold_reached(
+        self,
+    ) -> bool:
+        """Check if the threshold has been reached."""
+        return len(self.collection) >= self._consensus_params.consensus_threshold
 
 
 AbciAppTransitionFunction = Dict[
