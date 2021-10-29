@@ -24,7 +24,6 @@ fi
 ## Run binary with all parameters
 ##
 export TMHOME="/tendermint/node${ID}"
-# OUT=$("$BINARY" init --home "$TMHOME")
 
 if [ -d "`dirname ${TMHOME}/${LOG}`" ]; then
   "$BINARY" "$@" | tee "${TMHOME}/${LOG}"
@@ -33,6 +32,4 @@ else
 fi
 
 chmod 777 -R /tendermint
-
-# node --consensus.create_empty_blocks=false --proxy_app=tcp://abci${ID}:26658
           
