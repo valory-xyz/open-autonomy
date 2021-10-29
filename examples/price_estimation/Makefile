@@ -62,13 +62,10 @@ localcluster-create-deployments:
 		echo "Error creating deployments ${NUMBER_OF_NODES} agents";
 	else\
 	fi
-#	if [[ "${RESULT}" == ""]]; then \
-#		echo "Error creating deployments ${NUMBER_OF_NODES} agents";\
-#		exit 1;\
-	skaffold run --profile minikube;
 .ONESHELL: localcluster-create-deployment
 
 localcluster-deploy: 
+	sudo configure_agents/create_env.py -n ${NUMBER_OF_NODES}
 	skaffold run --profile deploy
 .ONESHELL: localcluster-deploy
 

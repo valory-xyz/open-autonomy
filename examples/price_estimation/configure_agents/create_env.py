@@ -129,6 +129,8 @@ spec:
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
+          - name: ID
+            value: "{validator_ix}"
         args:
           - wrapper.sh
           - node

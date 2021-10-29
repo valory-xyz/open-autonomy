@@ -98,11 +98,9 @@ services:
   abci0:
     container_name: abci0
     image: "valory/price_estimation:0.1.0"
-    environment:
-      - ID=0
     build:
       context: ../..
-      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -117,11 +115,9 @@ services:
   abci1:
     container_name: abci1
     image: "valory/price_estimation:0.1.0"
-    environment:
-      - ID=1
     build:
       context: ../..
-      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -136,11 +132,9 @@ services:
   abci2:
     container_name: abci2
     image: "valory/price_estimation:0.1.0"
-    environment:
-      - ID=2
     build:
       context: ../..
-      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -154,12 +148,10 @@ services:
 
   abci3:
     container_name: abci3
-    environment:
-      - ID=3
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -178,4 +170,3 @@ networks:
       driver: default
       config:
         - subnet: 192.167.11.0/16
-

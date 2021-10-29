@@ -4,8 +4,7 @@
 ## Input parameters
 ##
 BINARY="$(which tendermint)"
-ID=$(cat /etc/hostname | grep -Eo '[0-9]{1,4}')
-ID=${HOSTNAME##*-}
+ID=${ID:-0}
 LOG=${LOG:-tendermint.log}
 
 ##
@@ -25,7 +24,7 @@ fi
 ## Run binary with all parameters
 ##
 export TMHOME="/tendermint/node${ID}"
-OUT=$("$BINARY" init --home "$TMHOME")
+# OUT=$("$BINARY" init --home "$TMHOME")
 
 if [ -d "`dirname ${TMHOME}/${LOG}`" ]; then
   "$BINARY" "$@" | tee "${TMHOME}/${LOG}"
