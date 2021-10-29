@@ -47,6 +47,10 @@ class TransactionType(Enum):
 class BasePriceEstimationPayload(BaseTxPayload, ABC):
     """Base class for the price estimation demo."""
 
+    def __hash__(self) -> int:
+        """Hash the payload."""
+        return hash(tuple(sorted(self.data.items())))
+
 
 class RegistrationPayload(BasePriceEstimationPayload):
     """Represent a transaction payload of type 'registration'."""
