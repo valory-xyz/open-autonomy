@@ -46,14 +46,6 @@ localcluster-start:
 	kubectl wait --for=condition=complete job/config-nodes --timeout=300s
 .ONESHELL: localcluster-start
 
-# 	if [[ "${OSTYPE}" == "linux-gnu"* ]]; then \
-# 	    TOKEN="$(shell ls /home/$(USER)/.docker/config.json)"; \
-# 	elif [[ "${OSTYPE}" == "darwin"* ]]; then \
-# 	    TOKEN="$(shell ls ~/.docker/config.json)"; \
-# 	else \
-# 	    TOKEN="$(shell ls /home/$(USER)/.docker/config.json)"; \
-# 	fi
-
 localcluster-create-deployments: 
 
 	echo "creating deployment configs for ${NUMBER_OF_NODES}"
