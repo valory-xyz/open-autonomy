@@ -2,7 +2,7 @@
 
 if [ "$DEBUG" == "1" ];
 then
-    while true; do foo; sleep 2; done
+    while true; do echo "waiting" ; sleep 2; done
 fi
 
 if [ "$CLUSTERED" == "1" ];
@@ -14,7 +14,7 @@ then
     bash ../configure_agents/abci"${AGENT_ID}".sh &&\
      python3 -m aea.cli -v DEBUG run
 else
-    echo "configuring $ID"
+    echo "configuring ${ID}"
     ../configure_agents/abci"${ID}".sh &&\
      python3 -m aea.cli -v DEBUG run
 fi
