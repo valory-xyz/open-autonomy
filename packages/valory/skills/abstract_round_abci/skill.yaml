@@ -15,7 +15,7 @@ fingerprint:
   handlers.py: QmaiBswUZDRPWTkSaU7r5pG8PY8c2srEjMSLQ4nQnac2cE
   models.py: QmbFa3hJfp9vgFkN9AfEjKWsL8Uegb1UyyDHE1SxWJuzm3
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
-  utils.py: QmSxHKpYnfpAQMtiwiNsWEgwitdUwUH1Xsp7v2uEcy4jPs
+  utils.py: QmbVUKXCFgePg7gNGC5cdnDTpJFF7H7eSmMGPj2wYkAnLU
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_client:0.23.0

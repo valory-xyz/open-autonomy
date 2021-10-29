@@ -21,7 +21,7 @@
 import logging
 import struct
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Tuple, cast
 from unittest.mock import patch
 
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -34,7 +34,7 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdates,
 )
 from packages.valory.protocols.abci.message import AbciMessage
-from packages.valory.skills.counter.dialogues import AbciDialogues
+from packages.valory.skills.counter.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.counter.handlers import ABCICounterHandler
 
 from tests.conftest import ROOT_DIR
@@ -92,12 +92,15 @@ class TestCounterHandler(BaseSkillTestCase):
     ) -> None:
         """Test ABCICounterHandler.info method."""
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_INFO,
-            counterparty="address",
-            version="",
-            block_version=0,
-            p2p_version=0,
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_INFO,
+                counterparty="address",
+                version="",
+                block_version=0,
+                p2p_version=0,
+            ),
         )
 
         reply = self.abci_counter_handler.info(abci_message, abci_dialogue)
@@ -117,12 +120,15 @@ class TestCounterHandler(BaseSkillTestCase):
     ) -> None:
         """Test ABCICounterHandler.init_chain method."""
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
-            counterparty="address",
-            version="",
-            block_version=0,
-            p2p_version=0,
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
+                counterparty="address",
+                version="",
+                block_version=0,
+                p2p_version=0,
+            ),
         )
 
         reply = self.abci_counter_handler.init_chain(abci_message, abci_dialogue)
@@ -140,14 +146,17 @@ class TestCounterHandler(BaseSkillTestCase):
     ) -> None:
         """Test ABCICounterHandler.query method."""
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_QUERY,
-            counterparty="address",
-            version="",
-            query_data=b"",
-            path="/",
-            height=1,
-            prove=True,
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_QUERY,
+                counterparty="address",
+                version="",
+                query_data=b"",
+                path="/",
+                height=1,
+                prove=True,
+            ),
         )
 
         reply = self.abci_counter_handler.query(abci_message, abci_dialogue)
@@ -174,12 +183,15 @@ class TestCounterHandler(BaseSkillTestCase):
 
         tx = 10
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_CHECK_TX,
-            counterparty="address",
-            version="",
-            tx=tx.to_bytes(4, "big"),
-            type=CheckTxType(CheckTxTypeEnum.NEW),
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_CHECK_TX,
+                counterparty="address",
+                version="",
+                tx=tx.to_bytes(4, "big"),
+                type=CheckTxType(CheckTxTypeEnum.NEW),
+            ),
         )
 
         reply = self.abci_counter_handler.check_tx(abci_message, abci_dialogue)
@@ -195,12 +207,15 @@ class TestCounterHandler(BaseSkillTestCase):
 
         tx = self.abci_counter_handler.tx_count + 1
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_CHECK_TX,
-            counterparty="address",
-            version="",
-            tx=tx.to_bytes(4, "big"),
-            type=CheckTxType(CheckTxTypeEnum.NEW),
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_CHECK_TX,
+                counterparty="address",
+                version="",
+                tx=tx.to_bytes(4, "big"),
+                type=CheckTxType(CheckTxTypeEnum.NEW),
+            ),
         )
 
         reply = self.abci_counter_handler.check_tx(abci_message, abci_dialogue)
@@ -219,11 +234,14 @@ class TestCounterHandler(BaseSkillTestCase):
     ) -> None:
         """Test ABCICounterHandler. method."""
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
-            counterparty="address",
-            version="",
-            tx=b"",
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+                counterparty="address",
+                version="",
+                tx=b"",
+            ),
         )
 
         reply = self.abci_counter_handler.deliver_tx(abci_message, abci_dialogue)
@@ -247,10 +265,13 @@ class TestCounterHandler(BaseSkillTestCase):
     ) -> None:
         """Test ABCICounterHandler. method."""
 
-        abci_message, abci_dialogue = self.abci_dialogues.create(
-            performative=AbciMessage.Performative.REQUEST_COMMIT,
-            counterparty="address",
-            version="",
+        abci_message, abci_dialogue = cast(
+            Tuple[AbciMessage, AbciDialogue],
+            self.abci_dialogues.create(
+                performative=AbciMessage.Performative.REQUEST_COMMIT,
+                counterparty="address",
+                version="",
+            ),
         )
 
         reply = self.abci_counter_handler.commit(abci_message, abci_dialogue)

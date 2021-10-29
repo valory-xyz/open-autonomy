@@ -1,13 +1,13 @@
 ### Consensus Time Benchmarks.
 
-> To create benchmarking environment for `n` agents
+> To run benchmarks run
 
 ```bash
-python3 create_env.py 4
+./benchmark.sh 8
 ```
 
-> To run benchmarks.
+> To aggregate the benchmark results
 
 ```bash
-make localnet-start
+python3 aggregate_results.py
 ```

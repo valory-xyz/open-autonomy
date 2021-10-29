@@ -28,7 +28,7 @@ from importlib.machinery import ModuleSpec
 from time import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
 def _get_module(spec: ModuleSpec) -> Optional[types.ModuleType]:
@@ -76,19 +76,15 @@ class Benchmark:
     """Benchmark"""
 
     tick: float
-    behaviour: AbstractRoundBehaviour
+    behaviour: BaseState
     consensus_time: List[Tuple[str, float]]
 
     def __init__(
-        self,
-        behaviour: AbstractRoundBehaviour,
-        consensus_time: List[Tuple[str, float]],
-        save_function: Callable,
+        self, behaviour: BaseState, consensus_time: List[Tuple[str, float]]
     ) -> None:
         """Benchmark for single round."""
         self.behaviour = behaviour
         self.consensus_time = consensus_time
-        self.save_function = save_function
 
     def __enter__(
         self,
@@ -100,8 +96,11 @@ class Benchmark:
         """Exit context"""
 
         total_time = time() - self.tick
+        if self.behaviour.matching_round is None:
+            raise ValueError(
+                "Cannot use benchmarking tool for Behaviours with no matching Round."
+            )
         self.consensus_time.append((self.behaviour.matching_round.round_id, total_time))
-        self.save_function()
 
 
 class BenchmarkRound:
@@ -129,7 +128,7 @@ class BenchmarkRound:
         print(f"Agent : {self.agent}")
         print(f"Agent Address : {self.agent_address}")
 
-        max_length = len(max(self.rounds)) + 4
+        max_length = len(self.rounds) + 4
 
         print(f"\nRound{' '*(max_length-5)}Time\n{'='*(max_length+20)}")
         for round_name, total_time in self.consensus_time:
@@ -155,12 +154,16 @@ class BenchmarkRound:
         except (PermissionError, FileNotFoundError):
             logging.info("Error saving benchmark data.")
 
-    def measure(self, behaviour: AbstractRoundBehaviour) -> Benchmark:
+    def measure(self, behaviour: BaseState) -> Benchmark:
         """Measure time to complete round."""
 
         if self.agent is None:
             self.agent_address = behaviour.context.agent_address
             self.agent = behaviour.context.agent_name
 
+        if behaviour.matching_round is None:
+            raise ValueError(
+                "Cannot use benchmarking tool for Behaviours with no matching Round."
+            )
         self.rounds.append(behaviour.matching_round.round_id)
-        return Benchmark(behaviour, self.consensus_time, self.save)
+        return Benchmark(behaviour, self.consensus_time)
