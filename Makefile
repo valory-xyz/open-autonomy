@@ -158,7 +158,7 @@ new_env: clean
 		pipenv --python 3.8;\
 		pipenv install --dev --skip-lock --clear;\
 		pipenv run pip install -e .[all];\
-		svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai;\
+		svn export https://github.com/fetchai/agents-aea/tags/v1.1.0/packages/fetchai packages/fetchai;\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\

@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from datetime import datetime
 from typing import Optional, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -42,7 +41,7 @@ class DummyContext:
 
 
 class ConcreteRound(AbstractRound):
-    """A ConcreteRound for testing purposes."""
+    """A ConcreteRoundA for testing purposes."""
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
         """Handle the end of the block."""
@@ -56,44 +55,3 @@ class TestSharedState:
     ) -> None:
         """Test initialization."""
         SharedState(name="", skill_context=DummyContext())
-
-    def test_reset_state_time(
-        self,
-    ) -> None:
-        """Test `reset_state_time` method."""
-
-        shared_state = SharedState(name="", skill_context=DummyContext())
-
-        shared_state.reset_state_time(DEPLOY_SAFE_STATE)
-        assert shared_state._state_start_times[DEPLOY_SAFE_STATE] is None
-
-        shared_state.reset_state_time(FINALIZE_STATE)
-        assert shared_state._state_start_times[FINALIZE_STATE] is None
-
-    def test_set_state_time(
-        self,
-    ) -> None:
-        """Test `set_state_time`."""
-
-        shared_state = SharedState(name="", skill_context=DummyContext())
-
-        shared_state.set_state_time(DEPLOY_SAFE_STATE)
-        assert shared_state._state_start_times[DEPLOY_SAFE_STATE] is not None
-        assert isinstance(shared_state._state_start_times[DEPLOY_SAFE_STATE], datetime)
-
-        shared_state.set_state_time(FINALIZE_STATE)
-        assert shared_state._state_start_times[FINALIZE_STATE] is not None
-        assert isinstance(shared_state._state_start_times[FINALIZE_STATE], datetime)
-
-    def test_has_keeper_timed_out(
-        self,
-    ) -> None:
-        """Test `has_keeper_timed_out` method."""
-
-        shared_state = SharedState(name="", skill_context=DummyContext())
-
-        shared_state.set_state_time(DEPLOY_SAFE_STATE)
-        assert not shared_state.has_keeper_timed_out(DEPLOY_SAFE_STATE)
-
-        shared_state.set_state_time(FINALIZE_STATE)
-        assert not shared_state.has_keeper_timed_out(FINALIZE_STATE)

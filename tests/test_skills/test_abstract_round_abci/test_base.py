@@ -23,7 +23,7 @@ import re
 from abc import ABC
 from copy import copy
 from enum import Enum
-from typing import Any
+from typing import Any, Dict, Optional, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -32,9 +32,10 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
 
-from packages.valory.protocols.abci.custom_types import Timestamp
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
+    AbciApp,
+    AbciAppTransitionFunction,
     AbstractRound,
     AddBlockError,
     BasePeriodState,
@@ -43,8 +44,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     BlockBuilder,
     Blockchain,
     ConsensusParams,
+    EventType,
     Period,
     SignatureNotValidError,
+    Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
     _MetaPayload,
@@ -88,20 +91,68 @@ class PayloadC(BasePayload):
     transaction_type = PayloadEnum.C
 
 
-class ConcreteRound(AbstractRound):
+class ConcreteRoundA(AbstractRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    round_id = "concrete"
+    round_id = "concrete_a"
+    allowed_tx_type = "payload_a"
 
     def end_block(self) -> None:
         """End block."""
 
-    def check_payload_a(self, *args: Any, **kwargs: Any) -> bool:
+    def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payloads of type 'payload_a'."""
-        return True
 
-    def payload_a(self, *args: Any, **kwargs: Any) -> None:
+    def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payloads of type 'payload_a'."""
+
+
+class ConcreteRoundB(AbstractRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    round_id = "concrete_b"
+    allowed_tx_type = "payload_b"
+
+    def end_block(self) -> None:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payloads of type 'payload_b'."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payloads of type 'payload_b'."""
+
+
+class ConcreteRoundC(AbstractRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    round_id = "concrete_c"
+    allowed_tx_type = "payload_c"
+
+    def end_block(self) -> None:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payloads of type 'payload_c'."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payloads of type 'payload_c'."""
+
+
+class AbciAppTest(AbciApp[str]):
+    """A dummy AbciApp for testing purposes."""
+
+    TIMEOUT: float = 1.0
+
+    initial_round_cls: Type[AbstractRound] = ConcreteRoundA
+    transition_function: Dict[Type[AbstractRound], Dict[str, Type[AbstractRound]]] = {
+        ConcreteRoundA: {"a": ConcreteRoundA, "b": ConcreteRoundB, "c": ConcreteRoundC},
+        ConcreteRoundB: {"b": ConcreteRoundB, "timeout": ConcreteRoundA},
+        ConcreteRoundC: {"timeout": ConcreteRoundC},
+    }
+    event_to_timeout: Dict[str, float] = {
+        "timeout": TIMEOUT,
+    }
 
 
 class TestTransactions:
@@ -393,13 +444,77 @@ class TestAbstractRound:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.known_payload_type = ConcreteRound.payload_a.__name__
+        self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
         self.base_period_state = BasePeriodState(participants=self.participants)
         self.params = ConsensusParams(
             max_participants=len(self.participants),
         )
-        self.round = ConcreteRound(self.base_period_state, self.params)
+        self.round = ConcreteRoundA(self.base_period_state, self.params)
+
+    def test_must_set_round_id(self) -> None:
+        """Test that the 'round_id' must be set in concrete classes."""
+
+        class MyConcreteRound(AbstractRound):
+            # here round_id is missing
+            # ...
+            allowed_tx_type = MagicMock()
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(ABCIAppInternalError, match="'round_id' field not set"):
+            MyConcreteRound(MagicMock(), MagicMock())
+
+    def test_must_set_allowed_tx_type(self) -> None:
+        """Test that the 'allowed_tx_type' must be set in concrete classes."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = ""
+            # here allowed_tx_type is missing
+            # ...
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(
+            ABCIAppInternalError, match="'allowed_tx_type' field not set"
+        ):
+            MyConcreteRound(MagicMock(), MagicMock())
+
+    def test_check_allowed_tx_type(self) -> None:
+        """Test check 'allowed_tx_type'."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = ""
+            allowed_tx_type = None
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(
+            TransactionTypeNotRecognizedError,
+            match="current round does not allow transactions",
+        ):
+            MyConcreteRound(MagicMock(), MagicMock()).check_allowed_tx_type(MagicMock())
 
     def test_period_state_getter(self) -> None:
         """Test 'period_state' property getter."""
@@ -410,7 +525,7 @@ class TestAbstractRound:
         """Test 'check_transaction' method, with unknown payload type."""
         tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = tx_type
+        tx_mock.payload.transaction_type = tx_type
         with pytest.raises(
             TransactionTypeNotRecognizedError,
             match=f"request '{tx_type}' not recognized",
@@ -420,14 +535,14 @@ class TestAbstractRound:
     def test_check_transaction_known_payload(self) -> None:
         """Test 'check_transaction' method, with known payload type."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = self.known_payload_type
+        tx_mock.payload.transaction_type = self.known_payload_type
         self.round.check_transaction(tx_mock)
 
     def test_process_transaction_negative_unknown_payload(self) -> None:
         """Test 'process_transaction' method, with unknown payload type."""
         tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = tx_type
+        tx_mock.payload.transaction_type = tx_type
         with pytest.raises(
             TransactionTypeNotRecognizedError,
             match=f"request '{tx_type}' not recognized",
@@ -437,10 +552,10 @@ class TestAbstractRound:
     def test_process_transaction_negative_check_transaction_fails(self) -> None:
         """Test 'process_transaction' method, with 'check_transaction' failing."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = "payload_a"
+        tx_mock.payload.transaction_type = "payload_a"
         error_message = "transaction not valid"
         with mock.patch.object(
-            self.round, "check_transaction", side_effect=ValueError(error_message)
+            self.round, "check_allowed_tx_type", side_effect=ValueError(error_message)
         ):
             with pytest.raises(ValueError, match=error_message):
                 self.round.process_transaction(tx_mock)
@@ -448,8 +563,180 @@ class TestAbstractRound:
     def test_process_transaction_positive(self) -> None:
         """Test 'process_transaction' method, positive case."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type.value = "payload_a"
+        tx_mock.payload.transaction_type = "payload_a"
         self.round.process_transaction(tx_mock)
+
+
+class TestTimeouts:
+    """Test the 'Timeouts' class."""
+
+    def setup(self) -> None:
+        """Set up the test."""
+        self.timeouts: Timeouts = Timeouts()
+
+    def test_size(self) -> None:
+        """Test the 'size' property."""
+        assert self.timeouts.size == 0
+        self.timeouts._heap.append(MagicMock())
+        assert self.timeouts.size == 1
+
+    def test_add_timeout(self) -> None:
+        """Test the 'add_timeout' method."""
+        # the first time, entry_count = 0
+        entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        assert entry_count == 0
+
+        # the second time, entry_count is incremented
+        entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        assert entry_count == 1
+
+    def test_cancel_timeout(self) -> None:
+        """Test the 'cancel_timeout' method."""
+        entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        assert self.timeouts.size == 1
+
+        self.timeouts.cancel_timeout(entry_count)
+
+        # cancelling timeouts does not remove them from the heap
+        assert self.timeouts.size == 1
+
+    def test_pop_earliest_cancelled_timeouts(self) -> None:
+        """Test the 'pop_earliest_cancelled_timeouts' method."""
+        entry_count_1 = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        entry_count_2 = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
+        self.timeouts.cancel_timeout(entry_count_1)
+        self.timeouts.cancel_timeout(entry_count_2)
+        self.timeouts.pop_earliest_cancelled_timeouts()
+        assert self.timeouts.size == 0
+
+    def test_get_earliest_timeout(self) -> None:
+        """Test the 'get_earliest_timeout' method."""
+        deadline_1 = datetime.datetime.now()
+        event_1 = MagicMock()
+
+        deadline_2 = datetime.datetime.now()
+        event_2 = MagicMock()
+        assert deadline_1 < deadline_2
+
+        self.timeouts.add_timeout(deadline_2, event_2)
+        self.timeouts.add_timeout(deadline_1, event_1)
+
+        assert self.timeouts.size == 2
+        # test that we get the event with the earliest deadline
+        timeout, event = self.timeouts.get_earliest_timeout()
+        assert timeout == deadline_1
+        assert event == event_1
+
+        # test that get_earliest_timeout does not remove elements
+        assert self.timeouts.size == 2
+
+    def test_pop_timeout(self) -> None:
+        """Test the 'pop_timeout' method."""
+        deadline_1 = datetime.datetime.now()
+        event_1 = MagicMock()
+
+        deadline_2 = datetime.datetime.now()
+        event_2 = MagicMock()
+        assert deadline_1 < deadline_2
+
+        self.timeouts.add_timeout(deadline_2, event_2)
+        self.timeouts.add_timeout(deadline_1, event_1)
+
+        assert self.timeouts.size == 2
+        # test that we get the event with the earliest deadline
+        timeout, event = self.timeouts.pop_timeout()
+        assert timeout == deadline_1
+        assert event == event_1
+
+        # test that pop_timeout removes elements
+        assert self.timeouts.size == 1
+
+
+class TestAbciApp:
+    """Test the 'AbciApp' class."""
+
+    def setup(self) -> None:
+        """Set up the test."""
+        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+
+    def test_initial_round_cls_not_set(self) -> None:
+        """Test when 'initial_round_cls' is not set."""
+
+        class MyAbciApp(AbciApp):
+            # here 'initial_round_cls' should be defined.
+            # ...
+            transition_function: AbciAppTransitionFunction = {}
+
+        with pytest.raises(
+            ABCIAppInternalError, match="'initial_round_cls' field not set"
+        ):
+            MyAbciApp(MagicMock(), MagicMock(), MagicMock())
+
+    def test_transition_function_not_set(self) -> None:
+        """Test when 'transition_function' is not set."""
+
+        class MyAbciApp(AbciApp):
+            initial_round_cls = ConcreteRoundA
+            # here 'transition_function' should be defined.
+            # ...
+
+        with pytest.raises(
+            ABCIAppInternalError, match="'transition_function' field not set"
+        ):
+            MyAbciApp(MagicMock(), MagicMock(), MagicMock())
+
+    def test_last_timestamp_negative(self) -> None:
+        """Test the 'last_timestamp' property, negative case."""
+        with pytest.raises(ABCIAppInternalError, match="last timestamp is None"):
+            self.abci_app.last_timestamp
+
+    def test_last_timestamp_positive(self) -> None:
+        """Test the 'last_timestamp' property, positive case."""
+        expected = MagicMock()
+        self.abci_app._last_timestamp = expected
+        assert expected == self.abci_app.last_timestamp
+
+    def test_process_event(self) -> None:
+        """Test the 'process_event' method, positive case, with timeout events."""
+        self.abci_app.setup()
+        self.abci_app._last_timestamp = MagicMock()
+        assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+        self.abci_app.process_event("b")
+        assert isinstance(self.abci_app.current_round, ConcreteRoundB)
+        self.abci_app.process_event("timeout")
+        assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+
+    def test_process_event_negative_case(self) -> None:
+        """Test the 'process_event' method, negative case."""
+        with mock.patch.object(self.abci_app.logger, "info") as mock_info:
+            self.abci_app.process_event("a")
+            mock_info.assert_called_with(
+                "cannot process event 'a' as current state is not set"
+            )
+
+    def test_update_time(self) -> None:
+        """Test the 'update_time' method."""
+        # schedule round_a
+        current_time = datetime.datetime.now()
+        self.abci_app.setup()
+        self.abci_app._last_timestamp = current_time
+
+        # move to round_b that schedules timeout events
+        self.abci_app.process_event("b")
+
+        # simulate most recent timestamp beyond earliest deadline
+        # after pop, len(timeouts) == 0, because round_a does not schedule new timeout events
+        current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
+        self.abci_app.update_time(current_time)
+
+        # now we are back to round_a
+        # move to round_c that schedules timeout events to itself
+        self.abci_app.process_event("c")
+
+        # simulate most recent timestamp beyond earliest deadline
+        # after pop, len(timeouts) == 0, because round_c schedules timeout events
+        current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
+        self.abci_app.update_time(current_time)
 
 
 class TestPeriod:
@@ -457,13 +744,13 @@ class TestPeriod:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.period = Period(starting_round_cls=ConcreteRound)
-        self.period.setup(MagicMock(), MagicMock())
+        self.period = Period(abci_app_cls=AbciAppTest)
+        self.period.setup(MagicMock(), MagicMock(), MagicMock())
 
     def test_is_finished(self) -> None:
         """Test 'is_finished' property."""
         assert not self.period.is_finished
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         assert self.period.is_finished
 
     def test_last_round(self) -> None:
@@ -482,19 +769,23 @@ class TestPeriod:
         """Test 'last_timestamp' property, positive case."""
         seconds = 1
         nanoseconds = 1000
-        timestamp = Timestamp(seconds, nanoseconds)
-        self.period._blockchain.add_block(
-            Block(MagicMock(height=1, time=timestamp), [])
-        )
-
         expected_timestamp = datetime.datetime.fromtimestamp(
             seconds + nanoseconds / 10 ** 9
         )
+        self.period._blockchain.add_block(
+            Block(MagicMock(height=1, timestamp=expected_timestamp), [])
+        )
         assert self.period.last_timestamp == expected_timestamp
+
+    def test_abci_app_negative(self) -> None:
+        """Test 'abci_app' property, negative case."""
+        self.period._abci_app = None
+        with pytest.raises(ABCIAppInternalError, match="AbciApp not set"):
+            self.period.abci_app
 
     def test_check_is_finished_negative(self) -> None:
         """Test 'check_is_finished', negative case."""
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         with pytest.raises(
             ValueError, match="period is finished, cannot accept new transactions"
         ):
@@ -502,17 +793,17 @@ class TestPeriod:
 
     def test_current_round_positive(self) -> None:
         """Test 'current_round' property getter, positive case."""
-        assert isinstance(self.period.current_round, ConcreteRound)
+        assert isinstance(self.period.current_round, ConcreteRoundA)
 
     def test_current_round_negative_current_round_not_set(self) -> None:
         """Test 'current_round' property getter, negative case (current round not set)."""
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         with pytest.raises(ValueError, match="current_round not set!"):
             self.period.current_round
 
     def test_current_round_id(self) -> None:
         """Test 'current_round_id' property getter"""
-        assert self.period.current_round_id == ConcreteRound.round_id
+        assert self.period.current_round_id == ConcreteRoundA.round_id
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
@@ -520,7 +811,7 @@ class TestPeriod:
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""
-        self.period._current_round = None
+        self.period.abci_app._current_round = None
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: period is finished, cannot accept new blocks",
@@ -593,7 +884,7 @@ class TestPeriod:
         self.period.begin_block(MagicMock(height=1))
         self.period.end_block()
         self.period.commit()
-        assert isinstance(self.period.current_round, ConcreteRound)
+        assert isinstance(self.period.current_round, ConcreteRoundA)
 
     def test_commit_positive_with_change_round(self) -> None:
         """Test 'end_block' method, positive (with change round)."""
@@ -606,5 +897,5 @@ class TestPeriod:
             return_value=(round_result, next_round),
         ):
             self.period.commit()
-        assert not isinstance(self.period.current_round, ConcreteRound)
+        assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
         assert self.period.latest_result == round_result

@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'valory/abci' protocol."""
+import datetime
 from abc import abstractmethod
 from typing import Type
 from unittest import mock
@@ -297,6 +298,8 @@ class TestRequestBeginBlock(BaseTestMessageConstruction):
             b"evidence_hash",
             b"proposer_address",
         )
+
+        assert header.timestamp == datetime.datetime.fromtimestamp(0)
 
         validator = Validator(b"address", 0)
         last_commit_info = LastCommitInfo(
