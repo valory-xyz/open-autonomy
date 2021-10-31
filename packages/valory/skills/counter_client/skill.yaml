@@ -8,15 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmQh2D2kBn4PVK3JqxEx3CRe7G3dq6KKdG2AGWjzofCehv
   __init__.py: QmVTA54qs69dNuFFaqEJzxpKs6LqPqsnsbxNgrLdriJpSu
-<<<<<<< HEAD
-  behaviours.py: QmQ1AjzyoCPHFrVJzXmVC2jBZ1P2B4DjjfrjaTvcwFczoW
+  behaviours.py: QmYc2iq5EvLbo8KNTbXLuSXmnaWDAC1SxGnMzsEnzjCjHi
   dialogues.py: QmVWYsN4ZY18BE6gRdP7twHvrfe5juVvko2sbhK684hxpL
-  handlers.py: QmSqiYsuA6FAtu32np3uRCscMzsNFFAahHMBBk1DWjY3Sd
-=======
-  behaviours.py: QmX4YkpAZc6gDme4EoYPsZyWzvNAYmMNqEz9ykLW8NwgRt
-  dialogues.py: QmPMvG6MbuDFPdYAw2XJ8FgPwu9dnFZQyrWiQePs9CC42a
-  handlers.py: QmYiqrBMtX4GWS3fNnSVPkjkz2ToobvZnHKdU85ygKjMkG
->>>>>>> main
+  handlers.py: QmXJaLCUb5G8TJpKHnpFYenRW1ci3P5ULo6Pv2NmTzWuYc
   models.py: QmbLMMqskEN1QpZDL9HjaZ2kMqJZJnK5FajqvU2U64esEf
   utils.py: QmPqwELpuB3dcgJByZbE76dFaWW8ns4N5S4QDufmfT9fwY
 fingerprint_ignore_patterns: []

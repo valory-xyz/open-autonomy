@@ -28,6 +28,12 @@ from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel as BaseDialogueLabel
 from aea.skills.base import Model
 
+from packages.open_aea.protocols.signing.dialogues import (
+    SigningDialogue as BaseSigningDialogue,
+)
+from packages.open_aea.protocols.signing.dialogues import (
+    SigningDialogues as BaseSigningDialogues,
+)
 from packages.valory.protocols.abci.dialogues import AbciDialogue as BaseAbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -48,12 +54,6 @@ from packages.valory.protocols.ledger_api.dialogues import (
 )
 from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogues as BaseLedgerApiDialogues,
-)
-from packages.valory.protocols.signing.dialogues import (
-    SigningDialogue as BaseSigningDialogue,
-)
-from packages.valory.protocols.signing.dialogues import (
-    SigningDialogues as BaseSigningDialogues,
 )
 
 

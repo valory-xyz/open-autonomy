@@ -11,6 +11,7 @@ fingerprint:
   __init__.py: Qme5CNMEQmPNXUqBJdWVtP8uYz8rS7ajy49tvHEwR6ZJmK
   abci.proto: QmamcsSrWcfFyC4n2DyY5wBBiMH2XU96RMg9t4v2J3aysz
   abci_pb2.py: QmTovaUay74xRi8N8A3hCt84As6532XGYmvgyRK7Ns2eCP
+  custom_types.py: QmfKxBAJuH7zW5mZPup3DAanYuNCMH8RENv8AMsdqDkQcj
   dialogues.py: QmXqPYwychNzk9iqdarEyGVjsD7rzeRn26J4YdhjsG1XAG
   message.py: QmUHjat79v2jFmv7ZzNgaDE8K6aDyJssiBCt9W4xegVuAe
   serialization.py: QmVCmr9s6SdH5Z6k3QYvuwhdkVE4KZm3sXoHAhqA9yBKrj

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 valory
+#   Copyright 2021 open_aea
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """
-This module contains the classes required for state_update dialogue management.
+This module contains the classes required for signing dialogue management.
 
-- StateUpdateDialogue: The dialogue class maintains state of a dialogue and manages it.
-- StateUpdateDialogues: The dialogues class keeps track of all dialogues.
+- SigningDialogue: The dialogue class maintains state of a dialogue and manages it.
+- SigningDialogues: The dialogues class keeps track of all dialogues.
 """
 
 from abc import ABC
@@ -31,41 +31,61 @@ from aea.common import Address
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, DialogueLabel, Dialogues
 
-from packages.valory.protocols.state_update.message import StateUpdateMessage
+from packages.open_aea.protocols.signing.message import SigningMessage
 
 
-class StateUpdateDialogue(Dialogue):
-    """The state_update dialogue class maintains state of a dialogue and manages it."""
+class SigningDialogue(Dialogue):
+    """The signing dialogue class maintains state of a dialogue and manages it."""
 
-    INITIAL_PERFORMATIVES = frozenset({StateUpdateMessage.Performative.INITIALIZE})
-    TERMINAL_PERFORMATIVES = frozenset({StateUpdateMessage.Performative.END})
+    INITIAL_PERFORMATIVES = frozenset(
+        {
+            SigningMessage.Performative.SIGN_TRANSACTION,
+            SigningMessage.Performative.SIGN_MESSAGE,
+        }
+    )
+    TERMINAL_PERFORMATIVES = frozenset(
+        {
+            SigningMessage.Performative.SIGNED_TRANSACTION,
+            SigningMessage.Performative.SIGNED_MESSAGE,
+            SigningMessage.Performative.ERROR,
+        }
+    )
     VALID_REPLIES = {
-        StateUpdateMessage.Performative.APPLY: frozenset(
-            {StateUpdateMessage.Performative.APPLY, StateUpdateMessage.Performative.END}
+        SigningMessage.Performative.ERROR: frozenset(),
+        SigningMessage.Performative.SIGN_MESSAGE: frozenset(
+            {
+                SigningMessage.Performative.SIGNED_MESSAGE,
+                SigningMessage.Performative.ERROR,
+            }
         ),
-        StateUpdateMessage.Performative.END: frozenset(),
-        StateUpdateMessage.Performative.INITIALIZE: frozenset(
-            {StateUpdateMessage.Performative.APPLY}
+        SigningMessage.Performative.SIGN_TRANSACTION: frozenset(
+            {
+                SigningMessage.Performative.SIGNED_TRANSACTION,
+                SigningMessage.Performative.ERROR,
+            }
         ),
+        SigningMessage.Performative.SIGNED_MESSAGE: frozenset(),
+        SigningMessage.Performative.SIGNED_TRANSACTION: frozenset(),
     }
 
     class Role(Dialogue.Role):
-        """This class defines the agent's role in a state_update dialogue."""
+        """This class defines the agent's role in a signing dialogue."""
 
         DECISION_MAKER = "decision_maker"
         SKILL = "skill"
 
     class EndState(Dialogue.EndState):
-        """This class defines the end states of a state_update dialogue."""
+        """This class defines the end states of a signing dialogue."""
 
         SUCCESSFUL = 0
+        FAILED = 1
 
     def __init__(
         self,
         dialogue_label: DialogueLabel,
         self_address: Address,
         role: Dialogue.Role,
-        message_class: Type[StateUpdateMessage] = StateUpdateMessage,
+        message_class: Type[SigningMessage] = SigningMessage,
     ) -> None:
         """
         Initialize a dialogue.
@@ -84,10 +104,12 @@ class StateUpdateDialogue(Dialogue):
         )
 
 
-class StateUpdateDialogues(Dialogues, ABC):
-    """This class keeps track of all state_update dialogues."""
+class SigningDialogues(Dialogues, ABC):
+    """This class keeps track of all signing dialogues."""
 
-    END_STATES = frozenset({StateUpdateDialogue.EndState.SUCCESSFUL})
+    END_STATES = frozenset(
+        {SigningDialogue.EndState.SUCCESSFUL, SigningDialogue.EndState.FAILED}
+    )
 
     _keep_terminal_state_dialogues = False
 
@@ -95,7 +117,7 @@ class StateUpdateDialogues(Dialogues, ABC):
         self,
         self_address: Address,
         role_from_first_message: Callable[[Message, Address], Dialogue.Role],
-        dialogue_class: Type[StateUpdateDialogue] = StateUpdateDialogue,
+        dialogue_class: Type[SigningDialogue] = SigningDialogue,
     ) -> None:
         """
         Initialize dialogues.
@@ -107,7 +129,7 @@ class StateUpdateDialogues(Dialogues, ABC):
             self,
             self_address=self_address,
             end_states=cast(FrozenSet[Dialogue.EndState], self.END_STATES),
-            message_class=StateUpdateMessage,
+            message_class=SigningMessage,
             dialogue_class=dialogue_class,
             role_from_first_message=role_from_first_message,
         )

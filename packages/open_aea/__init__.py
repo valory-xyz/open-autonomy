@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 valory
+#   Copyright 2021 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,14 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the support resources for the signing protocol.
-
-It was created with protocol buffer compiler version `libprotoc 3.17.3` and aea version `1.1.0`.
-"""
-
-from packages.valory.protocols.signing.message import SigningMessage
-from packages.valory.protocols.signing.serialization import SigningSerializer
-
-
-SigningMessage.serializer = SigningSerializer
+"""Packages authored by 'open_aea'."""

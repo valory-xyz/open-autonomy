@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-aea = {version = "<2.0.0,>=1.1.0", extras = ["all"]}
-aea-ledger-ethereum = "<2.0.0,>=1.1.0"
+open-aea = {version = "<2.0.0,>=1.1.0", extras = ["all"]}
+open-aea-ledger-ethereum = "<2.0.0,>=1.1.0"
 
 [dev-packages]
 bandit = "==1.7.0"

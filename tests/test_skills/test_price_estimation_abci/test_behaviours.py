@@ -38,6 +38,7 @@ from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from aea.test_tools.test_skill import BaseSkillTestCase
 
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
@@ -48,7 +49,6 @@ from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.protocols.signing import SigningMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,

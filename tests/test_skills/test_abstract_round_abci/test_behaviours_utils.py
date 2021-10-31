@@ -27,7 +27,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from packages.valory.protocols.signing import SigningMessage
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,

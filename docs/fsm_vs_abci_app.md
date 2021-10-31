@@ -189,7 +189,7 @@ seen as a BTC price [oracle service](https://ethereum.org/en/developers/docs/ora
 
 The FSMBehaviour abstraction is represented
 in the code by the `AbstractRoundBehaviour` abstract class,
-which implements the [`Behaviour` interface](https://fetchai.github.io/agents-aea/api/skills/behaviours).
+which implements the [`Behaviour` interface](https://valory-xyz.github.io/open-aea/api/skills/behaviours).
 
 The states of the `AbstractRoundBehaviour` behaviour are of type `BaseState`,
 a base class with several utility methods to make developer's life easier.

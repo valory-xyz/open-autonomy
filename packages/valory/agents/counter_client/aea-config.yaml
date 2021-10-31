@@ -10,10 +10,8 @@ connections:
 - valory/http_client:0.1.0
 contracts: []
 protocols:
-- valory/default:1.0.0
+- open_aea/signing:1.0.0
 - valory/http:1.0.0
-- valory/signing:1.0.0
-- valory/state_update:1.0.0
 skills:
 - valory/counter_client:0.1.0
 default_ledger: ethereum
