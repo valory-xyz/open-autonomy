@@ -71,7 +71,6 @@ class Event(Enum):
 
     DONE = "done"
     EXIT = "exit"
-    RETRY_TIMEOUT = "retry_timeout"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
 
@@ -265,6 +264,10 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
         return cast(str, self._most_voted_tx_hash)
 
+    def reset(self) -> "PeriodState":
+        """Return the initial period state."""
+        return PeriodState(self.participants)
+
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the price estimation skill."""
@@ -273,6 +276,14 @@ class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     def period_state(self) -> PeriodState:
         """Return the period state."""
         return cast(PeriodState, self._state)
+
+    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+        """
+        Trigger the NO_MAJORITY event.
+
+        :return: a new period state and a NO_MAJORITY event
+        """
+        return self.period_state.reset(), Event.NO_MAJORITY
 
 
 class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
@@ -320,6 +331,10 @@ class RandomnessRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRou
                 most_voted_randomness=self.most_voted_payload,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -342,6 +357,10 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, PriceEstimationAbstractR
                 most_voted_keeper_address=self.most_voted_payload,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -391,6 +410,10 @@ class ValidateRound(VotingRound, PriceEstimationAbstractRound):
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
             return state, self.exit_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -451,6 +474,10 @@ class EstimateConsensusRound(
                 most_voted_estimate=self.most_voted_payload,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -476,6 +503,10 @@ class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
                 most_voted_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -502,6 +533,10 @@ class CollectSignatureRound(
                 participant_to_signature=MappingProxyType(self.collection),
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -596,10 +631,12 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         SelectKeeperARound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
@@ -608,22 +645,27 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         ValidateSafeRound: {
             Event.DONE: CollectObservationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
@@ -632,14 +674,15 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         ValidateTransactionRound: {
             Event.DONE: ConsensusReachedRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT: 5.0,
-        Event.RETRY_TIMEOUT: 10.0,
         Event.ROUND_TIMEOUT: 30.0,
     }

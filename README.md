@@ -1,6 +1,6 @@
 # Consensus algorithms
 
-Distributed consensus meets the AEA framework.
+Distributed consensus meets the open AEA framework.
 
 ## Preliminaries
 

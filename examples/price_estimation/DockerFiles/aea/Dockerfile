@@ -1,4 +1,4 @@
-FROM fetchai/aea-user:1.0.2
+FROM valory/open-aea-user:1.0.2
 
 
 WORKDIR /home/ubuntu
@@ -10,7 +10,7 @@ RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.7 python3 && sudo ln -s
 RUN sudo apt-get install wait-for-it -y
 
 RUN python -m pip install --upgrade pip
-RUN python -m pip install "aea[all]>=1.0.0,<2.0.0"
+RUN python -m pip install "open-aea[all]>=1.0.0,<2.0.0"
 
 COPY packages /home/ubuntu/packages
 

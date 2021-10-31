@@ -111,3 +111,83 @@ info: [price_estimation] transaction signing was successful.
 info: [price_estimation] 'estimate' behaviour state is done
 info: [price_estimation] Consensus reached on estimate: 44172.06142864574
 ```
+
+
+## Deployment to a Cluster
+
+We use scaffold to orchestrate the deployment of the application to any kubernetes cluster.
+
+In order to interact with skaffold, the local kubectl must be configured to point towards a cluster
+
+### Required Dependencies
+
+- [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/): kubernetes cli tool
+- [Docker](https://docs.docker.com/get-docker/): Container backend
+
+### Quick Cluster Deploy 
+```
+make localcluster-start
+make localcluster-deploy
+```
+
+## Cluster Development
+
+### To Configure Local Cluster
+
+1. create a local cluster and save the kubeconfig locally
+```bash
+# build cluster and get kubeconfig
+kind create cluster
+```
+2. login to docker
+```bash
+docker login -u valory
+```
+3. deploy registry credentials to the cluster
+```bash
+kubectl create secret generic regcred \
+            --from-file=.dockerconfigjson=/home/$(whoami)/.docker/config.json \
+            --type=kubernetes.io/dockerconfigjson
+```
+4. set skaffold configuration to use a remote registry
+```bash
+skaffold config set local-cluster false
+```
+5. (optional) deploy monitoring and dashboard
+```bash
+# create dashboard user and deploy dashboard configuration
+kubectl create serviceaccount dashboard-admin-sa
+kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+skaffold run --profile dashboard
+
+# launch dashboard app in firefox
+./kubernetes_configs/setup_dashboard.sh
+```
+6. optional retrieve the token for the dashboard
+```bash
+echo (kubectl describe secret (kubectl get secret | grep admin | awk '{print $1}') | grep token: | awk '{print $2}') 
+```
+
+
+### To Deploy Poc
+
+```bash
+# deploy poc to cluster
+skaffold run --profile minikube
+```
+
+### Dev mode
+Watch for changes and automatically build tag and deploy and changes within the context of the build directories
+
+```bash
+# deploy poc to cluster
+skaffold dev --profile minikube
+```
+
+# tear down
+```
+kind delete cluster 
+```
+

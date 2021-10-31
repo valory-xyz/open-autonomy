@@ -25,7 +25,7 @@ from typing import Any, cast
 
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.fetchai.connections.http_client.connection import (
+from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
 from packages.valory.skills.counter_client.behaviours import BaseBehaviour

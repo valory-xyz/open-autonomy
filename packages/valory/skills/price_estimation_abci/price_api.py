@@ -25,7 +25,7 @@ from typing import Any, Dict, Optional, Union
 
 from aea.skills.base import Model
 
-from packages.fetchai.protocols.http import HttpMessage
+from packages.valory.protocols.http import HttpMessage
 
 
 NUMBER_OF_RETRIES = 5
