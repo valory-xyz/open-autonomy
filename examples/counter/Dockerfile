@@ -1,11 +1,11 @@
-FROM fetchai/aea-user:1.0.2
+FROM valory/open-aea-user:1.1.0
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 RUN alias python='python3'
 
-RUN pip install "aea[all]>=1.0.0,<2.0.0"
-RUN pip install "aea-ledger-ethereum>=1.0.0,<2.0.0"
+RUN pip install "open-aea[all]>=1.0.0,<2.0.0"
+RUN pip install "open-aea-ledger-ethereum>=1.0.0,<2.0.0"
 
 COPY packages /home/ubuntu/packages
 
