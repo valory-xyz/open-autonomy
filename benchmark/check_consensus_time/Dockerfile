@@ -1,4 +1,4 @@
-FROM fetchai/aea-user:1.0.2
+FROM valory/open-aea-user:1.0.2
 
 
 WORKDIR /home/ubuntu
