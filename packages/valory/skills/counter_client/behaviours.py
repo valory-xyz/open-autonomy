@@ -29,6 +29,8 @@ from packages.valory.connections.http_client.connection import (  # type: ignore
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,  # type: ignore
 )
 from packages.valory.protocols.http import HttpMessage  # type: ignore # pylint: disable=no-name-in-module,import-error
+
+# type: ignore # pylint: disable=no-name-in-module,import-error
 from packages.valory.skills.counter_client.dialogues import HttpDialogues
 from packages.valory.skills.counter_client.handlers import curdatetime
 

@@ -67,10 +67,10 @@ class HttpHandler(Handler):
 
         request_nonce = http_dialogue.dialogue_label.dialogue_reference[0]
         callback_name = self.context.state.request_to_handler.pop(request_nonce, None)
-        if callback_name is None:
+        if callback_name is None:  # pragma: nocover
             return
         callback = getattr(self, callback_name, None)
-        if callback is None:
+        if callback is None:  # pragma: nocover
             return
         callback(http_message)
 

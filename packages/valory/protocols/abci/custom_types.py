@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains class representations corresponding to every custom type in the protocol specification."""
+import datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -882,6 +883,14 @@ class Header:  # pylint: disable=too-many-instance-attributes
         self.last_results_hash = last_results_hash
         self.evidence_hash = evidence_hash
         self.proposer_address = proposer_address
+
+    @property
+    def timestamp(self) -> datetime.datetime:
+        """Get the block timestamp."""
+        timestamp: Timestamp = self.time
+        nanoseconds = timestamp.nanos / 10 ** 9
+        seconds = timestamp.seconds
+        return datetime.datetime.fromtimestamp(seconds + nanoseconds)
 
     @staticmethod
     def encode(header_protobuf_object, header_object: "Header") -> None:

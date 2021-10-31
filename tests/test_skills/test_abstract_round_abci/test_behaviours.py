@@ -18,29 +18,100 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
-from typing import Generator
+from typing import Generator, Optional, Tuple
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.base import (
+    AbstractRound,
+    BasePeriodState,
+    BaseTxPayload,
+    EventType,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+
+
+STATE_A_ID = "state_a"
+STATE_B_ID = "state_b"
+STATE_C_ID = "state_c"
+ROUND_A_ID = "round_a"
+ROUND_B_ID = "round_b"
+
+
+class RoundA(AbstractRound):
+    """Round A."""
+
+    round_id = ROUND_A_ID
+    allowed_tx_type = "payload_a"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+
+class RoundB(AbstractRound):
+    """Round B."""
+
+    round_id = ROUND_B_ID
+    allowed_tx_type = "payload_b"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
 
 
 class StateA(BaseState):
     """Dummy state behaviour."""
 
-    state_id = "state_a"
+    state_id = STATE_A_ID
+    matching_round = RoundA
 
     def async_act(self) -> Generator:
         """Dummy act method."""
+        yield
+
+
+class StateB(BaseState):
+    """Dummy state behaviour."""
+
+    state_id = STATE_B_ID
+    matching_round = RoundB
+
+    def async_act(self) -> Generator:
+        """Dummy act method."""
+        yield
+
+
+class StateC(BaseState):
+    """Dummy state behaviour."""
+
+    state_id = STATE_C_ID
+    matching_round = None
+
+    def async_act(self) -> Generator:
+        """Dummy act method."""
+        yield
 
 
 class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     """Concrete round behaviour."""
 
+    abci_app_cls = MagicMock()
+    behaviour_states = {StateA, StateB}  # type: ignore
     initial_state_cls = StateA
-    transition_function = {StateA: {"loop": StateA}}
 
 
 class TestAbstractRoundBehaviour:
@@ -48,7 +119,10 @@ class TestAbstractRoundBehaviour:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.behaviour = ConcreteRoundBehaviour(name="", skill_context=MagicMock())
+        self.period_mock = MagicMock()
+        context_mock = MagicMock()
+        context_mock.state.period = self.period_mock
+        self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:
         """Test 'setup' method."""
@@ -62,105 +136,194 @@ class TestAbstractRoundBehaviour:
         """Test 'current_state' property return None."""
         assert self.behaviour.current_state is None
 
-    def test_register_state_matching_round_is_not_none_and_already_registered(
-        self,
-    ) -> None:
-        """Test when '_register_state' called with state behaviour with matching round already used."""
-        matching_round = MagicMock(round_id="round_1")
-        state1 = MagicMock(matching_round=matching_round)
-        state2 = MagicMock(matching_round=matching_round)
-        self.behaviour._register_state(state1)
-        with pytest.raises(ValueError, match="round id already used"):
-            self.behaviour._register_state(state2)
-
     def test_act_current_state_name_is_none(self) -> None:
         """Test 'act' with current state None."""
-        self.behaviour.current = None
+        self.behaviour.current_state = None
+        with mock.patch.object(self.behaviour, "_process_current_round"):
+            self.behaviour.act()
+
+    def test_get_state_id_to_state_mapping_negative(self) -> None:
+        """Test classmethod '_get_state_id_to_state_mapping', negative case."""
+        state_id = "state_id"
+        state_1 = MagicMock(state_id=state_id)
+        state_2 = MagicMock(state_id=state_id)
+
+        class MyRoundBehaviour(AbstractRoundBehaviour):
+            abci_app_cls = MagicMock
+            behaviour_states = [state_1, state_2]  # type: ignore
+            initial_state_cls = MagicMock()
+
+        with pytest.raises(
+            ValueError,
+            match=f"cannot have two states with the same id; got {state_2} and {state_1} both with id '{state_id}'",
+        ):
+            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_get_round_to_state_mapping_two_states_same_round(self) -> None:
+        """Test classmethod '_get_round_to_state_mapping' when two different states point to the same round."""
+        state_id_1 = "state_id_1"
+        state_id_2 = "state_id_2"
+        round_id = "round_id"
+        round_cls = MagicMock(round_id=round_id)
+        state_1 = MagicMock(state_id=state_id_1, matching_round=round_cls)
+        state_2 = MagicMock(state_id=state_id_2, matching_round=round_cls)
+
+        class MyRoundBehaviour(AbstractRoundBehaviour):
+            abci_app_cls = MagicMock
+            behaviour_states = [state_1, state_2]  # type: ignore
+            initial_state_cls = type(state_1)
+
+        with pytest.raises(
+            ValueError,
+            match=f"the states '{state_id_2}' and '{state_id_1}' point to the same matching round '{round_id}'",
+        ):
+            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_get_round_to_state_mapping_matching_round_none(self) -> None:
+        """Test classmethod '_get_round_to_state_mapping' when a state has matching round none."""
+        state_id = "state_id"
+        state = MagicMock(state_id=state_id, matching_round=None)
+
+        class MyRoundBehaviour(AbstractRoundBehaviour):
+            abci_app_cls = MagicMock
+            behaviour_states = [state]  # type: ignore
+            initial_state_cls = state
+
+        MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_check_initial_state_in_set_of_states_negative_case(self) -> None:
+        """Test classmethod '_check_initial_state_in_set_of_states' when initial state is NOT in the set."""
+        state_id = "state_id"
+        state_1 = MagicMock(state_id=state_id, matching_round=None)
+        state_2 = MagicMock(state_id=state_id, matching_round=None)
+
+        class MyRoundBehaviour(AbstractRoundBehaviour):
+            abci_app_cls = MagicMock
+            behaviour_states = [state_1]  # type: ignore
+            initial_state_cls = state_2
+
+        with pytest.raises(
+            ValueError, match=f"initial state {state_id} is not in the set of states"
+        ):
+            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_act_no_round_change(self) -> None:
+        """Test the 'act' method of the behaviour, with no round change."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundA.round_id
+
+        # check that after setup(), current state is initial state
+        self.behaviour.setup()
+        assert isinstance(self.behaviour.current_state, StateA)
+
+        # check that after act(), current state is initial state
         self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateA)
 
-    def test_act_current_state_name_is_not_none_state_none(self) -> None:
-        """Test 'act' with current state is not None, but associated state is None."""
-        self.behaviour.current = MagicMock()
+        # check that once the flag done is set, tries to schedule
+        # the next state behaviour, but without success
+        self.behaviour.current_state.set_done()
         self.behaviour.act()
+        assert self.behaviour.current_state is None
 
-    def test_act_current_state_final_state(self) -> None:
-        """Test 'act' when ending up in a final state."""
-        current_state_name = MagicMock()
-        current_state_mock = MagicMock()
-        current_state_mock.name = current_state_name
-        current_state_mock.is_done = MagicMock(return_value=True)
-        self.behaviour.current = current_state_name
-        self.behaviour.register_final_state(current_state_name, current_state_mock)
+    def test_act_with_round_change(self) -> None:
+        """Test the 'act' method of the behaviour, with round change."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundA.round_id
+
+        # check that after setup(), current state is initial state
+        self.behaviour.setup()
+        assert isinstance(self.behaviour.current_state, StateA)
+
+        # check that after act(), current state is initial state
         self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateA)
 
-        assert self.behaviour.current is None
+        # change the round
+        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundB.round_id
 
-    def test_act_next_state_set(self) -> None:
-        """Test 'act' when next state is set."""
-        current_state_name = MagicMock()
-        current_state_mock = MagicMock(name=current_state_name)
-        current_state_mock.is_done = MagicMock(return_value=True)
-        next_state_mock = MagicMock()
-        self.behaviour.register_state(current_state_name, current_state_mock)
-        self.behaviour.current = current_state_name
-        self.behaviour._next_state = next_state_mock
+        # check that if the round is changed, the behaviour transition is taken
         self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateB)
 
-        assert self.behaviour.current == next_state_mock
-        assert self.behaviour._next_state is None
-
-    def test_act_make_transition(self) -> None:
-        """Test 'act' when next state is set."""
-        current_state_name = MagicMock()
-        current_state_mock = MagicMock(name=current_state_name)
-        current_state_mock.is_done = MagicMock(return_value=True)
-        self.behaviour.register_state(current_state_name, current_state_mock)
-        self.behaviour.current = current_state_name
-        self.behaviour.act()
-
-        assert self.behaviour.current is None
-
-    def test_act_with_current_and_last_same(self) -> None:
-        """Test 'act' with current_round==last_round."""
-        round_name = "round"
-        self.behaviour.context.state.period.current_round_id = round_name
-        self.behaviour._last_round_id = round_name
-        self.behaviour.current = MagicMock()
-        self.behaviour.act()
-
-    def test_act_with_current_and_last_different(self) -> None:
-        """Test 'act' with current_round!=last_round."""
-        round_name_1 = "round_1"
-        round_name_2 = "round_2"
-        self.behaviour.context.state.period.current_round_id = round_name_1
-        self.behaviour._last_round_id = round_name_2
-        self.behaviour.current = MagicMock()
-        self.behaviour.act()
-
-    def test_act_with_current_and_last_different_matching_round(
+    def test_act_with_round_change_but_matching_round_current_state_is_none(
         self,
     ) -> None:
-        """
-        Test the 'act' method.
+        """Test 'act', with round change but with matching round of current state equal to None."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundA.round_id
 
-        Test 'act' with::
-        - current_round!=last_round
-        - current state has a matching round
-        """
-        round_name_1 = "round_1"
-        round_name_2 = "round_2"
-        self.behaviour.context.state.period.current_round_id = round_name_1
-        self.behaviour._last_round_id = round_name_2
+        # instantiate state with matching round = None
+        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
 
-        # register current_state so we can stop it
-        current_state_name = MagicMock()
-        current_state_mock = MagicMock(
-            name=current_state_name, matching_round=MagicMock(), state_id=MagicMock()
-        )
-        current_state_mock.is_done = MagicMock(return_value=True)
-        self.behaviour.register_state(current_state_name, current_state_mock)
-        self.behaviour.current = current_state_name
-
+        # check that after act(), current state is same state
         self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateC)
 
-        current_state_mock.stop.assert_called()
+        # check that state does not change until done flag is set
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateC)
+
+        # after behaviour is done, the transition can be taken
+        self.behaviour.current_state.set_done()
+        # the next act schedules the next state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateA)
+
+    def test_act_with_round_change_matching_round_current_state_is_none_and_round_change(
+        self,
+    ) -> None:
+        """Test 'act', with round change but with matching round None and round change."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundA.round_id
+
+        # instantiate state with matching round = None
+        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
+
+        # check that after act(), current state is same state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateC)
+
+        # check that round does not change until done flag is set
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateC)
+
+        # change the round
+        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundB.round_id
+
+        # check that even if round changes behaviour stays in the same state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateC)
+
+        # after behaviour is done, the transition can be taken
+        self.behaviour.current_state.set_done()
+        # the next act schedules the next state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateB)
+
+    def test_act_with_round_change_after_current_state_is_none(self) -> None:
+        """Test the 'act' method of the behaviour, with round change, after cur state is none."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundA.round_id
+
+        # instantiate state
+        self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateA)  # type: ignore
+
+        # check that after act(), current state is same state
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateA)
+
+        # check that after the state is done, current state is None
+        self.behaviour.current_state.set_done()
+        self.behaviour.act()
+        assert self.behaviour.current_state is None
+
+        # change the round
+        self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
+        self.period_mock.current_round_id = RoundB.round_id
+
+        # check that if the round is changed, the behaviour transition is taken
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateB)
