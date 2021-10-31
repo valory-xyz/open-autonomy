@@ -71,7 +71,6 @@ class Event(Enum):
 
     DONE = "done"
     EXIT = "exit"
-    RETRY_TIMEOUT = "retry_timeout"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
 
@@ -685,6 +684,5 @@ class PriceEstimationAbciApp(AbciApp[Event]):
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT: 5.0,
-        Event.RETRY_TIMEOUT: 10.0,
         Event.ROUND_TIMEOUT: 30.0,
     }
