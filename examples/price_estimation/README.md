@@ -115,11 +115,11 @@ info: [price_estimation] Consensus reached on estimate: 44172.06142864574
 
 ## Deployment to a Cluster
 
-We use skaffold to orchestrate the deployment of the application to any kubernetes cluster.
+We use scaffold to orchestrate the deployment of the application to any kubernetes cluster.
 
 In order to interact with skaffold, the local kubectl must be configured to point towards a cluster
 
-### Required Dependancies
+### Required Dependencies
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.

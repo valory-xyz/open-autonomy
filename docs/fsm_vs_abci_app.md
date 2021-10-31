@@ -41,14 +41,14 @@ is checked against the "global clock", which is a side-effect
 of block validation: each block header carries the timestamp 
 of the event of block proposal.
 
-For example, consider a block $b_1$ with timestamp $t_1$, 
-and block $b_2$ with timestamp $t_2 = t_1 + 10s$.
-Assume that after $b_1$ is processed by the AbciApp, we are 
-in round $r_1$, and that $r_1$ can trigger a timeout event
-with timeout $T=5s$. At the time that $b_2$ gets delivered,
-the timeout event was already triggered ($T<t_2$), and the associated
+For example, consider a block `b_1` with timestamp `t_1`, 
+and block `b_2` with timestamp `t_2 = t_1 + 10s`.
+Assume that after `b_1` is processed by the AbciApp, we are 
+in round `r_1`, and that `r_1` can trigger a timeout event
+with timeout `T=5s`. At the time that `b_2` gets delivered,
+the timeout event was already triggered (`T<t_2`), and the associated
 transition is already taken in the FSM, regardless of the 
-content of $b_2$.
+content of `b_2`.
 
 
 ### ABCIApp in the `valory/abstract_round_abci` skill
