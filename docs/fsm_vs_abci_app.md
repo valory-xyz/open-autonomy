@@ -41,14 +41,14 @@ is checked against the "global clock", which is a side-effect
 of block validation: each block header carries the timestamp 
 of the event of block proposal.
 
-For example, consider a block $b_1$ with timestamp $t_1$, 
-and block $b_2$ with timestamp $t_2 = t_1 + 10s$.
-Assume that after $b_1$ is processed by the AbciApp, we are 
-in round $r_1$, and that $r_1$ can trigger a timeout event
-with timeout $T=5s$. At the time that $b_2$ gets delivered,
-the timeout event was already triggered ($T<t_2$), and the associated
+For example, consider a block `b_1` with timestamp `t_1`, 
+and block `b_2` with timestamp `t_2 = t_1 + 10s`.
+Assume that after `b_1` is processed by the AbciApp, we are 
+in round `r_1`, and that `r_1` can trigger a timeout event
+with timeout `T=5s`. At the time that `b_2` gets delivered,
+the timeout event was already triggered (`T<t_2`), and the associated
 transition is already taken in the FSM, regardless of the 
-content of $b_2$.
+content of `b_2`.
 
 
 ### ABCIApp in the `valory/abstract_round_abci` skill
@@ -189,7 +189,7 @@ seen as a BTC price [oracle service](https://ethereum.org/en/developers/docs/ora
 
 The FSMBehaviour abstraction is represented
 in the code by the `AbstractRoundBehaviour` abstract class,
-which implements the [`Behaviour` interface](https://fetchai.github.io/agents-aea/api/skills/behaviours).
+which implements the [`Behaviour` interface](https://valory-xyz.github.io/open-aea/api/skills/behaviours).
 
 The states of the `AbstractRoundBehaviour` behaviour are of type `BaseState`,
 a base class with several utility methods to make developer's life easier.

@@ -259,9 +259,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         message = cast(AbciMessage, envelope.message)
         dialogue = self._dialogues.update(message)
         if dialogue is None:  # pragma: nocover
-            self.logger.warning(
-                "Could not create dialogue for message={}".format(message)
-            )
+            self.logger.warning(f"Could not create dialogue for message={message}")
             return
 
         peer_name = self._request_id_to_socket[dialogue.incomplete_dialogue_label]

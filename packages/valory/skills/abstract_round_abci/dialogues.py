@@ -28,33 +28,33 @@ from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel as BaseDialogueLabel
 from aea.skills.base import Model
 
-from packages.fetchai.protocols.contract_api import ContractApiMessage
-from packages.fetchai.protocols.contract_api.dialogues import (
-    ContractApiDialogue as BaseContractApiDialogue,
-)
-from packages.fetchai.protocols.contract_api.dialogues import (
-    ContractApiDialogues as BaseContractApiDialogues,
-)
-from packages.fetchai.protocols.http.dialogues import (
-    HttpDialogue as BaseHttpDialogue,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
-)
-from packages.fetchai.protocols.http.dialogues import (
-    HttpDialogues as BaseHttpDialogues,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
-)
-from packages.fetchai.protocols.ledger_api.dialogues import (
-    LedgerApiDialogue as BaseLedgerApiDialogue,
-)
-from packages.fetchai.protocols.ledger_api.dialogues import (
-    LedgerApiDialogues as BaseLedgerApiDialogues,
-)
-from packages.fetchai.protocols.signing.dialogues import (
+from packages.open_aea.protocols.signing.dialogues import (
     SigningDialogue as BaseSigningDialogue,
 )
-from packages.fetchai.protocols.signing.dialogues import (
+from packages.open_aea.protocols.signing.dialogues import (
     SigningDialogues as BaseSigningDialogues,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue as BaseAbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.contract_api.dialogues import (
+    ContractApiDialogue as BaseContractApiDialogue,
+)
+from packages.valory.protocols.contract_api.dialogues import (
+    ContractApiDialogues as BaseContractApiDialogues,
+)
+from packages.valory.protocols.http.dialogues import (
+    HttpDialogue as BaseHttpDialogue,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
+)
+from packages.valory.protocols.http.dialogues import (
+    HttpDialogues as BaseHttpDialogues,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
+)
+from packages.valory.protocols.ledger_api.dialogues import (
+    LedgerApiDialogue as BaseLedgerApiDialogue,
+)
+from packages.valory.protocols.ledger_api.dialogues import (
+    LedgerApiDialogues as BaseLedgerApiDialogues,
+)
 
 
 AbciDialogue = BaseAbciDialogue

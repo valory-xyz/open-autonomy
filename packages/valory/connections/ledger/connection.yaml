@@ -1,0 +1,35 @@
+name: ledger
+author: valory
+version: 0.1.0
+type: connection
+description: A connection to interact with any ledger API and contract API.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: Qma3Z9MpmS2rFyDw2YCfsYENvam4gnyHNZtKFMkaEPMBnJ
+  __init__.py: QmdcyANC7j6fteqzBoFLBg9NfHBAxryY1ykfywzeSpp8iC
+  base.py: QmVcuoGr9y4xX8fqGzoJuQfr4crLmaacHyWuEQLF7yiZaJ
+  connection.py: QmPgFPbQa2kxPt5eRQAm8NuLbFQo3JSgsKK5uQaM6zUMCC
+  contract_dispatcher.py: QmNSaLayYjwgAn2AV3vy7F5CytFpXP766BUPeFJ7CUQBZB
+  ledger_dispatcher.py: QmXTSEdtbfsa1hPDMqKotER5HRvhAuiWJtC6bBqphCKPPT
+fingerprint_ignore_patterns: []
+connections: []
+protocols:
+- valory/contract_api:1.0.0
+- valory/ledger_api:1.0.0
+class_name: LedgerConnection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://127.0.0.1:8545
+      gas_price_api_key: null
+    valory:
+      address: https://rest-agent-land.fetch.ai:443
+      denom: atestfet
+      chain_id: agent-land
+excluded_protocols: []
+restricted_to_protocols:
+- valory/contract_api:1.0.0
+- valory/ledger_api:1.0.0
+dependencies: {}
+is_abstract: false
