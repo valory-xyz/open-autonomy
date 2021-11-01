@@ -96,11 +96,13 @@ services:
       - hardhat
 
   abci0:
+    environment:
+      - ID=0
     container_name: abci0
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -113,11 +115,13 @@ services:
       - node0
 
   abci1:
+    environment:
+      - ID=1
     container_name: abci1
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -131,10 +135,12 @@ services:
 
   abci2:
     container_name: abci2
+    environment:
+      - ID=2
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -148,10 +154,12 @@ services:
 
   abci3:
     container_name: abci3
+    environment:
+      - ID=3
     image: "valory/price_estimation:0.1.0"
     build:
       context: ../..
-      dockerfile: examples/price_estimation/Dockerfile
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash

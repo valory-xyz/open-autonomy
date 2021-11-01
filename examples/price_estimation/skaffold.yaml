@@ -22,6 +22,7 @@ profiles:
       kubeContext: kind-kind
       kubectl:
         manifests:
+        - kubernetes_configs/build/config_job.yaml
         - kubernetes_configs/build/agent_node_deployment*.yaml
   - name: configure
     build:
@@ -41,7 +42,6 @@ profiles:
     deploy:
       kubectl:
         manifests:
-        - kubernetes_configs/build/config_job.yaml
         - kubernetes_configs/hardhat/hardhat-deployment.yaml
         - kubernetes_configs/hardhat/hardhat-service.yaml
         - kubernetes_configs/configuration/secret.yaml
