@@ -81,7 +81,12 @@ class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
 
 
 class BenchmarkBlock:
-    """Benchmark"""
+    """
+    Benchmark
+
+    This class represents logic to measure the code block using a
+    context manager.
+    """
 
     start: float
     total_time: float
@@ -103,19 +108,32 @@ class BenchmarkBlock:
 
 
 class BenchmarkBehaviour:
-    """Benchmark a behaviour."""
+    """
+    BenchmarkBehaviour
+
+    This class represents logic to benchmark a single behaviour.
+    """
 
     behaviour: BaseState
     local_data: Dict[str, BenchmarkBlock]
 
     def __init__(self, behaviour: BaseState) -> None:
-        """Initialize Benchmark behaviour object."""
+        """
+        Initialize Benchmark behaviour object.
+
+        :param behaviour: behaviour that will be measured.
+        """
 
         self.behaviour = behaviour
         self.local_data = {}
 
     def _measure(self, block_type: str) -> BenchmarkBlock:
-        """Returns a BenchmarkBlock object."""
+        """
+        Returns a BenchmarkBlock object.
+
+        :param block_type: type of block (eg. local, consensus, request)
+        :return: BenchmarkBlock
+        """
 
         if block_type not in self.local_data:
             self.local_data[block_type] = BenchmarkBlock(block_type)
@@ -136,7 +154,12 @@ class BenchmarkBehaviour:
 
 
 class BenchmarkTool:
-    """TimeStamp to measure performance."""
+    """
+    BenchmarkTool
+
+    Tool to benchmark price estimation agents execution time with
+    different contexts.
+    """
 
     benchmark_data: Dict[str, BenchmarkBehaviour]
     agent: Optional[str]

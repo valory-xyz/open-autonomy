@@ -34,11 +34,6 @@ BENCHMARK_BLOCK_TYPES: List[str] = [
 ]
 
 
-def _pp(data: Dict, indent: int = 2) -> None:
-    """Pretty print."""
-    print(json.dumps(data, indent=indent))
-
-
 def get_file_list() -> List[str]:
     """Returns file list."""
     return glob("./logs/*.json")
