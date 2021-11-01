@@ -16,5 +16,5 @@ then
 else
     echo "configuring ${ID}"
     ../configure_agents/abci"${ID}".sh &&\
-     python3 -m aea.cli -v DEBUG run
+     python3 -m aea.cli -v INFO run
 fi

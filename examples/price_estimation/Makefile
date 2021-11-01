@@ -9,8 +9,8 @@ build-docker-aea:
 .PHONY: build-docker-aea
 
 localnet-start: localnet-stop build-docker-localnode build-docker-aea
-	docker run --rm -v $(CURDIR)/build:/tendermint:Z tendermint/localnode testnet --config /etc/tendermint/config-template.toml --o . --starting-ip-address 192.167.11.3
-	docker-compose up
+	docker run --rm -v $(CURDIR)/build:/tendermint:Z tendermint/localnode testnet --config /etc/tendermint/config-template.toml --o . --starting-ip-address 192.167.11.3 
+	docker-compose up --build
 .PHONY: localnet-start
 
 # Stop testnet
@@ -22,7 +22,7 @@ localnet-stop:
 SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
-NUMBER_OF_NODES := 8
+NUMBER_OF_NODES := 4
 RESULT := ""
 
 localcluster-start:
@@ -84,5 +84,7 @@ localcluster-remove-deploy:
 		kubectl delete pod $$pod --force;\
 	done
 	kubectl delete job config-nodes
+	kubectl delete pv task-pv-volume
+	kubectl delete pvc build-vol
 
 .PHONY: localcluster-remove-deploy
