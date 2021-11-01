@@ -11,3 +11,9 @@
 ```bash
 python3 aggregate_results.py
 ```
+
+> To clean the benchmarking environment.
+
+```bash
+make clean-benchmark-env
+```

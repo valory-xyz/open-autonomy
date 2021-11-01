@@ -120,7 +120,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 192.167.11.0/16
+        - subnet: 192.167.11.0/24
 """
 
 TENDERMINT_NODE_TEMPLATE: str = """

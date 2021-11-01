@@ -23,10 +23,20 @@
 import json
 from glob import glob
 from statistics import mean, stdev
-from typing import Callable, Dict, List
+from typing import Any, Callable, Dict, List
 
 
-MAX_COL_LENGTH = 7
+MAX_COL_LENGTH: int = 7
+BENCHMARK_BLOCK_TYPES: List[str] = [
+    "local",
+    "consensus",
+    "total"
+]
+
+
+def _pp(data: Dict, indent: int = 2) -> None:
+    """Pretty print."""
+    print(json.dumps(data, indent=indent))
 
 
 def get_file_list() -> List[str]:
@@ -39,60 +49,77 @@ def read_benchmarks() -> List[Dict]:
     return [json.load(open(file, "r", encoding="utf-8")) for file in get_file_list()]
 
 
-def aggregate_round(round_id: str, benchmarks: List[Dict], aggregate_method: Callable) -> float:
-    """Aggregate value for round_id over agents."""
-    round_data = map(lambda x: x["data"][round_id], benchmarks)
-    return aggregate_method(list(round_data))
+def aggregate_behaviour(benchmarks: List[Dict], aggregate_method: Callable) -> float:
+    """Aggregate value for a behaviour over agents."""
+    return {
+        "behaviour": benchmarks[0].get("behaviour"),
+        "data": dict([(block_type, aggregate_method([row["data"].get(block_type, 0) for row in benchmarks])) for block_type in BENCHMARK_BLOCK_TYPES])
+    }
+
+
+def pad_column(value: Any, column_name: str) -> str:
+    """Pad value with whitespaces according to the `MAX_COL_LENGTH`"""
+    value = str(value)
+    if len(value) > MAX_COL_LENGTH:
+        return value[:MAX_COL_LENGTH] + ' ' * (len(column_name) - MAX_COL_LENGTH)
+
+    return value + ' ' * (len(column_name) - len(value))
 
 
 def main() -> None:
     """Run main function."""
 
-    print ("\nConsensus Benchmark\n")
+    print("\nAgent Benchmark Utility.\n")
 
     benchmarks = read_benchmarks()
     benchmark = benchmarks[0]
-    rounds = benchmark["rounds"]
-    columns = ["agent  "] + rounds + ["total"]
-
+    columns = [behaviour_data["behaviour"] for behaviour_data in benchmark["data"]]
+    columns = ["agent  "] + [col if len(col) > MAX_COL_LENGTH else col + ' ' * (
+        MAX_COL_LENGTH - len(col)) for col in columns] + ["total"]
     separator = "-|-".join(["-" * len(col) for col in columns])
     header = " | ".join(columns)
 
     benchmarks += [
         {
-            "agent": "separator"
+            "agent_address": "separator"
         },
         {
             "agent_address": "average",
-            "agent": benchmark["agent"],
-            "data":dict([
-                (round_id, aggregate_round(round_id, benchmarks, mean))
-                for round_id in benchmark["rounds"]
-            ])
+            "agent": "price_estimation",
+            "data": [aggregate_behaviour(col, mean) for col in zip(*[benchmark["data"] for benchmark in benchmarks])]
         },
         {
-            "agent": "separator"
+            "agent_address": "separator"
         },
         {
             "agent_address": "std_dev",
-            "agent": benchmark["agent"],
-            "data":dict([
-                (round_id, aggregate_round(round_id, benchmarks, stdev))
-                for round_id in benchmark["rounds"]
-            ])
+            "agent": "price_estimation",
+            "data": [aggregate_behaviour(col, stdev) for col in zip(*[benchmark["data"] for benchmark in benchmarks])]
         }
     ]
 
-    print(header + "\n" + separator)
-    for benchmark in benchmarks:
-        if benchmark["agent"] == "separator":
-            print(separator)
-        else:
-            benchmark["data"]["total"] = sum(benchmark["data"].values())
-            row = " | ".join(
-                [benchmark["agent_address"][:MAX_COL_LENGTH]] + [f"{str(benchmark['data'][round_id])[:MAX_COL_LENGTH]}{' '*(len(round_id)-MAX_COL_LENGTH)}" for round_id in columns[1:]])
+    def _display_results_by_block(block_type: str):
+        print(f"Block type : {block_type}\n")
+        print(header + "\n" + separator)
+
+        for benchmark in benchmarks:
+            if benchmark["agent_address"] == "separator":
+                print(separator)
+                continue
+
+            block_data = [behaviour_data["data"].get(block_type, 0)
+                          for behaviour_data in benchmark["data"]]
+            block_data = [benchmark["agent_address"], *block_data, sum(block_data)]
+
+            row = " | ".join([pad_column(data, col)
+                             for col, data in zip(columns, block_data)])
+
             print(row)
-    print()
+        print()
+
+    for block_type in BENCHMARK_BLOCK_TYPES:
+        _display_results_by_block(block_type)
+
 
 if __name__ == "__main__":
     main()

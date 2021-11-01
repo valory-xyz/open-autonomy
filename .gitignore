@@ -352,4 +352,4 @@ Pipfile.lock
 benchmark/*/logs
 benchmark/*/build
 benchmark/*/configure_agents
-benchmark/*/*.yml
+benchmark/*/docker-compose.yml
