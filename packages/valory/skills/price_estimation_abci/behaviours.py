@@ -568,7 +568,10 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             to_address=self.context.agent_address,
             value=0,
             data=self.period_state.encoded_most_voted_estimate,
-            signatures_by_owner=dict(self.period_state.participant_to_signature),
+            signatures_by_owner={
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
+            },
         )
         tx_hash, _ = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
