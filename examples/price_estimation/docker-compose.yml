@@ -122,7 +122,6 @@ services:
     build:
       context: ../..
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
-      # dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -142,7 +141,6 @@ services:
     build:
       context: ../..
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
-      # dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
@@ -162,7 +160,6 @@ services:
     build:
       context: ../..
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
-      # dockerfile: examples/price_estimation/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
     entrypoint: /bin/bash
