@@ -84,5 +84,7 @@ localcluster-remove-deploy:
 		kubectl delete pod $$pod --force;\
 	done
 	kubectl delete job config-nodes
+	kubectl delete pv task-pv-volume
+	kubectl delete pvc build-vol
 
 .PHONY: localcluster-remove-deploy
