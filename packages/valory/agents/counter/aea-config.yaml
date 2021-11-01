@@ -26,7 +26,7 @@ logging_config:
   disable_existing_loggers: false
   version: 1
 dependencies:
-  aea-ledger-ethereum: {}
+  open-aea-ledger-ethereum: {}
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
