@@ -72,6 +72,13 @@ def locate(path: str) -> Any:
     return object_
 
 
+class BenchmarkBlocks:
+    """Benchmark block types."""
+
+    LOCAL = "locals"
+    CONSENSUS = "consensus"
+
+
 class Benchmark:
     """Benchmark"""
 
@@ -125,8 +132,8 @@ class BenchmarkRound:
     ) -> None:
         """Output log."""
 
-        print(f"Agent : {self.agent}")
-        print(f"Agent Address : {self.agent_address}")
+        logging.info(f"Agent : {self.agent}")
+        logging.info(f"Agent Address : {self.agent_address}")
 
         max_length = len(self.rounds) + 4
 

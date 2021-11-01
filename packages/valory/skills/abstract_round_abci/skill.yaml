@@ -8,25 +8,25 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base.py: Qmf9hpeFpgFD5D1rpwGNL6aSS5Cbp1invwocN2esSJPaQB
-  behaviour_utils.py: QmbtXzejiCvzUhD6sqmahXfZtsQTa2dSQdNZZb2roov9aq
+  base.py: QmbDLELTG83LYyckjUy3Au34KfUgEmshDw1jdRRMYS4Bva
+  behaviour_utils.py: QmfZedxTzB3G5HjJjcoxgFZVTPK7mR377Amx9oKNwKWk9v
   behaviours.py: QmSKXCBAGmT1i9NUznf1RcaH1Q8TrpbztunMSvcLhbyL85
-  dialogues.py: Qmd18GNB7jQnH3NwkEFJq2rNJUGRqyAvUwYrAqpGhDgngB
-  handlers.py: QmaiBswUZDRPWTkSaU7r5pG8PY8c2srEjMSLQ4nQnac2cE
+  dialogues.py: QmYfj3fqnexykT5WgaEXfprK3BWC1Y2eE9LDzkVyPnyr6o
+  handlers.py: QmXs7Eo9NYJ812ehQ5hoWWijRioDi3bZFEv6z2SzDW2x7z
   models.py: QmbFa3hJfp9vgFkN9AfEjKWsL8Uegb1UyyDHE1SxWJuzm3
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
   utils.py: QmbVUKXCFgePg7gNGC5cdnDTpJFF7H7eSmMGPj2wYkAnLU
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/http_client:0.23.0
-- fetchai/ledger:0.19.0
 - valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
 contracts: []
 protocols:
-- fetchai/contract_api:1.0.0
-- fetchai/http:1.0.0
-- fetchai/ledger_api:1.0.0
 - valory/abci:0.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_abci:0.1.0
 behaviours:

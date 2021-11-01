@@ -32,4 +32,4 @@ else
 fi
 
 chmod 777 -R /tendermint
-
+          

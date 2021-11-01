@@ -1,0 +1,35 @@
+name: ledger
+author: fetchai
+version: 0.19.0
+type: connection
+description: A connection to interact with any ledger API and contract API.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmVgyK1CoqvZ3veizsasgiBxA8Se2RzrkYn4XQgQ1twKTH
+  __init__.py: QmZvYZ5ECcWwqiNGh8qNTg735wu51HqaLxTSifUxkQ4KGj
+  base.py: QmcHfS1mKvtxuTZTgiXDcwbCDHumUVZ4QMNQso9LkiXNF5
+  connection.py: QmXmJpYEBs88v5s9q7DeUJjzTKadfD3Fnqzpdz4iJtZ47M
+  contract_dispatcher.py: QmVcSfTsYsg8MtXKx9pFa9hsZwFdTsc6RdAjDcLoZkM1qE
+  ledger_dispatcher.py: QmXdsDXWCHd9cqBDsQRc1npBwuSTbz6bqTSQk5ETxioqJk
+fingerprint_ignore_patterns: []
+connections: []
+protocols:
+- fetchai/contract_api:1.0.0
+- fetchai/ledger_api:1.0.0
+class_name: LedgerConnection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://127.0.0.1:8545
+      gas_price_api_key: null
+    fetchai:
+      address: https://rest-stargateworld.fetch.ai:443
+      denom: atestfet
+      chain_id: stargateworld-3
+excluded_protocols: []
+restricted_to_protocols:
+- fetchai/contract_api:1.0.0
+- fetchai/ledger_api:1.0.0
+dependencies: {}
+is_abstract: false

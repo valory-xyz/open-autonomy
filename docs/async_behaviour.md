@@ -16,10 +16,10 @@ skill, is a mixin class that allows the AEA developer to use
 asynchronous programming patterns in a `Behaviour` implementation.
 
 It is assumed the reader has basic knowledge of the 
-[AEA framework](https://fetchai.github.io/agents-aea/),
+[open AEA framework](https://valory-xyz.github.io/open-aea/),
 in particular of the `Behaviour` programming abstraction
-(see [here](https://fetchai.github.io/agents-aea/skill-guide/#step-2-develop-a-behaviour) 
-and [here](https://fetchai.github.io/agents-aea/skill/#behaviourspy)
+(see [here](https://valory-xyz.github.io/open-aea/skill-guide/#step-2-develop-a-behaviour) 
+and [here](valory-xyz.github.io/open-aea/skill/#behaviourspy)
 ).
 
 ## Why?
@@ -139,7 +139,7 @@ In words, the first time the `act()` method is called:
 
 ## A simple example
 
-Consider a [(one-shot) behaviour](https://fetchai.github.io/agents-aea/skill/#behaviourspy) 
+Consider a [(one-shot) behaviour](https://valory-xyz.github.io/open-aea/skill/#behaviourspy) 
 whose logic is to print a sequence of messages separated by a sleep interval:
 
 ```python
@@ -263,7 +263,7 @@ Follows the breakdown of each message exchange:
 - The search result of the SOEF gets routed to the search handler (`SearchH`),
   which selects one of the sellers, and sends a "call for proposal" (CFP) message to him.
   The CFP is the first message of a [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
-  See the AEA documentation on the [AEA FIPA-like protocol](https://fetchai.github.io/agents-aea/protocol/#fetchaifipa100-protocol). 
+  See the AEA documentation on the [AEA FIPA-like protocol](https://valory-xyz.github.io/open-aea/protocol/#fetchaifipa100-protocol). 
 - The seller replies with a "FIPA proposal" to the buyer. Such message
   is handled by the `FipaH` handler;
 - Once the negotiation has completed (only the `FipaH` is involved in the negotiation),
@@ -349,7 +349,7 @@ The `wait_for_message` method, used in the `send(...)` method to wait for the re
 allows to wait for specific events triggered
 by other components. In this case, each of the handler will
 dispatch the response to the requester component, whose request
-is identified by the [(dialogue) identifier](https://fetchai.github.io/agents-aea/protocol/#dialogue-rules)
+is identified by the [(dialogue) identifier](https://valory-xyz.github.io/open-aea/protocol/#dialogue-rules)
 of the interaction.
 However, note that the handler code in this case is _skill-independent_, 
 which means that they do not contribute to the business logic.

@@ -26,12 +26,12 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, Dialogues
 from aea.skills.base import Handler
 
-from packages.fetchai.protocols.contract_api import ContractApiMessage
-from packages.fetchai.protocols.http import HttpMessage
-from packages.fetchai.protocols.ledger_api import LedgerApiMessage
-from packages.fetchai.protocols.signing import SigningMessage
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import Events
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,

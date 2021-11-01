@@ -38,18 +38,19 @@ from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.fetchai.connections.http_client.connection import (
+from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.fetchai.protocols.contract_api.message import ContractApiMessage
-from packages.fetchai.protocols.http import HttpMessage
-from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
-from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
+from packages.valory.protocols.contract_api.message import ContractApiMessage
+from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbstractRound,
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
@@ -365,6 +366,19 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         ][Event.DONE](abci_app.state, abci_app.consensus_params)
         self.price_estimation_behaviour._process_current_round()
 
+    def _test_done_flag_set(self) -> None:
+        """Test that, when round ends, the 'done' flag is set."""
+        current_state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert not current_state.is_done()
+        with mock.patch.object(
+            self.price_estimation_behaviour.context.state, "period"
+        ) as mock_period:
+            mock_period.last_round_id = cast(
+                AbstractRound, current_state.matching_round
+            ).round_id
+            current_state.act_wrapper()
+            assert current_state.is_done()
+
     @classmethod
     def teardown(cls) -> None:
         """Teardown the test class."""
@@ -494,6 +508,8 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
         #     self.http_handler.handle(incoming_message)  # noqa: E800
         # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
 
+        self._test_done_flag_set()
+
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == RandomnessBehaviour.state_id
@@ -544,6 +560,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
 
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
@@ -632,6 +649,7 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == DeploySafeBehaviour.state_id
@@ -713,6 +731,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ValidateSafeBehaviour.state_id
@@ -740,6 +759,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == DeploySafeBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self._test_done_flag_set()
         self.end_round()
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
@@ -777,6 +797,7 @@ class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ObserveBehaviour.state_id
@@ -819,6 +840,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == EstimateBehaviour.state_id
@@ -847,6 +869,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour.act_wrapper()
             state = cast(BaseState, self.price_estimation_behaviour.current_state)
             assert state.state_id == ObserveBehaviour.state_id
+            self._test_done_flag_set()
 
     def test_observed_value_none(
         self,
@@ -905,6 +928,7 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == TransactionHashBehaviour.state_id
@@ -948,6 +972,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == SignatureBehaviour.state_id
@@ -986,6 +1011,7 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == FinalizeBehaviour.state_id
@@ -1015,6 +1041,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == FinalizeBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
@@ -1088,6 +1115,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
@@ -1125,6 +1153,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == EndBehaviour.state_id

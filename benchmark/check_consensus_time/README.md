@@ -1,6 +1,6 @@
 ### Consensus Time Benchmarks.
 
-> To run benchmarks run
+> To run benchmarks
 
 ```bash
 ./benchmark.sh 8

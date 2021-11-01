@@ -26,14 +26,16 @@ from typing import Generator, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
-from packages.fetchai.connections.ledger.base import (
+from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.fetchai.protocols.contract_api import ContractApiMessage
-from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkRound
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -143,7 +145,7 @@ class RegistrationBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
 
 class RandomnessBehaviour(PriceEstimationBaseState):
@@ -182,7 +184,7 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             ):
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
-            self.set_done()  # pragma: no cover
+            self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
@@ -214,7 +216,7 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
@@ -257,6 +259,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             self,
         ):
             yield from self.wait_until_round_end()
+            self.set_done()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
@@ -271,7 +274,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             yield from self.send_a2a_transaction(payload)
             self.context.logger.info(f"Safe contract address: {contract_address}")
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = self.period_state.sorted_participants
@@ -321,7 +324,7 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
     def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -358,8 +361,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 self,
             ):
                 yield from self.wait_until_round_end()
-            self.set_done()  # pragma: no cover
-            return  # pragma: no cover
+            self.set_done()
+            return
 
         currency_id = self.params.currency_id
         convert_id = self.params.convert_id
@@ -385,7 +388,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
             ):
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
-            self.set_done()  # pragma: no cover
+            self.set_done()
         else:
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id}"
@@ -427,7 +430,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
 
 class TransactionHashBehaviour(PriceEstimationBaseState):
@@ -465,7 +468,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
 
 class SignatureBehaviour(PriceEstimationBaseState):
@@ -494,7 +497,7 @@ class SignatureBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
@@ -535,6 +538,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self,
         ):
             yield from self.wait_until_round_end()
+        self.set_done()
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
@@ -554,7 +558,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
@@ -603,7 +607,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         ):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        self.set_done()
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""

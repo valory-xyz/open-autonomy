@@ -25,9 +25,9 @@ from unittest.mock import MagicMock
 import pytest
 from aea.configurations.data_types import PublicId
 
-from packages.fetchai.protocols.http import HttpMessage
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import CheckTxType, CheckTxTypeEnum
+from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
