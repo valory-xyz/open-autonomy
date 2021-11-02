@@ -24,7 +24,7 @@ import json
 from glob import glob
 from statistics import mean, stdev
 from typing import Any, Callable, Dict, List
-
+from decimal import Decimal
 
 MAX_COL_LENGTH: int = 7
 BENCHMARK_BLOCK_TYPES: List[str] = [
@@ -54,6 +54,10 @@ def aggregate_behaviour(benchmarks: List[Dict], aggregate_method: Callable) -> f
 
 def pad_column(value: Any, column_name: str) -> str:
     """Pad value with whitespaces according to the `MAX_COL_LENGTH`"""
+
+    if isinstance(value, float) and value <= 1e-4:
+        value = 0
+
     value = str(value)
     if len(value) > MAX_COL_LENGTH:
         return value[:MAX_COL_LENGTH] + ' ' * (len(column_name) - MAX_COL_LENGTH)
