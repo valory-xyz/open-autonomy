@@ -1,0 +1,20 @@
+name: ledger_api
+author: valory
+version: 1.0.0
+protocol_specification_id: valory/ledger_api:1.0.0
+type: protocol
+description: A protocol for ledger APIs requests and responses.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmcxBUYHE9vB1cVNX9795UKQK9Ho6gNqgqBFayypSd6MVJ
+  __init__.py: QmRk5LwPE5zNoZWaQ27aXGY5MxJTA4ViHBi5QWB1uF5z4Y
+  custom_types.py: QmSq2yUGf73ZEGvHL65YzUnSKAwgXUqVK73Wwcn2Z2JUoE
+  dialogues.py: QmeSeLgu25HDr8XPZaepduCBq44a5zgnRjZhttZH7xE3ai
+  ledger_api.proto: QmbA825RvFyUQbvY4GT3aJxWUMzpZWKmXKeqizzLrmrBNp
+  ledger_api_pb2.py: Qmb4qCDXovaxLkZMYpgUxbKNrudR9GSNVFK1feFMSjzvHd
+  message.py: QmS95UG51BoJAGmaxFXcUjHY7FTpFoXqJp9iiqj4FDuMFR
+  serialization.py: QmNUyXUpvGKw5rcy7wcMtQSDjJu4eqovP8z8ReK2i6rZNB
+fingerprint_ignore_patterns: []
+dependencies:
+  protobuf: {}

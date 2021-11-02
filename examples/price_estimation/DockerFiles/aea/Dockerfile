@@ -1,16 +1,18 @@
-FROM fetchai/aea-user:1.0.2
+FROM valory/open-aea-user
 
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 
-RUN sudo apt-get install python3.7 python3.7-dev -y
+RUN sudo apt-get install python3.7 python3.7-dev git -y
 RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.7 python3 && sudo ln -s python3.7 python
 # used in Docker-compose to wait until Hardhat node is up
 RUN sudo apt-get install wait-for-it -y
 
 RUN python -m pip install --upgrade pip
-RUN python -m pip install "aea[all]>=1.0.0,<2.0.0"
+RUN python -m pip install "open-aea[all]>=1.0.0,<2.0.0"
+
+WORKDIR /home/ubuntu
 
 COPY packages /home/ubuntu/packages
 

@@ -62,7 +62,6 @@ jobs:
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
-        svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai
     - name: Security checks
       run: |
         tox -e bandit
@@ -129,9 +128,6 @@ jobs:
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.11/tendermint_0.34.11_linux_amd64.tar.gz
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
-
-          # clone AEA 'fetchai' packages in 'packages/' folder
-          svn export https://github.com/fetchai/agents-aea/tags/v1.0.2/packages/fetchai packages/fetchai
 
           # pull node image needed for the integration tests
           docker pull node:16.7.0

@@ -20,10 +20,15 @@
 """This module contains utility functions for the 'abstract_round_abci' skill."""
 import builtins
 import importlib.util
+import json
+import logging
 import os
 import types
 from importlib.machinery import ModuleSpec
-from typing import Any, Optional
+from time import time
+from typing import Any, Dict, List, Optional
+
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
 
 def _get_module(spec: ModuleSpec) -> Optional[types.ModuleType]:
@@ -65,3 +70,180 @@ def locate(path: str) -> Any:
         except AttributeError:
             return None
     return object_
+
+
+class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
+    """Benchmark block types."""
+
+    LOCAL = "local"
+    CONSENSUS = "consensus"
+    TOTAL = "total"
+
+
+class BenchmarkBlock:
+    """
+    Benchmark
+
+    This class represents logic to measure the code block using a
+    context manager.
+    """
+
+    start: float
+    total_time: float
+    block_type: str
+
+    def __init__(self, block_type: str) -> None:
+        """Benchmark for single round."""
+        self.block_type = block_type
+
+    def __enter__(
+        self,
+    ) -> None:
+        """Enter context."""
+        self.start = time()
+
+    def __exit__(self, *args: List, **kwargs: Dict) -> None:
+        """Exit context"""
+        self.total_time = time() - self.start
+
+
+class BenchmarkBehaviour:
+    """
+    BenchmarkBehaviour
+
+    This class represents logic to benchmark a single behaviour.
+    """
+
+    behaviour: BaseState
+    local_data: Dict[str, BenchmarkBlock]
+
+    def __init__(self, behaviour: BaseState) -> None:
+        """
+        Initialize Benchmark behaviour object.
+
+        :param behaviour: behaviour that will be measured.
+        """
+
+        self.behaviour = behaviour
+        self.local_data = {}
+
+    def _measure(self, block_type: str) -> BenchmarkBlock:
+        """
+        Returns a BenchmarkBlock object.
+
+        :param block_type: type of block (eg. local, consensus, request)
+        :return: BenchmarkBlock
+        """
+
+        if block_type not in self.local_data:
+            self.local_data[block_type] = BenchmarkBlock(block_type)
+
+        return self.local_data[block_type]
+
+    def local(
+        self,
+    ) -> BenchmarkBlock:
+        """Measure local block."""
+        return self._measure(BenchmarkBlockTypes.LOCAL)
+
+    def consensus(
+        self,
+    ) -> BenchmarkBlock:
+        """Measure consensus block."""
+        return self._measure(BenchmarkBlockTypes.CONSENSUS)
+
+
+class BenchmarkTool:
+    """
+    BenchmarkTool
+
+    Tool to benchmark price estimation agents execution time with
+    different contexts.
+    """
+
+    benchmark_data: Dict[str, BenchmarkBehaviour]
+    agent: Optional[str]
+    agent_address: Optional[str]
+    behaviours: List[str]
+
+    def __init__(
+        self,
+    ) -> None:
+        """Benchmark tool for rounds behaviours."""
+        self.agent = None
+        self.agent_address = None
+        self.benchmark_data = {}
+        self.behaviours = []
+
+    @property
+    def data(
+        self,
+    ) -> Dict:
+        """Returns formatted data."""
+        return {
+            "agent_address": self.agent_address,
+            "agent": self.agent,
+            "data": [
+                {
+                    "behaviour": behaviour,
+                    "data": dict(
+                        [
+                            (key, value.total_time)
+                            for key, value in self.benchmark_data[
+                                behaviour
+                            ].local_data.items()
+                        ]
+                        + [
+                            (
+                                BenchmarkBlockTypes.TOTAL,
+                                sum(
+                                    [
+                                        value.total_time
+                                        for value in self.benchmark_data[
+                                            behaviour
+                                        ].local_data.values()
+                                    ]
+                                ),
+                            )
+                        ]
+                    ),
+                }
+                for behaviour in self.behaviours
+            ],
+        }
+
+    def log(
+        self,
+    ) -> None:
+        """Output log."""
+
+        logging.info(f"Agent : {self.agent}")
+        logging.info(f"Agent Address : {self.agent_address}")
+
+    def save(
+        self,
+    ) -> None:
+        """Save logs to a file."""
+
+        try:
+            with open(
+                f"/logs/{self.agent_address}.json", "w+", encoding="utf-8"
+            ) as outfile:
+                json.dump(self.data, outfile)
+        except (PermissionError, FileNotFoundError):
+            logging.info("Error saving benchmark data.")
+
+    def measure(self, behaviour: BaseState) -> BenchmarkBehaviour:
+        """Measure time to complete round."""
+
+        if self.agent is None:
+            self.agent_address = behaviour.context.agent_address
+            self.agent = behaviour.context.agent_name
+
+        if behaviour.state_id not in self.benchmark_data:
+            self.benchmark_data[behaviour.state_id] = BenchmarkBehaviour(behaviour)
+
+        if behaviour.state_id not in self.behaviours:
+            self.behaviours.append(behaviour.state_id)
+
+        return self.benchmark_data[behaviour.state_id]

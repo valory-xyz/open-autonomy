@@ -26,14 +26,17 @@ from typing import Generator, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
-from packages.fetchai.connections.ledger.base import (
+from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.fetchai.protocols.contract_api import ContractApiMessage
-from packages.fetchai.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeploySafePayload,
@@ -69,6 +72,8 @@ from packages.valory.skills.price_estimation_abci.tools import random_selection
 
 SIGNATURE_LENGTH = 65
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
+
+benchmark_tool = BenchmarkTool()
 
 
 class PriceEstimationBaseState(BaseState, ABC):
@@ -134,10 +139,19 @@ class RegistrationBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        payload = RegistrationPayload(self.context.agent_address)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            payload = RegistrationPayload(self.context.agent_address)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class RandomnessBehaviour(PriceEstimationBaseState):
@@ -159,21 +173,29 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             # if the tendermint node cannot start then the app cannot work
             raise RuntimeError("DRAND values not retrived!")
 
-        http_message, http_dialogue = self._build_http_request_message(
-            method="GET",
-            url="https://drand.cloudflare.com/public/latest",
-        )
-        response = yield from self._do_request(http_message, http_dialogue)
-
         try:
-            result = json.loads(response.body.decode())
-            self.context.logger.info(f"Retrieved DRAND values: {result}.")
-            payload = RandomnessPayload(
-                self.context.agent_address, result["round"], result["randomness"]
-            )
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-            self.set_done()  # pragma: no cover
+            with benchmark_tool.measure(
+                self,
+            ).local():
+                http_message, http_dialogue = self._build_http_request_message(
+                    method="GET",
+                    url="https://drand.cloudflare.com/public/latest",
+                )
+                response = yield from self._do_request(http_message, http_dialogue)
+                result = json.loads(response.body.decode())
+                self.context.logger.info(f"Retrieved DRAND values: {result}.")
+                payload = RandomnessPayload(
+                    self.context.agent_address, result["round"], result["randomness"]
+                )
+
+            with benchmark_tool.measure(
+                self,
+            ).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
+
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(1)
@@ -193,16 +215,25 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        keeper_address = random_selection(
-            sorted(self.period_state.participants),
-            self.period_state.keeper_randomness,
-        )
 
-        self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
-        payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            keeper_address = random_selection(
+                sorted(self.period_state.participants),
+                self.period_state.keeper_randomness,
+            )
+
+            self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
+            payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
@@ -241,19 +272,32 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
     def _not_deployer_act(self) -> Generator:
         """Do the non-deployer action."""
-        yield from self.wait_until_round_end()
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.wait_until_round_end()
+            self.set_done()
 
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
-        self.context.logger.info(
-            "I am the designated sender, deploying the safe contract..."
-        )
-        contract_address = yield from self._send_deploy_transaction()
-        payload = DeploySafePayload(self.context.agent_address, contract_address)
-        yield from self.send_a2a_transaction(payload)
-        self.context.logger.info(f"Safe contract address: {contract_address}")
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info(
+                "I am the designated sender, deploying the safe contract..."
+            )
+            contract_address = yield from self._send_deploy_transaction()
+            payload = DeploySafePayload(self.context.agent_address, contract_address)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            self.context.logger.info(f"Safe contract address: {contract_address}")
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, str]:
         owners = self.period_state.sorted_participants
@@ -296,11 +340,20 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        is_correct = yield from self.has_correct_contract_been_deployed()
-        payload = ValidatePayload(self.context.agent_address, is_correct)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            is_correct = yield from self.has_correct_contract_been_deployed()
+            payload = ValidatePayload(self.context.agent_address, is_correct)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
     def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -333,21 +386,27 @@ class ObserveBehaviour(PriceEstimationBaseState):
         """
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
-            yield from self.wait_until_round_end()
-            self.set_done()  # pragma: no cover
-            return  # pragma: no cover
+            with benchmark_tool.measure(
+                self,
+            ).consensus():
+                yield from self.wait_until_round_end()
+            self.set_done()
+            return
 
-        currency_id = self.params.currency_id
-        convert_id = self.params.convert_id
-        api_specs = self.context.price_api.get_spec(currency_id, convert_id)
-        http_message, http_dialogue = self._build_http_request_message(
-            method="GET",
-            url=api_specs["url"],
-            headers=api_specs["headers"],
-            parameters=api_specs["parameters"],
-        )
-        response = yield from self._do_request(http_message, http_dialogue)
-        observation = self.context.price_api.post_request_process(response)
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            currency_id = self.params.currency_id
+            convert_id = self.params.convert_id
+            api_specs = self.context.price_api.get_spec(currency_id, convert_id)
+            http_message, http_dialogue = self._build_http_request_message(
+                method="GET",
+                url=api_specs["url"],
+                headers=api_specs["headers"],
+                parameters=api_specs["parameters"],
+            )
+            response = yield from self._do_request(http_message, http_dialogue)
+            observation = self.context.price_api.post_request_process(response)
 
         if observation:
             self.context.logger.info(
@@ -356,9 +415,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 + f"{observation}"
             )
             payload = ObservationPayload(self.context.agent_address, observation)
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-            self.set_done()  # pragma: no cover
+            with benchmark_tool.measure(
+                self,
+            ).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+            self.set_done()
         else:
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id}"
@@ -384,20 +446,28 @@ class EstimateBehaviour(PriceEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        currency_id = self.params.currency_id
-        convert_id = self.params.convert_id
-        self.context.logger.info(
-            "Got estimate of %s price in %s: %s",
-            currency_id,
-            convert_id,
-            self.period_state.estimate,
-        )
-        payload = EstimatePayload(
-            self.context.agent_address, self.period_state.estimate
-        )
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            currency_id = self.params.currency_id
+            convert_id = self.params.convert_id
+            self.context.logger.info(
+                "Got estimate of %s price in %s: %s",
+                currency_id,
+                convert_id,
+                self.period_state.estimate,
+            )
+            payload = EstimatePayload(
+                self.context.agent_address, self.period_state.estimate
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class TransactionHashBehaviour(PriceEstimationBaseState):
@@ -416,23 +486,32 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        data = self.period_state.encoded_most_voted_estimate
-        contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
-            contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.period_state.most_voted_keeper_address,
-            value=0,
-            data=data,
-        )
-        safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
-        safe_tx_hash = safe_tx_hash[2:]
-        self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
-        payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_estimate
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address=self.period_state.most_voted_keeper_address,
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SignatureBehaviour(PriceEstimationBaseState):
@@ -451,14 +530,23 @@ class SignatureBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        self.context.logger.info(
-            f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
-        )
-        signature_hex = yield from self._get_safe_tx_signature()
-        payload = SignaturePayload(self.context.agent_address, signature_hex)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info(
+                f"Consensus reached on tx hash: {self.period_state.most_voted_tx_hash}"
+            )
+            signature_hex = yield from self._get_safe_tx_signature()
+            payload = SignaturePayload(self.context.agent_address, signature_hex)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
@@ -495,24 +583,37 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        yield from self.wait_until_round_end()
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.wait_until_round_end()
+        self.set_done()
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
-        self.context.logger.info(
-            "I am the designated sender, sending the safe transaction..."
-        )
-        tx_hash = yield from self._send_safe_transaction()
-        self.context.logger.info(
-            f"Transaction hash of the final transaction: {tx_hash}"
-        )
-        self.context.logger.info(
-            f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
-        )
-        payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info(
+                "I am the designated sender, sending the safe transaction..."
+            )
+            tx_hash = yield from self._send_safe_transaction()
+            self.context.logger.info(
+                f"Transaction hash of the final transaction: {tx_hash}"
+            )
+            self.context.logger.info(
+                f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
+            )
+            payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
@@ -554,11 +655,20 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        is_correct = yield from self.has_transaction_been_sent()
-        payload = ValidatePayload(self.context.agent_address, is_correct)
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()  # pragma: no cover
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            is_correct = yield from self.has_transaction_been_sent()
+            payload = ValidatePayload(self.context.agent_address, is_correct)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
@@ -590,6 +700,10 @@ class EndBehaviour(PriceEstimationBaseState):
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
+
+        benchmark_tool.log()
+        benchmark_tool.save()
+
         # wait forever
         yield from self.wait_for_condition(lambda: False)
 
