@@ -13,6 +13,7 @@ localnet-start: localnet-stop build-docker-localnode build-docker-aea
 	rm -rf logs
 	mkdir logs
 	docker run --rm -v $(CURDIR)/build:/tendermint:Z tendermint/localnode testnet --config /etc/tendermint/config-template.toml --o . --starting-ip-address 192.167.11.3 --v $(VALIDATORS)
+	python3 update_tendermint_timeouts.py
 	docker-compose up
 .PHONY: localnet-start
 
