@@ -1086,6 +1086,16 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
         )
 
+    @classmethod
+    def get_all_round_classes(cls) -> Set[Type[AbstractRound]]:
+        """Get all round classes."""
+        result: Set[Type[AbstractRound]] = set()
+        for start, out_transitions in cls.transition_function.items():
+            result.add(start)
+            for _event, end in out_transitions:
+                result.add(end)
+        return result
+
     @property
     def last_timestamp(self) -> datetime.datetime:
         """Get last timestamp."""

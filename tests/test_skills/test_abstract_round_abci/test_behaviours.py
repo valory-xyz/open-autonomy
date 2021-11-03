@@ -25,6 +25,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
@@ -145,19 +146,20 @@ class TestAbstractRoundBehaviour:
     def test_get_state_id_to_state_mapping_negative(self) -> None:
         """Test classmethod '_get_state_id_to_state_mapping', negative case."""
         state_id = "state_id"
-        state_1 = MagicMock(state_id=state_id)
-        state_2 = MagicMock(state_id=state_id)
-
-        class MyRoundBehaviour(AbstractRoundBehaviour):
-            abci_app_cls = MagicMock
-            behaviour_states = [state_1, state_2]  # type: ignore
-            initial_state_cls = MagicMock()
+        state_1_cls_name = "State1"
+        state_2_cls_name = "State2"
+        state_1 = MagicMock(state_id=state_id, __name__=state_1_cls_name)
+        state_2 = MagicMock(state_id=state_id, __name__=state_2_cls_name)
 
         with pytest.raises(
-            ValueError,
-            match=f"cannot have two states with the same id; got {state_2} and {state_1} both with id '{state_id}'",
+            ABCIAppInternalError,
+            match=fr"states \['{state_1_cls_name}', '{state_2_cls_name}'\] have the same state id '{state_id}'",
         ):
-            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock
+                behaviour_states = [state_1, state_2]  # type: ignore
+                initial_state_cls = MagicMock()
 
     def test_get_round_to_state_mapping_two_states_same_round(self) -> None:
         """Test classmethod '_get_round_to_state_mapping' when two different states point to the same round."""
@@ -168,16 +170,15 @@ class TestAbstractRoundBehaviour:
         state_1 = MagicMock(state_id=state_id_1, matching_round=round_cls)
         state_2 = MagicMock(state_id=state_id_2, matching_round=round_cls)
 
-        class MyRoundBehaviour(AbstractRoundBehaviour):
-            abci_app_cls = MagicMock
-            behaviour_states = [state_1, state_2]  # type: ignore
-            initial_state_cls = type(state_1)
-
         with pytest.raises(
-            ValueError,
-            match=f"the states '{state_id_2}' and '{state_id_1}' point to the same matching round '{round_id}'",
+            ABCIAppInternalError,
+            match=rf"internal error: states \['{state_id_1}', '{state_id_2}'\] have the same matching round '{round_id}'",
         ):
-            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock
+                behaviour_states = [state_1, state_2]  # type: ignore
+                initial_state_cls = type(state_1)
 
     def test_get_round_to_state_mapping_matching_round_none(self) -> None:
         """Test classmethod '_get_round_to_state_mapping' when a state has matching round none."""
@@ -197,15 +198,15 @@ class TestAbstractRoundBehaviour:
         state_1 = MagicMock(state_id=state_id, matching_round=None)
         state_2 = MagicMock(state_id=state_id, matching_round=None)
 
-        class MyRoundBehaviour(AbstractRoundBehaviour):
-            abci_app_cls = MagicMock
-            behaviour_states = [state_1]  # type: ignore
-            initial_state_cls = state_2
-
         with pytest.raises(
-            ValueError, match=f"initial state {state_id} is not in the set of states"
+            ABCIAppInternalError,
+            match=f"initial state {state_id} is not in the set of states",
         ):
-            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock
+                behaviour_states = [state_1]  # type: ignore
+                initial_state_cls = state_2
 
     def test_act_no_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with no round change."""
