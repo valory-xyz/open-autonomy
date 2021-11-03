@@ -56,6 +56,8 @@ class SharedState(BaseSharedState):
 class Params(BaseParams):
     """Parameters."""
 
+    observation_interval: float
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.currency_id = self._ensure("currency_id", kwargs)
@@ -64,6 +66,7 @@ class Params(BaseParams):
         self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
+        self.observation_interval = self._ensure("observation_interval", kwargs)
 
     def is_health_check_timed_out(self) -> bool:
         """Check if the healthcheck has timed out."""

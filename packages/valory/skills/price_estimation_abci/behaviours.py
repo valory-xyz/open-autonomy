@@ -695,17 +695,23 @@ class EndBehaviour(PriceEstimationBaseState):
 
         Steps:
         - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
         """
         self.context.logger.info(
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
-
-        benchmark_tool.log()
         benchmark_tool.save()
 
-        # wait forever
-        yield from self.wait_for_condition(lambda: False)
+        yield from self.sleep(self.params.observation_interval)
+        payload = RegistrationPayload(self.context.agent_address)
+
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):

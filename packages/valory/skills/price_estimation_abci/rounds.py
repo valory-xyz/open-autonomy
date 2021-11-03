@@ -37,17 +37,14 @@ from typing import (
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    BaseTxPayload,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     OnlyKeeperSendsRound,
-    TransactionNotValidError,
     VotingRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -575,22 +572,37 @@ class SelectKeeperBRound(SelectKeeperRound):
     round_id = "select_keeper_b"
 
 
-class ConsensusReachedRound(PriceEstimationAbstractRound):
+class ConsensusReachedRound(
+    CollectDifferentUntilAllRound, PriceEstimationAbstractRound
+):
     """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "consensus_reached"
-    allowed_tx_type = None
-
-    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
-        """Process the payload."""
-        raise ABCIAppInternalError("this round does not accept transactions")
-
-    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
-        """Check the payload"""
-        raise TransactionNotValidError("this round does not accept transactions")
+    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_attribute = "sender"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+
+        if self.collection_threshold_reached:
+            state = self.period_state.update(
+                participants=None,
+                participant_to_randomness=None,
+                most_voted_randomness=None,
+                participant_to_selection=None,
+                most_voted_keeper_address=None,
+                safe_contract_address=None,
+                participant_to_votes=None,
+                participant_to_observations=None,
+                participant_to_estimate=None,
+                estimate=None,
+                most_voted_estimate=None,
+                participant_to_tx_hash=None,
+                most_voted_tx_hash=None,
+                participant_to_signature=None,
+                final_tx_hash=None,
+            )
+            return state, Event.DONE
         return None
 
 
@@ -681,6 +693,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
+        ConsensusReachedRound: {Event.DONE: RegistrationRound},
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT: 5.0,
