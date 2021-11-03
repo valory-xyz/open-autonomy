@@ -7,3 +7,72 @@ of Uniswap-V2-based liquidity pools.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+- valory/price_estimation_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: PriceEstimationConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIPriceEstimationHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      keeper_timeout_seconds: 5
+      max_healthcheck: 120
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false

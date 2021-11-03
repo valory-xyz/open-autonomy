@@ -36,11 +36,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 class TransactionType(Enum):
     """Enumeration of transaction types."""
 
-    REGISTRATION = "registration"
-    RANDOMNESS = "randomness"
-    SELECT_KEEPER = "select_keeper"
-    DEPLOY_SAFE = "deploy_safe"
-    VALIDATE = "validate"
     SWAP = "swap"
     ALLOWANCE_CHECK = "allowance_check"
     APPROVE = "approve"

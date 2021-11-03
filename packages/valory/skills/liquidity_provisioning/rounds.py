@@ -66,160 +66,109 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.tools import aggregate
 
 from packages.valory.skills.price_estimation_abci.rounds import (
-    Event,
+    ConsensusReachedRound,
     RegistrationRound,
     RandomnessRound,
-    SelectKeeperARound,
     DeploySafeRound,
-    ValidateSafeRound,
-    CollectObservationRound,
-    EstimateConsensusRound,
-    TxHashRound,
-    CollectSignatureRound,
-    FinalizationRound,
-    ValidateTransactionRound,
-    SelectKeeperBRound
-
+    ValidateSafeRound
 )
 
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
-    """
-    Class to represent a period state.
+class Event(Enum):
+    """Event enumeration for the liquidity provisioning demo."""
 
-    This state is replicated by the tendermint application.
-    """
+    DONE = "done"
+    EXIT = "exit"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
+    WAIT = "wait"
+    NO_ALLOWANCE = "no_allowance"
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
-        safe_contract_address: Optional[str] = None,
-        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
-        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
-        most_voted_tx_hash: Optional[str] = None,
-        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        final_tx_hash: Optional[str] = None,
-    ) -> None:
-        """Initialize a period state."""
-        super().__init__(participants=participants)
-        self._participant_to_randomness = participant_to_randomness
-        self._most_voted_randomness = most_voted_randomness
-        self._most_voted_keeper_address = most_voted_keeper_address
-        self._safe_contract_address = safe_contract_address
-        self._participant_to_selection = participant_to_selection
-        self._participant_to_votes = participant_to_votes
-        self._participant_to_tx_hash = participant_to_tx_hash
-        self._most_voted_tx_hash = most_voted_tx_hash
-        self._participant_to_signature = participant_to_signature
-        self._final_tx_hash = final_tx_hash
 
-    @property
-    def keeper_randomness(self) -> float:
-        """Get the keeper's random number [0-1]."""
-        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
-        return cast(float, res / 10)
+class SelectKeeperMainRound:
+    """This class represents the select keeper A round."""
 
-    @property
-    def sorted_participants(self) -> Sequence[str]:
-        """
-        Get the sorted participants' addresses.
+    round_id = "select_keeper_main"
 
-        The addresses are sorted according to their hexadecimal value;
-        this is the reason we use key=str.lower as comparator.
+class SelectKeeperDeployRound:
+    """This class represents the select keeper A round."""
 
-        This property is useful when interacting with the Safe contract.
+    round_id = "select_keeper_deploy"
 
-        :return: the sorted participants' addresses
-        """
-        return sorted(self.participants, key=str.lower)
+class SelectKeeperSwapRound:
+    """This class represents the select keeper A round."""
 
-    @property
-    def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
-        """Get the participant_to_randomness."""
-        enforce(
-            self._participant_to_randomness is not None,
-            "'participant_to_randomness' field is None",
-        )
-        return cast(Mapping[str, RandomnessPayload], self._participant_to_randomness)
+    round_id = "select_keeper_swap"
 
-    @property
-    def most_voted_randomness(self) -> str:
-        """Get the most_voted_randomness."""
-        enforce(
-            self._most_voted_randomness is not None,
-            "'most_voted_randomness' field is None",
-        )
-        return cast(str, self._most_voted_randomness)
+class SelectKeeperAddAllowanceRound:
+    """This class represents the select keeper A round."""
 
-    @property
-    def most_voted_keeper_address(self) -> str:
-        """Get the most_voted_keeper_address."""
-        enforce(
-            self._most_voted_keeper_address is not None,
-            "'most_voted_keeper_address' field is None",
-        )
-        return cast(str, self._most_voted_keeper_address)
+    round_id = "select_keeper_approve"
 
-    @property
-    def safe_contract_address(self) -> str:
-        """Get the safe contract address."""
-        enforce(
-            self._safe_contract_address is not None,
-            "'safe_contract_address' field is None",
-        )
-        return cast(str, self._safe_contract_address)
+class SelectKeeperAddLiquidityRound:
+    """This class represents the select keeper A round."""
 
-    @property
-    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
-        """Get the participant_to_selection."""
-        enforce(
-            self._participant_to_selection is not None,
-            "'participant_to_selection' field is None",
-        )
-        return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
+    round_id = "select_keeper_add_liquidity"
 
-    @property
-    def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
-        """Get the participant_to_votes."""
-        enforce(
-            self._participant_to_votes is not None,
-            "'participant_to_votes' field is None",
-        )
-        return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
+class SelectKeeperRemoveLiquidityRound:
+    """This class represents the select keeper A round."""
 
-    @property
-    def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_signature."""
-        enforce(
-            self._participant_to_signature is not None,
-            "'participant_to_signature' field is None",
-        )
-        return cast(Mapping[str, SignaturePayload], self._participant_to_signature)
+    round_id = "select_keeper_remove_liquidity"
 
-    @property
-    def final_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_tx_hash)
+class SelectKeeperRemoveAllowanceRound:
+    """This class represents the select keeper A round."""
 
-    @property
-    def most_voted_tx_hash(self) -> str:
-        """Get the most_voted_tx_hash."""
-        enforce(
-            self._most_voted_tx_hash is not None, "'most_voted_tx_hash' field is None"
-        )
-        return cast(str, self._most_voted_tx_hash)
+    round_id = "select_keeper_remove_allowance"
 
-    def reset(self) -> "PeriodState":
-        """Return the initial period state."""
-        return PeriodState(self.participants)
+class SelectKeeperSwapBackRound:
+    """This class represents the select keeper A round."""
 
+    round_id = "select_keeper_swap_back"
+
+
+class StrategyEvaluationRound:
+    pass
+
+class WaitRound:
+    pass
+
+class SwapRound:
+    pass
+
+class ValidateSwapRound:
+    pass
+
+class AllowanceCheckRound:
+    pass
+
+class AddAllowanceRound:
+    pass
+
+class ValidateAddAllowanceRound:
+    pass
+
+class AddLiquidityRound:
+    pass
+
+class ValidateAddLiquidityRound:
+    pass
+
+class RemoveLiquidityRound:
+    pass
+
+class ValidateRemoveLiquidityRound:
+    pass
+
+class RemoveAllowanceRound:
+    pass
+
+class ValidateRemoveAllowanceRound:
+    pass
+
+class SwapBackRound:
+    pass
+
+class ValidateSwapBackRound:
+    pass
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
     """Liquidity Provision ABCI application."""
@@ -228,55 +177,139 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessRound},
         RandomnessRound: {
-            Event.DONE: SelectKeeperARound,
+            Event.DONE: SelectKeeperMainRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SelectKeeperARound: {
+        SelectKeeperMainRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperARound,
+            Event.EXIT: SelectKeeperDeployRound,
+        },
+        SelectKeeperDeployRound: {
+            Event.DONE: DeploySafeRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         ValidateSafeRound: {
-            Event.DONE: CollectObservationRound,
+            Event.DONE: StrategyEvaluationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        CollectObservationRound: {
-            Event.DONE: EstimateConsensusRound,
+        StrategyEvaluationRound: {
+            Event.DONE: SwapRound,
+            Event.WAIT: WaitRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        EstimateConsensusRound: {
-            Event.DONE: TxHashRound,
+        WaitRound: {
+            Event.DONE: StrategyEvaluationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        TxHashRound: {
-            Event.DONE: CollectSignatureRound,
+        SwapRound: {
+            Event.DONE: ValidateSwapRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SelectKeeperSwapRound,
+        },
+        SelectKeeperSwapRound: {
+            Event.DONE: SwapRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        CollectSignatureRound: {
-            Event.DONE: FinalizationRound,
+        ValidateSwapRound: {
+            Event.DONE: AllowanceCheckRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        FinalizationRound: {
-            Event.DONE: ValidateTransactionRound,
-            Event.EXIT: SelectKeeperBRound,
+        AllowanceCheckRound: {
+            Event.DONE: AddLiquidityRound,
+            Event.NO_ALLOWANCE: AddAllowanceRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateTransactionRound: {
+        AddAllowanceRound: {
+            Event.DONE: ValidateAddAllowanceRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SelectKeeperAddAllowanceRound,
+        },
+        SelectKeeperAddAllowanceRound: {
+            Event.DONE: AddAllowanceRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ValidateAddAllowanceRound: {
+            Event.DONE: AddLiquidityRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        AddLiquidityRound: {
+            Event.DONE: ValidateAddLiquidityRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SelectKeeperAddLiquidityRound,
+        },
+        SelectKeeperAddLiquidityRound: {
+            Event.DONE: AddLiquidityRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ValidateAddLiquidityRound: {
+            Event.DONE: RemoveLiquidityRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        RemoveLiquidityRound: {
+            Event.DONE: ValidateRemoveLiquidityRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SelectKeeperRemoveLiquidityRound,
+        },
+        SelectKeeperRemoveLiquidityRound: {
+            Event.DONE: RemoveLiquidityRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ValidateRemoveLiquidityRound: {
+            Event.DONE: RemoveAllowanceRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        RemoveAllowanceRound: {
+            Event.DONE: ValidateRemoveAllowanceRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SelectKeeperRemoveAllowanceRound,
+        },
+        SelectKeeperRemoveAllowanceRound: {
+            Event.DONE: SwapRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ValidateRemoveAllowanceRound: {
+            Event.DONE: SwapBackRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        SwapBackRound: {
+            Event.DONE: ValidateSwapBackRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SelectKeeperSwapBackRound,
+        },
+        SelectKeeperSwapBackRound: {
+            Event.DONE: SwapBackRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ValidateSwapBackRound: {
             Event.DONE: ConsensusReachedRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        SelectKeeperBRound: {
-            Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
