@@ -17,11 +17,11 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviours for the 'liquidity_provisioning' skill."""
+"""This module contains the behaviours for the 'liquidity_provision' skill."""
 from typing import Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.liquidity_provisioning.rounds import (
+from packages.valory.skills.liquidity_provision.rounds import (
     LiquidityProvisionAbciApp,
     SelectKeeperAddAllowanceRound,
     SelectKeeperAddLiquidityRound,
@@ -47,97 +47,65 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 class LiquidityProvisionBaseState(PriceEstimationBaseState):
     """Base state behaviour for the liquidity provision skill."""
 
-    pass
-
 
 class StrategyEvaluationBehaviour(LiquidityProvisionBaseState):
     """Evaluate the financial strategy."""
-
-    pass
 
 
 class WaitBehaviour(LiquidityProvisionBaseState):
     """Wait until next strategy evaluation."""
 
-    pass
-
 
 class SwapBehaviour(LiquidityProvisionBaseState):
     """Swap tokens."""
-
-    pass
 
 
 class ValidateSwapBehaviour(LiquidityProvisionBaseState):
     """Validate the token swap tx."""
 
-    pass
-
 
 class AllowanceCheckBehaviour(LiquidityProvisionBaseState):
     """Check the current token allowance."""
-
-    pass
 
 
 class AddAllowanceBehaviour(LiquidityProvisionBaseState):
     """Increase the current allowance."""
 
-    pass
-
 
 class ValidateAddAllowanceBehaviour(LiquidityProvisionBaseState):
     """Validate the approve tx."""
-
-    pass
 
 
 class AddLiquidityBehaviour(LiquidityProvisionBaseState):
     """Enter a liquidity pool."""
 
-    pass
-
 
 class ValidateAddLiquidityBehaviour(LiquidityProvisionBaseState):
     """Validate the enter pool tx."""
-
-    pass
 
 
 class RemoveLiquidityBehaviour(LiquidityProvisionBaseState):
     """Leave a liquidity pool."""
 
-    pass
-
 
 class ValidateRemoveLiquidityBehaviour(LiquidityProvisionBaseState):
     """Validate the leave pool tx."""
-
-    pass
 
 
 class RemoveAllowanceBehaviour(LiquidityProvisionBaseState):
     """Remove the token's allowance."""
 
-    pass
-
 
 class ValidateRemoveAllowanceBehaviour(LiquidityProvisionBaseState):
     """Validate the approve tx."""
-
-    pass
 
 
 class SwapBackBehaviour(LiquidityProvisionBaseState):
     """Swap tokens back to the initial holdings."""
 
-    pass
-
 
 class ValidateSwapBackBehaviour(LiquidityProvisionBaseState):
     """Validate the swap tx."""
-
-    pass
 
 
 class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
@@ -208,19 +176,19 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         SelectKeeperMainBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
-        StrategyEvaluationBehaviour,
+        StrategyEvaluationBehaviour,  # type: ignore
         SwapBehaviour,  # type: ignore
         ValidateSwapBehaviour,  # type: ignore
         AllowanceCheckBehaviour,  # type: ignore
         AddAllowanceBehaviour,  # type: ignore
-        ValidateAddAllowanceBehaviour,
+        ValidateAddAllowanceBehaviour,  # type: ignore
         AddLiquidityBehaviour,  # type: ignore
-        ValidateAddLiquidityBehaviour,
+        ValidateAddLiquidityBehaviour,  # type: ignore
         RemoveLiquidityBehaviour,  # type: ignore
         ValidateRemoveLiquidityBehaviour,  # type: ignore
         RemoveAllowanceBehaviour,  # type: ignore
         ValidateRemoveAllowanceBehaviour,  # type: ignore
         SwapBackBehaviour,  # type: ignore
-        ValidateSwapBackBehaviour,
+        ValidateSwapBackBehaviour,  # type: ignore
         EndBehaviour,  # type: ignore
     }

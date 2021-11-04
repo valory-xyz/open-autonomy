@@ -40,7 +40,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 
 
 class Event(Enum):
-    """Event enumeration for the liquidity provisioning demo."""
+    """Event enumeration for the liquidity provision demo."""
 
     DONE = "done"
     EXIT = "exit"
@@ -52,8 +52,6 @@ class Event(Enum):
 
 class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the liquidity provision skill."""
-
-    pass
 
 
 class SelectKeeperMainRound(
@@ -120,94 +118,64 @@ class SelectKeeperSwapBackRound(
     round_id = "select_keeper_swap_back"
 
 
-class StrategyEvaluationRound:
+class StrategyEvaluationRound(LiquidityProvisionAbstractRound):
     """This class represents the strategy evaluation round."""
 
-    pass
 
-
-class WaitRound:
+class WaitRound(LiquidityProvisionAbstractRound):
     """This class represents the wait round."""
 
-    pass
 
-
-class SwapRound:
+class SwapRound(LiquidityProvisionAbstractRound):
     """This class represents the swap round."""
 
-    pass
 
-
-class ValidateSwapRound:
+class ValidateSwapRound(LiquidityProvisionAbstractRound):
     """This class represents the validate swap round."""
 
-    pass
 
-
-class AllowanceCheckRound:
+class AllowanceCheckRound(LiquidityProvisionAbstractRound):
     """This class represents the allowance check round."""
 
-    pass
 
-
-class AddAllowanceRound:
+class AddAllowanceRound(LiquidityProvisionAbstractRound):
     """This class represents the add allowance back round."""
 
-    pass
 
-
-class ValidateAddAllowanceRound:
+class ValidateAddAllowanceRound(LiquidityProvisionAbstractRound):
     """This class represents the validate add allowance round."""
 
-    pass
 
-
-class AddLiquidityRound:
+class AddLiquidityRound(LiquidityProvisionAbstractRound):
     """This class represents the add liquidity round."""
 
-    pass
 
-
-class ValidateAddLiquidityRound:
+class ValidateAddLiquidityRound(LiquidityProvisionAbstractRound):
     """This class represents the validate add liquidity round."""
 
-    pass
 
-
-class RemoveLiquidityRound:
+class RemoveLiquidityRound(LiquidityProvisionAbstractRound):
     """This class represents the remove liquidity round."""
 
-    pass
 
-
-class ValidateRemoveLiquidityRound:
+class ValidateRemoveLiquidityRound(LiquidityProvisionAbstractRound):
     """This class represents the validate remove liquidity round."""
 
-    pass
 
-
-class RemoveAllowanceRound:
+class RemoveAllowanceRound(LiquidityProvisionAbstractRound):
     """This class represents the remove allowance round."""
 
-    pass
 
-
-class ValidateRemoveAllowanceRound:
+class ValidateRemoveAllowanceRound(LiquidityProvisionAbstractRound):
     """This class represents the validate remove allowance round."""
 
-    pass
 
-
-class SwapBackRound:
+class SwapBackRound(LiquidityProvisionAbstractRound):
     """This class represents the swap back round."""
 
-    pass
 
-
-class ValidateSwapBackRound:
+class ValidateSwapBackRound(LiquidityProvisionAbstractRound):
     """This class represents the svalidate swap back round."""
-
-    pass
 
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):

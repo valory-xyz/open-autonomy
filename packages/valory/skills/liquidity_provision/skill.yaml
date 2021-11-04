@@ -1,12 +1,17 @@
-name: liquidity_provisioning
+name: liquidity_provision
 author: valory
 version: 0.1.0
 type: skill
-description: This skill implements liquidity provisioning capacities to move into and out
-of Uniswap-V2-based liquidity pools.
+description: This skill implements liquidity provision capacities to move into and
+  out of Uniswap-V2-based liquidity pools.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
+  README.md: QmUghyvR1WTBy4uvQMXDeAKyrPrvUNrPCBGK7VM3BogGEe
+  __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
+  behaviours.py: QmT9QcGUGb5zMj1xpnQZ7QJDZ3WwEjVa6nGRxHrSDGQaju
+  payloads.py: QmX5Hg88agfwG9vWqCVtjKEu7mDA8V1BaKwfHoh87fM6Cy
+  rounds.py: QmNtLEhqpTQ7SgATPwZCfSsBPP9eorhvSPE38JWe43CNkr
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
