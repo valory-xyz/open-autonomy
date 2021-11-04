@@ -315,6 +315,15 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             tx_hash=tx_hash,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=receiver.address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
         )["verified"]
         assert verified, "Not verified"
 
@@ -325,5 +334,12 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+            owners=("",),
+            to_address=crypto_registry.make(
+                EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
+            ).address,
+            value=0,
+            data=b"",
+            signatures_by_owner={},
         )["verified"]
         assert not verified, "Should not be verified"

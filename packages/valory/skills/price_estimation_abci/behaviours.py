@@ -687,7 +687,17 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
             tx_hash=self.period_state.final_tx_hash,
+            owners=tuple(self.period_state.participants),
+            to_address=self.period_state.most_voted_keeper_address,
+            value=0,
+            data=self.period_state.encoded_most_voted_estimate,
+            signatures_by_owner={
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
+            },
         )
+        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
         return verified
 

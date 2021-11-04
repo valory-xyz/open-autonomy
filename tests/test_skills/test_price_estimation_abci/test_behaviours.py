@@ -1131,12 +1131,18 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test ValidateTransactionBehaviour."""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=PeriodState(
                 safe_contract_address="safe_contract_address",
                 final_tx_hash="final_tx_hash",
+                participants=participants,
+                most_voted_keeper_address=most_voted_keeper_address,
+                most_voted_estimate=1.0,
+                participant_to_signature={},
             ),
         )
         assert (
