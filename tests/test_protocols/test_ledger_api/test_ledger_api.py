@@ -251,7 +251,7 @@ def test_incorrect_message(mocked_enforce: Callable) -> None:
             message_id=1,
             dialogue_reference=(str(0), ""),
             target=0,
-            performative=LedgerApiMessage.Performative.STATE,
+            performative=LedgerApiMessage.Performative.STATE,  # type: ignore
             ledger_id=LEDGER_ID,
             state=LedgerApiMessage.State("some_ledger_id", {}),
         )
