@@ -20,12 +20,20 @@
 """This module contains the data classes for the liquidity provision ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Type
+from types import MappingProxyType
+from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast
+
+from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
+    BasePeriodState,
+)
+from packages.valory.skills.liquidity_provision.payloads import (
+    StrategyEvaluationPayload,
+    StrategyType,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionType
 from packages.valory.skills.price_estimation_abci.rounds import (
@@ -50,8 +58,55 @@ class Event(Enum):
     NO_ALLOWANCE = "no_allowance"
 
 
+class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
+    """
+    Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        participants: Optional[AbstractSet[str]] = None,
+        participant_to_strategy: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_strategy: Optional[dict] = None,
+    ) -> None:
+        """Initialize a period state."""
+        super().__init__(participants=participants)
+        self._participant_to_strategy = participant_to_strategy
+        self._most_voted_strategy = most_voted_strategy
+
+    @property
+    def most_voted_strategy(self) -> dict:
+        """Get the most_voted_strategy."""
+        enforce(
+            self._most_voted_strategy is not None,
+            "'most_voted_strategy' field is None",
+        )
+        return cast(dict, self._most_voted_strategy)
+
+    def reset(self) -> "PeriodState":
+        """Return the initial period state."""
+        return PeriodState(self.participants)
+
+
 class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the liquidity provision skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self._state)
+
+    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+        """
+        Trigger the NO_MAJORITY event.
+
+        :return: a new period state and a NO_MAJORITY event
+        """
+        return self.period_state.reset(), Event.NO_MAJORITY
 
 
 class SelectKeeperMainRound(
@@ -118,8 +173,39 @@ class SelectKeeperSwapBackRound(
     round_id = "select_keeper_swap_back"
 
 
-class StrategyEvaluationRound(LiquidityProvisionAbstractRound):
-    """This class represents the strategy evaluation round."""
+class StrategyEvaluationRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the strategy evaluation round.
+
+    Input: a set of participants (addresses)
+    Output: a set of participants (addresses) and the strategy
+
+    It schedules the WaitRound or the SwapRound.
+    """
+
+    round_id = "strategy_evaluation"
+    allowed_tx_type = StrategyEvaluationPayload.transaction_type
+    payload_attribute = "strategy"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_strategy=MappingProxyType(self.collection),
+                most_voted_strategy=self.most_voted_payload,
+            )
+            event = (
+                Event.DONE
+                if self.period_state.most_voted_strategy["action"] == StrategyType.GO
+                else Event.WAIT
+            )
+            return state, event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class WaitRound(LiquidityProvisionAbstractRound):

@@ -17,14 +17,18 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the transaction payloads for the price_estimation app."""
-
+"""This module contains the transaction payloads for the liquidity_provision skill."""
+from abc import ABC
 from enum import Enum
+from typing import Dict, Optional
+
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
 class TransactionType(Enum):
     """Enumeration of transaction types."""
 
+    STRATEGY_EVALUATION = "strategy_evaluation"
     SWAP = "swap"
     ALLOWANCE_CHECK = "allowance_check"
     APPROVE = "approve"
@@ -34,3 +38,48 @@ class TransactionType(Enum):
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
         return self.value
+
+
+class BaseLiquidityProvisionPayload(BaseTxPayload, ABC):
+    """Base class for the liquidity provision skill."""
+
+    def __hash__(self) -> int:
+        """Hash the payload."""
+        return hash(tuple(sorted(self.data.items())))
+
+
+class StrategyType(Enum):
+    """Enumeration of strategy types."""
+
+    WAIT = "wait"
+    GO = "go"
+
+    def __str__(self) -> str:
+        """Get the string value of the strategy type."""
+        return self.value
+
+
+class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'strategy_evaluation'."""
+
+    transaction_type = TransactionType.STRATEGY_EVALUATION
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'strategy_evaluation' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def strategy(self) -> dict:
+        """Get the strategy."""
+        return self._strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(strategy=self.strategy)

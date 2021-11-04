@@ -18,9 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'liquidity_provision' skill."""
-from typing import Set, Type
+from typing import Generator, Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.liquidity_provision.payloads import (
+    StrategyEvaluationPayload,
+    StrategyType,
+)
 from packages.valory.skills.liquidity_provision.rounds import (
     LiquidityProvisionAbciApp,
     SelectKeeperAddAllowanceRound,
@@ -44,12 +49,61 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 
 
+benchmark_tool = BenchmarkTool()
+
+
 class LiquidityProvisionBaseState(PriceEstimationBaseState):
     """Base state behaviour for the liquidity provision skill."""
 
 
+def get_strategy_update() -> dict:
+    """Get a strategy update."""
+    strategy = {
+        "action": StrategyType.GO,
+        "pair": ["FTM", "BOO"],
+        "pool": "0x0000000000000000000000000000",
+        "amountETH": 0.1,  # Be careful with floats and determinism here
+    }
+    return strategy
+
+
 class StrategyEvaluationBehaviour(LiquidityProvisionBaseState):
     """Evaluate the financial strategy."""
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Select a keeper randomly.
+        - Send the transaction with the keeper and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+
+            strategy = get_strategy_update()
+            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
+
+            if strategy["action"] == StrategyType.WAIT:
+                self.context.logger.info("Current strategy is still optimal. Waiting.")
+
+            if strategy["action"] == StrategyType.GO:
+                self.context.logger.info(
+                    f"Performing strategy update: moving {strategy['amountETH']} into "
+                    "{strategy['pair'][0]}-{strategy['pair'][1]} (pool {strategy['pool']})"
+                )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class WaitBehaviour(LiquidityProvisionBaseState):
