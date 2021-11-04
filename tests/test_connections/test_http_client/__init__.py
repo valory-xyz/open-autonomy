@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for valory/http connection."""
+"""Tests package for valory/http_client connection."""

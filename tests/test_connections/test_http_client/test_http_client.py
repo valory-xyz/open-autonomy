@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/http connection. Adapted from original AEA code."""
+"""Tests for valory/http_client connection. Adapted from original AEA code."""
 
 import asyncio
 import logging
@@ -311,7 +311,7 @@ class TestHTTPClientConnect:
 
         incorrect_http_message = HttpMessage(
             dialogue_reference=self.http_dialogs.new_self_initiated_dialogue_reference(),
-            performative=HttpMessage.Performative.RESPONSE,
+            performative=HttpMessage.Performative.RESPONSE,  # type: ignore
             status_code=500,
             headers="",
             status_text="",
@@ -342,7 +342,7 @@ class TestHTTPClientConnect:
         await self.http_client_connection.connect()
         request_http_message, sending_dialogue = self.http_dialogs.create(
             counterparty=self.connection_address,
-            performative=HttpMessage.Performative.REQUEST,
+            performative=HttpMessage.Performative.REQUEST,  # type: ignore
             method="get",
             url="https://not-a-google.com",
             headers="Host: https://not-a-google.com",
