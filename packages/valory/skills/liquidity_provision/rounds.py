@@ -43,7 +43,9 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     DeploySafeRound,
     RandomnessRound,
     RegistrationRound,
-    ValidateSafeRound,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
+    ValidateSafeRound as DeploySafeValidationRound,
 )
 
 
@@ -117,60 +119,12 @@ class SelectKeeperMainRound(
     round_id = "select_keeper_main"
 
 
-class SelectKeeperDeployRound(
+class DeploySelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
     """This class represents the select keeper deploy round."""
 
     round_id = "select_keeper_deploy"
-
-
-class SelectKeeperSwapRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper swap round."""
-
-    round_id = "select_keeper_swap"
-
-
-class SelectKeeperAddAllowanceRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper add allowance round."""
-
-    round_id = "select_keeper_approve"
-
-
-class SelectKeeperAddLiquidityRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper add liquidity round."""
-
-    round_id = "select_keeper_add_liquidity"
-
-
-class SelectKeeperRemoveLiquidityRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper remove liquidity round."""
-
-    round_id = "select_keeper_remove_liquidity"
-
-
-class SelectKeeperRemoveAllowanceRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper remove allowance round."""
-
-    round_id = "select_keeper_remove_allowance"
-
-
-class SelectKeeperSwapBackRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper swap back round."""
-
-    round_id = "select_keeper_swap_back"
 
 
 class StrategyEvaluationRound(
@@ -212,56 +166,152 @@ class WaitRound(LiquidityProvisionAbstractRound):
     """This class represents the wait round."""
 
 
-class SwapRound(LiquidityProvisionAbstractRound):
-    """This class represents the swap round."""
+class SwapSelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the swap select keeper round."""
+
+    round_id = "swap_select_keeper"
 
 
-class ValidateSwapRound(LiquidityProvisionAbstractRound):
-    """This class represents the validate swap round."""
+class SwapTransactionHashRound(LiquidityProvisionAbstractRound):
+    """This class represents the swap transaction hash round."""
+
+
+class SwapSignatureRound(LiquidityProvisionAbstractRound):
+    """This class represents the swap signature round."""
+
+
+class SwapSendRound(LiquidityProvisionAbstractRound):
+    """This class represents the swap send round."""
+
+
+class SwapValidationRound(LiquidityProvisionAbstractRound):
+    """This class represents the swap validation round."""
 
 
 class AllowanceCheckRound(LiquidityProvisionAbstractRound):
-    """This class represents the allowance check round."""
+    """This class represents the AllowanceCheck round."""
 
 
-class AddAllowanceRound(LiquidityProvisionAbstractRound):
-    """This class represents the add allowance back round."""
+class AddAllowanceSelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the AddAllowance select keeper round."""
+
+    round_id = "add_allowance_select_keeper"
 
 
-class ValidateAddAllowanceRound(LiquidityProvisionAbstractRound):
-    """This class represents the validate add allowance round."""
+class AddAllowanceTransactionHashRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddAllowance transaction hash round."""
 
 
-class AddLiquidityRound(LiquidityProvisionAbstractRound):
-    """This class represents the add liquidity round."""
+class AddAllowanceSignatureRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddAllowance signature round."""
 
 
-class ValidateAddLiquidityRound(LiquidityProvisionAbstractRound):
-    """This class represents the validate add liquidity round."""
+class AddAllowanceSendRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddAllowance send round."""
 
 
-class RemoveLiquidityRound(LiquidityProvisionAbstractRound):
-    """This class represents the remove liquidity round."""
+class AddAllowanceValidationRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddAllowance validation round."""
 
 
-class ValidateRemoveLiquidityRound(LiquidityProvisionAbstractRound):
-    """This class represents the validate remove liquidity round."""
+class AddLiquiditySelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the AddLiquidity select keeper round."""
+
+    round_id = "add_allowance_select_keeper"
 
 
-class RemoveAllowanceRound(LiquidityProvisionAbstractRound):
-    """This class represents the remove allowance round."""
+class AddLiquidityTransactionHashRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddLiquidity transaction hash round."""
 
 
-class ValidateRemoveAllowanceRound(LiquidityProvisionAbstractRound):
-    """This class represents the validate remove allowance round."""
+class AddLiquiditySignatureRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddLiquidity signature round."""
 
 
-class SwapBackRound(LiquidityProvisionAbstractRound):
-    """This class represents the swap back round."""
+class AddLiquiditySendRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddLiquidity send round."""
 
 
-class ValidateSwapBackRound(LiquidityProvisionAbstractRound):
-    """This class represents the svalidate swap back round."""
+class AddLiquidityValidationRound(LiquidityProvisionAbstractRound):
+    """This class represents the AddLiquidity validation round."""
+
+
+class RemoveLiquiditySelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the RemoveLiquidity select keeper round."""
+
+    round_id = "add_allowance_select_keeper"
+
+
+class RemoveLiquidityTransactionHashRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveLiquidity transaction hash round."""
+
+
+class RemoveLiquiditySignatureRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveLiquidity signature round."""
+
+
+class RemoveLiquiditySendRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveLiquidity send round."""
+
+
+class RemoveLiquidityValidationRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveLiquidity validation round."""
+
+
+class RemoveAllowanceSelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the RemoveAllowance select keeper round."""
+
+    round_id = "add_allowance_select_keeper"
+
+
+class RemoveAllowanceTransactionHashRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveAllowance transaction hash round."""
+
+
+class RemoveAllowanceSignatureRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveAllowance signature round."""
+
+
+class RemoveAllowanceSendRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveAllowance send round."""
+
+
+class RemoveAllowanceValidationRound(LiquidityProvisionAbstractRound):
+    """This class represents the RemoveAllowance validation round."""
+
+
+class SwapBackSelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the SwapBack select keeper round."""
+
+    round_id = "add_allowance_select_keeper"
+
+
+class SwapBackTransactionHashRound(LiquidityProvisionAbstractRound):
+    """This class represents the SwapBack transaction hash round."""
+
+
+class SwapBackSignatureRound(LiquidityProvisionAbstractRound):
+    """This class represents the SwapBack signature round."""
+
+
+class SwapBackSendRound(LiquidityProvisionAbstractRound):
+    """This class represents the SwapBack send round."""
+
+
+class SwapBackValidationRound(LiquidityProvisionAbstractRound):
+    """This class represents the SwapBack validation round."""
 
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
@@ -281,21 +331,21 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
-            Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperDeployRound,
+            Event.DONE: DeploySafeValidationRound,
+            Event.EXIT: DeploySelectKeeperRound,
         },
-        SelectKeeperDeployRound: {
+        DeploySelectKeeperRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateSafeRound: {
+        DeploySafeValidationRound: {
             Event.DONE: StrategyEvaluationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         StrategyEvaluationRound: {
-            Event.DONE: SwapRound,
+            Event.DONE: SwapTransactionHashRound,
             Event.WAIT: WaitRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
@@ -305,104 +355,176 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SwapRound: {
-            Event.DONE: ValidateSwapRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SelectKeeperSwapRound,
-        },
-        SelectKeeperSwapRound: {
-            Event.DONE: SwapRound,
+        SwapSelectKeeperRound: {
+            Event.DONE: SwapTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateSwapRound: {
+        SwapTransactionHashRound: {
+            Event.DONE: SwapSignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SwapSelectKeeperRound,
+        },
+        SwapSignatureRound: {
+            Event.DONE: SwapSendRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SwapSelectKeeperRound,
+        },
+        SwapSendRound: {
+            Event.DONE: SwapValidationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SwapSelectKeeperRound,
+        },
+        SwapValidationRound: {
             Event.DONE: AllowanceCheckRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         AllowanceCheckRound: {
-            Event.DONE: AddLiquidityRound,
-            Event.NO_ALLOWANCE: AddAllowanceRound,
+            Event.NO_ALLOWANCE: AddAllowanceTransactionHashRound,
+            Event.DONE: AddLiquidityTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AddAllowanceRound: {
-            Event.DONE: ValidateAddAllowanceRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SelectKeeperAddAllowanceRound,
-        },
-        SelectKeeperAddAllowanceRound: {
-            Event.DONE: AddAllowanceRound,
+        AddAllowanceSelectKeeperRound: {
+            Event.DONE: AddAllowanceTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateAddAllowanceRound: {
-            Event.DONE: AddLiquidityRound,
+        AddAllowanceTransactionHashRound: {
+            Event.DONE: AddAllowanceSignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: AddAllowanceSelectKeeperRound,
+        },
+        AddAllowanceSignatureRound: {
+            Event.DONE: AddAllowanceSendRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: AddAllowanceSelectKeeperRound,
+        },
+        AddAllowanceSendRound: {
+            Event.DONE: AddAllowanceValidationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: AddAllowanceSelectKeeperRound,
+        },
+        AddAllowanceValidationRound: {
+            Event.DONE: AddLiquidityTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AddLiquidityRound: {
-            Event.DONE: ValidateAddLiquidityRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SelectKeeperAddLiquidityRound,
-        },
-        SelectKeeperAddLiquidityRound: {
-            Event.DONE: AddLiquidityRound,
+        AddLiquiditySelectKeeperRound: {
+            Event.DONE: AddLiquidityTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateAddLiquidityRound: {
-            Event.DONE: RemoveLiquidityRound,
+        AddLiquidityTransactionHashRound: {
+            Event.DONE: AddLiquiditySignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: AddLiquiditySelectKeeperRound,
+        },
+        AddLiquiditySignatureRound: {
+            Event.DONE: AddLiquiditySendRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: AddLiquiditySelectKeeperRound,
+        },
+        AddLiquiditySendRound: {
+            Event.DONE: AddLiquidityValidationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: AddLiquiditySelectKeeperRound,
+        },
+        AddLiquidityValidationRound: {
+            Event.DONE: RemoveLiquidityTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        RemoveLiquidityRound: {
-            Event.DONE: ValidateRemoveLiquidityRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SelectKeeperRemoveLiquidityRound,
-        },
-        SelectKeeperRemoveLiquidityRound: {
-            Event.DONE: RemoveLiquidityRound,
+        RemoveLiquiditySelectKeeperRound: {
+            Event.DONE: RemoveLiquidityTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateRemoveLiquidityRound: {
-            Event.DONE: RemoveAllowanceRound,
+        RemoveLiquidityTransactionHashRound: {
+            Event.DONE: RemoveLiquiditySignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RemoveLiquiditySelectKeeperRound,
+        },
+        RemoveLiquiditySignatureRound: {
+            Event.DONE: RemoveLiquiditySendRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RemoveLiquiditySelectKeeperRound,
+        },
+        RemoveLiquiditySendRound: {
+            Event.DONE: RemoveLiquidityValidationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RemoveLiquiditySelectKeeperRound,
+        },
+        RemoveLiquidityValidationRound: {
+            Event.DONE: RemoveAllowanceTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        RemoveAllowanceRound: {
-            Event.DONE: ValidateRemoveAllowanceRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SelectKeeperRemoveAllowanceRound,
-        },
-        SelectKeeperRemoveAllowanceRound: {
-            Event.DONE: SwapRound,
+        RemoveAllowanceSelectKeeperRound: {
+            Event.DONE: RemoveAllowanceTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateRemoveAllowanceRound: {
-            Event.DONE: SwapBackRound,
+        RemoveAllowanceTransactionHashRound: {
+            Event.DONE: RemoveAllowanceSignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RemoveAllowanceSelectKeeperRound,
+        },
+        RemoveAllowanceSignatureRound: {
+            Event.DONE: RemoveAllowanceSendRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RemoveAllowanceSelectKeeperRound,
+        },
+        RemoveAllowanceSendRound: {
+            Event.DONE: RemoveAllowanceValidationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RemoveAllowanceSelectKeeperRound,
+        },
+        RemoveAllowanceValidationRound: {
+            Event.DONE: SwapBackTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SwapBackRound: {
-            Event.DONE: ValidateSwapBackRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SelectKeeperSwapBackRound,
-        },
-        SelectKeeperSwapBackRound: {
-            Event.DONE: SwapBackRound,
+        SwapBackSelectKeeperRound: {
+            Event.DONE: SwapBackTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        ValidateSwapBackRound: {
+        SwapBackTransactionHashRound: {
+            Event.DONE: SwapBackSignatureRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SwapBackSelectKeeperRound,
+        },
+        SwapBackSignatureRound: {
+            Event.DONE: SwapBackSendRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SwapBackSelectKeeperRound,
+        },
+        SwapBackSendRound: {
+            Event.DONE: SwapBackValidationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: SwapBackSelectKeeperRound,
+        },
+        SwapBackValidationRound: {
             Event.DONE: ConsensusReachedRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
