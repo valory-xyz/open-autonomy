@@ -156,7 +156,7 @@ new_env: clean
 	then\
 		pipenv --rm;\
 		pipenv --python 3.8;\
-		pipenv install --dev --skip-lock --clear;\
+		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
