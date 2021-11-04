@@ -8,7 +8,7 @@ As opposed to tradicional smart contracts, Valory apps go beyond simple, purely 
 
 ## Requirements
 
-- Python >= 3.6
+- Python >= 3.7
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html)
 - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `v0.6.0`
 
