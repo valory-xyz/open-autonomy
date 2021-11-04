@@ -67,11 +67,44 @@ class CloudflareApiSpecs(RandomnessApiSpecs):  # pylint: disable=too-few-public-
     _METHOD = "GET"
 
 
+class ProtocolLabsOneApiSpecs(
+    RandomnessApiSpecs
+):  # pylint: disable=too-few-public-methods
+    """Contains specs for CoinMarketCap's APIs."""
+
+    api_id = "protocollabs1"
+    _URL = "https://api.drand.sh/public/latest"
+    _METHOD = "GET"
+
+
+class ProtocolLabsTwoApiSpecs(
+    RandomnessApiSpecs
+):  # pylint: disable=too-few-public-methods
+    """Contains specs for CoinMarketCap's APIs."""
+
+    api_id = "protocollabs2"
+    _URL = "https://api2.drand.sh/public/latest"
+    _METHOD = "GET"
+
+
+class ProtocolLabsThreeApiSpecs(
+    RandomnessApiSpecs
+):  # pylint: disable=too-few-public-methods
+    """Contains specs for CoinMarketCap's APIs."""
+
+    api_id = "protocollabs3"
+    _URL = "https://api3.drand.sh/public/latest"
+    _METHOD = "GET"
+
+
 class RandomnessApi(Model):
     """A model that wraps APIs to get cryptocurrency prices."""
 
     _api_id_to_cls = {
         CloudflareApiSpecs.api_id: CloudflareApiSpecs,
+        ProtocolLabsOneApiSpecs.api_id: ProtocolLabsOneApiSpecs,
+        ProtocolLabsTwoApiSpecs.api_id: ProtocolLabsTwoApiSpecs,
+        ProtocolLabsThreeApiSpecs.api_id: ProtocolLabsThreeApiSpecs,
     }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

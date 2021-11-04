@@ -28,6 +28,9 @@ from requests import get
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.price_estimation_abci.randomness_api import (
     CloudflareApiSpecs,
+    ProtocolLabsOneApiSpecs,
+    ProtocolLabsThreeApiSpecs,
+    ProtocolLabsTwoApiSpecs,
     RandomnessApi,
     RandomnessApiSpecs,
 )
@@ -74,6 +77,36 @@ class TestCloudflareApiSpecs(BaseApiSpecTest):
     ) -> None:
         """Setup test."""
         self.api = CloudflareApiSpecs()
+
+
+class TestProtocolLabsOneApiSpecs(BaseApiSpecTest):
+    """Test ProtocolLabsOneApiSpecs class."""
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.api = ProtocolLabsOneApiSpecs()
+
+
+class TestProtocolLabsTwoApiSpecs(BaseApiSpecTest):
+    """Test ProtocolLabsTwoApiSpecs class."""
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.api = ProtocolLabsTwoApiSpecs()
+
+
+class TestProtocolLabsThreeApiSpecs(BaseApiSpecTest):
+    """Test ProtocolLabsThreeApiSpecs class."""
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.api = ProtocolLabsThreeApiSpecs()
 
 
 def test_price_api() -> None:

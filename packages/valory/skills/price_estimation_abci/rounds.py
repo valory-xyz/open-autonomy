@@ -631,7 +631,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
             Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         SelectKeeperARound: {
             Event.DONE: DeploySafeRound,
