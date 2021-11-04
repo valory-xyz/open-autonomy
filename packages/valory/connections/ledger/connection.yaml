@@ -23,10 +23,6 @@ config:
     ethereum:
       address: http://127.0.0.1:8545
       gas_price_api_key: null
-    valory:
-      address: https://rest-agent-land.fetch.ai:443
-      denom: atestfet
-      chain_id: agent-land
 excluded_protocols: []
 restricted_to_protocols:
 - valory/contract_api:1.0.0
