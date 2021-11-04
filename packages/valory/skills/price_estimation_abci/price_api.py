@@ -78,6 +78,7 @@ class CoinMarketCapApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
 
     api_id = "coinmarketcap"
     _URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+    _METHOD = "GET"
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
@@ -85,6 +86,7 @@ class CoinMarketCapApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
         """Return API Specs for `coinmarket`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
+            "method": self._METHOD,
             "url": self._URL,
             "api_id": self.api_id,
             "headers": {
@@ -113,6 +115,7 @@ class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
 
     api_id = "coingecko"
     _URL = "https://api.coingecko.com/api/v3/simple/price"
+    _METHOD = "GET"
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object."""
@@ -124,6 +127,7 @@ class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
         """Return API Specs for `coingecko`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
+            "method": self._METHOD,
             "url": self._URL,
             "api_id": self.api_id,
             "headers": {},
@@ -147,6 +151,7 @@ class BinanceApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
 
     api_id = "binance"
     _URL = "https://api.binance.com/api/v3/ticker/price"
+    _METHOD = "GET"
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
@@ -154,6 +159,7 @@ class BinanceApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
         """Return API Specs for `binance`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
+            "method": self._METHOD,
             "url": self._URL,
             "api_id": self.api_id,
             "headers": {},
@@ -174,6 +180,7 @@ class CoinbaseApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
 
     api_id = "coinbase"
     _URL = "https://api.coinbase.com/v2/prices/{currency_id}-{convert_id}/buy"
+    _METHOD = "GET"
 
     def get_spec(
         self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
@@ -181,6 +188,7 @@ class CoinbaseApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
         """Return API Specs for `coinbase`"""
         self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
         return {
+            "method": self._METHOD,
             "url": self._URL.format(
                 currency_id=self.currency_id.value, convert_id=self.convert_id.value
             ),

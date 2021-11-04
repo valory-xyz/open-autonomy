@@ -616,12 +616,15 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == RandomnessBehaviour.state_id
         )
-        state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state is not None
-        state.context.params._max_healthcheck = -1
-
-        with pytest.raises(AEAActException):
+        with mock.patch.object(
+            self.price_estimation_behaviour.context.randomness_api,
+            "is_retries_exceeded",
+            return_value=True,
+        ):
             self.price_estimation_behaviour.act_wrapper()
+            state = cast(BaseState, self.price_estimation_behaviour.current_state)
+            assert state.state_id == RandomnessBehaviour.state_id
+            self._test_done_flag_set()
 
 
 class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
