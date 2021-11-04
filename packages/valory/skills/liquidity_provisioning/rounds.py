@@ -18,60 +18,26 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the liquidity provision ABCI application."""
-import struct
 from abc import ABC
 from enum import Enum
-from types import MappingProxyType
-from typing import (
-    AbstractSet,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    cast,
-)
-
-from aea.exceptions import enforce
+from typing import Dict, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
-    BasePeriodState,
-    BaseTxPayload,
-    CollectDifferentUntilAllRound,
-    CollectDifferentUntilThresholdRound,
-    CollectSameUntilThresholdRound,
-    OnlyKeeperSendsRound,
-    TransactionNotValidError,
-    VotingRound,
 )
-from packages.valory.skills.price_estimation_abci.payloads import (
-    DeploySafePayload,
-    EstimatePayload,
-    FinalizationTxPayload,
-    ObservationPayload,
-    RandomnessPayload,
-    RegistrationPayload,
-    SelectKeeperPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    TransactionType,
-    ValidatePayload,
-)
-from packages.valory.skills.price_estimation_abci.tools import aggregate
-
+from packages.valory.skills.price_estimation_abci.payloads import TransactionType
 from packages.valory.skills.price_estimation_abci.rounds import (
+    CollectDifferentUntilAllRound,
+    CollectSameUntilThresholdRound,
     ConsensusReachedRound,
-    RegistrationRound,
-    RandomnessRound,
     DeploySafeRound,
-    ValidateSafeRound
+    RandomnessRound,
+    RegistrationRound,
+    ValidateSafeRound,
 )
+
 
 class Event(Enum):
     """Event enumeration for the liquidity provisioning demo."""
@@ -84,91 +50,165 @@ class Event(Enum):
     NO_ALLOWANCE = "no_allowance"
 
 
-class SelectKeeperMainRound:
-    """This class represents the select keeper A round."""
+class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):
+    """Abstract round for the liquidity provision skill."""
+
+    pass
+
+
+class SelectKeeperMainRound(
+    CollectDifferentUntilAllRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper main round."""
 
     round_id = "select_keeper_main"
 
-class SelectKeeperDeployRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperDeployRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper deploy round."""
 
     round_id = "select_keeper_deploy"
 
-class SelectKeeperSwapRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperSwapRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper swap round."""
 
     round_id = "select_keeper_swap"
 
-class SelectKeeperAddAllowanceRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperAddAllowanceRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper add allowance round."""
 
     round_id = "select_keeper_approve"
 
-class SelectKeeperAddLiquidityRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperAddLiquidityRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper add liquidity round."""
 
     round_id = "select_keeper_add_liquidity"
 
-class SelectKeeperRemoveLiquidityRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperRemoveLiquidityRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper remove liquidity round."""
 
     round_id = "select_keeper_remove_liquidity"
 
-class SelectKeeperRemoveAllowanceRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperRemoveAllowanceRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper remove allowance round."""
 
     round_id = "select_keeper_remove_allowance"
 
-class SelectKeeperSwapBackRound:
-    """This class represents the select keeper A round."""
+
+class SelectKeeperSwapBackRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the select keeper swap back round."""
 
     round_id = "select_keeper_swap_back"
 
 
 class StrategyEvaluationRound:
+    """This class represents the strategy evaluation round."""
+
     pass
+
 
 class WaitRound:
+    """This class represents the wait round."""
+
     pass
+
 
 class SwapRound:
+    """This class represents the swap round."""
+
     pass
+
 
 class ValidateSwapRound:
+    """This class represents the validate swap round."""
+
     pass
+
 
 class AllowanceCheckRound:
+    """This class represents the allowance check round."""
+
     pass
+
 
 class AddAllowanceRound:
+    """This class represents the add allowance back round."""
+
     pass
+
 
 class ValidateAddAllowanceRound:
+    """This class represents the validate add allowance round."""
+
     pass
+
 
 class AddLiquidityRound:
+    """This class represents the add liquidity round."""
+
     pass
+
 
 class ValidateAddLiquidityRound:
+    """This class represents the validate add liquidity round."""
+
     pass
+
 
 class RemoveLiquidityRound:
+    """This class represents the remove liquidity round."""
+
     pass
+
 
 class ValidateRemoveLiquidityRound:
+    """This class represents the validate remove liquidity round."""
+
     pass
+
 
 class RemoveAllowanceRound:
+    """This class represents the remove allowance round."""
+
     pass
+
 
 class ValidateRemoveAllowanceRound:
+    """This class represents the validate remove allowance round."""
+
     pass
+
 
 class SwapBackRound:
+    """This class represents the swap back round."""
+
     pass
 
+
 class ValidateSwapBackRound:
+    """This class represents the svalidate swap back round."""
+
     pass
+
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
     """Liquidity Provision ABCI application."""

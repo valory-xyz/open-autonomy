@@ -18,20 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the price_estimation app."""
-from abc import ABC
+
 from enum import Enum
-from typing import Dict, Optional
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-
-from packages.valory.skills.price_estimation_abci.payloads import (
-    RegistrationPayload,
-    RandomnessPayload,
-    SelectKeeperPayload,
-    ValidatePayload,
-    SignaturePayload,
-
-)
 
 class TransactionType(Enum):
     """Enumeration of transaction types."""
@@ -41,7 +30,6 @@ class TransactionType(Enum):
     APPROVE = "approve"
     ADD_LIQUIDITY = "add_liquidity"
     REMOVE_LIQUIDITY = "remove_liquidity"
-
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
