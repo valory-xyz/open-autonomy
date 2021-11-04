@@ -30,7 +30,7 @@ As opposed to tradicional smart contracts, Valory apps go beyond simple, purely 
 
 - Build the Hardhat project:
 
-      cd third_party/safe-contracts && yarn
+      cd third_party/safe-contracts && yarn install
 
 
 ## Getting started
