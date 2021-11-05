@@ -124,15 +124,13 @@ class SwapTransactionHashPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.SWAP_TRANSACTION_HASH
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """Initialize a 'swap_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param strategy: the new strategy to follow
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._strategy = strategy
 
     @property
     def data(self) -> Dict:
@@ -140,20 +138,44 @@ class SwapTransactionHashPayload(BaseLiquidityProvisionPayload):
         return dict()
 
 
+class AllowanceCheckPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'allowance_check'."""
+
+    transaction_type = TransactionType.STRATEGY_EVALUATION
+
+    def __init__(self, sender: str, allowance: int, id_: Optional[str] = None) -> None:
+        """Initialize a 'allowance_check' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param allowance: the current allowance
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._allowance = allowance
+
+    @property
+    def allowance(self) -> int:
+        """Get the strategy."""
+        return self._allowance
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(strategy=self.allowance)
+
+
 class AddAllowanceTransactionHashPayload(BaseLiquidityProvisionPayload):
     """Represent a transaction payload of type 'add_allowance_tx_hash'."""
 
     transaction_type = TransactionType.ADD_ALLOWANCE_TRANSACTION_HASH
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """Initialize a 'add_allowance_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param strategy: the new strategy to follow
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._strategy = strategy
 
     @property
     def data(self) -> Dict:
@@ -166,15 +188,13 @@ class AddLiquidityTransactionHashPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.SWAP_TRANSACTION_HASH
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """Initialize a 'add_liquidity_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param strategy: the new strategy to follow
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._strategy = strategy
 
     @property
     def data(self) -> Dict:
@@ -187,15 +207,13 @@ class RemoveLiquidityTransactionHashPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.SWAP_TRANSACTION_HASH
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """Initialize a 'remove_liquidity_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param strategy: the new strategy to follow
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._strategy = strategy
 
     @property
     def data(self) -> Dict:
@@ -208,15 +226,13 @@ class RemoveAllowanceTransactionHashPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.SWAP_TRANSACTION_HASH
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """Initialize a 'remove_allowance_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param strategy: the new strategy to follow
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._strategy = strategy
 
     @property
     def data(self) -> Dict:
@@ -229,15 +245,13 @@ class SwapBackTransactionHashPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.SWAP_TRANSACTION_HASH
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, id_: Optional[str] = None) -> None:
         """Initialize a 'swap_back_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param strategy: the new strategy to follow
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._strategy = strategy
 
     @property
     def data(self) -> Dict:

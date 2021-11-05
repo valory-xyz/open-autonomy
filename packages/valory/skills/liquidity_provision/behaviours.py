@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.payloads import (
+    AllowanceCheckPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -137,15 +138,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseState):
     matching_round = StrategyEvaluationRound
 
     def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Select a keeper randomly.
-        - Send the transaction with the keeper and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
+        """Do the action."""
 
         with benchmark_tool.measure(
             self,
@@ -251,11 +244,38 @@ class SwapValidationBehaviour(LiquidityProvisionBaseState):
     matching_round = SwapValidationRound
 
 
+def get_allowance() -> int:
+    """Get the allowance."""
+    return 0
+
+
 class AllowanceCheckBehaviour(LiquidityProvisionBaseState):
     """Check the current token allowance."""
 
     state_id = "allowance_check"
     matching_round = AllowanceCheckRound
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        allowance = get_allowance()
+        payload = AllowanceCheckPayload(self.context.agent_address, allowance)
+
+        if allowance == self.period_state.most_voted_strategy["amountETH"]:
+            self.context.logger.info(
+                "Insufficient allowance. Transitioning to allowance increase."
+            )
+        else:
+            self.context.logger.info(
+                "Sufficient allowance. Transitioning to add liquidity."
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class AddAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):

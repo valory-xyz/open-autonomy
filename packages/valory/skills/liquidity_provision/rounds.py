@@ -41,7 +41,10 @@ from packages.valory.skills.liquidity_provision.payloads import (
     SwapBackTransactionHashPayload,
     SwapTransactionHashPayload,
 )
-from packages.valory.skills.price_estimation_abci.payloads import TransactionType
+from packages.valory.skills.price_estimation_abci.payloads import (
+    TransactionHashPayload,
+    TransactionType,
+)
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
@@ -84,6 +87,10 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
         most_voted_swap_tx_hash: Optional[dict] = None,
+        participant_to_allowance_check: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_allowance_check: Optional[dict] = None,
         participant_to_add_allowance_tx_hash: Optional[
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
@@ -111,6 +118,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_strategy = most_voted_strategy
         self._participant_to_swap_tx_hash = participant_to_swap_tx_hash
         self._most_voted_swap_tx_hash = most_voted_swap_tx_hash
+
+        self._participant_to_allowance_check = participant_to_allowance_check
+        self._most_voted_allowance_check = most_voted_allowance_check
 
         self._participant_to_add_allowance_tx_hash = (
             participant_to_add_allowance_tx_hash
@@ -331,8 +341,8 @@ class SwapTransactionHashRound(
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                participant_to_swap_tx_hash=MappingProxyType(self.collection),
+                most_voted_swap_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -354,8 +364,25 @@ class SwapValidationRound(LiquidityProvisionAbstractRound):
     """This class represents the swap validation round."""
 
 
-class AllowanceCheckRound(LiquidityProvisionAbstractRound):
+class AllowanceCheckRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the AllowanceCheck round."""
+
+    round_id = "allowance_check"
+    allowed_tx_type = TransactionHashPayload.transaction_type
+    payload_attribute = "allowance"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        # if reached observation threshold, set the result
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_allowance_check=MappingProxyType(self.collection),
+                most_voted_allowance_check=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        return None
 
 
 class AddAllowanceSelectKeeperRound(
@@ -379,8 +406,8 @@ class AddAllowanceTransactionHashRound(
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                participant_toadd_allowance_tx_hash=MappingProxyType(self.collection),
+                most_voted_add_allowance_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -423,8 +450,8 @@ class AddLiquidityTransactionHashRound(
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                participant_to_add_liquidity_tx_hash=MappingProxyType(self.collection),
+                most_voted_add_liquidity_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -467,8 +494,10 @@ class RemoveLiquidityTransactionHashRound(
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                participant_to_remove_liquidity_tx_hash=MappingProxyType(
+                    self.collection
+                ),
+                most_voted_remove_liquidity_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -511,8 +540,10 @@ class RemoveAllowanceTransactionHashRound(
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                participant_to_remove_allowance_tx_hash=MappingProxyType(
+                    self.collection
+                ),
+                most_voted_remove_allowance_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -555,8 +586,8 @@ class SwapBackTransactionHashRound(
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                participant_swap_back_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_swap_back_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
