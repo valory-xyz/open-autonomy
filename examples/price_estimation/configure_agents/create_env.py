@@ -56,11 +56,13 @@ KEYS: List[str] = [
 
 API_CONFIG: List[Dict] = [
     {
-        "api_id": "coinbase",
+        "price_api_id": "coinbase",
+        "randomness_api_id": "cloudflare",
         "extra_config": []
     },
     {
-        "api_id": "binance",
+        "price_api_id": "binance",
+        "randomness_api_id": "protocollabs1",
         "extra_config": [
             (
                 "vendor.valory.skills.price_estimation_abci.models.params.args.convert_id",
@@ -69,7 +71,8 @@ API_CONFIG: List[Dict] = [
         ]
     },
     {
-        "api_id": "coinmarketcap",
+        "price_api_id": "coinmarketcap",
+        "randomness_api_id": "protocollabs2",
         "extra_config": [
             (
                 "vendor.valory.skills.price_estimation_abci.models.price_api.args.api_key",
@@ -78,7 +81,8 @@ API_CONFIG: List[Dict] = [
         ]
     },
     {
-        "api_id": "coingecko",
+        "price_api_id": "coingecko",
+        "randomness_api_id": "protocollabs3",
         "extra_config": []
     }
 ]
@@ -88,7 +92,8 @@ ABCI_CONFIG_SCRIPT: str = """
 
 echo -n $AEA_KEY >  ethereum_private_key.txt
 
-aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.source_id {api_id}
+aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.source_id {price_api_id}
+aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.source_id {randomness_api_id}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657
@@ -238,7 +243,8 @@ def build_config_script(node_id: int, api_config: Dict, max_participants: int) -
 
     return ABCI_CONFIG_SCRIPT.format(
         extra_config=extra_config,
-        api_id=api_config["api_id"],
+        price_api_id=api_config["price_api_id"],
+        randomness_api_id=api_config["randomness_api_id"],
         node_id=node_id,
         max_participants=max_participants
     )

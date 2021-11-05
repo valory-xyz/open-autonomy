@@ -206,7 +206,7 @@ class IPFSDaemon:
     def __enter__(self) -> None:
         """Run the ipfs daemon."""
         self.process = subprocess.Popen(  # nosec
-            ["ipfs", "daemon"],
+            ["ipfs", "daemon", "--offline"],
             stdout=subprocess.PIPE,
             env=os.environ.copy(),
         )
