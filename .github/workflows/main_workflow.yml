@@ -25,7 +25,7 @@ jobs:
           pip install pipenv
       - name: Pipenv install requirements and check it can be locked
         run: |
-          pipenv install --dev --skip-lock --clear
+          pipenv install --dev --skip-lock
           pipenv run pip install -e .[all]
           pipenv lock
 
