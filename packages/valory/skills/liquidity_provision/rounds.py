@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    SwapTransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionType
 from packages.valory.skills.price_estimation_abci.rounds import (
@@ -74,11 +75,17 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
         most_voted_strategy: Optional[dict] = None,
+        participant_to_swap_tx_hash: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_swap_tx_hash: Optional[dict] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
         self._participant_to_strategy = participant_to_strategy
         self._most_voted_strategy = most_voted_strategy
+        self._participant_to_swap_tx_hash = participant_to_swap_tx_hash
+        self._most_voted_swap_tx_hash = most_voted_swap_tx_hash
 
     @property
     def most_voted_strategy(self) -> dict:
@@ -88,6 +95,25 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'most_voted_strategy' field is None",
         )
         return cast(dict, self._most_voted_strategy)
+
+    @property
+    def encoded_most_voted_strategy(self) -> bytes:
+        """Get the encoded (most voted) strategy."""
+        return bytes()
+
+    @property
+    def most_voted_swap_tx_hash(self) -> dict:
+        """Get the most_voted_swap_tx_hash."""
+        enforce(
+            self._most_voted_swap_tx_hash is not None,
+            "'most_voted_swap_tx_hash' field is None",
+        )
+        return cast(dict, self._most_voted_swap_tx_hash)
+
+    @property
+    def encoded_most_voted_swap_tx_hash(self) -> bytes:
+        """Get the encoded (most voted) swap tx hash."""
+        return bytes()
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
@@ -174,8 +200,28 @@ class SwapSelectKeeperRound(
     round_id = "swap_select_keeper"
 
 
-class SwapTransactionHashRound(LiquidityProvisionAbstractRound):
+class SwapTransactionHashRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the swap transaction hash round."""
+
+    round_id = "swap_tx_hash"
+    allowed_tx_type = SwapTransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class SwapSignatureRound(LiquidityProvisionAbstractRound):

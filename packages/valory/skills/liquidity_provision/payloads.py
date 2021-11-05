@@ -29,11 +29,45 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     STRATEGY_EVALUATION = "strategy_evaluation"
-    SWAP = "swap"
+    WAIT = "wait"
+
+    SWAP_SELECT_KEEPER = "swap_select_keeper"
+    SWAP_TRANSACTION_HASH = "swap_transaction_hash"
+    SWAP_SIGNATURE = "swap_signature"
+    SWAP_SEND = "swap_send"
+    SWAP_VALIDATION = "swap_validation"
+
     ALLOWANCE_CHECK = "allowance_check"
-    APPROVE = "approve"
-    ADD_LIQUIDITY = "add_liquidity"
-    REMOVE_LIQUIDITY = "remove_liquidity"
+
+    ADD_ALLOWANCE_SELECT_KEEPER = "add_allowance_select_keeper"
+    ADD_ALLOWANCE_TRANSACTION_HASH = "add_allowance_transaction_hash"
+    ADD_ALLOWANCE_SIGNATURE = "add_allowance_signature"
+    ADD_ALLOWANCE_SEND = "add_allowance_send"
+    ADD_ALLOWANCE_VALIDATION = "add_allowance_validation"
+
+    ADD_LIQUIDITY_SELECT_KEEPER = "add_liquidity_select_keeper"
+    ADD_LIQUIDITY_TRANSACTION_HASH = "add_liquidity_transaction_hash"
+    ADD_LIQUIDITY_SIGNATURE = "add_liquidity_signature"
+    ADD_LIQUIDITY_SEND = "add_liquidity_send"
+    ADD_LIQUIDITY_VALIDATION = "add_liquidity_validation"
+
+    REMOVE_LIQUIDITY_SELECT_KEEPER = "remove_liquidity_select_keeper"
+    REMOVE_LIQUIDITY_TRANSACTION_HASH = "remove_liquidity_transaction_hash"
+    REMOVE_LIQUIDITY_SIGNATURE = "remove_liquidity_signature"
+    REMOVE_LIQUIDITY_SEND = "remove_liquidity_send"
+    REMOVE_LIQUIDITY_VALIDATION = "remove_liquidity_validation"
+
+    REMOVE_ALLOWANCE_SELECT_KEEPER = "remove_allowance_select_keeper"
+    REMOVE_ALLOWANCE_TRANSACTION_HASH = "remove_allowance_transaction_hash"
+    REMOVE_ALLOWANCE_SIGNATURE = "remove_allowance_signature"
+    REMOVE_ALLOWANCE_SEND = "remove_allowance_send"
+    REMOVE_ALLOWANCE_VALIDATION = "remove_allowance_validation"
+
+    SWAP_BACK_SELECT_KEEPER = "swap_back_select_keeper"
+    SWAP_BACK_TRANSACTION_HASH = "swap_back_transaction_hash"
+    SWAP_BACK_SIGNATURE = "swap_back_signature"
+    SWAP_BACK_SEND = "swap_back_send"
+    SWAP_BACK_VALIDATION = "swap_back_validation"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -83,3 +117,24 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
+
+
+class SwapTransactionHashPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'swap_tx_hash'."""
+
+    transaction_type = TransactionType.SWAP_TRANSACTION_HASH
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'swap_transaction_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict()

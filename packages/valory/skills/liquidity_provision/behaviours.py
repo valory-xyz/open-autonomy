@@ -18,9 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'liquidity_provision' skill."""
-from typing import Generator, Set, Type
+from abc import ABC
+from typing import Generator, Set, Type, cast
 
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
@@ -40,6 +45,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
     AllowanceCheckRound,
     DeploySelectKeeperRound,
     LiquidityProvisionAbciApp,
+    PeriodState,
     RemoveAllowanceSelectKeeperRound,
     RemoveAllowanceSendRound,
     RemoveAllowanceSignatureRound,
@@ -78,13 +84,25 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.behaviours import (
     ValidateSafeBehaviour as DeploySafeValidationBehaviour,
 )
+from packages.valory.skills.price_estimation_abci.models import Params, SharedState
+from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 
 
 benchmark_tool = BenchmarkTool()
 
 
-class LiquidityProvisionBaseState(PriceEstimationBaseState):
+class LiquidityProvisionBaseState(BaseState, ABC):
     """Base state behaviour for the liquidity provision skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the params."""
+        return cast(Params, self.context.params)
 
 
 class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
@@ -173,6 +191,43 @@ class SwapTransactionHashBehaviour(LiquidityProvisionBaseState):
 
     state_id = "swap_tx_hash"
     matching_round = SwapTransactionHashRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_swap_tx_hash
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address="",
+                contract_id="",
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address="",
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SwapSignatureBehaviour(LiquidityProvisionBaseState):
