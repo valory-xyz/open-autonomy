@@ -101,6 +101,8 @@ Get the hash of the raw Safe transaction.
 
 Adapted from https://github.com/gnosis/gnosis-py/blob/69f1ee3263086403f6017effa0841c6a2fbba6d6/gnosis/safe/safe_tx.py#L125
 
+Note, because safe_nonce is included in the tx_hash the agents implicitly agree on the order of txs if they agree on a tx_hash.
+
 **Arguments**:
 
     (e.g. base transaction fee, signature check, payment of the refund)
@@ -129,7 +131,7 @@ the hash of the raw Safe transaction
 
 ```python
 @classmethod
-def get_raw_safe_transaction(cls, ledger_api: LedgerApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_nonce: Optional[int] = None, safe_version: Optional[str] = None) -> JSONLike
+def get_raw_safe_transaction(cls, ledger_api: LedgerApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_nonce: Optional[int] = None) -> JSONLike
 ```
 
 Get the raw Safe transaction
@@ -152,7 +154,6 @@ Get the raw Safe transaction
 - `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
 - `safe_nonce`: Current nonce of the Safe. If not provided, it will be retrieved from network
-- `safe_version`: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
 
 **Returns**:
 
@@ -184,16 +185,31 @@ the verified status
 
 ```python
 @classmethod
-def verify_tx(cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str) -> JSONLike
+def verify_tx(cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_version: Optional[str] = None) -> JSONLike
 ```
 
 Verify a tx hash exists on the blockchain.
 
+Currently, the implementation is an overkill as most of the verification is implicit by the acceptance of the transaction in the Safe.
+
 **Arguments**:
 
+    (e.g. base transaction fee, signature check, payment of the refund)
 - `ledger_api`: the ledger API object
 - `contract_address`: the contract address
 - `tx_hash`: the transaction hash
+- `owners`: the sequence of owners
+- `to_address`: Destination address of Safe transaction
+- `value`: Ether value of Safe transaction
+- `data`: Data payload of Safe transaction
+- `signatures_by_owner`: mapping from owners to signatures
+- `operation`: Operation type of Safe transaction
+- `safe_tx_gas`: Gas that should be used for the Safe transaction
+- `base_gas`: Gas costs for that are independent of the transaction execution
+- `gas_price`: Gas price that should be used for the payment calculation
+- `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
+- `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
+- `safe_version`: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
 
 **Returns**:
 

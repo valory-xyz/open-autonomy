@@ -36,7 +36,7 @@ The POC has the following phases:
     maximum number of participants (in the demo, this limit is 4);
     once this threshold is hit ("registration threshold"),
     the round goes to the _deploy-safe_ phase.
-- Randomness phase: some randomness is retrieved to be used in a keeper agent selection.
+- Randomness phase: some randomness is retrieved to be used in a keeper agent selection. In particular, agents individually request the latest random number from [DRAND](https://drand.love), establish consensus on it and then use it as a seed for computations requiring randomness (e.g. keeper selection).
 - Select keeper phase: the agents agree on a new keeper that will be in charge of sending deploying the multisig wallet and settling transactions.
 - Deploy-Safe phase:
     a designated sender among the participants of the current period deploys a
