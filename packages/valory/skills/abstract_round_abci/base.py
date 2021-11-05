@@ -442,9 +442,16 @@ class BasePeriodState:
     def __init__(
         self,
         participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
     ) -> None:
         """Initialize a period state."""
         self._participants = frozenset(participants) if participants else None
+        self._period_count = period_count if period_count is not None else 0
+
+    @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return self._period_count
 
     @property
     def participants(self) -> FrozenSet[str]:
@@ -1099,7 +1106,9 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
     def _log_start(self) -> None:
         """Log the entering in the round."""
-        self.logger.info(f"Entered in the '{self.current_round.round_id}' round")
+        self.logger.info(
+            f"Entered in the '{self.current_round.round_id}' round for period {self.state.period_count}"
+        )
 
     def _log_end(self, event: EventType) -> None:
         """Log the exiting from the round."""

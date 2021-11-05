@@ -50,7 +50,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
-    ConsensusReachedRound,
     DeploySafeRound,
     EstimateConsensusRound,
     Event,
@@ -58,6 +57,11 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState,
     RandomnessRound,
     RegistrationRound,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
+    ResetRound as ConsensusReachedRound,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
     SelectKeeperARound,
     SelectKeeperBRound,
     SelectKeeperRound,

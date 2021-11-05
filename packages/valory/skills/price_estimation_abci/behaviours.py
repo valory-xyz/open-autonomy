@@ -53,16 +53,18 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
-    ConsensusReachedRound,
     DeploySafeRound,
     EstimateConsensusRound,
     FinalizationRound,
     PeriodState,
     PriceEstimationAbciApp,
     RandomnessRound,
+    RandomnessStartupRound,
     RegistrationRound,
+    ResetRound,
     SelectKeeperARound,
     SelectKeeperBRound,
+    SelectKeeperStartupRound,
     TxHashRound,
     ValidateSafeRound,
     ValidateTransactionRound,
@@ -157,9 +159,6 @@ class RegistrationBehaviour(PriceEstimationBaseState):
 class RandomnessBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
 
-    state_id = "retrieve_randomness"
-    matching_round = RandomnessRound
-
     def async_act(self) -> Generator:
         """
         Check whether tendermint is running or not.
@@ -211,6 +210,20 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             self.context.randomness_api.increment_retries()
 
 
+class RandomnessAtStartupBehaviour(RandomnessBehaviour):
+    """Retrive randomness at startup."""
+
+    state_id = "retrieve_randomness_at_startup"
+    matching_round = RandomnessStartupRound
+
+
+class RandomnessInOperationBehaviour(RandomnessBehaviour):
+    """Retrive randomness during operation."""
+
+    state_id = "retrieve_randomness"
+    matching_round = RandomnessRound
+
+
 class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
     """Select the keeper agent."""
 
@@ -243,6 +256,13 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+
+class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent at startup."""
+
+    state_id = "select_keeper_at_startup"
+    matching_round = SelectKeeperStartupRound
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
@@ -702,11 +722,11 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         return verified
 
 
-class EndBehaviour(PriceEstimationBaseState):
-    """Final state."""
+class ResetBehaviour(PriceEstimationBaseState):
+    """Reset state."""
 
-    state_id = "end"
-    matching_round = ConsensusReachedRound
+    state_id = "reset"
+    matching_round = ResetRound
 
     def async_act(self) -> Generator:
         """
@@ -714,17 +734,24 @@ class EndBehaviour(PriceEstimationBaseState):
 
         Steps:
         - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
         """
         self.context.logger.info(
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
-
-        benchmark_tool.log()
         benchmark_tool.save()
 
-        # wait forever
-        yield from self.wait_for_condition(lambda: False)
+        yield from self.sleep(self.params.observation_interval)
+        payload = RegistrationPayload(self.context.agent_address)
+
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
@@ -735,10 +762,12 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
-        RandomnessBehaviour,  # type: ignore
-        SelectKeeperABehaviour,  # type: ignore
+        RandomnessAtStartupBehaviour,  # type: ignore
+        SelectKeeperAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
+        RandomnessInOperationBehaviour,  # type: ignore
+        SelectKeeperABehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
@@ -746,5 +775,5 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         FinalizeBehaviour,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         SelectKeeperBBehaviour,  # type: ignore
-        EndBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
     }
