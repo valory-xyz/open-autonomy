@@ -11,7 +11,7 @@ fingerprint:
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
   behaviours.py: QmRZYoQv3ibECkXdhqWR2LZrHthhXsvxQUYopQjZRWHLx4
   payloads.py: QmbNqwDZKTapNdhPy3x2HhKYT4D5CK5TNkmCrpURUFoJPs
-  rounds.py: QmbaypnmjLQS6h2aPWUVX3ybd8BmhJ1kxYRixGdk4m2swH
+  rounds.py: QmcP5DTyQ5MZgAaYXdZ1ExH1EnpaHUeNwoV264E8gTKcbJ
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

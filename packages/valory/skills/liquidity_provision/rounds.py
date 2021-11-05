@@ -32,8 +32,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
+    AddAllowanceTransactionHashPayload,
+    AddLiquidityTransactionHashPayload,
+    RemoveAllowanceTransactionHashPayload,
+    RemoveLiquidityTransactionHashPayload,
     StrategyEvaluationPayload,
     StrategyType,
+    SwapBackTransactionHashPayload,
     SwapTransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionType
@@ -361,8 +366,28 @@ class AddAllowanceSelectKeeperRound(
     round_id = "add_allowance_select_keeper"
 
 
-class AddAllowanceTransactionHashRound(LiquidityProvisionAbstractRound):
+class AddAllowanceTransactionHashRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the AddAllowance transaction hash round."""
+
+    round_id = "add_allowance_tx_hash"
+    allowed_tx_type = AddAllowanceTransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class AddAllowanceSignatureRound(LiquidityProvisionAbstractRound):
@@ -385,8 +410,28 @@ class AddLiquiditySelectKeeperRound(
     round_id = "add_allowance_select_keeper"
 
 
-class AddLiquidityTransactionHashRound(LiquidityProvisionAbstractRound):
+class AddLiquidityTransactionHashRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the AddLiquidity transaction hash round."""
+
+    round_id = "add_liquidity_tx_hash"
+    allowed_tx_type = AddLiquidityTransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class AddLiquiditySignatureRound(LiquidityProvisionAbstractRound):
@@ -409,8 +454,28 @@ class RemoveLiquiditySelectKeeperRound(
     round_id = "add_allowance_select_keeper"
 
 
-class RemoveLiquidityTransactionHashRound(LiquidityProvisionAbstractRound):
+class RemoveLiquidityTransactionHashRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the RemoveLiquidity transaction hash round."""
+
+    round_id = "remove_liquidity_tx_hash"
+    allowed_tx_type = RemoveLiquidityTransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class RemoveLiquiditySignatureRound(LiquidityProvisionAbstractRound):
@@ -433,8 +498,28 @@ class RemoveAllowanceSelectKeeperRound(
     round_id = "add_allowance_select_keeper"
 
 
-class RemoveAllowanceTransactionHashRound(LiquidityProvisionAbstractRound):
+class RemoveAllowanceTransactionHashRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the RemoveAllowance transaction hash round."""
+
+    round_id = "remove_allowance_tx_hash"
+    allowed_tx_type = RemoveAllowanceTransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class RemoveAllowanceSignatureRound(LiquidityProvisionAbstractRound):
@@ -457,8 +542,28 @@ class SwapBackSelectKeeperRound(
     round_id = "add_allowance_select_keeper"
 
 
-class SwapBackTransactionHashRound(LiquidityProvisionAbstractRound):
+class SwapBackTransactionHashRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """This class represents the SwapBack transaction hash round."""
+
+    round_id = "swap_back_tx_hash"
+    allowed_tx_type = SwapBackTransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class SwapBackSignatureRound(LiquidityProvisionAbstractRound):
