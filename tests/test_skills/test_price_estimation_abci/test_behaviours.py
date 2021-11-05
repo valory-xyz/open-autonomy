@@ -616,12 +616,15 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == RandomnessBehaviour.state_id
         )
-        state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state is not None
-        state.context.params._max_healthcheck = -1
-
-        with pytest.raises(AEAActException):
+        with mock.patch.object(
+            self.price_estimation_behaviour.context.randomness_api,
+            "is_retries_exceeded",
+            return_value=True,
+        ):
             self.price_estimation_behaviour.act_wrapper()
+            state = cast(BaseState, self.price_estimation_behaviour.current_state)
+            assert state.state_id == RandomnessBehaviour.state_id
+            self._test_done_flag_set()
 
 
 class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1128,12 +1131,18 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test ValidateTransactionBehaviour."""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=PeriodState(
                 safe_contract_address="safe_contract_address",
                 final_tx_hash="final_tx_hash",
+                participants=participants,
+                most_voted_keeper_address=most_voted_keeper_address,
+                most_voted_estimate=1.0,
+                participant_to_signature={},
             ),
         )
         assert (

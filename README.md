@@ -1,35 +1,38 @@
 # Consensus algorithms
 
-Distributed consensus meets the open AEA framework.
+This repository contains the [Valory](https://www.valory.xyz/) stack, a set of distributed consensus
+technologies built on top of the [open AEA framework](https://github.com/valory-xyz/open-aea) to facilitate the creation of dynamic, decentralised applications that depend on off-chain components.
 
-## Preliminaries
+As opposed to traditional smart contracts, Valory apps go beyond simple, purely reactive applications and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization.
+
+
+## Requirements
+
+- Python >= 3.7
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html)
+- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `v0.6.0`
+
+
+## Setting the repository
 
 - Clone the repository, and recursively clone the submodules:
 
       git clone --recursive git@github.com:valory-xyz/consensus-algorithms.git
 
-  Later to update the Git submodules:
+  Note: to update the Git submodules later:
 
       git submodule update --init --recursive
 
-- Create and launch a virtual environment with Python 3.8 (any Python `>=` 3.6 works):
+- Create and launch a virtual environment. Also, run this during development, every time you need to re-create and launch the virtual environment and update the dependencies:
 
-      pipenv --python 3.8 && pipenv shell
+      make new_env && pipenv shell
 
-- Install the package from source:
 
-      pip install -e .
-
-- [Install Tendermint](https://docs.tendermint.com/master/introduction/install.html)
 - Build the Hardhat project:
 
-      cd third_party/safe-contracts && yarn
+      cd third_party/safe-contracts && yarn install
 
-## During development:
 
-- Install development dependencies:
+## Getting started
 
-      make new_env
-      pipenv shell
-
-- Install [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `v0.6.0`
+Have a look at the [price estimation](https://github.com/valory-xyz/consensus-algorithms/tree/main/examples/price_estimation) example.

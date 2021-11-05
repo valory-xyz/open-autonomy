@@ -19,11 +19,13 @@
 
 """Conftest module for Pytest."""
 import logging
+import socket
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Tuple
 
 import docker
 import pytest
+from aea.configurations.base import PublicId
 
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
@@ -53,6 +55,7 @@ def get_key(key_path: Path) -> str:
 ROOT_DIR = _ROOT_DIR
 DATA_PATH = _ROOT_DIR / "tests" / "data"
 DEFAULT_AMOUNT = 1000000000000000000000
+UNKNOWN_PROTOCOL_PUBLIC_ID = PublicId("unused", "unused", "1.0.0")
 
 ETHEREUM_KEY_DEPLOYER = DATA_PATH / "ethereum_key_deployer.txt"
 ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
@@ -160,3 +163,27 @@ def ganache(
         client, ganache_addr, ganache_port, config=ganache_configuration
     )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+def get_unused_tcp_port() -> int:
+    """Get an unused TCP port."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("127.0.0.1", 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return port
+
+
+def get_host() -> str:
+    """Get the host."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(("10.255.255.255", 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = "127.0.0.1"
+    finally:
+        s.close()
+    return IP

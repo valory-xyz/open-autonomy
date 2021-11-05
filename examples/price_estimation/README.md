@@ -1,7 +1,7 @@
 # ABCI Price Estimation with AEAs
 
-This demo is about a network of AEAs reaching 
-Byzantine fault-tolerant consensus, powered by Tendermint, 
+This demo is about a network of AEAs reaching
+Byzantine fault-tolerant consensus, powered by Tendermint,
 on a price estimate of Bitcoin price in US dollars.
 
 For more details, please read <a href="../price_estimation/">this page</a>.
@@ -12,6 +12,7 @@ Make sure you have installed on your machine:
 
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
 ## Run
 
@@ -38,12 +39,12 @@ info: Warning:  'tendermint' is required by the abci connection, but it is not i
 Build completed!
 warning: [price_estimation] The kwargs={'consensus': OrderedDict([('max_participants', 4)]), 'convert_id': 'USD', 'currency_id': 'BTC', 'initial_delay': 5.0, 'tendermint_url': 'http://node0:26657'} passed to params have not been set!
 warning: [price_estimation] The kwargs={'api_key': None, 'source_id': 'coingecko'} passed to price_api have not been set!
-    _     _____     _    
-   / \   | ____|   / \   
-  / _ \  |  _|    / _ \  
- / ___ \ | |___  / ___ \ 
+    _     _____     _
+   / \   | ____|   / \
+  / _ \  |  _|    / _ \
+ / ___ \ | |___  / ___ \
 /_/   \_\|_____|/_/   \_\
-                         
+
 v1.0.2
 
 Starting AEA 'price_estimation' in 'async' mode...
@@ -64,8 +65,8 @@ info: [price_estimation] 'estimate' behaviour state is done
 info: [price_estimation] Consensus reached on estimate: 44172.06142864574
 ```
 
-From the logs, you can see the different behaviours of the 
-finite-state machine behaviour: `registration`, `observation`, 
+From the logs, you can see the different behaviours of the
+finite-state machine behaviour: `registration`, `observation`,
 and `estimate` states. Moreover,
 you can see that the observation of this agent
 has been considered in the set of observation shared
@@ -74,8 +75,8 @@ Finally, the consensus is reached among all the AEAs
 on the BTC/USD estimate `44172.06142864574`,
 which is a simple average of the set of observations.
 
-An analogous output is produced by other AEAs. 
-Here it is reported the output of another AEA 
+An analogous output is produced by other AEAs.
+Here it is reported the output of another AEA
 that participated in the same round:
 
 ```
@@ -86,12 +87,12 @@ info: Warning:  'tendermint' is required by the abci connection, but it is not i
 Build completed!
 warning: [price_estimation] The kwargs={'consensus': OrderedDict([('max_participants', 4)]), 'convert_id': 'USD', 'currency_id': 'BTC', 'initial_delay': 5.0, 'tendermint_url': 'http://node1:26657'} passed to params have not been set!
 warning: [price_estimation] The kwargs={'api_key': '2142662b-985c-4862-82d7-e91457850c2a', 'source_id': 'coinmarketcap'} passed to price_api have not been set!
-    _     _____     _    
-   / \   | ____|   / \   
-  / _ \  |  _|    / _ \  
- / ___ \ | |___  / ___ \ 
+    _     _____     _
+   / \   | ____|   / \
+  / _ \  |  _|    / _ \
+ / ___ \ | |___  / ___ \
 /_/   \_\|_____|/_/   \_\
-                         
+
 v1.0.2
 
 Starting AEA 'price_estimation' in 'async' mode...
@@ -126,7 +127,7 @@ In order to interact with skaffold, the local kubectl must be configured to poin
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/): kubernetes cli tool
 - [Docker](https://docs.docker.com/get-docker/): Container backend
 
-### Quick Cluster Deploy 
+### Quick Cluster Deploy
 ```
 make localcluster-start
 make localcluster-deploy
@@ -167,7 +168,7 @@ skaffold run --profile dashboard
 ```
 6. optional retrieve the token for the dashboard
 ```bash
-echo (kubectl describe secret (kubectl get secret | grep admin | awk '{print $1}') | grep token: | awk '{print $2}') 
+echo (kubectl describe secret (kubectl get secret | grep admin | awk '{print $1}') | grep token: | awk '{print $2}')
 ```
 
 
@@ -188,6 +189,6 @@ skaffold dev --profile minikube
 
 # tear down
 ```
-kind delete cluster 
+kind delete cluster
 ```
 

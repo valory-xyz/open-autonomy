@@ -9,10 +9,10 @@ This module contains the behaviours for the 'abstract_round_abci' skill.
 ## AbstractRoundBehaviour Objects
 
 ```python
-class AbstractRoundBehaviour(FSMBehaviour)
+class AbstractRoundBehaviour(Behaviour,  Generic[EventType])
 ```
 
-This behaviour implements an abstract round.
+This behaviour implements an abstract round behaviour.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.__init__"></a>
 
@@ -23,6 +23,16 @@ def __init__(**kwargs: Any) -> None
 ```
 
 Initialize the behaviour.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.instantiate_state_cls"></a>
+
+#### instantiate`_`state`_`cls
+
+```python
+def instantiate_state_cls(state_cls: StateType) -> BaseState
+```
+
+Instantiate the state class.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.setup"></a>
 
@@ -53,15 +63,4 @@ def act() -> None
 ```
 
 Implement the behaviour.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.current_state"></a>
-
-#### current`_`state
-
-```python
-@property
-def current_state() -> Optional[BaseState]
-```
-
-Get the current state.
 

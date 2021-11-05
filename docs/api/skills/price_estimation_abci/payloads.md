@@ -34,6 +34,16 @@ class BasePriceEstimationPayload(BaseTxPayload,  ABC)
 
 Base class for the price estimation demo.
 
+<a id="packages.valory.skills.price_estimation_abci.payloads.BasePriceEstimationPayload.__hash__"></a>
+
+#### `__`hash`__`
+
+```python
+def __hash__() -> int
+```
+
+Hash the payload.
+
 <a id="packages.valory.skills.price_estimation_abci.payloads.RegistrationPayload"></a>
 
 ## RegistrationPayload Objects

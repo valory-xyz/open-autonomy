@@ -196,7 +196,7 @@ Stop the execution of the behaviour.
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  State,  ABC)
+class BaseState(AsyncBehaviour,  SimpleBehaviour,  ABC)
 ```
 
 Base class for FSM states.
@@ -306,46 +306,6 @@ def set_done() -> None
 
 Set the behaviour to done.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_fail"></a>
-
-#### set`_`fail
-
-```python
-def set_fail() -> None
-```
-
-Set the behaviour to done.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_exit_a"></a>
-
-#### set`_`exit`_`a
-
-```python
-def set_exit_a() -> None
-```
-
-Set the behaviour to exit a.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.set_exit_b"></a>
-
-#### set`_`exit`_`b
-
-```python
-def set_exit_b() -> None
-```
-
-Set the behaviour to exit b.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.reset"></a>
-
-#### reset
-
-```python
-def reset() -> None
-```
-
-Reset initial conditions.
-
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_a2a_transaction"></a>
 
 #### send`_`a2a`_`transaction
@@ -422,4 +382,6 @@ def clean_up() -> None
 ```
 
 Clean up the resources due to a 'stop' event.
+
+It can be optionally implemented by the concrete classes.
 
