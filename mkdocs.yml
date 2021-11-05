@@ -61,6 +61,7 @@ nav:
         - Models: 'api/skills/price_estimation_abci/models.md'
         - Payloads: 'api/skills/price_estimation_abci/payloads.md'
         - PriceAPI: 'api/skills/price_estimation_abci/price_api.md'
+        - RandomnessAPI: 'api/skills/price_estimation_abci/randomness_api.md'
         - Rounds: 'api/skills/price_estimation_abci/rounds.md'
         - Tools: 'api/skills/price_estimation_abci/tools.md'
     - Exceptions: exceptions.md
