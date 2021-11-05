@@ -60,7 +60,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour,
-    EndBehaviour,
     EstimateBehaviour,
     FinalizeBehaviour,
     LEDGER_CONNECTION_PUBLIC_ID,
@@ -68,6 +67,11 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationConsensusBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
+    ResetBehaviour as EndBehaviour,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
     SelectKeeperABehaviour,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,

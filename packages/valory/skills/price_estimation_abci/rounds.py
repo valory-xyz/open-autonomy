@@ -560,6 +560,24 @@ class FinalizationRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
         return None
 
 
+class RandomnessRoundStartup(RandomnessRound):
+    """Randomness round for startup."""
+
+    round_id = "randomness_startup"
+
+
+class RandomnessRoundOperations(RandomnessRound):
+    """Randomness round for startup."""
+
+    round_id = "randomness_operation"
+
+
+class SelectKeeperStartupRound(SelectKeeperRound):
+    """SelectKeeper round for startup."""
+
+    round_id = "select_keeper_startup"
+
+
 class SelectKeeperARound(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
@@ -572,9 +590,7 @@ class SelectKeeperBRound(SelectKeeperRound):
     round_id = "select_keeper_b"
 
 
-class ConsensusReachedRound(
-    CollectDifferentUntilAllRound, PriceEstimationAbstractRound
-):
+class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "consensus_reached"
@@ -586,12 +602,10 @@ class ConsensusReachedRound(
 
         if self.collection_threshold_reached:
             state = self.period_state.update(
-                participants=None,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
                 participant_to_selection=None,
                 most_voted_keeper_address=None,
-                safe_contract_address=None,
                 participant_to_votes=None,
                 participant_to_observations=None,
                 participant_to_estimate=None,
@@ -627,7 +641,7 @@ class ValidateTransactionRound(ValidateRound):
     Input: a period state with the prior round data
     Output: a new period state with the prior round data and the validation of the transaction
 
-    It schedules the ConsensusReachedRound or SelectKeeperARound.
+    It schedules the ResetRound or SelectKeeperARound.
     """
 
     round_id = "validate_transaction"
@@ -639,61 +653,69 @@ class PriceEstimationAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {
-            Event.DONE: SelectKeeperARound,
+        RegistrationRound: {Event.DONE: RandomnessRoundStartup},
+        RandomnessRoundStartup: {
+            Event.DONE: SelectKeeperStartupRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SelectKeeperARound: {
+        SelectKeeperStartupRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperARound,
+            Event.EXIT: SelectKeeperStartupRound,
         },
         ValidateSafeRound: {
-            Event.DONE: CollectObservationRound,
+            Event.DONE: RandomnessRoundOperations,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+        },
+        RandomnessRoundOperations: {
+            Event.DONE: SelectKeeperARound,
+        },
+        SelectKeeperARound: {
+            Event.DONE: CollectObservationRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.EXIT: SelectKeeperBRound,
         },
         ValidateTransactionRound: {
-            Event.DONE: ConsensusReachedRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.DONE: ResetRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRoundOperations,
+            Event.NO_MAJORITY: RandomnessRoundOperations,
         },
-        ConsensusReachedRound: {Event.DONE: RegistrationRound},
+        ResetRound: {Event.DONE: RandomnessRoundOperations},
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT: 5.0,
