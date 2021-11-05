@@ -32,7 +32,7 @@ class TransactionType(Enum):
     WAIT = "wait"
 
     SWAP_SELECT_KEEPER = "swap_select_keeper"
-    SWAP_TRANSACTION_HASH = "swap_transaction_hash"
+    SWAP_TRANSACTION_HASH = "swap_tx_hash"
     SWAP_SIGNATURE = "swap_signature"
     SWAP_SEND = "swap_send"
     SWAP_VALIDATION = "swap_validation"
@@ -40,31 +40,31 @@ class TransactionType(Enum):
     ALLOWANCE_CHECK = "allowance_check"
 
     ADD_ALLOWANCE_SELECT_KEEPER = "add_allowance_select_keeper"
-    ADD_ALLOWANCE_TRANSACTION_HASH = "add_allowance_transaction_hash"
+    ADD_ALLOWANCE_TRANSACTION_HASH = "add_allowance_tx_hash"
     ADD_ALLOWANCE_SIGNATURE = "add_allowance_signature"
     ADD_ALLOWANCE_SEND = "add_allowance_send"
     ADD_ALLOWANCE_VALIDATION = "add_allowance_validation"
 
     ADD_LIQUIDITY_SELECT_KEEPER = "add_liquidity_select_keeper"
-    ADD_LIQUIDITY_TRANSACTION_HASH = "add_liquidity_transaction_hash"
+    ADD_LIQUIDITY_TRANSACTION_HASH = "add_liquidity_tx_hash"
     ADD_LIQUIDITY_SIGNATURE = "add_liquidity_signature"
     ADD_LIQUIDITY_SEND = "add_liquidity_send"
     ADD_LIQUIDITY_VALIDATION = "add_liquidity_validation"
 
     REMOVE_LIQUIDITY_SELECT_KEEPER = "remove_liquidity_select_keeper"
-    REMOVE_LIQUIDITY_TRANSACTION_HASH = "remove_liquidity_transaction_hash"
+    REMOVE_LIQUIDITY_TRANSACTION_HASH = "remove_liquidity_tx_hash"
     REMOVE_LIQUIDITY_SIGNATURE = "remove_liquidity_signature"
     REMOVE_LIQUIDITY_SEND = "remove_liquidity_send"
     REMOVE_LIQUIDITY_VALIDATION = "remove_liquidity_validation"
 
     REMOVE_ALLOWANCE_SELECT_KEEPER = "remove_allowance_select_keeper"
-    REMOVE_ALLOWANCE_TRANSACTION_HASH = "remove_allowance_transaction_hash"
+    REMOVE_ALLOWANCE_TRANSACTION_HASH = "remove_allowance_tx_hash"
     REMOVE_ALLOWANCE_SIGNATURE = "remove_allowance_signature"
     REMOVE_ALLOWANCE_SEND = "remove_allowance_send"
     REMOVE_ALLOWANCE_VALIDATION = "remove_allowance_validation"
 
     SWAP_BACK_SELECT_KEEPER = "swap_back_select_keeper"
-    SWAP_BACK_TRANSACTION_HASH = "swap_back_transaction_hash"
+    SWAP_BACK_TRANSACTION_HASH = "swap_back_tx_hash"
     SWAP_BACK_SIGNATURE = "swap_back_signature"
     SWAP_BACK_SEND = "swap_back_send"
     SWAP_BACK_VALIDATION = "swap_back_validation"
@@ -125,7 +125,112 @@ class SwapTransactionHashPayload(BaseLiquidityProvisionPayload):
     transaction_type = TransactionType.SWAP_TRANSACTION_HASH
 
     def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
-        """Initialize a 'swap_transaction_hash' transaction payload.
+        """Initialize a 'swap_tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict()
+
+
+class AddAllowanceTransactionHashPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'add_allowance_tx_hash'."""
+
+    transaction_type = TransactionType.ADD_ALLOWANCE_TRANSACTION_HASH
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'add_allowance_tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict()
+
+
+class AddLiquidityTransactionHashPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'add_liquidity_tx_hash'."""
+
+    transaction_type = TransactionType.SWAP_TRANSACTION_HASH
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'add_liquidity_tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict()
+
+
+class RemoveLiquidityTransactionHashPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'remove_liquidity_tx_hash'."""
+
+    transaction_type = TransactionType.SWAP_TRANSACTION_HASH
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'remove_liquidity_tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict()
+
+
+class RemoveAllowanceTransactionHashPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'remove_allowance_tx_hash'."""
+
+    transaction_type = TransactionType.SWAP_TRANSACTION_HASH
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'remove_allowance_tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param strategy: the new strategy to follow
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._strategy = strategy
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict()
+
+
+class SwapBackTransactionHashPayload(BaseLiquidityProvisionPayload):
+    """Represent a transaction payload of type 'swap_back_tx_hash'."""
+
+    transaction_type = TransactionType.SWAP_TRANSACTION_HASH
+
+    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+        """Initialize a 'swap_back_tx_hash' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param strategy: the new strategy to follow

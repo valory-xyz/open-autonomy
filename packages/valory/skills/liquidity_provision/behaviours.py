@@ -218,7 +218,7 @@ class SwapTransactionHashBehaviour(LiquidityProvisionBaseState):
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
-            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            self.context.logger.info(f"Hash of the Swap transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
 
         with benchmark_tool.measure(
@@ -271,6 +271,45 @@ class AddAllowanceTransactionHashBehaviour(LiquidityProvisionBaseState):
     state_id = "add_allowance_tx_hash"
     matching_round = AddAllowanceTransactionHashRound
 
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_add_allowance_tx_hash
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address="",
+                contract_id="",
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address="",
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(
+                f"Hash of the AddAllowance transaction: {safe_tx_hash}"
+            )
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class AddAllowanceSignatureBehaviour(LiquidityProvisionBaseState):
     """Approve token: sign the transaction."""
@@ -305,6 +344,45 @@ class AddLiquidityTransactionHashBehaviour(LiquidityProvisionBaseState):
 
     state_id = "add_liquidity_tx_hash"
     matching_round = AddLiquidityTransactionHashRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_add_liquidity_tx_hash
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address="",
+                contract_id="",
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address="",
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(
+                f"Hash of the AddLiquidity transaction: {safe_tx_hash}"
+            )
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class AddLiquiditySignatureBehaviour(LiquidityProvisionBaseState):
@@ -341,6 +419,45 @@ class RemoveLiquidityTransactionHashBehaviour(LiquidityProvisionBaseState):
     state_id = "remove_liquidity_tx_hash"
     matching_round = RemoveLiquidityTransactionHashRound
 
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_remove_liquidity_tx_hash
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address="",
+                contract_id="",
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address="",
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(
+                f"Hash of the RemoveLiquidity transaction: {safe_tx_hash}"
+            )
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class RemoveLiquiditySignatureBehaviour(LiquidityProvisionBaseState):
     """Leave liquidity pool: sign the transaction."""
@@ -376,6 +493,45 @@ class RemoveAllowanceTransactionHashBehaviour(LiquidityProvisionBaseState):
     state_id = "remove_allowance_tx_hash"
     matching_round = RemoveAllowanceTransactionHashRound
 
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_remove_allowance_tx_hash
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address="",
+                contract_id="",
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address="",
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(
+                f"Hash of the RemoveAllowance transaction: {safe_tx_hash}"
+            )
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class RemoveAllowanceSignatureBehaviour(LiquidityProvisionBaseState):
     """Cancel token allowance: sign the transaction."""
@@ -410,6 +566,45 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseState):
 
     state_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            data = self.period_state.encoded_most_voted_swap_back_tx_hash
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address="",
+                contract_id="",
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address="",
+                value=0,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(
+                f"Hash of the SwapBack transaction: {safe_tx_hash}"
+            )
+            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class SwapBackSignatureBehaviour(LiquidityProvisionBaseState):

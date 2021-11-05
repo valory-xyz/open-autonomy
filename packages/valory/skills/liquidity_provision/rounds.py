@@ -79,6 +79,26 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
         most_voted_swap_tx_hash: Optional[dict] = None,
+        participant_to_add_allowance_tx_hash: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_add_allowance_tx_hash: Optional[dict] = None,
+        participant_to_add_liquidity_tx_hash: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_add_liquidity_tx_hash: Optional[dict] = None,
+        participant_to_remove_liquidity_tx_hash: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_remove_liquidity_tx_hash: Optional[dict] = None,
+        participant_to_remove_allowance_tx_hash: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_remove_allowance_tx_hash: Optional[dict] = None,
+        participant_to_swap_back_tx_hash: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
+        most_voted_swap_back_tx_hash: Optional[dict] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
@@ -86,6 +106,29 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_strategy = most_voted_strategy
         self._participant_to_swap_tx_hash = participant_to_swap_tx_hash
         self._most_voted_swap_tx_hash = most_voted_swap_tx_hash
+
+        self._participant_to_add_allowance_tx_hash = (
+            participant_to_add_allowance_tx_hash
+        )
+        self._most_voted_add_allowance_tx_hash = most_voted_add_allowance_tx_hash
+
+        self._participant_to_add_liquidity_tx_hash = (
+            participant_to_add_liquidity_tx_hash
+        )
+        self._most_voted_add_liquidity_tx_hash = most_voted_add_liquidity_tx_hash
+
+        self._participant_to_remove_liquidity_tx_hash = (
+            participant_to_remove_liquidity_tx_hash
+        )
+        self._most_voted_remove_liquidity_tx_hash = most_voted_remove_liquidity_tx_hash
+
+        self._participant_to_remove_allowance_tx_hash = (
+            participant_to_remove_allowance_tx_hash
+        )
+        self._most_voted_remove_allowance_tx_hash = most_voted_remove_allowance_tx_hash
+
+        self._participant_to_swap_back_tx_hash = participant_to_swap_back_tx_hash
+        self._most_voted_swap_back_tx_hash = most_voted_swap_back_tx_hash
 
     @property
     def most_voted_strategy(self) -> dict:
@@ -113,6 +156,76 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def encoded_most_voted_swap_tx_hash(self) -> bytes:
         """Get the encoded (most voted) swap tx hash."""
+        return bytes()
+
+    @property
+    def most_voted_add_allowance_tx_hash(self) -> dict:
+        """Get the most_voted_add_allowance_tx_hash."""
+        enforce(
+            self._most_voted_add_allowance_tx_hash is not None,
+            "'most_voted_add_allowance_tx_hash' field is None",
+        )
+        return cast(dict, self._most_voted_add_allowance_tx_hash)
+
+    @property
+    def encoded_most_voted_add_allowance_tx_hash(self) -> bytes:
+        """Get the encoded (most voted) add_allowance tx hash."""
+        return bytes()
+
+    @property
+    def most_voted_add_liquidity_tx_hash(self) -> dict:
+        """Get the most_voted_add_liquidity_tx_hash."""
+        enforce(
+            self._most_voted_add_liquidity_tx_hash is not None,
+            "'most_voted_add_liquidity_tx_hash' field is None",
+        )
+        return cast(dict, self._most_voted_add_liquidity_tx_hash)
+
+    @property
+    def encoded_most_voted_add_liquidity_tx_hash(self) -> bytes:
+        """Get the encoded (most voted) add_liquidity tx hash."""
+        return bytes()
+
+    @property
+    def most_voted_remove_liquidity_tx_hash(self) -> dict:
+        """Get the most_voted_remove_liquidity_tx_hash."""
+        enforce(
+            self._most_voted_remove_liquidity_tx_hash is not None,
+            "'most_voted_remove_liquidity_tx_hash' field is None",
+        )
+        return cast(dict, self._most_voted_remove_liquidity_tx_hash)
+
+    @property
+    def encoded_most_voted_remove_liquidity_tx_hash(self) -> bytes:
+        """Get the encoded (most voted) remove_liquidity tx hash."""
+        return bytes()
+
+    @property
+    def most_voted_remove_allowance_tx_hash(self) -> dict:
+        """Get the most_voted_remove_allowance_tx_hash."""
+        enforce(
+            self._most_voted_remove_allowance_tx_hash is not None,
+            "'most_voted_remove_allowance_tx_hash' field is None",
+        )
+        return cast(dict, self._most_voted_remove_allowance_tx_hash)
+
+    @property
+    def encoded_most_voted_remove_allowance_tx_hash(self) -> bytes:
+        """Get the encoded (most voted) remove_allowance tx hash."""
+        return bytes()
+
+    @property
+    def most_voted_swap_back_tx_hash(self) -> dict:
+        """Get the most_voted_swap_back_tx_hash."""
+        enforce(
+            self._most_voted_swap_back_tx_hash is not None,
+            "'most_voted_swap_back_tx_hash' field is None",
+        )
+        return cast(dict, self._most_voted_swap_back_tx_hash)
+
+    @property
+    def encoded_most_voted_swap_back_tx_hash(self) -> bytes:
+        """Get the encoded (most voted) swap_back tx hash."""
         return bytes()
 
     def reset(self) -> "PeriodState":
