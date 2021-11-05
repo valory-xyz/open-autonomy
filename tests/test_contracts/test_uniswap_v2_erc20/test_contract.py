@@ -61,7 +61,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         """Deploy contract."""
         return {}
 
-    def test_aprove(self) -> None:
+    def test_approve(self) -> None:
         """Test approve."""
         eth_value = 0
         gas = 100
