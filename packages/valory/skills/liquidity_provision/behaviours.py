@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'liquidity_provision' skill."""
+import binascii
 from abc import ABC
 from typing import Generator, Set, Type, cast
 
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -58,6 +60,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
     RemoveLiquidityTransactionHashRound,
     RemoveLiquidityValidationRound,
     SelectKeeperMainRound,
+    SignatureBaseRound,
     StrategyEvaluationRound,
     SwapBackSelectKeeperRound,
     SwapBackSendRound,
@@ -86,13 +89,16 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     ValidateSafeBehaviour as DeploySafeValidationBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
-from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
+from packages.valory.skills.price_estimation_abci.payloads import (
+    SignaturePayload,
+    TransactionHashPayload,
+)
 
 
 benchmark_tool = BenchmarkTool()
 
 
-class LiquidityProvisionBaseState(BaseState, ABC):
+class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     """Base state behaviour for the liquidity provision skill."""
 
     @property
@@ -104,6 +110,54 @@ class LiquidityProvisionBaseState(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
+
+
+class SignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
+    """Signature base behaviour."""
+
+    state_id = "signature"
+    matching_round = SignatureBaseRound
+    tx_hash = "hash"
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the signature of the transaction hash.
+        - Send the signature as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info(
+                f"Consensus reached on {self.state_id} tx hash: {self.tx_hash}"
+            )
+            signature_hex = yield from self._get_safe_tx_signature()
+            payload = SignaturePayload(self.context.agent_address, signature_hex)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _get_safe_tx_signature(self) -> Generator[None, None, str]:
+        # is_deprecated_mode=True because we want to call Account.signHash,
+        # which is the same used by gnosis-py
+        safe_tx_hash_bytes = binascii.unhexlify(self.tx_hash)
+        self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
+        signature_response = yield from self.wait_for_message()
+        signature_hex = cast(SigningMessage, signature_response).signed_message.body
+        # remove the leading '0x'
+        signature_hex = signature_hex[2:]
+        self.context.logger.info(f"Signature: {signature_hex}")
+        return signature_hex
 
 
 class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
@@ -131,7 +185,7 @@ def get_strategy_update() -> dict:
     return strategy
 
 
-class StrategyEvaluationBehaviour(LiquidityProvisionBaseState):
+class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
     """Evaluate the financial strategy."""
 
     state_id = "strategy_evaluation"
@@ -165,7 +219,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class WaitBehaviour(LiquidityProvisionBaseState):
+class WaitBehaviour(LiquidityProvisionBaseBehaviour):
     """Wait until next strategy evaluation."""
 
     state_id = "wait"
@@ -179,7 +233,7 @@ class SwapSelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = SwapSelectKeeperRound
 
 
-class SwapTransactionHashBehaviour(LiquidityProvisionBaseState):
+class SwapTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens: prepare transaction hash."""
 
     state_id = "swap_tx_hash"
@@ -223,21 +277,26 @@ class SwapTransactionHashBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class SwapSignatureBehaviour(LiquidityProvisionBaseState):
+class SwapSignatureBehaviour(SignatureBaseBehaviour):
     """Swap tokens: sign the transaction."""
 
     state_id = "swap_signature"
     matching_round = SwapSignatureRound
 
+    def __init__(self) -> None:
+        """Set the correct tx hash"""
+        self.tx_hash = self.period_state.most_voted_swap_tx_hash
+        super().__init__()
 
-class SwapSendBehaviour(LiquidityProvisionBaseState):
+
+class SwapSendBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens: send the transaction."""
 
     state_id = "swap_send"
     matching_round = SwapSendRound
 
 
-class SwapValidationBehaviour(LiquidityProvisionBaseState):
+class SwapValidationBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens: validate the tx."""
 
     state_id = "swap_validation"
@@ -249,7 +308,7 @@ def get_allowance() -> int:
     return 0
 
 
-class AllowanceCheckBehaviour(LiquidityProvisionBaseState):
+class AllowanceCheckBehaviour(LiquidityProvisionBaseBehaviour):
     """Check the current token allowance."""
 
     state_id = "allowance_check"
@@ -285,7 +344,7 @@ class AddAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = AddAllowanceSelectKeeperRound
 
 
-class AddAllowanceTransactionHashBehaviour(LiquidityProvisionBaseState):
+class AddAllowanceTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Approve token: prepare transaction hash."""
 
     state_id = "add_allowance_tx_hash"
@@ -331,21 +390,26 @@ class AddAllowanceTransactionHashBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class AddAllowanceSignatureBehaviour(LiquidityProvisionBaseState):
+class AddAllowanceSignatureBehaviour(LiquidityProvisionBaseBehaviour):
     """Approve token: sign the transaction."""
 
     state_id = "add_allowance_signature"
     matching_round = AddAllowanceSignatureRound
 
+    def __init__(self) -> None:
+        """Set the correct tx hash"""
+        self.tx_hash = self.period_state.most_voted_add_allowance_tx_hash
+        super().__init__()
 
-class AddAllowanceSendBehaviour(LiquidityProvisionBaseState):
+
+class AddAllowanceSendBehaviour(LiquidityProvisionBaseBehaviour):
     """Approve token: send the transaction."""
 
     state_id = "add_allowance_send"
     matching_round = AddAllowanceSendRound
 
 
-class AddAllowanceValidationBehaviour(LiquidityProvisionBaseState):
+class AddAllowanceValidationBehaviour(LiquidityProvisionBaseBehaviour):
     """Approve token: validate the tx."""
 
     state_id = "add_allowance_validation"
@@ -359,7 +423,7 @@ class AddLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = AddLiquiditySelectKeeperRound
 
 
-class AddLiquidityTransactionHashBehaviour(LiquidityProvisionBaseState):
+class AddLiquidityTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Enter liquidity pool: prepare transaction hash."""
 
     state_id = "add_liquidity_tx_hash"
@@ -405,21 +469,26 @@ class AddLiquidityTransactionHashBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class AddLiquiditySignatureBehaviour(LiquidityProvisionBaseState):
+class AddLiquiditySignatureBehaviour(LiquidityProvisionBaseBehaviour):
     """Enter liquidity pool: sign the transaction."""
 
     state_id = "add_liquidity_signature"
     matching_round = AddLiquiditySignatureRound
 
+    def __init__(self) -> None:
+        """Set the correct tx hash"""
+        self.tx_hash = self.period_state.most_voted_add_liquidity_tx_hash
+        super().__init__()
 
-class AddLiquiditySendBehaviour(LiquidityProvisionBaseState):
+
+class AddLiquiditySendBehaviour(LiquidityProvisionBaseBehaviour):
     """Enter liquidity pool: send the transaction."""
 
     state_id = "add_liquidity_send"
     matching_round = AddLiquiditySendRound
 
 
-class AddLiquidityValidationBehaviour(LiquidityProvisionBaseState):
+class AddLiquidityValidationBehaviour(LiquidityProvisionBaseBehaviour):
     """Enter liquidity pool: validate the tx."""
 
     state_id = "add_liquidity_validation"
@@ -433,7 +502,7 @@ class RemoveLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = RemoveLiquiditySelectKeeperRound
 
 
-class RemoveLiquidityTransactionHashBehaviour(LiquidityProvisionBaseState):
+class RemoveLiquidityTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Leave liquidity pool: prepare transaction hash."""
 
     state_id = "remove_liquidity_tx_hash"
@@ -479,21 +548,26 @@ class RemoveLiquidityTransactionHashBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class RemoveLiquiditySignatureBehaviour(LiquidityProvisionBaseState):
+class RemoveLiquiditySignatureBehaviour(LiquidityProvisionBaseBehaviour):
     """Leave liquidity pool: sign the transaction."""
 
     state_id = "remove_liquidity_signature"
     matching_round = RemoveLiquiditySignatureRound
 
+    def __init__(self) -> None:
+        """Set the correct tx hash"""
+        self.tx_hash = self.period_state.most_voted_remove_liquidity_tx_hash
+        super().__init__()
 
-class RemoveLiquiditySendBehaviour(LiquidityProvisionBaseState):
+
+class RemoveLiquiditySendBehaviour(LiquidityProvisionBaseBehaviour):
     """Leave liquidity pool: send the transaction."""
 
     state_id = "remove_liquidity_send"
     matching_round = RemoveLiquiditySendRound
 
 
-class RemoveLiquidityValidationBehaviour(LiquidityProvisionBaseState):
+class RemoveLiquidityValidationBehaviour(LiquidityProvisionBaseBehaviour):
     """Leave liquidity pool: validate the tx."""
 
     state_id = "remove_liquidity_validation"
@@ -507,7 +581,7 @@ class RemoveAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = RemoveAllowanceSelectKeeperRound
 
 
-class RemoveAllowanceTransactionHashBehaviour(LiquidityProvisionBaseState):
+class RemoveAllowanceTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Cancel token allowance: prepare transaction hash."""
 
     state_id = "remove_allowance_tx_hash"
@@ -553,21 +627,26 @@ class RemoveAllowanceTransactionHashBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class RemoveAllowanceSignatureBehaviour(LiquidityProvisionBaseState):
+class RemoveAllowanceSignatureBehaviour(LiquidityProvisionBaseBehaviour):
     """Cancel token allowance: sign the transaction."""
 
     state_id = "remove_allowance_signature"
     matching_round = RemoveAllowanceSignatureRound
 
+    def __init__(self) -> None:
+        """Set the correct tx hash"""
+        self.tx_hash = self.period_state.most_voted_remove_allowance_tx_hash
+        super().__init__()
 
-class RemoveAllowanceSendBehaviour(LiquidityProvisionBaseState):
+
+class RemoveAllowanceSendBehaviour(LiquidityProvisionBaseBehaviour):
     """Cancel token allowance: send the transaction."""
 
     state_id = "remove_allowance_send"
     matching_round = RemoveAllowanceSendRound
 
 
-class RemoveAllowanceValidationBehaviour(LiquidityProvisionBaseState):
+class RemoveAllowanceValidationBehaviour(LiquidityProvisionBaseBehaviour):
     """Cancel token allowance: validate the tx."""
 
     state_id = "remove_allowance_validation"
@@ -581,7 +660,7 @@ class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = SwapBackSelectKeeperRound
 
 
-class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseState):
+class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens back to original holdings: prepare transaction hash."""
 
     state_id = "swap_back_tx_hash"
@@ -627,21 +706,26 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseState):
         self.set_done()
 
 
-class SwapBackSignatureBehaviour(LiquidityProvisionBaseState):
+class SwapBackSignatureBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens back to original holdings: sign the transaction."""
 
     state_id = "swap_back_signature"
     matching_round = SwapBackSignatureRound
 
+    def __init__(self) -> None:
+        """Set the correct tx hash"""
+        self.tx_hash = self.period_state.most_voted_swap_back_tx_hash
+        super().__init__()
 
-class SwapBackSendBehaviour(LiquidityProvisionBaseState):
+
+class SwapBackSendBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens back to original holdings: send the transaction."""
 
     state_id = "swap_back_send"
     matching_round = SwapBackSendRound
 
 
-class SwapBackValidationBehaviour(LiquidityProvisionBaseState):
+class SwapBackValidationBehaviour(LiquidityProvisionBaseBehaviour):
     """Swap tokens back to original holdings: validate the tx."""
 
     state_id = "swap_back_validation"
