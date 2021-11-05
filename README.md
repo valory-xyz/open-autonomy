@@ -3,7 +3,7 @@
 This repository contains the [Valory](https://www.valory.xyz/) stack, a set of distributed consensus
 technologies built on top of the [open AEA framework](https://github.com/valory-xyz/open-aea) to facilitate the creation of dynamic, decentralised applications that depend on off-chain components.
 
-As opposed to tradicional smart contracts, Valory apps go beyond simple, purely reactive applications and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization.
+As opposed to traditional smart contracts, Valory apps go beyond simple, purely reactive applications and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization.
 
 
 ## Requirements
@@ -23,7 +23,7 @@ As opposed to tradicional smart contracts, Valory apps go beyond simple, purely 
 
       git submodule update --init --recursive
 
-- Create and launch a virtual environment. Also, run this during development, everytime you need to re-create and launch the virtual environment and update the dependencies:
+- Create and launch a virtual environment. Also, run this during development, every time you need to re-create and launch the virtual environment and update the dependencies:
 
       make new_env && pipenv shell
 

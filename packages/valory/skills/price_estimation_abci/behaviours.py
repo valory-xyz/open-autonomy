@@ -166,28 +166,36 @@ class RandomnessBehaviour(PriceEstimationBaseState):
 
         Steps:
         - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit. Raise if timed out.
+        - Retry until healthcheck passes or timeout is hit.
         - If healthcheck passes set done event.
         """
-        if self.params.is_health_check_timed_out():
-            # if the tendermint node cannot start then the app cannot work
-            raise RuntimeError("DRAND values not retrived!")
-
-        try:
+        if self.context.randomness_api.is_retries_exceeded():
+            # now we need to wait and see if the other agents progress the round
             with benchmark_tool.measure(
                 self,
-            ).local():
-                http_message, http_dialogue = self._build_http_request_message(
-                    method="GET",
-                    url="https://drand.cloudflare.com/public/latest",
-                )
-                response = yield from self._do_request(http_message, http_dialogue)
-                result = json.loads(response.body.decode())
-                self.context.logger.info(f"Retrieved DRAND values: {result}.")
-                payload = RandomnessPayload(
-                    self.context.agent_address, result["round"], result["randomness"]
-                )
+            ).consensus():
+                yield from self.wait_until_round_end()
+            self.set_done()
+            return
 
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            api_specs = self.context.randomness_api.get_spec()
+            http_message, http_dialogue = self._build_http_request_message(
+                method=api_specs["method"],
+                url=api_specs["url"],
+            )
+            response = yield from self._do_request(http_message, http_dialogue)
+            observation = self.context.randomness_api.post_request_process(response)
+
+        if observation:
+            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
+            payload = RandomnessPayload(
+                self.context.agent_address,
+                observation["round"],
+                observation["randomness"],
+            )
             with benchmark_tool.measure(
                 self,
             ).consensus():
@@ -195,11 +203,12 @@ class RandomnessBehaviour(PriceEstimationBaseState):
                 yield from self.wait_until_round_end()
 
             self.set_done()
-
-        except json.JSONDecodeError:
-            self.context.logger.error("Tendermint not running, trying again!")
+        else:
+            self.context.logger.error(
+                f"Could not get randomness from {self.context.randomness_api.api_id}"
+            )
             yield from self.sleep(1)
-            self.params.increment_retries()
+            self.context.randomness_api.increment_retries()
 
 
 class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
@@ -400,7 +409,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
             convert_id = self.params.convert_id
             api_specs = self.context.price_api.get_spec(currency_id, convert_id)
             http_message, http_dialogue = self._build_http_request_message(
-                method="GET",
+                method=api_specs["method"],
                 url=api_specs["url"],
                 headers=api_specs["headers"],
                 parameters=api_specs["parameters"],
@@ -678,7 +687,17 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
             tx_hash=self.period_state.final_tx_hash,
+            owners=tuple(self.period_state.participants),
+            to_address=self.period_state.most_voted_keeper_address,
+            value=0,
+            data=self.period_state.encoded_most_voted_estimate,
+            signatures_by_owner={
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
+            },
         )
+        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
         return verified
 

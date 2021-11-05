@@ -267,6 +267,8 @@ class GnosisSafeContract(Contract):
 
         Adapted from https://github.com/gnosis/gnosis-py/blob/69f1ee3263086403f6017effa0841c6a2fbba6d6/gnosis/safe/safe_tx.py#L125
 
+        Note, because safe_nonce is included in the tx_hash the agents implicitly agree on the order of txs if they agree on a tx_hash.
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param to_address: the tx recipient address
@@ -347,6 +349,22 @@ class GnosisSafeContract(Contract):
         return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
 
     @classmethod
+    def _get_packed_signatures(
+        cls, owners: Tuple[str], signatures_by_owner: Dict[str, str]
+    ) -> bytes:
+        """Get the packed signatures."""
+        sorted_owners = sorted(owners, key=str.lower)
+        signatures = b""
+        for signer in sorted_owners:
+            if signer not in signatures_by_owner:
+                continue  # pragma: nocover
+            signature = signatures_by_owner[signer]
+            signature_bytes = binascii.unhexlify(signature)
+            signatures += signature_bytes
+        # Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+        return signatures
+
+    @classmethod
     def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
         ledger_api: LedgerApi,
@@ -364,7 +382,6 @@ class GnosisSafeContract(Contract):
         gas_token: str = NULL_ADDRESS,
         refund_receiver: str = NULL_ADDRESS,
         safe_nonce: Optional[int] = None,
-        safe_version: Optional[str] = None,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -385,29 +402,15 @@ class GnosisSafeContract(Contract):
         :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
         :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
         :param safe_nonce: Current nonce of the Safe. If not provided, it will be retrieved from network
-        :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
         :return: the raw Safe transaction
         """
         to_address = ledger_api.api.toChecksumAddress(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
-        sorted_owners = sorted(owners, key=str.lower)
-        signatures = b""
-        for signer in sorted_owners:
-            if signer not in signatures_by_owner:
-                continue  # pragma: nocover
-            signature = signatures_by_owner[signer]
-            signature_bytes = binascii.unhexlify(signature)
-            signatures += signature_bytes
-        # Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-
+        signatures = cls._get_packed_signatures(owners, signatures_by_owner)
         safe_contract = cls.get_instance(ledger_api, contract_address)
 
         if safe_nonce is None:
             safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
-        if safe_version is None:
-            safe_version = safe_contract.functions.VERSION().call(
-                block_identifier="latest"
-            )
 
         w3_tx = safe_contract.functions.execTransaction(
             to_address,
@@ -453,29 +456,81 @@ class GnosisSafeContract(Contract):
         return dict(verified=verified)
 
     @classmethod
-    def verify_tx(
+    def verify_tx(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
         ledger_api: LedgerApi,
-        contract_address: str,  # pylint: disable=unused-argument
+        contract_address: str,
         tx_hash: str,
+        owners: Tuple[str],
+        to_address: str,
+        value: int,
+        data: bytes,
+        signatures_by_owner: Dict[str, str],
+        operation: int = SafeOperation.CALL.value,
+        safe_tx_gas: int = 0,
+        base_gas: int = 0,
+        gas_price: int = 0,
+        gas_token: str = NULL_ADDRESS,
+        refund_receiver: str = NULL_ADDRESS,
+        safe_version: Optional[str] = None,
     ) -> JSONLike:
         """
         Verify a tx hash exists on the blockchain.
 
+        Currently, the implementation is an overkill as most of the verification is implicit by the acceptance of the transaction in the Safe.
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param tx_hash: the transaction hash
+        :param owners: the sequence of owners
+        :param to_address: Destination address of Safe transaction
+        :param value: Ether value of Safe transaction
+        :param data: Data payload of Safe transaction
+        :param signatures_by_owner: mapping from owners to signatures
+        :param operation: Operation type of Safe transaction
+        :param safe_tx_gas: Gas that should be used for the Safe transaction
+        :param base_gas: Gas costs for that are independent of the transaction execution
+            (e.g. base transaction fee, signature check, payment of the refund)
+        :param gas_price: Gas price that should be used for the payment calculation
+        :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
+        :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
+        :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
         :return: the verified status
         """
+        to_address = ledger_api.api.toChecksumAddress(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        signatures = cls._get_packed_signatures(owners, signatures_by_owner)
+
+        if safe_version is None:
+            safe_version = safe_contract.functions.VERSION().call(
+                block_identifier="latest"
+            )
+        # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
+        safe_version_ = Version(safe_version)
+        base_gas_name = "baseGas" if safe_version_ >= Version("1.0.0") else "dataGas"
 
         try:
             transaction = ledger_api.api.eth.getTransaction(tx_hash)
             receipt = ledger_api.get_transaction_receipt(tx_hash)
             if receipt is None:
                 raise ValueError  # pragma: nocover
-            verified = transaction["to"] == contract_address and receipt["status"]
-            # TOFIX: verify input field in tx
+            decoded = safe_contract.decode_function_input(transaction["input"])
+            verified = (
+                transaction["to"] == contract_address
+                and receipt["status"]
+                # and "execTransaction" in str(decoded[0]) # noqa: E800
+                and decoded[1]["to"] == to_address
+                and decoded[1]["value"] == value
+                and decoded[1]["data"] == data
+                and decoded[1]["operation"] == operation
+                and decoded[1]["safeTxGas"] == safe_tx_gas
+                and decoded[1][base_gas_name] == base_gas
+                and decoded[1]["gasPrice"] == gas_price
+                and decoded[1]["gasToken"] == gas_token
+                and decoded[1]["refundReceiver"] == refund_receiver
+                and decoded[1]["signatures"] == signatures
+            )
             return dict(verified=verified)
-        except (TransactionNotFound, ValueError):  # pragma: nocover
+        except (TransactionNotFound, KeyError, ValueError):  # pragma: nocover
             return dict(verified=False)

@@ -783,6 +783,16 @@ def __eq__(other)
 
 Compare with another object.
 
+<a id="packages.valory.protocols.abci.custom_types.CheckTxTypeEnum"></a>
+
+## CheckTxTypeEnum Objects
+
+```python
+class CheckTxTypeEnum(Enum)
+```
+
+CheckTxTypeEnum for tx check.
+
 <a id="packages.valory.protocols.abci.custom_types.CheckTxType"></a>
 
 ## CheckTxType Objects
@@ -1078,6 +1088,17 @@ def __init__(version: ConsensusVersion, chain_id: str, height: int, time: "Times
 ```
 
 Initialise an instance of Header.
+
+<a id="packages.valory.protocols.abci.custom_types.Header.timestamp"></a>
+
+#### timestamp
+
+```python
+@property
+def timestamp() -> datetime.datetime
+```
+
+Get the block timestamp.
 
 <a id="packages.valory.protocols.abci.custom_types.Header.encode"></a>
 

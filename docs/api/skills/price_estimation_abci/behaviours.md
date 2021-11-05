@@ -36,17 +36,6 @@ def params() -> Params
 
 Return the params.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState.shared_state"></a>
-
-#### shared`_`state
-
-```python
-@property
-def shared_state() -> SharedState
-```
-
-Return the shared state.
-
 <a id="packages.valory.skills.price_estimation_abci.behaviours.TendermintHealthcheckBehaviour"></a>
 
 ## TendermintHealthcheckBehaviour Objects
@@ -120,7 +109,7 @@ Check whether tendermint is running or not.
 
 Steps:
 - Do a http request to the tendermint health check endpoint
-- Retry until healthcheck passes or timeout is hit. Raise if timed out.
+- Retry until healthcheck passes or timeout is hit.
 - If healthcheck passes set done event.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.SelectKeeperBehaviour"></a>
@@ -256,28 +245,6 @@ Steps:
 - Send an observation transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.WaitBehaviour"></a>
-
-## WaitBehaviour Objects
-
-```python
-class WaitBehaviour(PriceEstimationBaseState)
-```
-
-Wait behaviour.
-
-This behaviour is used to regroup the agents after a failure.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.WaitBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.EstimateBehaviour"></a>
 

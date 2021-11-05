@@ -12,7 +12,7 @@
 python3 aggregate_results.py
 ```
 
-> To experiment with different block time change timeout values in update_tendermint_timeouts.py.
+> To experiment with different block time change timeout values in `update_tendermint_timeouts.py`.
 
 ```python
 timeout_config_data = {

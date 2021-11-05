@@ -24,35 +24,15 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the state.
 
-<a id="packages.valory.skills.price_estimation_abci.models.SharedState.reset_state_time"></a>
+<a id="packages.valory.skills.price_estimation_abci.models.SharedState.setup"></a>
 
-#### reset`_`state`_`time
-
-```python
-def reset_state_time(state_id: str) -> None
-```
-
-Reset the state start time to the current time.
-
-<a id="packages.valory.skills.price_estimation_abci.models.SharedState.set_state_time"></a>
-
-#### set`_`state`_`time
+#### setup
 
 ```python
-def set_state_time(state_id: str) -> None
+def setup() -> None
 ```
 
-Set the state start time to the current time.
-
-<a id="packages.valory.skills.price_estimation_abci.models.SharedState.has_keeper_timed_out"></a>
-
-#### has`_`keeper`_`timed`_`out
-
-```python
-def has_keeper_timed_out(state_id: str) -> bool
-```
-
-Check if the keeper has timed out.
+Set up.
 
 <a id="packages.valory.skills.price_estimation_abci.models.Params"></a>
 
