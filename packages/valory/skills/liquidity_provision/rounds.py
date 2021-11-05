@@ -32,14 +32,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
-    AddAllowanceTransactionHashPayload,
-    AddLiquidityTransactionHashPayload,
-    RemoveAllowanceTransactionHashPayload,
-    RemoveLiquidityTransactionHashPayload,
+    AllowanceCheckPayload,
     StrategyEvaluationPayload,
     StrategyType,
-    SwapBackTransactionHashPayload,
-    SwapTransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
@@ -334,7 +329,7 @@ class SwapTransactionHashRound(
     """This class represents the swap transaction hash round."""
 
     round_id = "swap_tx_hash"
-    allowed_tx_type = SwapTransactionHashPayload.transaction_type
+    allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -399,7 +394,7 @@ class AddAllowanceTransactionHashRound(
     """This class represents the AddAllowance transaction hash round."""
 
     round_id = "add_allowance_tx_hash"
-    allowed_tx_type = AddAllowanceTransactionHashPayload.transaction_type
+    allowed_tx_type = AllowanceCheckPayload.transaction_type
     payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -443,7 +438,7 @@ class AddLiquidityTransactionHashRound(
     """This class represents the AddLiquidity transaction hash round."""
 
     round_id = "add_liquidity_tx_hash"
-    allowed_tx_type = AddLiquidityTransactionHashPayload.transaction_type
+    allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -487,7 +482,7 @@ class RemoveLiquidityTransactionHashRound(
     """This class represents the RemoveLiquidity transaction hash round."""
 
     round_id = "remove_liquidity_tx_hash"
-    allowed_tx_type = RemoveLiquidityTransactionHashPayload.transaction_type
+    allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -533,7 +528,7 @@ class RemoveAllowanceTransactionHashRound(
     """This class represents the RemoveAllowance transaction hash round."""
 
     round_id = "remove_allowance_tx_hash"
-    allowed_tx_type = RemoveAllowanceTransactionHashPayload.transaction_type
+    allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -579,7 +574,7 @@ class SwapBackTransactionHashRound(
     """This class represents the SwapBack transaction hash round."""
 
     round_id = "swap_back_tx_hash"
-    allowed_tx_type = SwapBackTransactionHashPayload.transaction_type
+    allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
