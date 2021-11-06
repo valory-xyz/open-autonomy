@@ -37,17 +37,14 @@ from typing import (
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    BaseTxPayload,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     OnlyKeeperSendsRound,
-    TransactionNotValidError,
     VotingRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
@@ -95,6 +92,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
         participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
         most_voted_randomness: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
@@ -111,7 +109,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
-        super().__init__(participants=participants)
+        super().__init__(participants=participants, period_count=period_count)
         self._participant_to_randomness = participant_to_randomness
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
@@ -266,7 +264,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
-        return PeriodState(self.participants)
+        return PeriodState(
+            participants=self.participants, period_count=self.period_count
+        )
 
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -304,12 +304,15 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.collection_threshold_reached:
-            state = PeriodState(participants=self.collection)
+            state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+            )
             return state, Event.DONE
         return None
 
 
-class RandomnessRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
+class BaseRandomnessRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
     """
     This class represents the randomness round.
 
@@ -319,7 +322,6 @@ class RandomnessRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRou
     It schedules the SelectKeeperARound.
     """
 
-    round_id = "randomness"
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
 
@@ -563,6 +565,24 @@ class FinalizationRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
         return None
 
 
+class RandomnessStartupRound(BaseRandomnessRound):
+    """Randomness round for startup."""
+
+    round_id = "randomness_startup"
+
+
+class RandomnessRound(BaseRandomnessRound):
+    """Randomness round for operations."""
+
+    round_id = "randomness"
+
+
+class SelectKeeperStartupRound(SelectKeeperRound):
+    """SelectKeeper round for startup."""
+
+    round_id = "select_keeper_startup"
+
+
 class SelectKeeperARound(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
@@ -575,22 +595,34 @@ class SelectKeeperBRound(SelectKeeperRound):
     round_id = "select_keeper_b"
 
 
-class ConsensusReachedRound(PriceEstimationAbstractRound):
+class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
-    round_id = "consensus_reached"
-    allowed_tx_type = None
-
-    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
-        """Process the payload."""
-        raise ABCIAppInternalError("this round does not accept transactions")
-
-    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
-        """Check the payload"""
-        raise TransactionNotValidError("this round does not accept transactions")
+    round_id = "reset"
+    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_attribute = "sender"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+
+        if self.collection_threshold_reached:
+            state = self.period_state.update(
+                period_count=self.period_state.period_count + 1,
+                participant_to_randomness=None,
+                most_voted_randomness=None,
+                participant_to_selection=None,
+                most_voted_keeper_address=None,
+                participant_to_votes=None,
+                participant_to_observations=None,
+                participant_to_estimate=None,
+                estimate=None,
+                most_voted_estimate=None,
+                participant_to_tx_hash=None,
+                most_voted_tx_hash=None,
+                participant_to_signature=None,
+                final_tx_hash=None,
+            )
+            return state, Event.DONE
         return None
 
 
@@ -615,7 +647,7 @@ class ValidateTransactionRound(ValidateRound):
     Input: a period state with the prior round data
     Output: a new period state with the prior round data and the validation of the transaction
 
-    It schedules the ConsensusReachedRound or SelectKeeperARound.
+    It schedules the ResetRound or SelectKeeperARound.
     """
 
     round_id = "validate_transaction"
@@ -627,52 +659,62 @@ class PriceEstimationAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {
-            Event.DONE: SelectKeeperARound,
+        RegistrationRound: {Event.DONE: RandomnessStartupRound},
+        RandomnessStartupRound: {
+            Event.DONE: SelectKeeperStartupRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessStartupRound,
         },
-        SelectKeeperARound: {
+        SelectKeeperStartupRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperARound,
+            Event.EXIT: SelectKeeperStartupRound,
         },
         ValidateSafeRound: {
-            Event.DONE: CollectObservationRound,
+            Event.DONE: RandomnessRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+        },
+        RandomnessRound: {
+            Event.DONE: SelectKeeperARound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RandomnessRound,
+        },
+        SelectKeeperARound: {
+            Event.DONE: CollectObservationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.EXIT: SelectKeeperBRound,
         },
         ValidateTransactionRound: {
-            Event.DONE: ConsensusReachedRound,
+            Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
@@ -681,6 +723,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
+        ResetRound: {Event.DONE: RandomnessRound},
     }
     event_to_timeout: Dict[Event, float] = {
         Event.EXIT: 5.0,

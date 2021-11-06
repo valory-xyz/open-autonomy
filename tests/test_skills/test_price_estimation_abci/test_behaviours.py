@@ -42,6 +42,9 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.connections.ledger.base import (
+    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
@@ -60,15 +63,17 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour,
-    EndBehaviour,
     EstimateBehaviour,
     FinalizeBehaviour,
-    LEDGER_CONNECTION_PUBLIC_ID,
     ObserveBehaviour,
     PriceEstimationConsensusBehaviour,
-    RandomnessBehaviour,
+    RandomnessAtStartupBehaviour,
+    RandomnessInOperationBehaviour,
     RegistrationBehaviour,
+    ResetBehaviour,
     SelectKeeperABehaviour,
+    SelectKeeperAtStartupBehaviour,
+    SelectKeeperBBehaviour,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,
     TransactionHashBehaviour,
@@ -435,7 +440,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == TendermintHealthcheckBehaviour.state_id
         )
         self.skill.skill_context.params._count_healthcheck = (
-            self.skill.skill_context.params._max_healthcheck + 1
+            self.skill.skill_context.params.max_healthcheck + 1
         )
         with pytest.raises(AEAActException, match="Tendermint node did not come live!"):
             self.price_estimation_behaviour.act_wrapper()
@@ -513,11 +518,14 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessBehaviour.state_id
+        assert state.state_id == RandomnessAtStartupBehaviour.state_id
 
 
-class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
+
+    randomness_behaviour_class: Type[BaseState]
+    next_behaviour_class: Type[BaseState]
 
     def test_randomness_behaviour(
         self,
@@ -526,7 +534,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            RandomnessBehaviour.state_id,
+            self.randomness_behaviour_class.state_id,
             PeriodState(),
         )
         assert (
@@ -534,7 +542,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == RandomnessBehaviour.state_id
+            == self.randomness_behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_http_request(
@@ -565,7 +573,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == SelectKeeperABehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
     def test_invalid_response(
         self,
@@ -573,7 +581,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test invalid json response."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            RandomnessBehaviour.state_id,
+            self.randomness_behaviour_class.state_id,
             PeriodState(),
         )
         assert (
@@ -581,7 +589,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == RandomnessBehaviour.state_id
+            == self.randomness_behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
 
@@ -607,7 +615,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test with max retries reached."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            RandomnessBehaviour.state_id,
+            self.randomness_behaviour_class.state_id,
             PeriodState(),
         )
         assert (
@@ -615,7 +623,7 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == RandomnessBehaviour.state_id
+            == self.randomness_behaviour_class.state_id
         )
         with mock.patch.object(
             self.price_estimation_behaviour.context.randomness_api,
@@ -624,21 +632,38 @@ class TestRandomnessBehaviour(PriceEstimationFSMBehaviourBaseCase):
         ):
             self.price_estimation_behaviour.act_wrapper()
             state = cast(BaseState, self.price_estimation_behaviour.current_state)
-            assert state.state_id == RandomnessBehaviour.state_id
+            assert state.state_id == self.randomness_behaviour_class.state_id
             self._test_done_flag_set()
 
 
-class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
+    """Test randomness at startup."""
+
+    randomness_behaviour_class = RandomnessAtStartupBehaviour
+    next_behaviour_class = SelectKeeperAtStartupBehaviour
+
+
+class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
+    """Test randomness in operation."""
+
+    randomness_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = SelectKeeperABehaviour
+
+
+class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
     """Test SelectKeeperBehaviour."""
 
-    def test_observe_behaviour(
+    select_keeper_behaviour_class: Type[BaseState]
+    next_behaviour_class: Type[BaseState]
+
+    def test_select_keeper(
         self,
     ) -> None:
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
-            state_id=SelectKeeperABehaviour.state_id,
+            state_id=self.select_keeper_behaviour_class.state_id,
             period_state=PeriodState(
                 participants,
                 most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
@@ -649,14 +674,35 @@ class TestSelectKeeperABehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == SelectKeeperABehaviour.state_id
+            == self.select_keeper_behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == DeploySafeBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestSelectKeeperStartupBehaviour(BaseSelectKeeperBehaviourTest):
+    """Test SelectKeeperBehaviour."""
+
+    select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
+    next_behaviour_class = DeploySafeBehaviour
+
+
+class TestSelectKeeperABehaviour(BaseSelectKeeperBehaviourTest):
+    """Test SelectKeeperBehaviour."""
+
+    select_keeper_behaviour_class = SelectKeeperABehaviour
+    next_behaviour_class = ObserveBehaviour
+
+
+class TestSelectKeeperBBehaviour(BaseSelectKeeperBehaviourTest):
+    """Test SelectKeeperBehaviour."""
+
+    select_keeper_behaviour_class = SelectKeeperBBehaviour
+    next_behaviour_class = FinalizeBehaviour
 
 
 class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -804,7 +850,7 @@ class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ObserveBehaviour.state_id
+        assert state.state_id == RandomnessInOperationBehaviour.state_id
 
 
 class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1166,11 +1212,11 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == EndBehaviour.state_id
+        assert state.state_id == ResetBehaviour.state_id
 
 
-class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test EndBehaviour."""
+class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test ResetBehaviour."""
 
     def test_end_behaviour(
         self,
@@ -1178,7 +1224,7 @@ class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test end behaviour."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
-            state_id=EndBehaviour.state_id,
+            state_id=ResetBehaviour.state_id,
             period_state=PeriodState(
                 most_voted_estimate=0.1,
                 final_tx_hash="68656c6c6f776f726c64",
@@ -1189,9 +1235,14 @@ class TestEndBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == EndBehaviour.state_id
+            == ResetBehaviour.state_id
         )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
         self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state is not None and not state.is_done()
+        assert state.state_id == RandomnessInOperationBehaviour.state_id

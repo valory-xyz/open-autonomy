@@ -45,10 +45,10 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
-    ConsensusReachedRound,
     DeploySafeRound,
     RandomnessRound,
     RegistrationRound,
+    ResetRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     ValidateSafeRound as DeploySafeValidationRound,
@@ -852,7 +852,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.EXIT: SwapBackSelectKeeperRound,
         },
         SwapBackValidationRound: {
-            Event.DONE: ConsensusReachedRound,
+            Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },

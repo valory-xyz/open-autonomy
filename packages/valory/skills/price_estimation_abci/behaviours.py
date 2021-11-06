@@ -27,9 +27,6 @@ from typing import Generator, Set, Type, cast
 from aea_ledger_ethereum import EthereumApi
 
 from packages.open_aea.protocols.signing import SigningMessage
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
-)
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -53,25 +50,24 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
-    ConsensusReachedRound,
     DeploySafeRound,
     EstimateConsensusRound,
     FinalizationRound,
     PeriodState,
     PriceEstimationAbciApp,
     RandomnessRound,
+    RandomnessStartupRound,
     RegistrationRound,
+    ResetRound,
     SelectKeeperARound,
     SelectKeeperBRound,
+    SelectKeeperStartupRound,
     TxHashRound,
     ValidateSafeRound,
     ValidateTransactionRound,
 )
 from packages.valory.skills.price_estimation_abci.tools import random_selection
 
-
-SIGNATURE_LENGTH = 65
-LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 benchmark_tool = BenchmarkTool()
 
@@ -119,7 +115,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
             self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
-            yield from self.sleep(1)
+            yield from self.sleep(self.params.sleep_time)
             self.params.increment_retries()
 
 
@@ -156,9 +152,6 @@ class RegistrationBehaviour(PriceEstimationBaseState):
 
 class RandomnessBehaviour(PriceEstimationBaseState):
     """Check whether Tendermint nodes are running."""
-
-    state_id = "retrieve_randomness"
-    matching_round = RandomnessRound
 
     def async_act(self) -> Generator:
         """
@@ -207,8 +200,22 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             self.context.logger.error(
                 f"Could not get randomness from {self.context.randomness_api.api_id}"
             )
-            yield from self.sleep(1)
+            yield from self.sleep(self.params.sleep_time)
             self.context.randomness_api.increment_retries()
+
+
+class RandomnessAtStartupBehaviour(RandomnessBehaviour):
+    """Retrive randomness at startup."""
+
+    state_id = "retrieve_randomness_at_startup"
+    matching_round = RandomnessStartupRound
+
+
+class RandomnessInOperationBehaviour(RandomnessBehaviour):
+    """Retrive randomness during operation."""
+
+    state_id = "retrieve_randomness"
+    matching_round = RandomnessRound
 
 
 class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
@@ -243,6 +250,13 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+
+class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent at startup."""
+
+    state_id = "select_keeper_at_startup"
+    matching_round = SelectKeeperStartupRound
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
@@ -405,9 +419,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            currency_id = self.params.currency_id
-            convert_id = self.params.convert_id
-            api_specs = self.context.price_api.get_spec(currency_id, convert_id)
+            api_specs = self.context.price_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
                 method=api_specs["method"],
                 url=api_specs["url"],
@@ -419,8 +431,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
 
         if observation:
             self.context.logger.info(
-                f"Got observation of {currency_id} price in "
-                + f"{convert_id} from {self.context.price_api.api_id}: "
+                f"Got observation of {self.context.price_api.currency_id} price in "
+                + f"{self.context.price_api.convert_id} from {self.context.price_api.api_id}: "
                 + f"{observation}"
             )
             payload = ObservationPayload(self.context.agent_address, observation)
@@ -434,7 +446,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id}"
             )
-            yield from self.sleep(1)
+            yield from self.sleep(self.params.sleep_time)
             self.context.price_api.increment_retries()
 
 
@@ -458,12 +470,10 @@ class EstimateBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            currency_id = self.params.currency_id
-            convert_id = self.params.convert_id
             self.context.logger.info(
                 "Got estimate of %s price in %s: %s",
-                currency_id,
-                convert_id,
+                self.context.price_api.currency_id,
+                self.context.price_api.convert_id,
                 self.period_state.estimate,
             )
             payload = EstimatePayload(
@@ -702,11 +712,11 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         return verified
 
 
-class EndBehaviour(PriceEstimationBaseState):
-    """Final state."""
+class ResetBehaviour(PriceEstimationBaseState):
+    """Reset state."""
 
-    state_id = "end"
-    matching_round = ConsensusReachedRound
+    state_id = "reset"
+    matching_round = ResetRound
 
     def async_act(self) -> Generator:
         """
@@ -714,17 +724,24 @@ class EndBehaviour(PriceEstimationBaseState):
 
         Steps:
         - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
         """
         self.context.logger.info(
             f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
         )
         self.context.logger.info("Period end.")
-
-        benchmark_tool.log()
         benchmark_tool.save()
 
-        # wait forever
-        yield from self.wait_for_condition(lambda: False)
+        yield from self.sleep(self.params.observation_interval)
+        payload = RegistrationPayload(self.context.agent_address)
+
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
@@ -735,10 +752,12 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
-        RandomnessBehaviour,  # type: ignore
-        SelectKeeperABehaviour,  # type: ignore
+        RandomnessAtStartupBehaviour,  # type: ignore
+        SelectKeeperAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
+        RandomnessInOperationBehaviour,  # type: ignore
+        SelectKeeperABehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
@@ -746,5 +765,5 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         FinalizeBehaviour,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         SelectKeeperBBehaviour,  # type: ignore
-        EndBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
     }

@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base.py: QmemZ9NC38KPAh8Sq46kdArDn4d7cQNpuAHo9dXxuVWMkR
+  base.py: QmRVLvRATS9UqRugamoqAXGbu2tBBf14CYy8Z5onMa8r6c
   behaviour_utils.py: QmPKr4T7bS9rpCxFG1oiVrpMmF6nP95xHyGWAA68eUQVEY
   behaviours.py: QmSPh7gAbpb2KwD9JecMMZ2VSakBajNrMsmHswJm7oi8M8
   dialogues.py: QmYfj3fqnexykT5WgaEXfprK3BWC1Y2eE9LDzkVyPnyr6o
