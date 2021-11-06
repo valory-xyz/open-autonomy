@@ -495,9 +495,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     payload_attribute: str
 
     def __init__(
-        self,
-        state: BasePeriodState,
-        consensus_params: ConsensusParams,
+        self, state: BasePeriodState, consensus_params: ConsensusParams
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
@@ -1184,6 +1182,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         return self._current_round.round_id if self._current_round else None
 
     @property
+    def current_round_height(self) -> int:
+        """Get the current round height."""
+        return len(self._previous_rounds)
+
+    @property
     def last_round_id(self) -> Optional[str]:
         """Get the last round id."""
         return self._last_round.round_id if self._last_round else None
@@ -1364,6 +1367,11 @@ class Period:
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self.abci_app.current_round_id
+
+    @property
+    def current_round_height(self) -> int:
+        """Get the current round height."""
+        return self.abci_app.current_round_height
 
     @property
     def last_round_id(self) -> Optional[str]:

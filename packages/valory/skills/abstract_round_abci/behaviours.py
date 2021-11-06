@@ -155,8 +155,8 @@ class AbstractRoundBehaviour(
 
         self.current_state: Optional[BaseState] = None
 
-        # keep track of last round id so to detect changes
-        self._last_round_id: Optional[str] = None
+        # keep track of last round height so to detect changes
+        self._last_round_height = 0
 
         # this variable remembers the actual next transition
         # when we cannot preemptively interrupt the current state
@@ -206,18 +206,8 @@ class AbstractRoundBehaviour(
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
-    def _initialize_last_round_id_if_none(self) -> None:
-        """Initialize last round id field if it is not initialized yet."""
-        if self._last_round_id is None:
-            self._last_round_id = self.context.state.period.current_round_id
-
     def act(self) -> None:
         """Implement the behaviour."""
-        # initialize last round id to current round id if not initialized yet
-        # we cannot do this in the setup because the behaviour may load
-        # before the state model
-        self._initialize_last_round_id_if_none()
-
         self._process_current_round()
 
         current_state = self.current_state
@@ -243,13 +233,14 @@ class AbstractRoundBehaviour(
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""
-        current_round_id = self.context.state.period.current_round_id
+        current_round_height = self.context.state.period.current_round_height
         if (
-            self.current_state is not None and self._last_round_id == current_round_id
+            self.current_state is not None
+            and self._last_round_height == current_round_height
         ) and self.current_state.matching_round is not None:
             # round has not changed - do nothing
             return
-        self._last_round_id = current_round_id
+        self._last_round_height = current_round_height
         current_round_cls = type(self.context.state.period.current_round)
         # each round has a state behaviour associated to it
         self._next_state_cls = self._round_to_state[current_round_cls]

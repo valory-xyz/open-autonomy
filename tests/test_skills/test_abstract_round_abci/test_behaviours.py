@@ -263,7 +263,7 @@ class TestAbstractRoundBehaviour:
     def test_act_no_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with no round change."""
         self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundA.round_id
+        self.period_mock.current_round_height = 0
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
@@ -282,7 +282,7 @@ class TestAbstractRoundBehaviour:
     def test_act_with_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with round change."""
         self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundA.round_id
+        self.period_mock.current_round_height = 0
 
         # check that after setup(), current state is initial state
         self.behaviour.setup()
@@ -294,7 +294,9 @@ class TestAbstractRoundBehaviour:
 
         # change the round
         self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundB.round_id
+        self.period_mock.current_round_height = (
+            self.period_mock.current_round_height + 1
+        )
 
         # check that if the round is changed, the behaviour transition is taken
         self.behaviour.act()
@@ -305,7 +307,7 @@ class TestAbstractRoundBehaviour:
     ) -> None:
         """Test 'act', with round change but with matching round of current state equal to None."""
         self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundA.round_id
+        self.period_mock.current_round_height = 0
 
         # instantiate state with matching round = None
         self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
@@ -329,7 +331,7 @@ class TestAbstractRoundBehaviour:
     ) -> None:
         """Test 'act', with round change but with matching round None and round change."""
         self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundA.round_id
+        self.period_mock.current_round_height = 0
 
         # instantiate state with matching round = None
         self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateC)  # type: ignore
@@ -344,7 +346,9 @@ class TestAbstractRoundBehaviour:
 
         # change the round
         self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundB.round_id
+        self.period_mock.current_round_height = (
+            self.period_mock.current_round_height + 1
+        )
 
         # check that even if round changes behaviour stays in the same state
         self.behaviour.act()
@@ -359,7 +363,7 @@ class TestAbstractRoundBehaviour:
     def test_act_with_round_change_after_current_state_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur state is none."""
         self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundA.round_id
+        self.period_mock.current_round_height = 0
 
         # instantiate state
         self.behaviour.current_state = self.behaviour.instantiate_state_cls(StateA)  # type: ignore
@@ -375,7 +379,9 @@ class TestAbstractRoundBehaviour:
 
         # change the round
         self.period_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.period_mock.current_round_id = RoundB.round_id
+        self.period_mock.current_round_height = (
+            self.period_mock.current_round_height + 1
+        )
 
         # check that if the round is changed, the behaviour transition is taken
         self.behaviour.act()
