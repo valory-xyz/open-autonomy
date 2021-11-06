@@ -1092,7 +1092,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         result: Set[Type[AbstractRound]] = set()
         for start, out_transitions in cls.transition_function.items():
             result.add(start)
-            for _event, end in out_transitions:
+            for _event, end in out_transitions.items():
                 result.add(end)
         return result
 

@@ -20,7 +20,7 @@
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
 from abc import ABC, ABCMeta
 from collections import defaultdict
-from typing import AbstractSet, Any, Dict, Generic, Optional, Tuple, Type, cast
+from typing import AbstractSet, Any, Dict, Generic, List, Optional, Tuple, Type, cast
 
 from aea.skills.base import Behaviour
 
@@ -60,8 +60,8 @@ class _MetaRoundBehaviour(ABCMeta):
         """Check consistency of class attributes."""
         mcs._check_all_required_classattributes_are_set(behaviour_cls)
         mcs._check_state_id_uniqueness(behaviour_cls)
-        mcs._check_matching_round_consistency(behaviour_cls)
         mcs._check_initial_state_in_set_of_states(behaviour_cls)
+        mcs._check_matching_round_consistency(behaviour_cls)
 
     @classmethod
     def _check_all_required_classattributes_are_set(
@@ -97,7 +97,10 @@ class _MetaRoundBehaviour(ABCMeta):
         mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
         """Check that matching rounds are: (1) unique across behaviour states, and (2) covering."""
-        round_to_state = defaultdict(lambda: [])
+        round_to_state: Dict[Type[AbstractRound], List[StateType]] = {
+            round_cls: []
+            for round_cls in behaviour_cls.abci_app_cls.get_all_round_classes()
+        }
 
         # check uniqueness
         for b in behaviour_cls.behaviour_states:
