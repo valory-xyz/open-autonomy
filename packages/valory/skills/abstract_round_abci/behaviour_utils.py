@@ -300,10 +300,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return self.check_in_last_round(round_id)
 
     def check_round_height_has_changed(self, round_height: int) -> bool:
-        """Check that the round has finished."""
+        """Check that the round height has changed."""
         return (
             cast(SharedState, self.context.state).period.current_round_height
-            == round_height
+            != round_height
         )
 
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:

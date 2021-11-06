@@ -364,6 +364,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         abci_app._current_round = abci_app.transition_function[
             current_state.matching_round
         ][Event.DONE](abci_app.state, abci_app.consensus_params)
+        abci_app._previous_rounds.append(old_round)
         self.price_estimation_behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
