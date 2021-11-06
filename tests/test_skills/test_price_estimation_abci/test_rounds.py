@@ -1251,27 +1251,43 @@ class TestConsensusReachedRound(BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        with pytest.raises(
-            ABCIAppInternalError, match="this round does not accept transactions"
-        ):
-            test_round.process_payload(BaseTxPayload("sender"))
+        registration_payloads = [
+            RegistrationPayload(sender=participant) for participant in self.participants
+        ]
 
-        with pytest.raises(
-            TransactionNotValidError, match="this round does not accept transactions"
-        ):
-            test_round.check_payload(BaseTxPayload("sender"))
-
+        first_participant = registration_payloads.pop(0)
+        test_round.process_payload(first_participant)
+        assert test_round.collection == {
+            first_participant.sender,
+        }
         assert test_round.end_block() is None
 
         with pytest.raises(
-            TransactionNotValidError, match="this round does not accept transactions"
+            TransactionNotValidError,
+            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: reset",
         ):
-            test_round.check_payload(MagicMock())
+            test_round.check_payload(first_participant)
 
         with pytest.raises(
-            ABCIAppInternalError, match="this round does not accept transactions"
+            ABCIAppInternalError,
+            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: reset",
         ):
-            test_round.process_payload(MagicMock())
+            test_round.process_payload(first_participant)
+
+        for participant_payload in registration_payloads:
+            test_round.process_payload(participant_payload)
+        assert test_round.collection_threshold_reached
+
+        actual_next_state = PeriodState(participants=test_round.collection)
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert (
+            cast(PeriodState, state).participants
+            == cast(PeriodState, actual_next_state).participants
+        )
+        assert event == Event.DONE
 
 
 class TestValidateSafeRound(BaseRoundTestClass):

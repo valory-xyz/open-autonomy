@@ -221,7 +221,7 @@ class PriceApi(Model):
         self._source_id = kwargs.pop("source_id", None)
         if self._source_id is None:
             raise ValueError("'source_id' is a mandatory configuration")
-        self._retries = kwargs.pop("retries", None) or NUMBER_OF_RETRIES
+        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
         self._api_key = kwargs.pop("api_key", None)
         self._api = self._get_api()
         super().__init__(*args, **kwargs)

@@ -42,6 +42,9 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.connections.ledger.base import (
+    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
@@ -62,7 +65,6 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour,
     EstimateBehaviour,
     FinalizeBehaviour,
-    LEDGER_CONNECTION_PUBLIC_ID,
     ObserveBehaviour,
     PriceEstimationConsensusBehaviour,
     RandomnessAtStartupBehaviour,
@@ -1234,6 +1236,9 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == ResetBehaviour.state_id
         )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()

@@ -27,9 +27,6 @@ from typing import Generator, Set, Type, cast
 from aea_ledger_ethereum import EthereumApi
 
 from packages.open_aea.protocols.signing import SigningMessage
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
-)
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -71,9 +68,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.price_estimation_abci.tools import random_selection
 
-
-SIGNATURE_LENGTH = 65
-LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 
 benchmark_tool = BenchmarkTool()
 
@@ -121,7 +115,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
             self.set_done()
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
-            yield from self.sleep(1)
+            yield from self.sleep(self.params.sleep_time)
             self.params.increment_retries()
 
 
@@ -206,7 +200,7 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             self.context.logger.error(
                 f"Could not get randomness from {self.context.randomness_api.api_id}"
             )
-            yield from self.sleep(1)
+            yield from self.sleep(self.params.sleep_time)
             self.context.randomness_api.increment_retries()
 
 
@@ -454,7 +448,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 f"Could not get price from {self.context.price_api.api_id}"
             )
-            yield from self.sleep(1)
+            yield from self.sleep(self.params.sleep_time)
             self.context.price_api.increment_retries()
 
 
