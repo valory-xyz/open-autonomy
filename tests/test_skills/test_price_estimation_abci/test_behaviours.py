@@ -439,7 +439,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == TendermintHealthcheckBehaviour.state_id
         )
         self.skill.skill_context.params._count_healthcheck = (
-            self.skill.skill_context.params._max_healthcheck + 1
+            self.skill.skill_context.params.max_healthcheck + 1
         )
         with pytest.raises(AEAActException, match="Tendermint node did not come live!"):
             self.price_estimation_behaviour.act_wrapper()

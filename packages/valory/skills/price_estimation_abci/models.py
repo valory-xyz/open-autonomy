@@ -60,19 +60,17 @@ class Params(BaseParams):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.currency_id = self._ensure("currency_id", kwargs)
-        self.convert_id = self._ensure("convert_id", kwargs)
-        self._max_healthcheck = self._ensure("max_healthcheck", kwargs)
+        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
         self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
         self.sleep_time = self._ensure("sleep_time", kwargs)
+        self.observation_interval = self._ensure("observation_interval", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
-        self.observation_interval = self._ensure("observation_interval", kwargs)
 
     def is_health_check_timed_out(self) -> bool:
         """Check if the healthcheck has timed out."""
         self._count_healthcheck += 1
-        return self._count_healthcheck > self._max_healthcheck
+        return self._count_healthcheck > self.max_healthcheck
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""

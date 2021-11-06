@@ -419,9 +419,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            currency_id = self.params.currency_id
-            convert_id = self.params.convert_id
-            api_specs = self.context.price_api.get_spec(currency_id, convert_id)
+            api_specs = self.context.price_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
                 method=api_specs["method"],
                 url=api_specs["url"],
@@ -433,8 +431,8 @@ class ObserveBehaviour(PriceEstimationBaseState):
 
         if observation:
             self.context.logger.info(
-                f"Got observation of {currency_id} price in "
-                + f"{convert_id} from {self.context.price_api.api_id}: "
+                f"Got observation of {self.context.price_api.currency_id} price in "
+                + f"{self.context.price_api.convert_id} from {self.context.price_api.api_id}: "
                 + f"{observation}"
             )
             payload = ObservationPayload(self.context.agent_address, observation)
@@ -472,12 +470,10 @@ class EstimateBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            currency_id = self.params.currency_id
-            convert_id = self.params.convert_id
             self.context.logger.info(
                 "Got estimate of %s price in %s: %s",
-                currency_id,
-                convert_id,
+                self.context.price_api.currency_id,
+                self.context.price_api.convert_id,
                 self.period_state.estimate,
             )
             payload = EstimatePayload(

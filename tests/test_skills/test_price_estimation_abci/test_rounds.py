@@ -23,7 +23,6 @@ import re
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
-from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
@@ -31,7 +30,6 @@ from aea.exceptions import AEAEnforceError
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
-    BaseTxPayload,
     ConsensusParams,
     TransactionNotValidError,
 )

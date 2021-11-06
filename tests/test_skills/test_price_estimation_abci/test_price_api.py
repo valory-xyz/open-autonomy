@@ -137,8 +137,10 @@ def test_price_api() -> None:
         source_id=CoinMarketCapApiSpecs.api_id,
         retries=5,
         api_key=COINMARKETCAP_API_KEY,
+        currency_id=currency_id,
+        convert_id=convert_id,
     )
-    api_specs = price_api.get_spec(currency_id, convert_id)
+    api_specs = price_api.get_spec()
 
     assert api_specs == api.get_spec(currency_id, convert_id)
     assert price_api.api_id == CoinMarketCapApiSpecs.api_id
@@ -159,10 +161,19 @@ def test_price_api() -> None:
 def test_price_api_exceptions() -> None:
     """Test excpetions in PriceApi."""
 
-    with pytest.raises(ValueError, match="'source_id' is a mandatory configuration"):
+    with pytest.raises(ValueError, match="'currency_id' is a mandatory configuration"):
         # raises ValueError("'source_id' is a mandatory configuration")
         PriceApi()
 
+    with pytest.raises(ValueError, match="'source_id' is a mandatory configuration"):
+        # raises ValueError("'source_id' is a mandatory configuration")
+        PriceApi(currency_id="BTC")
+
     with pytest.raises(ValueError, match="'api' is not a supported API identifier"):
         # raises ValueError("'api' is not a supported API identifier")
-        PriceApi(name="price_api", skill_context=SkillContext(), source_id="api")
+        PriceApi(
+            name="price_api",
+            skill_context=SkillContext(),
+            source_id="api",
+            currency_id="BTC",
+        )

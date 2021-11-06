@@ -218,6 +218,13 @@ class PriceApi(Model):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the price API model."""
+        _currency_id: Optional[CurrencyOrStr] = kwargs.pop("currency_id", None)
+        if _currency_id is None:
+            raise ValueError("'currency_id' is a mandatory configuration")
+        self._currency_id = _currency_id
+        self.convert_id: CurrencyOrStr = kwargs.pop("convert_id", Currency.USD)
+        if self.convert_id is None:
+            raise ValueError("'convert_id' is a mandatory configuration")
         self._source_id = kwargs.pop("source_id", None)
         if self._source_id is None:
             raise ValueError("'source_id' is a mandatory configuration")
@@ -231,6 +238,11 @@ class PriceApi(Model):
     def api_id(self) -> str:
         """Get API id."""
         return self._api.api_id
+
+    @property
+    def currency_id(self) -> CurrencyOrStr:
+        """Get currency id."""
+        return self._currency_id
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""
@@ -247,11 +259,9 @@ class PriceApi(Model):
             raise ValueError(f"'{self._source_id}' is not a supported API identifier")
         return api_cls(self._api_key)
 
-    def get_spec(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Dict:
+    def get_spec(self) -> Dict:
         """Get the spec of the API"""
-        return self._api.get_spec(currency_id, convert_id)
+        return self._api.get_spec(self.currency_id, self.convert_id)
 
     def post_request_process(self, response: HttpMessage) -> Optional[float]:
         """Process the response and return observed price."""
