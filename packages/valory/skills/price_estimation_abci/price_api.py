@@ -223,8 +223,6 @@ class PriceApi(Model):
             raise ValueError("'currency_id' is a mandatory configuration")
         self._currency_id = _currency_id
         self.convert_id: CurrencyOrStr = kwargs.pop("convert_id", Currency.USD)
-        if self.convert_id is None:
-            raise ValueError("'convert_id' is a mandatory configuration")
         self._source_id = kwargs.pop("source_id", None)
         if self._source_id is None:
             raise ValueError("'source_id' is a mandatory configuration")
