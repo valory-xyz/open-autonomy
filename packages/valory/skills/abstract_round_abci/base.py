@@ -442,9 +442,16 @@ class BasePeriodState:
     def __init__(
         self,
         participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
     ) -> None:
         """Initialize a period state."""
         self._participants = frozenset(participants) if participants else None
+        self._period_count = period_count if period_count is not None else 0
+
+    @property
+    def period_count(self) -> int:
+        """Get the period count."""
+        return self._period_count
 
     @property
     def participants(self) -> FrozenSet[str]:
@@ -1013,7 +1020,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
-        self.state = state
+        self._initial_state = state
         self.consensus_params = consensus_params
         self.logger = logger
 
@@ -1029,6 +1036,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self._check_class_attributes()
         self._check_class_attributes_consistency(
             self.initial_round_cls, self.transition_function, self.event_to_timeout
+        )
+
+    @property
+    def state(self) -> BasePeriodState:
+        """Return the current state."""
+        return (
+            self._round_results[-1]
+            if len(self._round_results) > 0
+            else self._initial_state
         )
 
     def _check_class_attributes(self) -> None:
@@ -1109,7 +1125,9 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
     def _log_start(self) -> None:
         """Log the entering in the round."""
-        self.logger.info(f"Entered in the '{self.current_round.round_id}' round")
+        self.logger.info(
+            f"Entered in the '{self.current_round.round_id}' round for period {self.state.period_count}"
+        )
 
     def _log_end(self, event: EventType) -> None:
         """Log the exiting from the round."""
@@ -1142,8 +1160,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self._current_timeout_entries.append(entry_id)
 
+        # self.state will point to last result, or if not available to the initial state
         last_result = (
-            self._round_results[-1] if len(self._round_results) > 0 else self.state
+            self._round_results[-1]
+            if len(self._round_results) > 0
+            else self._initial_state
         )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
