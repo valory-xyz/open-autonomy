@@ -38,6 +38,48 @@ from tests.helpers.tendermint_utils import (
 )
 
 
+class BaseTestABCICounterSkill:
+    """Base test class."""
+
+    def _send_tx_to_node(
+        self, node_address: str, value: int, expected_status_code: int
+    ) -> None:
+        """
+        Send a transaction to a certain node.
+
+        :param node_address: the node address
+        :param value: the value to propose in the tx
+        :param expected_status_code: the expected status code
+        """
+        # at least two hex digits
+        tx_arg = "0x{:02x}".format(value)
+        result = requests.get(
+            node_address + "/broadcast_tx_commit",
+            params=dict(tx=tx_arg),
+            timeout=DEFAULT_REQUESTS_TIMEOUT,
+        )
+        assert result.status_code == expected_status_code
+
+    def _query_node(self, node_address: str, expected_value: int) -> None:
+        """
+        Send a query to a node about the state of the replicated counter.
+
+        :param node_address: the node address
+        :param expected_value: the expected value of the counter.
+        """
+        result = requests.get(
+            node_address + "/abci_query",
+            timeout=DEFAULT_REQUESTS_TIMEOUT,
+        )
+        assert result.status_code == 200
+        counter_value_base64 = result.json()["result"]["response"]["value"].encode(
+            "ascii"
+        )
+        counter_value_bytes = base64.b64decode(counter_value_base64)
+        counter_value, *_ = struct.unpack(">I", counter_value_bytes)
+        assert counter_value == expected_value
+
+
 @pytest.mark.integration
 class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
     """Test that the ABCI counter skill works together with Tendermint."""
@@ -83,7 +125,9 @@ class TestABCICounterSkill(AEATestCaseEmpty, UseTendermint):
         ), "ABCI agent wasn't successfully terminated."
 
 
-class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
+class TestABCICounterSkillMany(
+    AEATestCaseMany, BaseTendermintTestClass, BaseTestABCICounterSkill
+):
     """Test that the ABCI counter skill works together with Tendermint."""
 
     IS_LOCAL = True
@@ -195,14 +239,9 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
         :param expected_status_code: the expected status code
         """
         node = self.tendermint_net_builder.nodes[agent_id]
-        # at least two hex digits
-        tx_arg = "0x{:02x}".format(value)
-        result = requests.get(
-            node.get_http_addr("localhost") + "/broadcast_tx_commit",
-            params=dict(tx=tx_arg),
-            timeout=DEFAULT_REQUESTS_TIMEOUT,
+        self._send_tx_to_node(
+            node.get_http_addr("localhost"), value, expected_status_code
         )
-        assert result.status_code == expected_status_code
 
     def _query_agent(self, expected_value: int, agent_id: int) -> None:
         """
@@ -223,3 +262,67 @@ class TestABCICounterSkillMany(AEATestCaseMany, BaseTendermintTestClass):
         counter_value_bytes = base64.b64decode(counter_value_base64)
         counter_value, *_ = struct.unpack(">I", counter_value_bytes)
         assert counter_value == expected_value
+
+
+class TestABCICounterCrashFailureRestart(
+    AEATestCaseEmpty, BaseTendermintTestClass, BaseTestABCICounterSkill
+):
+    """Test that restarting the agent with the same Tendermint node will restore the state."""
+
+    NB_TX = 5
+
+    def test_run(self) -> None:
+        """Run the test."""
+        self.generate_private_key("ethereum")
+        self.add_private_key("ethereum", "ethereum_private_key.txt")
+        self.set_config("agent.default_ledger", "ethereum")
+        self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
+        self.add_item("skill", "valory/counter:0.1.0")
+        self.set_config(
+            "vendor.valory.connections.abci.config.target_skill_id",
+            "valory/counter:0.1.0",
+        )
+        self.set_config("vendor.valory.connections.abci.config.use_tendermint", True)
+        self.set_config(
+            "vendor.valory.connections.abci.config.tendermint_config.home",
+            str(self.t / "tendermint_home"),
+        )
+
+        node_address = "http://localhost:26657"
+
+        process = self.run_agent()
+        is_running = self.is_running(process)
+        assert is_running, "AEA not running within timeout!"
+
+        time.sleep(5.0)
+
+        for tx_number in range(self.NB_TX):
+            time.sleep(0.5)
+            new_value = tx_number + 1
+            self._send_tx_to_node(node_address, new_value, 200)
+        # wait synchronization
+        time.sleep(5.0)
+
+        # check that the final counter state is N
+        self._query_node(node_address, self.NB_TX)
+
+        check_strings = (*[f"The new count is: {x + 1}" for x in range(self.NB_TX)],)
+        missing_strings = self.missing_from_output(process, check_strings)
+        assert (
+            missing_strings == []
+        ), "Strings {} didn't appear in agent output.".format(missing_strings)
+
+        # Run it again
+        process = self.run_agent()
+        is_running = self.is_running(process)
+        assert is_running, "AEA not running within timeout!"
+
+        # give time to synchronize
+        time.sleep(5.0)
+
+        self._query_node(node_address, self.NB_TX)
+
+        missing_strings = self.missing_from_output(process, check_strings)
+        assert (
+            missing_strings == []
+        ), "Strings {} didn't appear in agent output.".format(missing_strings)

@@ -26,7 +26,7 @@ import pytest
 from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS
+from tests.helpers.constants import KEY_PAIRS, LOCALHOST
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -51,6 +51,11 @@ class UseTendermint:
     def _start_tendermint(self, tendermint: Any, tendermint_port: Any) -> None:
         """Start a Tendermint image."""
         self.tendermint_port = tendermint_port
+
+    @property
+    def node_address(self) -> str:
+        """Get the node address."""
+        return f"http://{LOCALHOST}:{self.tendermint_port}"
 
 
 @pytest.mark.integration
