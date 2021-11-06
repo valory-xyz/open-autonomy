@@ -1151,7 +1151,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
                 self._current_timeout_entries.append(entry_id)
 
         # self.state will point to last result, or if not available to the initial state
-        last_result = self._round_results[-1] if len(self._round_results) > 0 else self._initial_state
+        last_result = (
+            self._round_results[-1]
+            if len(self._round_results) > 0
+            else self._initial_state
+        )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
         self._current_round = round_cls(last_result, self.consensus_params)

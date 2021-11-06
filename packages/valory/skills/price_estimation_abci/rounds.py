@@ -715,13 +715,13 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         ValidateTransactionRound: {
             Event.DONE: ResetRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         ResetRound: {Event.DONE: RandomnessRound},
     }

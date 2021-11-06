@@ -78,10 +78,10 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    EndBehaviour,
     PriceEstimationBaseState,
     RandomnessBehaviour,
     RegistrationBehaviour,
+    ResetBehaviour,
     SelectKeeperBehaviour,
     TendermintHealthcheckBehaviour,
 )
@@ -770,5 +770,5 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         SwapBackSignatureBehaviour,  # type: ignore
         SwapBackSendBehaviour,  # type: ignore
         SwapBackValidationBehaviour,  # type: ignore
-        EndBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
     }
