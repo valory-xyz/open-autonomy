@@ -31,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     EventType,
+    Period,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -411,3 +412,35 @@ def test_abstract_round_behaviour_matching_rounds_not_covered() -> None:
             abci_app_cls = ConcreteAbciApp
             behaviour_states = {StateA}  # type: ignore
             initial_state_cls = StateA
+
+
+def test_self_loops_in_abci_app_reinstantiate_behaviour_state() -> None:
+    """Test that a self-loop transition in the AbciApp will trigger a transition in the round behaviour."""
+    event = MagicMock()
+
+    class AbciAppTest(AbciApp):
+        initial_round_cls = RoundA
+        transition_function = {RoundA: {event: RoundA}}
+
+    class RoundBehaviour(AbstractRoundBehaviour):
+        abci_app_cls = AbciAppTest
+        behaviour_states = {StateA}  # type: ignore
+        initial_state_cls = StateA
+
+    period = Period(AbciAppTest)
+    period.setup(MagicMock(), MagicMock(), MagicMock())
+    context_mock = MagicMock()
+    context_mock.state.period = period
+    behaviour = RoundBehaviour(name="", skill_context=context_mock)
+    behaviour.setup()
+
+    state_1 = behaviour.current_state
+    assert isinstance(state_1, StateA)
+
+    period.abci_app.process_event(event)
+
+    behaviour.act()
+    state_2 = behaviour.current_state
+    assert isinstance(state_2, StateA)
+    assert id(state_1) != id(state_2)
+    assert state_1 != state_2

@@ -255,10 +255,7 @@ class AbstractRoundBehaviour(
 
         current_state = cast(BaseState, self.current_state)
         # current state cannot be replaced if matching_round is None
-        if (
-            current_state.matching_round is not None
-            and current_state.state_id != self._next_state_cls.state_id
-        ):
+        if current_state.matching_round is not None:
             current_state.stop()
             self.current_state = self.instantiate_state_cls(self._next_state_cls)
             return
