@@ -299,6 +299,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Check that the round has finished."""
         return self.check_in_last_round(round_id)
 
+    def check_round_height_has_changed(self, round_height: int) -> bool:
+        """Check that the round has finished."""
+        return (
+            cast(SharedState, self.context.state).period.current_round_height
+            == round_height
+        )
+
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
         return partial(self.check_not_in_round, round_id)
@@ -315,12 +322,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         if self.matching_round is None:
             raise ValueError("No matching_round set!")
         round_id = self.matching_round.round_id
+        round_height = cast(SharedState, self.context.state).period.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
             raise ValueError(
                 f"Should be in matching round ({round_id}) or last round ({self.context.state.period.last_round_id}), actual round {self.context.state.period.current_round_id}!"
             )
         yield from self.wait_for_condition(
-            partial(self.check_round_has_finished, round_id), timeout=timeout
+            partial(self.check_round_height_has_changed, round_height), timeout=timeout
         )
 
     def is_done(self) -> bool:
