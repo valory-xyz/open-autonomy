@@ -1020,7 +1020,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
-        self.state = state
+        self._initial_state = state
         self.consensus_params = consensus_params
         self.logger = logger
 
@@ -1036,6 +1036,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self._check_class_attributes()
         self._check_class_attributes_consistency(
             self.initial_round_cls, self.transition_function, self.event_to_timeout
+        )
+
+    @property
+    def state(self) -> BasePeriodState:
+        """Return the current state."""
+        return (
+            self._round_results[-1]
+            if len(self._round_results) > 0
+            else self._initial_state
         )
 
     def _check_class_attributes(self) -> None:
@@ -1141,9 +1150,8 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self._current_timeout_entries.append(entry_id)
 
-        last_result = (
-            self._round_results[-1] if len(self._round_results) > 0 else self.state
-        )
+        # self.state will point to last result, or if not available to the initial state
+        last_result = self.state
         self._last_round = self._current_round
         self._current_round_cls = round_cls
         self._current_round = round_cls(last_result, self.consensus_params)

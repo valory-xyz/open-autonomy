@@ -264,7 +264,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
-        return PeriodState(self.participants)
+        return PeriodState(
+            participants=self.participants, period_count=self.period_count
+        )
 
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -302,7 +304,10 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.collection_threshold_reached:
-            state = PeriodState(participants=self.collection)
+            state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+            )
             return state, Event.DONE
         return None
 
