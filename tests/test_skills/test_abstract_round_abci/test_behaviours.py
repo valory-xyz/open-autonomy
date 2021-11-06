@@ -158,6 +158,51 @@ class TestAbstractRoundBehaviour:
     def test_get_state_id_to_state_mapping_negative(self) -> None:
         """Test classmethod '_get_state_id_to_state_mapping', negative case."""
         state_id = "state_id"
+        state_1 = MagicMock(state_id=state_id)
+        state_2 = MagicMock(state_id=state_id)
+
+        with pytest.raises(
+            ValueError,
+            match=f"cannot have two states with the same id; got {state_2} and {state_1} both with id '{state_id}'",
+        ):
+            with mock.patch(
+                "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_consistency"
+            ):
+
+                class MyRoundBehaviour(AbstractRoundBehaviour):
+                    abci_app_cls = MagicMock
+                    behaviour_states = [state_1, state_2]  # type: ignore
+                    initial_state_cls = MagicMock()
+
+                MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_get_round_to_state_mapping_two_states_same_round(self) -> None:
+        """Test classmethod '_get_round_to_state_mapping' when two different states point to the same round."""
+        state_id_1 = "state_id_1"
+        state_id_2 = "state_id_2"
+        round_cls = RoundA
+        round_id = round_cls.round_id
+        state_1 = MagicMock(state_id=state_id_1, matching_round=round_cls)
+        state_2 = MagicMock(state_id=state_id_2, matching_round=round_cls)
+
+        with pytest.raises(
+            ValueError,
+            match=f"the states '{state_id_2}' and '{state_id_1}' point to the same matching round '{round_id}'",
+        ):
+            with mock.patch(
+                "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_consistency"
+            ):
+
+                class MyRoundBehaviour(AbstractRoundBehaviour):
+                    abci_app_cls = ConcreteAbciApp
+                    behaviour_states = [StateC, state_1, state_2]  # type: ignore
+                    initial_state_cls = StateC
+
+                MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
+    def test_check_state_id_uniqueness_negative(self) -> None:
+        """Test metaclass method '_check_consistency', negative case."""
+        state_id = "state_id"
         state_1_cls_name = "State1"
         state_2_cls_name = "State2"
         state_1 = MagicMock(state_id=state_id, __name__=state_1_cls_name)
@@ -173,8 +218,8 @@ class TestAbstractRoundBehaviour:
                 behaviour_states = [state_1, state_2]  # type: ignore
                 initial_state_cls = MagicMock()
 
-    def test_get_round_to_state_mapping_two_states_same_round(self) -> None:
-        """Test classmethod '_get_round_to_state_mapping' when two different states point to the same round."""
+    def test_check_consistency_two_states_same_round(self) -> None:
+        """Test metaclass method '_check_consistency' when two different states point to the same round."""
         state_id_1 = "state_id_1"
         state_id_2 = "state_id_2"
         round_cls = RoundA
