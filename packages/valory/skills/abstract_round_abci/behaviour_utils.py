@@ -406,7 +406,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             signature_bytes = signature_response.signed_message.body
             transaction = Transaction(payload, signature_bytes)
 
-            response = yield from self._broadcast_tx_commit(transaction.encode())
+            response = yield from self._submit_tx(transaction.encode())
             response = cast(HttpMessage, response)
             json_body = json.loads(response.body)
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
@@ -416,7 +416,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 )
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
-            if self._check_transaction_delivered(response):
+            tx_hash = json_body["result"]["hash"]
+            is_delivered = yield from self._wait_until_transaction_delivered(tx_hash)
+            if is_delivered:
                 self.context.logger.info("A2A transaction delivered!")
                 break
             # otherwise, repeat until done, or until stop condition is true
@@ -506,14 +508,21 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
 
-    def _broadcast_tx_commit(
-        self, tx_bytes: bytes
-    ) -> Generator[None, None, HttpMessage]:
-        """Send a broadcast_tx_commit request."""
+    def _submit_tx(self, tx_bytes: bytes) -> Generator[None, None, HttpMessage]:
+        """Send a broadcast_tx_sync request."""
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url
-            + f"/broadcast_tx_commit?tx=0x{tx_bytes.hex()}",
+            + f"/broadcast_tx_sync?tx=0x{tx_bytes.hex()}",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        return result
+
+    def _get_tx_info(self, tx_hash: str) -> Generator[None, None, HttpMessage]:
+        """Get transaction info from tx hash."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + f"/tx?hash=0x{tx_hash}",
         )
         result = yield from self._do_request(request_message, http_dialogue)
         return result
@@ -599,12 +608,24 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         http_dialogue = cast(HttpDialogue, http_dialogue)
         return request_http_message, http_dialogue
 
-    @classmethod
-    def _check_transaction_delivered(cls, response: HttpMessage) -> bool:
-        """Check deliver_tx response was successful."""
-        json_body = json.loads(response.body)
-        deliver_tx_response = json_body["result"]["deliver_tx"]
-        return deliver_tx_response["code"] == OK_CODE
+    def _wait_until_transaction_delivered(
+        self, tx_hash: str
+    ) -> Generator[None, None, bool]:
+        """
+        Wait until transaction is delivered.
+
+        :param tx_hash: the transaction hash to check.
+        :yield: None
+        :return: True if it is delivered successfully, False otherwise
+        """
+        while True:
+            response = yield from self._get_tx_info(tx_hash)
+            if response.status_code != 200:
+                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                continue
+            json_body = json.loads(response.body)
+            tx_result = json_body["result"]["tx_result"]
+            return tx_result["code"] == OK_CODE
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:

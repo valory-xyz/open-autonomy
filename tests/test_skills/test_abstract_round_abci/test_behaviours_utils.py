@@ -426,7 +426,6 @@ class TestBaseState:
         return_value=(MagicMock(), MagicMock()),
     )
     @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
-    @mock.patch.object(BaseState, "_check_transaction_delivered", return_value=True)
     @mock.patch("json.loads")
     def test_send_transaction_positive(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
@@ -435,6 +434,7 @@ class TestBaseState:
         # trigger generator function
         try_send(gen, obj=None)
         # send messages to 'wait_for_message'
+        try_send(gen, obj=m)
         try_send(gen, obj=m)
         try_send(gen, obj=m)
 
@@ -519,11 +519,6 @@ class TestBaseState:
             self.behaviour._build_http_request_message(
                 "", "", parameters=dict(foo="bar"), headers=dict(foo="bar")
             )
-
-    def test_check_transaction_delivered(self) -> None:
-        """Test '_check_transaction_delivered' method."""
-        response = MagicMock(body='{"result": {"deliver_tx": {"code": 0}}}')
-        assert self.behaviour._check_transaction_delivered(response)
 
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_get_default_terms(self, *_: Any) -> None:
