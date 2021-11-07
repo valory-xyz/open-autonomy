@@ -347,7 +347,22 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"result": {"deliver_tx": {"code": OK_CODE}}}).encode(
+                body=json.dumps({"result": {"hash": ""}}).encode("utf-8"),
+            ),
+        )
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"result": {"tx_result": {"code": OK_CODE}}}).encode(
                     "utf-8"
                 ),
             ),
