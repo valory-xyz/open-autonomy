@@ -166,6 +166,39 @@ class OffchainAggregatorContract(Contract):
         )
 
     @classmethod
+    def latest_round_data(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+    ) -> Optional[JSONLike]:
+        """
+        Get data from the latest round.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :return: the data
+        """
+        return cls._call(
+            ledger_api,
+            contract_address,
+            "latestRoundData",
+        )
+
+    @classmethod
+    def _call(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        method_name: str,
+        *method_args: Any,
+    ) -> Optional[JSONLike]:
+        """Call method."""
+        contract = cls.get_instance(ledger_api, contract_address)
+        method = getattr(contract.functions, method_name)
+        result = method(*method_args).call()
+        return result
+
+    @classmethod
     def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
@@ -193,7 +226,7 @@ class OffchainAggregatorContract(Contract):
         gas_price: int,
         eth_value: int = 0,
     ) -> Optional[JSONLike]:
-        """Set the allowance."""
+        """Build transaction method."""
         nonce = ledger_api.api.eth.getTransactionCount(sender_address)
         tx = tx.buildTransaction(
             {

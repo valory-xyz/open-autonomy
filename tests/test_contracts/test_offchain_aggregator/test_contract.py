@@ -20,16 +20,18 @@
 """Tests for valory/offchain_aggregator contract."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, cast
 
 import pytest
+from aea.crypto.registries import crypto_registry
+from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
 
 from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
 from tests.test_contracts.base import BaseGanacheContractTest
 
 
@@ -41,7 +43,7 @@ class BaseContractTest(BaseGanacheContractTest):
     DECIMALS: int = 18
     DESCRIPTION: str = "BTC"
     NB_TRANSMITTERS: int = 1
-    GAS: int = 10 ** 6
+    GAS: int = 10 ** 7
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
     )
@@ -64,7 +66,7 @@ class BaseContractTest(BaseGanacheContractTest):
         """Get the owners."""
         return [
             Web3.toChecksumAddress(t[0])
-            for t in cls.key_pairs()[1 : cls.NB_TRANSMITTERS]
+            for t in cls.key_pairs()[1 : cls.NB_TRANSMITTERS + 1]
         ]
 
     @classmethod
@@ -127,18 +129,39 @@ class TestDeployTransaction(BaseContractTest):
         )
         assert result["data"], "Contract did not return data."
 
-    def test_transmit(self) -> None:
+    def test_transmit_and_get_latest_round_data(self) -> None:
         """Run transmit test."""
         assert self.contract_address is not None
+        epoch_ = 1
+        round_ = 2
+        amount_ = 10 ** 19
         result = self.contract.transmit(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             sender_address=self.transmitters()[0],
             gas=10 ** 6,
             gas_price=10 ** 4,
-            epoch_=1,
-            round_=1,
-            amount_=10 ** 19,
+            epoch_=epoch_,
+            round_=round_,
+            amount_=amount_,
         )
         assert result is not None, "Tx generation failed"
-        assert len(result) == 6
+        assert len(result) == 7
+        sender = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
+        )
+        # note: sender.address == self.transmitters()[0]  # noqa:  E800
+        tx_signed = sender.sign_transaction(result)
+        tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
+        assert tx_hash is not None, "Tx hash not none"
+        result_ = cast(
+            List,
+            self.contract.latest_round_data(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+            ),
+        )
+        assert type(result_) == list, "Call failed"
+        assert result_[0] == epoch_
+        assert result_[1] == amount_
+        assert result_[4] == epoch_

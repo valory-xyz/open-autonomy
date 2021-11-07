@@ -213,7 +213,7 @@ class UniswapV2ERC20Contract(Contract):
         gas_price: int,
         eth_value: int = 0,
     ) -> Optional[JSONLike]:
-        """Set the allowance."""
+        """Build transaction method."""
         nonce = ledger_api.api.eth.getTransactionCount(sender_address)
         tx = tx.buildTransaction(
             {
