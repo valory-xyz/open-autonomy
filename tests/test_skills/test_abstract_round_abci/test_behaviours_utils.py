@@ -341,6 +341,16 @@ class TestBaseState:
 
         assert self.behaviour.check_round_has_finished(expected_round_id)
 
+    def test_check_round_height_has_changed(self) -> None:
+        """Test 'check_round_height_has_changed'."""
+        current_height = 0
+        self.context_mock.state.period.current_round_height = current_height
+        assert not self.behaviour.check_round_height_has_changed(current_height)
+        new_height = current_height + 1
+        self.context_mock.state.period.current_round_height = new_height
+        assert self.behaviour.check_round_height_has_changed(current_height)
+        assert not self.behaviour.check_round_height_has_changed(new_height)
+
     def test_wait_until_round_end_negative_no_matching_round(self) -> None:
         """Test 'wait_until_round_end' method, negative case (no matching round)."""
         self.behaviour.matching_round = None
@@ -426,17 +436,21 @@ class TestBaseState:
         return_value=(MagicMock(), MagicMock()),
     )
     @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
-    @mock.patch.object(BaseState, "_check_transaction_delivered", return_value=True)
-    @mock.patch("json.loads")
     def test_send_transaction_positive(self, *_: Any) -> None:
         """Test '_send_transaction', positive case."""
-        m = MagicMock()
+        m = MagicMock(status_code=200)
         gen = self.behaviour._send_transaction(m)
         # trigger generator function
         try_send(gen, obj=None)
-        # send messages to 'wait_for_message'
+        # send message to 'wait_for_message'
         try_send(gen, obj=m)
-        try_send(gen, obj=m)
+        # send message to '_submit_tx'
+        try_send(gen, obj=MagicMock(body='{"result": {"hash": ""}}'))
+        # send message to '_wait_until_transaction_delivered'
+        success_response = MagicMock(
+            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+        )
+        try_send(gen, obj=success_response)
 
     @mock.patch.object(BaseState, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
@@ -520,10 +534,30 @@ class TestBaseState:
                 "", "", parameters=dict(foo="bar"), headers=dict(foo="bar")
             )
 
-    def test_check_transaction_delivered(self) -> None:
-        """Test '_check_transaction_delivered' method."""
-        response = MagicMock(body='{"result": {"deliver_tx": {"code": 0}}}')
-        assert self.behaviour._check_transaction_delivered(response)
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseState, "sleep")
+    @mock.patch("json.loads")
+    def test_wait_until_transaction_delivered(self, *_: Any) -> None:
+        """Test '_wait_until_transaction_delivered' method."""
+        gen = self.behaviour._wait_until_transaction_delivered(MagicMock())
+        # trigger generator function
+        try_send(gen, obj=None)
+
+        # first check attempt fails
+        failure_response = MagicMock(status_code=500)
+        try_send(gen, failure_response)
+
+        # second check attempt succeeds
+        success_response = MagicMock(
+            status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+        )
+        try_send(gen, success_response)
 
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_get_default_terms(self, *_: Any) -> None:
