@@ -1,0 +1,17 @@
+name: offchain_aggregator
+author: valory
+version: 0.1.0
+type: contract
+description: OffchainAggregator (oracle) contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmVdWQBLXfvoZGSr7Bpy82m5m8aMLn2xc2SrKG2QeAdMFi
+  __init__.py: QmV8z4Hn2SqLSC2rxTHkmpHo2egWsqSFsHxBngnwz4JSRJ
+  build/VerySimpleOffchainAggregator.json: QmZQmgG4HdVQWoTH7cFYrcVEGPMFDnq1hXiCfrSAEtN46F
+  contract.py: QmPk9LUp6poqohR9DcGGDBHxA1b62XgWqF8MTxveyQkC14
+fingerprint_ignore_patterns: []
+class_name: OffchainAggregatorContract
+contract_interface_paths:
+  ethereum: build/VerySimpleOffchainAggregator.json
+dependencies: {}
