@@ -693,7 +693,7 @@ class ValidateOracleRound(ValidateRound):
     It schedules the CollectObservationRound or SelectKeeperARound.
     """
 
-    round_id = "validate_safe"
+    round_id = "validate_oracle"
     exit_event = Event.EXIT
 
 

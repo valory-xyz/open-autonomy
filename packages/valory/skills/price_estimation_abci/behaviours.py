@@ -262,14 +262,14 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
 class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent at startup."""
 
-    state_id = "select_keeper_b_at_startup"
+    state_id = "select_keeper_a_at_startup"
     matching_round = SelectKeeperAStartupRound
 
 
 class SelectKeeperBAtStartupBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent at startup."""
 
-    state_id = "select_keeper_a_at_startup"
+    state_id = "select_keeper_b_at_startup"
     matching_round = SelectKeeperBStartupRound
 
 
@@ -426,6 +426,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             _decimals=decimals,
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
+            gas=10 ** 7,
         )
         tx_hash, tx_receipt = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
@@ -779,6 +780,18 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
+        decimals = self.params.oracle_params["decimals"]
+        amount = self.period_state.most_voted_estimate
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.oracle_contract_address,
+            contract_id=str(OffchainAggregatorContract.contract_id),
+            contract_callable="get_transmit_data",
+            epoch_=self.period_state.period_count,
+            round_=self.period_state.period_count,
+            amount_=to_int(amount, decimals),
+        )
+        data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -786,9 +799,10 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
-            to_address=self.context.agent_address,
+            to_address=self.period_state.oracle_contract_address,
             value=0,
-            data=self.period_state.encoded_most_voted_estimate,
+            data=data,
+            safe_tx_gas=4000000,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -834,6 +848,18 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
+        decimals = self.params.oracle_params["decimals"]
+        amount = self.period_state.most_voted_estimate
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.oracle_contract_address,
+            contract_id=str(OffchainAggregatorContract.contract_id),
+            contract_callable="get_transmit_data",
+            epoch_=self.period_state.period_count,
+            round_=self.period_state.period_count,
+            amount_=to_int(amount, decimals),
+        )
+        data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -841,9 +867,10 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             contract_callable="verify_tx",
             tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=self.period_state.most_voted_keeper_address,
+            to_address=self.period_state.oracle_contract_address,
             value=0,
-            data=self.period_state.encoded_most_voted_estimate,
+            data=data,
+            safe_tx_gas=4000000,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -852,6 +879,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
+        self.context.logger.info(f"Verified result: {verified}")
         return verified
 
 
