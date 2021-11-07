@@ -64,6 +64,7 @@ class Params(BaseParams):
         self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
         self.sleep_time = self._ensure("sleep_time", kwargs)
         self.observation_interval = self._ensure("observation_interval", kwargs)
+        self.oracle_params = self._ensure("oracle", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
 

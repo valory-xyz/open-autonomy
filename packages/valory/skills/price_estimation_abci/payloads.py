@@ -32,6 +32,7 @@ class TransactionType(Enum):
     RANDOMNESS = "randomness"
     SELECT_KEEPER = "select_keeper"
     DEPLOY_SAFE = "deploy_safe"
+    DEPLOY_ORACLE = "deploy_oracle"
     VALIDATE = "validate"
     OBSERVATION = "observation"
     ESTIMATE = "estimate"
@@ -145,6 +146,34 @@ class DeploySafePayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(safe_contract_address=self.safe_contract_address)
+
+
+class DeployOraclePayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'deploy_oracle'."""
+
+    transaction_type = TransactionType.DEPLOY_ORACLE
+
+    def __init__(
+        self, sender: str, oracle_contract_address: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize a 'deploy_safe' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param oracle_contract_address: the Safe contract address
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._oracle_contract_address = oracle_contract_address
+
+    @property
+    def oracle_contract_address(self) -> str:
+        """Get the Oracle contract address."""
+        return self._oracle_contract_address
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(oracle_contract_address=self.oracle_contract_address)
 
 
 class ValidatePayload(BasePriceEstimationPayload):

@@ -28,6 +28,9 @@ from aea_ledger_ethereum import EthereumApi
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.offchain_aggregator.contract import (
+    OffchainAggregatorContract,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -36,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
+    DeployOraclePayload,
     DeploySafePayload,
     EstimatePayload,
     FinalizationTxPayload,
@@ -50,6 +54,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
+    DeployOracleRound,
     DeploySafeRound,
     EstimateConsensusRound,
     FinalizationRound,
@@ -60,13 +65,15 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RegistrationRound,
     ResetRound,
     SelectKeeperARound,
+    SelectKeeperAStartupRound,
     SelectKeeperBRound,
-    SelectKeeperStartupRound,
+    SelectKeeperBStartupRound,
     TxHashRound,
+    ValidateOracleRound,
     ValidateSafeRound,
     ValidateTransactionRound,
 )
-from packages.valory.skills.price_estimation_abci.tools import random_selection
+from packages.valory.skills.price_estimation_abci.tools import random_selection, to_int
 
 
 benchmark_tool = BenchmarkTool()
@@ -252,11 +259,18 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         self.set_done()
 
 
-class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
+class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent at startup."""
 
-    state_id = "select_keeper_at_startup"
-    matching_round = SelectKeeperStartupRound
+    state_id = "select_keeper_b_at_startup"
+    matching_round = SelectKeeperAStartupRound
+
+
+class SelectKeeperBAtStartupBehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent at startup."""
+
+    state_id = "select_keeper_a_at_startup"
+    matching_round = SelectKeeperBStartupRound
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):
@@ -347,6 +361,80 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         return contract_address
 
 
+class DeployOracleBehaviour(PriceEstimationBaseState):
+    """Deploy Oracle."""
+
+    state_id = "deploy_oracle"
+    matching_round = DeployOracleRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - Otherwise, wait until the next round.
+        - If a timeout is hit, set exit A event, otherwise set done event.
+        """
+        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+            yield from self._not_deployer_act()
+        else:
+            yield from self._deployer_act()
+
+    def _not_deployer_act(self) -> Generator:
+        """Do the non-deployer action."""
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.wait_until_round_end()
+            self.set_done()
+
+    def _deployer_act(self) -> Generator:
+        """Do the deployer action."""
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info(
+                "I am the designated sender, deploying the safe contract..."
+            )
+            contract_address = yield from self._send_deploy_transaction()
+            payload = DeployOraclePayload(self.context.agent_address, contract_address)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            self.context.logger.info(f"Safe contract address: {contract_address}")
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _send_deploy_transaction(self) -> Generator[None, None, str]:
+        min_answer = self.params.oracle_params["min_answer"]
+        max_answer = self.params.oracle_params["max_answer"]
+        decimals = self.params.oracle_params["decimals"]
+        description = self.params.oracle_params["description"]
+        contract_api_response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
+            contract_address=None,
+            contract_id=str(OffchainAggregatorContract.contract_id),
+            contract_callable="get_deploy_transaction",
+            deployer_address=self.context.agent_address,
+            _minAnswer=min_answer,
+            _maxAnswer=max_answer,
+            _decimals=decimals,
+            _description=description,
+            _transmitters=[self.period_state.safe_contract_address],
+        )
+        tx_hash, tx_receipt = yield from self.send_raw_transaction(
+            contract_api_response.raw_transaction
+        )
+        contract_address = EthereumApi.get_contract_address(tx_receipt)
+        self.context.logger.info(f"Deployment tx hash: {tx_hash}")
+        return contract_address
+
+
 class ValidateSafeBehaviour(PriceEstimationBaseState):
     """ValidateSafe."""
 
@@ -384,6 +472,49 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="verify_contract",
+        )
+        verified = cast(bool, contract_api_response.state.body["verified"])
+        return verified
+
+
+class ValidateOracleBehaviour(PriceEstimationBaseState):
+    """ValidateOracle."""
+
+    state_id = "validate_oracle"
+    matching_round = ValidateOracleRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Validate that the contract address provided by the keeper points to a valid contract.
+        - Send the transaction with the validation result and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            is_correct = yield from self.has_correct_contract_been_deployed()
+            payload = ValidatePayload(self.context.agent_address, is_correct)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
+        """Contract deployment verification."""
+        contract_api_response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.oracle_contract_address,
+            contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="verify_contract",
         )
         verified = cast(bool, contract_api_response.state.body["verified"])
@@ -509,15 +640,27 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            data = self.period_state.encoded_most_voted_estimate
+            decimals = self.params.oracle_params["decimals"]
+            amount = self.period_state.most_voted_estimate
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.oracle_contract_address,
+                contract_id=str(OffchainAggregatorContract.contract_id),
+                contract_callable="get_transmit_data",
+                epoch_=self.period_state.period_count,
+                round_=self.period_state.period_count,
+                amount_=to_int(amount, decimals),
+            )
+            data = contract_api_msg.raw_transaction.body["data"]
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.safe_contract_address,
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
-                to_address=self.period_state.most_voted_keeper_address,
+                to_address=self.period_state.oracle_contract_address,
                 value=0,
                 data=data,
+                safe_tx_gas=4000000,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
@@ -753,9 +896,12 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
-        SelectKeeperAtStartupBehaviour,  # type: ignore
+        SelectKeeperAAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
+        SelectKeeperBAtStartupBehaviour,  # type: ignore
+        DeployOracleBehaviour,  # type: ignore
+        ValidateOracleBehaviour,  # type: ignore
         RandomnessInOperationBehaviour,  # type: ignore
         SelectKeeperABehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore

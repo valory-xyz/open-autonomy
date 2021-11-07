@@ -21,7 +21,7 @@
 import logging  # noqa: F401
 import re
 from types import MappingProxyType
-from typing import Dict, FrozenSet, cast
+from typing import Dict, FrozenSet, Type, cast
 from unittest import mock
 
 import pytest
@@ -30,10 +30,12 @@ from aea.exceptions import AEAEnforceError
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
+    BaseTxPayload,
     ConsensusParams,
     TransactionNotValidError,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
+    DeployOraclePayload,
     DeploySafePayload,
     EstimatePayload,
     FinalizationTxPayload,
@@ -48,6 +50,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     CollectSignatureRound,
+    DeployOracleRound,
     DeploySafeRound,
     EstimateConsensusRound,
     Event,
@@ -61,9 +64,12 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     SelectKeeperARound,
+    SelectKeeperAStartupRound,
     SelectKeeperBRound,
+    SelectKeeperBStartupRound,
     SelectKeeperRound,
     TxHashRound,
+    ValidateOracleRound,
     ValidateRound,
     ValidateSafeRound,
     ValidateTransactionRound,
@@ -428,8 +434,12 @@ class TestSelectKeeperRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestDeploySafeRound(BaseRoundTestClass):
+class BaseDeployTestClass(BaseRoundTestClass):
     """Test DeploySafeRound."""
+
+    round_class: Type[AbstractRound]
+    payload_class: Type[BaseTxPayload]
+    update_keyword: str
 
     def test_run(
         self,
@@ -443,7 +453,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
             ),
         )
 
-        test_round = DeploySafeRound(
+        test_round = self.round_class(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
@@ -454,9 +464,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
             ),
         ):
             test_round.check_payload(
-                DeploySafePayload(
-                    sender="sender", safe_contract_address=get_safe_contract_address()
-                )
+                self.payload_class("sender", get_safe_contract_address())
             )
 
         with pytest.raises(
@@ -464,13 +472,13 @@ class TestDeploySafeRound(BaseRoundTestClass):
             match="agent_1 not elected as keeper",
         ):
             test_round.check_payload(
-                DeploySafePayload(
-                    sender=sorted(list(self.participants))[1],
-                    safe_contract_address=get_safe_contract_address(),
+                self.payload_class(
+                    sorted(list(self.participants))[1],
+                    get_safe_contract_address(),
                 )
             )
 
-        assert not test_round.has_keeper_sent_payload
+        assert not test_round.has_keeper_sent_payload  # type: ignore
         assert test_round.end_block() is None
 
         with pytest.raises(
@@ -480,9 +488,7 @@ class TestDeploySafeRound(BaseRoundTestClass):
             ),
         ):
             test_round.process_payload(
-                DeploySafePayload(
-                    sender="sender", safe_contract_address=get_safe_contract_address()
-                )
+                self.payload_class("sender", get_safe_contract_address())
             )
 
         with pytest.raises(
@@ -490,16 +496,16 @@ class TestDeploySafeRound(BaseRoundTestClass):
             match="internal error: agent_1 not elected as keeper.",
         ):
             test_round.process_payload(
-                DeploySafePayload(
-                    sender=sorted(list(self.participants))[1],
-                    safe_contract_address=get_safe_contract_address(),
+                self.payload_class(
+                    sorted(list(self.participants))[1],
+                    get_safe_contract_address(),
                 )
             )
 
         test_round.process_payload(
-            DeploySafePayload(
-                sender=sorted(list(self.participants))[0],
-                safe_contract_address=get_safe_contract_address(),
+            self.payload_class(
+                sorted(list(self.participants))[0],
+                get_safe_contract_address(),
             )
         )
 
@@ -508,9 +514,9 @@ class TestDeploySafeRound(BaseRoundTestClass):
             match="internal error: keeper already set the payload.",
         ):
             test_round.process_payload(
-                DeploySafePayload(
-                    sender=sorted(list(self.participants))[0],
-                    safe_contract_address=get_safe_contract_address(),
+                self.payload_class(
+                    sorted(list(self.participants))[0],
+                    get_safe_contract_address(),
                 )
             )
 
@@ -519,139 +525,39 @@ class TestDeploySafeRound(BaseRoundTestClass):
             match="keeper payload value already set.",
         ):
             test_round.check_payload(
-                DeploySafePayload(
-                    sender=sorted(list(self.participants))[0],
-                    safe_contract_address=get_safe_contract_address(),
+                self.payload_class(
+                    sorted(list(self.participants))[0],
+                    get_safe_contract_address(),
                 )
             )
 
-        assert test_round.has_keeper_sent_payload
+        assert test_round.has_keeper_sent_payload  # type: ignore
         actual_state = self.period_state.update(
-            safe_contract_address=get_safe_contract_address()
+            **{self.update_keyword: get_safe_contract_address()}
         )
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert (
-            cast(PeriodState, state).safe_contract_address
-            == cast(PeriodState, actual_state).safe_contract_address
+        assert getattr(cast(PeriodState, state), self.update_keyword) == getattr(
+            cast(PeriodState, actual_state), self.update_keyword
         )
         assert event == Event.DONE
 
 
-class TestValidateRound(BaseRoundTestClass):
-    """Test ValidateRound."""
+class TestDeploySafeRound(BaseDeployTestClass):
+    """Test DeploySafeRound."""
 
-    @classmethod
-    def setup(cls) -> None:
-        """Set up the test."""
-        super().setup()
-        ValidateRound.exit_event = Event.EXIT
-        ValidateRound.round_id = "round_id"
+    round_class = DeploySafeRound
+    payload_class = DeploySafePayload
+    update_keyword = "safe_contract_address"
 
-    def teardown(self) -> None:
-        """Tear down the test."""
-        delattr(ValidateRound, "exit_event")
-        delattr(ValidateRound, "round_id")
 
-    def test_positive_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
+class TestDeployOracleRound(BaseDeployTestClass):
+    """Test DeployOracleRound."""
 
-        test_round = ValidateRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.process_payload(ValidatePayload(sender="sender", vote=True))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(ValidatePayload(sender="sender", vote=True))
-
-        participant_to_votes_payloads = get_participant_to_votes(self.participants)
-        first_payload = participant_to_votes_payloads.pop(
-            sorted(list(participant_to_votes_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
-        ):
-            test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-        with pytest.raises(
-            TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
-        ):
-            test_round.check_payload(first_payload)
-
-        assert test_round.end_block() is None
-        assert not test_round.positive_vote_threshold_reached
-        for payload in participant_to_votes_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
-
-        actual_next_state = self.period_state.update(
-            participant_to_votes=MappingProxyType(
-                dict(get_participant_to_votes(self.participants))
-            )
-        )
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_votes.keys()
-            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
-        )
-        assert event == Event.DONE
-
-    def test_negative_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = ValidateRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        participant_to_votes_payloads = get_participant_to_votes(
-            self.participants, vote=False
-        )
-        first_payload = participant_to_votes_payloads.pop(
-            sorted(list(participant_to_votes_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-        assert not test_round.negative_vote_threshold_reached
-        for payload in participant_to_votes_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.negative_vote_threshold_reached
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert event == Event.EXIT
-        with pytest.raises(
-            AEAEnforceError, match="'participant_to_votes' field is None"
-        ):
-            _ = cast(PeriodState, state).participant_to_votes
+    round_class = DeployOracleRound
+    payload_class = DeployOraclePayload
+    update_keyword = "oracle_contract_address"
 
 
 class TestCollectObservationRound(BaseRoundTestClass):
@@ -1080,15 +986,18 @@ class TestFinalizationRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestSelectKeeperARound(BaseRoundTestClass):
+class BaseSelectKeeperRoundTest(BaseRoundTestClass):
     """Test SelectKeeperARound"""
 
+    test_class: Type[SelectKeeperRound]
+    test_payload: Type[SelectKeeperPayload]
+
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        test_round = SelectKeeperARound(
+        test_round = self.test_class(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
@@ -1108,17 +1017,17 @@ class TestSelectKeeperARound(BaseRoundTestClass):
             _ = test_round.most_voted_payload
 
         with pytest.raises(ABCIAppInternalError):
-            test_round.process_payload(SelectKeeperPayload(sender="sender", keeper=""))
+            test_round.process_payload(self.test_payload(sender="sender", keeper=""))
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: select_keeper_a",
+            match=f"internal error: sender agent_0 has already sent value for round: {self.test_class.round_id}",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: select_keeper_a",
+            match=f"sender agent_0 has already sent value for round: {self.test_class.round_id}",
         ):
             test_round.check_payload(first_payload)
 
@@ -1129,7 +1038,7 @@ class TestSelectKeeperARound(BaseRoundTestClass):
             ),
         ):
             test_round.check_payload(
-                SelectKeeperPayload(sender="sender", keeper="keeper")
+                self.test_payload(sender="sender", keeper="keeper")
             )
 
         for payload in select_keeper_payloads.values():
@@ -1154,87 +1063,36 @@ class TestSelectKeeperARound(BaseRoundTestClass):
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
-        test_round = SelectKeeperARound(self.period_state, self.consensus_params)
+        test_round = self.test_class(self.period_state, self.consensus_params)
         self._test_no_majority_event(test_round)
 
 
-class TestSelectKeeperBRound(BaseRoundTestClass):
+class TestSelectKeeperARound(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperARound"""
+
+    test_class = SelectKeeperARound
+    test_payload = SelectKeeperPayload
+
+
+class TestSelectKeeperBRound(BaseSelectKeeperRoundTest):
     """Test SelectKeeperBRound."""
 
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
+    test_class = SelectKeeperBRound
+    test_payload = SelectKeeperPayload
 
-        test_round = SelectKeeperBRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
 
-        select_keeper_payloads = get_participant_to_selection(self.participants)
-        first_payload = select_keeper_payloads.pop(
-            sorted(list(select_keeper_payloads.keys()))[0]
-        )
+class TestSelectKeeperAStartupRound(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperBRound."""
 
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
+    test_class = SelectKeeperAStartupRound
+    test_payload = SelectKeeperPayload
 
-        assert not test_round.threshold_reached
-        assert test_round.end_block() is None
 
-        with pytest.raises(
-            ABCIAppInternalError, match="internal error: not enough votes"
-        ):
-            _ = test_round.most_voted_payload
+class TestSelectKeeperBStartupRound(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperBRound."""
 
-        with pytest.raises(ABCIAppInternalError):
-            test_round.process_payload(SelectKeeperPayload(sender="sender", keeper=""))
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: select_keeper_b",
-        ):
-            test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: select_keeper_b",
-        ):
-            test_round.check_payload(first_payload)
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(
-                SelectKeeperPayload(sender="sender", keeper="keeper")
-            )
-
-        for payload in select_keeper_payloads.values():
-            test_round.process_payload(payload)
-        assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "keeper"
-
-        actual_next_state = self.period_state.update(
-            participant_to_selection=MappingProxyType(
-                dict(get_participant_to_selection(self.participants))
-            )
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_selection.keys()
-            == cast(PeriodState, actual_next_state).participant_to_selection.keys()
-        )
-        assert event == Event.DONE
-
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = SelectKeeperARound(self.period_state, self.consensus_params)
-        self._test_no_majority_event(test_round)
+    test_class = SelectKeeperBStartupRound
+    test_payload = SelectKeeperPayload
 
 
 class TestConsensusReachedRound(BaseRoundTestClass):
@@ -1288,223 +1146,137 @@ class TestConsensusReachedRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestValidateSafeRound(BaseRoundTestClass):
+class BaseValidateRoundTest(BaseRoundTestClass):
+    """Test BaseValidateRound."""
+
+    test_class: Type[ValidateRound]
+    test_payload: Type[ValidatePayload]
+
+    def test_positive_votes(
+        self,
+    ) -> None:
+        """Test ValidateRound."""
+
+        test_round = self.test_class(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=re.escape(
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
+        ):
+            test_round.check_payload(self.test_payload(sender="sender", vote=True))
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=re.escape(
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
+        ):
+            test_round.check_payload(self.test_payload(sender="sender", vote=True))
+
+        participant_to_votes_payloads = get_participant_to_votes(self.participants)
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
+        test_round.process_payload(first_payload)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"internal error: sender agent_0 has already sent value for round: {self.test_class.round_id}",
+        ):
+            test_round.process_payload(first_payload)
+
+        assert test_round.collection[first_payload.sender] == first_payload
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"sender agent_0 has already sent value for round: {self.test_class.round_id}",
+        ):
+            test_round.check_payload(first_payload)
+
+        assert test_round.end_block() is None
+        assert not test_round.positive_vote_threshold_reached
+        for payload in participant_to_votes_payloads.values():
+            test_round.process_payload(payload)
+
+        assert test_round.positive_vote_threshold_reached
+
+        actual_next_state = self.period_state.update(
+            participant_to_votes=MappingProxyType(
+                dict(get_participant_to_votes(self.participants))
+            )
+        )
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert (
+            cast(PeriodState, state).participant_to_votes.keys()
+            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
+        )
+        assert event == Event.DONE
+
+    def test_negative_votes(
+        self,
+    ) -> None:
+        """Test ValidateRound."""
+
+        test_round = self.test_class(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        participant_to_votes_payloads = get_participant_to_votes(
+            self.participants, vote=False
+        )
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
+        test_round.process_payload(first_payload)
+
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+        assert not test_round.negative_vote_threshold_reached
+        for payload in participant_to_votes_payloads.values():
+            test_round.process_payload(payload)
+
+        assert test_round.negative_vote_threshold_reached
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert event == Event.EXIT
+        with pytest.raises(
+            AEAEnforceError, match="'participant_to_votes' field is None"
+        ):
+            _ = cast(PeriodState, state).participant_to_votes
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = self.test_class(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
+
+class TestValidateSafeRound(BaseValidateRoundTest):
     """Test ValidateSafeRound."""
 
-    def test_positive_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = ValidateSafeRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(ValidatePayload(sender="sender", vote=True))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(ValidatePayload(sender="sender", vote=True))
-
-        participant_to_votes_payloads = get_participant_to_votes(self.participants)
-        first_payload = participant_to_votes_payloads.pop(
-            sorted(list(participant_to_votes_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: validate_safe",
-        ):
-            test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: validate_safe",
-        ):
-            test_round.check_payload(first_payload)
-
-        assert test_round.end_block() is None
-        assert not test_round.positive_vote_threshold_reached
-        for payload in participant_to_votes_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
-
-        actual_next_state = self.period_state.update(
-            participant_to_votes=MappingProxyType(
-                dict(get_participant_to_votes(self.participants))
-            )
-        )
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_votes.keys()
-            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
-        )
-        assert event == Event.DONE
-
-    def test_negative_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = ValidateSafeRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        participant_to_votes_payloads = get_participant_to_votes(
-            self.participants, vote=False
-        )
-        first_payload = participant_to_votes_payloads.pop(
-            sorted(list(participant_to_votes_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-        assert not test_round.negative_vote_threshold_reached
-        for payload in participant_to_votes_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.negative_vote_threshold_reached
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert event == Event.EXIT
-        with pytest.raises(
-            AEAEnforceError, match="'participant_to_votes' field is None"
-        ):
-            _ = cast(PeriodState, state).participant_to_votes
-
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = ValidateSafeRound(self.period_state, self.consensus_params)
-        self._test_no_majority_event(test_round)
+    test_class = ValidateSafeRound
+    test_payload = ValidatePayload
 
 
-class TestValidateTransactionRound(BaseRoundTestClass):
+class TestValidateOracleRound(BaseValidateRoundTest):
+    """Test ValidateSafeRound."""
+
+    test_class = ValidateOracleRound
+    test_payload = ValidatePayload
+
+
+class TestValidateTransactionRound(BaseValidateRoundTest):
     """Test ValidateRound."""
 
-    def test_positive_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = ValidateTransactionRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.process_payload(ValidatePayload(sender="sender", vote=True))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(ValidatePayload(sender="sender", vote=True))
-
-        participant_to_votes_payloads = get_participant_to_votes(self.participants)
-        first_payload = participant_to_votes_payloads.pop(
-            sorted(list(participant_to_votes_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: validate_transaction",
-        ):
-            test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: validate_transaction",
-        ):
-            test_round.check_payload(first_payload)
-
-        assert test_round.end_block() is None
-        assert not test_round.positive_vote_threshold_reached
-        for payload in participant_to_votes_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
-
-        actual_next_state = self.period_state.update(
-            participant_to_votes=MappingProxyType(
-                dict(get_participant_to_votes(self.participants))
-            )
-        )
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_votes.keys()
-            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
-        )
-        assert event == Event.DONE
-
-    def test_negative_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = ValidateTransactionRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        participant_to_votes_payloads = get_participant_to_votes(
-            self.participants, vote=False
-        )
-        first_payload = participant_to_votes_payloads.pop(
-            sorted(list(participant_to_votes_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-        assert not test_round.negative_vote_threshold_reached
-        for payload in participant_to_votes_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.negative_vote_threshold_reached
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-
-        assert event == Event.EXIT
-        with pytest.raises(
-            AEAEnforceError, match="'participant_to_votes' field is None"
-        ):
-            _ = cast(PeriodState, state).participant_to_votes
-
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = ValidateTransactionRound(self.period_state, self.consensus_params)
-        self._test_no_majority_event(test_round)
+    test_class = ValidateTransactionRound
+    test_payload = ValidatePayload
 
 
 def test_rotate_list_method() -> None:
@@ -1523,6 +1295,7 @@ def test_period_state() -> None:
     participant_to_selection = get_participant_to_selection(participants)
     most_voted_keeper_address = get_most_voted_keeper_address()
     safe_contract_address = get_safe_contract_address()
+    oracle_contract_address = get_safe_contract_address()
     participant_to_votes = get_participant_to_votes(participants)
     participant_to_observations = get_participant_to_observations(participants)
     participant_to_estimate = get_participant_to_estimate(participants)
@@ -1540,6 +1313,7 @@ def test_period_state() -> None:
         participant_to_selection=participant_to_selection,
         most_voted_keeper_address=most_voted_keeper_address,
         safe_contract_address=safe_contract_address,
+        oracle_contract_address=oracle_contract_address,
         participant_to_votes=participant_to_votes,
         participant_to_observations=participant_to_observations,
         participant_to_estimate=participant_to_estimate,
@@ -1560,6 +1334,7 @@ def test_period_state() -> None:
     assert period_state.participant_to_selection == participant_to_selection
     assert period_state.most_voted_keeper_address == most_voted_keeper_address
     assert period_state.safe_contract_address == safe_contract_address
+    assert period_state.oracle_contract_address == oracle_contract_address
     assert period_state.participant_to_votes == participant_to_votes
     assert period_state.participant_to_observations == participant_to_observations
     assert period_state.participant_to_estimate == participant_to_estimate
