@@ -1003,11 +1003,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     Base class for ABCI apps.
 
     Concrete classes of this class implement the ABCI App.
-    It requires to set
     """
 
     initial_round_cls: AppState
     transition_function: AbciAppTransitionFunction
+    final_states: Set[AppState] = set()
     event_to_timeout: Dict[EventType, float] = {}
 
     def __init__(
@@ -1044,6 +1044,24 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             else self._initial_state
         )
 
+    @classmethod
+    def get_all_rounds(cls) -> Set[AppState]:
+        """Get all the round states."""
+        states = set()
+        for start_state, transitions in cls.transition_function.items():
+            states.add(start_state)
+            for _event, end_state in transitions.items():
+                states.add(end_state)
+        return states
+
+    @classmethod
+    def get_all_events(cls) -> Set[EventType]:
+        """Get all the events."""
+        events: Set[EventType] = set()
+        for _start_state, transitions in cls.transition_function.items():
+            events.update(transitions.keys())
+        return events
+
     def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
         try:
@@ -1070,6 +1088,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         - check that the initial state has outgoing transitions
         - check that the initial state does not trigger timeout events. This is because we need at
           least one block/timestamp to start timeouts.
+        - check that the set of final states is a proper subset of the set of states.
 
         :param initial_round_cls: the initial round class
         :param transition_function: the transition function
@@ -1077,11 +1096,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         :raises:
             ValueError if the initial round class is not in the set of rounds.
         """
-        states = set()
-        for start_state, transitions in transition_function.items():
-            states.add(start_state)
-            for _event, end_state in transitions.items():
-                states.add(end_state)
+        states = cls.get_all_rounds()
         enforce(
             initial_round_cls in states,
             f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
@@ -1097,6 +1112,12 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         enforce(
             len(timeout_events_from_initial_state) == 0,
             f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
+        )
+
+        unknown_final_states = set.difference(cls.final_states, states)
+        enforce(
+            len(unknown_final_states) == 0,
+            f"the following final states are not in the set of states: {unknown_final_states}",
         )
 
     @classmethod
