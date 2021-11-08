@@ -737,27 +737,34 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         DeploySafeSendBehaviour,  # type: ignore
         DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
+        WaitBehaviour,  # type: ignore
+        SwapSelectKeeperBehaviour,  # type: ignore
         SwapTransactionHashBehaviour,  # type: ignore
         SwapSignatureBehaviour,  # type: ignore
         SwapSendBehaviour,  # type: ignore
         SwapValidationBehaviour,  # type: ignore
         AllowanceCheckBehaviour,  # type: ignore
+        AddAllowanceSelectKeeperBehaviour,  # type: ignore
         AddAllowanceTransactionHashBehaviour,  # type: ignore
         AddAllowanceSignatureBehaviour,  # type: ignore
         AddAllowanceSendBehaviour,  # type: ignore
         AddAllowanceValidationBehaviour,  # type: ignore
+        AddLiquiditySelectKeeperBehaviour,  # type: ignore
         AddLiquidityTransactionHashBehaviour,  # type: ignore
         AddLiquiditySignatureBehaviour,  # type: ignore
         AddLiquiditySendBehaviour,  # type: ignore
         AddLiquidityValidationBehaviour,  # type: ignore
+        RemoveLiquiditySelectKeeperBehaviour,  # type: ignore
         RemoveLiquidityTransactionHashBehaviour,  # type: ignore
         RemoveLiquiditySignatureBehaviour,  # type: ignore
         RemoveLiquiditySendBehaviour,  # type: ignore
         RemoveLiquidityValidationBehaviour,  # type: ignore
+        RemoveAllowanceSelectKeeperBehaviour,  # type: ignore
         RemoveAllowanceTransactionHashBehaviour,  # type: ignore
         RemoveAllowanceSignatureBehaviour,  # type: ignore
         RemoveAllowanceSendBehaviour,  # type: ignore
         RemoveAllowanceValidationBehaviour,  # type: ignore
+        SwapBackSelectKeeperBehaviour,  # type: ignore
         SwapBackTransactionHashBehaviour,  # type: ignore
         SwapBackSignatureBehaviour,  # type: ignore
         SwapBackSendBehaviour,  # type: ignore
