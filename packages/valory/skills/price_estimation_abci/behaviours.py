@@ -879,7 +879,9 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
-        self.context.logger.info(f"Verified result: {verified}")
+        self.context.logger.info(
+            f"Verified result: {verified}, all: {contract_api_msg.state.body}"
+        )
         return verified
 
 

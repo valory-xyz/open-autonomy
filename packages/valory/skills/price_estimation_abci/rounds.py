@@ -735,6 +735,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.DONE: DeployOracleRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RegistrationRound,
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
@@ -749,6 +750,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.DONE: RandomnessRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RegistrationRound,
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
@@ -788,6 +790,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RegistrationRound,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,

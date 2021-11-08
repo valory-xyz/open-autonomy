@@ -117,7 +117,7 @@ class OffchainAggregatorContract(Contract):
         instance = cls.get_instance(ledger_api, contract_address)
         report = cls.get_report(epoch_, round_, amount_)
         data = instance.encodeABI(fn_name="transmit", args=[report])
-        return {"data": data}
+        return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
     def get_report(
