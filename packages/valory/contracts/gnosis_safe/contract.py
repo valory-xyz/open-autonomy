@@ -518,6 +518,7 @@ class GnosisSafeContract(Contract):
         except (TransactionNotFound, ValueError):  # pragma: nocover
             return dict(verified=False)
         try:
+            decoded = {}
             decoded = safe_contract.decode_function_input(transaction["input"])
             data_ = decoded[1]["data"]
             verified = (
