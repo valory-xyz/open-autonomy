@@ -103,6 +103,7 @@ jobs:
       - uses: actions/checkout@v2 #textbook/git-checkout-submodule-action@2.1.1
       - uses: actions/setup-python@master
         with:
+          submodules: recursive
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
