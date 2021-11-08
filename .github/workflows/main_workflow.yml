@@ -101,6 +101,10 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - uses: actions/checkout@v2 #textbook/git-checkout-submodule-action@2.1.1
+      - name: Checkout submodules
+        uses: srt32/git-actions@v0.0.3
+        with:
+          args: git submodule update --init --recursive
       - uses: actions/setup-python@master
         with:
           submodules: recursive
