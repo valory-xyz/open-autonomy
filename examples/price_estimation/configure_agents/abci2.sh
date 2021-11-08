@@ -7,5 +7,5 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.con
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://node2:26657
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address  "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4"
-sed -i "s/gas_price_api_key: null/gas_price_api_key: null\n      chain_id: 3/" vendor/valory/connections/ledger/connection.yaml
+aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id  3
 aea build
