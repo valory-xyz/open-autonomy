@@ -23,6 +23,7 @@ config:
     ethereum:
       address: http://127.0.0.1:8545
       gas_price_api_key: null
+      chain_id: 1337
 excluded_protocols: []
 restricted_to_protocols:
 - valory/contract_api:1.0.0

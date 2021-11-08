@@ -800,6 +800,6 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         ResetRound: {Event.DONE: RandomnessRound},
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.EXIT: 5.0,
+        Event.EXIT: 30.0,
         Event.ROUND_TIMEOUT: 30.0,
     }

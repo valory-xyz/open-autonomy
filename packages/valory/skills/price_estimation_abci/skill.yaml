@@ -12,11 +12,11 @@ fingerprint:
   behaviours.py: Qmahw41NuxCznkQwiX7V6Rckzsnj4MLZnS489vmp9zwD8D
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmNZnCnxt2Pjv79LQqyPZE4ghZSBuj2ZAMXSZ8984yerdE
+  models.py: QmfEnwefRmTncDAD9EN1dTzKX9yiQHWkkmwcAbTKZoHbPk
   payloads.py: QmXeC6rpJMHfBJAuGGasts9MRDW2kruwA6p2jBchDxXzHA
   price_api.py: QmUQz9m9eDPmZXfz4s5dPLVEs8hTK4z7RCy4te4X16eYLT
   randomness_api.py: QmSoBXTPJcwrxTtQ1NPmQCLTpYv2iGYCsBcbDdpp8pgD1u
-  rounds.py: QmSHkjt2yrWcEtjxuWFi7EYGr3WJ8n2V12Hi8tgeT6mXhw
+  rounds.py: QmUG4CFEMGM9is6KtxfNLWueyMNEGatyKvfv8ZXwV2AEC5
   tools.py: QmTh9BdAMHDNPUbFduGw3VxxvSAeeHBysLvPVSX1rBoyjX
 fingerprint_ignore_patterns: []
 connections:
@@ -72,7 +72,7 @@ models:
     args:
       consensus:
         max_participants: 1
-      keeper_timeout_seconds: 5
+      keeper_timeout_seconds: 30
       max_healthcheck: 120
       observation_interval: 10
       oracle:

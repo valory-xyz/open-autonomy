@@ -48,9 +48,6 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[
             Event.EXIT
         ] = self.context.params.keeper_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[
-            Event.EXIT
-        ] = self.context.params.keeper_timeout_seconds
 
 
 class Params(BaseParams):
