@@ -920,9 +920,8 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         return len(self.collection) >= self._consensus_params.consensus_threshold
 
 
-AbciAppTransitionFunction = Dict[
-    Type[AbstractRound], Dict[EventType, Type[AbstractRound]]
-]
+AppState = Type[AbstractRound]
+AbciAppTransitionFunction = Dict[AppState, Dict[EventType, AppState]]
 
 
 @dataclass(order=True)
@@ -1007,7 +1006,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     It requires to set
     """
 
-    initial_round_cls: Type[AbstractRound]
+    initial_round_cls: AppState
     transition_function: AbciAppTransitionFunction
     event_to_timeout: Dict[EventType, float] = {}
 
@@ -1022,7 +1021,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self.consensus_params = consensus_params
         self.logger = logger
 
-        self._current_round_cls: Optional[Type[AbstractRound]] = None
+        self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
@@ -1059,7 +1058,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     @classmethod
     def _check_class_attributes_consistency(
         cls,
-        initial_round_cls: Type[AbstractRound],
+        initial_round_cls: AppState,
         transition_function: AbciAppTransitionFunction,
         event_to_timeout: Dict[EventType, float],
     ) -> None:
@@ -1101,9 +1100,9 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         )
 
     @classmethod
-    def get_all_round_classes(cls) -> Set[Type[AbstractRound]]:
+    def get_all_round_classes(cls) -> Set[AppState]:
         """Get all round classes."""
-        result: Set[Type[AbstractRound]] = set()
+        result: Set[AppState] = set()
         for start, out_transitions in cls.transition_function.items():
             result.add(start)
             for _event, end in out_transitions.items():
@@ -1133,7 +1132,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             f"'{self.current_round.round_id}' round is done with event: {event}"
         )
 
-    def _schedule_round(self, round_cls: Type[AbstractRound]) -> None:
+    def _schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 
