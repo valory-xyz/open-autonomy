@@ -330,8 +330,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
-            yield from self.send_a2a_transaction(payload)
             self.context.logger.info(f"Safe contract address: {contract_address}")
+            yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -396,7 +396,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             self,
         ).local():
             self.context.logger.info(
-                "I am the designated sender, deploying the safe contract..."
+                "I am the designated sender, deploying the oracle contract..."
             )
             contract_address = yield from self._send_deploy_transaction()
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
@@ -404,8 +404,8 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
+            self.context.logger.info(f"Oracle contract address: {contract_address}")
             yield from self.send_a2a_transaction(payload)
-            self.context.logger.info(f"Safe contract address: {contract_address}")
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -765,7 +765,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
-            self.context.logger.info(
+            self.context.logger.debug(
                 f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
             )
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
@@ -879,9 +879,12 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
-        self.context.logger.info(
-            f"Verified result: {verified}, all: {contract_api_msg.state.body}"
+        verified_log = (
+            f"Verified result: {verified}"
+            if verified
+            else f"Verified result: {verified}, all: {contract_api_msg.state.body}"
         )
+        self.context.logger.info(verified_log)
         return verified
 
 

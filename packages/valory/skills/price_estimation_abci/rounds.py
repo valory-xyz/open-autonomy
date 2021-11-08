@@ -651,6 +651,8 @@ class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 period_count=self.period_state.period_count + 1,
+                safe_contract_address=self.period_state.safe_contract_address,
+                oracle_contract_address=self.period_state.oracle_contract_address,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
                 participant_to_selection=None,
@@ -729,17 +731,17 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperAStartupRound,
+            # Event.EXIT: SelectKeeperAStartupRound,
         },
         ValidateSafeRound: {
             Event.DONE: DeployOracleRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RegistrationRound,
+            # Event.EXIT: RegistrationRound,
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
-            Event.EXIT: SelectKeeperBStartupRound,
+            # Event.EXIT: SelectKeeperBStartupRound,
         },
         SelectKeeperBStartupRound: {
             Event.DONE: DeployOracleRound,
@@ -750,7 +752,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.DONE: RandomnessRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RegistrationRound,
+            # Event.EXIT: RegistrationRound,
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
@@ -784,13 +786,13 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.EXIT: SelectKeeperBRound,
+            # Event.EXIT: SelectKeeperBRound,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RegistrationRound,
+            # Event.EXIT: RegistrationRound,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
@@ -800,6 +802,6 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         ResetRound: {Event.DONE: RandomnessRound},
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.EXIT: 30.0,
+        # Event.EXIT: 30.0,
         Event.ROUND_TIMEOUT: 30.0,
     }
