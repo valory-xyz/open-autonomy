@@ -13,6 +13,7 @@ connections:
 contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
+- valory/offchain_aggregator:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0

@@ -48,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
+    DeployOraclePayload,
     DeploySafePayload,
     EstimatePayload,
     FinalizationTxPayload,
@@ -98,6 +99,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
+        oracle_contract_address: Optional[str] = None,
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
@@ -114,6 +116,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
+        self._oracle_contract_address = oracle_contract_address
         self._participant_to_selection = participant_to_selection
         self._participant_to_votes = participant_to_votes
         self._participant_to_observations = participant_to_observations
@@ -180,6 +183,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'safe_contract_address' field is None",
         )
         return cast(str, self._safe_contract_address)
+
+    @property
+    def oracle_contract_address(self) -> str:
+        """Get the oracle contract address."""
+        enforce(
+            self._oracle_contract_address is not None,
+            "'oracle_contract_address' field is None",
+        )
+        return cast(str, self._oracle_contract_address)
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
@@ -389,6 +401,31 @@ class DeploySafeRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
         return None
 
 
+class DeployOracleRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
+    """
+    This class represents the deploy Oracle round.
+
+    Input: a set of participants (addresses) and a keeper
+    Output: a period state with the set of participants, the keeper and the Oracle contract address.
+
+    It schedules the ValidateOracleRound.
+    """
+
+    round_id = "deploy_oracle"
+    allowed_tx_type = DeployOraclePayload.transaction_type
+    payload_attribute = "oracle_contract_address"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.has_keeper_sent_payload:
+            state = self.period_state.update(
+                oracle_contract_address=self.keeper_payload
+            )
+            return state, Event.DONE
+        return None
+
+
 class ValidateRound(VotingRound, PriceEstimationAbstractRound):
     """
     This class represents the validate round.
@@ -577,10 +614,16 @@ class RandomnessRound(BaseRandomnessRound):
     round_id = "randomness"
 
 
-class SelectKeeperStartupRound(SelectKeeperRound):
-    """SelectKeeper round for startup."""
+class SelectKeeperAStartupRound(SelectKeeperRound):
+    """SelectKeeperA round for startup."""
 
-    round_id = "select_keeper_startup"
+    round_id = "select_keeper_a_startup"
+
+
+class SelectKeeperBStartupRound(SelectKeeperRound):
+    """SelectKeeperB round for startup."""
+
+    round_id = "select_keeper_b_startup"
 
 
 class SelectKeeperARound(SelectKeeperRound):
@@ -640,6 +683,20 @@ class ValidateSafeRound(ValidateRound):
     exit_event = Event.EXIT
 
 
+class ValidateOracleRound(ValidateRound):
+    """
+    This class represents the validate Oracle round.
+
+    Input: a period state with the prior round data
+    Output: a new period state with the prior round data and the validation of the contract address
+
+    It schedules the CollectObservationRound or SelectKeeperARound.
+    """
+
+    round_id = "validate_oracle"
+    exit_event = Event.EXIT
+
+
 class ValidateTransactionRound(ValidateRound):
     """
     This class represents the validate transaction round.
@@ -661,23 +718,39 @@ class PriceEstimationAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessStartupRound},
         RandomnessStartupRound: {
-            Event.DONE: SelectKeeperStartupRound,
+            Event.DONE: SelectKeeperAStartupRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RandomnessStartupRound,
         },
-        SelectKeeperStartupRound: {
+        SelectKeeperAStartupRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperStartupRound,
+            Event.EXIT: SelectKeeperAStartupRound,
         },
         ValidateSafeRound: {
+            Event.DONE: DeployOracleRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RegistrationRound,
+        },
+        DeployOracleRound: {
+            Event.DONE: ValidateOracleRound,
+            Event.EXIT: SelectKeeperBStartupRound,
+        },
+        SelectKeeperBStartupRound: {
+            Event.DONE: DeployOracleRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ValidateOracleRound: {
             Event.DONE: RandomnessRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RegistrationRound,
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
@@ -717,6 +790,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RegistrationRound,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,

@@ -515,14 +515,18 @@ class GnosisSafeContract(Contract):
             receipt = ledger_api.get_transaction_receipt(tx_hash)
             if receipt is None:
                 raise ValueError  # pragma: nocover
+        except (TransactionNotFound, ValueError):  # pragma: nocover
+            return dict(verified=False)
+        try:
             decoded = safe_contract.decode_function_input(transaction["input"])
+            data_ = decoded[1]["data"]
             verified = (
                 transaction["to"] == contract_address
                 and receipt["status"]
                 # and "execTransaction" in str(decoded[0]) # noqa: E800
                 and decoded[1]["to"] == to_address
                 and decoded[1]["value"] == value
-                and decoded[1]["data"] == data
+                and data_ == data
                 and decoded[1]["operation"] == operation
                 and decoded[1]["safeTxGas"] == safe_tx_gas
                 and decoded[1][base_gas_name] == base_gas
@@ -531,6 +535,38 @@ class GnosisSafeContract(Contract):
                 and decoded[1]["refundReceiver"] == refund_receiver
                 and decoded[1]["signatures"] == signatures
             )
-            return dict(verified=verified)
+            return dict(
+                verified=verified,
+                to=transaction["to"],
+                status=receipt["status"],
+                decoded=decoded,
+                contract_address=contract_address,
+                to_address=to_address,
+                value=value,
+                data=data.hex(),
+                operation=operation,
+                safe_tx_gas=safe_tx_gas,
+                base_gas=base_gas,
+                gas_price=gas_price,
+                gas_token=gas_token,
+                refund_receiver=refund_receiver,
+                signatures=signatures.hex(),
+            )
         except (TransactionNotFound, KeyError, ValueError):  # pragma: nocover
-            return dict(verified=False)
+            return dict(
+                verified=False,
+                to=transaction["to"],
+                status=receipt["status"],
+                decoded=decoded,
+                contract_address=contract_address,
+                to_address=to_address,
+                value=value,
+                data=data.hex(),
+                operation=operation,
+                safe_tx_gas=safe_tx_gas,
+                base_gas=base_gas,
+                gas_price=gas_price,
+                gas_token=gas_token,
+                refund_receiver=refund_receiver,
+                signatures=signatures.hex(),
+            )

@@ -22,6 +22,7 @@
 from packages.valory.skills.price_estimation_abci.tools import (
     aggregate,
     random_selection,
+    to_int,
 )
 
 
@@ -35,3 +36,10 @@ def test_random_selection_function() -> None:
     """Test `random_selection` function."""
 
     assert random_selection(["hello", "world", "!"], 0.1) == "hello"
+
+
+def test_to_int_positive() -> None:
+    """Test `to_int` function."""
+    assert to_int(0.542, 5) == 54200
+    assert to_int(0.542, 2) == 54
+    assert to_int(542, 2) == 54200

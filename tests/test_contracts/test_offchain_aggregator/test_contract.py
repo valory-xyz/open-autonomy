@@ -129,6 +129,15 @@ class TestDeployTransaction(BaseContractTest):
         )
         assert result["data"], "Contract did not return data."
 
+    def test_verify(self) -> None:
+        """Run verify test."""
+        assert self.contract_address is not None
+        result = self.contract.verify_contract(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+        )
+        assert result["verified"], "Contract not verified."
+
     def test_transmit_and_get_latest_round_data(self) -> None:
         """Run transmit test."""
         assert self.contract_address is not None

@@ -38,3 +38,14 @@ def random_selection(elements: List[str], randomness: float) -> str:
     """
     random_position = floor(randomness * len(elements))
     return elements[random_position]
+
+
+def to_int(most_voted_estimate: float, decimals: int) -> int:
+    """Convert to int."""
+    most_voted_estimate_ = str(most_voted_estimate)
+    decimal_places = most_voted_estimate_[::-1].find(".")
+    if decimal_places > decimals:
+        most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
+    most_voted_estimate = float(most_voted_estimate_)
+    int_value = int(most_voted_estimate * (10 ** decimals))
+    return int_value

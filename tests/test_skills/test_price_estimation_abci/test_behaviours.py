@@ -48,6 +48,9 @@ from packages.valory.connections.ledger.base import (
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
+from packages.valory.contracts.offchain_aggregator.contract import (
+    PUBLIC_ID as ORACLE_CONTRACT_ID,
+)
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
@@ -62,6 +65,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.behaviours import (
+    DeployOracleBehaviour,
     DeploySafeBehaviour,
     EstimateBehaviour,
     FinalizeBehaviour,
@@ -71,12 +75,14 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessInOperationBehaviour,
     RegistrationBehaviour,
     ResetBehaviour,
+    SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
-    SelectKeeperAtStartupBehaviour,
+    SelectKeeperBAtStartupBehaviour,
     SelectKeeperBBehaviour,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,
     TransactionHashBehaviour,
+    ValidateOracleBehaviour,
     ValidateSafeBehaviour,
     ValidateTransactionBehaviour,
 )
@@ -216,11 +222,12 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         self.price_estimation_behaviour.act_wrapper()
 
     def mock_contract_api_request(
-        self, request_kwargs: Dict, response_kwargs: Dict
+        self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
 
+        :param contract_id: contract id.
         :param request_kwargs: keyword arguments for request check.
         :param response_kwargs: keyword arguments for mock response.
         """
@@ -234,7 +241,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             to=str(LEDGER_CONNECTION_PUBLIC_ID),
             sender=str(self.skill.skill_context.skill_id),
             ledger_id="ethereum",
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            contract_id=contract_id,
             message_id=1,
             **request_kwargs,
         )
@@ -655,7 +662,7 @@ class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
 
     randomness_behaviour_class = RandomnessAtStartupBehaviour
-    next_behaviour_class = SelectKeeperAtStartupBehaviour
+    next_behaviour_class = SelectKeeperAAtStartupBehaviour
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
@@ -699,11 +706,18 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestSelectKeeperStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
     next_behaviour_class = DeploySafeBehaviour
+
+
+class TestSelectKeeperBStartupBehaviour(BaseSelectKeeperBehaviourTest):
+    """Test SelectKeeperBehaviour."""
+
+    select_keeper_behaviour_class = SelectKeeperBAtStartupBehaviour
+    next_behaviour_class = DeployOracleBehaviour
 
 
 class TestSelectKeeperABehaviour(BaseSelectKeeperBehaviourTest):
@@ -720,8 +734,13 @@ class TestSelectKeeperBBehaviour(BaseSelectKeeperBehaviourTest):
     next_behaviour_class = FinalizeBehaviour
 
 
-class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test DeploySafeBehaviour."""
+class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
+    """Base DeployBehaviourTest."""
+
+    behaviour_class: Type[BaseState]
+    next_behaviour_class: Type[BaseState]
+    period_state_kwargs: Dict
+    contract_id: str
 
     def test_deployer_act(
         self,
@@ -731,11 +750,11 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            DeploySafeBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address="safe_contract_address",
+                **self.period_state_kwargs,
             ),
         )
         assert (
@@ -743,7 +762,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == DeploySafeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
 
@@ -751,6 +770,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
             ),
+            contract_id=self.contract_id,
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
@@ -786,11 +806,16 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_ledger_api_request(
             request_kwargs=dict(
                 performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
+                transaction_digest=TransactionDigest(
+                    ledger_id="ethereum", body="tx_hash"
+                ),
             ),
             response_kwargs=dict(
                 performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
                 transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={}, transaction={}
+                    ledger_id="ethereum",
+                    receipt={"contractAddress": "stub"},
+                    transaction={},
                 ),
             ),
         )
@@ -799,7 +824,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ValidateSafeBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
     def test_not_deployer_act(
         self,
@@ -809,11 +834,11 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         most_voted_keeper_address = "a_1"
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            DeploySafeBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address="safe_contract_address",
+                **self.period_state_kwargs,
             ),
         )
         assert (
@@ -821,7 +846,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == DeploySafeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self._test_done_flag_set()
@@ -829,31 +854,58 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ValidateSafeBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestDeploySafeBehaviour(BaseDeployBehaviourTest):
+    """Test DeploySafeBehaviour."""
+
+    behaviour_class = DeploySafeBehaviour
+    next_behaviour_class = ValidateSafeBehaviour
+    period_state_kwargs = dict(safe_contract_address="safe_contract_address")
+    contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
+
+
+class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
+    """Test DeployOracleBehaviour."""
+
+    behaviour_class = DeployOracleBehaviour
+    next_behaviour_class = ValidateOracleBehaviour
+    period_state_kwargs = dict(
+        safe_contract_address="safe_contract_address",
+        oracle_contract_address="oracle_contract_address",
+    )
+    contract_id = str(ORACLE_CONTRACT_ID)
+
+
+class BaseValidateBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
     """Test ValidateSafeBehaviour."""
 
-    def test_validate_safe_behaviour(self) -> None:
+    behaviour_class: Type[BaseState]
+    next_behaviour_class: Type[BaseState]
+    period_state_kwargs: Dict
+    contract_id: str
+
+    def test_validate_behaviour(self) -> None:
         """Run test."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            ValidateSafeBehaviour.state_id,
-            PeriodState(safe_contract_address="safe_contract_address"),
+            self.behaviour_class.state_id,
+            PeriodState(**self.period_state_kwargs),
         )
         assert (
             cast(
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == ValidateSafeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
             ),
+            contract_id=self.contract_id,
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
                 callable="verify_contract",
@@ -865,7 +917,28 @@ class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessInOperationBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
+    """Test ValidateSafeBehaviour."""
+
+    behaviour_class = ValidateSafeBehaviour
+    next_behaviour_class = DeployOracleBehaviour
+    period_state_kwargs = dict(safe_contract_address="safe_contract_address")
+    contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
+
+
+class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
+    """Test ValidateOracleBehaviour."""
+
+    behaviour_class = ValidateOracleBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
+    period_state_kwargs = dict(
+        safe_contract_address="safe_contract_address",
+        oracle_contract_address="oracle_contract_address",
+    )
+    contract_id = str(ORACLE_CONTRACT_ID)
 
 
 class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1013,6 +1086,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=PeriodState(
                 most_voted_estimate=1.0,
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 most_voted_keeper_address="most_voted_keeper_address",
             ),
         )
@@ -1028,6 +1102,20 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
@@ -1122,6 +1210,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=PeriodState(
                 most_voted_keeper_address=self.skill.skill_context.agent_address,
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 participants=participants,
                 estimate=1.0,
                 participant_to_signature={},
@@ -1140,6 +1229,20 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
@@ -1200,6 +1303,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=PeriodState(
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 final_tx_hash="final_tx_hash",
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
@@ -1216,7 +1320,21 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
             request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
                 callable="get_deploy_transaction",
