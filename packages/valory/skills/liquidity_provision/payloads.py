@@ -90,7 +90,7 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
 class AllowanceCheckPayload(BaseLiquidityProvisionPayload):
     """Represent a transaction payload of type 'allowance_check'."""
 
-    transaction_type = TransactionType.STRATEGY_EVALUATION
+    transaction_type = TransactionType.ALLOWANCE_CHECK
 
     def __init__(self, sender: str, allowance: int, id_: Optional[str] = None) -> None:
         """Initialize a 'allowance_check' transaction payload.
@@ -110,4 +110,4 @@ class AllowanceCheckPayload(BaseLiquidityProvisionPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(strategy=self.allowance)
+        return dict(allowance=self.allowance)
