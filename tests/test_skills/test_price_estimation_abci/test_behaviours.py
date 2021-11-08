@@ -1210,6 +1210,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=PeriodState(
                 most_voted_keeper_address=self.skill.skill_context.agent_address,
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 participants=participants,
                 estimate=1.0,
                 participant_to_signature={},
@@ -1224,6 +1225,19 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == FinalizeBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -1289,6 +1303,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=PeriodState(
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 final_tx_hash="final_tx_hash",
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
@@ -1304,6 +1319,19 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == ValidateTransactionBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
         self.mock_contract_api_request(
             request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
