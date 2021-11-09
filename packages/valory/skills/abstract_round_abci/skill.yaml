@@ -9,11 +9,11 @@ fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
   base.py: QmRVLvRATS9UqRugamoqAXGbu2tBBf14CYy8Z5onMa8r6c
-  behaviour_utils.py: QmekHb796eUZeFcfiGL5tsvECdJ7LUqxsEryNgTXYGduij
+  behaviour_utils.py: QmT13v1QUyvQwdK97F7meK4BpVycp3wTBvVy26yRwcFWx4
   behaviours.py: QmRPgLyoEStKrNp5erdrTS1Q9j1CbJp6CWtsZ5odmZDvWe
   dialogues.py: QmYfj3fqnexykT5WgaEXfprK3BWC1Y2eE9LDzkVyPnyr6o
   handlers.py: QmaRiZsNxfaACpUgHGKBcgJtDDZj3YdP1c7ygvGJsgYjQJ
-  models.py: QmbFa3hJfp9vgFkN9AfEjKWsL8Uegb1UyyDHE1SxWJuzm3
+  models.py: QmSgUNDVq8PohvbCdcbn3rKMZsc8JyDqTprAXpfuaPgaQh
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
   utils.py: QmRiZG6qzeb3k2jMtFWicAWdiD9iqMNmdjBUXYqoabsCf1
 fingerprint_ignore_patterns: []

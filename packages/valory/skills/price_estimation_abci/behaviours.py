@@ -187,7 +187,7 @@ class RandomnessBehaviour(PriceEstimationBaseState):
                 url=api_specs["url"],
             )
             response = yield from self._do_request(http_message, http_dialogue)
-            observation = self.context.randomness_api.post_request_process(response)
+            observation = self.context.randomness_api.process_response(response)
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
@@ -559,7 +559,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 parameters=api_specs["parameters"],
             )
             response = yield from self._do_request(http_message, http_dialogue)
-            observation = self.context.price_api.post_request_process(response)
+            observation = self.context.price_api.process_response(response)
 
         if observation:
             self.context.logger.info(

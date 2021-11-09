@@ -18,17 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the model to interact with crypto price API."""
-import json
-from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional, Union
 
-from aea.skills.base import Model
-
 from packages.valory.protocols.http import HttpMessage
-
-
-NUMBER_OF_RETRIES = 5
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, ApiSpecsModel
 
 
 class Currency(Enum):
@@ -51,169 +45,139 @@ class Currency(Enum):
 CurrencyOrStr = Union[Currency, str]
 
 
-class ApiSpecs(ABC):  # pylint: disable=too-few-public-methods
+class PriceApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
     """Wrap an API library to access cryptocurrencies' prices."""
 
-    api_id: str
     currency_id: Currency
     convert_id: Currency
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(
+        self,
+        currency_id: CurrencyOrStr,
+        convert_id: CurrencyOrStr = Currency.USD,
+        api_key: Optional[str] = None,
+    ):
         """Initialize the API wrapper."""
         self.api_key = api_key if api_key is not None else ""
-
-    @abstractmethod
-    def get_spec(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
-    ) -> Dict:
-        """Return API Specs for `currency_id`"""
-
-    @abstractmethod
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
-        """Process the response and return observed price."""
+        self.currency_id = Currency(currency_id)
+        self.convert_id = Currency(convert_id)
 
 
-class CoinMarketCapApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
+class CoinMarketCapPriceApiSpecs(
+    PriceApiSpecs
+):  # pylint: disable=too-few-public-methods
     """Contains specs for CoinMarketCap's APIs."""
 
     api_id = "coinmarketcap"
-    _URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
-    _METHOD = "GET"
+    url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+    method = "GET"
 
     def get_spec(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+        self,
     ) -> Dict:
         """Return API Specs for `coinmarket`"""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        return {
-            "method": self._METHOD,
-            "url": self._URL,
-            "api_id": self.api_id,
-            "headers": {
-                "Accepts": "application/json",
-                "X-CMC_PRO_API_KEY": self.api_key,
-            },
-            "parameters": {
-                "symbol": self.currency_id.value,
-                "convert": self.convert_id.value,
-            },
-        }
+        self.headers = [
+            ("Accepts", "application/json"),
+            ("X-CMC_PRO_API_KEY", self.api_key),
+        ]
+        self.parameters = [
+            ("symbol", self.currency_id.value),
+            ("convert", self.convert_id.value),
+        ]
+        return super().get_spec()
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def process_response(self, response: HttpMessage) -> Optional[float]:
         """Process the response and return observed price."""
-        try:
-            response_ = json.loads(response.body.decode())
+        response_ = self._load_json(response)
+        if response_ is not None:
             return response_["data"][self.currency_id.value]["quote"][
                 self.convert_id.value
             ]["price"]
-        except (json.JSONDecodeError, KeyError):
-            return None
+        return None
 
 
-class CoinGeckoApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
+class CoinGeckoPriceApiSpecs(PriceApiSpecs):  # pylint: disable=too-few-public-methods
     """Contains specs for CoinGecko's APIs."""
 
     api_id = "coingecko"
-    _URL = "https://api.coingecko.com/api/v3/simple/price"
-    _METHOD = "GET"
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the object."""
-        super().__init__(*args, **kwargs)
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    method = "GET"
 
     def get_spec(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+        self,
     ) -> Dict:
         """Return API Specs for `coingecko`"""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        return {
-            "method": self._METHOD,
-            "url": self._URL,
-            "api_id": self.api_id,
-            "headers": {},
-            "parameters": {
-                "ids": self.currency_id.slug,
-                "vs_currencies": self.convert_id.slug,
-            },
-        }
+        self.parameters = [
+            ("ids", self.currency_id.slug),
+            ("vs_currencies", self.convert_id.slug),
+        ]
+        return super().get_spec()
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def process_response(self, response: HttpMessage) -> Optional[float]:
         """Process the response and return observed price."""
-        try:
-            response_ = json.loads(response.body.decode())
+        response_ = self._load_json(response)
+        if response_ is not None:
             return float(response_[self.currency_id.slug][self.convert_id.slug])
-        except (json.JSONDecodeError, KeyError):
-            return None
+        return None
 
 
-class BinanceApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
+class BinancePriceApiSpecs(PriceApiSpecs):  # pylint: disable=too-few-public-methods
     """Contains specs for Binance's APIs."""
 
     api_id = "binance"
-    _URL = "https://api.binance.com/api/v3/ticker/price"
-    _METHOD = "GET"
+    url = "https://api.binance.com/api/v3/ticker/price"
+    method = "GET"
 
     def get_spec(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+        self,
     ) -> Dict:
         """Return API Specs for `binance`"""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        return {
-            "method": self._METHOD,
-            "url": self._URL,
-            "api_id": self.api_id,
-            "headers": {},
-            "parameters": {"symbol": self.currency_id.value + self.convert_id.value},
-        }
+        self.parameters = [
+            ("symbol", self.currency_id.value + self.convert_id.value),
+        ]
+        return super().get_spec()
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def process_response(self, response: HttpMessage) -> Optional[float]:
         """Process the response and return observed price."""
-        try:
-            response_ = json.loads(response.body.decode())
+        response_ = self._load_json(response)
+        if response_ is not None:
             return float(response_["price"])
-        except (json.JSONDecodeError, KeyError):
-            return None
+        return None
 
 
-class CoinbaseApiSpecs(ApiSpecs):  # pylint: disable=too-few-public-methods
+class CoinbasePriceApiSpecs(PriceApiSpecs):  # pylint: disable=too-few-public-methods
     """Contains specs for Coinbase's APIs."""
 
     api_id = "coinbase"
-    _URL = "https://api.coinbase.com/v2/prices/{currency_id}-{convert_id}/buy"
-    _METHOD = "GET"
+    url = "https://api.coinbase.com/v2/prices/{currency_id}-{convert_id}/buy"
+    method = "GET"
 
     def get_spec(
-        self, currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.USD
+        self,
     ) -> Dict:
         """Return API Specs for `coinbase`"""
-        self.currency_id, self.convert_id = Currency(currency_id), Currency(convert_id)
-        return {
-            "method": self._METHOD,
-            "url": self._URL.format(
-                currency_id=self.currency_id.value, convert_id=self.convert_id.value
-            ),
-            "api_id": self.api_id,
-            "headers": {},
-            "parameters": {},
-        }
+        self.url = self.url.format(
+            currency_id=self.currency_id.value, convert_id=self.convert_id.value
+        )
+        return super().get_spec()
 
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
+    def process_response(self, response: HttpMessage) -> Optional[float]:
         """Process the response and return observed price."""
-        try:
-            response_ = json.loads(response.body.decode())
+        response_ = self._load_json(response)
+        if response_ is not None:
             return float(response_["data"]["amount"])
-        except (json.JSONDecodeError, KeyError):
-            return None
+
+        return None
 
 
-class PriceApi(Model):
+class PriceApi(ApiSpecsModel):
     """A model that wraps APIs to get cryptocurrency prices."""
 
     _api_id_to_cls = {
-        CoinMarketCapApiSpecs.api_id: CoinMarketCapApiSpecs,
-        CoinGeckoApiSpecs.api_id: CoinGeckoApiSpecs,
-        BinanceApiSpecs.api_id: BinanceApiSpecs,
-        CoinbaseApiSpecs.api_id: CoinbaseApiSpecs,
+        CoinMarketCapPriceApiSpecs.api_id: CoinMarketCapPriceApiSpecs,
+        CoinGeckoPriceApiSpecs.api_id: CoinGeckoPriceApiSpecs,
+        BinancePriceApiSpecs.api_id: BinancePriceApiSpecs,
+        CoinbasePriceApiSpecs.api_id: CoinbasePriceApiSpecs,
     }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -226,41 +190,22 @@ class PriceApi(Model):
         self._source_id = kwargs.pop("source_id", None)
         if self._source_id is None:
             raise ValueError("'source_id' is a mandatory configuration")
-        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
         self._api_key = kwargs.pop("api_key", None)
         self._api = self._get_api()
         super().__init__(*args, **kwargs)
-        self._retries_attempted = 0
-
-    @property
-    def api_id(self) -> str:
-        """Get API id."""
-        return self._api.api_id
 
     @property
     def currency_id(self) -> CurrencyOrStr:
         """Get currency id."""
         return self._currency_id
 
-    def increment_retries(self) -> None:
-        """Increment the retries counter."""
-        self._retries_attempted += 1
-
-    def is_retries_exceeded(self) -> bool:
-        """Check if the retries amount has been exceeded."""
-        return self._retries_attempted > self._retries
-
-    def _get_api(self) -> ApiSpecs:
+    def _get_api(self) -> PriceApiSpecs:
         """Get the ApiSpecs object."""
         api_cls = self._api_id_to_cls.get(self._source_id)
         if api_cls is None:
             raise ValueError(f"'{self._source_id}' is not a supported API identifier")
-        return api_cls(self._api_key)
-
-    def get_spec(self) -> Dict:
-        """Get the spec of the API"""
-        return self._api.get_spec(self.currency_id, self.convert_id)
-
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
-        """Process the response and return observed price."""
-        return self._api.post_request_process(response)
+        return api_cls(
+            currency_id=self._currency_id,
+            convert_id=self.convert_id,
+            api_key=self._api_key,
+        )

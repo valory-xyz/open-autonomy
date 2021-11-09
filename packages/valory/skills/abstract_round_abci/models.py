@@ -19,17 +19,23 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Callable, Dict, Type, cast
+import json
+from abc import ABC
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
 
+from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     BasePeriodState,
     ConsensusParams,
     Period,
 )
+
+
+NUMBER_OF_RETRIES: int = 5
 
 
 class BaseParams(Model):
@@ -97,3 +103,85 @@ class Requests(Model):
 
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
+
+
+class ApiSpecs(ABC):
+    """External API Specs."""
+
+    api_id: str
+    url: str
+    method: str
+
+    headers: List[Tuple[str, str]] = []
+    parameters: List[Tuple[str, str]] = []
+
+    def get_spec(
+        self,
+    ) -> Dict:
+        """Returns dictionary containing api specifications."""
+
+        return {
+            "api_id": self.api_id,
+            "method": self.method,
+            "url": self.url,
+            "headers": self.headers,
+            "parameters": self.parameters,
+        }
+
+    def _load_json(  # pylint: disable=no-self-use
+        self, response: HttpMessage
+    ) -> Optional[Dict]:
+        """Process response."""
+        try:
+            result_ = json.loads(response.body.decode())
+            return result_
+        except (json.JSONDecodeError, KeyError):
+            return None
+
+    def process_response(self, response: HttpMessage) -> Any:
+        """Process response from api."""
+        raise NotImplementedError()
+
+
+class ApiSpecsModel(Model):
+    """A model that wraps APIs to get cryptocurrency prices."""
+
+    _api_id_to_cls: Dict[str, Type[ApiSpecs]]
+    _retries_attempted: int
+    _retries: int
+    _source_id: str
+    _api: ApiSpecs
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize ApiSpecsModel."""
+        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
+        self._retries_attempted = 0
+        super().__init__(*args, **kwargs)
+
+    @property
+    def api_id(self) -> str:
+        """Get API id."""
+        return self._api.api_id
+
+    def increment_retries(self) -> None:
+        """Increment the retries counter."""
+        self._retries_attempted += 1
+
+    def is_retries_exceeded(self) -> bool:
+        """Check if the retries amount has been exceeded."""
+        return self._retries_attempted > self._retries
+
+    def _get_api(self) -> ApiSpecs:
+        """Get the ApiSpecs object."""
+        api_cls = self._api_id_to_cls.get(self._source_id)
+        if api_cls is None:
+            raise ValueError(f"'{self._source_id}' is not a supported API identifier")
+        return api_cls()
+
+    def get_spec(self) -> Dict:
+        """Get the spec of the API"""
+        return self._api.get_spec()
+
+    def process_response(self, response: HttpMessage) -> Optional[Any]:
+        """Process the response and return observed price."""
+        return self._api.process_response(response)

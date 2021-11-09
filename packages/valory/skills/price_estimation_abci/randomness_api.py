@@ -18,53 +18,26 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the model to interact with crypto price API."""
-import json
-from abc import ABC
 from typing import Any, Dict, Optional
 
-from aea.skills.base import Model
-
-from packages.valory.protocols.http import HttpMessage
-
-
-NUMBER_OF_RETRIES = 5
+from packages.valory.protocols.http.message import HttpMessage
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, ApiSpecsModel
 
 
-class RandomnessApiSpecs(ABC):  # pylint: disable=too-few-public-methods
-    """Wrap an API library to access cryptocurrencies' prices."""
+class RandomnessApiSpecs(ApiSpecs):
+    """Randomness API specs."""
 
-    api_id: str
-    _URL: str
-    _METHOD: str
-
-    def __init__(self) -> None:
-        """Initialize the API wrapper."""
-
-    def get_spec(self) -> Dict:
-        """Return API Specs for `coinmarket`"""
-        return {
-            "method": self._METHOD,
-            "url": self._URL,
-            "api_id": self.api_id,
-        }
-
-    def post_request_process(  # pylint: disable=no-self-use
-        self, response: HttpMessage
-    ) -> Optional[float]:
-        """Process the response and return observed price."""
-        try:
-            result_ = json.loads(response.body.decode())
-            return result_
-        except (json.JSONDecodeError, KeyError):
-            return None
+    def process_response(self, response: HttpMessage) -> Optional[Dict]:
+        """Process response"""
+        return self._load_json(response)
 
 
 class CloudflareApiSpecs(RandomnessApiSpecs):  # pylint: disable=too-few-public-methods
     """Contains specs for CoinMarketCap's APIs."""
 
     api_id = "cloudflare"
-    _URL = "https://drand.cloudflare.com/public/latest"
-    _METHOD = "GET"
+    url = "https://drand.cloudflare.com/public/latest"
+    method = "GET"
 
 
 class ProtocolLabsOneApiSpecs(
@@ -73,8 +46,8 @@ class ProtocolLabsOneApiSpecs(
     """Contains specs for CoinMarketCap's APIs."""
 
     api_id = "protocollabs1"
-    _URL = "https://api.drand.sh/public/latest"
-    _METHOD = "GET"
+    url = "https://api.drand.sh/public/latest"
+    method = "GET"
 
 
 class ProtocolLabsTwoApiSpecs(
@@ -83,8 +56,8 @@ class ProtocolLabsTwoApiSpecs(
     """Contains specs for CoinMarketCap's APIs."""
 
     api_id = "protocollabs2"
-    _URL = "https://api2.drand.sh/public/latest"
-    _METHOD = "GET"
+    url = "https://api2.drand.sh/public/latest"
+    method = "GET"
 
 
 class ProtocolLabsThreeApiSpecs(
@@ -93,11 +66,11 @@ class ProtocolLabsThreeApiSpecs(
     """Contains specs for CoinMarketCap's APIs."""
 
     api_id = "protocollabs3"
-    _URL = "https://api3.drand.sh/public/latest"
-    _METHOD = "GET"
+    url = "https://api3.drand.sh/public/latest"
+    method = "GET"
 
 
-class RandomnessApi(Model):
+class RandomnessApi(ApiSpecsModel):
     """A model that wraps APIs to get cryptocurrency prices."""
 
     _api_id_to_cls = {
@@ -112,35 +85,5 @@ class RandomnessApi(Model):
         self._source_id = kwargs.pop("source_id", None)
         if self._source_id is None:
             raise ValueError("'source_id' is a mandatory configuration")
-        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
         self._api = self._get_api()
         super().__init__(*args, **kwargs)
-        self._retries_attempted = 0
-
-    @property
-    def api_id(self) -> str:
-        """Get API id."""
-        return self._api.api_id
-
-    def increment_retries(self) -> None:
-        """Increment the retries counter."""
-        self._retries_attempted += 1
-
-    def is_retries_exceeded(self) -> bool:
-        """Check if the retries amount has been exceeded."""
-        return self._retries_attempted > self._retries
-
-    def _get_api(self) -> RandomnessApiSpecs:
-        """Get the ApiSpecs object."""
-        api_cls = self._api_id_to_cls.get(self._source_id)
-        if api_cls is None:
-            raise ValueError(f"'{self._source_id}' is not a supported API identifier")
-        return api_cls()
-
-    def get_spec(self) -> Dict:
-        """Get the spec of the API"""
-        return self._api.get_spec()
-
-    def post_request_process(self, response: HttpMessage) -> Optional[float]:
-        """Process the response and return observed price."""
-        return self._api.post_request_process(response)

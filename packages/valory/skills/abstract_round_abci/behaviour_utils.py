@@ -25,7 +25,7 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, cast
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
@@ -564,8 +564,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         method: str,
         url: str,
         content: Dict = None,
-        headers: Dict = None,
-        parameters: Dict = None,
+        headers: List[Tuple[str, str]] = None,
+        parameters: List[Tuple[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -582,13 +582,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         if parameters:
             url = url + "?"
-            for key, val in parameters.items():
+            for key, val in parameters:
                 url += f"{key}={val}&"
             url = url[:-1]
 
         header_string = ""
         if headers:
-            for key, val in headers.items():
+            for key, val in headers:
                 header_string += f"{key}: {val}\r\n"
 
         # context
