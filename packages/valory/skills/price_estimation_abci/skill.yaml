@@ -16,7 +16,7 @@ fingerprint:
   payloads.py: QmXeC6rpJMHfBJAuGGasts9MRDW2kruwA6p2jBchDxXzHA
   price_api.py: QmUQz9m9eDPmZXfz4s5dPLVEs8hTK4z7RCy4te4X16eYLT
   randomness_api.py: QmSoBXTPJcwrxTtQ1NPmQCLTpYv2iGYCsBcbDdpp8pgD1u
-  rounds.py: QmWNyUz6uSAZPMp8tphqADBZVB64s96RpHGKusrkmnS2Qg
+  rounds.py: Qmen7wCEBsqDPrByxtyngEwMhsiBj4B74ofvjaupwPKPxm
   tools.py: QmTh9BdAMHDNPUbFduGw3VxxvSAeeHBysLvPVSX1rBoyjX
 fingerprint_ignore_patterns: []
 connections:
@@ -80,6 +80,9 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
+      period_setup:
+        safe_contract_address: '0x7abcc2424811c342bc9a9b52b1621385d7406676'
+        oracle_contract_address: '0xB555E44648F6Ff759F64A5B451AB845B0450EA57'
       sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params

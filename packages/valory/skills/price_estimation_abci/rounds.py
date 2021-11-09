@@ -71,6 +71,7 @@ class Event(Enum):
     EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
+    FAST_FORWARD = "fast_forward"
 
 
 def encode_float(value: float) -> bytes:
@@ -309,6 +310,16 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
+        if (
+            self.collection_threshold_reached
+            and self.period_state.period_setup_params != {}
+        ):
+            state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+                **self.period_state.period_setup_params,
+            )
+            return state, Event.FAST_FORWARD
         if self.collection_threshold_reached:
             state = PeriodState(
                 participants=self.collection,
@@ -710,7 +721,10 @@ class PriceEstimationAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessStartupRound},
+        RegistrationRound: {
+            Event.DONE: RandomnessStartupRound,
+            Event.FAST_FORWARD: RandomnessRound,
+        },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
             Event.ROUND_TIMEOUT: RandomnessStartupRound,
