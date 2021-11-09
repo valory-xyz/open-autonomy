@@ -95,6 +95,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self,
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
         participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
         most_voted_randomness: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
@@ -112,7 +113,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
-        super().__init__(participants=participants, period_count=period_count)
+        super().__init__(
+            participants=participants,
+            period_count=period_count,
+            period_setup_params=period_setup_params,
+        )
         self._participant_to_randomness = participant_to_randomness
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
