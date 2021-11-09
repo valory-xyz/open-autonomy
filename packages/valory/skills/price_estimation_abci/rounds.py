@@ -274,12 +274,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
         return cast(str, self._most_voted_tx_hash)
 
-    def reset(self) -> "PeriodState":
-        """Return the initial period state."""
-        return PeriodState(
-            participants=self.participants, period_count=self.period_count
-        )
-
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the price estimation skill."""
@@ -295,7 +289,7 @@ class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state.reset(), Event.NO_MAJORITY
+        return self.period_state, Event.NO_MAJORITY
 
 
 class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
@@ -651,8 +645,6 @@ class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
         if self.collection_threshold_reached:
             state = self.period_state.update(
                 period_count=self.period_state.period_count + 1,
-                safe_contract_address=self.period_state.safe_contract_address,
-                oracle_contract_address=self.period_state.oracle_contract_address,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
                 participant_to_selection=None,
@@ -756,7 +748,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
             Event.NO_MAJORITY: RandomnessRound,
         },
         SelectKeeperARound: {
@@ -790,14 +782,14 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         ValidateTransactionRound: {
             Event.DONE: ResetRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
             # Event.EXIT: RegistrationRound,
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,
         },
         ResetRound: {Event.DONE: RandomnessRound},
     }

@@ -1345,5 +1345,3 @@ def test_period_state() -> None:
     assert period_state.final_tx_hash == final_tx_hash
 
     assert period_state.encoded_most_voted_estimate == encode_float(most_voted_estimate)
-
-    assert period_state.reset().participants == period_state.participants
