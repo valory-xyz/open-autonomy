@@ -42,8 +42,10 @@ The POC has the following phases:
     a designated sender among the participants of the current period deploys a
    <a href="https://gnosis-safe.io/">Gnosis Safe contract</a>
    with all the participants as owners and with
-  `ceil((2n + 1) / 3)` as threshold.
-- Safe validation phase: all agents validate the previous deployment to ensure that the correct contract with the correct settings has been deployed. If the safe deployment could not be verified, a new keeper will be selected and the previous phase will be re-run.
+  `ceil((2n + 1) / 3)` as threshold. If the safe deployment has not been completed after some time, a new keeper will be selected and the safe deployment will be re-run.
+- Safe validation phase: all agents validate the previous deployment to ensure that the correct contract with the correct settings has been deployed. If the safe deployment could not be verified, the process will start again from the registration phase.
+- Deploy-Oracle phase: the designated sender deploys a <a href="https://github.com/valory-xyz/contracts-oracle/blob/main/contracts/VerySimpleOffchainAggregator.sol">VerySimpleOffchainAggregator contract</a> owned by the Gnosis Safe contract, so every participant will have to sign every time the oracle needs to be updated. If the oracle deployment times-out without success, a new keeper will be selected and the oracle deployment will be re-run.
+- Oracle validation phase: all agents verify that the Oracle contract has been deployed using the expected settings. If that's not the case, agents will restart the process from the registration phase.
 - Collect-observation round: the application accepts
     observations, only one per agent,
     of the target quantity to estimate from only the AEAs
@@ -69,7 +71,8 @@ The POC has the following phases:
 - Consensus-reached: This is the final state of the period.
     At this point, each AEA has a local copy of the estimate, replicated
     by the Tendermint network, and submitted on the Ethereum chain
-    via the Safe transaction.
+    via the Safe transaction. After this stage, the agents transition to the randomness phase
+    and continue iterating through the collect-estimate-update loop.
 
 A full diagram can be found [here](poc-diagram.md)
 
