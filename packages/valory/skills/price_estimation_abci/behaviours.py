@@ -649,7 +649,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
                 contract_id=str(OffchainAggregatorContract.contract_id),
                 contract_callable="get_transmit_data",
                 epoch_=self.period_state.period_count,
-                round_=self.period_state.period_count,
+                round_=17,
                 amount_=to_int(amount, decimals),
             )
             data = contract_api_msg.raw_transaction.body["data"]
@@ -788,7 +788,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_transmit_data",
             epoch_=self.period_state.period_count,
-            round_=self.period_state.period_count,
+            round_=17,
             amount_=to_int(amount, decimals),
         )
         data = contract_api_msg.raw_transaction.body["data"]
@@ -856,7 +856,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_transmit_data",
             epoch_=self.period_state.period_count,
-            round_=self.period_state.period_count,
+            round_=17,
             amount_=to_int(amount, decimals),
         )
         data = contract_api_msg.raw_transaction.body["data"]
