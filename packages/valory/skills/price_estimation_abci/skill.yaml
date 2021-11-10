@@ -14,8 +14,8 @@ fingerprint:
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmNZnCnxt2Pjv79LQqyPZE4ghZSBuj2ZAMXSZ8984yerdE
   payloads.py: QmXeC6rpJMHfBJAuGGasts9MRDW2kruwA6p2jBchDxXzHA
-  price_api.py: QmfScMenYSNbD6ps2pWahnaBHDswv5GbLqiTjfvTk9LEAp
-  randomness_api.py: QmRzHpYSbAmFoCYKyforFLRAefyMsTYrxna23Yws22i6J9
+  price_api.py: QmYe7ApeQTZ5x3BJYZAANAfoF5a3wuQwym8Wp9TwBzStGp
+  randomness_api.py: QmdrpDMLus857sHWuVvk5Qup3GaGq937r5HJGMTd8obHje
   rounds.py: QmRN6fLBuvW1T3CKXzxRjLsUUaovkryq4hkUSQdQuoVDgb
   tools.py: QmTh9BdAMHDNPUbFduGw3VxxvSAeeHBysLvPVSX1rBoyjX
 fingerprint_ignore_patterns: []

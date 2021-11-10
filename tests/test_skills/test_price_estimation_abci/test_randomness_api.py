@@ -133,6 +133,10 @@ def test_price_api() -> None:
     randomness_api.increment_retries()
     assert not randomness_api.is_retries_exceeded()
 
+    for _ in range(5):
+        randomness_api.increment_retries()
+    assert randomness_api.is_retries_exceeded()
+
 
 def test_randomness_api_exceptions() -> None:
     """Test excpetions in PriceApi."""

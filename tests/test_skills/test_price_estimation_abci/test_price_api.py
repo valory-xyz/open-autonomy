@@ -70,7 +70,9 @@ class BaseApiSpecTest:
             ]
         )
         http_response = get(
-            url=specs["url"], params=specs["parameters"], headers=specs["headers"]
+            url=specs["url"],
+            params=dict(specs["parameters"]),
+            headers=dict(specs["headers"]),
         )
         response = DummyMessage(http_response.content)
         observation = self.api.process_response(cast(HttpMessage, response))
@@ -120,8 +122,10 @@ class TestBinanceApiSpecs(BaseApiSpecTest):
         self,
     ) -> None:
         """Setup test."""
-        self.api = BinancePriceApiSpecs(currency_id=Currency.BITCOIN)
         self.convert_id = Currency.USDT
+        self.api = BinancePriceApiSpecs(
+            currency_id=Currency.BITCOIN, convert_id=self.convert_id
+        )
 
 
 def test_price_api() -> None:
@@ -146,11 +150,12 @@ def test_price_api() -> None:
 
     assert api_specs == api.get_spec()
     assert price_api.api_id == CoinMarketCapPriceApiSpecs.api_id
+    assert price_api.currency_id == currency_id
 
     http_response = get(
         url=api_specs["url"],
-        params=api_specs["parameters"],
-        headers=api_specs["headers"],
+        params=dict(api_specs["parameters"]),
+        headers=dict(api_specs["headers"]),
     )
     response = DummyMessage(http_response.content)
     observation = price_api.process_response(cast(HttpMessage, response))
@@ -158,6 +163,10 @@ def test_price_api() -> None:
 
     price_api.increment_retries()
     assert not price_api.is_retries_exceeded()
+
+    for _ in range(5):
+        price_api.increment_retries()
+    assert price_api.is_retries_exceeded()
 
 
 def test_price_api_exceptions() -> None:

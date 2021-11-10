@@ -18,11 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from aea.skills.base import SkillContext
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -30,12 +31,160 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
 )
 from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
+    ApiSpecsModel,
     BaseParams,
+    NUMBER_OF_RETRIES,
     Requests,
     SharedState,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base import AbciAppTest
+
+
+DUMMY_API_SPECS: Dict[str, Union[str, List]] = {
+    "api_id": "dummy_api_id",
+    "method": "GET",
+    "url": "dummy_url",
+    "headers": [],
+    "parameters": [],
+}
+
+
+class DummyMessage:
+    """Dummy class for HttpMessage."""
+
+    body: bytes
+
+    def __init__(self, body: bytes) -> None:
+        """Initializes DummyMessage."""
+        self.body = body
+
+
+class DummyApiSpecs(ApiSpecs):
+    """Dummy ApiSpecs."""
+
+    api_id = "dummy_api_id"
+    url = "dummy_url"
+    method = "GET"
+
+
+class DummyApiSpecsModel(ApiSpecsModel):
+    """Dummy ApiSpecsModel."""
+
+    _api_id_to_cls = {DummyApiSpecs.api_id: DummyApiSpecs}
+
+
+class TestApiSpecs:
+    """Test ApiSpecs class."""
+
+    api: ApiSpecs
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+
+        self.api = DummyApiSpecs()
+
+    def test_get_spec(
+        self,
+    ) -> None:
+        """Test get_spec method."""
+
+        specs = self.api.get_spec()
+        assert all([key in specs for key in DUMMY_API_SPECS.keys()])
+        assert all([specs[key] == DUMMY_API_SPECS[key] for key in DUMMY_API_SPECS])
+
+    def test_process_response(
+        self,
+    ) -> None:
+        """Test process_response method."""
+
+        with pytest.raises(NotImplementedError):
+            self.api.process_response(MagicMock())
+
+    def test_load_json(
+        self,
+    ) -> None:
+        """Test _load_json method."""
+
+        result = self.api._load_json(DummyMessage(b"{}"))  # type: ignore
+        assert result == {}
+
+        result = self.api._load_json(DummyMessage(b""))  # type: ignore
+        assert result is None
+
+
+class TestApiSpecsModel:
+    """Test ApiSpecsModel."""
+
+    api_specs: DummyApiSpecsModel
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+
+        self.api_specs = DummyApiSpecsModel(
+            name="price_api",
+            skill_context=SkillContext(),
+            source_id=DummyApiSpecs.api_id,
+        )
+
+    def test_init(
+        self,
+    ) -> None:
+        """Test initialization."""
+
+        with pytest.raises(
+            ValueError, match="'source_id' is a mandatory configuration"
+        ):
+            _ = DummyApiSpecsModel(
+                name="price_api",
+                skill_context=SkillContext(),
+            )
+
+        with pytest.raises(
+            ValueError, match="'dummy' is not a supported API identifier"
+        ):
+            _ = DummyApiSpecsModel(
+                name="price_api", skill_context=SkillContext(), source_id="dummy"
+            )
+
+        assert self.api_specs.api_id == DummyApiSpecs.api_id
+        assert self.api_specs._retries == NUMBER_OF_RETRIES
+        assert self.api_specs._retries_attempted == 0
+
+    def test_retries(
+        self,
+    ) -> None:
+        """Tests for retries."""
+
+        self.api_specs.increment_retries()
+        assert self.api_specs._retries_attempted == 1
+        assert not self.api_specs.is_retries_exceeded()
+
+        for _ in range(NUMBER_OF_RETRIES):
+            self.api_specs.increment_retries()
+        assert self.api_specs.is_retries_exceeded()
+
+    def test_get_spec(
+        self,
+    ) -> None:
+        """Test get_spec method."""
+
+        specs = self.api_specs.get_spec()
+        assert all([key in specs for key in DUMMY_API_SPECS.keys()])
+        assert all([specs[key] == DUMMY_API_SPECS[key] for key in DUMMY_API_SPECS])
+
+    def test_process_response(
+        self,
+    ) -> None:
+        """Test process_response method."""
+
+        with pytest.raises(NotImplementedError):
+            self.api_specs.process_response(MagicMock())
 
 
 class ConcreteRound(AbstractRound):

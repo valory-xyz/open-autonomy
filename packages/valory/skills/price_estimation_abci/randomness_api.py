@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the model to interact with crypto price API."""
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, ApiSpecsModel
@@ -79,11 +79,3 @@ class RandomnessApi(ApiSpecsModel):
         ProtocolLabsTwoApiSpecs.api_id: ProtocolLabsTwoApiSpecs,
         ProtocolLabsThreeApiSpecs.api_id: ProtocolLabsThreeApiSpecs,
     }
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the price API model."""
-        self._source_id = kwargs.pop("source_id", None)
-        if self._source_id is None:
-            raise ValueError("'source_id' is a mandatory configuration")
-        self._api = self._get_api()
-        super().__init__(*args, **kwargs)
