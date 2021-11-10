@@ -59,13 +59,11 @@ class BaseApiSpecTest:
         assert all([key in specs for key in ["method", "url"]])
         http_response = get(url=specs["url"])
         response = DummyMessage(http_response.content)
-        observation = self.api.post_request_process(cast(HttpMessage, response))
+        observation = self.api.process_response(cast(HttpMessage, response))
         assert isinstance(observation, dict)
 
         fake_response = DummyMessage(b"")
-        fake_observation = self.api.post_request_process(
-            cast(HttpMessage, fake_response)
-        )
+        fake_observation = self.api.process_response(cast(HttpMessage, fake_response))
         assert fake_observation is None
 
 
@@ -129,7 +127,7 @@ def test_price_api() -> None:
         url=api_specs["url"],
     )
     response = DummyMessage(http_response.content)
-    observation = randomness_api.post_request_process(cast(HttpMessage, response))
+    observation = randomness_api.process_response(cast(HttpMessage, response))
     assert isinstance(observation, dict)
 
     randomness_api.increment_retries()

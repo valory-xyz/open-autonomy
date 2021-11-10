@@ -28,10 +28,10 @@ from requests import get
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.price_estimation_abci.price_api import (
     ApiSpecs,
-    BinanceApiSpecs,
-    CoinGeckoApiSpecs,
-    CoinMarketCapApiSpecs,
-    CoinbaseApiSpecs,
+    BinancePriceApiSpecs,
+    CoinGeckoPriceApiSpecs,
+    CoinMarketCapPriceApiSpecs,
+    CoinbasePriceApiSpecs,
     Currency,
     PriceApi,
 )
@@ -62,7 +62,7 @@ class BaseApiSpecTest:
         self,
     ) -> None:
         """Run tests."""
-        specs = self.api.get_spec(self.currency_id, self.convert_id)
+        specs = self.api.get_spec()
         assert all(
             [
                 key in specs
@@ -73,13 +73,11 @@ class BaseApiSpecTest:
             url=specs["url"], params=specs["parameters"], headers=specs["headers"]
         )
         response = DummyMessage(http_response.content)
-        observation = self.api.post_request_process(cast(HttpMessage, response))
+        observation = self.api.process_response(cast(HttpMessage, response))
         assert isinstance(observation, float)
 
         fake_response = DummyMessage(b"")
-        fake_observation = self.api.post_request_process(
-            cast(HttpMessage, fake_response)
-        )
+        fake_observation = self.api.process_response(cast(HttpMessage, fake_response))
         assert fake_observation is None
 
 
@@ -90,7 +88,7 @@ class TestCoinbaseApiSpecs(BaseApiSpecTest):
         self,
     ) -> None:
         """Setup test."""
-        self.api = CoinbaseApiSpecs()
+        self.api = CoinbasePriceApiSpecs(currency_id=Currency.BITCOIN)
 
 
 class TestCoinGeckoApiSpecs(BaseApiSpecTest):
@@ -100,7 +98,7 @@ class TestCoinGeckoApiSpecs(BaseApiSpecTest):
         self,
     ) -> None:
         """Setup test."""
-        self.api = CoinGeckoApiSpecs()
+        self.api = CoinGeckoPriceApiSpecs(currency_id=Currency.BITCOIN)
 
 
 class TestCoinMarketCapApiSpecs(BaseApiSpecTest):
@@ -110,7 +108,9 @@ class TestCoinMarketCapApiSpecs(BaseApiSpecTest):
         self,
     ) -> None:
         """Setup test."""
-        self.api = CoinMarketCapApiSpecs(api_key=COINMARKETCAP_API_KEY)
+        self.api = CoinMarketCapPriceApiSpecs(
+            currency_id=Currency.BITCOIN, api_key=COINMARKETCAP_API_KEY
+        )
 
 
 class TestBinanceApiSpecs(BaseApiSpecTest):
@@ -120,21 +120,23 @@ class TestBinanceApiSpecs(BaseApiSpecTest):
         self,
     ) -> None:
         """Setup test."""
-        self.api = BinanceApiSpecs()
+        self.api = BinancePriceApiSpecs(currency_id=Currency.BITCOIN)
         self.convert_id = Currency.USDT
 
 
 def test_price_api() -> None:
     """Test `PriceApi` class."""
 
-    api = CoinMarketCapApiSpecs(api_key=COINMARKETCAP_API_KEY)
+    api = CoinMarketCapPriceApiSpecs(
+        currency_id=Currency.BITCOIN, api_key=COINMARKETCAP_API_KEY
+    )
     currency_id = Currency.BITCOIN
     convert_id = Currency.USD
 
     price_api = PriceApi(
         name="price_api",
         skill_context=SkillContext(),
-        source_id=CoinMarketCapApiSpecs.api_id,
+        source_id=CoinMarketCapPriceApiSpecs.api_id,
         retries=5,
         api_key=COINMARKETCAP_API_KEY,
         currency_id=currency_id,
@@ -142,8 +144,8 @@ def test_price_api() -> None:
     )
     api_specs = price_api.get_spec()
 
-    assert api_specs == api.get_spec(currency_id, convert_id)
-    assert price_api.api_id == CoinMarketCapApiSpecs.api_id
+    assert api_specs == api.get_spec()
+    assert price_api.api_id == CoinMarketCapPriceApiSpecs.api_id
 
     http_response = get(
         url=api_specs["url"],
@@ -151,7 +153,7 @@ def test_price_api() -> None:
         headers=api_specs["headers"],
     )
     response = DummyMessage(http_response.content)
-    observation = price_api.post_request_process(cast(HttpMessage, response))
+    observation = price_api.process_response(cast(HttpMessage, response))
     assert isinstance(observation, float)
 
     price_api.increment_retries()
