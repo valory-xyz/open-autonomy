@@ -49,7 +49,7 @@ agent selection. In particular, agents individually request the latest random nu
 
 - Validate safe round: all agents validate the previous deployment to ensure that the correct contract with the correct settings has been deployed. If the safe deployment could not be verified, the process will start again from the registration phase.
 
-- Deploy oracle round: the designated sender deploys a <a href="https://github.com/valory-xyz/contracts-oracle/blob/main/contracts/VerySimpleOffchainAggregator.sol">VerySimpleOffchainAggregator contract</a> owned by the Gnosis Safe contract, so every participant will have to sign every time the oracle needs to be updated. If the oracle deployment times-out without success, a new keeper will be selected and the oracle deployment will be re-run.
+- Deploy oracle round: the designated sender deploys a <a href="https://github.com/valory-xyz/contracts-oracle/blob/main/contracts/VerySimpleOffchainAggregator.sol">VerySimpleOffchainAggregator contract</a> owned by the Gnosis Safe contract, so a threshold of participants (as defined on the Safe) will have to sign every time the oracle needs to be updated. If the oracle deployment times-out without success, a new keeper will be selected and the oracle deployment will be re-run.
 
 - Validate oracle round: all agents verify that the Oracle contract has been deployed using the expected settings. If that's not the case, agents will restart the process from the registration phase.
 
