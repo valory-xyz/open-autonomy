@@ -225,7 +225,27 @@ class BaseRoundTestClass:
 class TestRegistrationRound(BaseRoundTestClass):
     """Test RegistrationRound."""
 
-    def test_run(
+    def test_run_fastforward(
+        self,
+    ) -> None:
+        """Run test."""
+
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                period_setup_params={
+                    "safe_contract_address": "stub_safe_contract_address",
+                    "oracle_contract_address": "stub_oracle_contract_address",
+                }
+            ),
+        )
+
+        test_round = RegistrationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._run_with_round(test_round, Event.FAST_FORWARD)
+
+    def test_run_default(
         self,
     ) -> None:
         """Run test."""
@@ -233,7 +253,12 @@ class TestRegistrationRound(BaseRoundTestClass):
         test_round = RegistrationRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
+        self._run_with_round(test_round, Event.DONE)
 
+    def _run_with_round(
+        self, test_round: RegistrationRound, expected_event: Event
+    ) -> None:
+        """Run with given round."""
         registration_payloads = [
             RegistrationPayload(sender=participant) for participant in self.participants
         ]
@@ -270,7 +295,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             cast(PeriodState, state).participants
             == cast(PeriodState, actual_next_state).participants
         )
-        assert event == Event.DONE
+        assert event == expected_event
 
 
 class TestRandomnessRound(BaseRoundTestClass):
