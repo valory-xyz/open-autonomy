@@ -63,7 +63,7 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
             "retry_attempts", self.MAX_ATTEMPTS
         )
         self.request_retry_timeout = self.configuration.config.get(
-            "retry_attempts", self.TIMEOUT
+            "retry_timeout", self.TIMEOUT
         )
 
     @property
