@@ -318,11 +318,27 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
         if (
             self.collection_threshold_reached
             and self.period_state.period_setup_params != {}
+            and self.period_state.period_setup_params.get("safe_contract_address", None)
+            is not None
+            and self.period_state.period_setup_params.get(
+                "oracle_contract_address", None
+            )
+            is not None
         ):
+            period_count = self.period_state.period_setup_params.get(
+                "period_count", None
+            )
             state = PeriodState(
                 participants=self.collection,
-                period_count=self.period_state.period_count,
-                **self.period_state.period_setup_params,
+                period_count=period_count
+                if period_count is not None
+                else self.period_state.period_count,
+                safe_contract_address=self.period_state.period_setup_params.get(
+                    "safe_contract_address"
+                ),
+                oracle_contract_address=self.period_state.period_setup_params.get(
+                    "oracle_contract_address"
+                ),
             )
             return state, Event.FAST_FORWARD
         if self.collection_threshold_reached:

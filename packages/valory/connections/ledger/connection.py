@@ -38,10 +38,12 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 
 
-class LedgerConnection(Connection):
+class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attributes
     """Proxy to the functionality of the SDK or API."""
 
     connection_id = CONNECTION_ID
+    TIMEOUT = 3
+    MAX_ATTEMPTS = 120
 
     def __init__(self, **kwargs: Any):
         """Initialize a connection to interact with a ledger APIs."""
@@ -57,6 +59,12 @@ class LedgerConnection(Connection):
         self.api_configs = self.configuration.config.get(
             "ledger_apis", {}
         )  # type: Dict[str, Dict[str, str]]
+        self.request_retry_attempts = self.configuration.config.get(
+            "retry_attempts", self.MAX_ATTEMPTS
+        )
+        self.request_retry_timeout = self.configuration.config.get(
+            "retry_attempts", self.TIMEOUT
+        )
 
     @property
     def event_new_receiving_task(self) -> asyncio.Event:
@@ -76,12 +84,16 @@ class LedgerConnection(Connection):
             loop=self.loop,
             api_configs=self.api_configs,
             logger=self.logger,
+            retry_attempts=self.request_retry_attempts,
+            retry_timeout=self.request_retry_timeout,
         )
         self._contract_dispatcher = ContractApiRequestDispatcher(
             self._state,
             loop=self.loop,
             api_configs=self.api_configs,
             logger=self.logger,
+            retry_attempts=self.request_retry_attempts,
+            retry_timeout=self.request_retry_timeout,
         )
         self._event_new_receiving_task = asyncio.Event(loop=self.loop)
 
