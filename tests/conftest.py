@@ -21,7 +21,7 @@
 import logging
 import socket
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Tuple, cast
+from typing import Any, AsyncGenerator, Dict, Generator, List, Tuple, cast
 from unittest.mock import MagicMock
 
 import docker
@@ -30,7 +30,7 @@ from aea.configurations.base import PublicId
 from aea.configurations.constants import DEFAULT_LEDGER
 from aea.connections.base import Connection
 from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS
-from aea.crypto.registries import ledger_apis_registry, make_crypto, make_ledger_api
+from aea.crypto.registries import make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
 from aea_ledger_ethereum import EthereumCrypto
@@ -199,20 +199,20 @@ def get_host() -> str:
 
 
 @pytest.fixture(scope="session")
-def ethereum_testnet_config(ganache_addr, ganache_port):
+def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
     """Get Ethereum ledger api configurations using Ganache."""
     new_uri = f"{ganache_addr}:{ganache_port}"
     new_config = {
         "address": new_uri,
         "chain_id": DEFAULT_GANACHE_CHAIN_ID,
-        # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM,
-        # "gas_price_api_key": GAS_PRICE_API_KEY,
+        # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM, # noqa: E800
+        # "gas_price_api_key": GAS_PRICE_API_KEY, # noqa: E800
     }
     return new_config
 
 
 @pytest.fixture(scope="function")
-def update_default_ethereum_ledger_api(ethereum_testnet_config):
+def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generator:
     """Change temporarily default Ethereum ledger api configurations to interact with local Ganache."""
     old_config = DEFAULT_LEDGER_CONFIGS.pop(EthereumCrypto.identifier, None)
     DEFAULT_LEDGER_CONFIGS[EthereumCrypto.identifier] = ethereum_testnet_config
@@ -222,7 +222,9 @@ def update_default_ethereum_ledger_api(ethereum_testnet_config):
 
 
 @pytest.fixture()
-async def ledger_apis_connection(request, ethereum_testnet_config):
+async def ledger_apis_connection(
+    request: Any, ethereum_testnet_config: Dict
+) -> AsyncGenerator:
     """Make a connection."""
     crypto = make_crypto(DEFAULT_LEDGER)
     identity = Identity("name", crypto.address, crypto.public_key)
