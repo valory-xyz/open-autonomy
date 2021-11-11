@@ -20,8 +20,7 @@
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
 import json
-from abc import ABC
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Callable, Dict, List, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
@@ -105,15 +104,58 @@ class Requests(Model):
         self.request_id_to_callback: Dict[str, Callable] = {}
 
 
-class ApiSpecs(ABC):
-    """External API Specs."""
+class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
+    """A model that wraps APIs to get cryptocurrency prices."""
 
-    api_id: str
     url: str
+    api_id: str
     method: str
+    response_key: str
+    response_type: str
 
     headers: List[Tuple[str, str]] = []
     parameters: List[Tuple[str, str]] = []
+
+    _retries_attempted: int
+    _retries: int
+    _response_types: Dict[str, Any] = {
+        "int": int,
+        "float": float,
+        "dict": dict,
+        "list": list,
+        "str": str,
+    }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize ApiSpecsModel."""
+
+        self.url = self.ensure("url", kwargs)
+        self.api_id = self.ensure("api_id", kwargs)
+        self.method = self.ensure("method", kwargs)
+        self.response_key = kwargs.pop("response_key", None)
+        self.response_type = kwargs.pop("response_type", str)
+
+        _headers = kwargs.pop("headers", None)
+        if _headers is not None:
+            self.headers = list(map(lambda x: x.split(":"), _headers.split(";")))
+
+        _parameters = kwargs.pop("parameters", None)
+        if _parameters is not None:
+            self.parameters = list(map(lambda x: x.split(":"), _parameters.split(";")))
+
+        self._retries_attempted = 0
+        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
+
+        super().__init__(*args, **kwargs)
+
+    def ensure(self, keyword: str, kwargs: Dict) -> Any:
+        """Ensure a keyword argument."""
+        value = kwargs.pop(keyword, None)
+        if value is None:
+            raise ValueError(
+                f"Value for {keyword} is required by {self.__class__.__name__}."
+            )
+        return value
 
     def get_spec(
         self,
@@ -121,51 +163,28 @@ class ApiSpecs(ABC):
         """Returns dictionary containing api specifications."""
 
         return {
-            "api_id": self.api_id,
-            "method": self.method,
             "url": self.url,
+            "method": self.method,
             "headers": self.headers,
             "parameters": self.parameters,
         }
 
-    def _load_json(  # pylint: disable=no-self-use
-        self, response: HttpMessage
-    ) -> Optional[Dict]:
-        """Process response."""
-        try:
-            result_ = json.loads(response.body.decode())
-            return result_
-        except (json.JSONDecodeError, KeyError):
-            return None
-
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
-        raise NotImplementedError()
+        try:
+            response_data = json.loads(response.body.decode())
+            if self.response_key is None:
+                return response_data
 
+            first_key, *keys = self.response_key.split(":")
+            value = response_data[first_key]
+            for key in keys:
+                value = value[key]
 
-class ApiSpecsModel(Model):
-    """A model that wraps APIs to get cryptocurrency prices."""
+            return self._response_types.get(self.response_type)(value)  # type: ignore
 
-    _api_id_to_cls: Dict[str, Type[ApiSpecs]]
-    _retries_attempted: int
-    _retries: int
-    _source_id: str
-    _api: ApiSpecs
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize ApiSpecsModel."""
-        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
-        self._retries_attempted = 0
-        self._source_id = kwargs.pop("source_id", None)
-        if self._source_id is None:
-            raise ValueError("'source_id' is a mandatory configuration")
-        self._api = self._get_api()
-        super().__init__(*args, **kwargs)
-
-    @property
-    def api_id(self) -> str:
-        """Get API id."""
-        return self._api.api_id
+        except (json.JSONDecodeError, KeyError):
+            return None
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""
@@ -174,18 +193,3 @@ class ApiSpecsModel(Model):
     def is_retries_exceeded(self) -> bool:
         """Check if the retries amount has been exceeded."""
         return self._retries_attempted > self._retries
-
-    def _get_api(self) -> ApiSpecs:
-        """Get the ApiSpecs object."""
-        api_cls = self._api_id_to_cls.get(self._source_id)
-        if api_cls is None:
-            raise ValueError(f"'{self._source_id}' is not a supported API identifier")
-        return api_cls()
-
-    def get_spec(self) -> Dict:
-        """Get the spec of the API"""
-        return self._api.get_spec()
-
-    def process_response(self, response: HttpMessage) -> Optional[Any]:
-        """Process the response and return observed price."""
-        return self._api.process_response(response)

@@ -12,10 +12,8 @@ fingerprint:
   behaviours.py: QmV4N6BMj4cvbNFUw82bM4R6RRSeVdFGgQyY5fq3EvkrQo
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmNZnCnxt2Pjv79LQqyPZE4ghZSBuj2ZAMXSZ8984yerdE
+  models.py: QmaF9E16jgmJGuZee9SAda5BN9tSnunEnLKqw6WjF6cPUv
   payloads.py: QmXeC6rpJMHfBJAuGGasts9MRDW2kruwA6p2jBchDxXzHA
-  price_api.py: QmYe7ApeQTZ5x3BJYZAANAfoF5a3wuQwym8Wp9TwBzStGp
-  randomness_api.py: QmdrpDMLus857sHWuVvk5Qup3GaGq937r5HJGMTd8obHje
   rounds.py: QmRN6fLBuvW1T3CKXzxRjLsUUaovkryq4hkUSQdQuoVDgb
   tools.py: QmTh9BdAMHDNPUbFduGw3VxxvSAeeHBysLvPVSX1rBoyjX
 fingerprint_ignore_patterns: []
@@ -85,16 +83,28 @@ models:
     class_name: Params
   price_api:
     args:
-      api_key: null
+      api_id: api_id
       convert_id: USD
       currency_id: BTC
+      headers: null
+      method: GET
+      parameters: null
+      response_key: null
+      response_type: float
       retries: 5
-      source_id: coingecko
+      url: http://localhost
     class_name: PriceApi
   randomness_api:
     args:
+      api_id: api_id
+      headers: null
+      method: GET
+      parameters: null
+      response_key: null
+      response_type: dict
       retries: 5
       source_id: cloudflare
+      url: http://localhost
     class_name: RandomnessApi
   requests:
     args: {}

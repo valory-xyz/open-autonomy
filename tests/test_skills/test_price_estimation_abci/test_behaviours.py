@@ -573,7 +573,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
                 headers="",
                 version="",
                 body=b"",
-                url="https://drand.cloudflare.com/public/latest",
+                url="http://localhost",
             ),
             response_kwargs=dict(
                 version="",
@@ -621,7 +621,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
                 headers="",
                 version="",
                 body=b"",
-                url="https://drand.cloudflare.com/public/latest",
+                url="http://localhost",
             ),
             response_kwargs=dict(
                 version="", status_code=200, status_text="", headers="", body=b""
@@ -964,7 +964,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="http://localhost",
                 headers="",
                 version="",
                 body=b"",
@@ -1027,7 +1027,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="http://localhost",
                 headers="",
                 version="",
                 body=b"",

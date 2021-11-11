@@ -21,7 +21,7 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -76,3 +76,20 @@ class Params(BaseParams):
     def increment_retries(self) -> None:
         """Increment the retries counter."""
         self._count_healthcheck += 1
+
+
+class RandomnessApi(ApiSpecs):
+    """A model that wraps ApiSpecs for randomness api specifications."""
+
+
+class PriceApi(ApiSpecs):
+    """A model that wraps ApiSpecs for various cryptocurrency price api specifications."""
+
+    convert_id: str
+    currency_id: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize PriceApi."""
+        self.convert_id = self.ensure("convert_id", kwargs)
+        self.currency_id = self.ensure("currency_id", kwargs)
+        super().__init__(*args, **kwargs)
