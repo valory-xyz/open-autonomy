@@ -354,3 +354,4 @@ benchmark/*/logs
 benchmark/*/build
 benchmark/*/configure_agents
 benchmark/*/docker-compose.yml
+.vscode/
