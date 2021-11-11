@@ -28,7 +28,7 @@ consensus (e.g. waiting that a sufficient number of participants commit their ob
 
 The POC has the following rounds:
 
-- Tendermint healthcheck round: the agents check whether their corresponding Tendermint node is running.
+- Tendermint healthcheck behaviour: the agents check whether their corresponding Tendermint node is running.
 
 - Registration round: the application accepts registrations
     from AEAs to join the period, up to a configured
