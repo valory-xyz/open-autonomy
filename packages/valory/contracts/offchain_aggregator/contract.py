@@ -120,6 +120,33 @@ class OffchainAggregatorContract(Contract):
         return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
+    def get_latest_transmission_details(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+    ) -> JSONLike:
+        """
+        Handler method for the 'get_active_project' requests.
+
+        Implement this method in the sub class if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :return: the tx  # noqa: DAR202
+        """
+        detail = cls._call(
+            ledger_api,
+            contract_address,
+            "latestTransmissionDetails",
+        )
+        if detail is None:
+            return {"epoch_": 0, "round_": 0}  # pragma: nocover
+        epoch_ = detail[1]
+        round_ = detail[2]
+        return {"epoch_": epoch_, "round_": round_}
+
+    @classmethod
     def get_report(
         cls,
         epoch_: int,
@@ -208,7 +235,7 @@ class OffchainAggregatorContract(Contract):
         contract_address: str,
         method_name: str,
         *method_args: Any,
-    ) -> Optional[JSONLike]:
+    ) -> Optional[Any]:
         """Call method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)

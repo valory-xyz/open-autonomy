@@ -9,15 +9,15 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: Qmahw41NuxCznkQwiX7V6Rckzsnj4MLZnS489vmp9zwD8D
+  behaviours.py: QmfHauZu1urM27R4KRSmH5tmMjfQPBpS4MwCvhNq5LhSrH
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmNZnCnxt2Pjv79LQqyPZE4ghZSBuj2ZAMXSZ8984yerdE
-  payloads.py: QmXeC6rpJMHfBJAuGGasts9MRDW2kruwA6p2jBchDxXzHA
+  models.py: QmWqZ6bbeGrgmg62H5Ro3o7Um48GLzQi2sK2DoB8QTUV7D
+  payloads.py: QmVyaH5jNL93TyDsS5Psudo4VfRoNyAt4Y5SLtRadR1aiB
   price_api.py: QmUQz9m9eDPmZXfz4s5dPLVEs8hTK4z7RCy4te4X16eYLT
   randomness_api.py: QmSoBXTPJcwrxTtQ1NPmQCLTpYv2iGYCsBcbDdpp8pgD1u
-  rounds.py: QmRN6fLBuvW1T3CKXzxRjLsUUaovkryq4hkUSQdQuoVDgb
-  tools.py: QmTh9BdAMHDNPUbFduGw3VxxvSAeeHBysLvPVSX1rBoyjX
+  rounds.py: QmZdXkPrrSS5MEMGYNcB1Vy6rbBJ3RwFpBwPvyQEPx2eqC
+  tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -72,7 +72,7 @@ models:
     args:
       consensus:
         max_participants: 1
-      keeper_timeout_seconds: 5
+      keeper_timeout_seconds: 30
       max_healthcheck: 120
       observation_interval: 10
       oracle:
@@ -80,6 +80,9 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
+      period_setup:
+        safe_contract_address: null
+        oracle_contract_address: null
       sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params

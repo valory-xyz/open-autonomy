@@ -26,8 +26,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    Event,
+from packages.valory.skills.price_estimation_abci.rounds import (  # Event,
     PriceEstimationAbciApp,
 )
 
@@ -42,15 +41,12 @@ class SharedState(BaseSharedState):
         """Initialize the state."""
         super().__init__(*args, abci_app_cls=PriceEstimationAbciApp, **kwargs)
 
-    def setup(self) -> None:
-        """Set up."""
-        super().setup()
-        PriceEstimationAbciApp.event_to_timeout[
-            Event.EXIT
-        ] = self.context.params.keeper_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[
-            Event.EXIT
-        ] = self.context.params.keeper_timeout_seconds
+    # def setup(self) -> None:  # noqa: E800
+    #     """Set up."""  # noqa: E800
+    #     super().setup()  # noqa: E800
+    #     PriceEstimationAbciApp.event_to_timeout[  # noqa: E800
+    #         Event.EXIT  # noqa: E800
+    #     ] = self.context.params.keeper_timeout_seconds  # noqa: E800
 
 
 class Params(BaseParams):
