@@ -101,6 +101,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SwapBackSignatureBehaviour,
     SwapBackSendBehaviour,
     SwapBackValidationBehaviour,
+    LiquidityProvisionConsensusBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
     ContractApiHandler,
@@ -116,9 +117,7 @@ from tests.test_skills.test_price_estimation_abci.test_behaviours import (
     TestRegistrationBehaviour,
 )
 
-from packages.valory.skills.liquidity_provision.behaviours import (
-    LiquidityProvisionConsensusBehaviour,
-)
+
 
 
 class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
