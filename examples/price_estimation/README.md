@@ -192,3 +192,7 @@ skaffold dev --profile minikube
 kind delete cluster
 ```
 
+
+## Deployment on Ropsten
+
+Ensure accurate configuration. Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`

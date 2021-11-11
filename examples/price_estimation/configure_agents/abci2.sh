@@ -9,7 +9,6 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.ten
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.safe_contract_address "0x7AbCC2424811c342BC9A9B52B1621385d7406676"
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.oracle_contract_address "0xB555E44648F6Ff759F64A5B451AB845B0450EA57"
-aea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.period_count 45 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id 3 --type int
 aea config set vendor.valory.connections.ledger.config.retry_attempts 400 --type int

@@ -606,7 +606,7 @@ class TestBaseState:
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as info_mock:
+        with mock.patch.object(self.behaviour.context.logger, "debug") as info_mock:
             self.behaviour.default_callback_request(message)
             info_mock.assert_called_with(
                 "dropping message as behaviour has stopped: %s", message

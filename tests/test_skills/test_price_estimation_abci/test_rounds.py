@@ -42,6 +42,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
@@ -112,6 +113,16 @@ def get_participant_to_selection(
     """participant_to_selection"""
     return {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        for participant in participants
+    }
+
+
+def get_participant_to_period_count(
+    participants: FrozenSet[str], period_count: int
+) -> Dict[str, ResetPayload]:
+    """participant_to_selection"""
+    return {
+        participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 
@@ -1132,34 +1143,37 @@ class TestConsensusReachedRound(BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        registration_payloads = [
-            RegistrationPayload(sender=participant) for participant in self.participants
-        ]
+        next_period_count = 2
+        reset_payloads = get_participant_to_period_count(
+            self.participants, next_period_count
+        )
 
-        first_participant = registration_payloads.pop(0)
-        test_round.process_payload(first_participant)
-        assert test_round.collection == {
-            first_participant.sender,
-        }
+        first_payload = reset_payloads.pop(sorted(list(reset_payloads.keys()))[0])
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.threshold_reached
         assert test_round.end_block() is None
 
         with pytest.raises(
             TransactionNotValidError,
-            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: reset",
+            match=f"sender {first_payload.sender} has already sent value for round: {test_round.round_id}",
         ):
-            test_round.check_payload(first_participant)
+            test_round.check_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
-            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: reset",
+            match=f"internal error: sender {first_payload.sender} has already sent value for round: {test_round.round_id}",
         ):
-            test_round.process_payload(first_participant)
+            test_round.process_payload(first_payload)
 
-        for participant_payload in registration_payloads:
+        for participant_payload in reset_payloads.values():
             test_round.process_payload(participant_payload)
-        assert test_round.collection_threshold_reached
+        assert test_round.threshold_reached
 
-        actual_next_state = PeriodState(participants=test_round.collection)
+        actual_next_state = PeriodState(
+            participants=self.participants,
+            period_count=test_round.most_voted_payload,
+        )
 
         res = test_round.end_block()
         assert res is not None
@@ -1169,6 +1183,13 @@ class TestConsensusReachedRound(BaseRoundTestClass):
             == cast(PeriodState, actual_next_state).participants
         )
         assert event == Event.DONE
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = ConsensusReachedRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._test_no_majority_event(test_round)
 
 
 class BaseValidateRoundTest(BaseRoundTestClass):

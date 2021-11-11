@@ -55,6 +55,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
@@ -325,14 +326,9 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
             )
             is not None
         ):
-            period_count = self.period_state.period_setup_params.get(
-                "period_count", None
-            )
             state = PeriodState(
                 participants=self.collection,
-                period_count=period_count
-                if period_count is not None
-                else self.period_state.period_count,
+                period_count=self.period_state.period_count,
                 safe_contract_address=self.period_state.period_setup_params.get(
                     "safe_contract_address"
                 ),
@@ -664,19 +660,18 @@ class SelectKeeperBRound(SelectKeeperRound):
     round_id = "select_keeper_b"
 
 
-class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
+class ResetRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "reset"
-    allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-
-        if self.collection_threshold_reached:
+        if self.threshold_reached:
             state = self.period_state.update(
-                period_count=self.period_state.period_count + 1,
+                period_count=self.most_voted_payload,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
                 participant_to_selection=None,
@@ -692,6 +687,10 @@ class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
                 final_tx_hash=None,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
 
 
@@ -826,7 +825,10 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: RandomnessRound,
             Event.NO_MAJORITY: RandomnessRound,
         },
-        ResetRound: {Event.DONE: RandomnessRound},
+        ResetRound: {
+            Event.DONE: RandomnessRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
     }
     event_to_timeout: Dict[Event, float] = {
         # Event.EXIT: 30.0,
