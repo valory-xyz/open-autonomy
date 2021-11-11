@@ -20,7 +20,7 @@
 """This module contains the model to aggregate the price observations deterministically."""
 import statistics
 from math import floor
-from typing import List
+from typing import List, Tuple
 
 
 def aggregate(*observations: float) -> float:
@@ -49,3 +49,25 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     most_voted_estimate = float(most_voted_estimate_)
     int_value = int(most_voted_estimate * (10 ** decimals))
     return int_value
+
+
+def payload_to_hex(tx_hash: str, epoch_: int, round_: int, amount_: int) -> str:
+    """Serialise to a hex string."""
+    if len(tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+    epoch_hex = epoch_.to_bytes(4, "big").hex()
+    round_hex = round_.to_bytes(1, "big").hex()
+    amount_hex = amount_.to_bytes(16, "big").hex()
+    concatenated = tx_hash + epoch_hex + round_hex + amount_hex
+    return concatenated
+
+
+def hex_to_payload(payload: str) -> Tuple[str, int, int, int]:
+    """Decode payload."""
+    if len(payload) != 106:
+        raise ValueError("cannot encode provided payload")  # pragma: nocover
+    tx_hash = payload[:64]
+    epoch_ = int.from_bytes(bytes.fromhex(payload[64:72]), "big")
+    round_ = int.from_bytes(bytes.fromhex(payload[72:74]), "big")
+    amount_ = int.from_bytes(bytes.fromhex(payload[74:]), "big")
+    return (tx_hash, epoch_, round_, amount_)

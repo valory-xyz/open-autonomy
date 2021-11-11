@@ -309,7 +309,9 @@ class AbstractResponseHandler(Handler, ABC):
 
     def _log_message_handling(self, message: Message) -> None:
         """Log the handling of the message."""
-        self.context.logger.info("calling registered callback with message=%s", message)
+        self.context.logger.debug(
+            "calling registered callback with message=%s", message
+        )
 
 
 class HttpHandler(AbstractResponseHandler):
