@@ -82,6 +82,8 @@ class PeriodState(
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         self,
         participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
         participant_to_strategy: Optional[
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
@@ -194,6 +196,10 @@ class PeriodState(
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
+        self._period_count = period_count if period_count is not None else 0
+        self._period_setup_params = (
+            period_setup_params if period_setup_params is not None else {}
+        )
         self._participant_to_strategy = participant_to_strategy
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_keeper_address = most_voted_keeper_address

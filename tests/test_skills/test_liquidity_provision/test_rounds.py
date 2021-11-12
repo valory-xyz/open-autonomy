@@ -421,14 +421,57 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
 
         test_round.process_payload(first_payload)
         assert not test_round.threshold_reached
-        with pytest.raises(ABCIAppInternalError, "not enough votes"):
+        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
             _ = test_round.most_voted_payload
+
+        for _, payload in transaction_hash_payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == "tx_hash"
+
+        actual_next_state = self.period_state.update(
+            participant_to_tx_hash=MappingProxyType(get_participant_to_tx_hash(self.participants)),
+            most_voted_tx_hash=test_round.most_voted_payload
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert (
+            cast(PeriodState, state).participant_to_tx_hash.keys()
+            == cast(PeriodState, actual_next_state).participant_to_tx_hash.keys()
+        )
+        assert event == Event.DONE
 
 class TestTransactionSignatureBaseRound(BaseRoundTestClass):
     """Test TransactionSignatureBaseRound"""
 
     def test_run(self,) -> None:
         """Run tests."""
+        test_round = TransactionSignatureBaseRound(self.period_state, self.consensus_params)
+        (sender, first_payload), *transaction_hash_payloads = get_participant_to_tx_hash(self.participants).items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.collection_threshold_reached
+
+        for _, payload in transaction_hash_payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.collection_threshold_reached
+        actual_next_state = self.period_state.update(
+            participant_to_tx_hash=MappingProxyType(get_participant_to_tx_hash(self.participants)),
+            most_voted_tx_hash=test_round.most_voted_payload
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert (
+            cast(PeriodState, state).participant_to_tx_hash.keys()
+            == cast(PeriodState, actual_next_state).participant_to_tx_hash.keys()
+        )
+        assert event == Event.DONE
 
 class TestTransactionSendBaseRound(BaseRoundTestClass):
     """Test TransactionSendBaseRound"""
