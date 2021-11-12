@@ -728,7 +728,7 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls: LiquidityProvisionAbciApp  # type: ignore
+    abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
