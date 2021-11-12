@@ -26,7 +26,7 @@ import re
 from types import MappingProxyType
 from typing import AbstractSet, Dict, FrozenSet, Mapping, Type, cast
 from unittest import mock
-from packages.valory.skills.abstract_round_abci.base import AbstractRound, ConsensusParams
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError, AbstractRound, ConsensusParams
 
 import pytest
 from aea.exceptions import AEAEnforceError
@@ -417,8 +417,12 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
-        transaction_hash_payloads = get_participant_to_tx_hash(self.participants)
+        (sender, first_payload), *transaction_hash_payloads = get_participant_to_tx_hash(self.participants).items()
 
+        test_round.process_payload(first_payload)
+        assert not test_round.threshold_reached
+        with pytest.raises(ABCIAppInternalError, "not enough votes"):
+            _ = test_round.most_voted_payload
 
 class TestTransactionSignatureBaseRound(BaseRoundTestClass):
     """Test TransactionSignatureBaseRound"""
