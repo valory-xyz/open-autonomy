@@ -132,8 +132,7 @@ async def test_get_balance(
     assert actual_balance_amount == expected_balance_amount
 
 
-@pytest.mark.integration
-@pytest.mark.ledger
+
 @pytest.mark.asyncio
 @ledger_ids
 async def test_get_state(
@@ -190,8 +189,6 @@ async def test_get_state(
     assert actual_block == expected_block
 
 
-@pytest.mark.integration
-@pytest.mark.ledger
 @pytest.mark.asyncio
 @gas_price_strategies
 async def test_send_signed_transaction_ethereum(

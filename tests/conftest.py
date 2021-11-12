@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+import json
 import logging
 import socket
 from pathlib import Path
@@ -26,17 +27,22 @@ from unittest.mock import MagicMock
 
 import docker
 import pytest
-from aea.configurations.base import PublicId
+from aea.configurations.base import ContractConfig, PublicId
 from aea.configurations.constants import DEFAULT_LEDGER
+from aea.configurations.data_types import ComponentType
+from aea.configurations.loader import load_component_configuration
 from aea.connections.base import Connection
+from aea.contracts.base import Contract, contract_registry
 from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS
-from aea.crypto.registries import make_crypto
+from aea.crypto.registries import ledger_apis_registry, make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
 from aea_ledger_ethereum import EthereumCrypto
+from web3 import Web3
 
 from tests.helpers.constants import KEY_PAIRS
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
+from tests.helpers.contracts import get_register_contract
 from tests.helpers.docker.base import launch_image
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -65,6 +71,9 @@ ROOT_DIR = _ROOT_DIR
 DATA_PATH = _ROOT_DIR / "tests" / "data"
 DEFAULT_AMOUNT = 1000000000000000000000
 UNKNOWN_PROTOCOL_PUBLIC_ID = PublicId("unused", "unused", "1.0.0")
+
+NB_OWNERS = 4
+THRESHOLD = 1
 
 ETHEREUM_KEY_DEPLOYER = DATA_PATH / "ethereum_key_deployer.txt"
 ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
@@ -120,6 +129,18 @@ def hardhat_port() -> int:
 def key_pairs() -> List[Tuple[str, str]]:
     """Get the default key paris for hardhat."""
     return KEY_PAIRS
+
+
+@pytest.fixture()
+def owners(key_pairs: List[Tuple[str, str]]) -> List[str]:
+    """Get the owners."""
+    return [Web3.toChecksumAddress(t[0]) for t in key_pairs[: NB_OWNERS]]
+
+
+@pytest.fixture()
+def threshold() -> int:
+    """Returns the amount of threshold."""
+    return THRESHOLD
 
 
 @pytest.mark.integration
@@ -211,6 +232,14 @@ def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
     return new_config
 
 
+@pytest.fixture()
+def ledger_api(ethereum_testnet_config, gnosis_safe_hardhat):
+    """Ledger api fixture."""
+    ledger_id, config = EthereumCrypto.identifier, ethereum_testnet_config
+    api = ledger_apis_registry.make(ledger_id, **config)
+    yield api
+
+
 @pytest.fixture(scope="function")
 def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generator:
     """Change temporarily default Ethereum ledger api configurations to interact with local Ganache."""
@@ -244,3 +273,31 @@ async def ledger_apis_connection(
     await connection.connect()
     yield connection
     await connection.disconnect()
+
+
+@pytest.fixture()
+def gnosis_safe_contract(ledger_api, owners, threshold):
+    """
+    Instantiate an Gnosis Safe contract instance.
+    As a side effect, register it to the registry, if not already registered.
+    """
+    directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+    contract = get_register_contract(directory)
+    crypto = make_crypto(
+        EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
+    )
+
+    tx = contract.get_deploy_transaction(
+        ledger_api=ledger_api,
+        deployer_address=crypto.address,
+        gas=5000000,
+        owners=owners,
+        threshold=threshold
+    )
+    gas = ledger_api.api.eth.estimateGas(transaction=tx)
+    tx["gas"] = gas
+    tx_signed = crypto.sign_transaction(tx)
+    tx_receipt = ledger_api.send_signed_transaction(tx_signed)
+    receipt = ledger_api.get_transaction_receipt(tx_receipt)
+    contract_address = cast(Dict, receipt)["contractAddress"]
+    yield contract, contract_address
