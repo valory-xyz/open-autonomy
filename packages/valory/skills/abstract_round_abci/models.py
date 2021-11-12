@@ -45,6 +45,7 @@ class BaseParams(Model):
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
 
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
+        self.period_setup_params = kwargs.pop("period_setup", {})
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -69,7 +70,12 @@ class SharedState(Model):
         """Set up the model."""
         self.period = Period(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
-        self.period.setup(BasePeriodState(), consensus_params, self.context.logger)
+        period_setup_params = cast(BaseParams, self.context.params).period_setup_params
+        self.period.setup(
+            BasePeriodState(period_setup_params=period_setup_params),
+            consensus_params,
+            self.context.logger,
+        )
 
     @property
     def period_state(self) -> BasePeriodState:

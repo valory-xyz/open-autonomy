@@ -39,6 +39,7 @@ class TransactionType(Enum):
     TX_HASH = "tx_hash"
     SIGNATURE = "signature"
     FINALIZATION = "finalization"
+    RESET = "reset"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -332,3 +333,31 @@ class FinalizationTxPayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(tx_hash=self.tx_hash)
+
+
+class ResetPayload(BasePriceEstimationPayload):
+    """Represent a transaction payload of type 'reset'."""
+
+    transaction_type = TransactionType.RESET
+
+    def __init__(
+        self, sender: str, period_count: int, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param period_count: the period count id
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._period_count = period_count
+
+    @property
+    def period_count(self) -> int:
+        """Get the period_count."""
+        return self._period_count
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(period_count=self.period_count)

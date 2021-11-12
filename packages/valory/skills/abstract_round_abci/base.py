@@ -443,10 +443,14 @@ class BasePeriodState:
         self,
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
     ) -> None:
         """Initialize a period state."""
         self._participants = frozenset(participants) if participants else None
         self._period_count = period_count if period_count is not None else 0
+        self._period_setup_params = (
+            period_setup_params if period_setup_params is not None else {}
+        )
 
     @property
     def period_count(self) -> int:
@@ -459,6 +463,11 @@ class BasePeriodState:
         if self._participants is None:
             raise ValueError("'participants' field is None")
         return self._participants
+
+    @property
+    def period_setup_params(self) -> Dict:
+        """Get the period setup params."""
+        return self._period_setup_params
 
     @property
     def nb_participants(self) -> int:

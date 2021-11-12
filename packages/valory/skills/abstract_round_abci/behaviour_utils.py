@@ -502,7 +502,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             request_nonce
         ] = self.default_callback_request
         self.context.outbox.put_message(message=ledger_api_msg)
-        self.context.logger.info("sending transaction receipt request.")
+        self.context.logger.info(
+            f"sending transaction receipt request for tx_digest='{ledger_api_msg_.transaction_digest.body}'."
+        )
 
     def _handle_signing_failure(self) -> None:
         """Handle signing failure."""
@@ -530,7 +532,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
         if self.is_stopped:
-            self.context.logger.info(
+            self.context.logger.debug(
                 "dropping message as behaviour has stopped: %s", message
             )
         elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:

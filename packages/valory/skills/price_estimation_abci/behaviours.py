@@ -46,6 +46,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
@@ -73,10 +74,18 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     ValidateSafeRound,
     ValidateTransactionRound,
 )
-from packages.valory.skills.price_estimation_abci.tools import random_selection, to_int
+from packages.valory.skills.price_estimation_abci.tools import (
+    hex_to_payload,
+    payload_to_hex,
+    random_selection,
+    to_int,
+)
 
 
 benchmark_tool = BenchmarkTool()
+
+SAFE_TX_GAS = 4000000  # TOFIX
+ETHER_VALUE = 0  # TOFIX
 
 
 class PriceEstimationBaseState(BaseState, ABC):
@@ -330,8 +339,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
-            yield from self.send_a2a_transaction(payload)
             self.context.logger.info(f"Safe contract address: {contract_address}")
+            yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -396,7 +405,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             self,
         ).local():
             self.context.logger.info(
-                "I am the designated sender, deploying the safe contract..."
+                "I am the designated sender, deploying the oracle contract..."
             )
             contract_address = yield from self._send_deploy_transaction()
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
@@ -404,8 +413,8 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
+            self.context.logger.info(f"Oracle contract address: {contract_address}")
             yield from self.send_a2a_transaction(payload)
-            self.context.logger.info(f"Safe contract address: {contract_address}")
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -641,16 +650,25 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.oracle_contract_address,
+                contract_id=str(OffchainAggregatorContract.contract_id),
+                contract_callable="get_latest_transmission_details",
+            )
+            epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
+            round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
             decimals = self.params.oracle_params["decimals"]
             amount = self.period_state.most_voted_estimate
+            amount_ = to_int(amount, decimals)
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.oracle_contract_address,
                 contract_id=str(OffchainAggregatorContract.contract_id),
                 contract_callable="get_transmit_data",
-                epoch_=self.period_state.period_count,
-                round_=self.period_state.period_count,
-                amount_=to_int(amount, decimals),
+                epoch_=epoch_,
+                round_=round_,
+                amount_=amount_,
             )
             data = contract_api_msg.raw_transaction.body["data"]
             contract_api_msg = yield from self.get_contract_api_response(
@@ -659,14 +677,16 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.oracle_contract_address,
-                value=0,
+                value=ETHER_VALUE,
                 data=data,
-                safe_tx_gas=4000000,
+                safe_tx_gas=SAFE_TX_GAS,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
-            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
+            # temp hack:
+            payload_string = payload_to_hex(safe_tx_hash, epoch_, round_, amount_)
+            payload = TransactionHashPayload(self.context.agent_address, payload_string)
 
         with benchmark_tool.measure(
             self,
@@ -714,7 +734,9 @@ class SignatureBehaviour(PriceEstimationBaseState):
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(self.period_state.most_voted_tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(
+            self.period_state.most_voted_tx_hash[:64]
+        )
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
         signature_hex = cast(SigningMessage, signature_response).signed_message.body
@@ -765,7 +787,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
-            self.context.logger.info(
+            self.context.logger.debug(
                 f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
             )
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
@@ -780,16 +802,17 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
     def _send_safe_transaction(self) -> Generator[None, None, str]:
         """Send a Safe transaction using the participants' signatures."""
-        decimals = self.params.oracle_params["decimals"]
-        amount = self.period_state.most_voted_estimate
+        _, epoch_, round_, amount_ = hex_to_payload(
+            self.period_state.most_voted_tx_hash
+        )
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_transmit_data",
-            epoch_=self.period_state.period_count,
-            round_=self.period_state.period_count,
-            amount_=to_int(amount, decimals),
+            epoch_=epoch_,
+            round_=round_,
+            amount_=amount_,
         )
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
@@ -800,9 +823,9 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=self.period_state.oracle_contract_address,
-            value=0,
+            value=ETHER_VALUE,
             data=data,
-            safe_tx_gas=4000000,
+            safe_tx_gas=SAFE_TX_GAS,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -848,16 +871,17 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
-        decimals = self.params.oracle_params["decimals"]
-        amount = self.period_state.most_voted_estimate
+        _, epoch_, round_, amount_ = hex_to_payload(
+            self.period_state.most_voted_tx_hash
+        )
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.oracle_contract_address,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_transmit_data",
-            epoch_=self.period_state.period_count,
-            round_=self.period_state.period_count,
-            amount_=to_int(amount, decimals),
+            epoch_=epoch_,
+            round_=round_,
+            amount_=amount_,
         )
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
@@ -868,9 +892,9 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
             to_address=self.period_state.oracle_contract_address,
-            value=0,
+            value=ETHER_VALUE,
             data=data,
-            safe_tx_gas=4000000,
+            safe_tx_gas=SAFE_TX_GAS,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -879,9 +903,12 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
-        self.context.logger.info(
-            f"Verified result: {verified}, all: {contract_api_msg.state.body}"
+        verified_log = (
+            f"Verified result: {verified}"
+            if verified
+            else f"Verified result: {verified}, all: {contract_api_msg.state.body}"
         )
+        self.context.logger.info(verified_log)
         return verified
 
 
@@ -910,7 +937,9 @@ class ResetBehaviour(PriceEstimationBaseState):
         benchmark_tool.save()
 
         yield from self.sleep(self.params.observation_interval)
-        payload = RegistrationPayload(self.context.agent_address)
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
 
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()

@@ -93,6 +93,7 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event, PeriodState
+from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
 
 from tests.conftest import ROOT_DIR
 
@@ -1105,7 +1106,20 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             contract_id=str(ORACLE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
+                callable="get_latest_transmission_details",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"epoch_": 1, "round_": 1}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_transmit_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum", body={"data": "data"}
                 ),
@@ -1120,7 +1134,10 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
+                    ledger_id="ethereum",
+                    body={
+                        "tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                    },
                 ),
             ),
         )
@@ -1215,6 +1232,12 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 estimate=1.0,
                 participant_to_signature={},
                 most_voted_estimate=1.0,
+                most_voted_tx_hash=payload_to_hex(
+                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                    1,
+                    1,
+                    1,
+                ),
             ),
         )
         assert (
@@ -1309,6 +1332,12 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 most_voted_keeper_address=most_voted_keeper_address,
                 most_voted_estimate=1.0,
                 participant_to_signature={},
+                most_voted_tx_hash=payload_to_hex(
+                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                    1,
+                    1,
+                    1,
+                ),
             ),
         )
         assert (

@@ -58,6 +58,19 @@ This diagram shows the communication flow between the AEAs and their environment
         ConsensusEngine-->>KeeperAgent: validated
         ConsensusEngine-->>OtherAgents: validated
 
+        Note left of KeeperAgent: DeployOracle
+
+        KeeperAgent->>Blockchain: deploy_oracle_contract
+        Blockchain-->>KeeperAgent: contract_adress
+        KeeperAgent->>ConsensusEngine: contract_adress
+
+        Note left of KeeperAgent: ValidateOracle
+
+        KeeperAgent->>ConsensusEngine: validate
+        OtherAgents->>ConsensusEngine: validate
+        ConsensusEngine-->>KeeperAgent: validated
+        ConsensusEngine-->>OtherAgents: validated
+
         Note left of KeeperAgent: Observation
 
         KeeperAgent->>PriceAPI: observe_price
