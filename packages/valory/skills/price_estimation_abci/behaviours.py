@@ -877,7 +877,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             self.period_state.final_tx_hash
         )
         is_settled = EthereumApi.is_transaction_settled(tx_receipt)
-        if not is_settled:
+        if not is_settled:  # pragma: nocover
             self.context.logger.info(
                 f"tx {self.period_state.final_tx_hash} not settled!"
             )
