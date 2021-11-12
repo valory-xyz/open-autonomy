@@ -112,9 +112,8 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
     method: str
     response_key: str
     response_type: str
-
-    headers: List[Tuple[str, str]] = []
-    parameters: List[Tuple[str, str]] = []
+    headers: List[Tuple[str, str]]
+    parameters: List[Tuple[str, str]]
 
     _retries_attempted: int
     _retries: int
@@ -132,16 +131,10 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.url = self.ensure("url", kwargs)
         self.api_id = self.ensure("api_id", kwargs)
         self.method = self.ensure("method", kwargs)
+        self.headers = kwargs.pop("headers", [])
+        self.parameters = kwargs.pop("parameters", [])
         self.response_key = kwargs.pop("response_key", None)
         self.response_type = kwargs.pop("response_type", str)
-
-        _headers = kwargs.pop("headers", None)
-        if _headers is not None:
-            self.headers = list(map(lambda x: x.split(":"), _headers.split(";")))
-
-        _parameters = kwargs.pop("parameters", None)
-        if _parameters is not None:
-            self.parameters = list(map(lambda x: x.split(":"), _parameters.split(";")))
 
         self._retries_attempted = 0
         self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
