@@ -19,17 +19,22 @@
 
 """This module contains the shared state for the price estimation ABCI application."""
 import inspect
-from typing import Any, Callable, Dict, Type, cast
+import json
+from typing import Any, Callable, Dict, List, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model
 
+from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     BasePeriodState,
     ConsensusParams,
     Period,
 )
+
+
+NUMBER_OF_RETRIES: int = 5
 
 
 class BaseParams(Model):
@@ -103,3 +108,87 @@ class Requests(Model):
 
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
+
+
+class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
+    """A model that wraps APIs to get cryptocurrency prices."""
+
+    url: str
+    api_id: str
+    method: str
+    response_key: str
+    response_type: str
+    headers: List[Tuple[str, str]]
+    parameters: List[Tuple[str, str]]
+
+    _retries_attempted: int
+    _retries: int
+    _response_types: Dict[str, Any] = {
+        "int": int,
+        "float": float,
+        "dict": dict,
+        "list": list,
+        "str": str,
+    }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize ApiSpecsModel."""
+
+        self.url = self.ensure("url", kwargs)
+        self.api_id = self.ensure("api_id", kwargs)
+        self.method = self.ensure("method", kwargs)
+        self.headers = kwargs.pop("headers", [])
+        self.parameters = kwargs.pop("parameters", [])
+        self.response_key = kwargs.pop("response_key", None)
+        self.response_type = kwargs.pop("response_type", str)
+
+        self._retries_attempted = 0
+        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
+
+        super().__init__(*args, **kwargs)
+
+    def ensure(self, keyword: str, kwargs: Dict) -> Any:
+        """Ensure a keyword argument."""
+        value = kwargs.pop(keyword, None)
+        if value is None:
+            raise ValueError(
+                f"Value for {keyword} is required by {self.__class__.__name__}."
+            )
+        return value
+
+    def get_spec(
+        self,
+    ) -> Dict:
+        """Returns dictionary containing api specifications."""
+
+        return {
+            "url": self.url,
+            "method": self.method,
+            "headers": self.headers,
+            "parameters": self.parameters,
+        }
+
+    def process_response(self, response: HttpMessage) -> Any:
+        """Process response from api."""
+        try:
+            response_data = json.loads(response.body.decode())
+            if self.response_key is None:
+                return response_data
+
+            first_key, *keys = self.response_key.split(":")
+            value = response_data[first_key]
+            for key in keys:
+                value = value[key]
+
+            return self._response_types.get(self.response_type)(value)  # type: ignore
+
+        except (json.JSONDecodeError, KeyError):
+            return None
+
+    def increment_retries(self) -> None:
+        """Increment the retries counter."""
+        self._retries_attempted += 1
+
+    def is_retries_exceeded(self) -> bool:
+        """Check if the retries amount has been exceeded."""
+        return self._retries_attempted > self._retries

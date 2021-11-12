@@ -21,7 +21,7 @@
 
 import sys
 
-from typing import Dict, List
+from typing import List, Tuple
 from pathlib import Path
 from shutil import rmtree
 
@@ -50,46 +50,58 @@ KEYS: List[str] = [
     "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
 ]
 
+RANDOMNESS_APIS: List[List[Tuple[str, str]]] = [
+    [
+        ("url", "https://drand.cloudflare.com/public/latest"),
+        ("api_id", "cloudflare"),
+    ],
+    [
+        ("url", "https://api.drand.sh/public/latest"),
+        ("api_id", "protocollabs1"),
+    ],
+    [
+        ("url", "https://api2.drand.sh/public/latest"),
+        ("api_id", "protocollabs2"),
+    ],
+    [
+        ("url", "https://api3.drand.sh/public/latest"),
+        ("api_id", "protocollabs3"),
+    ],
+]
 
-API_CONFIG: List[Dict] = [
-    {
-        "price_api_id": "coinbase",
-        "randomness_api_id": "cloudflare",
-        "extra_config": []
-    },
-    {
-        "price_api_id": "binance",
-        "randomness_api_id": "protocollabs1",
-        "extra_config": [
-            (
-                "vendor.valory.skills.price_estimation_abci.models.params.args.convert_id",
-                "USDT"
-            ),
-        ]
-    },
-    {
-        "price_api_id": "coinmarketcap",
-        "randomness_api_id": "protocollabs2",
-        "extra_config": [
-            (
-                "vendor.valory.skills.price_estimation_abci.models.price_api.args.api_key",
-                "2142662b-985c-4862-82d7-e91457850c2a"
-            ),
-        ]
-    },
-    {
-        "price_api_id": "coingecko",
-        "randomness_api_id": "protocollabs3",
-        "extra_config": []
-    }
+PRICE_APIS: List[List[Tuple[str, str]]] = [
+
+    [
+        ("url", "https://api.coingecko.com/api/v3/simple/price"),
+        ("api_id", "coingecko"),
+        ("parameters",
+         """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list"""),
+        ("response_key", "'bitcoin:usd'"),
+    ],
+    [
+        ("url", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"),
+        ("api_id", "coinmarketcap"),
+        ("headers", """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list"""),
+        ("parameters", """'[["symbol","BTC"], ["convert","USD"]]'  --type list"""),
+        ("response_key", "'data:BTC:quote:USD:price'"),
+    ],
+    [
+        ("url", "https://api.coinbase.com/v2/prices/BTC-USD/buy"),
+        ("api_id", "coinbase"),
+        ("response_key", "'data:amount'"),
+    ],
+    [
+        ("url", "https://api.binance.com/api/v3/ticker/price"),
+        ("api_id", "binance"),
+        ("parameters", """'[["symbol", "BTCUSDT"]]' --type list"""),
+        ("response_key", "price"),
+    ],
 ]
 
 ABCI_CONFIG_SCRIPT: str = """
 #!/usr/bin/env sh
 
 cp ../configure_agents/keys/ethereum_private_key_{node_id}.txt ethereum_private_key.txt
-aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.source_id {price_api_id}
-aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.source_id {randomness_api_id}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://node{node_id}:26657
@@ -169,16 +181,16 @@ ABCI_NODE_TEMPLATE: str = """
 """
 
 
-def build_config_script(node_id: int, api_config: Dict, max_participants: int) -> str:
+def build_config_script(node_id: int, price_api: List[Tuple[str, str]], randomness_api: List[Tuple[str, str]], max_participants: int) -> str:
     """Build `abci_n.sh` for runtime agent config."""
 
     extra_config = "\n".join(
-        [f"aea config set {key} {value}" for key, value in api_config["extra_config"]])
+        [f"aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.{key} {value}" for key, value in price_api]
+        + [f"aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.{key} {value}" for key, value in randomness_api]
+    )
 
     return ABCI_CONFIG_SCRIPT.format(
         extra_config=extra_config,
-        price_api_id=api_config["price_api_id"],
-        randomness_api_id=api_config["randomness_api_id"],
         node_id=node_id,
         max_participants=max_participants
     )
@@ -223,7 +235,7 @@ def build_agent_config(node_id: int, number_of_agents: int) -> None:
     """Build agent config."""
 
     config_script = build_config_script(
-        node_id, API_CONFIG[node_id % len(API_CONFIG)], number_of_agents)
+        node_id, PRICE_APIS[node_id % len(PRICE_APIS)], RANDOMNESS_APIS[node_id % len(RANDOMNESS_APIS)], number_of_agents)
 
     with open(CONFIG_DIRECTORY / f"abci{node_id}.sh", "w+", encoding="utf-8") as file:
         file.write(config_script)

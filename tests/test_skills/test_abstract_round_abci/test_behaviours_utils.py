@@ -531,7 +531,7 @@ class TestBaseState:
             return_value=(MagicMock(), MagicMock()),
         ):
             self.behaviour._build_http_request_message(
-                "", "", parameters=dict(foo="bar"), headers=dict(foo="bar")
+                "", "", parameters=[("foo", "bar")], headers=[("foo", "bar")]
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
