@@ -78,7 +78,7 @@ from tests.conftest import ROOT_DIR
 
 
 class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
-    """Base case for testing PriceEstimation FSMBehaviour."""
+    """Base case for testing LiquidityProvision FSMBehaviour."""
 
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "liquidity_provision"
