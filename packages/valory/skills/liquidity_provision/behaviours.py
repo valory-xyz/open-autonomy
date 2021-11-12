@@ -35,6 +35,9 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
 )
+
+from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
+
 from packages.valory.skills.liquidity_provision.rounds import (
     AddAllowanceSelectKeeperRound,
     AddAllowanceSendRound,
@@ -82,7 +85,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationBaseState,
-    RandomnessBehaviour,
+    RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
     RegistrationBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
@@ -101,6 +104,11 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 
 
 benchmark_tool = BenchmarkTool()
+
+
+class RandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    state_id = "randomness"
+    matching_round = RandomnessRound
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
