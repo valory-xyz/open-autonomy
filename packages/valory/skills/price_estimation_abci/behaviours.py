@@ -360,13 +360,14 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         contract_address = cast(
             str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
-        tx_hash, tx_receipt = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        tx_receipt = yield from self.get_transaction_receipt(tx_digest)
         _ = EthereumApi.get_contract_address(
             tx_receipt
         )  # returns None as the contract is created via a proxy
-        self.context.logger.info(f"Deployment tx hash: {tx_hash}")
+        self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
 
 
@@ -437,11 +438,12 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
         )
-        tx_hash, tx_receipt = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        tx_receipt = yield from self.get_transaction_receipt(tx_digest)
         contract_address = EthereumApi.get_contract_address(tx_receipt)
-        self.context.logger.info(f"Deployment tx hash: {tx_hash}")
+        self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
 
 
@@ -783,14 +785,14 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 "I am the designated sender, sending the safe transaction..."
             )
-            tx_hash = yield from self._send_safe_transaction()
+            tx_digest = yield from self._send_safe_transaction()
             self.context.logger.info(
-                f"Transaction hash of the final transaction: {tx_hash}"
+                f"Transaction digest of the final transaction: {tx_digest}"
             )
             self.context.logger.debug(
                 f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
             )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
+            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
 
         with benchmark_tool.measure(
             self,
@@ -831,11 +833,11 @@ class FinalizeBehaviour(PriceEstimationBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
         )
-        tx_hash, _ = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
-        self.context.logger.info(f"Finalization tx hash: {tx_hash}")
-        return tx_hash
+        self.context.logger.info(f"Finalization tx digest: {tx_digest}")
+        return tx_digest
 
 
 class ValidateTransactionBehaviour(PriceEstimationBaseState):
@@ -871,6 +873,15 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
+        tx_receipt = yield from self.get_transaction_receipt(
+            self.period_state.final_tx_hash
+        )
+        is_settled = EthereumApi.is_transaction_settled(tx_receipt)
+        if not is_settled:
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} not settled!"
+            )
+            return False
         _, epoch_, round_, amount_ = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )

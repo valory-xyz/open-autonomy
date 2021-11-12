@@ -279,9 +279,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 key: payload.signature for key, payload in self.participants.items()
             },
         )
-        tx_hash, _ = yield from self.send_raw_transaction(
-            contract_api_msg.raw_transaction
-        )
+        tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
         self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 
