@@ -64,11 +64,11 @@ RANDOMNESS_APIS: List[List[Tuple[str, str]]] = [
         ("api_id", "protocollabs1"),
     ],
     [
-        ("url", "https://api1.drand.sh/public/latest"),
+        ("url", "https://api2.drand.sh/public/latest"),
         ("api_id", "protocollabs2"),
     ],
     [
-        ("url", "https://api2.drand.sh/public/latest"),
+        ("url", "https://api3.drand.sh/public/latest"),
         ("api_id", "protocollabs3"),
     ],
 ]

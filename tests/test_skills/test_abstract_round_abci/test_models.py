@@ -68,7 +68,7 @@ class TestApiSpecsModel:
             api_id="api_id",
             method="GET",
             headers=[["Dummy-Header", "dummy_value"]],
-            parameters=[["Dummy-Param","dummy_param"]],
+            parameters=[["Dummy-Param", "dummy_param"]],
             response_key="value",
             response_type="float",
             retries=NUMBER_OF_RETRIES,
