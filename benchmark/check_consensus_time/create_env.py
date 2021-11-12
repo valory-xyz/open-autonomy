@@ -74,25 +74,26 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
     [
         ("url", "https://api.coingecko.com/api/v3/simple/price"),
         ("api_id", "coingecko"),
-        ("parameters", "\"ids:bitcoin;vs_currencies:usd\""),
-        ("response_key", "\"bitcoin:usd\""),
+        ("parameters",
+         """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list"""),
+        ("response_key", "'bitcoin:usd'"),
     ],
     [
         ("url", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"),
         ("api_id", "coinmarketcap"),
-        ("headers", "\"Accepts:application/json;X-CMC_PRO_API_KEY:2142662b-985c-4862-82d7-e91457850c2a\""),
-        ("parameters", "\"symbol:BTC;convert:USD\""),
-        ("response_key", "\"data:BTC:quote:USD:price\""),
+        ("headers", """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list"""),
+        ("parameters", """'[["symbol","BTC"], ["convert","USD"]]'  --type list"""),
+        ("response_key", "'data:BTC:quote:USD:price'"),
     ],
     [
         ("url", "https://api.coinbase.com/v2/prices/BTC-USD/buy"),
         ("api_id", "coinbase"),
-        ("response_key", "\"data:amount\""),
+        ("response_key", "'data:amount'"),
     ],
     [
         ("url", "https://api.binance.com/api/v3/ticker/price"),
         ("api_id", "binance"),
-        ("parameters", "\"symbol:BTCUSDT\""),
+        ("parameters", """'[["symbol", "BTCUSDT"]]' --type list"""),
         ("response_key", "price"),
     ],
 ]
