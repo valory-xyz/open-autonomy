@@ -192,11 +192,12 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
         self.liquidity_provision_behaviour.act_wrapper()
 
     def mock_contract_api_request(
-        self, request_kwargs: Dict, response_kwargs: Dict
+        self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
 
+        :param contract_id: contract id.
         :param request_kwargs: keyword arguments for request check.
         :param response_kwargs: keyword arguments for mock response.
         """
@@ -210,7 +211,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
             to=str(LEDGER_CONNECTION_PUBLIC_ID),
             sender=str(self.skill.skill_context.skill_id),
             ledger_id="ethereum",
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            contract_id=contract_id,
             message_id=1,
             **request_kwargs,
         )
@@ -385,10 +386,10 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
 class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
 
-    def test_estimate(
+    def test_transaction_hash(
         self,
     ) -> None:
-        """Test estimate behaviour."""
+        """Test tx hash behaviour."""
 
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -411,6 +412,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
+            contract_id=str(ORACLE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
@@ -472,7 +474,7 @@ class TestTransactionSendBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
     def test_non_sender_act(
         self,
     ) -> None:
-        """Test finalize behaviour."""
+        """Test tx send behaviour."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -498,7 +500,7 @@ class TestTransactionSendBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
     def test_sender_act(
         self,
     ) -> None:
-        """Test finalize behaviour."""
+        """Test tx send behaviour."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -588,7 +590,7 @@ class TestTransactionSendBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
 class TestTransactionValidationBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
     """Test TransactionValidationBaseBehaviour."""
 
-    def test_validate_transaction_safe_behaviour(
+    def test_validate_transaction_behaviour(
         self,
     ) -> None:
         """Test TransactionValidationBaseBehaviour."""
@@ -641,14 +643,30 @@ class TestTransactionValidationBaseBehaviour(LiquidityProvisionBehaviourBaseCase
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == ResetBehaviour.state_id
+        assert state.state_id == ResetBehaviour.state_id # Fix: which behaviour shall we use?
 
-
-
-class TestAllowanceCheckBehaviour(LiquidityProvisionBehaviourBaseCase):
 
 
 class TestWaitBehaviour(LiquidityProvisionBehaviourBaseCase):
+    """Test WaitBehaviour."""
 
+    def test_wait_behaviour(
+        self,
+    ) -> None:
+        pass
 
 class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
+    """Test StrategyEvaluationBehaviour."""
+
+    def test_strategy_evaluation_behaviour(
+        self,
+    ) -> None:
+        pass
+
+class TestAllowanceCheckBehaviour(LiquidityProvisionBehaviourBaseCase):
+    """Test TransactionValidationBaseBehaviour."""
+
+    def test_allowance_check_behaviour(
+        self,
+    ) -> None:
+        pass
