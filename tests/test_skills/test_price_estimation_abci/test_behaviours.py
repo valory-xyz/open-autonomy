@@ -573,7 +573,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
                 headers="",
                 version="",
                 body=b"",
-                url="http://localhost",
+                url="https://drand.cloudflare.com/public/latest",
             ),
             response_kwargs=dict(
                 version="",
@@ -621,7 +621,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
                 headers="",
                 version="",
                 body=b"",
-                url="http://localhost",
+                url="https://drand.cloudflare.com/public/latest",
             ),
             response_kwargs=dict(
                 version="", status_code=200, status_text="", headers="", body=b""
@@ -964,7 +964,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="http://localhost",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
@@ -974,7 +974,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"bitcoin": {"usd": 54566}}).encode("utf-8"),
+                body=json.dumps({"data": {"amount": 54566}}).encode("utf-8"),
             ),
         )
         self.mock_a2a_transaction()
@@ -1027,7 +1027,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="http://localhost",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
