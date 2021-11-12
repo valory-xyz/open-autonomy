@@ -47,7 +47,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     AddLiquidityTransactionHashRound,
     AddLiquidityValidationRound,
     AllowanceCheckRound,
-    DeploySelectKeeperRound,
     LiquidityProvisionAbciApp,
     PeriodState,
     RemoveAllowanceSelectKeeperRound,
@@ -347,13 +346,6 @@ class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
 
     state_id = "select_keeper_main"
     matching_round = SelectKeeperMainRound
-
-
-class DeploySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "deploy_select_keeper"
-    matching_round = DeploySelectKeeperRound
 
 
 def get_strategy_update() -> dict:
