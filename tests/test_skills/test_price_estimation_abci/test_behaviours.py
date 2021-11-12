@@ -965,7 +965,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
@@ -975,7 +975,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"bitcoin": {"usd": 54566}}).encode("utf-8"),
+                body=json.dumps({"data": {"amount": 54566}}).encode("utf-8"),
             ),
         )
         self.mock_a2a_transaction()
@@ -1028,7 +1028,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
