@@ -35,9 +35,6 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
 )
-
-from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
-
 from packages.valory.skills.liquidity_provision.rounds import (
     AddAllowanceSelectKeeperRound,
     AddAllowanceSendRound,
@@ -85,7 +82,11 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationBaseState,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
     RegistrationBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
@@ -101,12 +102,15 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
+from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
 
 
 benchmark_tool = BenchmarkTool()
 
 
 class RandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
     state_id = "randomness"
     matching_round = RandomnessRound
 
