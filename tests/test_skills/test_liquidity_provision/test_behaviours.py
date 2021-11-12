@@ -429,244 +429,244 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
 
 
-class TestTransactionSignatureBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionSignatureBaseBehaviour."""
+# class TestTransactionSignatureBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
+#     """Test TransactionSignatureBaseBehaviour."""
 
-    def test_signature_behaviour(
-        self,
-    ) -> None:
-        """Test signature behaviour."""
+#     def test_signature_behaviour(
+#         self,
+#     ) -> None:
+#         """Test signature behaviour."""
 
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=TransactionSignatureBaseBehaviour.state_id,
-            period_state=PeriodState(most_voted_tx_hash="68656c6c6f776f726c64"),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == TransactionSignatureBaseBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_MESSAGE,
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_MESSAGE,
-                signed_message=SignedMessage(
-                    ledger_id="ethereum", body="stub_signature"
-                ),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == TransactionSendBaseBehaviour.state_id
-
-
-class TestTransactionSendBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionSendBaseBehaviour."""
-
-    def test_non_sender_act(
-        self,
-    ) -> None:
-        """Test tx send behaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=TransactionSendBaseBehaviour.state_id,
-            period_state=PeriodState(
-                most_voted_keeper_address="most_voted_keeper_address",
-                participants=participants,
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == TransactionSendBaseBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == TransactionValidationBaseBehaviour.state_id
-
-    def test_sender_act(
-        self,
-    ) -> None:
-        """Test tx send behaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=TransactionSendBaseBehaviour.state_id,
-            period_state=PeriodState(
-                most_voted_keeper_address=self.skill.skill_context.agent_address,
-                safe_contract_address="safe_contract_address",
-                oracle_contract_address="oracle_contract_address",
-                participants=participants,
-                estimate=1.0,
-                participant_to_signature={},
-                most_voted_estimate=1.0,
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == TransactionSendBaseBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(ORACLE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
-                ),
-            ),
-        )
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
-                ),
-            ),
-        )
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
-            ),
-        )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                transaction_digest=TransactionDigest(
-                    ledger_id="ethereum", body="tx_hash"
-                ),
-            ),
-        )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-                transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={}, transaction={}
-                ),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == TransactionValidationBaseBehaviour.state_id
+#         self.fast_forward_to_state(
+#             behaviour=self.liquidity_provision_behaviour,
+#             state_id=TransactionSignatureBaseBehaviour.state_id,
+#             period_state=PeriodState(most_voted_tx_hash="68656c6c6f776f726c64"),
+#         )
+#         assert (
+#             cast(
+#                 BaseState,
+#                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
+#             ).state_id
+#             == TransactionSignatureBaseBehaviour.state_id
+#         )
+#         self.liquidity_provision_behaviour.act_wrapper()
+#         self.mock_signing_request(
+#             request_kwargs=dict(
+#                 performative=SigningMessage.Performative.SIGN_MESSAGE,
+#             ),
+#             response_kwargs=dict(
+#                 performative=SigningMessage.Performative.SIGNED_MESSAGE,
+#                 signed_message=SignedMessage(
+#                     ledger_id="ethereum", body="stub_signature"
+#                 ),
+#             ),
+#         )
+#         self.mock_a2a_transaction()
+#         self._test_done_flag_set()
+#         self.end_round()
+#         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
+#         assert state.state_id == TransactionSendBaseBehaviour.state_id
 
 
-class TestTransactionValidationBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionValidationBaseBehaviour."""
+# class TestTransactionSendBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
+#     """Test TransactionSendBaseBehaviour."""
 
-    def test_validate_transaction_behaviour(
-        self,
-    ) -> None:
-        """Test TransactionValidationBaseBehaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        most_voted_keeper_address = self.skill.skill_context.agent_address
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=TransactionValidationBaseBehaviour.state_id,
-            period_state=PeriodState(
-                safe_contract_address="safe_contract_address",
-                oracle_contract_address="oracle_contract_address",
-                final_tx_hash="final_tx_hash",
-                participants=participants,
-                most_voted_keeper_address=most_voted_keeper_address,
-                most_voted_estimate=1.0,
-                participant_to_signature={},
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == TransactionValidationBaseBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(ORACLE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
-                ),
-            ),
-        )
-        self.mock_contract_api_request(
-            request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.STATE,
-                callable="get_deploy_transaction",
-                state=TrState(ledger_id="ethereum", body={"verified": True}),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == ResetBehaviour.state_id # Fix: which behaviour shall we use?
+#     def test_non_sender_act(
+#         self,
+#     ) -> None:
+#         """Test tx send behaviour."""
+#         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+#         self.fast_forward_to_state(
+#             behaviour=self.liquidity_provision_behaviour,
+#             state_id=TransactionSendBaseBehaviour.state_id,
+#             period_state=PeriodState(
+#                 most_voted_keeper_address="most_voted_keeper_address",
+#                 participants=participants,
+#             ),
+#         )
+#         assert (
+#             cast(
+#                 BaseState,
+#                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
+#             ).state_id
+#             == TransactionSendBaseBehaviour.state_id
+#         )
+#         self.liquidity_provision_behaviour.act_wrapper()
+#         self._test_done_flag_set()
+#         self.end_round()
+#         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
+#         assert state.state_id == TransactionValidationBaseBehaviour.state_id
+
+#     def test_sender_act(
+#         self,
+#     ) -> None:
+#         """Test tx send behaviour."""
+#         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+#         self.fast_forward_to_state(
+#             behaviour=self.liquidity_provision_behaviour,
+#             state_id=TransactionSendBaseBehaviour.state_id,
+#             period_state=PeriodState(
+#                 most_voted_keeper_address=self.skill.skill_context.agent_address,
+#                 safe_contract_address="safe_contract_address",
+#                 oracle_contract_address="oracle_contract_address",
+#                 participants=participants,
+#                 estimate=1.0,
+#                 participant_to_signature={},
+#                 most_voted_estimate=1.0,
+#             ),
+#         )
+#         assert (
+#             cast(
+#                 BaseState,
+#                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
+#             ).state_id
+#             == TransactionSendBaseBehaviour.state_id
+#         )
+#         self.liquidity_provision_behaviour.act_wrapper()
+#         self.mock_contract_api_request(
+#             request_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+#             ),
+#             contract_id=str(ORACLE_CONTRACT_ID),
+#             response_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+#                 callable="get_deploy_transaction",
+#                 raw_transaction=RawTransaction(
+#                     ledger_id="ethereum", body={"data": "data"}
+#                 ),
+#             ),
+#         )
+#         self.mock_contract_api_request(
+#             request_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+#             ),
+#             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+#             response_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+#                 callable="get_deploy_transaction",
+#                 raw_transaction=RawTransaction(
+#                     ledger_id="ethereum", body={"tx_hash": "0x3b"}
+#                 ),
+#             ),
+#         )
+#         self.mock_signing_request(
+#             request_kwargs=dict(
+#                 performative=SigningMessage.Performative.SIGN_TRANSACTION
+#             ),
+#             response_kwargs=dict(
+#                 performative=SigningMessage.Performative.SIGNED_TRANSACTION,
+#                 signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
+#             ),
+#         )
+#         self.mock_ledger_api_request(
+#             request_kwargs=dict(
+#                 performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
+#             ),
+#             response_kwargs=dict(
+#                 performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+#                 transaction_digest=TransactionDigest(
+#                     ledger_id="ethereum", body="tx_hash"
+#                 ),
+#             ),
+#         )
+#         self.mock_ledger_api_request(
+#             request_kwargs=dict(
+#                 performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
+#             ),
+#             response_kwargs=dict(
+#                 performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+#                 transaction_receipt=TransactionReceipt(
+#                     ledger_id="ethereum", receipt={}, transaction={}
+#                 ),
+#             ),
+#         )
+#         self.mock_a2a_transaction()
+#         self._test_done_flag_set()
+#         self.end_round()
+#         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
+#         assert state.state_id == TransactionValidationBaseBehaviour.state_id
+
+
+# class TestTransactionValidationBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
+#     """Test TransactionValidationBaseBehaviour."""
+
+#     def test_validate_transaction_behaviour(
+#         self,
+#     ) -> None:
+#         """Test TransactionValidationBaseBehaviour."""
+#         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+#         most_voted_keeper_address = self.skill.skill_context.agent_address
+#         self.fast_forward_to_state(
+#             behaviour=self.liquidity_provision_behaviour,
+#             state_id=TransactionValidationBaseBehaviour.state_id,
+#             period_state=PeriodState(
+#                 safe_contract_address="safe_contract_address",
+#                 oracle_contract_address="oracle_contract_address",
+#                 final_tx_hash="final_tx_hash",
+#                 participants=participants,
+#                 most_voted_keeper_address=most_voted_keeper_address,
+#                 most_voted_estimate=1.0,
+#                 participant_to_signature={},
+#             ),
+#         )
+#         assert (
+#             cast(
+#                 BaseState,
+#                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
+#             ).state_id
+#             == TransactionValidationBaseBehaviour.state_id
+#         )
+#         self.liquidity_provision_behaviour.act_wrapper()
+#         self.mock_contract_api_request(
+#             request_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+#             ),
+#             contract_id=str(ORACLE_CONTRACT_ID),
+#             response_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+#                 callable="get_deploy_transaction",
+#                 raw_transaction=RawTransaction(
+#                     ledger_id="ethereum", body={"data": "data"}
+#                 ),
+#             ),
+#         )
+#         self.mock_contract_api_request(
+#             request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
+#             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+#             response_kwargs=dict(
+#                 performative=ContractApiMessage.Performative.STATE,
+#                 callable="get_deploy_transaction",
+#                 state=TrState(ledger_id="ethereum", body={"verified": True}),
+#             ),
+#         )
+#         self.mock_a2a_transaction()
+#         self._test_done_flag_set()
+#         self.end_round()
+#         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
+#         assert state.state_id == ResetBehaviour.state_id # Fix: which behaviour shall we use?
 
 
 
-class TestWaitBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test WaitBehaviour."""
+# class TestWaitBehaviour(LiquidityProvisionBehaviourBaseCase):
+#     """Test WaitBehaviour."""
 
-    def test_wait_behaviour(
-        self,
-    ) -> None:
-        pass
+#     def test_wait_behaviour(
+#         self,
+#     ) -> None:
+#         pass
 
-class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test StrategyEvaluationBehaviour."""
+# class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
+#     """Test StrategyEvaluationBehaviour."""
 
-    def test_strategy_evaluation_behaviour(
-        self,
-    ) -> None:
-        pass
+#     def test_strategy_evaluation_behaviour(
+#         self,
+#     ) -> None:
+#         pass
 
-class TestAllowanceCheckBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionValidationBaseBehaviour."""
+# class TestAllowanceCheckBehaviour(LiquidityProvisionBehaviourBaseCase):
+#     """Test TransactionValidationBaseBehaviour."""
 
-    def test_allowance_check_behaviour(
-        self,
-    ) -> None:
-        pass
+#     def test_allowance_check_behaviour(
+#         self,
+#     ) -> None:
+#         pass
