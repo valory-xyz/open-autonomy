@@ -83,28 +83,27 @@ models:
     class_name: Params
   price_api:
     args:
-      api_id: api_id
+      api_id: coinbase
       convert_id: USD
       currency_id: BTC
-      headers: null
+      headers: []
       method: GET
-      parameters: null
-      response_key: null
+      parameters: []
+      response_key: data:amount
       response_type: float
       retries: 5
-      url: http://localhost
+      url: https://api.coinbase.com/v2/prices/BTC-USD/buy
     class_name: PriceApi
   randomness_api:
     args:
-      api_id: api_id
-      headers: null
+      api_id: cloudflare
+      headers: []
       method: GET
-      parameters: null
+      parameters: []
       response_key: null
       response_type: dict
       retries: 5
-      source_id: cloudflare
-      url: http://localhost
+      url: https://drand.cloudflare.com/public/latest
     class_name: RandomnessApi
   requests:
     args: {}
