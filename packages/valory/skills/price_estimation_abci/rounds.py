@@ -812,11 +812,11 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            # Event.EXIT: SelectKeeperBRound,
+            # Event.EXIT: SelectKeeperBRound,  # what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateTransactionRound: {
             Event.DONE: ResetRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
+            # Event.ROUND_TIMEOUT: RandomnessRound,  # we need to disable this for now, the tx validation logic has its own timeout
             Event.NO_MAJORITY: RandomnessRound,
             # Event.EXIT: RegistrationRound,
         },
