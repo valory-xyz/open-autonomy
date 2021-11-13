@@ -346,6 +346,7 @@ Pipfile.lock
 
 !packages/valory/contracts/gnosis_safe/build
 !packages/valory/contracts/gnosis_safe_proxy_factory/build
+!packages/valory/contracts/multisend/build
 !packages/valory/contracts/offchain_aggregator/build
 
 # benchmark data.
