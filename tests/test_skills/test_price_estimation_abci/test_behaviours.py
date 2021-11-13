@@ -1294,17 +1294,6 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-                transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={}, transaction={}
-                ),
-            ),
-        )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1348,6 +1337,17 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == ValidateTransactionBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_ledger_api_request(
+            request_kwargs=dict(
+                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
+            ),
+            response_kwargs=dict(
+                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+                transaction_receipt=TransactionReceipt(
+                    ledger_id="ethereum", receipt={"status": 1}, transaction={}
+                ),
+            ),
+        )
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
