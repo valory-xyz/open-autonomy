@@ -69,7 +69,7 @@ def decode_data(encoded_tx: bytes) -> Tuple[Dict, int]:
     data_length = int.from_bytes(encoded_tx[21 + 32 : 21 + 32 * 2], byteorder="big")
     data = encoded_tx[21 + 32 * 2 : 21 + 32 * 2 + data_length]
     len_data = len(data)
-    if len_data != data_length:
+    if len_data != data_length:  # pragma: nocover
         raise ValueError(
             f"Data length {data_length} is different from len(data) {len_data}"
         )
@@ -152,7 +152,7 @@ class MultiSendContract(Contract):
 
     @classmethod
     def get_tx_list(
-        cls, ledger_api: LedgerApi, contract_address: str, multi_send_data: bytes
+        cls, ledger_api: LedgerApi, contract_address: str, multi_send_data: str
     ) -> Optional[JSONLike]:
         """
         Get a multisend transaction list from encoded data.
@@ -166,4 +166,4 @@ class MultiSendContract(Contract):
         _, encoded_multisend_data = multisend_contract.decode_function_input(
             multi_send_data
         )
-        return {"tx_list": from_bytes(encoded_multisend_data)}
+        return {"tx_list": from_bytes(encoded_multisend_data["transactions"])}

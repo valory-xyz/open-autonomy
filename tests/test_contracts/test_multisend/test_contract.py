@@ -21,6 +21,7 @@
 
 from pathlib import Path
 from typing import Dict
+from unittest import mock
 
 import pytest
 from aea.crypto.registries import crypto_registry
@@ -38,16 +39,31 @@ from tests.conftest import ROOT_DIR
 
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
+CHAIN_ID = 1
 
 
-class BaseContractTest(BaseContractTestCase):
+class TestMultisendContract(BaseContractTestCase):
     """Base test case for GnosisSafeContract"""
 
-    contract_directory = Path(
+    path_to_contract = Path(
         ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
     )
     ledger_identifier = EthereumCrypto.identifier
     contract: MultiSendContract
+    tx_list = [
+        {
+            "operation": MultiSendOperation.CALL,
+            "to": crypto_registry.make(EthereumCrypto.identifier).address,
+            "value": 1,
+            "data": HexBytes("0x123456789a"),
+        },
+        {
+            "operation": MultiSendOperation.DELEGATE_CALL,
+            "to": crypto_registry.make(EthereumCrypto.identifier).address,
+            "value": 796,
+            "data": HexBytes("0x123456789a"),
+        },
+    ]
 
     @classmethod
     def finish_contract_deployment(cls) -> str:
@@ -59,19 +75,6 @@ class BaseContractTest(BaseContractTestCase):
     def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:  # type: ignore
         """Deploy contract."""
         return {}
-
-
-class TestMultisend(BaseContractTest):
-    """Test."""
-
-    tx_list = [
-        {
-            "operation": MultiSendOperation.CALL,
-            "to": crypto_registry.make(EthereumCrypto.identifier).address,
-            "value": 1,
-            "data": HexBytes("0x123456789a"),
-        }
-    ]
 
     def test_non_implemented_methods(
         self,
@@ -92,19 +95,27 @@ class TestMultisend(BaseContractTest):
     def test_get_tx_data_get_tx_list(self) -> None:
         """Run end-to-end data conversion test."""
         assert self.contract_address is not None
-        result = self.contract.get_tx_data(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            multi_send_txs=self.tx_list,
-        )
+        with mock.patch.object(
+            self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+        ):
+            result = self.contract.get_tx_data(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+                multi_send_txs=self.tx_list,
+            )
         assert isinstance(result, dict)
         assert "data" in result
         data = result["data"]
-        assert isinstance(data, bytes)
+        assert isinstance(data, str)
         assert len(data) > 0, "No data."
-        result = self.contract.get_tx_list(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            multi_send_data=result["data"],
-        )
+        with mock.patch.object(
+            self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
+        ):
+            result = self.contract.get_tx_list(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+                multi_send_data=data,
+            )
+        assert isinstance(result, dict)
+        assert "tx_list" in result
         assert self.tx_list == result["tx_list"], "Not same."
