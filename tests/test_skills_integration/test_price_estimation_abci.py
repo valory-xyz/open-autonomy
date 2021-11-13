@@ -21,6 +21,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import List
 
 from aea.test_tools.test_cases import AEATestCaseMany
 
@@ -31,21 +32,30 @@ from tests.helpers.tendermint_utils import (
 )
 
 
-class TestABCIPriceEstimationSkillMany(
+class BaseTestABCIPriceEstimationSkill(
     AEATestCaseMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
 ):
-    """Test that the ABCI price_estimation skill works together with Tendermint."""
+    """
+    Base class for Price estimation skill tests.
 
+    The setup test function of this class will configure a set of 'n'
+    agents with the price estimation skill, and a Tendermint network
+    of 'n' nodes, one for each agent.
+
+    Test subclasses must set NB_AGENTS.
+    """
+
+    NB_AGENTS: int
     IS_LOCAL = True
     capture_log = True
-    NB_AGENTS = 4
     KEEPER_TIMEOUT = 10
     cli_log_options = ["-v", "DEBUG"]
+    processes: List
 
-    def test_run(self) -> None:
-        """Run the ABCI skill."""
+    def setup(self):
+        """Set up the test."""
         self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
-        processes = []
+        self.processes = []
         self.create_agents(*self.agent_names, is_local=self.IS_LOCAL)
         self.tendermint_net_builder = TendermintLocalNetworkBuilder(
             self.NB_AGENTS, Path(self.t)
@@ -113,11 +123,17 @@ class TestABCIPriceEstimationSkillMany(
         self.set_agent_context(self.agent_names[0])
         self.run_install()
 
+
+class BaseTestABCIPriceEstimationSkillNormalExecution(BaseTestABCIPriceEstimationSkill):
+    """Test that the ABCI price_estimation skill works together with Tendermint under normal circumstances."""
+
+    def test_run(self) -> None:
+        """Run the ABCI skill."""
         for agent_name in self.agent_names:
             logging.debug(f"Launching agent {agent_name}...")
             self.set_agent_context(agent_name)
             process = self.run_agent()
-            processes.append(process)
+            self.processes.append(process)
 
         logging.info("Waiting Tendermint nodes to be up")
         self.health_check(
@@ -178,7 +194,7 @@ class TestABCIPriceEstimationSkillMany(
         )
 
         # check that *each* AEA prints these messages
-        for process in processes:
+        for process in self.processes:
             missing_strings = self.missing_from_output(process, check_strings)
             assert (
                 missing_strings == []
@@ -190,7 +206,9 @@ class TestABCIPriceEstimationSkillMany(
 
 
 class TestABCIPriceEstimationSingleAgent(
-    TestABCIPriceEstimationSkillMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
+    BaseTestABCIPriceEstimationSkillNormalExecution,
+    BaseTendermintTestClass,
+    UseGnosisSafeHardHatNet,
 ):
     """Test that the ABCI price_estimation skill with only one agent."""
 
@@ -198,8 +216,20 @@ class TestABCIPriceEstimationSingleAgent(
 
 
 class TestABCIPriceEstimationTwoAgents(
-    TestABCIPriceEstimationSkillMany, BaseTendermintTestClass, UseGnosisSafeHardHatNet
+    BaseTestABCIPriceEstimationSkillNormalExecution,
+    BaseTendermintTestClass,
+    UseGnosisSafeHardHatNet,
 ):
     """Test that the ABCI price_estimation skill with two agents."""
 
     NB_AGENTS = 2
+
+
+class TestABCIPriceEstimationFourAgents(
+    BaseTestABCIPriceEstimationSkillNormalExecution,
+    BaseTendermintTestClass,
+    UseGnosisSafeHardHatNet,
+):
+    """Test that the ABCI price_estimation skill with four agents."""
+
+    NB_AGENTS = 4
