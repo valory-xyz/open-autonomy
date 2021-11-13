@@ -529,6 +529,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
+    def _get_status(self) -> Generator[None, None, HttpMessage]:
+        """Get Tendermint node's status."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/status",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        return result
+
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
         if self.is_stopped:

@@ -1358,6 +1358,11 @@ class Period:
         return self._abci_app
 
     @property
+    def height(self) -> int:
+        """Get the height."""
+        return self._blockchain.height
+
+    @property
     def is_finished(self) -> bool:
         """Check if a period has finished."""
         return self.abci_app.is_finished
