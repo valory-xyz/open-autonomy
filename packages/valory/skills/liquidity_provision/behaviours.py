@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
     AllowanceCheckPayload,
     StrategyEvaluationPayload,
@@ -47,7 +48,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     AddLiquidityTransactionHashRound,
     AddLiquidityValidationRound,
     AllowanceCheckRound,
-    DeploySelectKeeperRound,
     LiquidityProvisionAbciApp,
     PeriodState,
     RemoveAllowanceSelectKeeperRound,
@@ -83,7 +83,11 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationBaseState,
-    RandomnessBehaviour,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
+    RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
     RegistrationBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
@@ -92,16 +96,23 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.behaviours import (
     ValidateSafeBehaviour as DeploySafeValidationBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
     TransactionHashPayload,
     ValidatePayload,
 )
+from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
 
 
 benchmark_tool = BenchmarkTool()
+
+
+class RandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "randomness"
+    matching_round = RandomnessRound
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -345,13 +356,6 @@ class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
 
     state_id = "select_keeper_main"
     matching_round = SelectKeeperMainRound
-
-
-class DeploySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "deploy_select_keeper"
-    matching_round = DeploySelectKeeperRound
 
 
 def get_strategy_update() -> dict:
@@ -726,7 +730,7 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls: LiquidityProvisionAbciApp  # type: ignore
+    abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore

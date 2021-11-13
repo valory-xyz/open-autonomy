@@ -937,14 +937,6 @@ class SelectKeeperMainRound(
     round_id = "select_keeper_main"
 
 
-class DeploySelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper deploy round."""
-
-    round_id = "select_keeper_deploy"
-
-
 class StrategyEvaluationRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
@@ -1215,12 +1207,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         DeploySafeRound: {
             Event.DONE: DeploySafeValidationRound,
-            Event.EXIT: DeploySelectKeeperRound,
-        },
-        DeploySelectKeeperRound: {
-            Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RandomnessRound,
         },
         DeploySafeValidationRound: {
             Event.DONE: StrategyEvaluationRound,
@@ -1410,6 +1397,10 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         SwapBackValidationRound: {
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ResetRound: {
+            Event.DONE: RandomnessRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }
