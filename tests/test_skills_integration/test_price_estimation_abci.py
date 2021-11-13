@@ -109,7 +109,7 @@ class BaseTestABCIPriceEstimationSkill(
     cli_log_options = ["-v", "DEBUG"]
     processes: List
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the test."""
         self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
         self.processes = []
@@ -180,7 +180,7 @@ class BaseTestABCIPriceEstimationSkill(
         self.set_agent_context(self.agent_names[0])
         self.run_install()
 
-    def _launch_agent_i(self, i: int):
+    def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""
         agent_name = self.agent_names[i]
         logging.debug(f"Launching agent {agent_name}...")
@@ -251,7 +251,7 @@ class TestDelayedStart(
 
     NB_AGENTS = 4
 
-    def test_run(self):
+    def test_run(self) -> None:
         """Run the test."""
 
         # start all the agent but the last

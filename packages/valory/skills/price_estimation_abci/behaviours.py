@@ -126,6 +126,8 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         - Do a http request to the tendermint health check endpoint
         - Retry until healthcheck passes or timeout is hit. Raise if timed out.
         - If healthcheck passes set done event.
+
+        :yield: None
         """
         if self.params.is_health_check_timed_out():
             # if the tendermint node cannot start then the app cannot work
@@ -163,6 +165,8 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         Note that the behaviour does not have control on the local-height,
         which is updated via ABCI interaction with the Tendermint node
         (and, in particular, via the ABCIHandler of the skill).
+
+        :yield: None
         """
 
         check_started: datetime.datetime = datetime.datetime.now()
