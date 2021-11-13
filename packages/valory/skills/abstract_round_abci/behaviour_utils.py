@@ -485,7 +485,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self.context.outbox.put_message(message=ledger_api_msg)
         self.context.logger.info("sending transaction to ledger.")
 
-    def _send_transaction_receipt_request(self, tx_digest: str) -> None:
+    def _send_transaction_receipt_request(
+        self,
+        tx_digest: str,
+        retry_timeout: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
+    ) -> None:
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
@@ -495,6 +500,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             transaction_digest=LedgerApiMessage.TransactionDigest(
                 ledger_id=self.context.default_ledger_id, body=tx_digest
             ),
+            retry_timeout=retry_timeout,
+            retry_attempts=retry_attempts,
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
@@ -684,10 +691,17 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash
 
-    def get_transaction_receipt(self, tx_digest: str) -> Generator[None, None, Dict]:
+    def get_transaction_receipt(
+        self,
+        tx_digest: str,
+        retry_timeout: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
+    ) -> Generator[None, None, Optional[Dict]]:
         """Get transaction receipt."""
-        self._send_transaction_receipt_request(tx_digest)
+        self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
+        if transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR:
+            return None
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_receipt
 

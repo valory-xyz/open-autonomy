@@ -747,13 +747,13 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessStartupRound,
-            Event.NO_MAJORITY: RandomnessStartupRound,
+            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessStartupRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperAStartupRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
@@ -761,9 +761,8 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         ValidateSafeRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            # Event.EXIT: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
@@ -771,44 +770,42 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         SelectKeeperBStartupRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         ValidateOracleRound: {
             Event.DONE: RandomnessRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            # Event.EXIT: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperARound: {
             Event.DONE: CollectObservationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
@@ -817,13 +814,12 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         ValidateTransactionRound: {
             Event.DONE: ResetRound,
             # Event.ROUND_TIMEOUT: RandomnessRound,  # we need to disable this for now, the tx validation logic has its own timeout
-            Event.NO_MAJORITY: RandomnessRound,
-            # Event.EXIT: RegistrationRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
             Event.DONE: RandomnessRound,

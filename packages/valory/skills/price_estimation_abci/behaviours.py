@@ -935,10 +935,17 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
     def has_transaction_been_sent(self) -> Generator[None, None, bool]:
         """Contract deployment verification."""
-        tx_receipt = yield from self.get_transaction_receipt(
-            self.period_state.final_tx_hash
+        response = yield from self.get_transaction_receipt(
+            self.period_state.final_tx_hash,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
         )
-        is_settled = EthereumApi.is_transaction_settled(tx_receipt)
+        if response is None:
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+            )
+            return False
+        is_settled = EthereumApi.is_transaction_settled(response)
         if not is_settled:  # pragma: nocover
             self.context.logger.info(
                 f"tx {self.period_state.final_tx_hash} not settled!"
