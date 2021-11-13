@@ -500,6 +500,29 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
 
         mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+
+        self.price_estimation_behaviour.act_wrapper()
+        current_height = self.price_estimation_behaviour.context.state.period.height
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/status",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(
+                    {"result": {"sync_info": {"latest_block_height": current_height}}}
+                ).encode("utf-8"),
+            ),
+        )
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == RegistrationBehaviour.state_id
 
 
