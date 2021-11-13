@@ -62,16 +62,6 @@ class Params(BaseParams):
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.oracle_params = self._ensure("oracle", kwargs)
         super().__init__(*args, **kwargs)
-        self._count_healthcheck = 0
-
-    def is_health_check_timed_out(self) -> bool:
-        """Check if the healthcheck has timed out."""
-        self._count_healthcheck += 1
-        return self._count_healthcheck > self.max_healthcheck
-
-    def increment_retries(self) -> None:
-        """Increment the retries counter."""
-        self._count_healthcheck += 1
 
 
 class RandomnessApi(ApiSpecs):
