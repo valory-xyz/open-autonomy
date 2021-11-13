@@ -356,6 +356,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
         if not self._is_started:
+            self.setup()
             self._log_start()
             self._is_started = True
         try:
@@ -525,6 +526,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + f"/tx?hash=0x{tx_hash}",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        return result
+
+    def _get_status(self) -> Generator[None, None, HttpMessage]:
+        """Get Tendermint node's status."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/status",
         )
         result = yield from self._do_request(request_message, http_dialogue)
         return result
