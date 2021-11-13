@@ -356,7 +356,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
         if not self._is_started:
-            self.setup()
             self._log_start()
             self._is_started = True
         try:
