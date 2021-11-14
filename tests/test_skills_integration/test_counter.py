@@ -297,7 +297,7 @@ class TestABCICounterCrashFailureRestart(
         time.sleep(5.0)
 
         for tx_number in range(self.NB_TX):
-            time.sleep(0.5)
+            time.sleep(2.0)
             new_value = tx_number + 1
             self._send_tx_to_node(node_address, new_value, 200)
         # wait synchronization

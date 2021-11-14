@@ -59,6 +59,9 @@ class SharedState(BaseSharedState):
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
+        PriceEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+            self.context.params.observation_interval + MARGIN
+        )
 
 
 class Params(BaseParams):
