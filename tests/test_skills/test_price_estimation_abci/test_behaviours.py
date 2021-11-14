@@ -449,7 +449,8 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             )
         mock_logger.assert_any_call(
-            logging.ERROR, "Tendermint not running, trying again!"
+            logging.ERROR,
+            "Tendermint not running or accepting transactions yet, trying again!",
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()

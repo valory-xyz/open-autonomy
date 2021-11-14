@@ -136,7 +136,9 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         try:
             json_body = json.loads(status.body.decode())
         except json.JSONDecodeError:
-            self.context.logger.error("Tendermint not running, trying again!")
+            self.context.logger.error(
+                "Tendermint not running or accepting transactions yet, trying again!"
+            )
             yield from self.sleep(self.params.sleep_time)
             return
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
@@ -965,7 +967,10 @@ class ResetBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if self.period_state.is_most_voted_estimate_set and self.period_state.is_final_tx_hash_set:
+        if (
+            self.period_state.is_most_voted_estimate_set
+            and self.period_state.is_final_tx_hash_set
+        ):
             self.context.logger.info(
                 f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
             )
