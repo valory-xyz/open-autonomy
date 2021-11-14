@@ -1390,10 +1390,10 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
 class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
-    def test_end_behaviour(
+    def test_reset_behaviour(
         self,
     ) -> None:
-        """Test end behaviour."""
+        """Test reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=ResetBehaviour.state_id,
@@ -1411,6 +1411,40 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.context.params.observation_interval = 0.1
         self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == RandomnessInOperationBehaviour.state_id
+
+    def test_reset_behaviour_without_most_voted_estimate(
+        self,
+    ) -> None:
+        """Test reset behaviour without most voted estimate."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=ResetBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=None,
+                final_tx_hash="68656c6c6f776f726c64",
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == ResetBehaviour.state_id
+        )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "info"
+        ) as mock_logger:
+            self.price_estimation_behaviour.act_wrapper()
+            mock_logger.assert_any_call("Finalized estimate not available.")
         time.sleep(0.3)
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()

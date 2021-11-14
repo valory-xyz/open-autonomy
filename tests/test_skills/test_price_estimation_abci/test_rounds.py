@@ -1386,6 +1386,7 @@ def test_period_state() -> None:
     assert period_state.participant_to_estimate == participant_to_estimate
     assert period_state.estimate == estimate
     assert period_state.most_voted_estimate == most_voted_estimate
+    assert period_state.is_most_voted_estimate_set is True
     assert period_state.most_voted_tx_hash == most_voted_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.final_tx_hash == final_tx_hash
