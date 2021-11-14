@@ -121,7 +121,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
         if self._check_started is None:
-            return False
+            return False  # pragma: no cover
         return datetime.datetime.now() > self._check_started + datetime.timedelta(
             0, self._timeout
         )
