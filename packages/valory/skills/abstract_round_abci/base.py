@@ -999,19 +999,17 @@ class Timeouts(Generic[EventType]):
         while entry.cancelled:
             self._entry_finder.pop(entry.entry_count)
             heapq.heappop(self._heap)
-            if len(self._heap) == 0:
+            if self.size == 0:
                 break
             entry = self._heap[0]
 
     def get_earliest_timeout(self) -> Tuple[datetime.datetime, Any]:
         """Get the earliest timeout-event pair."""
-        self.pop_earliest_cancelled_timeouts()
         entry = self._heap[0]
         return entry.deadline, entry.event
 
     def pop_timeout(self) -> Tuple[datetime.datetime, Any]:
         """Remove and return the earliest timeout-event pair."""
-        self.pop_earliest_cancelled_timeouts()
         entry = heapq.heappop(self._heap)
         del self._entry_finder[entry.entry_count]
         return entry.deadline, entry.event
