@@ -509,7 +509,6 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     ).encode("utf-8"),
                 ),
             )
-        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
         mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == RegistrationBehaviour.state_id
@@ -553,7 +552,6 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     ).encode("utf-8"),
                 ),
             )
-        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
         mock_logger.assert_any_call(
             logging.INFO, "local height != remote height; retrying..."
         )

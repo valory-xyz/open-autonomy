@@ -139,7 +139,6 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(self.params.sleep_time)
             return
-        self.context.logger.info("Tendermint running.")
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.context.state.period.height
         self.context.logger.info(
