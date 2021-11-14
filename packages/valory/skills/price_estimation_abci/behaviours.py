@@ -966,9 +966,12 @@ class ResetBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        self.context.logger.info(
-            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
-        )
+        if self.period_state.is_most_voted_estimate_set:
+            self.context.logger.info(
+                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+            )
+        else:
+            self.context.logger.info("Finalized estimate not available.")
         self.context.logger.info("Period end.")
         benchmark_tool.save()
 

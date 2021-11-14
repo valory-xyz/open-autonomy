@@ -269,6 +269,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(float, self._most_voted_estimate)
 
     @property
+    def is_most_voted_estimate_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self._most_voted_estimate is not None
+
+    @property
     def encoded_most_voted_estimate(self) -> bytes:
         """Get the encoded (most voted) estimate."""
         return encode_float(self.most_voted_estimate)
