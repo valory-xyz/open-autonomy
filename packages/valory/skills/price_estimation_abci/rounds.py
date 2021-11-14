@@ -255,6 +255,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._final_tx_hash)
 
     @property
+    def is_final_tx_hash_set(self) -> bool:
+        """Check if final_tx_hash is set."""
+        return self._final_tx_hash is not None
+
+    @property
     def estimate(self) -> float:
         """Get the estimate."""
         enforce(self._estimate is not None, "'estimate' field is None")

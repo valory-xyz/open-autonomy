@@ -1390,5 +1390,6 @@ def test_period_state() -> None:
     assert period_state.most_voted_tx_hash == most_voted_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.final_tx_hash == final_tx_hash
+    assert period_state.is_final_tx_hash_set is True
 
     assert period_state.encoded_most_voted_estimate == encode_float(most_voted_estimate)
