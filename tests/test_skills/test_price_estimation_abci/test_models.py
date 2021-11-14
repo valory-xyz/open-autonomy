@@ -37,7 +37,7 @@ class DummyContext:
     class params:
         """Dummy param variable."""
 
-        keeper_timeout_seconds: float = 1.0
+        round_timeout_seconds: float = 1.0
 
 
 class ConcreteRound(AbstractRound):

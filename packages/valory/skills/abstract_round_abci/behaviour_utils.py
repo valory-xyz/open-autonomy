@@ -701,7 +701,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
         if transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR:
-            return None
+            return None  # pragma: nocover
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_receipt
 

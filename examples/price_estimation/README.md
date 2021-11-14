@@ -196,3 +196,5 @@ kind delete cluster
 ## Deployment on Ropsten
 
 Ensure accurate configuration. Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
+
+To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (most recent call last):"`
