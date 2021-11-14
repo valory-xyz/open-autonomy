@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -109,81 +109,37 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     state_id = "tendermint_healthcheck"
     matching_round = None
 
-    _healthy: bool = False
+    _check_started: Optional[datetime.datetime] = None
+    _timeout: float
+
+    def start(self) -> None:
+        """Set up the behaviour."""
+        if self._check_started is None:
+            self._check_started = datetime.datetime.now()
+            self._timeout = self.params.max_healthcheck
+
+    def _is_timeout_expired(self) -> bool:
+        """Check if the timeout expired."""
+        if self._check_started is None:
+            return False
+        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+            0, self._timeout
+        )
 
     def async_act(self) -> Generator:
-        """Run preliminary checks."""
-        if not self._healthy:
-            yield from self._healthcheck()
-        else:
-            yield from self._wait_local_height_in_sync()
-
-    def _healthcheck(self) -> Generator:
-        """
-        Check whether tendermint is running or not.
-
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit. Raise if timed out.
-        - If healthcheck passes set done event.
-
-        :yield: None
-        """
-        if self.params.is_health_check_timed_out():
-            # if the tendermint node cannot start then the app cannot work
+        """Do the action."""
+        self.start()
+        if self._is_timeout_expired():
+            # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
-        request_message, http_dialogue = self._build_http_request_message(
-            "GET",
-            self.params.tendermint_url + "/health",
-        )
-        result = yield from self._do_request(request_message, http_dialogue)
+        status = yield from self._get_status()
         try:
-            json.loads(result.body.decode())
-            self.context.logger.info("Tendermint running.")
-            self._healthy = True
+            json_body = json.loads(status.body.decode())
         except json.JSONDecodeError:
             self.context.logger.error("Tendermint not running, trying again!")
             yield from self.sleep(self.params.sleep_time)
-            self.params.increment_retries()
             return
-
-    def _wait_local_height_in_sync(self) -> Generator:
-        """
-        Wait until local-height == remote-height
-
-        This state behaviour makes the FSM Behaviour wait until
-        the local blockchain is synchronized with the remote blockchain
-        by comparing the local blockchain height with the Tendermint
-        node's (local) blockchain height.
-
-        This is necessary especially in case when the agent restarts and
-        the Tendermint node has to update the agent's ABCI application
-        instance on the entire blockchain history. It is important
-        that the behaviour starts its execution at the highest known
-        height possible to avoid bad executions of the state machine.
-
-        Note that the behaviour does not have control on the local-height,
-        which is updated via ABCI interaction with the Tendermint node
-        (and, in particular, via the ABCIHandler of the skill).
-
-        :yield: None
-        """
-
-        check_started: datetime.datetime = datetime.datetime.now()
-        timeout: float = 30.0
-
-        def _is_timeout_expired() -> bool:
-            """Check if the timeout expired."""
-            return datetime.datetime.now() > check_started + datetime.timedelta(
-                0, timeout
-            )
-
-        if _is_timeout_expired():
-            # if the Tendermint node cannot update the app then the app cannot work
-            raise RuntimeError("ABCI update is taking too much time")
-
-        status = yield from self._get_status()
-        json_body = json.loads(status.body.decode())
+        self.context.logger.info("Tendermint running.")
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.context.state.period.height
         self.context.logger.info(
