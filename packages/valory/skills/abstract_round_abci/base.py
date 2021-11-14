@@ -898,7 +898,7 @@ class VotingRound(CollectionRound):
     def positive_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
         true_votes = sum(
-            [payload.vote for payload in self.collection.values()]  # type: ignore
+            [payload.vote is True for payload in self.collection.values()]  # type: ignore
         )
         # check that "true" has at least the consensus # of votes
         return true_votes >= self._consensus_params.consensus_threshold
@@ -906,11 +906,20 @@ class VotingRound(CollectionRound):
     @property
     def negative_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        false_votes = len(self.collection) - sum(
-            [payload.vote for payload in self.collection.values()]  # type: ignore
+        false_votes = sum(
+            [payload.vote is False for payload in self.collection.values()]  # type: ignore
         )
         # check that "false" has at least the consensus # of votes
         return false_votes >= self._consensus_params.consensus_threshold
+
+    @property
+    def none_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        none_votes = sum(
+            [payload.vote is None for payload in self.collection.values()]  # type: ignore
+        )
+        # check that "None" has at least the consensus # of votes
+        return none_votes >= self._consensus_params.consensus_threshold
 
 
 class CollectDifferentUntilThresholdRound(CollectionRound):

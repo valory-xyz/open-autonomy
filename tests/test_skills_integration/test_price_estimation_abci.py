@@ -168,7 +168,7 @@ class BaseTestABCIPriceEstimationSkill(
                 self.NB_AGENTS,
             )
             self.set_config(
-                "vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds",
+                "vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds",
                 self.KEEPER_TIMEOUT,
             )
             self.set_config(
