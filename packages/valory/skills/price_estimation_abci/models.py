@@ -59,6 +59,8 @@ class Params(BaseParams):
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
         self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
         self.sleep_time = self._ensure("sleep_time", kwargs)
+        self.retry_timeout = self._ensure("retry_timeout", kwargs)
+        self.retry_attempts = self._ensure("retry_attempts", kwargs)
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.oracle_params = self._ensure("oracle", kwargs)
         super().__init__(*args, **kwargs)
