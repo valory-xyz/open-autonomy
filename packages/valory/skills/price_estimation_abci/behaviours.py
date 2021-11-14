@@ -121,7 +121,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
         if self._check_started is None:
-            return False
+            return False  # pragma: no cover
         return datetime.datetime.now() > self._check_started + datetime.timedelta(
             0, self._timeout
         )
@@ -136,10 +136,11 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         try:
             json_body = json.loads(status.body.decode())
         except json.JSONDecodeError:
-            self.context.logger.error("Tendermint not running, trying again!")
+            self.context.logger.error(
+                "Tendermint not running or accepting transactions yet, trying again!"
+            )
             yield from self.sleep(self.params.sleep_time)
             return
-        self.context.logger.info("Tendermint running.")
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.context.state.period.height
         self.context.logger.info(
@@ -966,9 +967,15 @@ class ResetBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        self.context.logger.info(
-            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
-        )
+        if (
+            self.period_state.is_most_voted_estimate_set
+            and self.period_state.is_final_tx_hash_set
+        ):
+            self.context.logger.info(
+                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+            )
+        else:
+            self.context.logger.info("Finalized estimate not available.")
         self.context.logger.info("Period end.")
         benchmark_tool.save()
 
