@@ -73,6 +73,11 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     FAST_FORWARD = "fast_forward"
+    NEGATIVE = "negative"
+    NONE = "none"
+    VALIDATE_TIMEOUT = "validate_timeout"
+    DEPLOY_TIMEOUT = "deploy_timeout"
+    RESET_TIMEOUT = "reset_timeout"
 
 
 def encode_float(value: float) -> bytes:
@@ -255,6 +260,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._final_tx_hash)
 
     @property
+    def is_final_tx_hash_set(self) -> bool:
+        """Check if final_tx_hash is set."""
+        return self._final_tx_hash is not None
+
+    @property
     def estimate(self) -> float:
         """Get the estimate."""
         enforce(self._estimate is not None, "'estimate' field is None")
@@ -267,6 +277,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             self._most_voted_estimate is not None, "'most_voted_estimate' field is None"
         )
         return cast(float, self._most_voted_estimate)
+
+    @property
+    def is_most_voted_estimate_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self._most_voted_estimate is not None
 
     @property
     def encoded_most_voted_estimate(self) -> bytes:
@@ -457,7 +472,8 @@ class ValidateRound(VotingRound, PriceEstimationAbstractRound):
     """
 
     allowed_tx_type = ValidatePayload.transaction_type
-    exit_event: Event
+    negative_event: Event
+    none_event: Event
     payload_attribute = "vote"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -470,7 +486,10 @@ class ValidateRound(VotingRound, PriceEstimationAbstractRound):
             return state, Event.DONE
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
-            return state, self.exit_event
+            return state, self.negative_event
+        if self.none_vote_threshold_reached:
+            state = self.period_state.update()
+            return state, self.none_event
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -705,7 +724,8 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    exit_event = Event.EXIT
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
 
 
 class ValidateOracleRound(ValidateRound):
@@ -719,7 +739,8 @@ class ValidateOracleRound(ValidateRound):
     """
 
     round_id = "validate_oracle"
-    exit_event = Event.EXIT
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -733,7 +754,8 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    exit_event = Event.EXIT
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
 
 
 class PriceEstimationAbciApp(AbciApp[Event]):
@@ -747,90 +769,95 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessStartupRound,
-            Event.NO_MAJORITY: RandomnessStartupRound,
+            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessStartupRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperAStartupRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            # Event.EXIT: SelectKeeperAStartupRound,
+            Event.DEPLOY_TIMEOUT: SelectKeeperAStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateSafeRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            # Event.EXIT: RegistrationRound,
+            Event.NEGATIVE: RegistrationRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RegistrationRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RegistrationRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
-            # Event.EXIT: SelectKeeperBStartupRound,
+            Event.DEPLOY_TIMEOUT: SelectKeeperBStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         SelectKeeperBStartupRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         ValidateOracleRound: {
             Event.DONE: RandomnessRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            # Event.EXIT: RegistrationRound,
+            Event.NEGATIVE: RegistrationRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RegistrationRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RegistrationRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperARound: {
             Event.DONE: CollectObservationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            # Event.EXIT: SelectKeeperBRound,  # what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.ROUND_TIMEOUT: SelectKeeperBRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateTransactionRound: {
             Event.DONE: ResetRound,
-            # Event.ROUND_TIMEOUT: RandomnessRound,  # we need to disable this for now, the tx validation logic has its own timeout
-            Event.NO_MAJORITY: RandomnessRound,
-            # Event.EXIT: RegistrationRound,
+            Event.NEGATIVE: ResetRound,  # if the round reaches a negative vote we continue; TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
+            Event.NONE: ResetRound,  # if the round reaches a none vote we continue; TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
+            Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
+            Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
             Event.DONE: RandomnessRound,
+            Event.RESET_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {
-        # Event.EXIT: 30.0,
         Event.ROUND_TIMEOUT: 30.0,
+        Event.VALIDATE_TIMEOUT: 30.0,
+        Event.DEPLOY_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
     }

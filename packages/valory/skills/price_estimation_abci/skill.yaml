@@ -9,12 +9,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmSCD6feyvhU4izAguh9iZq2SjaCKb7fJmBu6qMUQRKw92
+  behaviours.py: QmWZGE93Fg4W26JBi7b4q7juUfFa2JkisQUX7yhq8qsLVr
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmfLBkVffqKugCfgRi9yN6TNVVesbJoscVtguoiA9NQe3z
-  payloads.py: QmVyaH5jNL93TyDsS5Psudo4VfRoNyAt4Y5SLtRadR1aiB
-  rounds.py: QmXeEs1XXfpyEhhdj5HvVUZndjM8yWiJC4g2y67daHRtVk
+  models.py: QmdxyHKUwyZjmGoL6dKqijgshjzm7ZGn3M99329dTcQueU
+  payloads.py: QmP9gmnove3btJDvAndpUruY5fKsoEYeZXvPQKxA9uJ9wJ
+  rounds.py: Qma7RjTfM5T9XJvfnCjBDp2kR2rXc5yqoFaobzhXdN2PCu
   tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
 fingerprint_ignore_patterns: []
 connections:
@@ -70,7 +70,6 @@ models:
     args:
       consensus:
         max_participants: 1
-      keeper_timeout_seconds: 30
       max_healthcheck: 120
       observation_interval: 10
       oracle:
@@ -81,6 +80,9 @@ models:
       period_setup:
         safe_contract_address: null
         oracle_contract_address: null
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30
       sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params

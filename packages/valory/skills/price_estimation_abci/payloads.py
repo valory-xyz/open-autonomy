@@ -182,7 +182,9 @@ class ValidatePayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.VALIDATE
 
-    def __init__(self, sender: str, vote: bool, id_: Optional[str] = None) -> None:
+    def __init__(
+        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
+    ) -> None:
         """Initialize an 'validate' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -193,14 +195,14 @@ class ValidatePayload(BasePriceEstimationPayload):
         self._vote = vote
 
     @property
-    def vote(self) -> bool:
+    def vote(self) -> Optional[bool]:
         """Get the vote."""
         return self._vote
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(vote=self.vote)
+        return dict(vote=self.vote) if self.vote is not None else {}
 
 
 class ObservationPayload(BasePriceEstimationPayload):

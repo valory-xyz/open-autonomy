@@ -71,8 +71,8 @@ models:
     args:
       consensus:
         max_participants: 1
-      keeper_timeout_seconds: 5
       max_healthcheck: 120
+      round_timeout_seconds: 5
       tendermint_url: http://localhost:26657
     class_name: Params
   requests:

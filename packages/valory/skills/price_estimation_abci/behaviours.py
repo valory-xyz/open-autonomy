@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -109,81 +109,38 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     state_id = "tendermint_healthcheck"
     matching_round = None
 
-    _healthy: bool = False
+    _check_started: Optional[datetime.datetime] = None
+    _timeout: float
+
+    def start(self) -> None:
+        """Set up the behaviour."""
+        if self._check_started is None:
+            self._check_started = datetime.datetime.now()
+            self._timeout = self.params.max_healthcheck
+
+    def _is_timeout_expired(self) -> bool:
+        """Check if the timeout expired."""
+        if self._check_started is None:
+            return False  # pragma: no cover
+        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+            0, self._timeout
+        )
 
     def async_act(self) -> Generator:
-        """Run preliminary checks."""
-        if not self._healthy:
-            yield from self._healthcheck()
-        else:
-            yield from self._wait_local_height_in_sync()
-
-    def _healthcheck(self) -> Generator:
-        """
-        Check whether tendermint is running or not.
-
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit. Raise if timed out.
-        - If healthcheck passes set done event.
-
-        :yield: None
-        """
-        if self.params.is_health_check_timed_out():
-            # if the tendermint node cannot start then the app cannot work
-            raise RuntimeError("Tendermint node did not come live!")
-        request_message, http_dialogue = self._build_http_request_message(
-            "GET",
-            self.params.tendermint_url + "/health",
-        )
-        result = yield from self._do_request(request_message, http_dialogue)
-        try:
-            json.loads(result.body.decode())
-            self.context.logger.info("Tendermint running.")
-            self._healthy = True
-        except json.JSONDecodeError:
-            self.context.logger.error("Tendermint not running, trying again!")
-            yield from self.sleep(self.params.sleep_time)
-            self.params.increment_retries()
-            return
-
-    def _wait_local_height_in_sync(self) -> Generator:
-        """
-        Wait until local-height == remote-height
-
-        This state behaviour makes the FSM Behaviour wait until
-        the local blockchain is synchronized with the remote blockchain
-        by comparing the local blockchain height with the Tendermint
-        node's (local) blockchain height.
-
-        This is necessary especially in case when the agent restarts and
-        the Tendermint node has to update the agent's ABCI application
-        instance on the entire blockchain history. It is important
-        that the behaviour starts its execution at the highest known
-        height possible to avoid bad executions of the state machine.
-
-        Note that the behaviour does not have control on the local-height,
-        which is updated via ABCI interaction with the Tendermint node
-        (and, in particular, via the ABCIHandler of the skill).
-
-        :yield: None
-        """
-
-        check_started: datetime.datetime = datetime.datetime.now()
-        timeout: float = 30.0
-
-        def _is_timeout_expired() -> bool:
-            """Check if the timeout expired."""
-            return datetime.datetime.now() > check_started + datetime.timedelta(
-                0, timeout
-            )
-
-        if _is_timeout_expired():
+        """Do the action."""
+        self.start()
+        if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
-            raise RuntimeError("ABCI update is taking too much time")
-
+            raise RuntimeError("Tendermint node did not come live!")
         status = yield from self._get_status()
-        json_body = json.loads(status.body.decode())
+        try:
+            json_body = json.loads(status.body.decode())
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Tendermint not running or accepting transactions yet, trying again!"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.context.state.period.height
         self.context.logger.info(
@@ -425,7 +382,13 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
-        tx_receipt = yield from self.get_transaction_receipt(tx_digest)
+        tx_receipt = yield from self.get_transaction_receipt(
+            tx_digest,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if tx_receipt is None:
+            raise RuntimeError("Safe deployment failed!")  # pragma: nocover
         _ = EthereumApi.get_contract_address(
             tx_receipt
         )  # returns None as the contract is created via a proxy
@@ -504,6 +467,8 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             contract_api_response.raw_transaction
         )
         tx_receipt = yield from self.get_transaction_receipt(tx_digest)
+        if tx_receipt is None:
+            raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
         contract_address = EthereumApi.get_contract_address(tx_receipt)
         self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
@@ -933,12 +898,19 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def has_transaction_been_sent(self) -> Generator[None, None, bool]:
+    def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
-        tx_receipt = yield from self.get_transaction_receipt(
-            self.period_state.final_tx_hash
+        response = yield from self.get_transaction_receipt(
+            self.period_state.final_tx_hash,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
         )
-        is_settled = EthereumApi.is_transaction_settled(tx_receipt)
+        if response is None:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+            )
+            return None
+        is_settled = EthereumApi.is_transaction_settled(response)
         if not is_settled:  # pragma: nocover
             self.context.logger.info(
                 f"tx {self.period_state.final_tx_hash} not settled!"
@@ -1003,9 +975,15 @@ class ResetBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        self.context.logger.info(
-            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
-        )
+        if (
+            self.period_state.is_most_voted_estimate_set
+            and self.period_state.is_final_tx_hash_set
+        ):
+            self.context.logger.info(
+                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+            )
+        else:
+            self.context.logger.info("Finalized estimate not available.")
         self.context.logger.info("Period end.")
         benchmark_tool.save()
 

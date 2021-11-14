@@ -25,6 +25,8 @@ speech_acts:
     signed_transaction: ct:SignedTransaction
   get_transaction_receipt:
     transaction_digest: ct:TransactionDigest
+    retry_timeout: pt:optional[pt:int]
+    retry_attempts: pt:optional[pt:int]
   balance:
     ledger_id: pt:str
     balance: pt:int
