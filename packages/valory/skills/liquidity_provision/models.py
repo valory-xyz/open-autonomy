@@ -48,7 +48,7 @@ class Params(BaseParams):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
-        self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
+        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
 
