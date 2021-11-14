@@ -168,7 +168,7 @@ class BaseTestABCIPriceEstimationSkill(
                 self.NB_AGENTS,
             )
             self.set_config(
-                "vendor.valory.skills.price_estimation_abci.models.params.args.keeper_timeout_seconds",
+                "vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds",
                 self.KEEPER_TIMEOUT,
             )
             self.set_config(
@@ -204,7 +204,7 @@ class BaseTestABCIPriceEstimationSkillNormalExecution(BaseTestABCIPriceEstimatio
 
         # check that *each* AEA prints these messages
         for process in self.processes:
-            missing_strings = self.missing_from_output(process, CHECK_STRINGS)
+            missing_strings = self.missing_from_output(process, CHECK_STRINGS, 120)
             assert (
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)

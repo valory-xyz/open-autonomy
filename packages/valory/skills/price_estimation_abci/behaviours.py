@@ -382,7 +382,13 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
-        tx_receipt = yield from self.get_transaction_receipt(tx_digest)
+        tx_receipt = yield from self.get_transaction_receipt(
+            tx_digest,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if tx_receipt is None:
+            raise RuntimeError("Safe deployment failed!")  # pragma: nocover
         _ = EthereumApi.get_contract_address(
             tx_receipt
         )  # returns None as the contract is created via a proxy
@@ -461,6 +467,8 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             contract_api_response.raw_transaction
         )
         tx_receipt = yield from self.get_transaction_receipt(tx_digest)
+        if tx_receipt is None:
+            raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
         contract_address = EthereumApi.get_contract_address(tx_receipt)
         self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
@@ -890,18 +898,18 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def has_transaction_been_sent(self) -> Generator[None, None, bool]:
+    def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
         response = yield from self.get_transaction_receipt(
             self.period_state.final_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
-        if response is None:
+        if response is None:  # pragma: nocover
             self.context.logger.info(
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
-            return False
+            return None
         is_settled = EthereumApi.is_transaction_settled(response)
         if not is_settled:  # pragma: nocover
             self.context.logger.info(
