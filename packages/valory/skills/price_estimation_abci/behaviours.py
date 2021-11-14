@@ -1008,3 +1008,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         SelectKeeperBBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
     }
+
+    def setup(self) -> None:
+        """Set up the behaviour."""
+        benchmark_tool.logger = self.context.logger

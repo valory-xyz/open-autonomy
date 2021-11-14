@@ -769,3 +769,7 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         SwapBackValidationBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
     }
+
+    def setup(self) -> None:
+        """Set up the behaviour."""
+        benchmark_tool.logger = self.context.logger
