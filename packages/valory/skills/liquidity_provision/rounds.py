@@ -91,6 +91,7 @@ class PeriodState(
         ] = None,
         most_voted_allowance_check: Optional[int] = None,
         most_voted_keeper_address: Optional[str] = None,
+        safe_contract_address: Optional[str] = None,
         participant_to_swap_tx_hash: Optional[
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
@@ -197,6 +198,7 @@ class PeriodState(
         self._participant_to_strategy = participant_to_strategy
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_keeper_address = most_voted_keeper_address
+        self._safe_contract_address = safe_contract_address
         self._participant_to_allowance_check = participant_to_allowance_check
         self._most_voted_allowance_check = most_voted_allowance_check
 
@@ -337,6 +339,15 @@ class PeriodState(
             "'most_voted_keeper_address' field is None",
         )
         return cast(str, self._most_voted_keeper_address)
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        enforce(
+            self._safe_contract_address is not None,
+            "'safe_contract_address' field is None",
+        )
+        return cast(str, self._safe_contract_address)
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""

@@ -100,7 +100,9 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
-
+from packages.valory.contracts.gnosis_safe.contract import (
+    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
+)
 
 benchmark_tool = BenchmarkTool()
 
@@ -150,7 +152,7 @@ class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address="",
-                contract_id="",
+                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address="",
                 value=0,

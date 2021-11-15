@@ -42,9 +42,6 @@ from packages.valory.connections.ledger.base import (
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
-from packages.valory.contracts.offchain_aggregator.contract import (
-    PUBLIC_ID as ORACLE_CONTRACT_ID,
-)
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -63,6 +60,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     TransactionSendBaseBehaviour,
     TransactionSignatureBaseBehaviour,
     TransactionValidationBaseBehaviour,
+    SwapTransactionHashBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import ResetBehaviour
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -396,9 +394,9 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
-            state_id=TransactionHashBaseBehaviour.state_id,
+            state_id=SwapTransactionHashBehaviour.state_id,
             period_state=PeriodState(
-                most_voted_estimate=1.0,
+                most_voted_swap_tx_hash="0x",
                 safe_contract_address="safe_contract_address",
                 most_voted_keeper_address="most_voted_keeper_address",
             ),
@@ -415,12 +413,12 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
-            contract_id=str(ORACLE_CONTRACT_ID),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
+                    ledger_id="ethereum", body={"tx_hash": ""}
                 ),
             ),
         )
