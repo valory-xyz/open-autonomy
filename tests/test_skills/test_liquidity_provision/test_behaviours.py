@@ -52,6 +52,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     LiquidityProvisionConsensusBehaviour,
     SwapSignatureBehaviour,
     SwapTransactionHashBehaviour,
+    SwapSendBehaviour,
 )
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -417,3 +418,42 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.end_round()
         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
         assert state.state_id == SwapSignatureBehaviour.state_id
+
+
+class TestTransactionSignatureBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
+    """Test TransactionSignatureBaseBehaviour."""
+
+    def test_signature_behaviour(
+        self,
+    ) -> None:
+        """Test signature behaviour."""
+
+        self.fast_forward_to_state(
+            behaviour=self.liquidity_provision_behaviour,
+            state_id=SwapSignatureBehaviour.state_id,
+            period_state=PeriodState(most_voted_swap_tx_hash="68656c6c6f2c20776f726c64"),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.liquidity_provision_behaviour.current_state),
+            ).state_id
+            == SwapSignatureBehaviour.state_id
+        )
+        self.liquidity_provision_behaviour.act_wrapper()
+        self.mock_signing_request(
+            request_kwargs=dict(
+                performative=SigningMessage.Performative.SIGN_MESSAGE,
+            ),
+            response_kwargs=dict(
+                performative=SigningMessage.Performative.SIGNED_MESSAGE,
+                signed_message=SignedMessage(
+                    ledger_id="ethereum", body="stub_signature"
+                ),
+            ),
+        )
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
+        assert state.state_id == SwapSendBehaviour.state_id
