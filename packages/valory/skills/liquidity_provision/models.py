@@ -49,6 +49,9 @@ class Params(BaseParams):
         """Initialize the parameters object."""
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
         self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
+        self.sleep_time = self._ensure("sleep_time", kwargs)
+        self.retry_timeout = self._ensure("retry_timeout", kwargs)
+        self.retry_attempts = self._ensure("retry_attempts", kwargs)
         super().__init__(*args, **kwargs)
         self._count_healthcheck = 0
 

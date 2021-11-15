@@ -21,7 +21,9 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Generator, Mapping, Set, Type, cast
+from typing import Generator, Mapping, Optional, Set, Type, cast
+
+from aea_ledger_ethereum import EthereumApi
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -329,25 +331,46 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
         self.set_done()
 
-    def has_transaction_been_sent(self) -> Generator[None, None, bool]:
+    def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
+        response = yield from self.get_transaction_receipt(
+            self.period_state.final_swap_tx_hash,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if response is None:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_swap_tx_hash} receipt check timed out!"
+            )
+            return None
+        is_settled = EthereumApi.is_transaction_settled(response)
+        if not is_settled:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_swap_tx_hash} not settled!"
+            )
+            return False
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
-            tx_hash=self.final_tx_hash,
+            tx_hash=self.period_state.final_swap_tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=self.period_state.most_voted_keeper_address,
-            value=0,
-            data=self.data,
+            to_address=self.context.agent_address,
             signatures_by_owner={
-                key: payload.signature for key, payload in self.participants.items()
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_swap_signature.items()
             },
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
+        verified_log = (
+            f"Verified result: {verified}"
+            if verified
+            else f"Verified result: {verified}, all: {contract_api_msg.state.body}"
+        )
+        self.context.logger.info(verified_log)
         return verified
 
 

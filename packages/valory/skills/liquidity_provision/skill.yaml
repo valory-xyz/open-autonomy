@@ -9,10 +9,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmUghyvR1WTBy4uvQMXDeAKyrPrvUNrPCBGK7VM3BogGEe
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: Qmae2aX4pzAUP7kFy5GJnnVSaH2d12fmC1HsUeHPitR5RD
+  behaviours.py: QmUTvk4WK9QbvFwXe45pCSsPY7ccbnw8RgMs6nB8KQMoQb
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
-  models.py: QmcUywRa8L4onN4pwMJzWx3JYJZkRkzs6xHPRW6EbVDEsK
+  models.py: QmYwE5CY3s8vRsoRTDZS34gCLYswjt1C7RQNbTNVh6gMET
   payloads.py: QmeAUfNaxMEFbStJDwFMZoCSW6mw4oKM4BDtpdweoPf6VP
   rounds.py: QmNcpBPLQAw6R4ADcsSKMHFv1m9KmANhvjA8vpjXMqq3Rb
 fingerprint_ignore_patterns: []
@@ -72,7 +72,10 @@ models:
       consensus:
         max_participants: 1
       max_healthcheck: 120
-      round_timeout_seconds: 5
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30
+      sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params
   requests:
