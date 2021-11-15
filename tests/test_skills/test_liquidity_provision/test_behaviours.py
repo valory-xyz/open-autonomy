@@ -61,6 +61,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     TransactionSignatureBaseBehaviour,
     TransactionValidationBaseBehaviour,
     SwapTransactionHashBehaviour,
+    SwapSignatureBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import ResetBehaviour
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -426,7 +427,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == TransactionSignatureBaseBehaviour.state_id
+        assert state.state_id == SwapSignatureBehaviour.state_id
 
 
 class TestTransactionSignatureBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
