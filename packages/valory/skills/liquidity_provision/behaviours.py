@@ -24,6 +24,7 @@ from abc import ABC
 from typing import Generator, Mapping, Set, Type, cast
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
@@ -279,14 +280,12 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
         """Send a Safe transaction using the participants' signatures."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address="",
-            contract_id="",
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
-            value=0,
-            data="",
             signatures_by_owner={
                 key: payload.signature for key, payload in self.participants.items()
             },
@@ -334,8 +333,8 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         """Contract deployment verification."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address="",
-            contract_id="",
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
             tx_hash=self.final_tx_hash,
             owners=tuple(self.period_state.participants),
