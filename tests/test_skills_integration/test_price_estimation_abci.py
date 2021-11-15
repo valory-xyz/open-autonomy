@@ -74,8 +74,8 @@ CHECK_STRINGS = (
     "Entered in the 'validate_transaction' round for period 0",
     "'validate_transaction' round is done",
     "Period end",
-    "Entered in the 'reset' round for period 0",
-    "'reset' round is done",
+    "Entered in the 'reset_and_pause' round for period 0",
+    "'reset_and_pause' round is done",
     "Period end",
     "Entered in the 'randomness' round for period 1",
     "Entered in the 'select_keeper_a' round for period 1",
@@ -85,7 +85,7 @@ CHECK_STRINGS = (
     "Entered in the 'collect_signature' round for period 1",
     "Entered in the 'finalization' round for period 1",
     "Entered in the 'validate_transaction' round for period 1",
-    "Entered in the 'reset' round for period 1",
+    "Entered in the 'reset_and_pause' round for period 1",
 )
 
 

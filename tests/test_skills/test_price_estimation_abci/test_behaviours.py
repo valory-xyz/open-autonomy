@@ -75,6 +75,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessAtStartupBehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBehaviour,
+    ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
@@ -1437,7 +1438,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ResetBehaviour.state_id
+        assert state.state_id == ResetAndPauseBehaviour.state_id
 
     def test_validate_transaction_safe_behaviour_no_tx_sent(
         self,
@@ -1467,8 +1468,11 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
 
 
-class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
+
+    behaviour_class: Type[BaseState] = ResetAndPauseBehaviour
+    next_behaviour_class: Type[BaseState] = RandomnessInOperationBehaviour
 
     def test_reset_behaviour(
         self,
@@ -1476,7 +1480,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
-            state_id=ResetBehaviour.state_id,
+            state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
                 most_voted_estimate=0.1,
                 final_tx_hash="68656c6c6f776f726c64",
@@ -1487,7 +1491,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == ResetBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.context.params.observation_interval = 0.1
         self.price_estimation_behaviour.act_wrapper()
@@ -1497,7 +1501,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessInOperationBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
     def test_reset_behaviour_without_most_voted_estimate(
         self,
@@ -1505,7 +1509,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         """Test reset behaviour without most voted estimate."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
-            state_id=ResetBehaviour.state_id,
+            state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
                 most_voted_estimate=None,
                 final_tx_hash="68656c6c6f776f726c64",
@@ -1516,7 +1520,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == ResetBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.context.params.observation_interval = 0.1
 
@@ -1531,4 +1535,37 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessInOperationBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test the reset behaviour."""
+
+    behaviour_class = ResetBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
+
+    def test_reset_behaviour(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id

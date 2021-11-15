@@ -161,6 +161,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return sorted(self.participants, key=str.lower)
 
     @property
+    def are_contracts_set(self) -> bool:
+        """Check whether contracts are set."""
+        return (
+            self._safe_contract_address is not None
+            and self._oracle_contract_address is not None
+        )
+
+    @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
         enforce(
@@ -330,8 +338,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if (
+        if (  # fast forward at setup
             self.collection_threshold_reached
             and self.period_state.period_setup_params != {}
             and self.period_state.period_setup_params.get("safe_contract_address", None)
@@ -352,7 +359,19 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
                 ),
             )
             return state, Event.FAST_FORWARD
-        if self.collection_threshold_reached:
+        if (  # contracts are set from previos rounds
+            self.collection_threshold_reached
+            and hasattr(self.period_state, "are_contracts_set")
+            and self.period_state.are_contracts_set
+        ):
+            state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+                safe_contract_address=self.period_state.safe_contract_address,
+                oracle_contract_address=self.period_state.oracle_contract_address,
+            )
+            return state, Event.FAST_FORWARD
+        if self.collection_threshold_reached:  # initial deployment round
             state = PeriodState(
                 participants=self.collection,
                 period_count=self.period_state.period_count,
@@ -679,10 +698,9 @@ class SelectKeeperBRound(SelectKeeperRound):
     round_id = "select_keeper_b"
 
 
-class ResetRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
-    """This class represents the 'consensus-reached' round (the final round)."""
+class BaseResetRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
+    """This class represents the base reset round."""
 
-    round_id = "reset"
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
@@ -711,6 +729,18 @@ class ResetRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
         ):
             return self._return_no_majority_event()
         return None
+
+
+class ResetRound(BaseResetRound):
+    """This class represents the 'reset' round (if something goes wrong)."""
+
+    round_id = "reset"
+
+
+class ResetAndPauseRound(BaseResetRound):
+    """This class represents the 'consensus-reached' round (the final round)."""
+
+    round_id = "reset_and_pause"
 
 
 class ValidateSafeRound(ValidateRound):
@@ -838,7 +868,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: SelectKeeperBRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateTransactionRound: {
-            Event.DONE: ResetRound,
+            Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: ResetRound,  # if the round reaches a negative vote we continue; TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
             Event.NONE: ResetRound,  # if the round reaches a none vote we continue; TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
             Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
@@ -850,6 +880,11 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
+            Event.DONE: RandomnessRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ResetAndPauseRound: {
             Event.DONE: RandomnessRound,
             Event.RESET_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,

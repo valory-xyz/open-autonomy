@@ -256,6 +256,24 @@ class TestRegistrationRound(BaseRoundTestClass):
         )
         self._run_with_round(test_round, Event.FAST_FORWARD)
 
+    def test_run_fastforward_contracts_set(
+        self,
+    ) -> None:
+        """Run test."""
+
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                safe_contract_address="stub_safe_contract_address",
+                oracle_contract_address="stub_oracle_contract_address",
+            ),
+        )
+
+        test_round = RegistrationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._run_with_round(test_round, Event.FAST_FORWARD)
+
     def test_run_default(
         self,
     ) -> None:
