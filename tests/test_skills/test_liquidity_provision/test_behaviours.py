@@ -407,7 +407,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
             ).state_id
-            == TransactionHashBaseBehaviour.state_id
+            == SwapTransactionHashBehaviour.state_id
         )
         self.liquidity_provision_behaviour.act_wrapper()
         self.mock_contract_api_request(
@@ -419,7 +419,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": ""}
+                    ledger_id="ethereum", body={"tx_hash": "0x"}
                 ),
             ),
         )
