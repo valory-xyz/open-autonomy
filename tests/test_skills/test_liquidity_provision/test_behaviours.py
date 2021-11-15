@@ -50,9 +50,9 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.liquidity_provision.behaviours import (
     LiquidityProvisionConsensusBehaviour,
+    SwapSendBehaviour,
     SwapSignatureBehaviour,
     SwapTransactionHashBehaviour,
-    SwapSendBehaviour,
 )
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -431,7 +431,7 @@ class TestTransactionSignatureBaseBehaviour(LiquidityProvisionBehaviourBaseCase)
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=SwapSignatureBehaviour.state_id,
-            period_state=PeriodState(most_voted_swap_tx_hash="68656c6c6f2c20776f726c64"),
+            period_state=PeriodState(most_voted_swap_tx_hash="68656c6c6f776f726c64"),
         )
         assert (
             cast(

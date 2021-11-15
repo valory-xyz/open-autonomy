@@ -178,7 +178,6 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
     state_id = "signature"
     matching_round = TransactionSignatureBaseRound
-    tx_hash = "hash"
 
     def async_act(self) -> Generator:
         """
@@ -195,7 +194,7 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             self.context.logger.info(
-                f"Consensus reached on {self.state_id} tx hash: {self.tx_hash}"
+                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_swap_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
@@ -211,7 +210,9 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(self.tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(
+            self.period_state.most_voted_swap_tx_hash[:64]
+        )
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
         signature_hex = cast(SigningMessage, signature_response).signed_message.body
