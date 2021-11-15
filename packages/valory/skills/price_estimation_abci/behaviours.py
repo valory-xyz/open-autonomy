@@ -65,6 +65,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RandomnessRound,
     RandomnessStartupRound,
     RegistrationRound,
+    ResetAndPauseRound,
     ResetRound,
     SelectKeeperARound,
     SelectKeeperAStartupRound,
@@ -957,11 +958,10 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         return verified
 
 
-class ResetBehaviour(PriceEstimationBaseState):
+class BaseResetBehaviour(PriceEstimationBaseState):
     """Reset state."""
 
-    state_id = "reset"
-    matching_round = ResetRound
+    pause = True
 
     def async_act(self) -> Generator:
         """
@@ -975,19 +975,25 @@ class ResetBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if (
-            self.period_state.is_most_voted_estimate_set
-            and self.period_state.is_final_tx_hash_set
-        ):
-            self.context.logger.info(
-                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
-            )
-        else:
-            self.context.logger.info("Finalized estimate not available.")
-        self.context.logger.info("Period end.")
-        benchmark_tool.save()
+        if self.pause:
+            if (
+                self.period_state.is_most_voted_estimate_set
+                and self.period_state.is_final_tx_hash_set
+            ):
+                self.context.logger.info(
+                    f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+                )
+            else:
+                self.context.logger.info("Finalized estimate not available.")
+            self.context.logger.info("Period end.")
+            benchmark_tool.save()
 
-        yield from self.sleep(self.params.observation_interval)
+            yield from self.sleep(self.params.observation_interval)
+        else:
+            self.context.logger.info(
+                f"Period {self.period_state.period_count} was not finished. Resetting!"
+            )
+
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
@@ -995,6 +1001,22 @@ class ResetBehaviour(PriceEstimationBaseState):
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
+
+
+class ResetBehaviour(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = ResetRound
+    state_id = "reset"
+    pause = False
+
+
+class ResetAndPauseBehaviour(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = ResetAndPauseRound
+    state_id = "reset_and_pause"
+    pause = True
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
@@ -1022,6 +1044,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         ValidateTransactionBehaviour,  # type: ignore
         SelectKeeperBBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:
