@@ -21,7 +21,7 @@
 import logging  # noqa: F401
 import re
 from types import MappingProxyType
-from typing import Dict, FrozenSet, Type, cast
+from typing import Dict, FrozenSet, Optional, Type, cast
 from unittest import mock
 
 import pytest
@@ -138,7 +138,7 @@ def get_safe_contract_address() -> str:
 
 
 def get_participant_to_votes(
-    participants: FrozenSet[str], vote: bool = True
+    participants: FrozenSet[str], vote: Optional[bool] = True
 ) -> Dict[str, ValidatePayload]:
     """participant_to_votes"""
     return {
@@ -1292,7 +1292,41 @@ class BaseValidateRoundTest(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert event == Event.EXIT
+        assert event == Event.NEGATIVE
+        with pytest.raises(
+            AEAEnforceError, match="'participant_to_votes' field is None"
+        ):
+            _ = cast(PeriodState, state).participant_to_votes
+
+    def test_none_votes(
+        self,
+    ) -> None:
+        """Test ValidateRound."""
+
+        test_round = self.test_class(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        participant_to_votes_payloads = get_participant_to_votes(
+            self.participants, vote=None
+        )
+        first_payload = participant_to_votes_payloads.pop(
+            sorted(list(participant_to_votes_payloads.keys()))[0]
+        )
+        test_round.process_payload(first_payload)
+
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+        assert not test_round.none_vote_threshold_reached
+        for payload in participant_to_votes_payloads.values():
+            test_round.process_payload(payload)
+
+        assert test_round.none_vote_threshold_reached
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert event == Event.NONE
         with pytest.raises(
             AEAEnforceError, match="'participant_to_votes' field is None"
         ):
@@ -1386,8 +1420,10 @@ def test_period_state() -> None:
     assert period_state.participant_to_estimate == participant_to_estimate
     assert period_state.estimate == estimate
     assert period_state.most_voted_estimate == most_voted_estimate
+    assert period_state.is_most_voted_estimate_set is True
     assert period_state.most_voted_tx_hash == most_voted_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.final_tx_hash == final_tx_hash
+    assert period_state.is_final_tx_hash_set is True
 
     assert period_state.encoded_most_voted_estimate == encode_float(most_voted_estimate)

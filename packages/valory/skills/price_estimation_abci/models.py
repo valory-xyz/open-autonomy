@@ -21,14 +21,18 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (  # Event,
+from packages.valory.skills.price_estimation_abci.rounds import (
+    Event,
     PriceEstimationAbciApp,
 )
+
+
+MARGIN = 2
 
 
 Requests = BaseRequests
@@ -41,12 +45,23 @@ class SharedState(BaseSharedState):
         """Initialize the state."""
         super().__init__(*args, abci_app_cls=PriceEstimationAbciApp, **kwargs)
 
-    # def setup(self) -> None:  # noqa: E800
-    #     """Set up."""  # noqa: E800
-    #     super().setup()  # noqa: E800
-    #     PriceEstimationAbciApp.event_to_timeout[  # noqa: E800
-    #         Event.EXIT  # noqa: E800
-    #     ] = self.context.params.keeper_timeout_seconds  # noqa: E800
+    def setup(self) -> None:
+        """Set up."""
+        super().setup()
+        PriceEstimationAbciApp.event_to_timeout[
+            Event.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[Event.VALIDATE_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        PriceEstimationAbciApp.event_to_timeout[Event.DEPLOY_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        PriceEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+            self.context.params.observation_interval + MARGIN
+        )
 
 
 class Params(BaseParams):
@@ -57,18 +72,27 @@ class Params(BaseParams):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
-        self.keeper_timeout_seconds = self._ensure("keeper_timeout_seconds", kwargs)
+        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
         self.sleep_time = self._ensure("sleep_time", kwargs)
+        self.retry_timeout = self._ensure("retry_timeout", kwargs)
+        self.retry_attempts = self._ensure("retry_attempts", kwargs)
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.oracle_params = self._ensure("oracle", kwargs)
         super().__init__(*args, **kwargs)
-        self._count_healthcheck = 0
 
-    def is_health_check_timed_out(self) -> bool:
-        """Check if the healthcheck has timed out."""
-        self._count_healthcheck += 1
-        return self._count_healthcheck > self.max_healthcheck
 
-    def increment_retries(self) -> None:
-        """Increment the retries counter."""
-        self._count_healthcheck += 1
+class RandomnessApi(ApiSpecs):
+    """A model that wraps ApiSpecs for randomness api specifications."""
+
+
+class PriceApi(ApiSpecs):
+    """A model that wraps ApiSpecs for various cryptocurrency price api specifications."""
+
+    convert_id: str
+    currency_id: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize PriceApi."""
+        self.convert_id = self.ensure("convert_id", kwargs)
+        self.currency_id = self.ensure("currency_id", kwargs)
+        super().__init__(*args, **kwargs)

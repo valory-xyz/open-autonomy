@@ -521,7 +521,8 @@ class TestBaseState:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ):
-            self.behaviour._send_transaction_receipt_request(MagicMock())
+            self.behaviour.context.default_ledger_id = "default_ledger_id"  # type: ignore
+            self.behaviour._send_transaction_receipt_request("digest")
 
     def test_build_http_request_message(self, *_: Any) -> None:
         """Test '_build_http_request_message'."""
@@ -531,7 +532,7 @@ class TestBaseState:
             return_value=(MagicMock(), MagicMock()),
         ):
             self.behaviour._build_http_request_message(
-                "", "", parameters=dict(foo="bar"), headers=dict(foo="bar")
+                "", "", parameters=[("foo", "bar")], headers=[("foo", "bar")]
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())

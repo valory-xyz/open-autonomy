@@ -165,6 +165,7 @@ class BenchmarkTool:
     agent: Optional[str]
     agent_address: Optional[str]
     behaviours: List[str]
+    logger: logging.Logger
 
     def __init__(
         self,
@@ -174,6 +175,7 @@ class BenchmarkTool:
         self.agent_address = None
         self.benchmark_data = {}
         self.behaviours = []
+        self.logger = logging.getLogger()
 
     @property
     def data(
@@ -217,8 +219,8 @@ class BenchmarkTool:
     ) -> None:
         """Output log."""
 
-        logging.info(f"Agent : {self.agent}")
-        logging.info(f"Agent Address : {self.agent_address}")
+        self.logger.info(f"Agent : {self.agent}")
+        self.logger.info(f"Agent Address : {self.agent_address}")
 
     def save(
         self,
@@ -231,7 +233,7 @@ class BenchmarkTool:
             ) as outfile:
                 json.dump(self.data, outfile)
         except (PermissionError, FileNotFoundError):
-            logging.info("Error saving benchmark data.")
+            self.logger.info("Error saving benchmark data.")
 
     def measure(self, behaviour: BaseState) -> BenchmarkBehaviour:
         """Measure time to complete round."""

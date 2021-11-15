@@ -23,7 +23,7 @@ import logging
 import time
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, Type, cast
+from typing import Any, Dict, Generator, Type, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -70,6 +70,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     FinalizeBehaviour,
     ObserveBehaviour,
+    PriceEstimationBaseState,
     PriceEstimationConsensusBehaviour,
     RandomnessAtStartupBehaviour,
     RandomnessInOperationBehaviour,
@@ -434,7 +435,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.mock_http_request(
                 request_kwargs=dict(
                     method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/health",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
                     headers="",
                     version="",
                     body=b"",
@@ -448,7 +449,8 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             )
         mock_logger.assert_any_call(
-            logging.ERROR, "Tendermint not running, trying again!"
+            logging.ERROR,
+            "Tendermint not running or accepting transactions yet, trying again!",
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
@@ -462,11 +464,15 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == TendermintHealthcheckBehaviour.state_id
         )
-        self.skill.skill_context.params._count_healthcheck = (
-            self.skill.skill_context.params.max_healthcheck + 1
-        )
-        with pytest.raises(AEAActException, match="Tendermint node did not come live!"):
-            self.price_estimation_behaviour.act_wrapper()
+        with mock.patch.object(
+            self.price_estimation_behaviour.current_state,
+            "_is_timeout_expired",
+            return_value=True,
+        ):
+            with pytest.raises(
+                AEAActException, match="Tendermint node did not come live!"
+            ):
+                self.price_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_live(self) -> None:
         """Test the tendermint health check does finish if healthy."""
@@ -481,10 +487,11 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
         ) as mock_logger:
+            current_height = self.price_estimation_behaviour.context.state.period.height
             self.mock_http_request(
                 request_kwargs=dict(
                     method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/health",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
                     headers="",
                     version="",
                     body=b"",
@@ -494,13 +501,65 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     status_code=200,
                     status_text="",
                     headers="",
-                    body=json.dumps({}).encode("utf-8"),
+                    body=json.dumps(
+                        {
+                            "result": {
+                                "sync_info": {"latest_block_height": current_height}
+                            }
+                        }
+                    ).encode("utf-8"),
                 ),
             )
-
-        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
+        mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == RegistrationBehaviour.state_id
+
+    def test_tendermint_healthcheck_height_differs(self) -> None:
+        """Test the tendermint health check does finish if local-height != remote-height."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            current_height = self.price_estimation_behaviour.context.state.period.height
+            new_different_height = current_height + 1
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(
+                        {
+                            "result": {
+                                "sync_info": {
+                                    "latest_block_height": new_different_height
+                                }
+                            }
+                        }
+                    ).encode("utf-8"),
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.INFO, "local height != remote height; retrying..."
+        )
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
 
 
 class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -965,7 +1024,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
@@ -975,7 +1034,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"bitcoin": {"usd": 54566}}).encode("utf-8"),
+                body=json.dumps({"data": {"amount": 54566}}).encode("utf-8"),
             ),
         )
         self.mock_a2a_transaction()
@@ -1028,7 +1087,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
@@ -1294,17 +1353,6 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-                transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={}, transaction={}
-                ),
-            ),
-        )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1315,10 +1363,8 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ValidateTransactionBehaviour."""
 
-    def test_validate_transaction_safe_behaviour(
-        self,
-    ) -> None:
-        """Test ValidateTransactionBehaviour."""
+    def _fast_forward(self) -> None:
+        """Fast-forward to relevant state."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_state(
@@ -1347,7 +1393,24 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == ValidateTransactionBehaviour.state_id
         )
+
+    def test_validate_transaction_safe_behaviour(
+        self,
+    ) -> None:
+        """Test ValidateTransactionBehaviour."""
+        self._fast_forward()
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_ledger_api_request(
+            request_kwargs=dict(
+                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
+            ),
+            response_kwargs=dict(
+                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+                transaction_receipt=TransactionReceipt(
+                    ledger_id="ethereum", receipt={"status": 1}, transaction={}
+                ),
+            ),
+        )
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -1376,14 +1439,41 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ResetBehaviour.state_id
 
+    def test_validate_transaction_safe_behaviour_no_tx_sent(
+        self,
+    ) -> None:
+        """Test ValidateTransactionBehaviour when tx cannot be sent."""
+        self._fast_forward()
+
+        with mock.patch.object(
+            self.price_estimation_behaviour.context.logger, "info"
+        ) as mock_logger:
+
+            def _mock_generator() -> Generator[None, None, None]:
+                """Mock the 'get_transaction_receipt' method."""
+                yield None
+
+            with mock.patch.object(
+                self.price_estimation_behaviour.current_state,
+                "get_transaction_receipt",
+                return_value=_mock_generator(),
+            ):
+                self.price_estimation_behaviour.act_wrapper()
+                self.price_estimation_behaviour.act_wrapper()
+            state = cast(
+                PriceEstimationBaseState, self.price_estimation_behaviour.current_state
+            )
+            final_tx_hash = state.period_state.final_tx_hash
+            mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
+
 
 class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
-    def test_end_behaviour(
+    def test_reset_behaviour(
         self,
     ) -> None:
-        """Test end behaviour."""
+        """Test reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=ResetBehaviour.state_id,
@@ -1401,6 +1491,40 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.context.params.observation_interval = 0.1
         self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == RandomnessInOperationBehaviour.state_id
+
+    def test_reset_behaviour_without_most_voted_estimate(
+        self,
+    ) -> None:
+        """Test reset behaviour without most voted estimate."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=ResetBehaviour.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=None,
+                final_tx_hash="68656c6c6f776f726c64",
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == ResetBehaviour.state_id
+        )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "info"
+        ) as mock_logger:
+            self.price_estimation_behaviour.act_wrapper()
+            mock_logger.assert_any_call("Finalized estimate not available.")
         time.sleep(0.3)
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()

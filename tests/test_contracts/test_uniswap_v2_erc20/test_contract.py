@@ -25,7 +25,10 @@ from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
 
-from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
+from packages.valory.contracts.uniswap_v2_erc20.contract import (
+    PUBLIC_ID,
+    UniswapV2ERC20Contract,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -42,7 +45,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
     """Test TestUniswapV2ERC20Contract."""
 
     path_to_contract = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
+        ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
     )
     ledger_identifier = "ethereum"
     contract: UniswapV2ERC20Contract

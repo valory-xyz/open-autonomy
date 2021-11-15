@@ -19,10 +19,11 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
+import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -108,31 +109,49 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
     state_id = "tendermint_healthcheck"
     matching_round = None
 
-    def async_act(self) -> Generator:
-        """
-        Check whether tendermint is running or not.
+    _check_started: Optional[datetime.datetime] = None
+    _timeout: float
 
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit. Raise if timed out.
-        - If healthcheck passes set done event.
-        """
-        if self.params.is_health_check_timed_out():
-            # if the tendermint node cannot start then the app cannot work
-            raise RuntimeError("Tendermint node did not come live!")
-        request_message, http_dialogue = self._build_http_request_message(
-            "GET",
-            self.params.tendermint_url + "/health",
+    def start(self) -> None:
+        """Set up the behaviour."""
+        if self._check_started is None:
+            self._check_started = datetime.datetime.now()
+            self._timeout = self.params.max_healthcheck
+
+    def _is_timeout_expired(self) -> bool:
+        """Check if the timeout expired."""
+        if self._check_started is None:
+            return False  # pragma: no cover
+        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+            0, self._timeout
         )
-        result = yield from self._do_request(request_message, http_dialogue)
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        self.start()
+        if self._is_timeout_expired():
+            # if the Tendermint node cannot update the app then the app cannot work
+            raise RuntimeError("Tendermint node did not come live!")
+        status = yield from self._get_status()
         try:
-            json.loads(result.body.decode())
-            self.context.logger.info("Tendermint running.")
-            self.set_done()
+            json_body = json.loads(status.body.decode())
         except json.JSONDecodeError:
-            self.context.logger.error("Tendermint not running, trying again!")
+            self.context.logger.error(
+                "Tendermint not running or accepting transactions yet, trying again!"
+            )
             yield from self.sleep(self.params.sleep_time)
-            self.params.increment_retries()
+            return
+        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+        local_height = self.context.state.period.height
+        self.context.logger.info(
+            "local-height = %s, remote-height=%s", local_height, remote_height
+        )
+        if local_height != remote_height:
+            self.context.logger.info("local height != remote height; retrying...")
+            yield from self.sleep(self.params.sleep_time)
+            return
+        self.context.logger.info("local height == remote height; done")
+        self.set_done()
 
 
 class RegistrationBehaviour(PriceEstimationBaseState):
@@ -196,7 +215,7 @@ class RandomnessBehaviour(PriceEstimationBaseState):
                 url=api_specs["url"],
             )
             response = yield from self._do_request(http_message, http_dialogue)
-            observation = self.context.randomness_api.post_request_process(response)
+            observation = self.context.randomness_api.process_response(response)
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
@@ -360,13 +379,20 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         contract_address = cast(
             str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
-        tx_hash, tx_receipt = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        tx_receipt = yield from self.get_transaction_receipt(
+            tx_digest,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if tx_receipt is None:
+            raise RuntimeError("Safe deployment failed!")  # pragma: nocover
         _ = EthereumApi.get_contract_address(
             tx_receipt
         )  # returns None as the contract is created via a proxy
-        self.context.logger.info(f"Deployment tx hash: {tx_hash}")
+        self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
 
 
@@ -437,11 +463,14 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
         )
-        tx_hash, tx_receipt = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        tx_receipt = yield from self.get_transaction_receipt(tx_digest)
+        if tx_receipt is None:
+            raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
         contract_address = EthereumApi.get_contract_address(tx_receipt)
-        self.context.logger.info(f"Deployment tx hash: {tx_hash}")
+        self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
 
 
@@ -568,7 +597,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
                 parameters=api_specs["parameters"],
             )
             response = yield from self._do_request(http_message, http_dialogue)
-            observation = self.context.price_api.post_request_process(response)
+            observation = self.context.price_api.process_response(response)
 
         if observation:
             self.context.logger.info(
@@ -783,14 +812,14 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self.context.logger.info(
                 "I am the designated sender, sending the safe transaction..."
             )
-            tx_hash = yield from self._send_safe_transaction()
+            tx_digest = yield from self._send_safe_transaction()
             self.context.logger.info(
-                f"Transaction hash of the final transaction: {tx_hash}"
+                f"Transaction digest of the final transaction: {tx_digest}"
             )
             self.context.logger.debug(
                 f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
             )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
+            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
 
         with benchmark_tool.measure(
             self,
@@ -831,11 +860,11 @@ class FinalizeBehaviour(PriceEstimationBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
         )
-        tx_hash, _ = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
-        self.context.logger.info(f"Finalization tx hash: {tx_hash}")
-        return tx_hash
+        self.context.logger.info(f"Finalization tx digest: {tx_digest}")
+        return tx_digest
 
 
 class ValidateTransactionBehaviour(PriceEstimationBaseState):
@@ -869,8 +898,24 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def has_transaction_been_sent(self) -> Generator[None, None, bool]:
+    def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
+        response = yield from self.get_transaction_receipt(
+            self.period_state.final_tx_hash,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if response is None:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+            )
+            return None
+        is_settled = EthereumApi.is_transaction_settled(response)
+        if not is_settled:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} not settled!"
+            )
+            return False
         _, epoch_, round_, amount_ = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
@@ -930,9 +975,15 @@ class ResetBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        self.context.logger.info(
-            f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
-        )
+        if (
+            self.period_state.is_most_voted_estimate_set
+            and self.period_state.is_final_tx_hash_set
+        ):
+            self.context.logger.info(
+                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+            )
+        else:
+            self.context.logger.info("Finalized estimate not available.")
         self.context.logger.info("Period end.")
         benchmark_tool.save()
 
@@ -972,3 +1023,8 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         SelectKeeperBBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
     }
+
+    def setup(self) -> None:
+        """Set up the behaviour."""
+        super().setup()
+        benchmark_tool.logger = self.context.logger
