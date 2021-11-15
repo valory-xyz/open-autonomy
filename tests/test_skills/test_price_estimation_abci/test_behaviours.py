@@ -1471,8 +1471,8 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
-    behaviour_class: Type[BaseState] = ResetAndPauseBehaviour
-    next_behaviour_class: Type[BaseState] = RandomnessInOperationBehaviour
+    behaviour_class = ResetAndPauseBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
 
     def test_reset_behaviour(
         self,
