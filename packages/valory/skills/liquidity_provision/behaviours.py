@@ -21,9 +21,12 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Generator, Mapping, Set, Type, cast, Any
+from typing import Generator, Mapping, Set, Type, cast
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.contracts.gnosis_safe.contract import (
+    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -100,9 +103,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
-from packages.valory.contracts.gnosis_safe.contract import (
-    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
-)
+
 
 benchmark_tool = BenchmarkTool()
 
@@ -429,11 +430,6 @@ class SwapSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "swap_signature"
     matching_round = SwapSignatureRound
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_swap_tx_hash
-        super().__init__(*args, **kwargs)
-
 
 class SwapSendBehaviour(TransactionSendBaseBehaviour):
     """Swap tokens: send the transaction."""
@@ -447,13 +443,6 @@ class SwapValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "swap_validation"
     matching_round = SwapValidationRound
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_swap_tx_hash
-        self.participants = self.period_state.participant_to_swap_signature
-        self.data = {}
-        super().__init__(*args, **kwargs)
 
 
 def get_allowance() -> int:
@@ -510,11 +499,6 @@ class AddAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "add_allowance_signature"
     matching_round = AddAllowanceSignatureRound
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_add_allowance_tx_hash
-        super().__init__(*args, **kwargs)
-
 
 class AddAllowanceSendBehaviour(TransactionSendBaseBehaviour):
     """Approve token: send the transaction."""
@@ -528,13 +512,6 @@ class AddAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "add_allowance_validation"
     matching_round = AddAllowanceValidationRound
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_add_allowance_tx_hash
-        self.participants = self.period_state.participant_to_add_allowance_validation
-        self.data = {}
-        super().__init__(*args, **kwargs)
 
 
 class AddLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -557,11 +534,6 @@ class AddLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "add_liquidity_signature"
     matching_round = AddLiquiditySignatureRound
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_add_liquidity_tx_hash
-        super().__init__(*args, **kwargs)
-
 
 class AddLiquiditySendBehaviour(TransactionSendBaseBehaviour):
     """Enter liquidity pool: send the transaction."""
@@ -575,13 +547,6 @@ class AddLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "add_liquidity_validation"
     matching_round = AddLiquidityValidationRound
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_add_liquidity_tx_hash
-        self.participants = self.period_state.participant_to_add_liquidity_validation
-        self.data = {}
-        super().__init__(*args, **kwargs)
 
 
 class RemoveLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -604,11 +569,6 @@ class RemoveLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "remove_liquidity_signature"
     matching_round = RemoveLiquiditySignatureRound
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_remove_liquidity_tx_hash
-        super().__init__(*args, **kwargs)
-
 
 class RemoveLiquiditySendBehaviour(TransactionSendBaseBehaviour):
     """Leave liquidity pool: send the transaction."""
@@ -622,13 +582,6 @@ class RemoveLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "remove_liquidity_validation"
     matching_round = RemoveLiquidityValidationRound
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_remove_liquidity_tx_hash
-        self.participants = self.period_state.participant_to_remove_liquidity_validation
-        self.data = {}
-        super().__init__(*args, **kwargs)
 
 
 class RemoveAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -651,11 +604,6 @@ class RemoveAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "remove_allowance_signature"
     matching_round = RemoveAllowanceSignatureRound
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_remove_allowance_tx_hash
-        super().__init__(*args, **kwargs)
-
 
 class RemoveAllowanceSendBehaviour(TransactionSendBaseBehaviour):
     """Cancel token allowance: send the transaction."""
@@ -669,13 +617,6 @@ class RemoveAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "remove_allowance_validation"
     matching_round = RemoveAllowanceValidationRound
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_remove_allowance_tx_hash
-        self.participants = self.period_state.participant_to_remove_allowance_validation
-        self.data = {}
-        super().__init__(*args, **kwargs)
 
 
 class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -698,10 +639,6 @@ class SwapBackSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "swap_back_signature"
     matching_round = SwapBackSignatureRound
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_swap_back_tx_hash
-        super().__init__(*args, **kwargs)
 
 class SwapBackSendBehaviour(TransactionSendBaseBehaviour):
     """Swap tokens back to original holdings: send the transaction."""
@@ -715,13 +652,6 @@ class SwapBackValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "swap_back_validation"
     matching_round = SwapBackValidationRound
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_swap_back_tx_hash
-        self.participants = self.period_state.participant_to_swap_back_validation
-        self.data = {}
-        super().__init__(*args, **kwargs)
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
