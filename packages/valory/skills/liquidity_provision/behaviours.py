@@ -21,15 +21,22 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Generator, Mapping, Set, Type, cast
+from typing import Generator, Mapping, Optional, Set, Type, cast
+
+from aea_ledger_ethereum import EthereumApi
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.gnosis_safe.contract import (
+    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
     AllowanceCheckPayload,
     StrategyEvaluationPayload,
@@ -47,7 +54,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     AddLiquidityTransactionHashRound,
     AddLiquidityValidationRound,
     AllowanceCheckRound,
-    DeploySelectKeeperRound,
     LiquidityProvisionAbciApp,
     PeriodState,
     RemoveAllowanceSelectKeeperRound,
@@ -82,8 +88,9 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    PriceEstimationBaseState,
-    RandomnessBehaviour,
+    RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
     RegistrationBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
@@ -92,16 +99,23 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.behaviours import (
     ValidateSafeBehaviour as DeploySafeValidationBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
     TransactionHashPayload,
     ValidatePayload,
 )
+from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
 
 
 benchmark_tool = BenchmarkTool()
+
+
+class RandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "randomness"
+    matching_round = RandomnessRound
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -142,7 +156,7 @@ class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address="",
-                contract_id="",
+                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address="",
                 value=0,
@@ -167,7 +181,6 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
     state_id = "signature"
     matching_round = TransactionSignatureBaseRound
-    tx_hash = "hash"
 
     def async_act(self) -> Generator:
         """
@@ -184,7 +197,7 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             self.context.logger.info(
-                f"Consensus reached on {self.state_id} tx hash: {self.tx_hash}"
+                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_swap_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
@@ -200,7 +213,9 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(self.tx_hash)
+        safe_tx_hash_bytes = binascii.unhexlify(
+            self.period_state.most_voted_swap_tx_hash[:64]
+        )
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
         signature_hex = cast(SigningMessage, signature_response).signed_message.body
@@ -267,14 +282,12 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
         """Send a Safe transaction using the participants' signatures."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address="",
-            contract_id="",
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
-            value=0,
-            data="",
             signatures_by_owner={
                 key: payload.signature for key, payload in self.participants.items()
             },
@@ -318,25 +331,46 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
         self.set_done()
 
-    def has_transaction_been_sent(self) -> Generator[None, None, bool]:
+    def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
+        response = yield from self.get_transaction_receipt(
+            self.period_state.final_swap_tx_hash,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if response is None:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_swap_tx_hash} receipt check timed out!"
+            )
+            return None
+        is_settled = EthereumApi.is_transaction_settled(response)
+        if not is_settled:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_swap_tx_hash} not settled!"
+            )
+            return False
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address="",
-            contract_id="",
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
-            tx_hash=self.final_tx_hash,
+            tx_hash=self.period_state.final_swap_tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=self.period_state.most_voted_keeper_address,
-            value=0,
-            data=self.data,
+            to_address=self.context.agent_address,
             signatures_by_owner={
-                key: payload.signature for key, payload in self.participants.items()
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_swap_signature.items()
             },
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
         verified = cast(bool, contract_api_msg.state.body["verified"])
+        verified_log = (
+            f"Verified result: {verified}"
+            if verified
+            else f"Verified result: {verified}, all: {contract_api_msg.state.body}"
+        )
+        self.context.logger.info(verified_log)
         return verified
 
 
@@ -345,13 +379,6 @@ class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
 
     state_id = "select_keeper_main"
     matching_round = SelectKeeperMainRound
-
-
-class DeploySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "deploy_select_keeper"
-    matching_round = DeploySelectKeeperRound
 
 
 def get_strategy_update() -> dict:
@@ -426,11 +453,6 @@ class SwapSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "swap_signature"
     matching_round = SwapSignatureRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_swap_tx_hash
-        super().__init__()
-
 
 class SwapSendBehaviour(TransactionSendBaseBehaviour):
     """Swap tokens: send the transaction."""
@@ -444,13 +466,6 @@ class SwapValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "swap_validation"
     matching_round = SwapValidationRound
-
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_swap_tx_hash
-        self.participants = self.period_state.participant_to_swap_signature
-        self.data = {}
-        super().__init__()
 
 
 def get_allowance() -> int:
@@ -507,11 +522,6 @@ class AddAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "add_allowance_signature"
     matching_round = AddAllowanceSignatureRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_add_allowance_tx_hash
-        super().__init__()
-
 
 class AddAllowanceSendBehaviour(TransactionSendBaseBehaviour):
     """Approve token: send the transaction."""
@@ -525,13 +535,6 @@ class AddAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "add_allowance_validation"
     matching_round = AddAllowanceValidationRound
-
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_add_allowance_tx_hash
-        self.participants = self.period_state.participant_to_add_allowance_validation
-        self.data = {}
-        super().__init__()
 
 
 class AddLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -554,11 +557,6 @@ class AddLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "add_liquidity_signature"
     matching_round = AddLiquiditySignatureRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_add_liquidity_tx_hash
-        super().__init__()
-
 
 class AddLiquiditySendBehaviour(TransactionSendBaseBehaviour):
     """Enter liquidity pool: send the transaction."""
@@ -572,13 +570,6 @@ class AddLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "add_liquidity_validation"
     matching_round = AddLiquidityValidationRound
-
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_add_liquidity_tx_hash
-        self.participants = self.period_state.participant_to_add_liquidity_validation
-        self.data = {}
-        super().__init__()
 
 
 class RemoveLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -601,11 +592,6 @@ class RemoveLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "remove_liquidity_signature"
     matching_round = RemoveLiquiditySignatureRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_remove_liquidity_tx_hash
-        super().__init__()
-
 
 class RemoveLiquiditySendBehaviour(TransactionSendBaseBehaviour):
     """Leave liquidity pool: send the transaction."""
@@ -619,13 +605,6 @@ class RemoveLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "remove_liquidity_validation"
     matching_round = RemoveLiquidityValidationRound
-
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_remove_liquidity_tx_hash
-        self.participants = self.period_state.participant_to_remove_liquidity_validation
-        self.data = {}
-        super().__init__()
 
 
 class RemoveAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -648,11 +627,6 @@ class RemoveAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "remove_allowance_signature"
     matching_round = RemoveAllowanceSignatureRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_remove_allowance_tx_hash
-        super().__init__()
-
 
 class RemoveAllowanceSendBehaviour(TransactionSendBaseBehaviour):
     """Cancel token allowance: send the transaction."""
@@ -666,13 +640,6 @@ class RemoveAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
 
     state_id = "remove_allowance_validation"
     matching_round = RemoveAllowanceValidationRound
-
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_remove_allowance_tx_hash
-        self.participants = self.period_state.participant_to_remove_allowance_validation
-        self.data = {}
-        super().__init__()
 
 
 class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -695,11 +662,6 @@ class SwapBackSignatureBehaviour(TransactionSignatureBaseBehaviour):
     state_id = "swap_back_signature"
     matching_round = SwapBackSignatureRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.tx_hash = self.period_state.most_voted_swap_back_tx_hash
-        super().__init__()
-
 
 class SwapBackSendBehaviour(TransactionSendBaseBehaviour):
     """Swap tokens back to original holdings: send the transaction."""
@@ -714,20 +676,13 @@ class SwapBackValidationBehaviour(TransactionValidationBaseBehaviour):
     state_id = "swap_back_validation"
     matching_round = SwapBackValidationRound
 
-    def __init__(self) -> None:
-        """Set the correct tx hash"""
-        self.final_tx_hash = self.period_state.final_swap_back_tx_hash
-        self.participants = self.period_state.participant_to_swap_back_validation
-        self.data = {}
-        super().__init__()
-
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
+    """This behaviour manages the consensus stages for the liquidity provision."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls: LiquidityProvisionAbciApp  # type: ignore
-    behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
+    abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
+    behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessBehaviour,  # type: ignore

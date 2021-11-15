@@ -93,6 +93,7 @@ class PeriodState(
         ] = None,
         most_voted_allowance_check: Optional[int] = None,
         most_voted_keeper_address: Optional[str] = None,
+        safe_contract_address: Optional[str] = None,
         participant_to_swap_tx_hash: Optional[
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
@@ -207,6 +208,7 @@ class PeriodState(
         self._participant_to_strategy = participant_to_strategy
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_keeper_address = most_voted_keeper_address
+        self._safe_contract_address = safe_contract_address
         self._participant_to_allowance_check = participant_to_allowance_check
         self._most_voted_allowance_check = most_voted_allowance_check
 
@@ -387,6 +389,15 @@ class PeriodState(
             "'most_voted_keeper_address' field is None",
         )
         return cast(str, self._most_voted_keeper_address)
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        enforce(
+            self._safe_contract_address is not None,
+            "'safe_contract_address' field is None",
+        )
+        return cast(str, self._safe_contract_address)
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
@@ -988,14 +999,6 @@ class SelectKeeperMainRound(
     round_id = "select_keeper_main"
 
 
-class DeploySelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper deploy round."""
-
-    round_id = "select_keeper_deploy"
-
-
 class StrategyEvaluationRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
@@ -1266,12 +1269,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         DeploySafeRound: {
             Event.DONE: DeploySafeValidationRound,
-            Event.EXIT: DeploySelectKeeperRound,
-        },
-        DeploySelectKeeperRound: {
-            Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.EXIT: RandomnessRound,
         },
         DeploySafeValidationRound: {
             Event.DONE: StrategyEvaluationRound,
@@ -1461,6 +1459,10 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         SwapBackValidationRound: {
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ResetRound: {
+            Event.DONE: RandomnessRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }
