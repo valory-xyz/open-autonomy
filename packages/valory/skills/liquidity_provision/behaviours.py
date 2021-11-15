@@ -82,9 +82,6 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    PriceEstimationBaseState,
-)
-from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
@@ -727,11 +724,11 @@ class SwapBackValidationBehaviour(TransactionValidationBaseBehaviour):
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
+    """This behaviour manages the consensus stages for the liquidity provision."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
-    behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessBehaviour,  # type: ignore

@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the price estimation ABCI application."""
+"""This module contains the shared state for the liquidity provision ABCI application."""
 
 from typing import Any
 
