@@ -193,6 +193,10 @@ class PeriodState(
         final_remove_liquidity_tx_hash: Optional[str] = None,
         final_remove_allowance_tx_hash: Optional[str] = None,
         final_swap_back_tx_hash: Optional[str] = None,
+        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
+        most_voted_tx_hash: Optional[str] = None,
+        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
+        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
@@ -279,6 +283,7 @@ class PeriodState(
         self._participant_to_remove_allowance_send = (
             participant_to_remove_allowance_send
         )
+        self._participant_to_votes = participant_to_votes
         self._most_voted_remove_allowance_send = most_voted_remove_allowance_send
 
         self._participant_to_swap_back_send = participant_to_swap_back_send
@@ -290,6 +295,12 @@ class PeriodState(
         self._participant_to_add_allowance_validation = (
             participant_to_add_allowance_validation
         )
+
+        self._participant_to_tx_hash = participant_to_tx_hash
+        self._most_voted_tx_hash = most_voted_tx_hash
+
+        self._participant_to_signature = participant_to_signature
+
         self._most_voted_add_allowance_validation = most_voted_add_allowance_validation
 
         self._participant_to_add_liquidity_validation = (
@@ -320,6 +331,39 @@ class PeriodState(
         self._final_remove_liquidity_tx_hash = final_remove_liquidity_tx_hash
         self._final_remove_allowance_tx_hash = final_remove_allowance_tx_hash
         self._final_swap_back_tx_hash = final_swap_back_tx_hash
+
+    @property
+    def participant_to_votes(
+        self,
+    ) -> dict:
+        """Get the participant_to_tx_hash."""
+        enforce(
+            self._participant_to_votes is not None,
+            "'participant_to_votes' field is None",
+        )
+        return cast(dict, self._participant_to_votes)
+
+    @property
+    def participant_to_signature(
+        self,
+    ) -> dict:
+        """Get the participant_to_tx_hash."""
+        enforce(
+            self._participant_to_signature is not None,
+            "'participant_to_signature' field is None",
+        )
+        return cast(dict, self._participant_to_signature)
+
+    @property
+    def participant_to_tx_hash(
+        self,
+    ) -> dict:
+        """Get the participant_to_tx_hash."""
+        enforce(
+            self._participant_to_tx_hash is not None,
+            "'participant_to_tx_hash' field is None",
+        )
+        return cast(dict, self._participant_to_tx_hash)
 
     @property
     def most_voted_strategy(self) -> dict:
@@ -913,6 +957,7 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
     Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
     """
 
+    round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
     exit_event: Event
     payload_attribute = "vote"

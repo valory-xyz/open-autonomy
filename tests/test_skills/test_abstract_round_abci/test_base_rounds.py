@@ -52,9 +52,7 @@ class DummyTxPayload(BaseTxPayload):
     _value: str
     _vote: bool
 
-    def __init__(
-        self, sender: str, value: str, vote: bool = False
-    ) -> None:
+    def __init__(self, sender: str, value: str, vote: bool = False) -> None:
         """Initialize a dummy transaction payload."""
 
         super().__init__(sender, None)
@@ -75,12 +73,13 @@ class DummyTxPayload(BaseTxPayload):
 class DummyPeriodState(BasePeriodState):
     """Dummy Period state for tests."""
 
-    def __init__(self,
-                 participants: Optional[AbstractSet[str]] = None,
-                 period_count: Optional[int] = None,
-                 period_setup_params: Optional[Dict] = None,
-                 most_voted_keeper_address: Optional[str] = None
-                 ) -> None:
+    def __init__(
+        self,
+        participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
+        most_voted_keeper_address: Optional[str] = None,
+    ) -> None:
         """Initialize DummyPeriodState."""
 
         super().__init__(
@@ -91,14 +90,21 @@ class DummyPeriodState(BasePeriodState):
         self._most_voted_keeper_address = most_voted_keeper_address
 
     @property
-    def most_voted_keeper_address(self,) -> Optional[str]:
+    def most_voted_keeper_address(
+        self,
+    ) -> Optional[str]:
         """Returns value for _most_voted_keeper_address."""
         return self._most_voted_keeper_address
 
 
-def get_dummy_tx_payloads(participants: List[str], value: Any = None, vote: bool = False) -> List[DummyTxPayload]:
+def get_dummy_tx_payloads(
+    participants: List[str], value: Any = None, vote: bool = False
+) -> List[DummyTxPayload]:
     """Returns a list of DummyTxPayload objects."""
-    return [DummyTxPayload(sender=agent, value=(value or agent), vote=vote) for agent in participants]
+    return [
+        DummyTxPayload(sender=agent, value=(value or agent), vote=vote)
+        for agent in participants
+    ]
 
 
 class BaseTestClass:
@@ -109,14 +115,17 @@ class BaseTestClass:
     consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
-    def setup(self,) -> None:
+    def setup(
+        self,
+    ) -> None:
         """Setup test class."""
 
         self.participants = sorted(get_participants())
         self.tx_payloads = get_dummy_tx_payloads(self.participants)
 
         self.period_state = DummyPeriodState(
-            participants=self.participants)  # type: ignore
+            participants=self.participants  # type: ignore
+        )
         self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
 
@@ -139,7 +148,9 @@ class DummyCollectDifferentUntilAllRound(CollectDifferentUntilAllRound, DummyRou
     """Dummy Class for CollectDifferentUntilAllRound"""
 
 
-class DummyCollectDifferentUntilThresholdRound(CollectDifferentUntilThresholdRound, DummyRound):
+class DummyCollectDifferentUntilThresholdRound(
+    CollectDifferentUntilThresholdRound, DummyRound
+):
     """Dummy Class for CollectDifferentUntilThresholdRound"""
 
 
@@ -158,12 +169,13 @@ class DummyVotingRound(VotingRound, DummyRound):
 class TestCollectionRound(BaseTestClass):
     """Test class for CollectionRound."""
 
-    def test_run(self,) -> None:
+    def test_run(
+        self,
+    ) -> None:
         """Run tests."""
 
         test_round = DummyCollectionRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params
+            state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *_ = self.tx_payloads
@@ -172,27 +184,29 @@ class TestCollectionRound(BaseTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id"
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']")
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
         ):
             test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id"
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']")
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
         ):
             test_round.check_payload(DummyTxPayload("sender", "value"))
 
@@ -200,28 +214,31 @@ class TestCollectionRound(BaseTestClass):
 class TestCollectDifferentUntilAllRound(BaseTestClass):
     """Test class for CollectDifferentUntilAllRound."""
 
-    def test_run(self,) -> None:
+    def test_run(
+        self,
+    ) -> None:
         """Run Tests."""
 
         test_round = DummyCollectDifferentUntilAllRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params
+            state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = self.tx_payloads
         test_round.process_payload(first_payload)
-        assert test_round.collection == {first_payload.value, }
+        assert test_round.collection == {
+            first_payload.value,
+        }
         assert not test_round.collection_threshold_reached
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: payload attribute value with value agent_0 has already been added for round: round_id"
+            match="internal error: payload attribute value with value agent_0 has already been added for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="payload attribute value with value agent_0 has already been added for round: round_id"
+            match="payload attribute value with value agent_0 has already been added for round: round_id",
         ):
             test_round.check_payload(first_payload)
 
@@ -232,16 +249,18 @@ class TestCollectDifferentUntilAllRound(BaseTestClass):
 class TestCollectSameUntilThresholdRound(BaseTestClass):
     """Test CollectSameUntilThresholdRound."""
 
-    def test_run(self,) -> None:
+    def test_run(
+        self,
+    ) -> None:
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params
+            state=self.period_state, consensus_params=self.consensus_params
         )
 
-        first_payload, * \
-            payloads = get_dummy_tx_payloads(self.participants, value="vote")
+        first_payload, *payloads = get_dummy_tx_payloads(
+            self.participants, value="vote"
+        )
         test_round.process_payload(first_payload)
 
         assert not test_round.threshold_reached
@@ -258,14 +277,14 @@ class TestCollectSameUntilThresholdRound(BaseTestClass):
 class TestOnlyKeeperSendsRound(BaseTestClass):
     """Test OnlyKeeperSendsRound."""
 
-    def test_run(self,) -> None:
+    def test_run(
+        self,
+    ) -> None:
         """Run tests."""
 
         test_round = DummyOnlyKeeperSendsRound(
-            state=self.period_state.update(
-                most_voted_keeper_address="agent_0"
-            ),
-            consensus_params=self.consensus_params
+            state=self.period_state.update(most_voted_keeper_address="agent_0"),
+            consensus_params=self.consensus_params,
         )
 
         assert not test_round.has_keeper_sent_payload
@@ -274,39 +293,38 @@ class TestOnlyKeeperSendsRound(BaseTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: keeper already set the payload."
+            match="internal error: keeper already set the payload.",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']")
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
         ):
             test_round.process_payload(DummyTxPayload(sender="sender", value="sender"))
 
         with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: agent_1 not elected as keeper."
+            ABCIAppInternalError, match="internal error: agent_1 not elected as keeper."
         ):
             test_round.process_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
         with pytest.raises(
-            TransactionNotValidError,
-            match="keeper payload value already set."
+            TransactionNotValidError, match="keeper payload value already set."
         ):
             test_round.check_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']")
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
         ):
             test_round.check_payload(DummyTxPayload(sender="sender", value="sender"))
 
         with pytest.raises(
-            TransactionNotValidError,
-            match="agent_1 not elected as keeper."
+            TransactionNotValidError, match="agent_1 not elected as keeper."
         ):
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
@@ -314,12 +332,13 @@ class TestOnlyKeeperSendsRound(BaseTestClass):
 class TestVotingRound(BaseTestClass):
     """Test VotingRound."""
 
-    def test_negative_threshold(self,) -> None:
+    def test_negative_threshold(
+        self,
+    ) -> None:
         """Runs test."""
 
         test_round = DummyVotingRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params
+            state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
@@ -331,12 +350,13 @@ class TestVotingRound(BaseTestClass):
 
         assert test_round.negative_vote_threshold_reached
 
-    def test_positive_threshold(self,) -> None:
+    def test_positive_threshold(
+        self,
+    ) -> None:
         """Runs test."""
 
         test_round = DummyVotingRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params
+            state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=True)
@@ -352,12 +372,13 @@ class TestVotingRound(BaseTestClass):
 class TestCollectDifferentUntilThresholdRound(BaseTestClass):
     """Test CollectDifferentUntilThresholdRound."""
 
-    def test_run(self,) -> None:
+    def test_run(
+        self,
+    ) -> None:
         """Run tests."""
 
         test_round = DummyCollectDifferentUntilThresholdRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params
+            state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
