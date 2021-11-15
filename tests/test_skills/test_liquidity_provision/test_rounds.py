@@ -22,65 +22,72 @@
 """Tests for rounds.py file in valory/liquidity_provision."""
 
 import logging  # noqa : F401
-import re
+import re # noqa : F401
 from types import MappingProxyType
-from typing import AbstractSet, Dict, FrozenSet, Mapping, Type, cast
+from typing import AbstractSet, Dict, FrozenSet, Mapping, Type, cast  # noqa : F401
 from unittest import mock
-from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError, AbstractRound, ConsensusParams
 
 import pytest
-from aea.exceptions import AEAEnforceError
+from aea.exceptions import AEAEnforceError # noqa : F401
 
+from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
+    AbstractRound,
+    ConsensusParams,
+)
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
 )
-from packages.valory.skills.price_estimation_abci.payloads import SignaturePayload
 from packages.valory.skills.liquidity_provision.rounds import (
-    Event,
-    PeriodState,
-    Event,
-    PeriodState,
-    TransactionHashBaseRound,
-    TransactionSignatureBaseRound,
-    TransactionSendBaseRound,
-    TransactionValidationBaseRound,
-    SelectKeeperMainRound,
-    DeploySelectKeeperRound,
-    StrategyEvaluationRound,
-    WaitRound,
-    SwapSelectKeeperRound,
-    SwapTransactionHashRound,
-    SwapSignatureRound,
-    SwapSendRound,
-    SwapValidationRound,
-    AllowanceCheckRound,
     AddAllowanceSelectKeeperRound,
-    AddAllowanceTransactionHashRound,
-    AddAllowanceSignatureRound,
     AddAllowanceSendRound,
+    AddAllowanceSignatureRound,
+    AddAllowanceTransactionHashRound,
     AddAllowanceValidationRound,
     AddLiquiditySelectKeeperRound,
-    AddLiquidityTransactionHashRound,
-    AddLiquiditySignatureRound,
     AddLiquiditySendRound,
+    AddLiquiditySignatureRound,
+    AddLiquidityTransactionHashRound,
     AddLiquidityValidationRound,
-    RemoveLiquiditySelectKeeperRound,
-    RemoveLiquidityTransactionHashRound,
-    RemoveLiquiditySignatureRound,
-    RemoveLiquiditySendRound,
-    RemoveLiquidityValidationRound,
+    AllowanceCheckRound,
+    DeploySelectKeeperRound,
+    Event,
+    PeriodState,
     RemoveAllowanceSelectKeeperRound,
-    RemoveAllowanceTransactionHashRound,
-    RemoveAllowanceSignatureRound,
     RemoveAllowanceSendRound,
+    RemoveAllowanceSignatureRound,
+    RemoveAllowanceTransactionHashRound,
     RemoveAllowanceValidationRound,
+    RemoveLiquiditySelectKeeperRound,
+    RemoveLiquiditySendRound,
+    RemoveLiquiditySignatureRound,
+    RemoveLiquidityTransactionHashRound,
+    RemoveLiquidityValidationRound,
+    SelectKeeperMainRound,
+    StrategyEvaluationRound,
     SwapBackSelectKeeperRound,
-    SwapBackTransactionHashRound,
-    SwapBackSignatureRound,
     SwapBackSendRound,
-    SwapBackValidationRound
+    SwapBackSignatureRound,
+    SwapBackTransactionHashRound,
+    SwapBackValidationRound,
+    SwapSelectKeeperRound,
+    SwapSendRound,
+    SwapSignatureRound,
+    SwapTransactionHashRound,
+    SwapValidationRound,
+    TransactionHashBaseRound,
+    TransactionSendBaseRound,
+    TransactionSignatureBaseRound,
+    TransactionValidationBaseRound,
+    WaitRound,
 )
-from tests.test_skills.test_price_estimation_abci.test_rounds import get_participant_to_tx_hash
+from packages.valory.skills.price_estimation_abci.payloads import SignaturePayload
+
+from tests.test_skills.test_price_estimation_abci.test_rounds import (
+    get_participant_to_signature,
+    get_participant_to_tx_hash,
+)
+
 
 MAX_PARTICIPANTS: int = 4
 
@@ -450,7 +457,7 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
     def test_run(self,) -> None:
         """Run tests."""
         test_round = TransactionSignatureBaseRound(self.period_state, self.consensus_params)
-        (sender, first_payload), *transaction_hash_payloads = get_participant_to_tx_hash(self.participants).items()
+        (sender, first_payload), *transaction_hash_payloads = get_participant_to_signature(self.participants).items()
 
         test_round.process_payload(first_payload)
         assert not test_round.collection_threshold_reached
@@ -460,16 +467,16 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
 
         assert test_round.collection_threshold_reached
         actual_next_state = self.period_state.update(
-            participant_to_tx_hash=MappingProxyType(get_participant_to_tx_hash(self.participants)),
-            most_voted_tx_hash=test_round.most_voted_payload
+            participant_to_signature=MappingProxyType(
+                get_participant_to_signature(self.participants)),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
         assert (
-            cast(PeriodState, state).participant_to_tx_hash.keys()
-            == cast(PeriodState, actual_next_state).participant_to_tx_hash.keys()
+            cast(PeriodState, state).participants_to_signatures.keys()
+            == cast(PeriodState, actual_next_state).participants_to_signatures.keys()
         )
         assert event == Event.DONE
 
@@ -694,3 +701,6 @@ class TestSwapBackValidationRound(BaseRoundTestClass):
 
     def test_run(self,) -> None:
         """Run tests."""
+
+def test_period_state() -> None:
+    """Test PeriodState."""
