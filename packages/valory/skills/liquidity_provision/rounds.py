@@ -90,6 +90,8 @@ class PeriodState(
         safe_contract_address: Optional[str] = None,
         most_voted_tx_hash: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
+        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
+        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
         participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
     ) -> None:
         """Initialize a period state."""
@@ -105,6 +107,26 @@ class PeriodState(
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_tx_hash = most_voted_tx_hash
         self._final_tx_hash = final_tx_hash
+        self._participant_to_votes = participant_to_votes
+        self._participant_to_tx_hash = participant_to_tx_hash
+
+    @property
+    def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
+        """Get the participant_to_votes."""
+        enforce(
+            self._participant_to_votes is not None,
+            "'participant_to_votes' field is None",
+        )
+        return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
+
+    @property
+    def participant_to_tx_hash(self) -> Mapping[str, TransactionHashPayload]:
+        """Get the participant_to_tx_hash."""
+        enforce(
+            self._participant_to_tx_hash is not None,
+            "'most_voted_keeper_address' field is None",
+        )
+        return cast(Mapping[str, TransactionHashPayload], self._participant_to_tx_hash)
 
     @property
     def most_voted_keeper_address(self) -> str:

@@ -55,13 +55,8 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.liquidity_provision.behaviours import (
-    AllowanceCheckBehaviour,
-    LiquidityProvisionBaseBehaviour,
     LiquidityProvisionConsensusBehaviour,
-    SwapSendBehaviour,
-    SwapSignatureBehaviour,
-    SwapTransactionHashBehaviour,
-    SwapValidationBehaviour,
+    TransactionHashBaseBehaviour
 )
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -395,7 +390,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
-            state_id=SwapTransactionHashBehaviour.state_id,
+            state_id=TransactionHashBaseBehaviour.state_id,
             period_state=PeriodState(
                 most_voted_swap_tx_hash="0x",
                 safe_contract_address="safe_contract_address",
@@ -407,7 +402,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
             ).state_id
-            == SwapTransactionHashBehaviour.state_id
+            == TransactionHashBaseBehaviour.state_id
         )
         self.liquidity_provision_behaviour.act_wrapper()
         self.mock_contract_api_request(
@@ -427,234 +422,4 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == SwapSignatureBehaviour.state_id
-
-
-class TestTransactionSignatureBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionSignatureBaseBehaviour."""
-
-    def test_signature_behaviour(
-        self,
-    ) -> None:
-        """Test signature behaviour."""
-
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=SwapSignatureBehaviour.state_id,
-            period_state=PeriodState(most_voted_swap_tx_hash="68656c6c6f776f726c64"),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == SwapSignatureBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_MESSAGE,
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_MESSAGE,
-                signed_message=SignedMessage(
-                    ledger_id="ethereum", body="stub_signature"
-                ),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == SwapSendBehaviour.state_id
-
-
-class TestTransactionSendBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionSendBaseBehaviour."""
-
-    def test_non_sender_act(
-        self,
-    ) -> None:
-        """Test tx send behaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=SwapSendBehaviour.state_id,
-            period_state=PeriodState(
-                most_voted_keeper_address="most_voted_keeper_address",
-                participants=participants,
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == SwapSendBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == SwapValidationBehaviour.state_id
-
-    def test_sender_act(
-        self,
-    ) -> None:
-        """Test send behaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=SwapSendBehaviour.state_id,
-            period_state=PeriodState(
-                most_voted_keeper_address=self.skill.skill_context.agent_address,
-                safe_contract_address="safe_contract_address",
-                participants=participants,
-                participant_to_swap_signature={},
-                most_voted_swap_tx_hash=payload_to_hex(
-                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                    1,
-                    1,
-                    1,
-                ),
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == SwapSendBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
-                ),
-            ),
-        )
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
-            ),
-        )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                transaction_digest=TransactionDigest(
-                    ledger_id="ethereum", body="tx_hash"
-                ),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == SwapValidationBehaviour.state_id
-
-
-class TestTransactionValidationBaseBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test TransactionValidationBaseBehaviour."""
-
-    def _fast_forward(self) -> None:
-        """Fast-forward to relevant state."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        most_voted_keeper_address = self.skill.skill_context.agent_address
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=SwapValidationBehaviour.state_id,
-            period_state=PeriodState(
-                safe_contract_address="safe_contract_address",
-                final_swap_tx_hash="final_swap_tx_hash",
-                participants=participants,
-                most_voted_keeper_address=most_voted_keeper_address,
-                participant_to_swap_signature={},
-                most_voted_swap_tx_hash=payload_to_hex(
-                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                    1,
-                    1,
-                    1,
-                ),
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == SwapValidationBehaviour.state_id
-        )
-
-    def test_validate_transaction_safe_behaviour(
-        self,
-    ) -> None:
-        """Test SwapValidationBehaviour."""
-        self._fast_forward()
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-                transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={"status": 1}, transaction={}
-                ),
-            ),
-        )
-        self.mock_contract_api_request(
-            request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.STATE,
-                callable="get_deploy_transaction",
-                state=TrState(ledger_id="ethereum", body={"verified": True}),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == AllowanceCheckBehaviour.state_id
-
-    def test_validate_transaction_safe_behaviour_no_tx_sent(
-        self,
-    ) -> None:
-        """Test SwapValidationBehaviour when tx cannot be sent."""
-        self._fast_forward()
-
-        with mock.patch.object(
-            self.liquidity_provision_behaviour.context.logger, "info"
-        ) as mock_logger:
-
-            def _mock_generator() -> Generator[None, None, None]:
-                """Mock the 'get_transaction_receipt' method."""
-                yield None
-
-            with mock.patch.object(
-                self.liquidity_provision_behaviour.current_state,
-                "get_transaction_receipt",
-                return_value=_mock_generator(),
-            ):
-                self.liquidity_provision_behaviour.act_wrapper()
-                self.liquidity_provision_behaviour.act_wrapper()
-            state = cast(
-                LiquidityProvisionBaseBehaviour,
-                self.liquidity_provision_behaviour.current_state,
-            )
-            final_tx_hash = state.period_state.final_swap_tx_hash
-            mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
+        assert state.state_id == "HELLo"
