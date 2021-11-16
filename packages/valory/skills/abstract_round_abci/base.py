@@ -997,8 +997,7 @@ class Timeouts(Generic[EventType]):
             return
         entry = self._heap[0]
         while entry.cancelled:
-            self._entry_finder.pop(entry.entry_count)
-            heapq.heappop(self._heap)
+            self.pop_timeout()
             if self.size == 0:
                 break
             entry = self._heap[0]
@@ -1311,6 +1310,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
             self.process_event(timeout_event)
 
+            self._timeouts.pop_earliest_cancelled_timeouts()
             if self._timeouts.size == 0:
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()
