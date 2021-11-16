@@ -21,7 +21,7 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Generator, Mapping, Optional, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -42,11 +42,15 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
+    DeploySafeRandomnessRound,
+    DeploySafeSelectKeeperRound,
+    EnterPoolRandomnessRound,
     EnterPoolSelectKeeperRound,
     EnterPoolTransactionHashRound,
     EnterPoolTransactionSendRound,
     EnterPoolTransactionSignatureRound,
     EnterPoolTransactionValidationRound,
+    ExitPoolRandomnessRound,
     ExitPoolSelectKeeperRound,
     ExitPoolTransactionHashRound,
     ExitPoolTransactionSendRound,
@@ -55,10 +59,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     LiquidityProvisionAbciApp,
     PeriodState,
     StrategyEvaluationRound,
-    DeploySafeRandomnessRound,
-    DeploySafeSelectKeeperRound,
-    EnterPoolRandomnessRound,
-    ExitPoolRandomnessRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
@@ -82,7 +82,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
 
 
 benchmark_tool = BenchmarkTool()
@@ -225,7 +224,9 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
-            self.context.logger.info(f"Signatures: {pprint.pformat(self.period_state.participants)}")
+            self.context.logger.info(
+                f"Signatures: {pprint.pformat(self.period_state.participants)}"
+            )
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
 
         with benchmark_tool.measure(
@@ -247,7 +248,8 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             signatures_by_owner={
-                key: payload.signature for key, payload in self.period_state.participant_to_signature.items()
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
             },
         )
         tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
@@ -331,6 +333,7 @@ class DeploySafeRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
 
     state_id = "deploy_safe_randomness"
     matching_round = DeploySafeRandomnessRound
+
 
 class DeploySafeSelectKeeperBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""

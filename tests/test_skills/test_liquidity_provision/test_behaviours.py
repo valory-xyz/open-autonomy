@@ -20,16 +20,10 @@
 import json
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, Generator, Type, cast
+from typing import Any, Dict, Type, cast
 from unittest import mock
 
-from aea.helpers.transaction.base import (
-    RawTransaction,
-    SignedMessage,
-    SignedTransaction,
-)
-from aea.helpers.transaction.base import State as TrState
-from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.helpers.transaction.base import RawTransaction, SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -56,7 +50,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.liquidity_provision.behaviours import (
     LiquidityProvisionConsensusBehaviour,
-    TransactionHashBaseBehaviour
+    TransactionHashBaseBehaviour,
 )
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -65,7 +59,6 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
 
 from tests.conftest import ROOT_DIR
 
@@ -392,7 +385,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             behaviour=self.liquidity_provision_behaviour,
             state_id=TransactionHashBaseBehaviour.state_id,
             period_state=PeriodState(
-                most_voted_swap_tx_hash="0x",
+                most_voted_tx_hash="0x",
                 safe_contract_address="safe_contract_address",
                 most_voted_keeper_address="most_voted_keeper_address",
             ),
