@@ -21,7 +21,7 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Generator, Mapping, Optional, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -30,6 +30,8 @@ from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
+from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -82,8 +84,9 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
-
+from packages.valory.skills.price_estimation_abci.tools import (
+    payload_to_hex,
+)
 
 benchmark_tool = BenchmarkTool()
 
@@ -343,9 +346,10 @@ def get_strategy_update() -> dict:
     """Get a strategy update."""
     strategy = {
         "action": StrategyType.GO,
-        "pair": ["FTM", "BOO"],
+        "pair": {"token_a": {"ticker": "FTM", "address": "0xFTM_ADDRESS"},
+                 "token_b": {"ticker": "BOO", "address": "0xBOO_ADDRESS"}},
         "pool": "0x0000000000000000000000000000",
-        "amountETH": 0.1,  # Be careful with floats and determinism here
+        "amountUSDT": 100.75,  # Be careful with floats and determinism here
     }
     return strategy
 
@@ -387,10 +391,136 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
     """Prepare the 'enter pool' multisend tx."""
 
-    # swap + add allowance + add liquidity
-
     state_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+
+            strategy = self.period_state.most_voted_strategy
+
+            # Prepare a uniswap tx list. We should check what token balances we have at this point.
+            # It is possible that we don't need to swap. For now let's assume we have just USDT
+            # and always swap back to it.
+            multi_send_txs = []
+
+            # 1. Swap first token
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="swap_exact_tokens_for_tokens",
+                sender_address=self.period_state.safe_contract_address,
+                gas=10 ** 7,
+                gas_price=,
+                amount_in=strategy.amountUSDT / 2, # Swap 50% into token A
+                amount_out_min=,
+                path=,
+                to_address=strategy.pool,
+                deadline=,
+            )
+            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+
+            # 2. Swap second token
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="swap_exact_tokens_for_tokens",
+                sender_address=self.period_state.safe_contract_address,
+                gas=10 ** 7,
+                gas_price=,
+                amount_in=strategy.amountUSDT / 2, # Swap 50% into token B
+                amount_out_min=,
+                path=,
+                to_address=strategy.pool,
+                deadline=,
+            )
+            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+
+            # 3. Add allowance for the LP token
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="permit",
+                sender_address=self.period_state.safe_contract_address,
+                gas=10 ** 7,
+                gas_price=,
+                owner_address=self.period_state.safe_contract_address,
+                spender_address=strategy.pool,
+                value=,
+                deadline=,
+                v=,
+                r=,
+                s=,
+            )
+            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+
+            # 4. Add liquidity
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="add_liquidity",
+                sender_address=self.period_state.safe_contract_address,
+                gas=10 ** 7,
+                gas_price=,
+                token_a=strategy.pair.token_a.address,
+                token_b=strategy.pair.token_b.address,
+                amount_a_desired=,
+                amount_b_desired=,
+                amount_a_min=,
+                amount_b_min=,
+                to_address=,
+                deadline=,
+            )
+            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+
+            # Get the tx list data from multisend contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(MultiSendContract.contract_id),
+                contract_callable="get_tx_data",
+                multi_send_txs=multi_send_txs,
+            )
+
+            # Get the tx hash from Gnosis Safe contract
+            data = contract_api_msg.raw_transaction.body["data"]
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address=self.period_state.multisend_contract_address,
+                value=,
+                data=data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(sender=self.context.agent_address, tx_hash=)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class EnterPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
@@ -431,7 +561,11 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
     """Prepare the 'exit pool' multisend tx."""
 
-    # remove liquidity + remove allowance + swap back
+    # remove liquidity
+    #
+    # remove allowance
+    #
+    # swap back (optional)
 
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
