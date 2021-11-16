@@ -461,7 +461,7 @@ class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour)
 class ExitPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
     """Get randomness."""
 
-    state_id = "enter_pool_randomness"
+    state_id = "exit_pool_randomness"
     matching_round = ExitPoolRandomnessRound
 
 
