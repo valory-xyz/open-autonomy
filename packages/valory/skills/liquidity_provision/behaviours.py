@@ -423,13 +423,13 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="swap_exact_tokens_for_tokens",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,
-                gas_price=,
-                amount_in=strategy.amountUSDT / 2, # Swap 50% into token A
-                amount_out_min=,
-                path=,
-                to_address=strategy.pool,
-                deadline=,
+                gas=10 ** 7, # FIXME
+                gas_price=0, # FIXME
+                amount_in=strategy["amountUSDT"] / 2, # Swap 50% into token A
+                amount_out_min=0, # FIXME
+                path=0, # FIXME
+                to_address="", # FIXME
+                deadline=0, # FIXME
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -440,13 +440,13 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="swap_exact_tokens_for_tokens",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,
-                gas_price=,
-                amount_in=strategy.amountUSDT / 2, # Swap 50% into token B
-                amount_out_min=,
-                path=,
-                to_address=strategy.pool,
-                deadline=,
+                gas=10 ** 7, # FIXME
+                gas_price=0, # FIXME
+                amount_in=strategy["amountUSDT"] / 2, # Swap 50% into token B
+                amount_out_min=0, # FIXME
+                path=0, # FIXME
+                to_address="", # FIXME
+                deadline=0, # FIXME
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -457,15 +457,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="permit",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,
-                gas_price=,
+                gas=10 ** 7, # FIXME
+                gas_price=0, # FIXME
                 owner_address=self.period_state.safe_contract_address,
-                spender_address=strategy.pool,
-                value=,
-                deadline=,
-                v=,
-                r=,
-                s=,
+                spender_address=strategy["pool"],
+                value=0, # FIXME
+                deadline=0, # FIXME
+                v=0, # FIXME
+                r=0, # FIXME
+                s=0, # FIXME
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -476,16 +476,16 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="add_liquidity",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,
-                gas_price=,
-                token_a=strategy.pair.token_a.address,
-                token_b=strategy.pair.token_b.address,
-                amount_a_desired=,
-                amount_b_desired=,
-                amount_a_min=,
-                amount_b_min=,
-                to_address=,
-                deadline=,
+                gas=10 ** 7, # FIXME
+                gas_price=0, # FIXME
+                token_a=strategy["pair"]["token_a"]["address"],
+                token_b=strategy["pair"]["token_b"]["address"],
+                amount_a_desired=0, # FIXME
+                amount_b_desired=0, # FIXME
+                amount_a_min=0, # FIXME
+                amount_b_min=0, # FIXME
+                to_address="", # FIXME
+                deadline=0, # FIXME
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -506,13 +506,13 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=,
+                value=0, # FIXME
                 data=data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
-            payload = TransactionHashPayload(sender=self.context.agent_address, tx_hash=)
+            payload = TransactionHashPayload(sender=self.context.agent_address, tx_hash="") #FIXME
 
         with benchmark_tool.measure(
             self,
