@@ -423,7 +423,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessRound},
+        RegistrationRound: {Event.DONE: DeploySafeRandomnessRound},
         DeploySafeRandomnessRound: {
             Event.DONE: DeploySafeSelectKeeperRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
@@ -436,7 +436,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         DeploySafeRound: {
             Event.DONE: DeploySafeValidationRound,
-            Event.EXIT: RandomnessRound,
+            Event.EXIT: DeploySafeRandomnessRound,
         },
         DeploySafeValidationRound: {
             Event.DONE: StrategyEvaluationRound,
@@ -512,12 +512,12 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: RegistrationRound,
         },
         ResetRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: DeploySafeRandomnessRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         ResetAndPauseRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: DeploySafeRandomnessRound,
             Event.RESET_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
