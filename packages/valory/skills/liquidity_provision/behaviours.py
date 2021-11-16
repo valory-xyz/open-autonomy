@@ -42,6 +42,16 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
+    EnterPoolSelectKeeperRound,
+    EnterPoolTransactionHashRound,
+    EnterPoolTransactionSendRound,
+    EnterPoolTransactionSignatureRound,
+    EnterPoolTransactionValidationRound,
+    ExitPoolSelectKeeperRound,
+    ExitPoolTransactionHashRound,
+    ExitPoolTransactionSendRound,
+    ExitPoolTransactionSignatureRound,
+    ExitPoolTransactionValidationRound,
     LiquidityProvisionAbciApp,
     PeriodState,
     SelectKeeperMainRound,
@@ -50,17 +60,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     TransactionSendBaseRound,
     TransactionSignatureBaseRound,
     TransactionValidationBaseRound,
-    WaitRound,
-    EnterPoolTransactionHashRound,
-    EnterPoolTransactionSignatureRound,
-    EnterPoolTransactionSendRound,
-    EnterPoolTransactionValidationRound,
-    EnterPoolSelectKeeperRound,
-    ExitPoolTransactionHashRound,
-    ExitPoolTransactionSignatureRound,
-    ExitPoolTransactionSendRound,
-    ExitPoolTransactionValidationRound,
-    ExitPoolSelectKeeperRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
@@ -70,6 +69,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     RegistrationBehaviour,
+    ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
     TendermintHealthcheckBehaviour,
@@ -402,15 +402,9 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class WaitBehaviour(LiquidityProvisionBaseBehaviour):
-    """Wait until next strategy evaluation."""
-
-    state_id = "wait"
-    matching_round = WaitRound
-
-
 class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
     """Prepare the 'enter pool' multisend tx."""
+
     # swap + add allowance + add liquidity
 
     state_id = "enter_pool_tx_hash"
@@ -447,6 +441,7 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
     """Prepare the 'exit pool' multisend tx."""
+
     # remove liquidity + remove allowance + swap back
 
     state_id = "exit_pool_tx_hash"
@@ -494,19 +489,18 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         DeploySafeSendBehaviour,  # type: ignore
         DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
-        WaitBehaviour,  # type: ignore
-        EnterPoolSelectKeeperBehaviour, # type: ignore
-        EnterPoolTransactionHashBehaviour, # type: ignore
-        EnterPoolTransactionSignatureBehaviour, # type: ignore
-        EnterPoolTransactionSendBehaviour, # type: ignore
-        EnterPoolTransactionValidationBehaviour, # type: ignore
-        ExitPoolSelectKeeperBehaviour, # type: ignore
-        ExitPoolTransactionHashBehaviour, # type: ignore
-        ExitPoolTransactionSignatureBehaviour, # type: ignore
-        ExitPoolTransactionSendBehaviour, # type: ignore
-        ExitPoolTransactionValidationBehaviour, # type: ignore
-
+        EnterPoolSelectKeeperBehaviour,  # type: ignore
+        EnterPoolTransactionHashBehaviour,  # type: ignore
+        EnterPoolTransactionSignatureBehaviour,  # type: ignore
+        EnterPoolTransactionSendBehaviour,  # type: ignore
+        EnterPoolTransactionValidationBehaviour,  # type: ignore
+        ExitPoolSelectKeeperBehaviour,  # type: ignore
+        ExitPoolTransactionHashBehaviour,  # type: ignore
+        ExitPoolTransactionSignatureBehaviour,  # type: ignore
+        ExitPoolTransactionSendBehaviour,  # type: ignore
+        ExitPoolTransactionValidationBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:

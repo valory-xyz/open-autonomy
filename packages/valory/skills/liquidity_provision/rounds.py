@@ -51,6 +51,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     DeploySafeRound,
     RandomnessRound,
     RegistrationRound,
+    ResetAndPauseRound,
     ResetRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
@@ -65,6 +66,7 @@ class Event(Enum):
     EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
+    RESET_TIMEOUT = "reset_timeout"
     WAIT = "wait"
 
 
@@ -102,7 +104,6 @@ class PeriodState(
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_tx_hash = most_voted_tx_hash
         self._final_tx_hash = final_tx_hash
-
 
     @property
     def most_voted_keeper_address(self) -> str:
@@ -142,7 +143,6 @@ class PeriodState(
             "'most_voted_strategy' field is None",
         )
         return cast(dict, self._most_voted_strategy)
-
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
@@ -325,7 +325,7 @@ class StrategyEvaluationRound(
             event = (
                 Event.DONE
                 if self.period_state.most_voted_strategy["action"] == StrategyType.GO
-                else Event.WAIT
+                else Event.RESET_TIMEOUT
             )
             return state, event
         if not self.is_majority_possible(
@@ -333,10 +333,6 @@ class StrategyEvaluationRound(
         ):
             return self._return_no_majority_event()
         return None
-
-
-class WaitRound(LiquidityProvisionAbstractRound):
-    """This class represents the wait round."""
 
 
 class EnterPoolTransactionHashRound(TransactionHashBaseRound):
@@ -349,7 +345,6 @@ class EnterPoolTransactionSignatureRound(TransactionSignatureBaseRound):
     """This class represents the SwapBack signature round."""
 
     round_id = "enter_pool_tx_signature"
-
 
 
 class EnterPoolTransactionSendRound(TransactionSendBaseRound):
@@ -382,7 +377,6 @@ class ExitPoolTransactionSignatureRound(TransactionSignatureBaseRound):
     """This class represents the SwapBack signature round."""
 
     round_id = "exit_pool_tx_signature"
-
 
 
 class ExitPoolTransactionSendRound(TransactionSendBaseRound):
@@ -432,12 +426,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         StrategyEvaluationRound: {
             Event.DONE: EnterPoolTransactionHashRound,
-            Event.WAIT: WaitRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        WaitRound: {
-            Event.DONE: StrategyEvaluationRound,
+            Event.WAIT: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
@@ -495,6 +484,12 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         ResetRound: {
             Event.DONE: RandomnessRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ResetAndPauseRound: {
+            Event.DONE: RandomnessRound,
+            Event.RESET_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }
