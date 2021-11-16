@@ -54,12 +54,11 @@ from packages.valory.skills.liquidity_provision.rounds import (
     ExitPoolTransactionValidationRound,
     LiquidityProvisionAbciApp,
     PeriodState,
-    SelectKeeperMainRound,
     StrategyEvaluationRound,
-    TransactionHashBaseRound,
-    TransactionSendBaseRound,
-    TransactionSignatureBaseRound,
-    TransactionValidationBaseRound,
+    DeploySafeRandomnessRound,
+    DeploySafeSelectKeeperRound,
+    EnterPoolRandomnessRound,
+    ExitPoolRandomnessRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
@@ -89,13 +88,6 @@ from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
 benchmark_tool = BenchmarkTool()
 
 
-class RandomnessBehaviour(RandomnessBehaviourPriceEstimation):
-    """Get randomness."""
-
-    state_id = "randomness"
-    matching_round = RandomnessRound
-
-
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     """Base state behaviour for the liquidity provision skill."""
 
@@ -112,9 +104,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
 class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """Prepare transaction hash."""
-
-    state_id = "swap_tx_hash"
-    matching_round = TransactionHashBaseRound
 
     def async_act(self) -> Generator:
         """
@@ -154,9 +143,6 @@ class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
 class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """Signature base behaviour."""
-
-    state_id = "signature"
-    matching_round = TransactionSignatureBaseRound
 
     def async_act(self) -> Generator:
         """
@@ -204,10 +190,6 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
 class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """Finalize state."""
 
-    state_id = "tx_send"
-    matching_round = TransactionSendBaseRound
-    participants = {}  # type: Mapping[str, SignaturePayload]
-
     def async_act(self) -> Generator[None, None, None]:
         """
         Do the action.
@@ -243,7 +225,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
-            self.context.logger.info(f"Signatures: {pprint.pformat(self.participants)}")
+            self.context.logger.info(f"Signatures: {pprint.pformat(self.period_state.participants)}")
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
 
         with benchmark_tool.measure(
@@ -265,7 +247,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             signatures_by_owner={
-                key: payload.signature for key, payload in self.participants.items()
+                key: payload.signature for key, payload in self.period_state.participant_to_signature.items()
             },
         )
         tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
@@ -275,12 +257,6 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
 class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """ValidateTransaction."""
-
-    state_id = "validate_transaction"
-    matching_round = TransactionValidationBaseRound
-    final_tx_hash = ""
-    data = {}  # type: dict
-    participants = {}  # type: Mapping[str, SignaturePayload]
 
     def async_act(self) -> Generator:
         """
@@ -350,11 +326,17 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         return verified
 
 
-class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
+class DeploySafeRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "deploy_safe_randomness"
+    matching_round = DeploySafeRandomnessRound
+
+class DeploySafeSelectKeeperBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_main"
-    matching_round = SelectKeeperMainRound
+    state_id = "deploy_safe_select_keeper"
+    matching_round = DeploySafeSelectKeeperRound
 
 
 def get_strategy_update() -> dict:
@@ -432,6 +414,13 @@ class EnterPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour
     matching_round = EnterPoolTransactionValidationRound
 
 
+class EnterPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "enter_pool_randomness"
+    matching_round = EnterPoolRandomnessRound
+
+
 class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
     """'exit pool' select keeper."""
 
@@ -469,6 +458,13 @@ class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour)
     matching_round = ExitPoolTransactionValidationRound
 
 
+class ExitPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "enter_pool_randomness"
+    matching_round = ExitPoolRandomnessRound
+
+
 class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
     """'exit pool' select keeper."""
 
@@ -484,8 +480,8 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
-        RandomnessBehaviour,  # type: ignore
-        SelectKeeperMainBehaviour,  # type: ignore
+        DeploySafeRandomnessBehaviour,  # type: ignore
+        DeploySafeSelectKeeperBehaviour,  # type: ignore
         DeploySafeSendBehaviour,  # type: ignore
         DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
@@ -494,11 +490,15 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         EnterPoolTransactionSignatureBehaviour,  # type: ignore
         EnterPoolTransactionSendBehaviour,  # type: ignore
         EnterPoolTransactionValidationBehaviour,  # type: ignore
+        EnterPoolRandomnessBehaviour,  # type: ignore
+        EnterPoolSelectKeeperBehaviour,  # type: ignore
         ExitPoolSelectKeeperBehaviour,  # type: ignore
         ExitPoolTransactionHashBehaviour,  # type: ignore
         ExitPoolTransactionSignatureBehaviour,  # type: ignore
         ExitPoolTransactionSendBehaviour,  # type: ignore
         ExitPoolTransactionValidationBehaviour,  # type: ignore
+        ExitPoolRandomnessBehaviour,  # type: ignore
+        ExitPoolSelectKeeperBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

@@ -53,6 +53,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RegistrationRound,
     ResetAndPauseRound,
     ResetRound,
+    BaseRandomnessRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     ValidateSafeRound as DeploySafeValidationRound,
@@ -292,12 +293,18 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
         return None
 
 
-class SelectKeeperMainRound(
+class DeploySafeRandomnessRound(BaseRandomnessRound):
+    """Deploy safe randomness round."""
+
+    round_id = "deploy_safe_randomness"
+
+
+class DeploySafeSelectKeeperRound(
     CollectDifferentUntilAllRound, LiquidityProvisionAbstractRound
 ):
     """This class represents the select keeper main round."""
 
-    round_id = "select_keeper_main"
+    round_id = "deploy_safe_randomness"
 
 
 class StrategyEvaluationRound(
@@ -359,6 +366,12 @@ class EnterPoolTransactionValidationRound(TransactionValidationBaseRound):
     round_id = "enter_pool_tx_validation"
 
 
+class EnterPoolRandomnessRound(BaseRandomnessRound):
+    """Enter pool randomness round."""
+
+    round_id = "enter_pool_randomness"
+
+
 class EnterPoolSelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
@@ -391,6 +404,12 @@ class ExitPoolTransactionValidationRound(TransactionValidationBaseRound):
     round_id = "exit_pool_tx_validation"
 
 
+class ExitPoolRandomnessRound(BaseRandomnessRound):
+    """Exit pool randomness round."""
+
+    round_id = "exit_pool_randomness"
+
+
 class ExitPoolSelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
@@ -405,12 +424,12 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {
-            Event.DONE: SelectKeeperMainRound,
+        DeploySafeRandomnessRound: {
+            Event.DONE: DeploySafeSelectKeeperRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SelectKeeperMainRound: {
+        DeploySafeSelectKeeperRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
@@ -449,7 +468,12 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.DONE: ExitPoolTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
-            Event.ROUND_TIMEOUT: EnterPoolSelectKeeperRound,
+            Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
+        },
+        EnterPoolRandomnessRound: {
+            Event.DONE: EnterPoolSelectKeeperRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         EnterPoolSelectKeeperRound: {
             Event.DONE: ExitPoolTransactionHashRound,
@@ -475,7 +499,12 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
-            Event.ROUND_TIMEOUT: ExitPoolSelectKeeperRound,
+            Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
+        },
+        ExitPoolRandomnessRound: {
+            Event.DONE: ExitPoolSelectKeeperRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         ExitPoolSelectKeeperRound: {
             Event.DONE: ExitPoolTransactionHashRound,
