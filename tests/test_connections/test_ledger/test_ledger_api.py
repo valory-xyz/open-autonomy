@@ -89,8 +89,6 @@ class LedgerApiDialogues(BaseLedgerApiDialogues):
         )
 
 
-@pytest.mark.integration
-@pytest.mark.ledger
 @pytest.mark.asyncio
 @ledger_ids
 async def test_get_balance(
@@ -130,7 +128,6 @@ async def test_get_balance(
     actual_balance_amount = response_msg.balance
     expected_balance_amount = make_ledger_api(ledger_id, **config).get_balance(address)
     assert actual_balance_amount == expected_balance_amount
-
 
 
 @pytest.mark.asyncio
@@ -350,7 +347,7 @@ async def test_no_balance() -> None:
     )
     message.to = dispatcher.dialogues.self_address
     message.sender = "test"
-    dialogue = dispatcher.dialogues.update(message)
+    dialogue = cast(Optional[LedgerApiDialogue], dispatcher.dialogues.update(message))
     assert dialogue is not None
 
     mock_api.get_balance.return_value = None
@@ -380,7 +377,7 @@ async def test_no_raw_tx() -> None:
     )
     message.to = dispatcher.dialogues.self_address
     message.sender = "test"
-    dialogue = dispatcher.dialogues.update(message)
+    dialogue = cast(Optional[LedgerApiDialogue], dispatcher.dialogues.update(message))
     assert dialogue is not None
 
     mock_api.get_transfer_transaction.return_value = None
@@ -400,12 +397,12 @@ async def test_attempts_get_transaction_receipt() -> None:
     )
     message.to = dispatcher.dialogues.self_address
     message.sender = "test"
-    dialogue = dispatcher.dialogues.update(message)
+    dialogue = cast(Optional[LedgerApiDialogue], dispatcher.dialogues.update(message))
     assert dialogue is not None
     mock_api.get_transaction.return_value = None
     mock_api.is_transaction_settled.return_value = True
-    with patch.object(dispatcher, "MAX_ATTEMPTS", 2):
-        with patch.object(dispatcher, "TIMEOUT", 0.001):
+    with patch.object(dispatcher, "retry_attempts", 2):
+        with patch.object(dispatcher, "retry_timeout", 0.001):
             msg = dispatcher.get_transaction_receipt(mock_api, message, dialogue)
 
     assert msg.performative == LedgerApiMessage.Performative.ERROR

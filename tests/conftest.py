@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
-import json
 import logging
 import socket
 from pathlib import Path
@@ -27,13 +26,11 @@ from unittest.mock import MagicMock
 
 import docker
 import pytest
-from aea.configurations.base import ContractConfig, PublicId
+from aea.configurations.base import PublicId
 from aea.configurations.constants import DEFAULT_LEDGER
-from aea.configurations.data_types import ComponentType
-from aea.configurations.loader import load_component_configuration
 from aea.connections.base import Connection
-from aea.contracts.base import Contract, contract_registry
-from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS
+from aea.contracts.base import Contract
+from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS, LedgerApi
 from aea.crypto.registries import ledger_apis_registry, make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
@@ -134,7 +131,7 @@ def key_pairs() -> List[Tuple[str, str]]:
 @pytest.fixture()
 def owners(key_pairs: List[Tuple[str, str]]) -> List[str]:
     """Get the owners."""
-    return [Web3.toChecksumAddress(t[0]) for t in key_pairs[: NB_OWNERS]]
+    return [Web3.toChecksumAddress(t[0]) for t in key_pairs[:NB_OWNERS]]
 
 
 @pytest.fixture()
@@ -233,7 +230,9 @@ def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
 
 
 @pytest.fixture()
-def ledger_api(ethereum_testnet_config, gnosis_safe_hardhat):
+def ledger_api(
+    ethereum_testnet_config: Dict, gnosis_safe_hardhat: Generator
+) -> Generator[LedgerApi, None, None]:
     """Ledger api fixture."""
     ledger_id, config = EthereumCrypto.identifier, ethereum_testnet_config
     api = ledger_apis_registry.make(ledger_id, **config)
@@ -243,7 +242,7 @@ def ledger_api(ethereum_testnet_config, gnosis_safe_hardhat):
 @pytest.fixture(scope="function")
 def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generator:
     """Change temporarily default Ethereum ledger api configurations to interact with local Ganache."""
-    old_config = DEFAULT_LEDGER_CONFIGS.pop(EthereumCrypto.identifier, None)
+    old_config = DEFAULT_LEDGER_CONFIGS.pop(EthereumCrypto.identifier)
     DEFAULT_LEDGER_CONFIGS[EthereumCrypto.identifier] = ethereum_testnet_config
     yield
     DEFAULT_LEDGER_CONFIGS.pop(EthereumCrypto.identifier)
@@ -260,7 +259,10 @@ async def ledger_apis_connection(
     crypto_store = CryptoStore()
     directory = Path(ROOT_DIR, "packages", "valory", "connections", "ledger")
     connection = Connection.from_dir(
-        directory, data_dir=MagicMock(), identity=identity, crypto_store=crypto_store
+        str(directory),
+        data_dir=MagicMock(),
+        identity=identity,
+        crypto_store=crypto_store,
     )
     connection = cast(Connection, connection)
     connection._logger = logging.getLogger("packages.valory.connections.ledger")
@@ -276,28 +278,46 @@ async def ledger_apis_connection(
 
 
 @pytest.fixture()
-def gnosis_safe_contract(ledger_api, owners, threshold):
+def gnosis_safe_contract(
+    ledger_api: LedgerApi, owners: List[str], threshold: int
+) -> Generator[Tuple[Contract, str], None, None]:
     """
     Instantiate an Gnosis Safe contract instance.
+
     As a side effect, register it to the registry, if not already registered.
+
+    :param ledger_api: ledger_api fixture
+    :param owners: onwers fixture
+    :param threshold: threshold fixture
+    :yield: contract and contract_address
     """
+    directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
+    )
+    _ = get_register_contract(
+        directory
+    )  # we need to load this too as it's a dependency of the gnosis_safe
     directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
     contract = get_register_contract(directory)
     crypto = make_crypto(
         EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
     )
-
     tx = contract.get_deploy_transaction(
         ledger_api=ledger_api,
         deployer_address=crypto.address,
         gas=5000000,
         owners=owners,
-        threshold=threshold
+        threshold=threshold,
     )
+    assert tx is not None
+    contract_address = tx.pop("contract_address")  # hack
+    assert isinstance(contract_address, str)
     gas = ledger_api.api.eth.estimateGas(transaction=tx)
     tx["gas"] = gas
     tx_signed = crypto.sign_transaction(tx)
     tx_receipt = ledger_api.send_signed_transaction(tx_signed)
+    assert tx_receipt is not None
     receipt = ledger_api.get_transaction_receipt(tx_receipt)
-    contract_address = cast(Dict, receipt)["contractAddress"]
+    assert receipt is not None
+    # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
     yield contract, contract_address
