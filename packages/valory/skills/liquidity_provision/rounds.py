@@ -45,6 +45,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
+    BaseRandomnessRound,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
@@ -53,7 +54,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RegistrationRound,
     ResetAndPauseRound,
     ResetRound,
-    BaseRandomnessRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     ValidateSafeRound as DeploySafeValidationRound,

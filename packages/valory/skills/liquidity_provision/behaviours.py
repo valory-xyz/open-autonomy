@@ -44,11 +44,15 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
+    DeploySafeRandomnessRound,
+    DeploySafeSelectKeeperRound,
+    EnterPoolRandomnessRound,
     EnterPoolSelectKeeperRound,
     EnterPoolTransactionHashRound,
     EnterPoolTransactionSendRound,
     EnterPoolTransactionSignatureRound,
     EnterPoolTransactionValidationRound,
+    ExitPoolRandomnessRound,
     ExitPoolSelectKeeperRound,
     ExitPoolTransactionHashRound,
     ExitPoolTransactionSendRound,
@@ -57,10 +61,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     LiquidityProvisionAbciApp,
     PeriodState,
     StrategyEvaluationRound,
-    DeploySafeRandomnessRound,
-    DeploySafeSelectKeeperRound,
-    EnterPoolRandomnessRound,
-    ExitPoolRandomnessRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
@@ -84,9 +84,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.tools import (
-    payload_to_hex,
-)
+
 
 benchmark_tool = BenchmarkTool()
 
@@ -228,7 +226,9 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
-            self.context.logger.info(f"Signatures: {pprint.pformat(self.period_state.participants)}")
+            self.context.logger.info(
+                f"Signatures: {pprint.pformat(self.period_state.participants)}"
+            )
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
 
         with benchmark_tool.measure(
@@ -250,7 +250,8 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             signatures_by_owner={
-                key: payload.signature for key, payload in self.period_state.participant_to_signature.items()
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
             },
         )
         tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
@@ -335,6 +336,7 @@ class DeploySafeRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
     state_id = "deploy_safe_randomness"
     matching_round = DeploySafeRandomnessRound
 
+
 class DeploySafeSelectKeeperBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
@@ -346,8 +348,10 @@ def get_strategy_update() -> dict:
     """Get a strategy update."""
     strategy = {
         "action": StrategyType.GO,
-        "pair": {"token_a": {"ticker": "FTM", "address": "0xFTM_ADDRESS"},
-                 "token_b": {"ticker": "BOO", "address": "0xBOO_ADDRESS"}},
+        "pair": {
+            "token_a": {"ticker": "FTM", "address": "0xFTM_ADDRESS"},
+            "token_b": {"ticker": "BOO", "address": "0xBOO_ADDRESS"},
+        },
         "pool": "0x0000000000000000000000000000",
         "amountUSDT": 100.75,  # Be careful with floats and determinism here
     }
@@ -423,13 +427,13 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="swap_exact_tokens_for_tokens",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7, # FIXME
-                gas_price=0, # FIXME
-                amount_in=strategy["amountUSDT"] / 2, # Swap 50% into token A
-                amount_out_min=0, # FIXME
-                path=0, # FIXME
-                to_address="", # FIXME
-                deadline=0, # FIXME
+                gas=10 ** 7,  # FIXME # pylint: disable=fixme
+                gas_price=0,  # FIXME # pylint: disable=fixme
+                amount_in=strategy["amountUSDT"] / 2,  # Swap 50% into token A
+                amount_out_min=0,  # FIXME # pylint: disable=fixme
+                path=0,  # FIXME # pylint: disable=fixme
+                to_address="",  # FIXME # pylint: disable=fixme
+                deadline=0,  # FIXME # pylint: disable=fixme
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -440,13 +444,13 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="swap_exact_tokens_for_tokens",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7, # FIXME
-                gas_price=0, # FIXME
-                amount_in=strategy["amountUSDT"] / 2, # Swap 50% into token B
-                amount_out_min=0, # FIXME
-                path=0, # FIXME
-                to_address="", # FIXME
-                deadline=0, # FIXME
+                gas=10 ** 7,  # FIXME # pylint: disable=fixme
+                gas_price=0,  # FIXME # pylint: disable=fixme
+                amount_in=strategy["amountUSDT"] / 2,  # Swap 50% into token B
+                amount_out_min=0,  # FIXME # pylint: disable=fixme
+                path=0,  # FIXME # pylint: disable=fixme
+                to_address="",  # FIXME # pylint: disable=fixme
+                deadline=0,  # FIXME # pylint: disable=fixme
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -457,15 +461,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="permit",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7, # FIXME
-                gas_price=0, # FIXME
+                gas=10 ** 7,  # FIXME # pylint: disable=fixme
+                gas_price=0,  # FIXME # pylint: disable=fixme
                 owner_address=self.period_state.safe_contract_address,
                 spender_address=strategy["pool"],
-                value=0, # FIXME
-                deadline=0, # FIXME
-                v=0, # FIXME
-                r=0, # FIXME
-                s=0, # FIXME
+                value=0,  # FIXME # pylint: disable=fixme
+                deadline=0,  # FIXME # pylint: disable=fixme
+                v=0,  # FIXME # pylint: disable=fixme
+                r=0,  # FIXME # pylint: disable=fixme
+                s=0,  # FIXME # pylint: disable=fixme
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -476,16 +480,16 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="add_liquidity",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7, # FIXME
-                gas_price=0, # FIXME
+                gas=10 ** 7,  # FIXME # pylint: disable=fixme
+                gas_price=0,  # FIXME # pylint: disable=fixme
                 token_a=strategy["pair"]["token_a"]["address"],
                 token_b=strategy["pair"]["token_b"]["address"],
-                amount_a_desired=0, # FIXME
-                amount_b_desired=0, # FIXME
-                amount_a_min=0, # FIXME
-                amount_b_min=0, # FIXME
-                to_address="", # FIXME
-                deadline=0, # FIXME
+                amount_a_desired=0,  # FIXME # pylint: disable=fixme
+                amount_b_desired=0,  # FIXME # pylint: disable=fixme
+                amount_a_min=0,  # FIXME # pylint: disable=fixme
+                amount_b_min=0,  # FIXME # pylint: disable=fixme
+                to_address="",  # FIXME # pylint: disable=fixme
+                deadline=0,  # FIXME # pylint: disable=fixme
             )
             multi_send_txs.append(contract_api_msg.raw_transaction.body)
 
@@ -506,13 +510,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=0, # FIXME
+                value=0,  # FIXME # pylint: disable=fixme
                 data=data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
-            payload = TransactionHashPayload(sender=self.context.agent_address, tx_hash="") #FIXME
+            payload = TransactionHashPayload(
+                sender=self.context.agent_address, tx_hash=""
+            )  # FIXME # pylint: disable=fixme
 
         with benchmark_tool.measure(
             self,
