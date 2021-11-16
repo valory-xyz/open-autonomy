@@ -1160,6 +1160,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         :param round_cls: the class of the new round.
         """
+        self.logger.debug("scheduling new round: %s", round_cls)
         for entry_id in self._current_timeout_entries:
             self._timeouts.cancel_timeout(entry_id)
 
@@ -1172,6 +1173,12 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
                 # (see consistency check)
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
+                self.logger.debug(
+                    "scheduling timeout of %s seconds for event %s with deadline %s",
+                    timeout,
+                    event,
+                    deadline,
+                )
                 self._current_timeout_entries.append(entry_id)
 
         # self.state will point to last result, or if not available to the initial state
@@ -1269,12 +1276,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         :param timestamp: the latest block's timestamp.
         """
+        self.logger.debug("arrived block with timestamp: %s", timestamp)
+        self.logger.debug("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
         if self._timeouts.size == 0:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
+            self.logger.debug("no pending timeout, move time forward")
             self._last_timestamp = timestamp
             return
 
@@ -1283,6 +1293,9 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
+            self.logger.debug(
+                "expired deadline %s with event %s", expired_deadline, timeout_event
+            )
 
             # the last timestamp now becomes the expired deadline
             # clearly, it is earlier than the current highest known
@@ -1290,6 +1303,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # However, we need it to correctly simulate the timeouts
             # of the next rounds.
             self._last_timestamp = expired_deadline
+            self.logger.debug("current AbciApp time: %s", self._last_timestamp)
 
             self.process_event(timeout_event)
 
@@ -1301,6 +1315,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         # so it is safe to move forward the last known timestamp to the
         # new block's timestamp
         self._last_timestamp = timestamp
+        self.logger.debug("final AbciApp time: %s", self._last_timestamp)
 
 
 class Period:
