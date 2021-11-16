@@ -6,10 +6,8 @@ aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.api_id coingecko
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.parameters '[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.response_key 'bitcoin:usd'
-
 aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.url https://drand.cloudflare.com/public/latest
 aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.api_id cloudflare
-
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node0:26657"
