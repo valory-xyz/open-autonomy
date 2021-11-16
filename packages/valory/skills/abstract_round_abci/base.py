@@ -1171,6 +1171,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             if timeout is not None:
                 # last_timestamp is not None because we are not in the first round
                 # (see consistency check)
+                # last timestamp can be in the past relative to last seen block time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self.logger.debug(
@@ -1266,7 +1267,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         if next_round_cls is not None:
             self._schedule_round(next_round_cls)
         else:
-            self.logger.info("AbciApp has reached a dead end.")
+            self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
             self._current_round = None
 
@@ -1293,8 +1294,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
-            self.logger.debug(
-                "expired deadline %s with event %s", expired_deadline, timeout_event
+            self.logger.warning(
+                "expired deadline %s with event %s at AbciApp time %s",
+                expired_deadline,
+                timeout_event,
+                timestamp,
             )
 
             # the last timestamp now becomes the expired deadline

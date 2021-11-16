@@ -32,7 +32,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 
 
-MARGIN = 2
+MARGIN = 5
 
 
 Requests = BaseRequests
