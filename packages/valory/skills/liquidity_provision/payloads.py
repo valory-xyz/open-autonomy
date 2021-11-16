@@ -85,29 +85,3 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
-
-
-class AllowanceCheckPayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'allowance_check'."""
-
-    transaction_type = TransactionType.ALLOWANCE_CHECK
-
-    def __init__(self, sender: str, allowance: int, id_: Optional[str] = None) -> None:
-        """Initialize a 'allowance_check' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param allowance: the current allowance
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._allowance = allowance
-
-    @property
-    def allowance(self) -> int:
-        """Get the strategy."""
-        return self._allowance
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(allowance=self.allowance)

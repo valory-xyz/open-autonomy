@@ -38,51 +38,29 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
-    AllowanceCheckPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
-    AddAllowanceSelectKeeperRound,
-    AddAllowanceSendRound,
-    AddAllowanceSignatureRound,
-    AddAllowanceTransactionHashRound,
-    AddAllowanceValidationRound,
-    AddLiquiditySelectKeeperRound,
-    AddLiquiditySendRound,
-    AddLiquiditySignatureRound,
-    AddLiquidityTransactionHashRound,
-    AddLiquidityValidationRound,
-    AllowanceCheckRound,
     LiquidityProvisionAbciApp,
     PeriodState,
-    RemoveAllowanceSelectKeeperRound,
-    RemoveAllowanceSendRound,
-    RemoveAllowanceSignatureRound,
-    RemoveAllowanceTransactionHashRound,
-    RemoveAllowanceValidationRound,
-    RemoveLiquiditySelectKeeperRound,
-    RemoveLiquiditySendRound,
-    RemoveLiquiditySignatureRound,
-    RemoveLiquidityTransactionHashRound,
-    RemoveLiquidityValidationRound,
     SelectKeeperMainRound,
     StrategyEvaluationRound,
-    SwapBackSelectKeeperRound,
-    SwapBackSendRound,
-    SwapBackSignatureRound,
-    SwapBackTransactionHashRound,
-    SwapBackValidationRound,
-    SwapSelectKeeperRound,
-    SwapSendRound,
-    SwapSignatureRound,
-    SwapTransactionHashRound,
-    SwapValidationRound,
     TransactionHashBaseRound,
     TransactionSendBaseRound,
     TransactionSignatureBaseRound,
     TransactionValidationBaseRound,
     WaitRound,
+    EnterPoolTransactionHashRound,
+    EnterPoolTransactionSignatureRound,
+    EnterPoolTransactionSendRound,
+    EnterPoolTransactionValidationRound,
+    EnterPoolSelectKeeperRound,
+    ExitPoolTransactionHashRound,
+    ExitPoolTransactionSignatureRound,
+    ExitPoolTransactionSendRound,
+    ExitPoolTransactionValidationRound,
+    ExitPoolSelectKeeperRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
@@ -152,7 +130,6 @@ class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
         with benchmark_tool.measure(
             self,
         ).local():
-            data = self.period_state.encoded_most_voted_swap_tx_hash
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address="",
@@ -160,7 +137,6 @@ class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address="",
                 value=0,
-                data=data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
@@ -197,7 +173,7 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             self.context.logger.info(
-                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_swap_tx_hash}"
+                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
@@ -214,7 +190,7 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(
-            self.period_state.most_voted_swap_tx_hash[:64]
+            self.period_state.most_voted_tx_hash[:64]
         )
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
@@ -334,19 +310,19 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.final_swap_tx_hash,
+            self.period_state.final_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.info(
-                f"tx {self.period_state.final_swap_tx_hash} receipt check timed out!"
+                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
         is_settled = EthereumApi.is_transaction_settled(response)
         if not is_settled:  # pragma: nocover
             self.context.logger.info(
-                f"tx {self.period_state.final_swap_tx_hash} not settled!"
+                f"tx {self.period_state.final_tx_hash} not settled!"
             )
             return False
         contract_api_msg = yield from self.get_contract_api_response(
@@ -354,12 +330,12 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
-            tx_hash=self.period_state.final_swap_tx_hash,
+            tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             signatures_by_owner={
                 key: payload.signature
-                for key, payload in self.period_state.participant_to_swap_signature.items()
+                for key, payload in self.period_state.participant_to_signature.items()
             },
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
@@ -433,248 +409,76 @@ class WaitBehaviour(LiquidityProvisionBaseBehaviour):
     matching_round = WaitRound
 
 
-class SwapSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
+class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
+    """Prepare the 'enter pool' multisend tx."""
+    # swap + add allowance + add liquidity
 
-    state_id = "swap_select_keeper"
-    matching_round = SwapSelectKeeperRound
+    state_id = "enter_pool_tx_hash"
+    matching_round = EnterPoolTransactionHashRound
 
 
-class SwapTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Swap tokens: prepare transaction hash."""
+class EnterPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
+    """Sign the 'enter pool' multisend tx."""
 
-    state_id = "swap_tx_hash"
-    matching_round = SwapTransactionHashRound
+    state_id = "enter_pool_tx_signature"
+    matching_round = EnterPoolTransactionSignatureRound
 
 
-class SwapSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Swap tokens: sign the transaction."""
+class EnterPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
+    """Send the 'enter pool' multisend tx."""
 
-    state_id = "swap_signature"
-    matching_round = SwapSignatureRound
+    state_id = "enter_pool_tx_send"
+    matching_round = EnterPoolTransactionSendRound
 
 
-class SwapSendBehaviour(TransactionSendBaseBehaviour):
-    """Swap tokens: send the transaction."""
+class EnterPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+    """Validate the 'enter pool' multisend tx."""
 
-    state_id = "swap_send"
-    matching_round = SwapSendRound
+    state_id = "enter_pool_tx_validation"
+    matching_round = EnterPoolTransactionValidationRound
 
 
-class SwapValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Swap tokens: validate the tx."""
+class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
+    """'exit pool' select keeper."""
 
-    state_id = "swap_validation"
-    matching_round = SwapValidationRound
+    state_id = "enter_pool_select_keeper"
+    matching_round = EnterPoolSelectKeeperRound
 
 
-def get_allowance() -> int:
-    """Get the allowance."""
-    return 0
+class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+    # remove liquidity + remove allowance + swap back
 
+    state_id = "exit_pool_tx_hash"
+    matching_round = ExitPoolTransactionHashRound
 
-class AllowanceCheckBehaviour(LiquidityProvisionBaseBehaviour):
-    """Check the current token allowance."""
 
-    state_id = "allowance_check"
-    matching_round = AllowanceCheckRound
+class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
 
-    def async_act(self) -> Generator:
-        """Do the action."""
-        allowance = get_allowance()
-        payload = AllowanceCheckPayload(self.context.agent_address, allowance)
+    state_id = "exit_pool_tx_signature"
+    matching_round = ExitPoolTransactionSignatureRound
 
-        if allowance == self.period_state.most_voted_strategy["amountETH"]:
-            self.context.logger.info(
-                "Insufficient allowance. Transitioning to allowance increase."
-            )
-        else:
-            self.context.logger.info(
-                "Sufficient allowance. Transitioning to add liquidity."
-            )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
+class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
 
-        self.set_done()
+    state_id = "exit_pool_tx_send"
+    matching_round = ExitPoolTransactionSendRound
 
 
-class AddAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
+class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
 
-    state_id = "add_allowance_select_keeper"
-    matching_round = AddAllowanceSelectKeeperRound
+    state_id = "exit_pool_tx_validation"
+    matching_round = ExitPoolTransactionValidationRound
 
 
-class AddAllowanceTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Approve token: prepare transaction hash."""
+class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
+    """'exit pool' select keeper."""
 
-    state_id = "add_allowance_tx_hash"
-    matching_round = AddAllowanceTransactionHashRound
-
-
-class AddAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Approve token: sign the transaction."""
-
-    state_id = "add_allowance_signature"
-    matching_round = AddAllowanceSignatureRound
-
-
-class AddAllowanceSendBehaviour(TransactionSendBaseBehaviour):
-    """Approve token: send the transaction."""
-
-    state_id = "add_allowance_send"
-    matching_round = AddAllowanceSendRound
-
-
-class AddAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Approve token: validate the tx."""
-
-    state_id = "add_allowance_validation"
-    matching_round = AddAllowanceValidationRound
-
-
-class AddLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "add_liquidity_select_keeper"
-    matching_round = AddLiquiditySelectKeeperRound
-
-
-class AddLiquidityTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Enter liquidity pool: prepare transaction hash."""
-
-    state_id = "add_liquidity_tx_hash"
-    matching_round = AddLiquidityTransactionHashRound
-
-
-class AddLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Enter liquidity pool: sign the transaction."""
-
-    state_id = "add_liquidity_signature"
-    matching_round = AddLiquiditySignatureRound
-
-
-class AddLiquiditySendBehaviour(TransactionSendBaseBehaviour):
-    """Enter liquidity pool: send the transaction."""
-
-    state_id = "add_liquidity_send"
-    matching_round = AddLiquiditySendRound
-
-
-class AddLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Enter liquidity pool: validate the tx."""
-
-    state_id = "add_liquidity_validation"
-    matching_round = AddLiquidityValidationRound
-
-
-class RemoveLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "remove_liquidity_select_keeper"
-    matching_round = RemoveLiquiditySelectKeeperRound
-
-
-class RemoveLiquidityTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Leave liquidity pool: prepare transaction hash."""
-
-    state_id = "remove_liquidity_tx_hash"
-    matching_round = RemoveLiquidityTransactionHashRound
-
-
-class RemoveLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Leave liquidity pool: sign the transaction."""
-
-    state_id = "remove_liquidity_signature"
-    matching_round = RemoveLiquiditySignatureRound
-
-
-class RemoveLiquiditySendBehaviour(TransactionSendBaseBehaviour):
-    """Leave liquidity pool: send the transaction."""
-
-    state_id = "remove_liquidity_send"
-    matching_round = RemoveLiquiditySendRound
-
-
-class RemoveLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Leave liquidity pool: validate the tx."""
-
-    state_id = "remove_liquidity_validation"
-    matching_round = RemoveLiquidityValidationRound
-
-
-class RemoveAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "remove_allowance_select_keeper"
-    matching_round = RemoveAllowanceSelectKeeperRound
-
-
-class RemoveAllowanceTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Cancel token allowance: prepare transaction hash."""
-
-    state_id = "remove_allowance_tx_hash"
-    matching_round = RemoveAllowanceTransactionHashRound
-
-
-class RemoveAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Cancel token allowance: sign the transaction."""
-
-    state_id = "remove_allowance_signature"
-    matching_round = RemoveAllowanceSignatureRound
-
-
-class RemoveAllowanceSendBehaviour(TransactionSendBaseBehaviour):
-    """Cancel token allowance: send the transaction."""
-
-    state_id = "remove_allowance_send"
-    matching_round = RemoveAllowanceSendRound
-
-
-class RemoveAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Cancel token allowance: validate the tx."""
-
-    state_id = "remove_allowance_validation"
-    matching_round = RemoveAllowanceValidationRound
-
-
-class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "swap_back_select_keeper"
-    matching_round = SwapBackSelectKeeperRound
-
-
-class SwapBackTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Swap tokens back to original holdings: prepare transaction hash."""
-
-    state_id = "swap_back_tx_hash"
-    matching_round = SwapBackTransactionHashRound
-
-
-class SwapBackSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Swap tokens back to original holdings: sign the transaction."""
-
-    state_id = "swap_back_signature"
-    matching_round = SwapBackSignatureRound
-
-
-class SwapBackSendBehaviour(TransactionSendBaseBehaviour):
-    """Swap tokens back to original holdings: send the transaction."""
-
-    state_id = "swap_back_send"
-    matching_round = SwapBackSendRound
-
-
-class SwapBackValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Swap tokens back to original holdings: validate the tx."""
-
-    state_id = "swap_back_validation"
-    matching_round = SwapBackValidationRound
+    state_id = "exit_pool_select_keeper"
+    matching_round = ExitPoolSelectKeeperRound
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
@@ -691,37 +495,17 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         WaitBehaviour,  # type: ignore
-        SwapSelectKeeperBehaviour,  # type: ignore
-        SwapTransactionHashBehaviour,  # type: ignore
-        SwapSignatureBehaviour,  # type: ignore
-        SwapSendBehaviour,  # type: ignore
-        SwapValidationBehaviour,  # type: ignore
-        AllowanceCheckBehaviour,  # type: ignore
-        AddAllowanceSelectKeeperBehaviour,  # type: ignore
-        AddAllowanceTransactionHashBehaviour,  # type: ignore
-        AddAllowanceSignatureBehaviour,  # type: ignore
-        AddAllowanceSendBehaviour,  # type: ignore
-        AddAllowanceValidationBehaviour,  # type: ignore
-        AddLiquiditySelectKeeperBehaviour,  # type: ignore
-        AddLiquidityTransactionHashBehaviour,  # type: ignore
-        AddLiquiditySignatureBehaviour,  # type: ignore
-        AddLiquiditySendBehaviour,  # type: ignore
-        AddLiquidityValidationBehaviour,  # type: ignore
-        RemoveLiquiditySelectKeeperBehaviour,  # type: ignore
-        RemoveLiquidityTransactionHashBehaviour,  # type: ignore
-        RemoveLiquiditySignatureBehaviour,  # type: ignore
-        RemoveLiquiditySendBehaviour,  # type: ignore
-        RemoveLiquidityValidationBehaviour,  # type: ignore
-        RemoveAllowanceSelectKeeperBehaviour,  # type: ignore
-        RemoveAllowanceTransactionHashBehaviour,  # type: ignore
-        RemoveAllowanceSignatureBehaviour,  # type: ignore
-        RemoveAllowanceSendBehaviour,  # type: ignore
-        RemoveAllowanceValidationBehaviour,  # type: ignore
-        SwapBackSelectKeeperBehaviour,  # type: ignore
-        SwapBackTransactionHashBehaviour,  # type: ignore
-        SwapBackSignatureBehaviour,  # type: ignore
-        SwapBackSendBehaviour,  # type: ignore
-        SwapBackValidationBehaviour,  # type: ignore
+        EnterPoolSelectKeeperBehaviour, # type: ignore
+        EnterPoolTransactionHashBehaviour, # type: ignore
+        EnterPoolTransactionSignatureBehaviour, # type: ignore
+        EnterPoolTransactionSendBehaviour, # type: ignore
+        EnterPoolTransactionValidationBehaviour, # type: ignore
+        ExitPoolSelectKeeperBehaviour, # type: ignore
+        ExitPoolTransactionHashBehaviour, # type: ignore
+        ExitPoolTransactionSignatureBehaviour, # type: ignore
+        ExitPoolTransactionSendBehaviour, # type: ignore
+        ExitPoolTransactionValidationBehaviour, # type: ignore
+
         ResetBehaviour,  # type: ignore
     }
 
