@@ -25,6 +25,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
+from eth_abi import encode_abi
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -143,6 +144,33 @@ class UniswapV2ERC20Contract(Contract):
         )
 
     @classmethod
+    def get_permit_data(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        epoch_: int,
+        round_: int,
+        amount_: int,
+    ) -> JSONLike:
+        """
+        Handler method for the 'get_active_project' requests.
+
+        Implement this method in the sub class if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param epoch_: the epoch
+        :param round_: the round
+        :param amount_: the amount
+        :return: the tx  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        report = cls.get_report(epoch_, round_, amount_)
+        data = instance.encodeABI(fn_name="permit", args=[report])
+        return {"data": bytes.fromhex(data[2:])}  # type: ignore
+
+    @classmethod
     def allowance(
         cls,
         ledger_api: LedgerApi,
@@ -224,3 +252,27 @@ class UniswapV2ERC20Contract(Contract):
             }
         )
         return tx
+
+    @classmethod
+    def get_report(
+        cls,
+        epoch_: int,
+        round_: int,
+        amount_: int,
+    ) -> bytes:
+        """
+        Get report serialised.
+
+        :param epoch_: the epoch
+        :param round_: the round
+        :param amount_: the amount
+        :return: the tx  # noqa: DAR202
+        """
+        left_pad = "0" * 22
+        TEMP_CONFIG = 0
+        config_digest = TEMP_CONFIG.to_bytes(16, "big").hex()
+        epoch_hex = epoch_.to_bytes(4, "big").hex()
+        round_hex = round_.to_bytes(1, "big").hex()
+        raw_report = left_pad + config_digest + epoch_hex + round_hex
+        report = encode_abi(["bytes32", "int192"], [bytes.fromhex(raw_report), amount_])
+        return report

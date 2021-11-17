@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmevsUxqaoqkrvyQL4RJhaGBLagpGStUUBggwWbpHa2A5o
   build/IUniswapV2Router02.json: QmZPa3Ua4UU8MrRmyDmRFFJuK6UPiGV2N75anRASzpiKMK
-  contract.py: QmQtB1Cp7pqD3TxhL5zWdN7tMpNsHYWhHyD9YiLDo1qddx
+  contract.py: QmUa9f7hKWsN6NZ5j5aQ5WqzcswjUgAcwMtLSKFyQYC2Kt
 fingerprint_ignore_patterns: []
 class_name: UniswapV2Router02Contract
 contract_interface_paths:

@@ -32,6 +32,9 @@ from packages.valory.contracts.gnosis_safe.contract import (
 )
 from packages.valory.contracts.multisend.contract import MultiSendContract
 from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
+from packages.valory.contracts.uniswap_v2_router_02.contract import (
+    UniswapV2Router02Contract,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -85,6 +88,10 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ValidatePayload,
 )
 
+
+TEMP_GAS = 10 ** 7
+TEMP_GAS_PRICE = 0.1
+PLACEHOLDER_AMOUNT_OUT_MIN = 1
 
 benchmark_tool = BenchmarkTool()
 
@@ -424,45 +431,45 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.safe_contract_address,
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="swap_exact_tokens_for_tokens",
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_swap_exact_tokens_for_tokens_data",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,  # FIXME # pylint: disable=fixme
-                gas_price=0,  # FIXME # pylint: disable=fixme
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
                 amount_in=strategy["amountUSDT"] / 2,  # Swap 50% into token A
-                amount_out_min=0,  # FIXME # pylint: disable=fixme
+                amount_out_min=PLACEHOLDER_AMOUNT_OUT_MIN,
                 path=0,  # FIXME # pylint: disable=fixme
                 to_address="",  # FIXME # pylint: disable=fixme
                 deadline=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
 
             # 2. Swap second token
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.safe_contract_address,
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="swap_exact_tokens_for_tokens",
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_swap_exact_tokens_for_tokens_data",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,  # FIXME # pylint: disable=fixme
-                gas_price=0,  # FIXME # pylint: disable=fixme
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
                 amount_in=strategy["amountUSDT"] / 2,  # Swap 50% into token B
-                amount_out_min=0,  # FIXME # pylint: disable=fixme
+                amount_out_min=PLACEHOLDER_AMOUNT_OUT_MIN,
                 path=0,  # FIXME # pylint: disable=fixme
                 to_address="",  # FIXME # pylint: disable=fixme
                 deadline=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
 
             # 3. Add allowance for the LP token
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.safe_contract_address,
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="permit",
+                contract_callable="get_permit_data",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,  # FIXME # pylint: disable=fixme
-                gas_price=0,  # FIXME # pylint: disable=fixme
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
                 owner_address=self.period_state.safe_contract_address,
                 spender_address=strategy["pool"],
                 value=0,  # FIXME # pylint: disable=fixme
@@ -471,17 +478,17 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 r=0,  # FIXME # pylint: disable=fixme
                 s=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
 
             # 4. Add liquidity
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.safe_contract_address,
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="add_liquidity",
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_add_liquidity_data",
                 sender_address=self.period_state.safe_contract_address,
-                gas=10 ** 7,  # FIXME # pylint: disable=fixme
-                gas_price=0,  # FIXME # pylint: disable=fixme
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
                 token_a=strategy["pair"]["token_a"]["address"],
                 token_b=strategy["pair"]["token_b"]["address"],
                 amount_a_desired=0,  # FIXME # pylint: disable=fixme
@@ -491,7 +498,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 to_address="",  # FIXME # pylint: disable=fixme
                 deadline=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body)
+            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
 
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
