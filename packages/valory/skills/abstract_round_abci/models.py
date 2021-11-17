@@ -189,6 +189,10 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         """Increment the retries counter."""
         self._retries_attempted += 1
 
+    def reset_retries(self) -> None:
+        """Reset the retries counter."""
+        self._retries_attempted = 0
+
     def is_retries_exceeded(self) -> bool:
         """Check if the retries amount has been exceeded."""
         return self._retries_attempted > self._retries

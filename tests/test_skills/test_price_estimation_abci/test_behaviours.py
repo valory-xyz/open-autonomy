@@ -718,6 +718,30 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
             assert state.state_id == self.randomness_behaviour_class.state_id
             self._test_done_flag_set()
 
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.context.randomness_api._retries_attempted = 1
+        assert self.price_estimation_behaviour.current_state is not None
+        self.price_estimation_behaviour.current_state.clean_up()
+        assert (
+            self.price_estimation_behaviour.context.randomness_api._retries_attempted
+            == 0
+        )
+
 
 class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
@@ -1103,6 +1127,25 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
+
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == ObserveBehaviour.state_id
+        )
+        self.price_estimation_behaviour.context.price_api._retries_attempted = 1
+        assert self.price_estimation_behaviour.current_state is not None
+        self.price_estimation_behaviour.current_state.clean_up()
+        assert self.price_estimation_behaviour.context.price_api._retries_attempted == 0
 
 
 class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):

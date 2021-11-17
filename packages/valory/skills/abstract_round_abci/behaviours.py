@@ -217,6 +217,7 @@ class AbstractRoundBehaviour(
         current_state.act_wrapper()
 
         if current_state.is_done():
+            current_state.clean_up()
             # if next state is set, take the FSM behaviour transition
             # this branch also handle the case when matching round of current state is not set
             if self._next_state_cls is not None:

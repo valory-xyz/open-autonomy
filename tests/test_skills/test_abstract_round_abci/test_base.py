@@ -703,7 +703,7 @@ class TestTimeouts:
         self.timeouts.pop_earliest_cancelled_timeouts()
         assert self.timeouts.size == 0
 
-    def test_get_earliest_timeout(self) -> None:
+    def test_get_earliest_timeout_a(self) -> None:
         """Test the 'get_earliest_timeout' method."""
         deadline_1 = datetime.datetime.now()
         event_1 = MagicMock()
@@ -714,6 +714,32 @@ class TestTimeouts:
 
         self.timeouts.add_timeout(deadline_2, event_2)
         self.timeouts.add_timeout(deadline_1, event_1)
+
+        assert self.timeouts.size == 2
+        # test that we get the event with the earliest deadline
+        timeout, event = self.timeouts.get_earliest_timeout()
+        assert timeout == deadline_1
+        assert event == event_1
+
+        # test that get_earliest_timeout does not remove elements
+        assert self.timeouts.size == 2
+
+        popped_timeout, popped_event = self.timeouts.pop_timeout()
+        assert popped_timeout == timeout
+        assert popped_event == event
+
+    def test_get_earliest_timeout_b(self) -> None:
+        """Test the 'get_earliest_timeout' method."""
+
+        deadline_1 = datetime.datetime.now()
+        event_1 = MagicMock()
+
+        deadline_2 = datetime.datetime.now()
+        event_2 = MagicMock()
+        assert deadline_1 < deadline_2
+
+        self.timeouts.add_timeout(deadline_1, event_1)
+        self.timeouts.add_timeout(deadline_2, event_2)
 
         assert self.timeouts.size == 2
         # test that we get the event with the earliest deadline
@@ -817,6 +843,7 @@ class TestAbciApp:
 
         # move to round_b that schedules timeout events
         self.abci_app.process_event("b")
+        assert self.abci_app.current_round_id == "concrete_b"
 
         # simulate most recent timestamp beyond earliest deadline
         # after pop, len(timeouts) == 0, because round_a does not schedule new timeout events
@@ -824,13 +851,23 @@ class TestAbciApp:
         self.abci_app.update_time(current_time)
 
         # now we are back to round_a
+        assert self.abci_app.current_round_id == "concrete_a"
+
         # move to round_c that schedules timeout events to itself
         self.abci_app.process_event("c")
+        assert self.abci_app.current_round_id == "concrete_c"
 
         # simulate most recent timestamp beyond earliest deadline
         # after pop, len(timeouts) == 0, because round_c schedules timeout events
         current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
         self.abci_app.update_time(current_time)
+
+        assert self.abci_app.current_round_id == "concrete_c"
+
+        # further update changes nothing
+        height = self.abci_app.current_round_height
+        self.abci_app.update_time(current_time)
+        assert height == self.abci_app.current_round_height
 
 
 class TestPeriod:

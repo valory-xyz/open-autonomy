@@ -109,6 +109,8 @@ class TestApiSpecsModel:
         for _ in range(NUMBER_OF_RETRIES):
             self.api_specs.increment_retries()
         assert self.api_specs.is_retries_exceeded()
+        self.api_specs.reset_retries()
+        assert self.api_specs._retries_attempted == 0
 
     def test_get_spec(
         self,

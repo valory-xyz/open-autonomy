@@ -997,8 +997,7 @@ class Timeouts(Generic[EventType]):
             return
         entry = self._heap[0]
         while entry.cancelled:
-            self._entry_finder.pop(entry.entry_count)
-            heapq.heappop(self._heap)
+            self.pop_timeout()
             if self.size == 0:
                 break
             entry = self._heap[0]
@@ -1171,6 +1170,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             if timeout is not None:
                 # last_timestamp is not None because we are not in the first round
                 # (see consistency check)
+                # last timestamp can be in the past relative to last seen block time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self.logger.debug(
@@ -1266,7 +1266,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         if next_round_cls is not None:
             self._schedule_round(next_round_cls)
         else:
-            self.logger.info("AbciApp has reached a dead end.")
+            self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
             self._current_round = None
 
@@ -1293,8 +1293,11 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
-            self.logger.debug(
-                "expired deadline %s with event %s", expired_deadline, timeout_event
+            self.logger.warning(
+                "expired deadline %s with event %s at AbciApp time %s",
+                expired_deadline,
+                timeout_event,
+                timestamp,
             )
 
             # the last timestamp now becomes the expired deadline
@@ -1307,6 +1310,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
             self.process_event(timeout_event)
 
+            self._timeouts.pop_earliest_cancelled_timeouts()
             if self._timeouts.size == 0:
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()

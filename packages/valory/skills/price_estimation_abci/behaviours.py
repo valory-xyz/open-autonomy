@@ -239,6 +239,14 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             yield from self.sleep(self.params.sleep_time)
             self.context.randomness_api.increment_retries()
 
+    def clean_up(self) -> None:
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """
+        self.context.randomness_api.reset_retries()
+
 
 class RandomnessAtStartupBehaviour(RandomnessBehaviour):
     """Retrive randomness at startup."""
@@ -619,6 +627,14 @@ class ObserveBehaviour(PriceEstimationBaseState):
             )
             yield from self.sleep(self.params.sleep_time)
             self.context.price_api.increment_retries()
+
+    def clean_up(self) -> None:
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """
+        self.context.price_api.reset_retries()
 
 
 class EstimateBehaviour(PriceEstimationBaseState):

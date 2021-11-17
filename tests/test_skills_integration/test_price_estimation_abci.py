@@ -273,7 +273,7 @@ class TestDelayedStart(
 
         # check that *each* AEA prints these messages
         for process in self.processes:
-            missing_strings = self.missing_from_output(process, CHECK_STRINGS)
+            missing_strings = self.missing_from_output(process, CHECK_STRINGS, 120)
             assert (
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
