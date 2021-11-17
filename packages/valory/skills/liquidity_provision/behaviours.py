@@ -95,9 +95,10 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 )
 
 
-TEMP_GAS = 10 ** 7
-TEMP_GAS_PRICE = 0.1
-PLACEHOLDER_AMOUNT_OUT_MIN = 1
+TEMP_GAS = 10 ** 7  # TOFIX
+TEMP_GAS_PRICE = 0.1  # TOFIX
+ETHER_VALUE = 0  # TOFIX
+MAX_ALLOWANCE = 2 ** 256
 
 benchmark_tool = BenchmarkTool()
 
@@ -362,11 +363,22 @@ def get_strategy_update() -> dict:
     strategy = {
         "action": StrategyType.GO,
         "pair": {
-            "token_a": {"ticker": "FTM", "address": "0xFTM_ADDRESS"},
-            "token_b": {"ticker": "BOO", "address": "0xBOO_ADDRESS"},
+            "token_a": {
+                "ticker": "FTM",
+                "address": "0xFTM_ADDRESS",
+                "base_amount_in": 1,
+                "token_amount_out_min": 1,
+            },
+            "token_b": {
+                "ticker": "BOO",
+                "address": "0xBOO_ADDRESS",
+                "base_amount_in": 1,
+                "token_amount_out_min": 1,
+            },
         },
-        "pool": "0x0000000000000000000000000000",
-        "amountUSDT": 100.75,  # Be careful with floats and determinism here
+        "router_address": "0x0000000000000000000000000000",
+        "lp_token_address": "0x0000000000000000000000000000",
+        "pool_address": "0x0000000000000000000000000000",
     }
     return strategy
 
@@ -442,11 +454,12 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                amount_in=strategy["amountUSDT"] / 2,  # Swap 50% into token A
-                amount_out_min=PLACEHOLDER_AMOUNT_OUT_MIN,
+                amount_in=int(strategy["pair"]["token_a"]["base_amount_in"]),
+                amount_out_min=int(strategy["pair"]["token_a"]["token_amount_out_min"]),
                 path=[strategy["token_a"]["address"], strategy["token_b"]["address"]],
-                to_address="",  # FIXME # pylint: disable=fixme
-                deadline=int(time.time()) + 300,  # 5 min into the future
+                to_address=strategy["router_address"],
+                deadline=int(time.time())
+                + 300,  # 5 min into the future # FIXME: non deterministic # pylint: disable=fixme
             )
             swap_a_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
@@ -467,10 +480,10 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                amount_in=strategy["amountUSDT"] / 2,  # Swap 50% into token B
-                amount_out_min=PLACEHOLDER_AMOUNT_OUT_MIN,
+                amount_in=int(strategy["pair"]["token_b"]["base_amount_in"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["token_amount_out_min"]),
                 path=[strategy["token_a"]["address"], strategy["token_b"]["address"]],
-                to_address="",  # FIXME # pylint: disable=fixme
+                to_address=strategy["router_address"],
                 deadline=int(time.time()) + 300,  # 5 min into the future
             )
             swap_b_data = contract_api_msg.raw_transaction.body["data"]
@@ -493,8 +506,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
                 owner_address=self.period_state.safe_contract_address,
-                spender_address=strategy["pool"],
-                value=0,  # FIXME # pylint: disable=fixme
+                spender_address=strategy["lp_token_address"],
+                value=MAX_ALLOWANCE,  # We are setting tha max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 deadline=int(time.time()) + 300,  # 5 min into the future
                 v=0,  # FIXME # pylint: disable=fixme
                 r=0,  # FIXME # pylint: disable=fixme
@@ -521,11 +534,19 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 gas_price=TEMP_GAS_PRICE,
                 token_a=strategy["pair"]["token_a"]["address"],
                 token_b=strategy["pair"]["token_b"]["address"],
-                amount_a_desired=0,  # FIXME # pylint: disable=fixme
-                amount_b_desired=0,  # FIXME # pylint: disable=fixme
-                amount_a_min=0,  # FIXME # pylint: disable=fixme
-                amount_b_min=0,  # FIXME # pylint: disable=fixme
-                to_address="",  # FIXME # pylint: disable=fixme
+                amount_a_desired=int(
+                    strategy["pair"]["token_a"]["token_amount_out_min"]
+                ),  # It would be better to check out balance first
+                amount_b_desired=int(
+                    strategy["pair"]["token_b"]["token_amount_out_min"]
+                ),
+                amount_a_min=int(
+                    strategy["pair"]["token_a"]["token_amount_out_min"] * 0.99
+                ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                amount_b_min=int(
+                    strategy["pair"]["token_b"]["token_amount_out_min"] * 0.99
+                ),
+                to_address=strategy["pool_address"],
                 deadline=int(time.time()) + 300,  # 5 min into the future
             )
             liquidity_data = contract_api_msg.raw_transaction.body["data"]
@@ -555,15 +576,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=0,  # FIXME # pylint: disable=fixme
+                value=ETHER_VALUE,
                 data=multisend_data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
-                sender=self.context.agent_address, tx_hash=""
-            )  # FIXME # pylint: disable=fixme
+                sender=self.context.agent_address, tx_hash=safe_tx_hash
+            )
 
         with benchmark_tool.measure(
             self,
