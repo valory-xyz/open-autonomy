@@ -23,14 +23,19 @@ import pprint
 from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
-from aea_ledger_ethereum import EthereumApi
+from aea.crypto.registries import crypto_registry
+from aea_ledger_ethereum import EthereumApi, EthereumCrypto
+from hexbytes import HexBytes
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
-from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.contracts.multisend.contract import (
+    MultiSendContract,
+    MultiSendOperation,
+)
 from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
@@ -442,7 +447,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 to_address="",  # FIXME # pylint: disable=fixme
                 deadline=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
+            swap_a_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(swap_a_data)),
+                }
+            )
 
             # 2. Swap second token
             contract_api_msg = yield from self.get_contract_api_response(
@@ -459,7 +472,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 to_address="",  # FIXME # pylint: disable=fixme
                 deadline=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
+            swap_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(swap_b_data)),
+                }
+            )
 
             # 3. Add allowance for the LP token
             contract_api_msg = yield from self.get_contract_api_response(
@@ -478,7 +499,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 r=0,  # FIXME # pylint: disable=fixme
                 s=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
+            allowance_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_data)),
+                }
+            )
 
             # 4. Add liquidity
             contract_api_msg = yield from self.get_contract_api_response(
@@ -498,7 +527,15 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 to_address="",  # FIXME # pylint: disable=fixme
                 deadline=0,  # FIXME # pylint: disable=fixme
             )
-            multi_send_txs.append(contract_api_msg.raw_transaction.body["data"])
+            liquidity_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(liquidity_data)),
+                }
+            )
 
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
@@ -508,9 +545,9 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
             )
+            multisend_data = contract_api_msg.raw_transaction.body["data"]
 
             # Get the tx hash from Gnosis Safe contract
-            data = contract_api_msg.raw_transaction.body["data"]
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.safe_contract_address,
@@ -518,7 +555,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
                 value=0,  # FIXME # pylint: disable=fixme
-                data=data,
+                data=multisend_data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
