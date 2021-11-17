@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
+import binascii
 import json
 from copy import copy
 from pathlib import Path
@@ -36,6 +37,11 @@ from packages.valory.connections.ledger.base import (
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
+from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.contracts.uniswap_v2_router_02.contract import (
+    UniswapV2Router02Contract,
+)
+from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -49,9 +55,10 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.liquidity_provision.behaviours import (
+    EnterPoolTransactionHashBehaviour,
     LiquidityProvisionConsensusBehaviour,
-    TransactionHashBaseBehaviour,
 )
+from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 from packages.valory.skills.price_estimation_abci.handlers import (
     ContractApiHandler,
@@ -61,6 +68,30 @@ from packages.valory.skills.price_estimation_abci.handlers import (
 )
 
 from tests.conftest import ROOT_DIR
+
+
+def get_default_strategy() -> Dict:
+    """Returns default strategy."""
+    return {
+        "action": StrategyType.GO,
+        "pair": {
+            "token_a": {
+                "ticker": "FTM",
+                "address": "0xFTM_ADDRESS",
+                "base_amount_in": 1,
+                "token_amount_out_min": 1,
+            },
+            "token_b": {
+                "ticker": "BOO",
+                "address": "0xBOO_ADDRESS",
+                "base_amount_in": 1,
+                "token_amount_out_min": 1,
+            },
+        },
+        "router_address": "0x0000000000000000000000000000",
+        "lp_token_address": "0x0000000000000000000000000000",
+        "pool_address": "0x0000000000000000000000000000",
+    }
 
 
 class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
@@ -381,38 +412,127 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Test tx hash behaviour."""
 
+        strategy = get_default_strategy()
+        period_state = PeriodState(
+            most_voted_tx_hash="0x",
+            safe_contract_address="safe_contract_address",
+            most_voted_keeper_address="most_voted_keeper_address",
+            most_voted_strategy=strategy,
+        )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
-            state_id=TransactionHashBaseBehaviour.state_id,
-            period_state=PeriodState(
-                most_voted_tx_hash="0x",
-                safe_contract_address="safe_contract_address",
-                most_voted_keeper_address="most_voted_keeper_address",
-            ),
+            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            period_state=period_state,
         )
         assert (
             cast(
                 BaseState,
                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
             ).state_id
-            == TransactionHashBaseBehaviour.state_id
+            == EnterPoolTransactionHashBehaviour.state_id
         )
         self.liquidity_provision_behaviour.act_wrapper()
+
         self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.safe_contract_address,
             ),
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
+                callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x"}
+                    ledger_id="ethereum",
+                    body={"data": binascii.hexlify(b"hello")},
                 ),
             ),
         )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.liquidity_provision_behaviour.current_state)
-        assert state.state_id == "HELLo"
+
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.safe_contract_address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_swap_exact_tokens_for_tokens_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": binascii.hexlify(b"hello")},
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.safe_contract_address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_permit_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": binascii.hexlify(b"hello")},
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.safe_contract_address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_add_liquidity_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": binascii.hexlify(b"hello")},
+                ),
+            ),
+        )
+
+        self.assert_quantity_in_outbox(1)
+        actual_contract_ledger_message = self.get_message_from_outbox()
+        assert actual_contract_ledger_message is not None, "No message in outbox."
+        has_attributes, error_str = self.message_has_attributes(
+            actual_message=actual_contract_ledger_message,
+            message_type=ContractApiMessage,
+            to=str(LEDGER_CONNECTION_PUBLIC_ID),
+            sender=str(self.skill.skill_context.skill_id),
+            ledger_id="ethereum",
+            contract_id=str(MultiSendContract.contract_id),
+            message_id=1,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+        )
+        assert has_attributes, error_str
+        self.liquidity_provision_behaviour.act_wrapper()
+
+        incoming_message = self.build_incoming_message(
+            message_type=ContractApiMessage,
+            dialogue_reference=(
+                actual_contract_ledger_message.dialogue_reference[0],
+                "stub",
+            ),
+            target=actual_contract_ledger_message.message_id,
+            message_id=-1,
+            to=str(self.skill.skill_context.skill_id),
+            sender=str(LEDGER_CONNECTION_PUBLIC_ID),
+            ledger_id="ethereum",
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            contract_address=period_state.safe_contract_address,
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            callable="get_tx_data",
+            kwargs=Kwargs(body={}),
+            raw_transaction=RawTransaction(
+                ledger_id="ethereum",
+                body={"data": binascii.hexlify(b"hello")},
+            ),
+        )
+        self.contract_handler.handle(incoming_message)
+        self.liquidity_provision_behaviour.act_wrapper()

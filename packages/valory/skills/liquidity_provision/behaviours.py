@@ -456,7 +456,10 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 gas_price=TEMP_GAS_PRICE,
                 amount_in=int(strategy["pair"]["token_a"]["base_amount_in"]),
                 amount_out_min=int(strategy["pair"]["token_a"]["token_amount_out_min"]),
-                path=[strategy["token_a"]["address"], strategy["token_b"]["address"]],
+                path=[
+                    strategy["pair"]["token_a"]["address"],
+                    strategy["pair"]["token_b"]["address"],
+                ],
                 to_address=strategy["router_address"],
                 deadline=int(time.time())
                 + 300,  # 5 min into the future # FIXME: non deterministic # pylint: disable=fixme
@@ -467,7 +470,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(str(swap_a_data)),
+                    "data": HexBytes(swap_a_data),
                 }
             )
 
@@ -482,7 +485,10 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 gas_price=TEMP_GAS_PRICE,
                 amount_in=int(strategy["pair"]["token_b"]["base_amount_in"]),
                 amount_out_min=int(strategy["pair"]["token_b"]["token_amount_out_min"]),
-                path=[strategy["token_a"]["address"], strategy["token_b"]["address"]],
+                path=[
+                    strategy["pair"]["token_a"]["address"],
+                    strategy["pair"]["token_b"]["address"],
+                ],
                 to_address=strategy["router_address"],
                 deadline=int(time.time()) + 300,  # 5 min into the future
             )
@@ -492,7 +498,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(str(swap_b_data)),
+                    "data": HexBytes(swap_b_data),
                 }
             )
 
@@ -519,7 +525,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(str(allowance_data)),
+                    "data": HexBytes(allowance_data),
                 }
             )
 
@@ -555,7 +561,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(str(liquidity_data)),
+                    "data": HexBytes(liquidity_data),
                 }
             )
 
