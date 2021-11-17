@@ -148,9 +148,7 @@ async def test_get_deploy_transaction_with_validate_and_call_callable(
     threshold: int,
 ) -> None:
     """
-    Test get deploy transaction with contract gnosis_safe_contract.
-
-    NOTE: we already deploy it once at base!
+    Test get deploy transaction with contract gnosis_safe_contract ( using _validate_and_call_callable instead of _stub_call method ).
 
     :param gnosis_safe_contract: fixture
     :param ledger_apis_connection: fixture
@@ -215,9 +213,7 @@ async def test_get_state(
     threshold: int,
 ) -> None:
     """
-    Test get deploy transaction with contract gnosis_safe_contract.
-
-    NOTE: we already deploy it once at base!
+    Test get state with contract gnosis_safe_contract.
 
     :param gnosis_safe_contract: fixture
     :param ledger_apis_connection: fixture
@@ -272,9 +268,7 @@ async def test_get_state_with_validate_and_call_callable(
     threshold: int,
 ) -> None:
     """
-    Test get deploy transaction with contract gnosis_safe_contract.
-
-    NOTE: we already deploy it once at base!
+    Test get state with contract gnosis_safe_contract ( using _validate_and_call_callable instead of _call_stub method).
 
     :param gnosis_safe_contract: fixture
     :param ledger_apis_connection: fixture
@@ -339,7 +333,7 @@ async def test_get_raw_transaction(
     threshold: int,
 ) -> None:
     """
-    Test get deploy transaction with contract get_raw_transaction.
+    Test get raw transaction with contract get_raw_transaction.
 
     NOTE: we already deploy it once at base!
 
@@ -396,9 +390,7 @@ async def test_get_raw_message(
     threshold: int,
 ) -> None:
     """
-    Test get deploy transaction with contract get_raw_transaction.
-
-    NOTE: we already deploy it once at base!
+    Test get raw message with contract get_raw_transaction.
 
     :param gnosis_safe_contract: fixture
     :param ledger_apis_connection: fixture
@@ -453,9 +445,7 @@ async def test_get_error_message(
     threshold: int,
 ) -> None:
     """
-    Test get deploy transaction with contract gnosis_safe_contract.
-
-    NOTE: we already deploy it once at base!
+    Test get_error_message method of contract dispatcher.
 
     :param gnosis_safe_contract: fixture
     :param ledger_apis_connection: fixture
