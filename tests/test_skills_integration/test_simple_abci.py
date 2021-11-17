@@ -52,7 +52,7 @@ CHECK_STRINGS = (
 
 class BaseTestSimpleABCISkill(AEATestCaseMany, BaseTendermintTestClass):
     """
-    Base class for Price estimation skill tests.
+    Base class for simple ABCI skill tests.
 
     The setup test function of this class will configure a set of 'n'
     agents with the simple_abci skill, and a Tendermint network
@@ -171,7 +171,7 @@ class BaseTestSimpleAbciSkillNormalExecution(BaseTestSimpleABCISkill):
             ), "ABCI agent wasn't successfully terminated."
 
 
-class TestABCIPriceEstimationSingleAgent(
+class TestSimpleABCISingleAgent(
     BaseTestSimpleAbciSkillNormalExecution,
     BaseTendermintTestClass,
 ):
@@ -180,7 +180,7 @@ class TestABCIPriceEstimationSingleAgent(
     NB_AGENTS = 1
 
 
-class TestABCIPriceEstimationTwoAgents(
+class TestSimpleABCITwoAgents(
     BaseTestSimpleAbciSkillNormalExecution,
     BaseTendermintTestClass,
 ):
@@ -189,7 +189,7 @@ class TestABCIPriceEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-class TestABCIPriceEstimationFourAgents(
+class TestSimpleABCIFourAgents(
     BaseTestSimpleAbciSkillNormalExecution,
     BaseTendermintTestClass,
 ):

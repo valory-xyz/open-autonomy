@@ -937,7 +937,43 @@ class TestCollectSignatureRound(BaseRoundTestClass):
 class TestFinalizationRound(BaseRoundTestClass):
     """Test FinalizationRound."""
 
-    def test_run(
+    def test_run_success(
+        self,
+    ) -> None:
+        """Runs tests."""
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                most_voted_keeper_address=sorted(list(self.participants))[0]
+            ),
+        )
+
+        test_round = FinalizationRound(
+            state=self.period_state,
+            consensus_params=self.consensus_params,
+        )
+
+        payload_0 = FinalizationTxPayload(
+            sender=sorted(list(self.participants))[0], tx_hash=get_final_tx_hash()
+        )
+
+        payload_1 = FinalizationTxPayload(
+            sender=sorted(list(self.participants))[1],
+            tx_hash=get_final_tx_hash(),
+        )
+
+        actual_next_state = cast(
+            PeriodState, self.period_state.update(final_tx_hash=get_final_tx_hash())
+        )
+
+        next_event = Event.DONE
+
+        state = self._run(
+            test_round, payload_0, payload_1, actual_next_state, next_event
+        )
+        assert state.final_tx_hash == actual_next_state.final_tx_hash
+
+    def test_run_failure(
         self,
     ) -> None:
         """Runs tests."""
@@ -954,6 +990,35 @@ class TestFinalizationRound(BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
 
+        payload_0 = FinalizationTxPayload(
+            sender=sorted(list(self.participants))[0], tx_hash=None
+        )
+
+        payload_1 = FinalizationTxPayload(
+            sender=sorted(list(self.participants))[1],
+            tx_hash=get_final_tx_hash(),
+        )
+
+        actual_next_state = cast(
+            PeriodState, self.period_state.update(final_tx_hash=None)
+        )
+
+        next_event = Event.FAILED
+
+        state = self._run(
+            test_round, payload_0, payload_1, actual_next_state, next_event
+        )
+        assert state._final_tx_hash is None
+
+    def _run(
+        self,
+        test_round: FinalizationRound,
+        payload_0: FinalizationTxPayload,
+        payload_1: FinalizationTxPayload,
+        actual_next_state: PeriodState,
+        next_event: Event,
+    ) -> PeriodState:
+        """Run it."""
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
@@ -978,32 +1043,18 @@ class TestFinalizationRound(BaseRoundTestClass):
             ABCIAppInternalError,
             match="internal error: agent_1 not elected as keeper",
         ):
-            test_round.process_payload(
-                FinalizationTxPayload(
-                    sender=sorted(list(self.participants))[1],
-                    tx_hash=get_final_tx_hash(),
-                )
-            )
+            test_round.process_payload(payload_1)
 
         with pytest.raises(
             TransactionNotValidError,
             match="agent_1 not elected as keeper",
         ):
-            test_round.check_payload(
-                FinalizationTxPayload(
-                    sender=sorted(list(self.participants))[1],
-                    tx_hash=get_final_tx_hash(),
-                )
-            )
+            test_round.check_payload(payload_1)
 
         assert not test_round.has_keeper_sent_payload
         assert test_round.end_block() is None
 
-        test_round.process_payload(
-            FinalizationTxPayload(
-                sender=sorted(list(self.participants))[0], tx_hash=get_final_tx_hash()
-            )
-        )
+        test_round.process_payload(payload_0)
 
         assert test_round.has_keeper_sent_payload
 
@@ -1011,33 +1062,19 @@ class TestFinalizationRound(BaseRoundTestClass):
             ABCIAppInternalError,
             match="internal error: keeper already set the payload.",
         ):
-            test_round.process_payload(
-                FinalizationTxPayload(
-                    sender=sorted(list(self.participants))[0],
-                    tx_hash=get_final_tx_hash(),
-                )
-            )
+            test_round.process_payload(payload_0)
 
         with pytest.raises(
             TransactionNotValidError,
             match="keeper payload value already set.",
         ):
-            test_round.check_payload(
-                FinalizationTxPayload(
-                    sender=sorted(list(self.participants))[0],
-                    tx_hash=get_final_tx_hash(),
-                )
-            )
+            test_round.check_payload(payload_0)
 
-        actual_next_state = self.period_state.update(final_tx_hash=get_final_tx_hash())
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert (
-            cast(PeriodState, state).final_tx_hash
-            == cast(PeriodState, actual_next_state).final_tx_hash
-        )
-        assert event == Event.DONE
+        assert event == next_event
+        return cast(PeriodState, state)
 
 
 class BaseSelectKeeperRoundTest(BaseRoundTestClass):
