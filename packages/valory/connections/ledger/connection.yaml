@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qma3Z9MpmS2rFyDw2YCfsYENvam4gnyHNZtKFMkaEPMBnJ
   __init__.py: QmdcyANC7j6fteqzBoFLBg9NfHBAxryY1ykfywzeSpp8iC
-  base.py: QmatUpYJwxSsCJL51RVWBPrPAxE1eeQLZhwTxCzswuk6ws
-  connection.py: QmQzAis7PDo8cNpzcCTgibUgFVYYzin7zk6ghmTBvvAE4Z
+  base.py: QmXVdhh5xdMGJWq36D1QcuQzYMfJFQpeqKxS59w7v4Ynyp
+  connection.py: QmSY8uatfZ7ssKHqZMx4VBYbNU7W2ZcXQmxW3XZSbqunnd
   contract_dispatcher.py: QmXCRSHFhHj1PJFDmDM3cidNeQxH7Fuh4ZFnrQxyaEymJn
   ledger_dispatcher.py: Qmerw4o1Ef1WUqqUZwnTmjjACJRsWrt59PrPvnEAcxBhaU
 fingerprint_ignore_patterns: []

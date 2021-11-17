@@ -167,7 +167,7 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
             done_task = self.done_tasks.pop()
             return self._handle_done_task(done_task)
 
-        if len(self.receiving_tasks) == 0:
+        if len(self.receiving_tasks) == 0:  # pragma: nocover
             self.event_new_receiving_task.clear()
             await self.event_new_receiving_task.wait()
 
