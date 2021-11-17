@@ -69,7 +69,6 @@ class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
     DONE = "done"
-    EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     FAST_FORWARD = "fast_forward"

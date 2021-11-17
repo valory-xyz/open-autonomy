@@ -1,21 +1,19 @@
-name: price_estimation_abci
+name: simple_abci
 author: valory
 version: 0.1.0
 type: skill
-description: ABCI application for cryptocurrency price estimation aggregating observations
-  from different sources.
+description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
-  __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmeoGQH7CnTEBh9byoTyfH3wVw1JuKL6bYdTGAMykBMGCc
+  README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
+  __init__.py: QmQFTuPAiVxSZPmmQC6RnsWgztZRZfLPxs2u2vBojChjxV
+  behaviours.py: QmaCXxJag2y24zFv1gaQNepun8o7vTz2ipekoKEVRjSM4v
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmQ88PbgpiScAB8gK155x98ZUMvdhDvRmuHCQooAyW2es7
-  payloads.py: QmP9gmnove3btJDvAndpUruY5fKsoEYeZXvPQKxA9uJ9wJ
-  rounds.py: QmNhcdYjnXXSSXpZJyuiX5ipY18qBMEsZMijASXwD9vDca
-  tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
+  handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
+  models.py: Qmb1YYGkAa4dhKyYN3CHZU1KdXTZp3AdVyrnT3NBb2ux7L
+  payloads.py: QmXe2vVWq8UjkDQKisQY4qFU6nX5F5D2B1f3kbDkrFu2Da
+  rounds.py: QmbgHTDKUjVJQxe3A8VZsJpkvroqhpWGdK5vazFvn38ziX
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -36,11 +34,11 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: PriceEstimationConsensusBehaviour
+    class_name: SimpleAbciConsensusBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ABCIPriceEstimationHandler
+    class_name: SimpleABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -72,33 +70,11 @@ models:
         max_participants: 1
       max_healthcheck: 120
       observation_interval: 10
-      oracle:
-        min_answer: 1000000000000000000
-        max_answer: 1000000000000000000000000
-        decimals: 18
-        description: BTC
-      period_setup:
-        safe_contract_address: null
-        oracle_contract_address: null
-      retry_attempts: 400
-      retry_timeout: 3
+      period_setup: {}
       round_timeout_seconds: 30
       sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params
-  price_api:
-    args:
-      api_id: coinbase
-      convert_id: USD
-      currency_id: BTC
-      headers: []
-      method: GET
-      parameters: []
-      response_key: data:amount
-      response_type: float
-      retries: 5
-      url: https://api.coinbase.com/v2/prices/BTC-USD/buy
-    class_name: PriceApi
   randomness_api:
     args:
       api_id: cloudflare
