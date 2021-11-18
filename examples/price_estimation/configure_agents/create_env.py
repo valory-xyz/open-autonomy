@@ -20,16 +20,24 @@
 
 """Script to create environment for benchmarking n agents."""
 
+import sys
+from distutils.dir_util import copy_tree
 import os
 import shutil
 from ipaddress import IPv4Address
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 
 from typing import Dict, List, Tuple
 from pathlib import Path
 from shutil import rmtree
 
-CONFIG_DIRECTORY = Path() / "kubernetes_configs/build"
+BASE_DIRECTORY = Path() / "kubernetes_configs"
+CONFIG_DIRECTORY = BASE_DIRECTORY / "build"
+STARTING_IP_ADDRESS = IPv4Address("192.167.11.3")
+AEA_DIR = CONFIG_DIRECTORY / "abci_build"
+AEA_KEY_DIR = AEA_DIR / "keys"
+
+BUILD_DIR = Path("/build/configs")
 
 KEYS: List[str] = [
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
@@ -74,17 +82,22 @@ RANDOMNESS_APIS: List[List[Tuple[str, str]]] = [
 ]
 
 PRICE_APIS: List[List[Tuple[str, str]]] = [
-
     [
         ("url", "https://api.coingecko.com/api/v3/simple/price"),
         ("api_id", "coingecko"),
-        ("parameters", """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list"""),
+        (
+            "parameters",
+            """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list""",
+        ),
         ("response_key", "'bitcoin:usd'"),
     ],
     [
         ("url", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"),
         ("api_id", "coinmarketcap"),
-        ("headers", """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list"""),
+        (
+            "headers",
+            """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list""",
+        ),
         ("parameters", """'[["symbol","BTC"], ["convert","USD"]]'  --type list"""),
         ("response_key", "'data:BTC:quote:USD:price'"),
     ],
@@ -101,6 +114,23 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
     ],
 ]
 
+
+NETWORKS = {
+    "hardhat": {"network_endpoint": "http://hardhat:8545", "chain_id": 3},
+    "ropsten": {
+        "network_endpoint": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+        "chain_id": 3,
+    },
+}
+
+
+DEPLOYED_CONTRACTS = {
+    "ropsten": {
+        "safe_contract_address": "0x7AbCC2424811c342BC9A9B52B1621385d7406676",
+        "oracle_contract_address": "0xB555E44648F6Ff759F64A5B451AB845B0450EA57",
+    }
+}
+
 ABCI_CONFIG_SCRIPT: str = """
 #!/usr/bin/env sh
 
@@ -109,7 +139,9 @@ echo -n $AEA_KEY >  ethereum_private_key.txt
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657
-aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address http://hardhat:8545
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
+aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "{network_endpoint}"
+aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id {chain_id} --type int
 {extra_config}
 aea build
 """
@@ -128,7 +160,6 @@ spec:
     metadata:
       labels:
         app: agent-node-{validator_ix}
-        io.kompose.network/localnet: "true"
       annotations:
         cni.projectcalico.org/ipAddrs: "[\\\"{ip_address}\\\"]"
     spec:
@@ -171,50 +202,7 @@ spec:
         volumeMounts:
           - mountPath: /build
             name: build   
-      volumes:
-        - name: build
-          persistentVolumeClaim:
-            claimName: 'build-vol'
-"""
-
-CLUSTER_CONFIGURATION_TEMPLATE: str = """
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: task-pv-volume
-  labels:
-    type: local
-spec:
-  storageClassName: build-vol
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: "/mnt/data"
----
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-    name: build-vol
-spec:
-    accessModes:
-      - ReadWriteMany
-    storageClassName: build-vol
-    resources:
-        requests:
-            storage: 1Gi
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: config-nodes
-spec:
-  template:
-    spec:
-      imagePullSecrets:
-      - name: regcred
-      containers:
+      initContainers:
       - name: config-nodes
         image: valory/localnode
         args: ["testnet",
@@ -227,70 +215,172 @@ spec:
         volumeMounts:
           - mountPath: /tendermint
             name: build
-      - name: aea
+      - name: aea-init
         image: valory/oracle-poc
         command:
           - /usr/bin/python
         env: 
           - name: NUMBER_OF_NODES
             value: "{number_of_validators}"
-        args: ["../configure_agents/create_env.py", "-n", "$(NUMBER_OF_NODES)", "-b"]
+        args: {config_command}
         volumeMounts:
           - mountPath: /build
             name: build
+    
       volumes:
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol'
-      restartPolicy: Never
-  backoffLimit: 4
 """
 
+# CLUSTER_CONFIGURATION_TEMPLATE: str = """
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: task-pv-volume
+#   labels:
+#     type: local
+# spec:
+#   storageClassName: build-vol
+#   capacity:
+#     storage: 10Gi
+#   accessModes:
+#     - ReadWriteMany
+#   hostPath:
+#     path: "/mnt/data"
+# ---
+# kind: PersistentVolumeClaim
+# apiVersion: v1
+# metadata:
+#     name: build-vol
+# spec:
+#     accessModes:
+#       - ReadWriteMany
+#     storageClassName: build-vol
+#     resources:
+#         requests:
+#             storage: 1Gi
+# ---
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: config-nodes
+# spec:
+#   template:
+#     spec:
+#       imagePullSecrets:
+#       - name: regcred
+#       containers:
+#       - name: config-nodes
+#         image: valory/localnode
+#         args: ["testnet",
+#          "--config",
+#          "/etc/tendermint/config-template.toml",
+#          "--o",  ".", "--starting-ip-address",
+#          "{starting_ip_address}",
+#          "--v", "{number_of_validators}"
+#          ]
+#         volumeMounts:
+#           - mountPath: /tendermint
+#             name: build
+#       - name: aea
+#         image: valory/oracle-poc
+#         command:
+#           - /usr/bin/python
+#         env:
+#           - name: NUMBER_OF_NODES
+#             value: "{number_of_validators}"
+#         args: {config_command}
+#         volumeMounts:
+#           - mountPath: /build
+#             name: build
+#       volumes:
+#         - name: build
+#           persistentVolumeClaim:
+#             claimName: 'build-vol'
+#       restartPolicy: Never
+#   backoffLimit: 4
+# """
 
-def build_config_script(node_id: int, price_api: List[Tuple[str, str]], randomness_api: List[Tuple[str, str]], max_participants: int) -> str:
+
+def build_config_script(
+    node_id: int,
+    price_api: List[Tuple[str, str]],
+    randomness_api: List[Tuple[str, str]],
+    parameters: Namespace
+) -> str:
     """Build `abci_n.sh` for runtime agent config."""
 
     extra_config = "\n".join(
-        [f"aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.{key} {value}" for key, value in price_api]
-        + [f"aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.{key} {value}" for key, value in randomness_api]
+        [
+            f"aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.{key} {value}"
+            for key, value in price_api
+        ]
+        + [
+            f"aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.{key} {value}"
+            for key, value in randomness_api
+        ]
     )
+
+    if not parameters.deploy_safe_contract:
+        safe_contract_address = DEPLOYED_CONTRACTS[parameters.network]["safe_contract_address"]
+        extra_config += f'\naea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.safe_contract_address "{safe_contract_address}"'
+
+    if not parameters.deploy_oracle_contract:
+        oracle_contract_address = DEPLOYED_CONTRACTS[parameters.network]["oracle_contract_address"]
+        extra_config += f'\naea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.oracle_contract_address "{oracle_contract_address}"'
+
+    network_endpoint, chain_id = NETWORKS[parameters.network].values()
 
     return ABCI_CONFIG_SCRIPT.format(
         extra_config=extra_config,
         node_id=node_id,
-        max_participants=max_participants
+        max_participants=parameters.number_of_agents,
+        network_endpoint=network_endpoint,
+        chain_id=chain_id,
     )
 
 
-STARTING_IP_ADDRESS = IPv4Address("192.167.11.3")
+# def build_configuration_job(number_of_agents: int) -> None:
+#     """Build configuration job."""
+#
+#     config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
+#     config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
+#         number_of_validators=number_of_agents,
+#         starting_ip_address=STARTING_IP_ADDRESS,
+#         config_command = config_command
+#     )
+#     with open(CONFIG_DIRECTORY / "config_job.yaml", "w+", encoding="utf-8") as file:
+#         file.write(config_job_yaml)
 
 
-def build_configuration_job(number_of_agents: int) -> None:
-    """Build configuration job."""
+def build_agent_deployment(agent_ix: int, ip_address: IPv4Address, number_of_agents: int) -> None:
 
-    config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
-        number_of_validators=number_of_agents,
-        starting_ip_address=STARTING_IP_ADDRESS
-    )
-    with open(CONFIG_DIRECTORY / "config_job.yaml", "w+", encoding="utf-8") as file:
-        file.write(config_job_yaml)
-
-
-def build_agent_deployment(agent_ix: int, ip_address: IPv4Address) -> None:
-
+    config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
     agent_deployment_yaml = AGENT_NODE_TEMPLATE.format(
-        validator_ix=agent_ix,
-        ip_address=str(ip_address),
-        aea_key=KEYS[agent_ix]
+        validator_ix=agent_ix, ip_address=str(ip_address), aea_key=KEYS[agent_ix],
+        number_of_validators=number_of_agents,
+        starting_ip_address=STARTING_IP_ADDRESS,
+        config_command=config_command
     )
-    with open(CONFIG_DIRECTORY / f"agent_node_deployment-{agent_ix}.yaml", "w+", encoding="utf-8") as file:
+    with open(
+        CONFIG_DIRECTORY / f"agent_node_deployment-{agent_ix}.yaml",
+        "w+",
+        encoding="utf-8",
+    ) as file:
         file.write(agent_deployment_yaml)
 
 
-def build_aea_script(node_id, number_of_agents):
+def build_aea_script(
+    node_id, parameters
+):
 
     config_script = build_config_script(
-        node_id, PRICE_APIS[node_id % len(PRICE_APIS)], RANDOMNESS_APIS[node_id % len(RANDOMNESS_APIS)], number_of_agents)
+        node_id,
+        PRICE_APIS[node_id % len(PRICE_APIS)],
+        RANDOMNESS_APIS[node_id % len(RANDOMNESS_APIS)],
+        parameters
+    )
 
     if not AEA_KEY_DIR.exists():
         AEA_KEY_DIR.mkdir(parents=True)
@@ -298,42 +388,53 @@ def build_aea_script(node_id, number_of_agents):
     with open(AEA_DIR / f"abci{node_id}.sh", "w+", encoding="utf-8") as file:
         file.write(config_script)
 
-    with open(AEA_KEY_DIR / f"ethereum_private_key_{node_id}.txt", "w+", encoding="utf-8") as file:
+    with open(
+        AEA_KEY_DIR / f"ethereum_private_key_{node_id}.txt", "w+", encoding="utf-8"
+    ) as file:
         file.write(KEYS[node_id])
-
-
-AEA_DIR = CONFIG_DIRECTORY / "abci_build"
-AEA_KEY_DIR = AEA_DIR / "keys"
-
-BUILD_DIR = Path("/build/configs")
 
 
 def get_args():
     parser = ArgumentParser()
 
-    parser.add_argument("-n", "--number_of_agents",
-                        type=int,
-                        default=4)
-    parser.add_argument("-b", "--copy_to_build",
-                        action="store_true",
-                        default=False)
+    parser.add_argument("-n", "--number_of_agents", type=int, default=4)
+    parser.add_argument("-b", "--copy_to_build", action="store_true", default=False)
+    parser.add_argument(
+        "-dsc", "--deploy_safe_contract", action="store_true", default=False
+    )
+    parser.add_argument(
+        "-doc", "--deploy_oracle_contract", action="store_true", default=False
+    )
+    parser.add_argument(
+        "-net",
+        "--network",
+        help="Network to be used for deployment",
+        choices=NETWORKS.keys(),
+        required=True,
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     """Main function."""
     args = get_args()
+    print(f"Building configuration {args}")
     number_of_agents = int(args.number_of_agents)
 
     if CONFIG_DIRECTORY.is_dir():
         rmtree(str(CONFIG_DIRECTORY))
+
     CONFIG_DIRECTORY.mkdir(parents=True)
-    build_configuration_job(number_of_agents)
+
+    if args.network == "hardhat" and not args.copy_to_build:
+        shutil.copytree(
+            str(BASE_DIRECTORY / args.network), str(CONFIG_DIRECTORY / args.network)
+        )
 
     for i in range(number_of_agents):
         ip_address = STARTING_IP_ADDRESS + i
-        build_agent_deployment(i, ip_address)
-        build_aea_script(i, number_of_agents)
+        build_agent_deployment(i, ip_address, number_of_agents)
+        build_aea_script(i, args)
     print(f"Created {number_of_agents} deployment yamls and abci start scripts")
 
     if args.copy_to_build:
@@ -341,7 +442,6 @@ def main() -> None:
             rmtree(BUILD_DIR)
         shutil.move(str(AEA_DIR), str(BUILD_DIR))
         print(f"copied {number_of_agents} configs to build volume.")
-
 
 if __name__ == "__main__":
     main()
