@@ -57,7 +57,7 @@ class UniswapV2ERC20Contract(Contract):
         :return: the tx  # noqa: DAR202
         """
         instance = cls.get_instance(ledger_api, contract_address)
-        data = instance.encodeABI(fn_name=method_name, args=[kwargs.values()])
+        data = instance.encodeABI(fn_name=method_name, args=list(kwargs.values()))
         return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
