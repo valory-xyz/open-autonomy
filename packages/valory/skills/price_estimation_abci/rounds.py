@@ -169,6 +169,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
 
     @property
+    def is_keeper_set(self) -> bool:
+        """Check whether keeper is set."""
+        return self._most_voted_keeper_address is not None
+
+    @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
         enforce(

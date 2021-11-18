@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+import copy
 import logging  # noqa: F401
 import re
 from types import MappingProxyType
@@ -617,7 +618,7 @@ class TestDeployOracleRound(BaseDeployTestClass):
 class TestCollectObservationRound(BaseRoundTestClass):
     """Test CollectObservationRound."""
 
-    def test_run(
+    def test_run_a(
         self,
     ) -> None:
         """Runs tests."""
@@ -625,6 +626,93 @@ class TestCollectObservationRound(BaseRoundTestClass):
         test_round = CollectObservationRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
+        payload_0 = ObservationPayload(
+            sender="sender",
+            observation=1.0,
+        )
+
+        payload_1 = ObservationPayload(
+            sender=sorted(list(self.participants))[0],
+            observation=1.0,
+        )
+        participant_to_observations_payloads = get_participant_to_observations(
+            self.participants
+        )
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_observations=copy.copy(
+                    participant_to_observations_payloads
+                )
+            ),
+        )
+        first_payload = participant_to_observations_payloads.pop(
+            sorted(list(participant_to_observations_payloads.keys()))[0]
+        )
+        next_event = Event.DONE
+        self._run(
+            test_round,
+            payload_0,
+            payload_1,
+            first_payload,
+            participant_to_observations_payloads,
+            actual_next_state,
+            next_event,
+        )
+
+    def test_run_b(
+        self,
+    ) -> None:
+        """Runs tests with one less observation."""
+
+        test_round = CollectObservationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        payload_0 = ObservationPayload(
+            sender="sender",
+            observation=1.0,
+        )
+
+        payload_1 = ObservationPayload(
+            sender=sorted(list(self.participants))[0],
+            observation=1.0,
+        )
+        participant_to_observations_payloads = get_participant_to_observations(
+            frozenset(list(self.participants)[:-1])
+        )
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_observations=copy.copy(
+                    participant_to_observations_payloads
+                )
+            ),
+        )
+        first_payload = participant_to_observations_payloads.pop(
+            sorted(list(participant_to_observations_payloads.keys()))[0]
+        )
+        next_event = Event.DONE
+        self._run(
+            test_round,
+            payload_0,
+            payload_1,
+            first_payload,
+            participant_to_observations_payloads,
+            actual_next_state,
+            next_event,
+        )
+
+    def _run(
+        self,
+        test_round: CollectObservationRound,
+        payload_0: ObservationPayload,
+        payload_1: ObservationPayload,
+        first_payload: ObservationPayload,
+        participant_to_observations_payloads: dict,
+        actual_next_state: PeriodState,
+        next_event: Event,
+    ) -> None:
+        """Runs tests."""
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -632,12 +720,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
                 "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.process_payload(
-                ObservationPayload(
-                    sender="sender",
-                    observation=1.0,
-                )
-            )
+            test_round.process_payload(payload_0)
 
         with pytest.raises(
             TransactionNotValidError,
@@ -645,19 +728,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
                 "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.check_payload(
-                ObservationPayload(
-                    sender="sender",
-                    observation=1.0,
-                )
-            )
-
-        participant_to_observations_payloads = get_participant_to_observations(
-            self.participants
-        )
-        first_payload = participant_to_observations_payloads.pop(
-            sorted(list(participant_to_observations_payloads.keys()))[0]
-        )
+            test_round.check_payload(payload_0)
 
         test_round.process_payload(first_payload)
         assert test_round.collection[first_payload.sender] == first_payload
@@ -674,30 +745,21 @@ class TestCollectObservationRound(BaseRoundTestClass):
             TransactionNotValidError,
             match="sender agent_0 has already sent value for round: collect_observation",
         ):
-            test_round.check_payload(
-                ObservationPayload(
-                    sender=sorted(list(self.participants))[0],
-                    observation=1.0,
-                )
-            )
+            test_round.check_payload(payload_1)
 
         for payload in participant_to_observations_payloads.values():
             test_round.process_payload(payload)
 
         assert test_round.collection_threshold_reached
-        actual_next_state = self.period_state.update(
-            participant_to_observations=dict(
-                get_participant_to_observations(self.participants)
-            )
-        )
+
         res = test_round.end_block()
         assert res is not None
         state, event = res
         assert (
             cast(PeriodState, state).participant_to_observations.keys()
-            == cast(PeriodState, actual_next_state).participant_to_observations.keys()
+            == actual_next_state.participant_to_observations.keys()
         )
-        assert event == Event.DONE
+        assert event == next_event
 
 
 class TestEstimateConsensusRound(BaseRoundTestClass):
@@ -923,6 +985,7 @@ class TestCollectSignatureRound(BaseRoundTestClass):
         for payload in participant_to_signature.values():
             test_round.process_payload(payload)
 
+        assert test_round.collection_threshold_reached
         res = test_round.end_block()
         assert res is not None
         _, event = res
