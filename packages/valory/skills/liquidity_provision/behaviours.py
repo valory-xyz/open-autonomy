@@ -384,6 +384,7 @@ def get_strategy_update() -> dict:
             },
         },
         "router_address": "0x0000000000000000000000000000",
+        "liquidity_to_remove": 1,
     }
     return strategy
 
@@ -701,14 +702,259 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
     """Prepare the 'exit pool' multisend tx."""
 
-    # remove liquidity
-    #
-    # remove allowance
-    #
-    # swap back (optional)
-
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+
+            strategy = self.period_state.most_voted_strategy
+
+            # Prepare a uniswap tx list. We should check what token balances we have at this point.
+            # It is possible that we don't need to swap. For now let's assume we have just USDT
+            # and always swap back to it.
+            multi_send_txs = []
+
+
+           # Remove liquidity
+            if strategy["pair"]["token_a"]["is_native"]:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="remove_liquidity_ETH",
+                    sender_address=self.period_state.safe_contract_address,
+                    gas=TEMP_GAS,
+                    gas_price=TEMP_GAS_PRICE,
+                    token=strategy["pair"]["token_b"]["address"],
+                    liquidity=strategy["liquidity_to_remove"],
+                    amount_token_min=int(
+                        strategy["pair"]["token_b"]["amount_min"]
+                    ),
+                    amount_ETH_min=int(
+                        strategy["pair"]["token_a"]["amount_min"]
+                    ),
+                    to_address=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(liquidity_data)),
+                    }
+                )
+
+            else:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="remove_liquidity",
+                    sender_address=self.period_state.safe_contract_address,
+                    gas=TEMP_GAS,
+                    gas_price=TEMP_GAS_PRICE,
+                    token_a=strategy["pair"]["token_a"]["address"],
+                    token_b=strategy["pair"]["token_b"]["address"],
+                    liquidity=strategy["liquidity_to_remove"],
+                    amount_a_min=int(
+                        strategy["pair"]["token_a"]["amount_min"]
+                    ),
+                    amount_b_min=int(
+                        strategy["pair"]["token_b"]["amount_min"]
+                    ),
+                    to_address=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(liquidity_data)),
+                    }
+                )
+
+
+            # Remove allowance for token A (can be native or not)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_a"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                sender_address=self.period_state.safe_contract_address,
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
+                spender_address=strategy["pool_address"],
+                value=0,
+            )
+            allowance_a_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_a_data)),
+                }
+            )
+
+            # Remove allowance for token B (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_a"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                sender_address=self.period_state.safe_contract_address,
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
+                spender_address=strategy["pool_address"],
+                value=0,
+            )
+            allowance_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_b_data)),
+                }
+            )
+
+            # Swap first token back (can be native or not)
+            if strategy["pair"]["token_a"]["is_native"]:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="swap_exact_ETH_for_tokens",
+                    sender_address=self.period_state.safe_contract_address,
+                    gas=TEMP_GAS,
+                    gas_price=TEMP_GAS_PRICE,
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
+                    path=[
+                        strategy["pair"]["token_a"]["address"],
+                        strategy["base"]["address"],
+                    ],
+                    to_address=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                swap_a_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(swap_a_data)),
+                    }
+                )
+
+            else:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="swap_exact_tokens_for_tokens",
+                    sender_address=self.period_state.safe_contract_address,
+                    gas=TEMP_GAS,
+                    gas_price=TEMP_GAS_PRICE,
+                    amount_in=int(strategy["pair"]["token_a"]["amount_in"]),
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
+                    path=[
+                        strategy["pair"]["token_a"]["address"],
+                        strategy["base"]["address"],
+                    ],
+                    to_address=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                swap_a_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(swap_a_data)),
+                    }
+                )
+
+            # Swap second token back (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["router_address"],
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="swap_exact_tokens_for_tokens",
+                sender_address=self.period_state.safe_contract_address,
+                gas=TEMP_GAS,
+                gas_price=TEMP_GAS_PRICE,
+                amount_in=int(strategy["pair"]["token_b"]["amount_in"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["amount_out_min"]),
+                path=[
+                    strategy["pair"]["token_b"]["address"],
+                    strategy["base"]["address"],
+                ],
+                to_address=self.period_state.safe_contract_address,
+                deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+            )
+            swap_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(swap_b_data)),
+                }
+            )
+
+            # Get the tx hash from Gnosis Safe contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address=self.period_state.multisend_contract_address,
+                value=ETHER_VALUE,
+                data=multisend_data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(
+                sender=self.context.agent_address, tx_hash=safe_tx_hash
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 
 class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
