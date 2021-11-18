@@ -1,0 +1,119 @@
+name: apy_estimation
+author: valory
+version: 0.1.0
+type: skill
+description: This skill implements the APY estimation for an AEA.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmYMv9a274LT6GAtDsJ4xg3My5cwjUQSCfjJkDj3dDoQMp
+  __init__.py: QmaCjC8M5r4UfeMesEYDRCSofpswiWkbf6WgC8Zc9sw1UK
+  behaviours.py: QmbQwjwHsGouBpLU6b72eGdy1zZ6g2mVaKKvmyMTnXcdbB
+  models.py: QmQbZ5oGGoLM2XC9q7E1SAWsKh749EPFxuuQswZ4SP4Tw8
+  payloads.py: QmQV9GRRBUe6F3ER7k6kbjTEq76hmrLkydNxi95Vozx3hS
+  rounds.py: Qmaqa6UJy8WpfY89KUuYko8vAQkZTW2KXDhNWWhqt54GQq
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
+- valory/offchain_aggregator:0.1.0
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: PriceEstimationConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIPriceEstimationHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      max_healthcheck: 120
+      observation_interval: 10
+      oracle:
+        min_answer: 1000000000000000000
+        max_answer: 1000000000000000000000000
+        decimals: 18
+        description: BTC
+      period_setup:
+        safe_contract_address: null
+        oracle_contract_address: null
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30
+      sleep_time: 1
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  price_api:
+    args:
+      api_id: coinbase
+      convert_id: USD
+      currency_id: BTC
+      headers: []
+      method: GET
+      parameters: []
+      response_key: data:amount
+      response_type: float
+      retries: 5
+      url: https://api.coinbase.com/v2/prices/BTC-USD/buy
+    class_name: PriceApi
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false
