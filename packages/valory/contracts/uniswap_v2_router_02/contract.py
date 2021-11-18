@@ -40,6 +40,27 @@ class UniswapV2Router02Contract(Contract):
     """The Uniswap V2 Router02 contract."""
 
     @classmethod
+    def get_method_data(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        method_name: str,
+        **kwargs: Any,
+    ) -> JSONLike:
+        """
+        Get a contract call encoded data.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param method_name: the contract method name
+        :param kwargs: the contract method args
+        :return: the tx  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        data = instance.encodeABI(fn_name=method_name, args=[kwargs.values()])
+        return {"data": bytes.fromhex(data[2:])}  # type: ignore
+
+    @classmethod
     def add_liquidity(
         cls,
         ledger_api: LedgerApi,
@@ -374,33 +395,6 @@ class UniswapV2Router02Contract(Contract):
             to_address,
             deadline,
         )
-
-    @classmethod
-    def get_swap_exact_tokens_for_tokens_data(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        epoch_: int,
-        round_: int,
-        amount_: int,
-    ) -> JSONLike:
-        """
-        Handler method for the 'get_active_project' requests.
-
-        Implement this method in the sub class if you want
-        to handle the contract requests manually.
-
-        :param ledger_api: the ledger apis.
-        :param contract_address: the contract address.
-        :param epoch_: the epoch
-        :param round_: the round
-        :param amount_: the amount
-        :return: the tx  # noqa: DAR202
-        """
-        instance = cls.get_instance(ledger_api, contract_address)
-        report = cls.get_report(epoch_, round_, amount_)
-        data = instance.encodeABI(fn_name="swap_exact_tokens_for_tokens", args=[report])
-        return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
     def swap_tokens_for_exact_tokens(
