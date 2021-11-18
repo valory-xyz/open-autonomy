@@ -379,7 +379,7 @@ def get_strategy_update() -> dict:
             "token_b": {
                 "ticker": "BOO",
                 "address": "0xBOO_ADDRESS",
-                "amoun": 1,
+                "amount": 1,
                 "amount_min": 1,
             },
         },
@@ -410,8 +410,8 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
             if strategy["action"] == StrategyType.GO:
                 self.context.logger.info(
-                    f"Performing strategy update: moving {strategy['amountETH']} into "
-                    "{strategy['pair'][0]}-{strategy['pair'][1]} (pool {strategy['pool']})"
+                    f"Performing strategy update: moving into "
+                    "{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
                 )
 
         with benchmark_tool.measure(
@@ -467,8 +467,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                amount_in=int(strategy["pair"]["token_a"]["amount_in"]),
-                amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
+                amount_in=int(strategy["pair"]["token_a"]["amount"]),
+                amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                 path=[
                     strategy["base"]["address"],
                     strategy["pair"]["token_a"]["address"],
@@ -496,8 +496,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                amount_in=int(strategy["pair"]["token_b"]["amount_in"]),
-                amount_out_min=int(strategy["pair"]["token_b"]["amount_out_min"]),
+                amount_in=int(strategy["pair"]["token_b"]["amount"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
                 path=[
                     strategy["base"]["address"],
                     strategy["pair"]["token_b"]["address"],
@@ -525,7 +525,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                spender_address=strategy["pool_address"],
+                spender_address=strategy["router_address"],
                 value=MAX_ALLOWANCE,  # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
             )
             allowance_a_data = contract_api_msg.raw_transaction.body["data"]
@@ -548,7 +548,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                spender_address=strategy["pool_address"],
+                spender_address=strategy["router_address"],
                 value=MAX_ALLOWANCE,  # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
             )
             allowance_b_data = contract_api_msg.raw_transaction.body["data"]
@@ -805,7 +805,7 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                spender_address=strategy["pool_address"],
+                spender_address=strategy["router_address"],
                 value=0,
             )
             allowance_a_data = contract_api_msg.raw_transaction.body["data"]
@@ -828,7 +828,7 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                spender_address=strategy["pool_address"],
+                spender_address=strategy["router_address"],
                 value=0,
             )
             allowance_b_data = contract_api_msg.raw_transaction.body["data"]
@@ -853,7 +853,7 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     sender_address=self.period_state.safe_contract_address,
                     gas=TEMP_GAS,
                     gas_price=TEMP_GAS_PRICE,
-                    amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                     path=[
                         strategy["pair"]["token_a"]["address"],
                         strategy["base"]["address"],
@@ -882,8 +882,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     sender_address=self.period_state.safe_contract_address,
                     gas=TEMP_GAS,
                     gas_price=TEMP_GAS_PRICE,
-                    amount_in=int(strategy["pair"]["token_a"]["amount_in"]),
-                    amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
+                    amount_in=int(strategy["pair"]["token_a"]["amount"]),
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                     path=[
                         strategy["pair"]["token_a"]["address"],
                         strategy["base"]["address"],
@@ -911,8 +911,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 sender_address=self.period_state.safe_contract_address,
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
-                amount_in=int(strategy["pair"]["token_b"]["amount_in"]),
-                amount_out_min=int(strategy["pair"]["token_b"]["amount_out_min"]),
+                amount_in=int(strategy["pair"]["token_b"]["amount"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
                 path=[
                     strategy["pair"]["token_b"]["address"],
                     strategy["base"]["address"],
