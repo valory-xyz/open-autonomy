@@ -42,7 +42,7 @@ from packages.valory.protocols.contract_api.dialogues import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
-from tests.conftest import ETHEREUM_KEY_DEPLOYER
+from tests.conftest import ETHEREUM_KEY_DEPLOYER, get_key
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
@@ -230,7 +230,7 @@ async def test_get_state(
         callable="get_state",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
@@ -285,7 +285,7 @@ async def test_get_state_with_validate_and_call_callable(
         callable="get_state",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
@@ -352,7 +352,7 @@ async def test_get_raw_transaction(
         callable="get_raw_transaction",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
@@ -407,7 +407,7 @@ async def test_get_raw_message(
         callable="get_raw_message",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
