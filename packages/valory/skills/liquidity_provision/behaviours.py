@@ -20,7 +20,6 @@
 """This module contains the behaviours for the 'liquidity_provision' skill."""
 import binascii
 import pprint
-import time
 from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
@@ -71,6 +70,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
     PeriodState,
     StrategyEvaluationRound,
 )
+from packages.valory.skills.liquidity_provision.tools import get_next_00_time
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
 )
@@ -465,8 +465,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     strategy["pair"]["token_b"]["address"],
                 ],
                 to_address=strategy["router_address"],
-                deadline=int(time.time())
-                + 300,  # 5 min into the future # FIXME: non deterministic # pylint: disable=fixme
+                deadline=get_next_00_time() + 300,  # 5 min into the future
             )
             swap_a_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
@@ -494,7 +493,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     strategy["pair"]["token_b"]["address"],
                 ],
                 to_address=strategy["router_address"],
-                deadline=int(time.time()) + 300,  # 5 min into the future
+                deadline=get_next_00_time() + 300,  # 5 min into the future
             )
             swap_b_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
@@ -518,7 +517,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 owner_address=self.period_state.safe_contract_address,
                 spender_address=strategy["lp_token_address"],
                 value=MAX_ALLOWANCE,  # We are setting tha max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
-                deadline=int(time.time()) + 300,  # 5 min into the future
+                deadline=get_next_00_time() + 300,  # 5 min into the future
                 v=0,  # FIXME # pylint: disable=fixme
                 r=0,  # FIXME # pylint: disable=fixme
                 s=0,  # FIXME # pylint: disable=fixme
@@ -557,7 +556,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     strategy["pair"]["token_b"]["token_amount_out_min"] * 0.99
                 ),
                 to_address=strategy["pool_address"],
-                deadline=int(time.time()) + 300,  # 5 min into the future
+                deadline=get_next_00_time() + 300,  # 5 min into the future
             )
             liquidity_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
