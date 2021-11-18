@@ -27,7 +27,10 @@ profiles:
       kubectl:
         manifests:
         - kubernetes_configs/configuration/secret.yaml
-        - kubernetes_configs/configuration/storage/localstorage.yaml
+        - https://raw.githubusercontent.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/master/deploy/kubernetes/deployment.yaml
+        - https://raw.githubusercontent.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/master/deploy/kubernetes/rbac.yaml
+        - https://raw.githubusercontent.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/master/deploy/kubernetes/class.yaml
+        - kubernetes_configs/configuration/storage/remotestorage.yaml
         - kubernetes_configs/configuration/networking/ip_pools.yaml
   - name: configure-localcluster
     deploy:

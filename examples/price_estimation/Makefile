@@ -64,8 +64,6 @@ localcluster-stop:
 	kind delete cluster
 .PHONY: localcluster-stop
 
-
-
 # once a cluster has been initialised, use following to manage
 # we can deploy and remove deployments to the cluster
 cluster-remove-deploy:
@@ -101,5 +99,7 @@ remotecluster-start:
 .PHONY: remotecluster-start
 
 remotecluster-stop:
+	cd infra && terraform destroy
+.PHONY: remotecluster-stop
 
 
