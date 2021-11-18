@@ -74,23 +74,25 @@ def get_default_strategy() -> Dict:
     """Returns default strategy."""
     return {
         "action": StrategyType.GO,
+        "chain": "Fantom",
+        "base": {"address": "0xUSDT_ADDRESS", "balance": 100},
         "pair": {
             "token_a": {
                 "ticker": "FTM",
                 "address": "0xFTM_ADDRESS",
-                "base_amount_in": 1,
-                "token_amount_out_min": 1,
+                "amount": 1,
+                "amount_min": 1,
+                "is_native": True,  # If any, only token_a can be the native one (ETH, FTM...)
             },
             "token_b": {
                 "ticker": "BOO",
                 "address": "0xBOO_ADDRESS",
-                "base_amount_in": 1,
-                "token_amount_out_min": 1,
+                "amount": 1,
+                "amount_min": 1,
             },
         },
-        "router_address": "0x0000000000000000000000000000",
-        "lp_token_address": "0x0000000000000000000000000000",
-        "pool_address": "0x0000000000000000000000000000",
+        "router_address": "router_address",
+        "liquidity_to_remove": 1,
     }
 
 
