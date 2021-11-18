@@ -179,11 +179,11 @@ def get_most_voted_estimate() -> float:
 
 
 def get_participant_to_tx_hash(
-    participants: FrozenSet[str],
+    participants: FrozenSet[str], hash_: Optional[str] = "tx_hash"
 ) -> Dict[str, TransactionHashPayload]:
     """participant_to_tx_hash"""
     return {
-        participant: TransactionHashPayload(sender=participant, tx_hash="tx_hash")
+        participant: TransactionHashPayload(sender=participant, tx_hash=hash_)
         for participant in participants
     }
 
@@ -737,15 +737,15 @@ class TestCollectObservationRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: collect_observation",
+            match=f"internal error: sender {first_payload.sender} has already sent value for round: collect_observation",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: collect_observation",
+            match=f"sender {payload_1.sender} has already sent value for round: collect_observation",
         ):
-            test_round.check_payload(payload_1)
+            test_round.check_payload(first_payload)
 
         for payload in participant_to_observations_payloads.values():
             test_round.process_payload(payload)
@@ -861,11 +861,56 @@ class TestTxHashRound(BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        participant_to_tx_hash_payloads = get_participant_to_tx_hash(self.participants)
+        hash_ = "tx_hash"
+        participant_to_tx_hash_payloads = get_participant_to_tx_hash(
+            self.participants, hash_
+        )
         first_payload = participant_to_tx_hash_payloads.pop(
             sorted(list(participant_to_tx_hash_payloads.keys()))[0]
         )
+        next_event = Event.DONE
+        self._run(
+            test_round,
+            participant_to_tx_hash_payloads,
+            first_payload,
+            next_event,
+            hash_,
+        )
 
+    def test_run_none(
+        self,
+    ) -> None:
+        """Runs test."""
+
+        test_round = TxHashRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        hash_ = None
+        participant_to_tx_hash_payloads = get_participant_to_tx_hash(
+            self.participants, hash_
+        )
+        first_payload = participant_to_tx_hash_payloads.pop(
+            sorted(list(participant_to_tx_hash_payloads.keys()))[0]
+        )
+        next_event = Event.NONE
+        self._run(
+            test_round,
+            participant_to_tx_hash_payloads,
+            first_payload,
+            next_event,
+            hash_,
+        )
+
+    def _run(
+        self,
+        test_round: TxHashRound,
+        participant_to_tx_hash_payloads: Dict,
+        first_payload: TransactionHashPayload,
+        next_event: Event,
+        hash_: Optional[str],
+    ) -> None:
+        """Run test."""
         test_round.process_payload(first_payload)
 
         with pytest.raises(
@@ -899,13 +944,13 @@ class TestTxHashRound(BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: tx_hash",
+            match=f"internal error: sender {first_payload.sender} has already sent value for round: tx_hash",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: tx_hash",
+            match=f"sender {first_payload.sender} has already sent value for round: tx_hash",
         ):
             test_round.check_payload(first_payload)
 
@@ -913,11 +958,11 @@ class TestTxHashRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "tx_hash"
+        assert test_round.most_voted_payload == hash_
         res = test_round.end_block()
         assert res is not None
         _, event = res
-        assert event == Event.DONE
+        assert event == next_event
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""

@@ -27,7 +27,6 @@ from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
-from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
@@ -211,11 +210,10 @@ class RandomnessBehaviour(PriceEstimationBaseState):
             self,
         ).local():
             api_specs = self.context.randomness_api.get_spec()
-            http_message, http_dialogue = self._build_http_request_message(
+            response = yield from self.get_http_response(
                 method=api_specs["method"],
                 url=api_specs["url"],
             )
-            response = yield from self._do_request(http_message, http_dialogue)
             observation = self.context.randomness_api.process_response(response)
 
         if observation:
@@ -397,23 +395,26 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         if (
             contract_api_response.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_deploy_transaction unsuccessful!")
+            return None
         contract_address = cast(
             str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
         tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
-        if tx_digest is None:
-            return None  # pragma: nocover
+        if tx_digest is None:  # pragma: nocover
+            self.context.logger.warning("send_raw_transaction unsuccessful!")
+            return None
         tx_receipt = yield from self.get_transaction_receipt(
             tx_digest,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
-        if tx_receipt is None:
-            return None  # pragma: nocover
+        if tx_receipt is None:  # pragma: nocover
+            self.context.logger.warning("get_transaction_receipt unsuccessful!")
+            return None
         _ = EthereumApi.get_contract_address(
             tx_receipt
         )  # returns None as the contract is created via a proxy
@@ -493,16 +494,19 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
         if (
             contract_api_response.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_deploy_transaction unsuccessful!")
+            return None
         tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
-        if tx_digest is None:
-            return None  # pragma: nocover
+        if tx_digest is None:  # pragma: nocover
+            self.context.logger.warning("send_raw_transaction unsuccessful!")
+            return None
         tx_receipt = yield from self.get_transaction_receipt(tx_digest)
-        if tx_receipt is None:
-            return None  # pragma: nocover
+        if tx_receipt is None:  # pragma: nocover
+            self.context.logger.warning("get_transaction_receipt unsuccessful!")
+            return None
         contract_address = EthereumApi.get_contract_address(tx_receipt)
         self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
@@ -547,8 +551,11 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_contract",
         )
-        if contract_api_response.performative != ContractApiMessage.Performative.STATE:
-            return False  # pragma: nocover
+        if (
+            contract_api_response.performative != ContractApiMessage.Performative.STATE
+        ):  # pragma: nocover
+            self.context.logger.warning("verify_contract unsuccessful!")
+            return False
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified
 
@@ -592,6 +599,11 @@ class ValidateOracleBehaviour(PriceEstimationBaseState):
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="verify_contract",
         )
+        if (
+            contract_api_response.performative != ContractApiMessage.Performative.STATE
+        ):  # pragma: nocover
+            self.context.logger.warning("verify_contract unsuccessful!")
+            return False
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified
 
@@ -626,13 +638,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
             self,
         ).local():
             api_specs = self.context.price_api.get_spec()
-            http_message, http_dialogue = self._build_http_request_message(
+            response = yield from self.get_http_response(
                 method=api_specs["method"],
                 url=api_specs["url"],
                 headers=api_specs["headers"],
                 parameters=api_specs["parameters"],
             )
-            response = yield from self._do_request(http_message, http_dialogue)
             observation = self.context.price_api.process_response(response)
 
         if observation:
@@ -724,10 +735,6 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             self,
         ).local():
             payload_string = yield from self._get_safe_tx_hash()
-            if payload_string is None:
-                raise RuntimeError(
-                    "Could not generate a transaction hash!"
-                )  # pragma: nocover - should probably not raise here!
             payload = TransactionHashPayload(self.context.agent_address, payload_string)
 
         with benchmark_tool.measure(
@@ -749,8 +756,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_latest_transmission_details unsuccessful!")
+            return None
         epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
         round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
         decimals = self.params.oracle_params["decimals"]
@@ -768,8 +776,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_transmit_data unsuccessful!")
+            return None
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -784,8 +793,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_raw_safe_transaction_hash unsuccessful!")
+            return None
         safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
         safe_tx_hash = safe_tx_hash[2:]
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
@@ -834,15 +844,9 @@ class SignatureBehaviour(PriceEstimationBaseState):
         safe_tx_hash_bytes = binascii.unhexlify(
             self.period_state.most_voted_tx_hash[:64]
         )
-        self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
-        signature_response = yield from self.wait_for_message()
-        signature_response = cast(SigningMessage, signature_response)
-        if (
-            signature_response.performative
-            != SigningMessage.Performative.SIGNED_MESSAGE
-        ):
-            raise RuntimeError("Signing failed!")  # pragma: nocover
-        signature_hex = signature_response.signed_message.body
+        signature_hex = yield from self.get_signature(
+            safe_tx_hash_bytes, is_deprecated_mode=True
+        )
         # remove the leading '0x'
         signature_hex = signature_hex[2:]
         self.context.logger.info(f"Signature: {signature_hex}")
@@ -923,8 +927,9 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_transmit_data unsuccessful!")
+            return None
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -945,8 +950,9 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
+            return None
         tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
@@ -1017,8 +1023,9 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):
-            return False  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.warning("get_transmit_data unsuccessful!")
+            return False
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -1036,8 +1043,11 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
         )
-        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
-            return False  # pragma: nocover
+        if (
+            contract_api_msg.performative != ContractApiMessage.Performative.STATE
+        ):  # pragma: nocover
+            self.context.logger.warning("get_transmit_data unsuccessful!")
+            return False
         verified = cast(bool, contract_api_msg.state.body["verified"])
         verified_log = (
             f"Verified result: {verified}"
