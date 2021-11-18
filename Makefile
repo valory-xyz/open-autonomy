@@ -88,6 +88,7 @@ checks:
 	&& make pylint \
 	&& make hashes \
 	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci
+	&& make make test-sub-p tdir=skills/test_liquidity_provision/ dir=skills.liquidity_provision
 
 # how to use:
 #
