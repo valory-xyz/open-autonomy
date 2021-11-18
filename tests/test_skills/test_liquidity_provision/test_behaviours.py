@@ -444,7 +444,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"hello")},
+                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
                 ),
             ),
         )
@@ -460,7 +460,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"hello")},
+                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
                 ),
             ),
         )
@@ -476,7 +476,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_permit_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"hello")},
+                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
                 ),
             ),
         )
@@ -492,7 +492,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_add_liquidity_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"hello")},
+                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
                 ),
             ),
         )
@@ -531,7 +531,7 @@ class TestTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             kwargs=Kwargs(body={}),
             raw_transaction=RawTransaction(
                 ledger_id="ethereum",
-                body={"data": binascii.hexlify(b"hello")},
+                body={"data": binascii.hexlify(b"dummy_tx").decode()},
             ),
         )
         self.contract_handler.handle(incoming_message)

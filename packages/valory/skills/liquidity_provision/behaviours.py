@@ -474,7 +474,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(swap_a_data),
+                    "data": HexBytes(str(swap_a_data)),
                 }
             )
 
@@ -502,7 +502,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(swap_b_data),
+                    "data": HexBytes(str(swap_b_data)),
                 }
             )
 
@@ -529,7 +529,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(allowance_data),
+                    "data": HexBytes(str(allowance_data)),
                 }
             )
 
@@ -565,7 +565,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
-                    "data": HexBytes(liquidity_data),
+                    "data": HexBytes(str(liquidity_data)),
                 }
             )
 
