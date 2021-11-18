@@ -367,6 +367,7 @@ def get_strategy_update() -> dict:
     strategy = {
         "action": StrategyType.GO,
         "chain": "Fantom",
+        "base": {"address": "0xUSDT_ADDRESS", "balance": 100},
         "pair": {
             "token_a": {
                 "ticker": "FTM",
@@ -468,8 +469,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 amount_in=int(strategy["pair"]["token_a"]["amount_in"]),
                 amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
                 path=[
+                    strategy["base"]["address"],
                     strategy["pair"]["token_a"]["address"],
-                    strategy["pair"]["token_b"]["address"],
                 ],
                 to_address=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
@@ -497,7 +498,7 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 amount_in=int(strategy["pair"]["token_b"]["amount_in"]),
                 amount_out_min=int(strategy["pair"]["token_b"]["amount_out_min"]),
                 path=[
-                    strategy["pair"]["token_a"]["address"],
+                    strategy["base"]["address"],
                     strategy["pair"]["token_b"]["address"],
                 ],
                 to_address=self.period_state.safe_contract_address,
