@@ -233,7 +233,7 @@ spec:
             claimName: 'build-vol'
 """
 
-# CLUSTER_CONFIGURATION_TEMPLATE: str = """
+# CLUSTER_CONFIGURATION_TEMPLATE: str = """ # note this is commented out as the config has been moved to the init containers. It should be added back in
 # apiVersion: v1
 # kind: PersistentVolume
 # metadata:
