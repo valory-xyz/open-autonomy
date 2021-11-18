@@ -842,6 +842,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
+        self.keeper_sent_payload = False
         self.keeper_payload: Optional[Any] = None
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
@@ -856,10 +857,11 @@ class OnlyKeeperSendsRound(AbstractRound):
         if sender != self.period_state.most_voted_keeper_address:  # type: ignore
             raise ABCIAppInternalError(f"{sender} not elected as keeper.")
 
-        if self.keeper_payload is not None:
+        if self.keeper_sent_payload:
             raise ABCIAppInternalError("keeper already set the payload.")
 
         self.keeper_payload = getattr(payload, self.payload_attribute)
+        self.keeper_sent_payload = True
 
     def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Check a deploy safe payload can be applied to the current state."""
@@ -874,7 +876,7 @@ class OnlyKeeperSendsRound(AbstractRound):
         if not sender_is_elected_sender:
             raise TransactionNotValidError(f"{sender} not elected as keeper.")
 
-        if self.keeper_payload is not None:
+        if self.keeper_sent_payload:
             raise TransactionNotValidError("keeper payload value already set.")
 
     @property
@@ -883,7 +885,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     ) -> bool:
         """Check if keeper has sent the payload."""
 
-        return self.keeper_payload is not None
+        return self.keeper_sent_payload
 
 
 class VotingRound(CollectionRound):

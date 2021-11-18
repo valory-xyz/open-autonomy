@@ -69,7 +69,6 @@ class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
     DONE = "done"
-    EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     FAST_FORWARD = "fast_forward"
@@ -78,6 +77,7 @@ class Event(Enum):
     VALIDATE_TIMEOUT = "validate_timeout"
     DEPLOY_TIMEOUT = "deploy_timeout"
     RESET_TIMEOUT = "reset_timeout"
+    FAILED = "failed"
 
 
 def encode_float(value: float) -> bytes:
@@ -655,10 +655,11 @@ class FinalizationRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload:
+        if self.has_keeper_sent_payload and self.keeper_payload is not None:
             state = self.period_state.update(final_tx_hash=self.keeper_payload)
             return state, Event.DONE
+        if self.has_keeper_sent_payload and self.keeper_payload is None:
+            return self.period_state, Event.FAILED
         return None
 
 
@@ -866,6 +867,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.ROUND_TIMEOUT: SelectKeeperBRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperBRound,  # the keeper was unsuccessful;
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,

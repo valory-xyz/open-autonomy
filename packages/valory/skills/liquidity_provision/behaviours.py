@@ -237,6 +237,8 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 "I am the designated sender, sending the safe transaction..."
             )
             tx_hash = yield from self._send_safe_transaction()
+            if tx_hash is None:
+                raise RuntimeError("This needs to be fixed!")  # TOFIX
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
@@ -253,7 +255,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
         self.set_done()
 
-    def _send_safe_transaction(self) -> Generator[None, None, str]:
+    def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
         """Send a Safe transaction using the participants' signatures."""
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -269,6 +271,8 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             },
         )
         tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
+        if tx_hash is None:
+            return None  # pragma: nocover
         self.context.logger.info(f"Finalization tx hash: {tx_hash}")
         return tx_hash
 

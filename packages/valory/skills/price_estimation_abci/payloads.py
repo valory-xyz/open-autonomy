@@ -316,7 +316,9 @@ class FinalizationTxPayload(BasePriceEstimationPayload):
 
     transaction_type = TransactionType.FINALIZATION
 
-    def __init__(self, sender: str, tx_hash: str, id_: Optional[str] = None) -> None:
+    def __init__(
+        self, sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None
+    ) -> None:
         """Initialize an 'finalization' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -327,14 +329,14 @@ class FinalizationTxPayload(BasePriceEstimationPayload):
         self._tx_hash = tx_hash
 
     @property
-    def tx_hash(self) -> str:
+    def tx_hash(self) -> Optional[str]:
         """Get the signature."""
         return self._tx_hash
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(tx_hash=self.tx_hash)
+        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
 
 
 class ResetPayload(BasePriceEstimationPayload):

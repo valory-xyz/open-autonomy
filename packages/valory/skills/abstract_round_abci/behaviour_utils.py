@@ -668,7 +668,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, str]:
+    ) -> Generator[None, None, Optional[str]]:
         """Send raw transactions to the ledger for mining."""
         terms = Terms(
             self.context.default_ledger_id,
@@ -681,13 +681,18 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
-        enforce(
+        if (
             signature_response.performative
-            == SigningMessage.Performative.SIGNED_TRANSACTION,
-            "signing error",
-        )
+            != SigningMessage.Performative.SIGNED_TRANSACTION
+        ):
+            return None  # pragma: nocover
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
+        if (
+            transaction_digest_msg.performative
+            != LedgerApiMessage.Performative.TRANSACTION_DIGEST
+        ):
+            return None  # pragma: nocover
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash
 

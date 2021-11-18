@@ -362,6 +362,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
                 "I am the designated sender, deploying the safe contract..."
             )
             contract_address = yield from self._send_deploy_transaction()
+            if contract_address is None:
+                raise RuntimeError("Safe deployment failed!")  # pragma: nocover
             payload = DeploySafePayload(self.context.agent_address, contract_address)
 
         with benchmark_tool.measure(
@@ -373,7 +375,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def _send_deploy_transaction(self) -> Generator[None, None, str]:
+    def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
         owners = self.period_state.sorted_participants
         threshold = self.params.consensus_params.consensus_threshold
         contract_api_response = yield from self.get_contract_api_response(
@@ -385,19 +387,26 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             threshold=threshold,
             deployer_address=self.context.agent_address,
         )
+        if (
+            contract_api_response.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
         contract_address = cast(
             str, contract_api_response.raw_transaction.body.pop("contract_address")
         )
         tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        if tx_digest is None:
+            return None  # pragma: nocover
         tx_receipt = yield from self.get_transaction_receipt(
             tx_digest,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if tx_receipt is None:
-            raise RuntimeError("Safe deployment failed!")  # pragma: nocover
+            return None  # pragma: nocover
         _ = EthereumApi.get_contract_address(
             tx_receipt
         )  # returns None as the contract is created via a proxy
@@ -443,6 +452,8 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
                 "I am the designated sender, deploying the oracle contract..."
             )
             contract_address = yield from self._send_deploy_transaction()
+            if contract_address is None:
+                raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
         with benchmark_tool.measure(
@@ -454,7 +465,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def _send_deploy_transaction(self) -> Generator[None, None, str]:
+    def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
         min_answer = self.params.oracle_params["min_answer"]
         max_answer = self.params.oracle_params["max_answer"]
         decimals = self.params.oracle_params["decimals"]
@@ -472,12 +483,19 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
         )
+        if (
+            contract_api_response.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
         tx_digest = yield from self.send_raw_transaction(
             contract_api_response.raw_transaction
         )
+        if tx_digest is None:
+            return None  # pragma: nocover
         tx_receipt = yield from self.get_transaction_receipt(tx_digest)
         if tx_receipt is None:
-            raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
+            return None  # pragma: nocover
         contract_address = EthereumApi.get_contract_address(tx_receipt)
         self.context.logger.info(f"Deployment tx digest: {tx_digest}")
         return contract_address
@@ -522,6 +540,8 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_contract",
         )
+        if contract_api_response.performative != ContractApiMessage.Performative.STATE:
+            return False  # pragma: nocover
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified
 
@@ -696,42 +716,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.oracle_contract_address,
-                contract_id=str(OffchainAggregatorContract.contract_id),
-                contract_callable="get_latest_transmission_details",
-            )
-            epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
-            round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
-            decimals = self.params.oracle_params["decimals"]
-            amount = self.period_state.most_voted_estimate
-            amount_ = to_int(amount, decimals)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.oracle_contract_address,
-                contract_id=str(OffchainAggregatorContract.contract_id),
-                contract_callable="get_transmit_data",
-                epoch_=epoch_,
-                round_=round_,
-                amount_=amount_,
-            )
-            data = contract_api_msg.raw_transaction.body["data"]
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
-                contract_id=str(GnosisSafeContract.contract_id),
-                contract_callable="get_raw_safe_transaction_hash",
-                to_address=self.period_state.oracle_contract_address,
-                value=ETHER_VALUE,
-                data=data,
-                safe_tx_gas=SAFE_TX_GAS,
-            )
-            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
-            safe_tx_hash = safe_tx_hash[2:]
-            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
-            # temp hack:
-            payload_string = payload_to_hex(safe_tx_hash, epoch_, round_, amount_)
+            payload_string = yield from self._get_safe_tx_hash()
+            if payload_string is None:
+                raise RuntimeError(
+                    "Could not generate a transaction hash!"
+                )  # pragma: nocover - should probably not raise here!
             payload = TransactionHashPayload(self.context.agent_address, payload_string)
 
         with benchmark_tool.measure(
@@ -741,6 +730,61 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
+        """Get the transaction hash of the Safe tx."""
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.oracle_contract_address,
+            contract_id=str(OffchainAggregatorContract.contract_id),
+            contract_callable="get_latest_transmission_details",
+        )
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
+        epoch_ = cast(int, contract_api_msg.raw_transaction.body["epoch_"]) + 1
+        round_ = cast(int, contract_api_msg.raw_transaction.body["round_"])
+        decimals = self.params.oracle_params["decimals"]
+        amount = self.period_state.most_voted_estimate
+        amount_ = to_int(amount, decimals)
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.oracle_contract_address,
+            contract_id=str(OffchainAggregatorContract.contract_id),
+            contract_callable="get_transmit_data",
+            epoch_=epoch_,
+            round_=round_,
+            amount_=amount_,
+        )
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
+        data = contract_api_msg.raw_transaction.body["data"]
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction_hash",
+            to_address=self.period_state.oracle_contract_address,
+            value=ETHER_VALUE,
+            data=data,
+            safe_tx_gas=SAFE_TX_GAS,
+        )
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
+        safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+        safe_tx_hash = safe_tx_hash[2:]
+        self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+        # temp hack:
+        payload_string = payload_to_hex(safe_tx_hash, epoch_, round_, amount_)
+        return payload_string
 
 
 class SignatureBehaviour(PriceEstimationBaseState):
@@ -785,7 +829,13 @@ class SignatureBehaviour(PriceEstimationBaseState):
         )
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
-        signature_hex = cast(SigningMessage, signature_response).signed_message.body
+        signature_response = cast(SigningMessage, signature_response)
+        if (
+            signature_response.performative
+            != SigningMessage.Performative.SIGNED_MESSAGE
+        ):
+            raise RuntimeError("Signing failed!")  # pragma: nocover
+        signature_hex = signature_response.signed_message.body
         # remove the leading '0x'
         signature_hex = signature_hex[2:]
         self.context.logger.info(f"Signature: {signature_hex}")
@@ -827,15 +877,18 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             self,
         ).local():
             self.context.logger.info(
-                "I am the designated sender, sending the safe transaction..."
+                "I am the designated sender, attempting to send the safe transaction..."
             )
             tx_digest = yield from self._send_safe_transaction()
-            self.context.logger.info(
-                f"Transaction digest of the final transaction: {tx_digest}"
-            )
-            self.context.logger.debug(
-                f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
-            )
+            if tx_digest is None:
+                self.context.logger.info(  # pragma: nocover
+                    "Did not succeed with finalising the transaction!"
+                )
+            else:
+                self.context.logger.info(f"Finalization tx digest: {tx_digest}")
+                self.context.logger.debug(
+                    f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
+                )
             payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
 
         with benchmark_tool.measure(
@@ -846,7 +899,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
 
         self.set_done()
 
-    def _send_safe_transaction(self) -> Generator[None, None, str]:
+    def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
         """Send a Safe transaction using the participants' signatures."""
         _, epoch_, round_, amount_ = hex_to_payload(
             self.period_state.most_voted_tx_hash
@@ -860,6 +913,11 @@ class FinalizeBehaviour(PriceEstimationBaseState):
             round_=round_,
             amount_=amount_,
         )
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -877,10 +935,14 @@ class FinalizeBehaviour(PriceEstimationBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
         )
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return None  # pragma: nocover
         tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
-        self.context.logger.info(f"Finalization tx digest: {tx_digest}")
         return tx_digest
 
 
@@ -916,7 +978,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         self.set_done()
 
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
-        """Contract deployment verification."""
+        """Transaction verification."""
         response = yield from self.get_transaction_receipt(
             self.period_state.final_tx_hash,
             self.params.retry_timeout,
@@ -945,6 +1007,11 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
             round_=round_,
             amount_=amount_,
         )
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            return False  # pragma: nocover
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
