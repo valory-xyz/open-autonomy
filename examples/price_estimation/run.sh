@@ -12,7 +12,7 @@ then
     cp -r /build/configs/* ../configure_agents
     sudo chown -R  $(whoami) /build/configs
     bash ../configure_agents/abci"${AGENT_ID}".sh &&\
-     python3 -m aea.cli -v DEBUG run
+     python3 -m aea.cli -v INFO run
 else
     echo "configuring ${ID}"
     ../configure_agents/abci"${ID}".sh &&\
