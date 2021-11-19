@@ -289,7 +289,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         result = self.contract.get_method_data(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
-            method_name="transferFrom",
+            method_name="transfer_from",
             **kwargs
         )
         assert result == {
