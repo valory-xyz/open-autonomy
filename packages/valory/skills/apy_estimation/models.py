@@ -21,9 +21,10 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams, SharedState, ApiSpecs
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, SharedState
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp
 from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.simple_abci.models import Params as BaseParams
 
 
 MARGIN = 5
@@ -49,12 +50,17 @@ class APYSharedState(SharedState):
             APYEstimationAbciApp.event_to_timeout[event] = override
 
 
+class FantomSubgraph(ApiSpecs):
+    """A model that wraps ApiSpecs for Fantom subgraph specifications."""
+
+
 class SpookySwapSubgraph(ApiSpecs):
     """A model that wraps ApiSpecs for SpookySwap subgraph specifications."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize SpookySwapSubgraph."""
-        self.duration: int = self.ensure("duration", kwargs)
+        self.bundle_id: int = self.ensure("bundle_id", kwargs)
+        self.top_n_pools: int = self.ensure("top_n_pools", kwargs)
         super().__init__(*args, **kwargs)
 
 
@@ -63,8 +69,5 @@ class APYParams(BaseParams):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
-        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
-        self.sleep_time = self._ensure("sleep_time", kwargs)
-        self.observation_interval = self._ensure("observation_interval", kwargs)
+        self.history_duration = self._ensure("history_duration", kwargs)
         super().__init__(*args, **kwargs)

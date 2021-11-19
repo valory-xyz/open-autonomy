@@ -555,7 +555,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
         method: str,
         url: str,
-        content: Dict = None,
+        content: Optional[bytes] = None,
         headers: List[Tuple[str, str]] = None,
         parameters: List[Tuple[str, str]] = None,
     ) -> Generator[None, None, HttpMessage]:
@@ -606,7 +606,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
         method: str,
         url: str,
-        content: Dict = None,
+        content: Optional[bytes] = None,
         headers: List[Tuple[str, str]] = None,
         parameters: List[Tuple[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
@@ -645,7 +645,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             url=url,
             headers=header_string,
             version="",
-            body=b"" if content is None else json.dumps(content).encode("utf-8"),
+            body=b"" if content is None else content,
         )
         request_http_message = cast(HttpMessage, request_http_message)
         http_dialogue = cast(HttpDialogue, http_dialogue)

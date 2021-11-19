@@ -8,11 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYMv9a274LT6GAtDsJ4xg3My5cwjUQSCfjJkDj3dDoQMp
   __init__.py: QmaCjC8M5r4UfeMesEYDRCSofpswiWkbf6WgC8Zc9sw1UK
-  behaviours.py: QmckWm6sgP7h7vm1T8JHQaqLtV5CPcvtUaom5pwVoBQu8b
-  models.py: Qmcri1sUPa12zYFpTGPLegPBKdgP64zzZgsaygfUjCmQVH
-  payloads.py: QmZgeY212WEX31dC9WyW44S7W7jQj3U7PMvdCJ3dB4c4pJ
-  rounds.py: QmeEJfCGksjUFtzrPLmuv3XVrbVjpnrxcdxJj2oFfN7ckf
-  tools.py: QmRWdZ1rK2tB8JWp33XuwqTaLpvitNdparPn4RkFdMLKdn
+  behaviours.py: QmZNqFY99BP4G4U5JzY61tvgVPR78cyWzw433NeT2AEcYv
+  models.py: QmdHq1J3qn9xLDdkmVeQTdVrzSW1YwHGBq41vtBXKuMmj8
+  payloads.py: QmSx2DgvuJ1D6TXqFL9N5i8kgD8KgMEFBLbo8ZnhAsUovC
+  rounds.py: QmUfHwaegvr4RofhvvPF5qQaxnfY2DHQFnFhmux5EvNRKk
+  tools/__init__.py: QmczcDSeL3tgo4whbicN8msiJgNAHD5jVfb9K8sD2bR2uY
+  tools/general.py: QmX4nZxvMdGNtwd4NCs8x88GYM5dGz5LsmtHPXCXFLcu4Q
+  tools/queries.py: QmfTjsAkex1ApuLhV5m8Hnue4vbGGFPfXQwGaNqwdGU8h7
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -54,6 +56,18 @@ models:
   contract_api_dialogues:
     args: {}
     class_name: ContractApiDialogues
+  fantom_subgraph:
+    args:
+      api_id: fantom
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: []
+      response_key: data
+      response_type: dict
+      retries: 5
+      url: https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks
+    class_name: FantomSubgraph
   http_dialogues:
     args: {}
     class_name: HttpDialogues
@@ -64,6 +78,7 @@ models:
     args:
       consensus:
         max_participants: 1
+      history_duration: 6
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
@@ -72,25 +87,27 @@ models:
       round_timeout_seconds: 30
       sleep_time: 1
       tendermint_url: http://localhost:26657
-    class_name: Params
-  spooky_history_subgraph:
-    args:
-      api_id: spookyswap
-      headers: ['Content-Type: application/json']
-      method: POST
-      parameters: [ ]
-      response_key: data
-      response_type: dict
-      retries: 5
-      url: https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap
-      duration: 6
-    class_name: SpookySwapSubgraph
+    class_name: APYParams
   requests:
     args: {}
     class_name: Requests
   signing_dialogues:
     args: {}
     class_name: SigningDialogues
+  spooky_subgraph:
+    args:
+      api_id: spookyswap
+      bundle_id: 1
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: []
+      response_key: data
+      response_type: dict
+      retries: 5
+      top_n_pools: 100
+      url: https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap
+    class_name: SpookySwapSubgraph
   state:
     args: {}
     class_name: SharedState

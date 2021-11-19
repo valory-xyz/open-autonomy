@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the APY estimation app."""
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -32,6 +32,33 @@ class TransactionType(BaseTransactionType):
     """Enumeration of transaction types."""
 
     TRANSFORMATION = "transformation"
+    FETCHING = "fetching"
+
+
+class FetchingPayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'fetching'."""
+
+    transaction_type = TransactionType.FETCHING
+
+    def __init__(self, sender: str, fetching: List, id_: Optional[str] = None) -> None:
+        """Initialize a 'fetching' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param fetching: the fetched history.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._fetching = fetching
+
+    @property
+    def fetching(self) -> List:
+        """Get the fetched history."""
+        return self._fetching
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return {"fetching": self._fetching}
 
 
 class TransformationPayload(BaseSimpleAbciPayload):
@@ -42,10 +69,10 @@ class TransformationPayload(BaseSimpleAbciPayload):
     def __init__(
         self, sender: str, transformation: pd.DataFrame, id_: Optional[str] = None
     ) -> None:
-        """Initialize an 'rest' transaction payload.
+        """Initialize an 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param transformation: the transformation of the observations.
+        :param transformation: the transformation of the history.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)

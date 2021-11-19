@@ -34,7 +34,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionType,
 )
 from packages.valory.skills.apy_estimation.payloads import TransformationPayload
-from packages.valory.skills.apy_estimation.tools import transform
+from packages.valory.skills.apy_estimation.tools.general import transform
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     ObservationPayload,
