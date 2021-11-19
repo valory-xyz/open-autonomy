@@ -169,6 +169,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
 
     @property
+    def is_keeper_set(self) -> bool:
+        """Check whether keeper is set."""
+        return self._most_voted_keeper_address is not None
+
+    @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
         enforce(
@@ -596,12 +601,14 @@ class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        if self.threshold_reached:
+        if self.threshold_reached and self.most_voted_payload is not None:
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
+        if self.threshold_reached and self.most_voted_payload is None:
+            return self.period_state, Event.NONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -856,6 +863,7 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
+            Event.NONE: ResetRound,  # if the agents cannot produce the hash we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
