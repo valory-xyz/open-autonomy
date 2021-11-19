@@ -25,7 +25,6 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from eth_abi import encode_abi
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -246,27 +245,3 @@ class UniswapV2ERC20Contract(Contract):
             }
         )
         return tx
-
-    @classmethod
-    def get_report(
-        cls,
-        epoch_: int,
-        round_: int,
-        amount_: int,
-    ) -> bytes:
-        """
-        Get report serialised.
-
-        :param epoch_: the epoch
-        :param round_: the round
-        :param amount_: the amount
-        :return: the tx  # noqa: DAR202
-        """
-        left_pad = "0" * 22
-        TEMP_CONFIG = 0
-        config_digest = TEMP_CONFIG.to_bytes(16, "big").hex()
-        epoch_hex = epoch_.to_bytes(4, "big").hex()
-        round_hex = round_.to_bytes(1, "big").hex()
-        raw_report = left_pad + config_digest + epoch_hex + round_hex
-        report = encode_abi(["bytes32", "int192"], [bytes.fromhex(raw_report), amount_])
-        return report
