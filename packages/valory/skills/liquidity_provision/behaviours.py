@@ -29,9 +29,6 @@ from hexbytes import HexBytes
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.gnosis_safe.contract import (
-    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
-)
 from packages.valory.contracts.multisend.contract import (
     MultiSendContract,
     MultiSendOperation,
@@ -115,45 +112,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
-
-
-class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare transaction hash."""
-
-    def async_act(self) -> Generator:  # pragma: nocover
-        """
-        Do the action.
-
-        Steps:
-        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
-        - Send the transaction hash as a transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address="",
-                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-                contract_callable="get_raw_safe_transaction_hash",
-                to_address="",
-                value=0,
-            )
-            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
-            safe_tx_hash = safe_tx_hash[2:]
-            self.context.logger.info(f"Hash of the Swap transaction: {safe_tx_hash}")
-            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
 
 
 class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
@@ -424,7 +382,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
+class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Prepare the 'enter pool' multisend tx."""
 
     state_id = "enter_pool_tx_hash"
@@ -708,7 +666,7 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
     matching_round = EnterPoolSelectKeeperRound
 
 
-class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
+class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     """Prepare the 'exit pool' multisend tx."""
 
     state_id = "exit_pool_tx_hash"
