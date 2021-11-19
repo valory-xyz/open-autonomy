@@ -277,7 +277,10 @@ class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
         with benchmark_tool.measure(
             self,
         ).local():
-            if self.period_state.is_keeper_set:
+            if (
+                self.period_state.is_keeper_set
+                and len(self.period_state.participants) > 1
+            ):
                 # if a keeper is already set we remove it from the potential selection.
                 potential_keepers = list(self.period_state.participants)
                 potential_keepers.remove(self.period_state.most_voted_keeper_address)
