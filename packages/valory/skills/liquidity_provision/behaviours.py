@@ -120,7 +120,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """Prepare transaction hash."""
 
-    def async_act(self) -> Generator:
+    def async_act(self) -> Generator:  # pragma: nocover
         """
         Do the action.
 
@@ -237,7 +237,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 "I am the designated sender, sending the safe transaction..."
             )
             tx_hash = yield from self._send_safe_transaction()
-            if tx_hash is None:
+            if tx_hash is None:  # pragma: nocover
                 raise RuntimeError("This needs to be fixed!")  # TOFIX
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
@@ -374,7 +374,8 @@ def get_strategy_update() -> dict:
                 "address": "0xFTM_ADDRESS",
                 "amount": 1,
                 "amount_min": 1,
-                "is_native": True,  # If any, only token_a can be the native one (ETH, FTM...)
+                # If any, only token_a can be the native one (ETH, FTM...)
+                "is_native": True,
             },
             "token_b": {
                 "ticker": "BOO",
@@ -403,9 +404,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = get_strategy_update()
-            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
-
-            if strategy["action"] == StrategyType.WAIT:
+            if strategy["action"] == StrategyType.WAIT:  # pragma: nocover
                 self.context.logger.info("Current strategy is still optimal. Waiting.")
 
             if strategy["action"] == StrategyType.GO:
@@ -413,6 +412,8 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                     "Performing strategy update: moving into "
                     + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
                 )
+            strategy["action"] = strategy["action"].value  # type: ignore
+            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
 
         with benchmark_tool.measure(
             self,
@@ -479,7 +480,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             swap_a_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(swap_a_data)),
@@ -508,7 +510,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             swap_b_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(swap_b_data)),
@@ -526,12 +529,14 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
                 spender_address=strategy["router_address"],
-                value=MAX_ALLOWANCE,  # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=MAX_ALLOWANCE,
             )
             allowance_a_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(allowance_a_data)),
@@ -549,12 +554,14 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 gas=TEMP_GAS,
                 gas_price=TEMP_GAS_PRICE,
                 spender_address=strategy["router_address"],
-                value=MAX_ALLOWANCE,  # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=MAX_ALLOWANCE,
             )
             allowance_b_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(allowance_b_data)),
@@ -587,7 +594,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
                 multi_send_txs.append(
                     {
-                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
                         "to": crypto_registry.make(EthereumCrypto.identifier).address,
                         "value": 1,
                         "data": HexBytes(str(liquidity_data)),
@@ -621,7 +629,8 @@ class EnterPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
                 multi_send_txs.append(
                     {
-                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
                         "to": crypto_registry.make(EthereumCrypto.identifier).address,
                         "value": 1,
                         "data": HexBytes(str(liquidity_data)),
@@ -749,7 +758,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
                 multi_send_txs.append(
                     {
-                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
                         "to": crypto_registry.make(EthereumCrypto.identifier).address,
                         "value": 1,
                         "data": HexBytes(str(liquidity_data)),
@@ -778,7 +788,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
                 multi_send_txs.append(
                     {
-                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
                         "to": crypto_registry.make(EthereumCrypto.identifier).address,
                         "value": 1,
                         "data": HexBytes(str(liquidity_data)),
@@ -801,7 +812,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             allowance_a_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(allowance_a_data)),
@@ -824,7 +836,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             allowance_b_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(allowance_b_data)),
@@ -854,7 +867,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 swap_a_data = contract_api_msg.raw_transaction.body["data"]
                 multi_send_txs.append(
                     {
-                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
                         "to": crypto_registry.make(EthereumCrypto.identifier).address,
                         "value": 1,
                         "data": HexBytes(str(swap_a_data)),
@@ -884,7 +898,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 swap_a_data = contract_api_msg.raw_transaction.body["data"]
                 multi_send_txs.append(
                     {
-                        "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
                         "to": crypto_registry.make(EthereumCrypto.identifier).address,
                         "value": 1,
                         "data": HexBytes(str(swap_a_data)),
@@ -913,7 +928,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             swap_b_data = contract_api_msg.raw_transaction.body["data"]
             multi_send_txs.append(
                 {
-                    "operation": MultiSendOperation.CALL,  # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
                     "to": crypto_registry.make(EthereumCrypto.identifier).address,
                     "value": 1,
                     "data": HexBytes(str(swap_b_data)),

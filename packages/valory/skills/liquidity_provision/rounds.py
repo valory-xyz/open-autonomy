@@ -93,6 +93,9 @@ class PeriodState(
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
         participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
+        participant_to_strategy: Optional[
+            Mapping[str, StrategyEvaluationPayload]
+        ] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
@@ -110,6 +113,16 @@ class PeriodState(
         self._final_tx_hash = final_tx_hash
         self._participant_to_votes = participant_to_votes
         self._participant_to_tx_hash = participant_to_tx_hash
+        self._participant_to_strategy = participant_to_strategy
+
+    @property
+    def most_voted_strategy(self) -> dict:
+        """Get the most_voted_strategy."""
+        enforce(
+            self._most_voted_strategy is not None,
+            "'most_voted_strategy' field is None",
+        )
+        return cast(dict, self._most_voted_strategy)
 
     @property
     def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
@@ -119,6 +132,17 @@ class PeriodState(
             "'participant_to_votes' field is None",
         )
         return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
+
+    @property
+    def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
+        """Get the participant_to_votes."""
+        enforce(
+            self._participant_to_strategy is not None,
+            "'participant_to_strategy' field is None",
+        )
+        return cast(
+            Mapping[str, StrategyEvaluationPayload], self._participant_to_strategy
+        )
 
     @property
     def participant_to_tx_hash(self) -> Mapping[str, TransactionHashPayload]:
@@ -167,15 +191,6 @@ class PeriodState(
             Mapping[str, SignaturePayload],
             self._participant_to_signature,
         )
-
-    @property
-    def most_voted_strategy(self) -> dict:
-        """Get the most_voted_strategy."""
-        enforce(
-            self._most_voted_strategy is not None,
-            "'most_voted_strategy' field is None",
-        )
-        return cast(dict, self._most_voted_strategy)
 
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
@@ -304,7 +319,7 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
 
     round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
-    exit_event: Event
+    exit_event: Event = Event.EXIT
     payload_attribute = "vote"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -363,7 +378,7 @@ class StrategyEvaluationRound(
             )
             event = (
                 Event.DONE
-                if self.period_state.most_voted_strategy["action"] == StrategyType.GO
+                if state.most_voted_strategy["action"] == StrategyType.GO  # type: ignore
                 else Event.RESET_TIMEOUT
             )
             return state, event

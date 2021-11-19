@@ -45,7 +45,7 @@ class TransactionType(Enum):
 class BaseLiquidityProvisionPayload(BaseTxPayload, ABC):
     """Base class for the liquidity provision skill."""
 
-    def __hash__(self) -> int:
+    def __hash__(self) -> int:  # pragma: nocover
         """Hash the payload."""
         return hash(tuple(sorted(self.data.items())))
 
@@ -56,7 +56,7 @@ class StrategyType(Enum):
     WAIT = "wait"
     GO = "go"
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: nocover
         """Get the string value of the strategy type."""
         return self.value
 
