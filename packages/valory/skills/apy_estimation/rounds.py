@@ -54,7 +54,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     RandomnessRound,
     ResetRound,
-    SelectKeeperARound,
 )
 from packages.valory.skills.simple_abci.rounds import RegistrationRound
 
@@ -129,21 +128,21 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         return self.period_state, Event.NO_MAJORITY
 
 
-class CollectObservationRound(
+class CollectHistoryRound(
     CollectDifferentUntilThresholdRound, APYEstimationAbstractRound
 ):
     """
-    This class represents the 'collect-observation' round.
+    This class represents the 'collect-history' round.
 
     Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the observations
+    Output: a new period state with the prior round data and the historical data
 
     It schedules the TransformRound.
     """
 
-    round_id = "collect_observation"
+    round_id = "collect_history"
     allowed_tx_type = ObservationPayload.transaction_type
-    payload_attribute = "observation"
+    payload_attribute = "history"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -186,19 +185,9 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: CollectHistoryRound,
         },
-        RandomnessRound: {
-            Event.DONE: SelectKeeperARound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
-        },
-        SelectKeeperARound: {
-            Event.DONE: CollectObservationRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-        },
-        CollectObservationRound: {
+        CollectHistoryRound: {
             Event.DONE: TransformRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },

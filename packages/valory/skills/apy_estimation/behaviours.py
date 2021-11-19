@@ -27,19 +27,14 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
-    CollectObservationRound,
+    CollectHistoryRound,
     TransformRound,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    RandomnessInOperationBehaviour,
-    ResetBehaviour,
-    SelectKeeperABehaviour,
-)
+from packages.valory.skills.price_estimation_abci.behaviours import ResetBehaviour
 from packages.valory.skills.price_estimation_abci.payloads import EstimatePayload
 from packages.valory.skills.price_estimation_abci.rounds import EstimateConsensusRound
 from packages.valory.skills.simple_abci.behaviours import (
     RegistrationBehaviour,
-    ResetAndPauseBehaviour,
     TendermintHealthcheckBehaviour,
 )
 
@@ -47,11 +42,11 @@ from packages.valory.skills.simple_abci.behaviours import (
 benchmark_tool = BenchmarkTool()
 
 
-class ObserveBehaviour(BaseState):
+class FetchBehaviour(BaseState):
     """Observe historical data."""
 
-    state_id = "observe"
-    matching_round = CollectObservationRound
+    state_id = "fetch"
+    matching_round = CollectHistoryRound
 
     def async_act(self) -> Generator:
         """
@@ -120,13 +115,10 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[BaseState]] = {
         TendermintHealthcheckBehaviour,
         RegistrationBehaviour,
-        RandomnessInOperationBehaviour,
-        SelectKeeperABehaviour,
-        ObserveBehaviour,
+        FetchBehaviour,
         TransformBehaviour,
         EstimateBehaviour,
         ResetBehaviour,
-        ResetAndPauseBehaviour,
     }
 
     def setup(self) -> None:
