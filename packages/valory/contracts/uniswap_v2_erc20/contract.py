@@ -68,7 +68,10 @@ class UniswapV2ERC20Contract(Contract):
         """
         instance = cls.get_instance(ledger_api, contract_address)
 
+        # Ensure the method name and its arguments are camel-cased
+        # to match the contract interface
         method_name = snake_to_camel(method_name)
+        kwargs = {k: snake_to_camel(v) for k,v in kwargs.items()}
 
         # Get an ordered argument list from the method's abi
         method = instance.get_function_by_name(method_name)
