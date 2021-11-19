@@ -20,7 +20,7 @@
 """Tests for rounds.py file in valory/liquidity_provision."""
 
 from types import MappingProxyType
-from typing import AbstractSet, FrozenSet, List, Mapping, cast  # noqa : F401
+from typing import FrozenSet, Mapping, cast  # noqa : F401
 from unittest import mock
 
 import pytest
@@ -36,10 +36,13 @@ from packages.valory.skills.liquidity_provision.payloads import (
 from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     Event,
     PeriodState,
+    StrategyEvaluationRound,
     TransactionHashBaseRound,
+    TransactionSendBaseRound,
     TransactionSignatureBaseRound,
     TransactionValidationBaseRound,
 )
+from packages.valory.skills.price_estimation_abci.payloads import FinalizationTxPayload
 
 from tests.test_skills.test_price_estimation_abci.test_rounds import (
     get_participant_to_signature,
@@ -51,13 +54,13 @@ from tests.test_skills.test_price_estimation_abci.test_rounds import (
 MAX_PARTICIPANTS: int = 4
 
 
-def get_participants() -> AbstractSet[str]:
+def get_participants() -> FrozenSet[str]:
     """Returns test value for participants"""
-    return set([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
+    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
 def get_participant_to_strategy(
-    participants: List[str],
+    participants: FrozenSet[str],
 ) -> Mapping[str, StrategyEvaluationPayload]:
     """Returns test value for participant_to_strategy"""
     return dict(
@@ -109,6 +112,9 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
 
         test_round.process_payload(first_payload)
         assert not test_round.threshold_reached
+        self._test_no_majority_event(test_round)
+        assert test_round.end_block() is None
+
         with pytest.raises(ABCIAppInternalError, match="not enough votes"):
             _ = test_round.most_voted_payload
 
@@ -151,6 +157,8 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
 
         test_round.process_payload(first_payload)
         assert not test_round.collection_threshold_reached
+        self._test_no_majority_event(test_round)
+        assert test_round.end_block() is None
 
         for _, payload in payloads:
             test_round.process_payload(payload)
@@ -172,7 +180,6 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-@pytest.mark.skip
 class TestTransactionSendBaseRound(BaseRoundTestClass):
     """Test TransactionSendBaseRound."""
 
@@ -180,6 +187,31 @@ class TestTransactionSendBaseRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
+
+        test_round = TransactionSendBaseRound(
+            self.period_state.update(
+                most_voted_keeper_address="agent_0",
+            ),
+            self.consensus_params,
+        )
+
+        assert test_round.end_block() is None
+        test_round.process_payload(
+            FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
+        )
+
+        actual_next_state = self.period_state.update(
+            final_tx_hash=test_round.keeper_payload
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        assert (
+            cast(PeriodState, state).final_tx_hash
+            == cast(PeriodState, actual_next_state).final_tx_hash
+        )
+        assert event == Event.DONE
 
 
 class TestTransactionValidationBaseRound(BaseRoundTestClass):
@@ -198,6 +230,8 @@ class TestTransactionValidationBaseRound(BaseRoundTestClass):
 
         test_round.process_payload(first_payload)
         assert not test_round.positive_vote_threshold_reached
+        self._test_no_majority_event(test_round)
+        assert test_round.end_block() is None
 
         for _, payload in payloads:
             test_round.process_payload(payload)
@@ -217,3 +251,75 @@ class TestTransactionValidationBaseRound(BaseRoundTestClass):
             == cast(PeriodState, actual_next_state).participant_to_votes.keys()
         )
         assert event == Event.DONE
+
+    def test_negative_votes(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_round = TransactionValidationBaseRound(
+            self.period_state, self.consensus_params
+        )
+        (sender, first_payload), *payloads = get_participant_to_votes(
+            self.participants, False
+        ).items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.negative_vote_threshold_reached
+        self._test_no_majority_event(test_round)
+        assert test_round.end_block() is None
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.negative_vote_threshold_reached
+
+        res = test_round.end_block()
+        assert res is not None
+
+        _, event = res
+        assert event == Event.EXIT
+
+
+class TestStrategyEvaluationRound(BaseRoundTestClass):
+    """Test StrategyEvaluationRound"""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
+
+        (sender, first_payload), *payloads = get_participant_to_strategy(
+            self.participants
+        ).items()
+
+        test_round.process_payload(first_payload)
+        mock_obj = mock.patch.object(
+            StrategyEvaluationPayload, "strategy", return_value="strategy"
+        )
+
+        with mock_obj:
+            assert not test_round.threshold_reached
+            self._test_no_majority_event(test_round)
+            assert test_round.end_block() is None
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+
+        with mock_obj:
+            assert test_round.threshold_reached
+            actual_next_state = self.period_state.update(
+                participant_to_strategy=get_participant_to_strategy(self.participants),
+                most_voted_strategy=test_round.most_voted_payload,
+            )
+
+        with mock_obj:
+            res = test_round.end_block()
+
+        assert res is not None
+        state, event = res
+        assert (
+            cast(PeriodState, state).participant_to_strategy.keys()
+            == cast(PeriodState, actual_next_state).participant_to_strategy.keys()
+        )
+        assert event == Event.RESET_TIMEOUT

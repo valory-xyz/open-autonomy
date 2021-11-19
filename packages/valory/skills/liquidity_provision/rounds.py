@@ -34,7 +34,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
-    AllowanceCheckPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -46,12 +45,13 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
+    BaseRandomnessRound,
     CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     DeploySafeRound,
-    RandomnessRound,
     RegistrationRound,
+    ResetAndPauseRound,
     ResetRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
@@ -66,8 +66,8 @@ class Event(Enum):
     EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
+    RESET_TIMEOUT = "reset_timeout"
     WAIT = "wait"
-    NO_ALLOWANCE = "no_allowance"
 
 
 class PeriodState(
@@ -84,120 +84,18 @@ class PeriodState(
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
         period_setup_params: Optional[Dict] = None,
+        most_voted_strategy: Optional[dict] = None,
+        most_voted_keeper_address: Optional[str] = None,
+        safe_contract_address: Optional[str] = None,
+        multisend_contract_address: Optional[str] = None,
+        most_voted_tx_hash: Optional[str] = None,
+        final_tx_hash: Optional[str] = None,
+        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
+        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
+        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
         participant_to_strategy: Optional[
             Mapping[str, StrategyEvaluationPayload]
         ] = None,
-        most_voted_strategy: Optional[dict] = None,
-        participant_to_allowance_check: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_allowance_check: Optional[int] = None,
-        most_voted_keeper_address: Optional[str] = None,
-        safe_contract_address: Optional[str] = None,
-        participant_to_swap_tx_hash: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_swap_tx_hash: Optional[str] = None,
-        participant_to_add_allowance_tx_hash: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_add_allowance_tx_hash: Optional[str] = None,
-        participant_to_add_liquidity_tx_hash: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_add_liquidity_tx_hash: Optional[str] = None,
-        participant_to_remove_liquidity_tx_hash: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_remove_liquidity_tx_hash: Optional[str] = None,
-        participant_to_remove_allowance_tx_hash: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_remove_allowance_tx_hash: Optional[str] = None,
-        participant_to_swap_back_tx_hash: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_swap_back_tx_hash: Optional[str] = None,
-        participant_to_swap_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        most_voted_swap_signature: Optional[str] = None,
-        participant_to_add_allowance_signature: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_add_allowance_signature: Optional[str] = None,
-        participant_to_add_liquidity_signature: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_add_liquidity_signature: Optional[str] = None,
-        participant_to_remove_liquidity_signature: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_remove_liquidity_signature: Optional[str] = None,
-        participant_to_remove_allowance_signature: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_remove_allowance_signature: Optional[str] = None,
-        participant_to_swap_back_signature: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_swap_back_signature: Optional[str] = None,
-        participant_to_swap_send: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_swap_send: Optional[str] = None,
-        participant_to_add_allowance_send: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_add_allowance_send: Optional[str] = None,
-        participant_to_add_liquidity_send: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_add_liquidity_send: Optional[str] = None,
-        participant_to_remove_liquidity_send: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_remove_liquidity_send: Optional[str] = None,
-        participant_to_remove_allowance_send: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_remove_allowance_send: Optional[str] = None,
-        participant_to_swap_back_send: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_swap_back_send: Optional[str] = None,
-        participant_to_swap_validation: Optional[
-            Mapping[str, StrategyEvaluationPayload]
-        ] = None,
-        most_voted_swap_validation: Optional[str] = None,
-        participant_to_add_allowance_validation: Optional[
-            Mapping[str, SignaturePayload]
-        ] = None,
-        most_voted_add_allowance_validation: Optional[str] = None,
-        participant_to_add_liquidity_validation: Optional[
-            Mapping[str, SignaturePayload]
-        ] = None,
-        most_voted_add_liquidity_validation: Optional[str] = None,
-        participant_to_remove_liquidity_validation: Optional[
-            Mapping[str, SignaturePayload]
-        ] = None,
-        most_voted_remove_liquidity_validation: Optional[str] = None,
-        participant_to_remove_allowance_validation: Optional[
-            Mapping[str, SignaturePayload]
-        ] = None,
-        most_voted_remove_allowance_validation: Optional[str] = None,
-        participant_to_swap_back_validation: Optional[
-            Mapping[str, SignaturePayload]
-        ] = None,
-        most_voted_swap_back_validation: Optional[str] = None,
-        final_swap_tx_hash: Optional[str] = None,
-        final_add_allowance_tx_hash: Optional[str] = None,
-        final_add_liquidity_tx_hash: Optional[str] = None,
-        final_remove_liquidity_tx_hash: Optional[str] = None,
-        final_remove_allowance_tx_hash: Optional[str] = None,
-        final_swap_back_tx_hash: Optional[str] = None,
-        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
-        most_voted_tx_hash: Optional[str] = None,
-        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(participants=participants)
@@ -205,167 +103,17 @@ class PeriodState(
         self._period_setup_params = (
             period_setup_params if period_setup_params is not None else {}
         )
-        self._participant_to_strategy = participant_to_strategy
-        self._most_voted_strategy = most_voted_strategy
+
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
-        self._participant_to_allowance_check = participant_to_allowance_check
-        self._most_voted_allowance_check = most_voted_allowance_check
-
-        self._participant_to_swap_tx_hash = participant_to_swap_tx_hash
-        self._most_voted_swap_tx_hash = most_voted_swap_tx_hash
-
-        self._participant_to_add_allowance_tx_hash = (
-            participant_to_add_allowance_tx_hash
-        )
-        self._most_voted_add_allowance_tx_hash = most_voted_add_allowance_tx_hash
-
-        self._participant_to_add_liquidity_tx_hash = (
-            participant_to_add_liquidity_tx_hash
-        )
-        self._most_voted_add_liquidity_tx_hash = most_voted_add_liquidity_tx_hash
-
-        self._participant_to_remove_liquidity_tx_hash = (
-            participant_to_remove_liquidity_tx_hash
-        )
-        self._most_voted_remove_liquidity_tx_hash = most_voted_remove_liquidity_tx_hash
-
-        self._participant_to_remove_allowance_tx_hash = (
-            participant_to_remove_allowance_tx_hash
-        )
-        self._most_voted_remove_allowance_tx_hash = most_voted_remove_allowance_tx_hash
-
-        self._participant_to_swap_back_tx_hash = participant_to_swap_back_tx_hash
-        self._most_voted_swap_back_tx_hash = most_voted_swap_back_tx_hash
-
-        self._participant_to_swap_signature = participant_to_swap_signature
-        self._most_voted_swap_signature = most_voted_swap_signature
-
-        self._participant_to_add_allowance_signature = (
-            participant_to_add_allowance_signature
-        )
-        self._most_voted_add_allowance_signature = most_voted_add_allowance_signature
-
-        self._participant_to_add_liquidity_signature = (
-            participant_to_add_liquidity_signature
-        )
-        self._most_voted_add_liquidity_signature = most_voted_add_liquidity_signature
-
-        self._participant_to_remove_liquidity_signature = (
-            participant_to_remove_liquidity_signature
-        )
-        self._most_voted_remove_liquidity_signature = (
-            most_voted_remove_liquidity_signature
-        )
-
-        self._participant_to_remove_allowance_signature = (
-            participant_to_remove_allowance_signature
-        )
-        self._most_voted_remove_allowance_signature = (
-            most_voted_remove_allowance_signature
-        )
-
-        self._participant_to_swap_back_signature = participant_to_swap_back_signature
-        self._most_voted_swap_back_signature = most_voted_swap_back_signature
-
-        self._participant_to_swap_send = participant_to_swap_send
-        self._most_voted_swap_send = most_voted_swap_send
-
-        self._participant_to_add_allowance_send = participant_to_add_allowance_send
-        self._most_voted_add_allowance_send = most_voted_add_allowance_send
-
-        self._participant_to_add_liquidity_send = participant_to_add_liquidity_send
-        self._most_voted_add_liquidity_send = most_voted_add_liquidity_send
-
-        self._participant_to_remove_liquidity_send = (
-            participant_to_remove_liquidity_send
-        )
-        self._most_voted_remove_liquidity_send = most_voted_remove_liquidity_send
-
-        self._participant_to_remove_allowance_send = (
-            participant_to_remove_allowance_send
-        )
-        self._participant_to_votes = participant_to_votes
-        self._most_voted_remove_allowance_send = most_voted_remove_allowance_send
-
-        self._participant_to_swap_back_send = participant_to_swap_back_send
-        self._most_voted_swap_back_send = most_voted_swap_back_send
-
-        self._participant_to_swap_validation = participant_to_swap_validation
-        self._most_voted_swap_validation = most_voted_swap_validation
-
-        self._participant_to_add_allowance_validation = (
-            participant_to_add_allowance_validation
-        )
-
-        self._participant_to_tx_hash = participant_to_tx_hash
-        self._most_voted_tx_hash = most_voted_tx_hash
-
+        self._multisend_contract_address = multisend_contract_address
         self._participant_to_signature = participant_to_signature
-
-        self._most_voted_add_allowance_validation = most_voted_add_allowance_validation
-
-        self._participant_to_add_liquidity_validation = (
-            participant_to_add_liquidity_validation
-        )
-        self._most_voted_add_liquidity_validation = most_voted_add_liquidity_validation
-
-        self._participant_to_remove_liquidity_validation = (
-            participant_to_remove_liquidity_validation
-        )
-        self._most_voted_remove_liquidity_validation = (
-            most_voted_remove_liquidity_validation
-        )
-
-        self._participant_to_remove_allowance_validation = (
-            participant_to_remove_allowance_validation
-        )
-        self._most_voted_remove_allowance_validation = (
-            most_voted_remove_allowance_validation
-        )
-
-        self._participant_to_swap_back_validation = participant_to_swap_back_validation
-        self._most_voted_swap_back_validation = most_voted_swap_back_validation
-
-        self._final_swap_tx_hash = final_swap_tx_hash
-        self._final_add_allowance_tx_hash = final_add_allowance_tx_hash
-        self._final_add_liquidity_tx_hash = final_add_liquidity_tx_hash
-        self._final_remove_liquidity_tx_hash = final_remove_liquidity_tx_hash
-        self._final_remove_allowance_tx_hash = final_remove_allowance_tx_hash
-        self._final_swap_back_tx_hash = final_swap_back_tx_hash
-
-    @property
-    def participant_to_votes(
-        self,
-    ) -> dict:
-        """Get the participant_to_tx_hash."""
-        enforce(
-            self._participant_to_votes is not None,
-            "'participant_to_votes' field is None",
-        )
-        return cast(dict, self._participant_to_votes)
-
-    @property
-    def participant_to_signature(
-        self,
-    ) -> dict:
-        """Get the participant_to_tx_hash."""
-        enforce(
-            self._participant_to_signature is not None,
-            "'participant_to_signature' field is None",
-        )
-        return cast(dict, self._participant_to_signature)
-
-    @property
-    def participant_to_tx_hash(
-        self,
-    ) -> dict:
-        """Get the participant_to_tx_hash."""
-        enforce(
-            self._participant_to_tx_hash is not None,
-            "'participant_to_tx_hash' field is None",
-        )
-        return cast(dict, self._participant_to_tx_hash)
+        self._most_voted_strategy = most_voted_strategy
+        self._most_voted_tx_hash = most_voted_tx_hash
+        self._final_tx_hash = final_tx_hash
+        self._participant_to_votes = participant_to_votes
+        self._participant_to_tx_hash = participant_to_tx_hash
+        self._participant_to_strategy = participant_to_strategy
 
     @property
     def most_voted_strategy(self) -> dict:
@@ -377,9 +125,33 @@ class PeriodState(
         return cast(dict, self._most_voted_strategy)
 
     @property
-    def encoded_most_voted_strategy(self) -> bytes:
-        """Get the encoded (most voted) strategy."""
-        return bytes()
+    def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
+        """Get the participant_to_votes."""
+        enforce(
+            self._participant_to_votes is not None,
+            "'participant_to_votes' field is None",
+        )
+        return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
+
+    @property
+    def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
+        """Get the participant_to_votes."""
+        enforce(
+            self._participant_to_strategy is not None,
+            "'participant_to_strategy' field is None",
+        )
+        return cast(
+            Mapping[str, StrategyEvaluationPayload], self._participant_to_strategy
+        )
+
+    @property
+    def participant_to_tx_hash(self) -> Mapping[str, TransactionHashPayload]:
+        """Get the participant_to_tx_hash."""
+        enforce(
+            self._participant_to_tx_hash is not None,
+            "'most_voted_keeper_address' field is None",
+        )
+        return cast(Mapping[str, TransactionHashPayload], self._participant_to_tx_hash)
 
     @property
     def most_voted_keeper_address(self) -> str:
@@ -399,471 +171,48 @@ class PeriodState(
         )
         return cast(str, self._safe_contract_address)
 
+    @property
+    def multisend_contract_address(self) -> str:
+        """Get the multisend contract address."""
+        enforce(
+            self._multisend_contract_address is not None,
+            "'multisend_contract_address' field is None",
+        )
+        return cast(str, self._safe_contract_address)
+
+    @property
+    def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
+        """Get the participant_to_signature."""
+        enforce(
+            self._participant_to_signature is not None,
+            "'participant_to_signature' field is None",
+        )
+        return cast(
+            Mapping[str, SignaturePayload],
+            self._participant_to_signature,
+        )
+
     def reset(self) -> "PeriodState":
         """Return the initial period state."""
         return PeriodState(self.participants)
 
     @property
-    def most_voted_swap_tx_hash(self) -> str:
-        """Get the most_voted_swap_tx_hash."""
+    def most_voted_tx_hash(self) -> str:
+        """Get the most_voted_enter_pool_tx_hash."""
         enforce(
-            self._most_voted_swap_tx_hash is not None,
-            "'most_voted_swap_tx_hash' field is None",
+            self._most_voted_tx_hash is not None,
+            "'most_voted_enter_pool_tx_hash' field is None",
         )
-        return cast(str, self._most_voted_swap_tx_hash)
+        return cast(str, self._most_voted_tx_hash)
 
     @property
-    def encoded_most_voted_swap_tx_hash(self) -> bytes:
-        """Get the encoded (most voted) swap tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_allowance_tx_hash(self) -> str:
-        """Get the most_voted_add_allowance_tx_hash."""
+    def final_tx_hash(self) -> str:
+        """Get the final_enter_pool_tx_hash."""
         enforce(
-            self._most_voted_add_allowance_tx_hash is not None,
-            "'most_voted_add_allowance_tx_hash' field is None",
+            self._final_tx_hash is not None,
+            "'final_enter_pool_tx_hash' field is None",
         )
-        return cast(str, self._most_voted_add_allowance_tx_hash)
-
-    @property
-    def encoded_most_voted_add_allowance_tx_hash(self) -> bytes:
-        """Get the encoded (most voted) add_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_liquidity_tx_hash(self) -> str:
-        """Get the most_voted_add_liquidity_tx_hash."""
-        enforce(
-            self._most_voted_add_liquidity_tx_hash is not None,
-            "'most_voted_add_liquidity_tx_hash' field is None",
-        )
-        return cast(str, self._most_voted_add_liquidity_tx_hash)
-
-    @property
-    def encoded_most_voted_add_liquidity_tx_hash(self) -> bytes:
-        """Get the encoded (most voted) add_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_liquidity_tx_hash(self) -> str:
-        """Get the most_voted_remove_liquidity_tx_hash."""
-        enforce(
-            self._most_voted_remove_liquidity_tx_hash is not None,
-            "'most_voted_remove_liquidity_tx_hash' field is None",
-        )
-        return cast(str, self._most_voted_remove_liquidity_tx_hash)
-
-    @property
-    def encoded_most_voted_remove_liquidity_tx_hash(self) -> bytes:
-        """Get the encoded (most voted) remove_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_allowance_tx_hash(self) -> str:
-        """Get the most_voted_remove_allowance_tx_hash."""
-        enforce(
-            self._most_voted_remove_allowance_tx_hash is not None,
-            "'most_voted_remove_allowance_tx_hash' field is None",
-        )
-        return cast(str, self._most_voted_remove_allowance_tx_hash)
-
-    @property
-    def encoded_most_voted_remove_allowance_tx_hash(self) -> bytes:
-        """Get the encoded (most voted) remove_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_back_tx_hash(self) -> str:
-        """Get the most_voted_swap_back_tx_hash."""
-        enforce(
-            self._most_voted_swap_back_tx_hash is not None,
-            "'most_voted_swap_back_tx_hash' field is None",
-        )
-        return cast(str, self._most_voted_swap_back_tx_hash)
-
-    @property
-    def encoded_most_voted_swap_back_tx_hash(self) -> bytes:
-        """Get the encoded (most voted) swap_back tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_signature(self) -> str:
-        """Get the most_voted_swap_signature."""
-        enforce(
-            self._most_voted_swap_signature is not None,
-            "'most_voted_swap_signature' field is None",
-        )
-        return cast(str, self._most_voted_swap_signature)
-
-    @property
-    def encoded_most_voted_swap_signature(self) -> bytes:
-        """Get the encoded (most voted) swap tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_allowance_signature(self) -> str:
-        """Get the most_voted_add_allowance_signature."""
-        enforce(
-            self._most_voted_add_allowance_signature is not None,
-            "'most_voted_add_allowance_signature' field is None",
-        )
-        return cast(str, self._most_voted_add_allowance_signature)
-
-    @property
-    def encoded_most_voted_add_allowance_signature(self) -> bytes:
-        """Get the encoded (most voted) add_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_liquidity_signature(self) -> str:
-        """Get the most_voted_add_liquidity_signature."""
-        enforce(
-            self._most_voted_add_liquidity_signature is not None,
-            "'most_voted_add_liquidity_signature' field is None",
-        )
-        return cast(str, self._most_voted_add_liquidity_signature)
-
-    @property
-    def encoded_most_voted_add_liquidity_signature(self) -> bytes:
-        """Get the encoded (most voted) add_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_liquidity_signature(self) -> str:
-        """Get the most_voted_remove_liquidity_signature."""
-        enforce(
-            self._most_voted_remove_liquidity_signature is not None,
-            "'most_voted_remove_liquidity_signature' field is None",
-        )
-        return cast(str, self._most_voted_remove_liquidity_signature)
-
-    @property
-    def encoded_most_voted_remove_liquidity_signature(self) -> bytes:
-        """Get the encoded (most voted) remove_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_allowance_signature(self) -> str:
-        """Get the most_voted_remove_allowance_signature."""
-        enforce(
-            self._most_voted_remove_allowance_signature is not None,
-            "'most_voted_remove_allowance_signature' field is None",
-        )
-        return cast(str, self._most_voted_remove_allowance_signature)
-
-    @property
-    def encoded_most_voted_remove_allowance_signature(self) -> bytes:
-        """Get the encoded (most voted) remove_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_back_signature(self) -> str:
-        """Get the most_voted_swap_back_signature."""
-        enforce(
-            self._most_voted_swap_back_signature is not None,
-            "'most_voted_swap_back_signature' field is None",
-        )
-        return cast(str, self._most_voted_swap_back_signature)
-
-    @property
-    def encoded_most_voted_swap_back_signature(self) -> bytes:
-        """Get the encoded (most voted) swap_back tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_send(self) -> str:
-        """Get the most_voted_swap_send."""
-        enforce(
-            self._most_voted_swap_send is not None,
-            "'most_voted_swap_send' field is None",
-        )
-        return cast(str, self._most_voted_swap_send)
-
-    @property
-    def encoded_most_voted_swap_send(self) -> bytes:
-        """Get the encoded (most voted) swap tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_allowance_send(self) -> str:
-        """Get the most_voted_add_allowance_send."""
-        enforce(
-            self._most_voted_add_allowance_send is not None,
-            "'most_voted_add_allowance_send' field is None",
-        )
-        return cast(str, self._most_voted_add_allowance_send)
-
-    @property
-    def encoded_most_voted_add_allowance_send(self) -> bytes:
-        """Get the encoded (most voted) add_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_liquidity_send(self) -> str:
-        """Get the most_voted_add_liquidity_send."""
-        enforce(
-            self._most_voted_add_liquidity_send is not None,
-            "'most_voted_add_liquidity_send' field is None",
-        )
-        return cast(str, self._most_voted_add_liquidity_send)
-
-    @property
-    def encoded_most_voted_add_liquidity_send(self) -> bytes:
-        """Get the encoded (most voted) add_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_liquidity_send(self) -> str:
-        """Get the most_voted_remove_liquidity_send."""
-        enforce(
-            self._most_voted_remove_liquidity_send is not None,
-            "'most_voted_remove_liquidity_send' field is None",
-        )
-        return cast(str, self._most_voted_remove_liquidity_send)
-
-    @property
-    def encoded_most_voted_remove_liquidity_send(self) -> bytes:
-        """Get the encoded (most voted) remove_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_allowance_send(self) -> str:
-        """Get the most_voted_remove_allowance_send."""
-        enforce(
-            self._most_voted_remove_allowance_send is not None,
-            "'most_voted_remove_allowance_send' field is None",
-        )
-        return cast(str, self._most_voted_remove_allowance_send)
-
-    @property
-    def encoded_most_voted_remove_allowance_send(self) -> bytes:
-        """Get the encoded (most voted) remove_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_back_send(self) -> str:
-        """Get the most_voted_swap_back_send."""
-        enforce(
-            self._most_voted_swap_back_send is not None,
-            "'most_voted_swap_back_send' field is None",
-        )
-        return cast(str, self._most_voted_swap_back_send)
-
-    @property
-    def encoded_most_voted_swap_back_send(self) -> bytes:
-        """Get the encoded (most voted) swap_back tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_validation(self) -> str:
-        """Get the most_voted_swap_validation."""
-        enforce(
-            self._most_voted_swap_validation is not None,
-            "'most_voted_swap_validation' field is None",
-        )
-        return cast(str, self._most_voted_swap_validation)
-
-    @property
-    def encoded_most_voted_swap_validation(self) -> bytes:
-        """Get the encoded (most voted) swap tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_allowance_validation(self) -> str:
-        """Get the most_voted_add_allowance_validation."""
-        enforce(
-            self._most_voted_add_allowance_validation is not None,
-            "'most_voted_add_allowance_validation' field is None",
-        )
-        return cast(str, self._most_voted_add_allowance_validation)
-
-    @property
-    def encoded_most_voted_add_allowance_validation(self) -> bytes:
-        """Get the encoded (most voted) add_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_add_liquidity_validation(self) -> str:
-        """Get the most_voted_add_liquidity_validation."""
-        enforce(
-            self._most_voted_add_liquidity_validation is not None,
-            "'most_voted_add_liquidity_validation' field is None",
-        )
-        return cast(str, self._most_voted_add_liquidity_validation)
-
-    @property
-    def encoded_most_voted_add_liquidity_validation(self) -> bytes:
-        """Get the encoded (most voted) add_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_liquidity_validation(self) -> str:
-        """Get the most_voted_remove_liquidity_validation."""
-        enforce(
-            self._most_voted_remove_liquidity_validation is not None,
-            "'most_voted_remove_liquidity_validation' field is None",
-        )
-        return cast(str, self._most_voted_remove_liquidity_validation)
-
-    @property
-    def encoded_most_voted_remove_liquidity_validation(self) -> bytes:
-        """Get the encoded (most voted) remove_liquidity tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_remove_allowance_validation(self) -> str:
-        """Get the most_voted_remove_allowance_validation."""
-        enforce(
-            self._most_voted_remove_allowance_validation is not None,
-            "'most_voted_remove_allowance_validation' field is None",
-        )
-        return cast(str, self._most_voted_remove_allowance_validation)
-
-    @property
-    def encoded_most_voted_remove_allowance_validation(self) -> bytes:
-        """Get the encoded (most voted) remove_allowance tx hash."""
-        return bytes()
-
-    @property
-    def most_voted_swap_back_validation(self) -> str:
-        """Get the most_voted_swap_back_validation."""
-        enforce(
-            self._most_voted_swap_back_validation is not None,
-            "'most_voted_swap_back_validation' field is None",
-        )
-        return cast(str, self._most_voted_swap_back_validation)
-
-    @property
-    def encoded_most_voted_swap_back_validation(self) -> bytes:
-        """Get the encoded (most voted) swap_back tx hash."""
-        return bytes()
-
-    @property
-    def final_swap_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_swap_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_swap_tx_hash)
-
-    @property
-    def final_add_allowance_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_add_allowance_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_add_allowance_tx_hash)
-
-    @property
-    def final_add_liquidity_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_add_liquidity_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_add_liquidity_tx_hash)
-
-    @property
-    def final_remove_liquidity_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_remove_liquidity_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_remove_liquidity_tx_hash)
-
-    @property
-    def final_remove_allowance_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_remove_allowance_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_remove_allowance_tx_hash)
-
-    @property
-    def final_swap_back_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        enforce(
-            self._final_swap_back_tx_hash is not None,
-            "'final_tx_hash' field is None",
-        )
-        return cast(str, self._final_swap_back_tx_hash)
-
-    @property
-    def participant_to_swap_signature(self) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_swap_signature."""
-        enforce(
-            self._participant_to_swap_signature is not None,
-            "'participant_to_swap_signature' field is None",
-        )
-        return cast(Mapping[str, SignaturePayload], self._participant_to_swap_signature)
-
-    @property
-    def participant_to_add_allowance_validation(self) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_add_allowance_validation."""
-        enforce(
-            self._participant_to_add_allowance_validation is not None,
-            "'participant_to_add_allowance_validation' field is None",
-        )
-        return cast(
-            Mapping[str, SignaturePayload],
-            self._participant_to_add_allowance_validation,
-        )
-
-    @property
-    def participant_to_add_liquidity_validation(self) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_add_liquidity_validation."""
-        enforce(
-            self._participant_to_add_liquidity_validation is not None,
-            "'participant_to_add_liquidity_validation' field is None",
-        )
-        return cast(
-            Mapping[str, SignaturePayload],
-            self._participant_to_add_liquidity_validation,
-        )
-
-    @property
-    def participant_to_remove_liquidity_validation(
-        self,
-    ) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_remove_liquidity_validation."""
-        enforce(
-            self._participant_to_remove_liquidity_validation is not None,
-            "'participant_to_remove_liquidity_validation' field is None",
-        )
-        return cast(
-            Mapping[str, SignaturePayload],
-            self._participant_to_remove_liquidity_validation,
-        )
-
-    @property
-    def participant_to_remove_allowance_validation(
-        self,
-    ) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_remove_allowance_validation."""
-        enforce(
-            self._participant_to_remove_allowance_validation is not None,
-            "'participant_to_remove_allowance_validation' field is None",
-        )
-        return cast(
-            Mapping[str, SignaturePayload],
-            self._participant_to_remove_allowance_validation,
-        )
-
-    @property
-    def participant_to_swap_back_validation(self) -> Mapping[str, SignaturePayload]:
-        """Get the participant_to_swap_back_validation."""
-        enforce(
-            self._participant_to_swap_back_validation is not None,
-            "'participant_to_swap_back_validation' field is None",
-        )
-        return cast(
-            Mapping[str, SignaturePayload], self._participant_to_swap_back_validation
-        )
+        return cast(str, self._final_tx_hash)
 
 
 class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -970,7 +319,7 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
 
     round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
-    exit_event: Event
+    exit_event: Event = Event.EXIT
     payload_attribute = "vote"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -991,12 +340,18 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
         return None
 
 
-class SelectKeeperMainRound(
+class DeploySafeRandomnessRound(BaseRandomnessRound):
+    """Deploy safe randomness round."""
+
+    round_id = "deploy_safe_randomness"
+
+
+class DeploySafeSelectKeeperRound(
     CollectDifferentUntilAllRound, LiquidityProvisionAbstractRound
 ):
     """This class represents the select keeper main round."""
 
-    round_id = "select_keeper_main"
+    round_id = "deploy_safe_randomness"
 
 
 class StrategyEvaluationRound(
@@ -1023,8 +378,8 @@ class StrategyEvaluationRound(
             )
             event = (
                 Event.DONE
-                if self.period_state.most_voted_strategy["action"] == StrategyType.GO
-                else Event.WAIT
+                if state.most_voted_strategy["action"] == StrategyType.GO  # type: ignore
+                else Event.RESET_TIMEOUT
             )
             return state, event
         if not self.is_majority_possible(
@@ -1034,221 +389,80 @@ class StrategyEvaluationRound(
         return None
 
 
-class WaitRound(LiquidityProvisionAbstractRound):
-    """This class represents the wait round."""
+class EnterPoolTransactionHashRound(TransactionHashBaseRound):
+    """This class represents the SwapBack transaction hash round."""
 
+    round_id = "enter_pool_tx_hash"
 
-class SwapSelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the swap select keeper round."""
 
-    round_id = "swap_select_keeper"
+class EnterPoolTransactionSignatureRound(TransactionSignatureBaseRound):
+    """This class represents the SwapBack signature round."""
 
+    round_id = "enter_pool_tx_signature"
 
-class SwapTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the swap transaction hash round."""
 
-    round_id = "swap_tx_hash"
+class EnterPoolTransactionSendRound(TransactionSendBaseRound):
+    """This class represents the SwapBack send round."""
 
+    round_id = "enter_pool_tx_send"
 
-class SwapSignatureRound(TransactionSignatureBaseRound):
-    """This class represents the Swap signature round."""
 
-    round_id = "swap_signature"
+class EnterPoolTransactionValidationRound(TransactionValidationBaseRound):
+    """This class represents the SwapBack validation round."""
 
+    round_id = "enter_pool_tx_validation"
 
-class SwapSendRound(TransactionSendBaseRound):
-    """This class represents the swap send round."""
 
-    round_id = "swap_send"
+class EnterPoolRandomnessRound(BaseRandomnessRound):
+    """Enter pool randomness round."""
 
+    round_id = "enter_pool_randomness"
 
-class SwapValidationRound(TransactionValidationBaseRound):
-    """This class represents the swap validation round."""
 
-    round_id = "swap_validation"
-
-
-class AllowanceCheckRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the AllowanceCheck round."""
-
-    round_id = "allowance_check"
-    allowed_tx_type = AllowanceCheckPayload.transaction_type
-    payload_attribute = "allowance"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached observation threshold, set the result
-        if self.threshold_reached:
-            state = self.period_state.update(
-                participant_to_allowance_check=MappingProxyType(self.collection),
-                most_voted_allowance_check=self.most_voted_payload,
-            )
-            return state, Event.DONE
-        return None
-
-
-class AddAllowanceSelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the AddAllowance select keeper round."""
-
-    round_id = "add_allowance_select_keeper"
-
-
-class AddAllowanceTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the AddAllowance transaction hash round."""
-
-    round_id = "add_allowance_tx_hash"
-
-
-class AddAllowanceSignatureRound(TransactionSignatureBaseRound):
-    """This class represents the AddLiquidity signature round."""
-
-    round_id = "add_allowance_signature"
-
-
-class AddAllowanceSendRound(TransactionSendBaseRound):
-    """This class represents the AddAllowance send round."""
-
-    round_id = "add_allowance_send"
-
-
-class AddAllowanceValidationRound(TransactionValidationBaseRound):
-    """This class represents the AddAllowance validation round."""
-
-    round_id = "add_allowance_validation"
-
-
-class AddLiquiditySelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the AddLiquidity select keeper round."""
-
-    round_id = "add_liquidity_select_keeper"
-
-
-class AddLiquidityTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the AddLiquidity transaction hash round."""
-
-    round_id = "add_liquidity_tx_hash"
-
-
-class AddLiquiditySignatureRound(TransactionSignatureBaseRound):
-    """This class represents the AddLiquidity signature round."""
-
-    round_id = "add_liquidity_signature"
-
-
-class AddLiquiditySendRound(TransactionSendBaseRound):
-    """This class represents the AddLiquidity send round."""
-
-    round_id = "add_liquidity_send"
-
-
-class AddLiquidityValidationRound(TransactionValidationBaseRound):
-    """This class represents the AddLiquidity validation round."""
-
-    round_id = "add_liquidity_validation"
-
-
-class RemoveLiquiditySelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the RemoveLiquidity select keeper round."""
-
-    round_id = "remove_liquidity_select_keeper"
-
-
-class RemoveLiquidityTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the RemoveLiquidity transaction hash round."""
-
-    round_id = "remove_liquidity_tx_hash"
-
-
-class RemoveLiquiditySignatureRound(TransactionSignatureBaseRound):
-    """This class represents the RemoveLiquidity signature round."""
-
-    round_id = "remove_liquidity_signature"
-
-
-class RemoveLiquiditySendRound(TransactionSendBaseRound):
-    """This class represents the RemoveLiquidity send round."""
-
-    round_id = "remove_liquidity_send"
-
-
-class RemoveLiquidityValidationRound(TransactionValidationBaseRound):
-    """This class represents the RemoveLiquidity validation round."""
-
-    round_id = "remove_liquidity_validation"
-
-
-class RemoveAllowanceSelectKeeperRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the RemoveAllowance select keeper round."""
-
-    round_id = "remove_allowance_select_keeper"
-
-
-class RemoveAllowanceTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the RemoveAllowance transaction hash round."""
-
-    round_id = "remove_allowance_tx_hash"
-
-
-class RemoveAllowanceSignatureRound(TransactionSignatureBaseRound):
-    """This class represents the RemoveAllowance signature round."""
-
-    round_id = "remove_allowance_signature"
-
-
-class RemoveAllowanceSendRound(TransactionSendBaseRound):
-    """This class represents the RemoveAllowance send round."""
-
-    round_id = "remove_allowance_send"
-
-
-class RemoveAllowanceValidationRound(TransactionValidationBaseRound):
-    """This class represents the RemoveAllowance validation round."""
-
-    round_id = "remove_allowance_validation"
-
-
-class SwapBackSelectKeeperRound(
+class EnterPoolSelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
     """This class represents the SwapBack select keeper round."""
 
-    round_id = "swap_back_select_keeper"
+    round_id = "enter_pool_select_keeper"
 
 
-class SwapBackTransactionHashRound(TransactionHashBaseRound):
+class ExitPoolTransactionHashRound(TransactionHashBaseRound):
     """This class represents the SwapBack transaction hash round."""
 
-    round_id = "swap_back_tx_hash"
+    round_id = "exit_pool_tx_hash"
 
 
-class SwapBackSignatureRound(TransactionSignatureBaseRound):
+class ExitPoolTransactionSignatureRound(TransactionSignatureBaseRound):
     """This class represents the SwapBack signature round."""
 
-    round_id = "swap_back_signature"
+    round_id = "exit_pool_tx_signature"
 
 
-class SwapBackSendRound(TransactionSendBaseRound):
+class ExitPoolTransactionSendRound(TransactionSendBaseRound):
     """This class represents the SwapBack send round."""
 
-    round_id = "swap_back_send"
+    round_id = "exit_pool_tx_send"
 
 
-class SwapBackValidationRound(TransactionValidationBaseRound):
+class ExitPoolTransactionValidationRound(TransactionValidationBaseRound):
     """This class represents the SwapBack validation round."""
 
-    round_id = "swap_back_validation"
+    round_id = "exit_pool_tx_validation"
+
+
+class ExitPoolRandomnessRound(BaseRandomnessRound):
+    """Exit pool randomness round."""
+
+    round_id = "exit_pool_randomness"
+
+
+class ExitPoolSelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the SwapBack select keeper round."""
+
+    round_id = "exit_pool_select_keeper"
 
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
@@ -1256,20 +470,20 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessRound},
-        RandomnessRound: {
-            Event.DONE: SelectKeeperMainRound,
+        RegistrationRound: {Event.DONE: DeploySafeRandomnessRound},
+        DeploySafeRandomnessRound: {
+            Event.DONE: DeploySafeSelectKeeperRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SelectKeeperMainRound: {
+        DeploySafeSelectKeeperRound: {
             Event.DONE: DeploySafeRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         DeploySafeRound: {
             Event.DONE: DeploySafeValidationRound,
-            Event.EXIT: RandomnessRound,
+            Event.EXIT: DeploySafeRandomnessRound,
         },
         DeploySafeValidationRound: {
             Event.DONE: StrategyEvaluationRound,
@@ -1277,192 +491,81 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: RegistrationRound,
         },
         StrategyEvaluationRound: {
-            Event.DONE: SwapTransactionHashRound,
-            Event.WAIT: WaitRound,
+            Event.DONE: EnterPoolTransactionHashRound,
+            Event.WAIT: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        WaitRound: {
-            Event.DONE: StrategyEvaluationRound,
+        EnterPoolTransactionHashRound: {
+            Event.DONE: EnterPoolTransactionSignatureRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SwapSelectKeeperRound: {
-            Event.DONE: SwapTransactionHashRound,
+        EnterPoolTransactionSignatureRound: {
+            Event.DONE: EnterPoolTransactionSendRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        SwapTransactionHashRound: {
-            Event.DONE: SwapSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SwapSelectKeeperRound,
-        },
-        SwapSignatureRound: {
-            Event.DONE: SwapSendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SwapSelectKeeperRound,
-        },
-        SwapSendRound: {
-            Event.DONE: SwapValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SwapSelectKeeperRound,
-        },
-        SwapValidationRound: {
-            Event.DONE: AllowanceCheckRound,
+        EnterPoolTransactionSendRound: {
+            Event.DONE: EnterPoolTransactionValidationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AllowanceCheckRound: {
-            Event.NO_ALLOWANCE: AddAllowanceTransactionHashRound,
-            Event.DONE: AddLiquidityTransactionHashRound,
+        EnterPoolTransactionValidationRound: {
+            Event.DONE: ExitPoolTransactionHashRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
+        },
+        EnterPoolRandomnessRound: {
+            Event.DONE: EnterPoolSelectKeeperRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AddAllowanceSelectKeeperRound: {
-            Event.DONE: AddAllowanceTransactionHashRound,
+        EnterPoolSelectKeeperRound: {
+            Event.DONE: ExitPoolTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AddAllowanceTransactionHashRound: {
-            Event.DONE: AddAllowanceSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: AddAllowanceSelectKeeperRound,
-        },
-        AddAllowanceSignatureRound: {
-            Event.DONE: AddAllowanceSendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: AddAllowanceSelectKeeperRound,
-        },
-        AddAllowanceSendRound: {
-            Event.DONE: AddAllowanceValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: AddAllowanceSelectKeeperRound,
-        },
-        AddAllowanceValidationRound: {
-            Event.DONE: AddLiquidityTransactionHashRound,
+        ExitPoolTransactionHashRound: {
+            Event.DONE: ExitPoolTransactionSignatureRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AddLiquiditySelectKeeperRound: {
-            Event.DONE: AddLiquidityTransactionHashRound,
+        ExitPoolTransactionSignatureRound: {
+            Event.DONE: ExitPoolTransactionSendRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        AddLiquidityTransactionHashRound: {
-            Event.DONE: AddLiquiditySignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: AddLiquiditySelectKeeperRound,
-        },
-        AddLiquiditySignatureRound: {
-            Event.DONE: AddLiquiditySendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: AddLiquiditySelectKeeperRound,
-        },
-        AddLiquiditySendRound: {
-            Event.DONE: AddLiquidityValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: AddLiquiditySelectKeeperRound,
-        },
-        AddLiquidityValidationRound: {
-            Event.DONE: RemoveLiquidityTransactionHashRound,
+        ExitPoolTransactionSendRound: {
+            Event.DONE: ExitPoolTransactionValidationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
-        RemoveLiquiditySelectKeeperRound: {
-            Event.DONE: RemoveLiquidityTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        RemoveLiquidityTransactionHashRound: {
-            Event.DONE: RemoveLiquiditySignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RemoveLiquiditySelectKeeperRound,
-        },
-        RemoveLiquiditySignatureRound: {
-            Event.DONE: RemoveLiquiditySendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RemoveLiquiditySelectKeeperRound,
-        },
-        RemoveLiquiditySendRound: {
-            Event.DONE: RemoveLiquidityValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RemoveLiquiditySelectKeeperRound,
-        },
-        RemoveLiquidityValidationRound: {
-            Event.DONE: RemoveAllowanceTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        RemoveAllowanceSelectKeeperRound: {
-            Event.DONE: RemoveAllowanceTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        RemoveAllowanceTransactionHashRound: {
-            Event.DONE: RemoveAllowanceSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RemoveAllowanceSelectKeeperRound,
-        },
-        RemoveAllowanceSignatureRound: {
-            Event.DONE: RemoveAllowanceSendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RemoveAllowanceSelectKeeperRound,
-        },
-        RemoveAllowanceSendRound: {
-            Event.DONE: RemoveAllowanceValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: RemoveAllowanceSelectKeeperRound,
-        },
-        RemoveAllowanceValidationRound: {
-            Event.DONE: SwapBackTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        SwapBackSelectKeeperRound: {
-            Event.DONE: SwapBackTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        SwapBackTransactionHashRound: {
-            Event.DONE: SwapBackSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SwapBackSelectKeeperRound,
-        },
-        SwapBackSignatureRound: {
-            Event.DONE: SwapBackSendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SwapBackSelectKeeperRound,
-        },
-        SwapBackSendRound: {
-            Event.DONE: SwapBackValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-            Event.EXIT: SwapBackSelectKeeperRound,
-        },
-        SwapBackValidationRound: {
+        ExitPoolTransactionValidationRound: {
             Event.DONE: ResetRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
+        },
+        ExitPoolRandomnessRound: {
+            Event.DONE: ExitPoolSelectKeeperRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ExitPoolSelectKeeperRound: {
+            Event.DONE: ExitPoolTransactionHashRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         ResetRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: DeploySafeRandomnessRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ResetAndPauseRound: {
+            Event.DONE: DeploySafeRandomnessRound,
+            Event.RESET_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }

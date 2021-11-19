@@ -39,6 +39,7 @@ ADDRESS_TWO = "0x7A1236d5195e31f1F573AD618b2b6FEFC85C5Ce6"
 ADDRESS_THREE = "0x7A1236d5195e31f1F573AD618b2b6FEFC85C5Ce6"
 NONCE = 0
 CHAIN_ID = 1
+MAX_ALLOWANCE = 2 ** 256 - 1
 
 
 class TestUniswapV2ERC20Contract(BaseContractTestCase):
@@ -244,3 +245,124 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 self.ledger_api, self.contract_address, owner_address
             )
         assert result == 0
+
+    def test_get_approve_data(self) -> None:
+        """Test get_method_data with approve."""
+
+        result = self.contract.get_method_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            method_name="approve",
+            spender=ADDRESS_ONE,
+            value=MAX_ALLOWANCE,
+        )
+        assert result == {
+            "data": b"\t^\xa7\xb3\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
+            b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+            b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+        }
+
+    def test_get_transfer_data(self) -> None:
+        """Test get_method_data with transfer."""
+
+        result = self.contract.get_method_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            method_name="transfer",
+            to=ADDRESS_ONE,
+            value=1,
+        )
+        assert result == {
+            "data": b"\xa9\x05\x9c\xbb\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
+        }
+
+    def test_get_transfer_from_data(self) -> None:
+        """Test get_method_data with transfer_from."""
+
+        # "from" is a reserved word, so must be passed as kwargs
+        kwargs = {"from": ADDRESS_TWO, "to": ADDRESS_ONE, "value": 1}
+
+        result = self.contract.get_method_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            method_name="transfer_from",
+            **kwargs
+        )
+        assert result == {
+            "data": b"#\xb8r\xdd\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00z\x126\xd5"
+            b"\x19^1\xf1\xf5s\xada\x8b+o\xef\xc8\\\\\xe6\x00\x00\x00\x00"
+            b'\x00\x00\x00\x00\x00\x00\x00\x00F\xf4\x15\xf7\xbf0\xf4"'
+            b"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x01"
+        }
+
+    def test_get_permit_data(self) -> None:
+        """Test get_method_data with permit."""
+
+        result = self.contract.get_method_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            method_name="permit",
+            owner=ADDRESS_ONE,
+            spender=ADDRESS_TWO,
+            value=1,
+            deadline=300,
+            v=0,
+            r=b"0",
+            s=b"0",
+        )
+
+        assert result == {
+            "data": b"\xd5\x05\xac\xcf\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00z\x126\xd5\x19^1\xf1"
+            b"\xf5s\xada\x8b+o\xef\xc8\\\\\xe6\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x01,\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x000\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x000\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00"
+        }
+
+    def test_get_allowance_data(self) -> None:
+        """Test get_method_data with allowance."""
+
+        result = self.contract.get_method_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            method_name="allowance",
+            owner=ADDRESS_ONE,
+            spender=ADDRESS_TWO,
+        )
+
+        assert result == {
+            "data": b"\xddb\xed>\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00z\x126\xd5\x19^1\xf1"
+            b"\xf5s\xada\x8b+o\xef\xc8\\\\\xe6"
+        }
+
+    def test_get_balance_of_data(self) -> None:
+        """Test get_method_data with balance_of."""
+
+        result = self.contract.get_method_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            method_name="balance_of",
+            owner=ADDRESS_ONE,
+        )
+
+        assert result == {
+            "data": b"p\xa0\x821\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
+        }

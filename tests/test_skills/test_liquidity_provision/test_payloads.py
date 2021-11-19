@@ -20,7 +20,6 @@
 """Test the payloads.py module of the skill."""
 
 from packages.valory.skills.liquidity_provision.payloads import (
-    AllowanceCheckPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionType,
@@ -41,14 +40,3 @@ def test_strategy_evaluation_payload() -> None:
     assert payload.sender == "sender"
     assert payload.data == {"strategy": strategy}
     assert payload.transaction_type == TransactionType.STRATEGY_EVALUATION
-
-
-def test_allowance_check_payload() -> None:
-    """Test `AllowanceCheckPayload`."""
-
-    allowance = 1
-    payload = AllowanceCheckPayload(sender="sender", allowance=allowance)
-
-    assert payload.sender == "sender"
-    assert payload.data == {"allowance": allowance}
-    assert payload.transaction_type == TransactionType.ALLOWANCE_CHECK
