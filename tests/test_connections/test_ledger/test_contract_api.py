@@ -230,7 +230,7 @@ async def test_get_state(
         callable="get_state",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": str(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
@@ -285,7 +285,7 @@ async def test_get_state_with_validate_and_call_callable(
         callable="get_state",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": str(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
@@ -352,7 +352,7 @@ async def test_get_raw_transaction(
         callable="get_raw_transaction",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": str(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
@@ -407,7 +407,7 @@ async def test_get_raw_message(
         callable="get_raw_message",
         contract_address=contract_address,
         kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": ETHEREUM_KEY_DEPLOYER, "token_id": 1}
+            {"agent_address": str(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
         ),
     )
     envelope = Envelope(
