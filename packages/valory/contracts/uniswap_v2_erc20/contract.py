@@ -34,6 +34,17 @@ _logger = logging.getLogger(
 )
 
 
+def snake_to_camel(string: str) -> str:
+    """Convert snake_case to camelCase"""
+
+    if "_" in string:
+        camel_case = string.split("_")
+        for i in range(1, len(camel_case)):
+            camel_case[i] = camel_case[i][0].upper() + camel_case[i][1:]
+        string = ("").join(camel_case)
+    return string
+
+
 # pylint: disable=too-many-arguments,invalid-name
 class UniswapV2ERC20Contract(Contract):
     """The Uniswap V2 ERC-20 contract."""
@@ -56,7 +67,16 @@ class UniswapV2ERC20Contract(Contract):
         :return: the tx  # noqa: DAR202
         """
         instance = cls.get_instance(ledger_api, contract_address)
-        data = instance.encodeABI(fn_name=method_name, args=list(kwargs.values()))
+
+        method_name = snake_to_camel(method_name)
+
+        # Get an ordered argument list from the method's abi
+        method = instance.get_function_by_name(method_name)
+        input_names = [i["name"] for i in method.abi["inputs"]]
+        args = [kwargs[i] for i in input_names]
+
+        # Encode and return the contract call
+        data = instance.encodeABI(fn_name=method_name, args=args)
         return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
