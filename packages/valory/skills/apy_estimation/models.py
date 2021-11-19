@@ -17,14 +17,14 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the custom objects which are made accessible to any part of a skill via the `SkillContext`
-for the APY estimation ABCI application."""
+"""Custom objects for the APY estimation ABCI application."""
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
-from packages.valory.skills.abstract_round_abci.models import SharedState
-from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
+from packages.valory.skills.abstract_round_abci.models import BaseParams, SharedState
+from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp
+from packages.valory.skills.price_estimation_abci.rounds import Event
+
 
 MARGIN = 5
 
@@ -42,7 +42,7 @@ class APYSharedState(SharedState):
 
         event_to_timeout_overrides = {
             Event.ROUND_TIMEOUT: self.context.params.round_timeout_seconds,
-            Event.RESET_TIMEOUT: self.context.params.observation_interval + MARGIN
+            Event.RESET_TIMEOUT: self.context.params.observation_interval + MARGIN,
         }
 
         for event, override in event_to_timeout_overrides.items():
