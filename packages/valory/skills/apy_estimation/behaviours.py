@@ -31,27 +31,15 @@ from packages.valory.skills.apy_estimation.rounds import (
     TransformRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    DeployOracleBehaviour,
-    DeploySafeBehaviour,
-    FinalizeBehaviour,
     RandomnessInOperationBehaviour,
     ResetBehaviour,
     SelectKeeperABehaviour,
-    SelectKeeperBAtStartupBehaviour,
-    SelectKeeperBBehaviour,
-    SignatureBehaviour,
-    TransactionHashBehaviour,
-    ValidateOracleBehaviour,
-    ValidateSafeBehaviour,
-    ValidateTransactionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.payloads import EstimatePayload
 from packages.valory.skills.price_estimation_abci.rounds import EstimateConsensusRound
 from packages.valory.skills.simple_abci.behaviours import (
-    RandomnessAtStartupBehaviour,
     RegistrationBehaviour,
     ResetAndPauseBehaviour,
-    SelectKeeperAAtStartupBehaviour,
     TendermintHealthcheckBehaviour,
 )
 
@@ -132,23 +120,11 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[BaseState]] = {
         TendermintHealthcheckBehaviour,
         RegistrationBehaviour,
-        RandomnessAtStartupBehaviour,
-        SelectKeeperAAtStartupBehaviour,
-        DeploySafeBehaviour,
-        ValidateSafeBehaviour,
-        SelectKeeperBAtStartupBehaviour,
-        DeployOracleBehaviour,
-        ValidateOracleBehaviour,
         RandomnessInOperationBehaviour,
         SelectKeeperABehaviour,
         ObserveBehaviour,
         TransformBehaviour,
         EstimateBehaviour,
-        TransactionHashBehaviour,
-        SignatureBehaviour,
-        FinalizeBehaviour,
-        ValidateTransactionBehaviour,
-        SelectKeeperBBehaviour,
         ResetBehaviour,
         ResetAndPauseBehaviour,
     }
