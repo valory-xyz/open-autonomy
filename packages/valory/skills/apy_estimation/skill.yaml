@@ -12,55 +12,52 @@ fingerprint:
   models.py: QmQbZ5oGGoLM2XC9q7E1SAWsKh749EPFxuuQswZ4SP4Tw8
   payloads.py: QmQV9GRRBUe6F3ER7k6kbjTEq76hmrLkydNxi95Vozx3hS
   rounds.py: Qmaqa6UJy8WpfY89KUuYko8vAQkZTW2KXDhNWWhqt54GQq
-fingerprint_ignore_patterns: []
+fingerprint_ignore_patterns: [ ]
 connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
-contracts:
-- valory/gnosis_safe:0.1.0
-- valory/gnosis_safe_proxy_factory:0.1.0
-- valory/offchain_aggregator:0.1.0
+  - valory/abci:0.1.0
+  - valory/http_client:0.1.0
+  - valory/ledger:0.1.0
+contracts: [ ]
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
+  - open_aea/signing:1.0.0
+  - valory/abci:0.1.0
+  - valory/contract_api:1.0.0
+  - valory/http:1.0.0
+  - valory/ledger_api:1.0.0
 skills:
-- valory/abstract_round_abci:0.1.0
+  - valory/abstract_round_abci:0.1.0
 behaviours:
   main:
-    args: {}
+    args: { }
     class_name: PriceEstimationConsensusBehaviour
 handlers:
   abci:
-    args: {}
+    args: { }
     class_name: ABCIPriceEstimationHandler
   contract_api:
-    args: {}
+    args: { }
     class_name: ContractApiHandler
   http:
-    args: {}
+    args: { }
     class_name: HttpHandler
   ledger_api:
-    args: {}
+    args: { }
     class_name: LedgerApiHandler
   signing:
-    args: {}
+    args: { }
     class_name: SigningHandler
 models:
   abci_dialogues:
-    args: {}
+    args: { }
     class_name: AbciDialogues
   contract_api_dialogues:
-    args: {}
+    args: { }
     class_name: ContractApiDialogues
   http_dialogues:
-    args: {}
+    args: { }
     class_name: HttpDialogues
   ledger_api_dialogues:
-    args: {}
+    args: { }
     class_name: LedgerApiDialogues
   params:
     args:
@@ -68,52 +65,21 @@ models:
         max_participants: 1
       max_healthcheck: 120
       observation_interval: 10
-      oracle:
-        min_answer: 1000000000000000000
-        max_answer: 1000000000000000000000000
-        decimals: 18
-        description: BTC
-      period_setup:
-        safe_contract_address: null
-        oracle_contract_address: null
+      period_setup: { }
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
       sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params
-  price_api:
-    args:
-      api_id: coinbase
-      convert_id: USD
-      currency_id: BTC
-      headers: []
-      method: GET
-      parameters: []
-      response_key: data:amount
-      response_type: float
-      retries: 5
-      url: https://api.coinbase.com/v2/prices/BTC-USD/buy
-    class_name: PriceApi
-  randomness_api:
-    args:
-      api_id: cloudflare
-      headers: []
-      method: GET
-      parameters: []
-      response_key: null
-      response_type: dict
-      retries: 5
-      url: https://drand.cloudflare.com/public/latest
-    class_name: RandomnessApi
   requests:
-    args: {}
+    args: { }
     class_name: Requests
   signing_dialogues:
-    args: {}
+    args: { }
     class_name: SigningDialogues
   state:
-    args: {}
+    args: { }
     class_name: SharedState
-dependencies: {}
+dependencies: { }
 is_abstract: false
