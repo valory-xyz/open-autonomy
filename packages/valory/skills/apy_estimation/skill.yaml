@@ -73,6 +73,18 @@ models:
       sleep_time: 1
       tendermint_url: http://localhost:26657
     class_name: Params
+  spooky_history_subgraph:
+    args:
+      api_id: spookyswap
+      headers: ['Content-Type: application/json']
+      method: POST
+      parameters: [ ]
+      response_key: data
+      response_type: dict
+      retries: 5
+      url: https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap
+      duration: 6
+    class_name: SpookySwapSubgraph
   requests:
     args: {}
     class_name: Requests

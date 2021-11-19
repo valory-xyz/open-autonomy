@@ -21,7 +21,7 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams, SharedState
+from packages.valory.skills.abstract_round_abci.models import BaseParams, SharedState, ApiSpecs
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp
 from packages.valory.skills.price_estimation_abci.rounds import Event
 
@@ -47,6 +47,15 @@ class APYSharedState(SharedState):
 
         for event, override in event_to_timeout_overrides.items():
             APYEstimationAbciApp.event_to_timeout[event] = override
+
+
+class SpookySwapSubgraph(ApiSpecs):
+    """A model that wraps ApiSpecs for SpookySwap subgraph specifications."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize SpookySwapSubgraph."""
+        self.duration: int = self.ensure("duration", kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class APYParams(BaseParams):
