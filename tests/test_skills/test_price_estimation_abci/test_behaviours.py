@@ -790,6 +790,35 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
+    def test_select_keeper_preexisting_keeper(
+        self,
+    ) -> None:
+        """Test select keeper agent."""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        preexisting_keeper = next(iter(participants))
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.select_keeper_behaviour_class.state_id,
+            period_state=PeriodState(
+                participants,
+                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                most_voted_keeper_address=preexisting_keeper,
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.select_keeper_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
 
 class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""

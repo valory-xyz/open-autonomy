@@ -52,7 +52,7 @@ class DummyTxPayload(BaseTxPayload):
     _value: str
     _vote: bool
 
-    def __init__(self, sender: str, value: str, vote: bool = False) -> None:
+    def __init__(self, sender: str, value: Any, vote: bool = False) -> None:
         """Initialize a dummy transaction payload."""
 
         super().__init__(sender, None)
@@ -60,7 +60,7 @@ class DummyTxPayload(BaseTxPayload):
         self._vote = vote
 
     @property
-    def value(self) -> str:
+    def value(self) -> Any:
         """Get the tx value."""
         return self._value
 
@@ -98,11 +98,18 @@ class DummyPeriodState(BasePeriodState):
 
 
 def get_dummy_tx_payloads(
-    participants: List[str], value: Any = None, vote: bool = False
+    participants: List[str],
+    value: Any = None,
+    vote: bool = False,
+    is_value_none: bool = False,
 ) -> List[DummyTxPayload]:
     """Returns a list of DummyTxPayload objects."""
     return [
-        DummyTxPayload(sender=agent, value=(value or agent), vote=vote)
+        DummyTxPayload(
+            sender=agent,
+            value=(value or agent) if not is_value_none else value,
+            vote=vote,
+        )
         for agent in participants
     ]
 
@@ -272,6 +279,32 @@ class TestCollectSameUntilThresholdRound(BaseTestClass):
 
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == "vote"
+
+    def test_run_with_none(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        test_round = DummyCollectSameUntilThresholdRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = get_dummy_tx_payloads(
+            self.participants,
+            value=None,
+            is_value_none=True,
+        )
+        test_round.process_payload(first_payload)
+
+        assert not test_round.threshold_reached
+        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
+            _ = test_round.most_voted_payload
+
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload is None
 
 
 class TestOnlyKeeperSendsRound(BaseTestClass):

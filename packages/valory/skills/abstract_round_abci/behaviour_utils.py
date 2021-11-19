@@ -397,15 +397,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :yield: the responses
         """
         while not stop_condition():
-            self._send_signing_request(payload.encode())
-            signature_response = yield from self.wait_for_message()
-            signature_response = cast(SigningMessage, signature_response)
-            if signature_response.performative == SigningMessage.Performative.ERROR:
-                self._handle_signing_failure()
-                raise RuntimeError("Failure during signing.")  # TOFIX: temporary
-            signature_bytes = signature_response.signed_message.body
+            signature_bytes = yield from self.get_signature(payload.encode())
             transaction = Transaction(payload, signature_bytes)
-
             response = yield from self._submit_tx(transaction.encode())
             response = cast(HttpMessage, response)
             json_body = json.loads(response.body)
@@ -558,6 +551,38 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 "could not send message to FSMBehaviour: %s", message
             )
 
+    def get_http_response(
+        self,
+        method: str,
+        url: str,
+        content: Dict = None,
+        headers: List[Tuple[str, str]] = None,
+        parameters: List[Tuple[str, str]] = None,
+    ) -> Generator[None, None, HttpMessage]:
+        """
+        Send an http request message from the skill context.
+
+        This method is skill-specific, and therefore
+        should not be used elsewhere.
+
+        :param method: the http request method (i.e. 'GET' or 'POST').
+        :param url: the url to send the message to.
+        :param content: the payload.
+        :param headers: headers to be included.
+        :param parameters: url query parameters.
+        :yield: wait the response message
+        :return: the http message and the http dialogue
+        """
+        http_message, http_dialogue = self._build_http_request_message(
+            method=method,
+            url=url,
+            content=content,
+            headers=headers,
+            parameters=parameters,
+        )
+        response = yield from self._do_request(http_message, http_dialogue)
+        return response
+
     def _do_request(
         self, request_message: HttpMessage, http_dialogue: HttpDialogue
     ) -> Generator[None, None, HttpMessage]:
@@ -665,6 +690,19 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             nonce="",
         )
         return terms
+
+    def get_signature(
+        self, message: bytes, is_deprecated_mode: bool = False
+    ) -> Generator[None, None, str]:
+        """Get signature for message."""
+        self._send_signing_request(message, is_deprecated_mode)
+        signature_response = yield from self.wait_for_message()
+        signature_response = cast(SigningMessage, signature_response)
+        if signature_response.performative == SigningMessage.Performative.ERROR:
+            self._handle_signing_failure()
+            raise RuntimeError("Internal error: failure during signing.")
+        signature_bytes = signature_response.signed_message.body
+        return signature_bytes
 
     def send_raw_transaction(
         self, transaction: RawTransaction
