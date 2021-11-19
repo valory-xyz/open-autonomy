@@ -129,7 +129,7 @@ class RequestDispatcher(ABC):
         """
         handler = getattr(self, performative.value, None)
         if handler is None:
-            raise Exception("Performative not recognized.")
+            raise Exception("Performative not recognized.")  # pragma: nocover
         return handler
 
     @abstractmethod

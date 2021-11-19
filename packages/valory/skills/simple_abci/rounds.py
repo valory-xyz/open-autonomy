@@ -62,7 +62,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-def encode_float(value: float) -> bytes:
+def encode_float(value: float) -> bytes:  # pragma: nocover
     """Encode a float value."""
     return struct.pack("d", value)
 
@@ -306,7 +306,8 @@ class SimpleAbciApp(AbciApp[Event]):
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
             Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessStartupRound,  # we can have some agents on either side of an epoch, so we retry
+            # we can have some agents on either side of an epoch, so we retry
+            Event.NO_MAJORITY: RandomnessStartupRound,
         },
         SelectKeeperAStartupRound: {
             Event.DONE: ResetAndPauseRound,
