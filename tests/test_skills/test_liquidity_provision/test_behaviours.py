@@ -74,17 +74,15 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     LiquidityProvisionConsensusBehaviour,
     MAX_ALLOWANCE,
     StrategyEvaluationBehaviour,
-    TEMP_GAS,
-    TEMP_GAS_PRICE,
 )
-from packages.valory.skills.liquidity_provision.payloads import StrategyType
-from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
-from packages.valory.skills.price_estimation_abci.handlers import (
+from packages.valory.skills.liquidity_provision.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,
     SigningHandler,
 )
+from packages.valory.skills.liquidity_provision.payloads import StrategyType
+from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_liquidity_provision.test_rounds import get_participants
@@ -509,9 +507,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_a"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                         path=[
@@ -541,9 +539,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_b"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
                         path=[
@@ -573,9 +571,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=MAX_ALLOWANCE,
                     )
@@ -599,9 +597,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=MAX_ALLOWANCE,
                     )
@@ -626,9 +624,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity_ETH",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
                         amount_token_desired=int(strategy["pair"]["token_b"]["amount"]),
                         amount_token_min=int(
@@ -675,7 +673,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 contract_address=period_state.safe_contract_address,
                 kwargs=Kwargs(
                     dict(
-                        to=period_state.multisend_contract_address,
+                        to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
                         data="64756d6d795f7478",
                     )
@@ -736,9 +734,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_a"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                         path=[
@@ -768,9 +766,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_b"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
                         path=[
@@ -800,9 +798,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=MAX_ALLOWANCE,
                     )
@@ -826,9 +824,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=MAX_ALLOWANCE,
                     )
@@ -853,9 +851,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
                         amount_a_desired=int(strategy["pair"]["token_a"]["amount"]),
@@ -904,7 +902,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 contract_address=period_state.safe_contract_address,
                 kwargs=Kwargs(
                     dict(
-                        to=period_state.multisend_contract_address,
+                        to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
                         data="64756d6d795f7478",
                     )
@@ -1040,9 +1038,9 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                 contract_address=period_state.safe_contract_address,
                 kwargs=Kwargs(
                     dict(
-                        sender=self.skill.skill_context.agent_address,
+                        sender_address=self.skill.skill_context.agent_address,
                         owners=tuple(period_state.participants),  # type: ignore
-                        to=self.skill.skill_context.agent_address,
+                        to_address=self.skill.skill_context.agent_address,
                         signatures_by_owner={
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
@@ -1146,7 +1144,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                     dict(
                         tx_hash=period_state.final_tx_hash,
                         owners=tuple(period_state.participants),  # type: ignore
-                        to=self.skill.skill_context.agent_address,
+                        to_address=self.skill.skill_context.agent_address,
                         signatures_by_owner={
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
@@ -1207,9 +1205,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity_ETH",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
                         amount_token_min=int(strategy["pair"]["token_b"]["amount_min"]),
@@ -1237,9 +1235,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=0,
                     )
@@ -1263,9 +1261,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=0,
                     )
@@ -1289,9 +1287,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_ETH_for_tokens",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                         path=[
                             strategy["pair"]["token_a"]["address"],
@@ -1320,9 +1318,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_b"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
                         path=[
@@ -1414,9 +1412,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
@@ -1445,9 +1443,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=0,
                     )
@@ -1471,9 +1469,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=strategy["router_address"],
                         value=0,
                     )
@@ -1497,9 +1495,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_a"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
                         path=[
@@ -1529,9 +1527,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
-                        sender=period_state.safe_contract_address,
-                        gas=TEMP_GAS,
-                        gas_price=TEMP_GAS_PRICE,
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["pair"]["token_b"]["amount"]),
                         amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
                         path=[
