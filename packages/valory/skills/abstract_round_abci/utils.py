@@ -229,7 +229,9 @@ class BenchmarkTool:
 
         try:
             with open(
-                f"/logs/{self.agent_address}.json", "w+", encoding="utf-8"
+                os.path.join(os.getcwd(), "logs", f"{self.agent_address}.json"),
+                "w+",
+                encoding="utf-8",
             ) as outfile:
                 json.dump(self.data, outfile)
         except (PermissionError, FileNotFoundError):
