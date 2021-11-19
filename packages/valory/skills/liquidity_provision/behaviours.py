@@ -429,7 +429,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     strategy["base"]["address"],
                     strategy["pair"]["token_a"]["address"],
                 ],
-                to_address=self.period_state.safe_contract_address,
+                to=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
             )
             swap_a_data = contract_api_msg.raw_transaction.body["data"]
@@ -456,7 +456,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     strategy["base"]["address"],
                     strategy["pair"]["token_b"]["address"],
                 ],
-                to_address=self.period_state.safe_contract_address,
+                to=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
             )
             swap_b_data = contract_api_msg.raw_transaction.body["data"]
@@ -477,7 +477,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender_address=strategy["router_address"],
+                spender=strategy["router_address"],
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
@@ -499,7 +499,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender_address=strategy["router_address"],
+                spender=strategy["router_address"],
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
@@ -531,7 +531,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     amount_ETH_min=int(
                         strategy["pair"]["token_a"]["amount_min"] * 0.99
                     ),  # Review this factor. For now, we don't want to lose more than 1% here.
-                    to_address=self.period_state.safe_contract_address,
+                    to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
@@ -563,7 +563,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     amount_b_min=int(
                         strategy["pair"]["token_b"]["amount_min"] * 0.99
                     ),  # Review this factor. For now, we don't want to lose more than 1% here.
-                    to_address=self.period_state.safe_contract_address,
+                    to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
@@ -689,7 +689,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     liquidity=strategy["liquidity_to_remove"],
                     amount_token_min=int(strategy["pair"]["token_b"]["amount_min"]),
                     amount_ETH_min=int(strategy["pair"]["token_a"]["amount_min"]),
-                    to_address=self.period_state.safe_contract_address,
+                    to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
@@ -716,7 +716,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     liquidity=strategy["liquidity_to_remove"],
                     amount_a_min=int(strategy["pair"]["token_a"]["amount_min"]),
                     amount_b_min=int(strategy["pair"]["token_b"]["amount_min"]),
-                    to_address=self.period_state.safe_contract_address,
+                    to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
                 liquidity_data = contract_api_msg.raw_transaction.body["data"]
@@ -737,7 +737,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender_address=strategy["router_address"],
+                spender=strategy["router_address"],
                 value=0,
             )
             allowance_a_data = contract_api_msg.raw_transaction.body["data"]
@@ -758,7 +758,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender_address=strategy["router_address"],
+                spender=strategy["router_address"],
                 value=0,
             )
             allowance_b_data = contract_api_msg.raw_transaction.body["data"]
@@ -786,7 +786,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         strategy["pair"]["token_a"]["address"],
                         strategy["base"]["address"],
                     ],
-                    to_address=self.period_state.safe_contract_address,
+                    to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
                 swap_a_data = contract_api_msg.raw_transaction.body["data"]
@@ -814,7 +814,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         strategy["pair"]["token_a"]["address"],
                         strategy["base"]["address"],
                     ],
-                    to_address=self.period_state.safe_contract_address,
+                    to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
                 swap_a_data = contract_api_msg.raw_transaction.body["data"]
@@ -841,7 +841,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     strategy["pair"]["token_b"]["address"],
                     strategy["base"]["address"],
                 ],
-                to_address=self.period_state.safe_contract_address,
+                to=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
             )
             swap_b_data = contract_api_msg.raw_transaction.body["data"]
