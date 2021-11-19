@@ -410,8 +410,8 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
             if strategy["action"] == StrategyType.GO:
                 self.context.logger.info(
-                    f"Performing strategy update: moving into "
-                    "{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
+                    "Performing strategy update: moving into "
+                    + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
                 )
 
         with benchmark_tool.measure(
@@ -727,8 +727,7 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             # and always swap back to it.
             multi_send_txs = []
 
-
-           # Remove liquidity
+            # Remove liquidity
             if strategy["pair"]["token_a"]["is_native"]:
 
                 contract_api_msg = yield from self.get_contract_api_response(
@@ -742,12 +741,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     gas_price=TEMP_GAS_PRICE,
                     token=strategy["pair"]["token_b"]["address"],
                     liquidity=strategy["liquidity_to_remove"],
-                    amount_token_min=int(
-                        strategy["pair"]["token_b"]["amount_min"]
-                    ),
-                    amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_min"]
-                    ),
+                    amount_token_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                    amount_ETH_min=int(strategy["pair"]["token_a"]["amount_min"]),
                     to_address=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
@@ -775,12 +770,8 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
                     liquidity=strategy["liquidity_to_remove"],
-                    amount_a_min=int(
-                        strategy["pair"]["token_a"]["amount_min"]
-                    ),
-                    amount_b_min=int(
-                        strategy["pair"]["token_b"]["amount_min"]
-                    ),
+                    amount_a_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    amount_b_min=int(strategy["pair"]["token_b"]["amount_min"]),
                     to_address=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
@@ -793,7 +784,6 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                         "data": HexBytes(str(liquidity_data)),
                     }
                 )
-
 
             # Remove allowance for token A (can be native or not)
             contract_api_msg = yield from self.get_contract_api_response(
@@ -930,6 +920,16 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
                 }
             )
 
+            # Get the tx list data from multisend contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(MultiSendContract.contract_id),
+                contract_callable="get_tx_data",
+                multi_send_txs=multi_send_txs,
+            )
+            multisend_data = contract_api_msg.raw_transaction.body["data"]
+
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -954,7 +954,6 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             yield from self.wait_until_round_end()
 
         self.set_done()
-
 
 
 class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
