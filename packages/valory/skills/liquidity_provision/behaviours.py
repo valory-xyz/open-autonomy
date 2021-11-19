@@ -811,7 +811,7 @@ class ExitPoolTransactionHashBehaviour(TransactionHashBaseBehaviour):
             # Remove allowance for token B (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_a"]["address"],
+                contract_address=strategy["pair"]["token_b"]["address"],
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
