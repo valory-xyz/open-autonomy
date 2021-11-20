@@ -1175,7 +1175,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
                 # last timestamp can be in the past relative to last seen block time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
-                self.logger.debug(
+                self.logger.info(
                     "scheduling timeout of %s seconds for event %s with deadline %s",
                     timeout,
                     event,
@@ -1278,15 +1278,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         :param timestamp: the latest block's timestamp.
         """
-        self.logger.debug("arrived block with timestamp: %s", timestamp)
-        self.logger.debug("current AbciApp time: %s", self._last_timestamp)
+        self.logger.info("arrived block with timestamp: %s", timestamp)
+        self.logger.info("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
         if self._timeouts.size == 0:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
-            self.logger.debug("no pending timeout, move time forward")
+            self.logger.info("no pending timeout, move time forward")
             self._last_timestamp = timestamp
             return
 
@@ -1308,7 +1308,9 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # However, we need it to correctly simulate the timeouts
             # of the next rounds.
             self._last_timestamp = expired_deadline
-            self.logger.debug("current AbciApp time: %s", self._last_timestamp)
+            self.logger.info(
+                "current AbciApp time after expired deadline: %s", self.last_timestamp
+            )
 
             self.process_event(timeout_event)
 
