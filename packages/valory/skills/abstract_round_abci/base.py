@@ -509,6 +509,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """Initialize the round."""
         self._consensus_params = consensus_params
         self._state = state
+        self.block_confirmations = 0
 
         self._check_class_attributes()
 
