@@ -631,10 +631,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
             observation=1.0,
         )
 
-        payload_1 = ObservationPayload(
-            sender=sorted(list(self.participants))[0],
-            observation=1.0,
-        )
         participant_to_observations_payloads = get_participant_to_observations(
             self.participants
         )
@@ -653,7 +649,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
         self._run(
             test_round,
             payload_0,
-            payload_1,
             first_payload,
             participant_to_observations_payloads,
             actual_next_state,
@@ -673,10 +668,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
             observation=1.0,
         )
 
-        payload_1 = ObservationPayload(
-            sender=sorted(list(self.participants))[0],
-            observation=1.0,
-        )
         participant_to_observations_payloads = get_participant_to_observations(
             frozenset(list(self.participants)[:-1])
         )
@@ -695,7 +686,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
         self._run(
             test_round,
             payload_0,
-            payload_1,
             first_payload,
             participant_to_observations_payloads,
             actual_next_state,
@@ -706,7 +696,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
         self,
         test_round: CollectObservationRound,
         payload_0: ObservationPayload,
-        payload_1: ObservationPayload,
         first_payload: ObservationPayload,
         participant_to_observations_payloads: dict,
         actual_next_state: PeriodState,
@@ -743,7 +732,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match=f"sender {payload_1.sender} has already sent value for round: collect_observation",
+            match=f"sender {first_payload.sender} has already sent value for round: collect_observation",
         ):
             test_round.check_payload(first_payload)
 

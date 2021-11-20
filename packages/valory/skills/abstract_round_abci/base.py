@@ -1421,13 +1421,16 @@ class Period:
         return self.abci_app.last_round_id
 
     @property
-    def last_timestamp(self) -> Optional[datetime.datetime]:
+    def last_timestamp(self) -> datetime.datetime:
         """Get the last timestamp."""
-        return (
+        last_timestamp = (
             self._blockchain.blocks[-1].timestamp
             if self._blockchain.length != 0
             else None
         )
+        if last_timestamp is None:
+            raise ABCIAppInternalError("last timestamp is None")
+        return last_timestamp
 
     @property
     def latest_result(self) -> Optional[Any]:

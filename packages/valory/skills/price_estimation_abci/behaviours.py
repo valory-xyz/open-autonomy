@@ -111,16 +111,18 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
 
     _check_started: Optional[datetime.datetime] = None
     _timeout: float
+    _is_healthy: bool
 
     def start(self) -> None:
         """Set up the behaviour."""
         if self._check_started is None:
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
+            self._is_healthy = False
 
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
-        if self._check_started is None:
+        if self._check_started is None or self._is_healthy:
             return False  # pragma: no cover
         return datetime.datetime.now() > self._check_started + datetime.timedelta(
             0, self._timeout
@@ -132,12 +134,21 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
+        if not self._is_healthy:
+            health = yield from self._get_health()
+            try:
+                json_body = json.loads(health.body.decode())
+            except json.JSONDecodeError:
+                self.context.logger.error("Tendermint not running yet, trying again!")
+                yield from self.sleep(self.params.sleep_time)
+                return
+            self._is_healthy = True
         status = yield from self._get_status()
         try:
             json_body = json.loads(status.body.decode())
         except json.JSONDecodeError:
             self.context.logger.error(
-                "Tendermint not running or accepting transactions yet, trying again!"
+                "Tendermint not accepting transactions yet, trying again!"
             )
             yield from self.sleep(self.params.sleep_time)
             return
@@ -1091,7 +1102,7 @@ class BaseResetBehaviour(PriceEstimationBaseState):
             self.context.logger.info("Period end.")
             benchmark_tool.save()
 
-            yield from self.sleep(self.params.observation_interval)
+            yield from self.wait_from_last_timestamp(self.params.observation_interval)
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
