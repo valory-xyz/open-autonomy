@@ -39,9 +39,6 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.contracts.gnosis_safe.contract import (
-    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
-)
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -233,7 +230,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             to=str(self.skill.skill_context.skill_id),
             sender=str(LEDGER_CONNECTION_PUBLIC_ID),
             ledger_id="ethereum",
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            contract_id=contract_id,
             **response_kwargs,
         )
         self.contract_handler.handle(incoming_message)
