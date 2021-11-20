@@ -1307,8 +1307,9 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # clearly, it is earlier than the current highest known
             # timestamp that comes from the consensus engine.
             # However, we need it to correctly simulate the timeouts
-            # of the next rounds.
-            self._last_timestamp = expired_deadline
+            # of the next rounds. (for now we set it to timestamp to explore
+            # the impact)
+            self._last_timestamp = timestamp
             self.logger.info(
                 "current AbciApp time after expired deadline: %s", self.last_timestamp
             )
