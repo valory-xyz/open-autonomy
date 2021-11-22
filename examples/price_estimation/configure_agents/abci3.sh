@@ -9,7 +9,7 @@ aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.
 aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.url https://api3.drand.sh/public/latest
 aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.api_id protocollabs2
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4 --type int
-aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 7 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node3:26657"
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.safe_contract_address "0x7AbCC2424811c342BC9A9B52B1621385d7406676"

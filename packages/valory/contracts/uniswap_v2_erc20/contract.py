@@ -258,7 +258,7 @@ class UniswapV2ERC20Contract(Contract):
         eth_value: int = 0,
     ) -> Optional[JSONLike]:
         """Build transaction method."""
-        nonce = ledger_api.api.eth.getTransactionCount(sender_address)
+        nonce = ledger_api.api.eth.get_transaction_count(sender_address)
         tx = tx.buildTransaction(
             {
                 "gas": gas,

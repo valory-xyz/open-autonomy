@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
+import datetime
 import json
 import logging
 import time
@@ -436,7 +437,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.mock_http_request(
                 request_kwargs=dict(
                     method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    url=self.skill.skill_context.params.tendermint_url + "/health",
                     headers="",
                     version="",
                     body=b"",
@@ -451,7 +452,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             )
         mock_logger.assert_any_call(
             logging.ERROR,
-            "Tendermint not running or accepting transactions yet, trying again!",
+            "Tendermint not running yet, trying again!",
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
@@ -475,7 +476,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ):
                 self.price_estimation_behaviour.act_wrapper()
 
-    def test_tendermint_healthcheck_live(self) -> None:
+    def test_tendermint_healthcheck_live_and_no_status(self) -> None:
         """Test the tendermint health check does finish if healthy."""
         assert (
             cast(
@@ -485,6 +486,71 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == TendermintHealthcheckBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="", status_code=500, status_text="", headers="", body=b""
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.ERROR, "Tendermint not accepting transactions yet, trying again!"
+        )
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
+
+    def test_tendermint_healthcheck_live_and_status(self) -> None:
+        """Test the tendermint health check does finish if healthy."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
         ) as mock_logger:
@@ -524,6 +590,14 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == TendermintHealthcheckBehaviour.state_id
         )
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.price_estimation_behaviour.current_state,
+        )._check_started = datetime.datetime.now()
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.price_estimation_behaviour.current_state,
+        )._is_healthy = True
         self.price_estimation_behaviour.act_wrapper()
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
@@ -1565,10 +1639,15 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.price_estimation_behaviour.context.params.observation_interval = 0.1
-        self.price_estimation_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.price_estimation_behaviour.act_wrapper()
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            new_callable=mock.PropertyMock,
+        ) as pmock:
+            pmock.return_value = datetime.datetime.now()
+            self.price_estimation_behaviour.context.params.observation_interval = 0.1
+            self.price_estimation_behaviour.act_wrapper()
+            time.sleep(0.3)
+            self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1594,15 +1673,20 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            new_callable=mock.PropertyMock,
+        ) as pmock:
+            pmock.return_value = datetime.datetime.now()
+            self.price_estimation_behaviour.context.params.observation_interval = 0.1
 
-        with patch.object(
-            self.price_estimation_behaviour.context.logger, "info"
-        ) as mock_logger:
+            with patch.object(
+                self.price_estimation_behaviour.context.logger, "info"
+            ) as mock_logger:
+                self.price_estimation_behaviour.act_wrapper()
+                mock_logger.assert_any_call("Finalized estimate not available.")
+            time.sleep(0.3)
             self.price_estimation_behaviour.act_wrapper()
-            mock_logger.assert_any_call("Finalized estimate not available.")
-        time.sleep(0.3)
-        self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()

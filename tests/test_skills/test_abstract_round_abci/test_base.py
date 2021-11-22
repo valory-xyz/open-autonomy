@@ -894,7 +894,8 @@ class TestPeriod:
 
         The property is None because there are no blocks.
         """
-        assert self.period.last_timestamp is None
+        with pytest.raises(ABCIAppInternalError, match="last timestamp is None"):
+            self.period.last_timestamp
 
     def test_last_timestamp(self) -> None:
         """Test 'last_timestamp' property, positive case."""
