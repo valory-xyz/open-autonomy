@@ -20,6 +20,7 @@
 """Conftest module for Pytest."""
 import logging
 import socket
+import time
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Generator, List, Tuple, cast
 from unittest.mock import MagicMock
@@ -272,6 +273,8 @@ async def ledger_apis_connection(
         "ethereum"
     ] = ethereum_testnet_config
 
+    connection.request_retry_attempts = 1  # type: ignore
+    connection.request_retry_attempts = 2  # type: ignore
     await connection.connect()
     yield connection
     await connection.disconnect()
@@ -306,18 +309,20 @@ def gnosis_safe_contract(
         ledger_api=ledger_api,
         deployer_address=crypto.address,
         gas=5000000,
+        gas_price=5000000,
         owners=owners,
         threshold=threshold,
     )
     assert tx is not None
     contract_address = tx.pop("contract_address")  # hack
     assert isinstance(contract_address, str)
-    gas = ledger_api.api.eth.estimateGas(transaction=tx)
+    gas = ledger_api.api.eth.estimate_gas(transaction=tx)
     tx["gas"] = gas
     tx_signed = crypto.sign_transaction(tx)
-    tx_receipt = ledger_api.send_signed_transaction(tx_signed)
-    assert tx_receipt is not None
-    receipt = ledger_api.get_transaction_receipt(tx_receipt)
+    tx_digest = ledger_api.send_signed_transaction(tx_signed)
+    assert tx_digest is not None
+    time.sleep(0.5)
+    receipt = ledger_api.get_transaction_receipt(tx_digest)
     assert receipt is not None
     # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
     yield contract, contract_address

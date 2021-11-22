@@ -201,6 +201,6 @@ To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (mo
 
 To save logs to file: `docker logs d425a72bada2 > node_4.txt`
 
-To copy files to local machine: `scp root@178.62.4.138:node_4.txt node_4.txt`
+To copy files to local machine: `for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done`
 
 

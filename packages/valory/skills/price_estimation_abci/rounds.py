@@ -340,11 +340,15 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
+    required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+        if self.collection_threshold_reached:
+            self.block_confirmations += 1
         if (  # fast forward at setup
             self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
             and self.period_state.period_setup_params != {}
             and self.period_state.period_setup_params.get("safe_contract_address", None)
             is not None
@@ -376,7 +380,10 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
                 oracle_contract_address=self.period_state.oracle_contract_address,
             )
             return state, Event.FAST_FORWARD
-        if self.collection_threshold_reached:  # initial deployment round
+        if (
+            self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
+        ):  # initial deployment round
             state = PeriodState(
                 participants=self.collection,
                 period_count=self.period_state.period_count,

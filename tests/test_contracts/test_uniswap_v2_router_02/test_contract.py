@@ -125,7 +125,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -173,7 +173,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -220,7 +220,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -267,7 +267,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -318,7 +318,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -373,7 +373,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -423,7 +423,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -475,7 +475,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -524,7 +524,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -568,7 +568,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -606,7 +606,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             args=[self.amount_out_min, self.path, self.to_address, self.deadline],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -649,7 +649,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -693,7 +693,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -731,7 +731,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             args=[self.amount_out, self.path, self.to_address, self.deadline],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -776,7 +776,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -814,7 +814,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             args=[self.amount_out_min, self.path, self.to_address, self.deadline],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -857,7 +857,7 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
             ],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID

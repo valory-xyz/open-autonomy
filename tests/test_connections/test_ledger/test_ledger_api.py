@@ -53,6 +53,7 @@ from packages.valory.protocols.ledger_api.dialogues import (
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER
+from tests.helpers.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
@@ -64,9 +65,12 @@ ledger_ids = pytest.mark.parametrize(
         (EthereumCrypto.identifier, EthereumCrypto(ETHEREUM_KEY_DEPLOYER).address),
     ],
 )
-gas_price_strategies = pytest.mark.parametrize(
-    "gas_price_strategy",
-    [None, "average"],
+gas_strategies = pytest.mark.parametrize(
+    "gas_strategies",
+    [
+        {"gas_price_strategy": None, "gas_price": 10 ** 10},
+        {"gas_price_strategy": "average"},
+    ],
 )
 
 
@@ -145,7 +149,7 @@ async def test_get_state(
     config = ethereum_testnet_config
 
     if "ethereum" in ledger_id:
-        callable_name = "getBlock"
+        callable_name = "get_block"
     else:
         callable_name = "blocks"
     args = ("latest",)
@@ -187,9 +191,9 @@ async def test_get_state(
 
 
 @pytest.mark.asyncio
-@gas_price_strategies
+@gas_strategies
 async def test_send_signed_transaction_ethereum(
-    gas_price_strategy: Optional[str],
+    gas_strategies: Dict,
     ledger_apis_connection: Connection,
     update_default_ethereum_ledger_api: None,
     ganache: None,
@@ -204,7 +208,7 @@ async def test_send_signed_transaction_ethereum(
     ledger_api_dialogues = LedgerApiDialogues(SOME_SKILL_ID)
 
     amount = 40000
-    fee = 30000
+    fee = 10 ** 7
 
     request, ledger_api_dialogue = ledger_api_dialogues.create(
         counterparty=str(ledger_apis_connection.connection_id),
@@ -218,8 +222,8 @@ async def test_send_signed_transaction_ethereum(
             is_sender_payable_tx_fee=True,
             nonce="",
             fee_by_currency_id={"ETH": fee},
-            chain_id=3,
-            gas_price_strategy=gas_price_strategy,
+            chain_id=DEFAULT_GANACHE_CHAIN_ID,
+            **gas_strategies,
         ),
     )
     request = cast(LedgerApiMessage, request)

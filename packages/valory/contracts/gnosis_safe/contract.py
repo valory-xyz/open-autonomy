@@ -171,7 +171,7 @@ class GnosisSafeContract(Contract):
         fallback_handler = DEFAULT_CALLBACK_HANDLER
 
         account_address = checksum_address(deployer_address)
-        account_balance: int = ledger_api.api.eth.getBalance(account_address)
+        account_balance: int = ledger_api.api.eth.get_balance(account_address)
         if not account_balance:
             raise ValueError("Client does not have any funds")
 
@@ -185,9 +185,9 @@ class GnosisSafeContract(Contract):
             ether_account_balance,
         )
 
-        if not ledger_api.api.eth.getCode(
+        if not ledger_api.api.eth.get_code(
             safe_contract_address
-        ) or not ledger_api.api.eth.getCode(proxy_factory_address):
+        ) or not ledger_api.api.eth.get_code(proxy_factory_address):
             raise ValueError("Network not supported")  # pragma: nocover
 
         _logger.info(
@@ -294,7 +294,7 @@ class GnosisSafeContract(Contract):
                 block_identifier="latest"
             )
         if chain_id is None:
-            chain_id = ledger_api.api.eth.chainId
+            chain_id = ledger_api.api.eth.chain_id
 
         data_ = HexBytes(data).hex()
 
@@ -424,7 +424,7 @@ class GnosisSafeContract(Contract):
             refund_receiver,
             signatures,
         )
-        tx_gas_price = gas_price or ledger_api.api.eth.gasPrice
+        tx_gas_price = gas_price or ledger_api.api.eth.gas_price
         tx_parameters = {
             "from": sender_address,
             "gasPrice": tx_gas_price,
@@ -433,7 +433,7 @@ class GnosisSafeContract(Contract):
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
         )
-        transaction_dict["nonce"] = ledger_api.api.eth.getTransactionCount(
+        transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
             ledger_api.api.toChecksumAddress(sender_address)
         )
         return transaction_dict
@@ -448,7 +448,7 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.getCode(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
         # contract is created via a proxy
         local_bytecode = SAFE_DEPLOYED_BYTECODE
@@ -511,7 +511,7 @@ class GnosisSafeContract(Contract):
         base_gas_name = "baseGas" if safe_version_ >= Version("1.0.0") else "dataGas"
 
         try:
-            transaction = ledger_api.api.eth.getTransaction(tx_hash)
+            transaction = ledger_api.api.eth.get_transaction(tx_hash)
             receipt = ledger_api.get_transaction_receipt(tx_hash)
             if receipt is None:
                 raise ValueError  # pragma: nocover

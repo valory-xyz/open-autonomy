@@ -331,6 +331,24 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             partial(self.check_round_height_has_changed, round_height), timeout=timeout
         )
 
+    def wait_from_last_timestamp(self, seconds: float) -> Any:
+        """
+        Delay execution for a given number of seconds from the last timestamp.
+
+        The argument may be a floating point number for subsecond precision.
+
+        :param seconds: the seconds
+        :yield: None
+        """
+        deadline = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp + datetime.timedelta(0, seconds)
+
+        def _wait_until() -> bool:
+            return datetime.datetime.now() > deadline
+
+        yield from self.wait_for_condition(_wait_until)
+
     def is_done(self) -> bool:
         """Check whether the state is done."""
         return self._is_done
@@ -401,7 +419,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             transaction = Transaction(payload, signature_bytes)
             response = yield from self._submit_tx(transaction.encode())
             response = cast(HttpMessage, response)
-            json_body = json.loads(response.body)
+            try:
+                json_body = json.loads(response.body)
+            except json.JSONDecodeError as e:  # pragma: nocover
+                raise ValueError(
+                    f"Unable to decode response: {response} with body {str(response.body)}"
+                ) from e
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             if not self._check_http_return_code_200(response):
                 self.context.logger.info(
@@ -525,6 +548,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + f"/tx?hash=0x{tx_hash}",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        return result
+
+    def _get_health(self) -> Generator[None, None, HttpMessage]:
+        """Get Tendermint node's health."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/health",
         )
         result = yield from self._do_request(request_message, http_dialogue)
         return result
@@ -666,7 +698,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             if response.status_code != 200:
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
-            json_body = json.loads(response.body)
+            try:
+                json_body = json.loads(response.body)
+            except json.JSONDecodeError as e:  # pragma: nocover
+                raise ValueError(
+                    f"Unable to decode response: {response} with body {str(response.body)}"
+                ) from e
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE
 
