@@ -176,42 +176,62 @@ class DummyVotingRound(VotingRound, DummyRound):
 class BaseCollectionRoundTest(BaseTestClass):
     """Tests for rounds derived from CollectionRound."""
 
-    def _test_round(self, test_round: CollectionRound, round_payloads: Mapping[str, BaseTxPayload]) -> None:
+    def _test_round(
+        self, test_round: CollectionRound, round_payloads: Mapping[str, BaseTxPayload]
+    ) -> None:
         """Test round."""
 
 
 class BaseCollectDifferentUntilAllRoundTest(BaseTestClass):
     """Tests for rounds derived from CollectDifferentUntilAllRound."""
 
-    def _test_round(self, test_round: CollectDifferentUntilAllRound, round_payloads: Mapping[str, BaseTxPayload]) -> None:
+    def _test_round(
+        self,
+        test_round: CollectDifferentUntilAllRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+    ) -> None:
         """Test round."""
 
 
 class BaseCollectSameUntilThresholdRoundTest(BaseTestClass):
     """Tests for rounds derived from CollectSameUntilThresholdRound."""
 
-    def _test_round(self, test_round: CollectSameUntilThresholdRound, round_payloads: Mapping[str, BaseTxPayload]) -> None:
+    def _test_round(
+        self,
+        test_round: CollectSameUntilThresholdRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+    ) -> None:
         """Test round."""
 
 
 class BaseOnlyKeeperSendsRoundTest(BaseTestClass):
     """Tests for rounds derived from OnlyKeeperSendsRound."""
 
-    def _test_round(self, test_round: OnlyKeeperSendsRound, round_payloads: Mapping[str, BaseTxPayload]) -> None:
+    def _test_round(
+        self,
+        test_round: OnlyKeeperSendsRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+    ) -> None:
         """Test round."""
 
 
 class BaseVotingRoundTest(BaseTestClass):
     """Tests for rounds derived from VotingRound."""
 
-    def _test_round(self, test_round: VotingRound, round_payloads: Mapping[str, BaseTxPayload]) -> None:
+    def _test_round(
+        self, test_round: VotingRound, round_payloads: Mapping[str, BaseTxPayload]
+    ) -> None:
         """Test round."""
 
 
 class BaseCollectDifferentUntilThresholdRoundTest(BaseTestClass):
     """Tests for rounds derived from CollectDifferentUntilThresholdRound."""
 
-    def _test_round(self, test_round: CollectDifferentUntilThresholdRound, round_payloads: Mapping[str, BaseTxPayload]) -> None:
+    def _test_round(
+        self,
+        test_round: CollectDifferentUntilThresholdRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+    ) -> None:
         """Test round."""
 
 

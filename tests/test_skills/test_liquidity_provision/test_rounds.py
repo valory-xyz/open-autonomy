@@ -29,10 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
     BaseTxPayload,
-    CollectDifferentUntilAllRound,
-    CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
-    CollectionRound,
     ConsensusParams,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
@@ -106,7 +103,7 @@ class BaseRoundTestClass:
         test_round: CollectSameUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
         update_fn: Callable,
-        state_attr_check: Callable
+        state_attr_check: Callable,
     ) -> None:
         """Test rounds derived from CollectionRound."""
 
@@ -151,10 +148,11 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
             round_payloads=get_participant_to_tx_hash(self.participants),
             update_fn=lambda _period_state, _test_round: _period_state.update(
                 participant_to_tx_hash=MappingProxyType(
-                    get_participant_to_tx_hash(self.participants)),
+                    get_participant_to_tx_hash(self.participants)
+                ),
                 most_voted_tx_hash=_test_round.most_voted_payload,
             ),
-            state_attr_check=lambda state: state.participant_to_tx_hash.keys()
+            state_attr_check=lambda state: state.participant_to_tx_hash.keys(),
         )
 
 
