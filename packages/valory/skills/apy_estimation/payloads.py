@@ -18,21 +18,27 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the APY estimation app."""
+from enum import Enum
 from typing import Dict, Optional
 
 import pandas as pd
 
 from packages.valory.skills.simple_abci.payloads import BaseSimpleAbciPayload
-from packages.valory.skills.simple_abci.payloads import (
-    TransactionType as BaseTransactionType,
-)
 
 
-class TransactionType(BaseTransactionType):
+class TransactionType(Enum):
     """Enumeration of transaction types."""
 
+    REGISTRATION = "registration"
+    RANDOMNESS = "randomness"
+    SELECT_KEEPER = "select_keeper"
+    RESET = "reset"
     TRANSFORMATION = "transformation"
     FETCHING = "fetching"
+
+    def __str__(self) -> str:
+        """Get the string value of the transaction type."""
+        return self.value
 
 
 class FetchingPayload(BaseSimpleAbciPayload):
