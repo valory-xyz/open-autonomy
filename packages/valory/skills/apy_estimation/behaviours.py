@@ -21,6 +21,8 @@
 from abc import ABC
 from typing import Dict, Generator, Set, Tuple, Type, Union, cast
 
+from aea.helpers.ipfs.base import IPFSHashOnly
+
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -35,7 +37,7 @@ from packages.valory.skills.apy_estimation.rounds import (
     PeriodState,
     TransformRound,
 )
-from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps
+from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file
 from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
@@ -49,7 +51,6 @@ from packages.valory.skills.simple_abci.behaviours import (
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
 )
-
 
 benchmark_tool = BenchmarkTool()
 
@@ -78,6 +79,10 @@ class FetchBehaviour(APYEstimationBaseState):
     state_id = "fetch"
     matching_round = CollectHistoryRound
 
+    def setup(self) -> None:
+        """Set the behaviour up."""
+        create_pathdirs(self.params.history_save_path)
+
     def _handle_response(
         self, res: Dict, res_context: str, keys: Tuple[Union[str, int], ...]
     ) -> None:
@@ -92,6 +97,7 @@ class FetchBehaviour(APYEstimationBaseState):
             )
 
             self.context.spooky_subgraph.increment_retries()
+            yield from self.sleep(self.params.sleep_time)
             raise EmptyResponseError()
 
         value = res[keys[0]]
@@ -146,7 +152,7 @@ class FetchBehaviour(APYEstimationBaseState):
                         keys=("pairs", 0, "id"),
                     )
                 except EmptyResponseError:
-                    yield from self.sleep(self.params.sleep_time)
+                    return
 
                 pair_ids = [pair["id"] for pair in res["pairs"]]
 
@@ -168,7 +174,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             res, res_context="block", keys=("blocks", 0)
                         )
                     except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
+                        return
 
                     fetched_block = res["blocks"][0]
 
@@ -189,7 +195,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             keys=("bundles", 0, "ethPrice"),
                         )
                     except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
+                        return
 
                     eth_price = float(res["bundles"][0]["ethPrice"])
 
@@ -208,7 +214,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             keys=("pairs", 0),
                         )
                     except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
+                        return
 
                     # Add extra fields to the pairs.
                     for i in range(len(res["pairs"])):
@@ -220,10 +226,20 @@ class FetchBehaviour(APYEstimationBaseState):
                     pairs_hist.extend(res["pairs"])
 
             if len(pairs_hist) > 0:
+                # Store historical data to a json file.
+                list_to_json_file(self.params.history_save_path, pairs_hist)
+
+                # Hash the file.
+                hasher = IPFSHashOnly()
+                hist_hash = hasher.get(self.params.history_save_path)
+
+                # Pass the hash as a Payload.
                 payload = FetchingPayload(
                     self.context.agent_address,
-                    pairs_hist,
+                    hist_hash,
                 )
+
+                # Finish behaviour.
                 with benchmark_tool.measure(
                     self,
                 ).consensus():

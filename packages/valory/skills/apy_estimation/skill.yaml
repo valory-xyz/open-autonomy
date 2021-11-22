@@ -87,6 +87,7 @@ models:
       round_timeout_seconds: 30
       sleep_time: 1
       tendermint_url: http://localhost:26657
+      history_save_path: 'historical_data.json'
     class_name: APYParams
   requests:
     args: {}
