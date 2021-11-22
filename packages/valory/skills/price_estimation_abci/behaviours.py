@@ -405,6 +405,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             owners=owners,
             threshold=threshold,
             deployer_address=self.context.agent_address,
+            gas=10 ** 7,
+            gas_price=10 ** 10,  # TOFIX
         )
         if (
             contract_api_response.performative
@@ -504,6 +506,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
+            gas_price=10 ** 10,  # TOFIX
         )
         if (
             contract_api_response.performative
