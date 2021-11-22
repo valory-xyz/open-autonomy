@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the APY estimation app."""
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -40,25 +40,25 @@ class FetchingPayload(BaseSimpleAbciPayload):
 
     transaction_type = TransactionType.FETCHING
 
-    def __init__(self, sender: str, fetching: List, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, history_hash: str, id_: Optional[str] = None) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param fetching: the fetched history.
+        :param history_hash: the fetched history's hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._fetching = fetching
+        self._history = history_hash
 
     @property
-    def fetching(self) -> List:
+    def history(self) -> str:
         """Get the fetched history."""
-        return self._fetching
+        return self._history
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return {"fetching": self._fetching}
+        return {"history": self._history}
 
 
 class TransformationPayload(BaseSimpleAbciPayload):
