@@ -20,7 +20,7 @@
 """Tests for rounds.py file in valory/liquidity_provision."""
 
 from types import MappingProxyType
-from typing import FrozenSet, Mapping, cast  # noqa : F401
+from typing import Callable, Dict, FrozenSet, Mapping, Union, cast  # noqa : F401
 from unittest import mock
 
 import pytest
@@ -28,6 +28,11 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
+    BaseTxPayload,
+    CollectDifferentUntilAllRound,
+    CollectDifferentUntilThresholdRound,
+    CollectSameUntilThresholdRound,
+    CollectionRound,
     ConsensusParams,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
@@ -96,19 +101,16 @@ class BaseRoundTestClass:
             _, event = result
             assert event == Event.NO_MAJORITY
 
-
-class TestTransactionHashBaseRound(BaseRoundTestClass):
-    """Test TransactionHashBaseRound"""
-
-    def test_run(
+    def _test_collect_same_until_threshold_round(
         self,
+        test_round: CollectSameUntilThresholdRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        update_fn: Callable,
+        state_attr_check: Callable
     ) -> None:
-        """Run tests."""
+        """Test rounds derived from CollectionRound."""
 
-        test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
-        (sender, first_payload), *payloads = get_participant_to_tx_hash(
-            self.participants
-        ).items()
+        (_, first_payload), *payloads = round_payloads.items()
 
         test_round.process_payload(first_payload)
         assert not test_round.threshold_reached
@@ -124,21 +126,36 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == "tx_hash"
 
-        actual_next_state = self.period_state.update(
-            participant_to_tx_hash=MappingProxyType(
-                get_participant_to_tx_hash(self.participants)
-            ),
-            most_voted_tx_hash=test_round.most_voted_payload,
-        )
-
+        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
         res = test_round.end_block()
         assert res is not None
+
         state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_tx_hash.keys()
-            == cast(PeriodState, actual_next_state).participant_to_tx_hash.keys()
-        )
+        state = cast(PeriodState, state)
+
+        assert state_attr_check(state) == state_attr_check(actual_next_state)
         assert event == Event.DONE
+
+
+class TestTransactionHashBaseRound(BaseRoundTestClass):
+    """Test TransactionHashBaseRound"""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
+        self._test_collect_same_until_threshold_round(
+            test_round=test_round,
+            round_payloads=get_participant_to_tx_hash(self.participants),
+            update_fn=lambda _period_state, _test_round: _period_state.update(
+                participant_to_tx_hash=MappingProxyType(
+                    get_participant_to_tx_hash(self.participants)),
+                most_voted_tx_hash=_test_round.most_voted_payload,
+            ),
+            state_attr_check=lambda state: state.participant_to_tx_hash.keys()
+        )
 
 
 class TestTransactionSignatureBaseRound(BaseRoundTestClass):
