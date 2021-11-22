@@ -31,10 +31,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     CollectDifferentUntilThresholdRound,
     EventType,
-    TransactionType,
+    TransactionType, CollectSameUntilThresholdRound,
 )
 from packages.valory.skills.apy_estimation.payloads import TransformationPayload
-from packages.valory.skills.apy_estimation.tools.general import transform
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     ObservationPayload,
@@ -74,6 +73,7 @@ class PeriodState(PriceEstimationPeriodState):
         oracle_contract_address: Optional[str] = None,
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
+        most_voted_observation: Optional[str] = None,
         participant_to_transformation: Optional[
             Mapping[str, TransformationPayload]
         ] = None,
@@ -109,6 +109,7 @@ class PeriodState(PriceEstimationPeriodState):
         )
         self._transformation = transformation
         self._participant_to_transformation = participant_to_transformation
+        self._most_voted_observation = most_voted_observation
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -129,13 +130,13 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
 
 class CollectHistoryRound(
-    CollectDifferentUntilThresholdRound, APYEstimationAbstractRound
+    CollectSameUntilThresholdRound, APYEstimationAbstractRound
 ):
     """
     This class represents the 'collect-history' round.
 
     Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the historical data
+    Output: a new period state with the prior round data and the votes for the historical data
 
     It schedules the TransformRound.
     """
@@ -146,22 +147,21 @@ class CollectHistoryRound(
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        # if reached observation threshold, set the result
-        if self.collection_threshold_reached:
-            observations = [
-                getattr(payload, self.payload_attribute)
-                for payload in self.collection.values()
-            ]
+        state = event = None
 
-            transformation = transform(observations)
-            state = self.period_state.update(
+        if self.threshold_reached:
+            updated_state = self.period_state.update(
                 participant_to_observations=MappingProxyType(self.collection),
-                transformation=transformation,
+                most_voted_observation=self.most_voted_payload,
             )
+            state, event = updated_state, Event.DONE
 
-            return state, Event.DONE
+        elif not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            state, event = self._return_no_majority_event()
 
-        return None
+        return state, event
 
 
 class TransformRound(CollectDifferentUntilThresholdRound, APYEstimationAbstractRound):
@@ -189,6 +189,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
         },
         CollectHistoryRound: {
             Event.DONE: TransformRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         TransformRound: {
