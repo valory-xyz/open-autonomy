@@ -32,6 +32,10 @@ from tests.conftest import ROOT_DIR
 from tests.test_contracts.base import BaseGanacheContractTest
 
 
+DEFAULT_GAS = 1000000
+DEFAULT_GAS_PRICE = 1000000
+
+
 class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 
@@ -43,7 +47,7 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(gas=10000000, gasPrice=10000000)
+        return dict(gas=DEFAULT_GAS, gasPrice=DEFAULT_GAS_PRICE)
 
     def test_deploy(self) -> None:
         """Test deployment results."""

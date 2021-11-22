@@ -44,6 +44,10 @@ from tests.helpers.contracts import get_register_contract
 from tests.test_contracts.base import BaseGanacheContractTest, BaseHardhatContractTest
 
 
+DEFAULT_GAS = 1000000
+DEFAULT_GAS_PRICE = 1000000
+
+
 class BaseContractTest(BaseGanacheContractTest):
     """Base test case for GnosisSafeContract"""
 
@@ -70,7 +74,12 @@ class BaseContractTest(BaseGanacheContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(owners=cls.owners(), threshold=int(cls.threshold()))
+        return dict(
+            owners=cls.owners(),
+            threshold=int(cls.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
 
     @classmethod
     def owners(cls) -> List[str]:
@@ -124,7 +133,12 @@ class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(owners=cls.owners(), threshold=int(cls.threshold()))
+        return dict(
+            owners=cls.owners(),
+            threshold=int(cls.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
 
     @classmethod
     def owners(cls) -> List[str]:
@@ -172,6 +186,8 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             deployer_address=str(self.deployer_crypto.address),
             owners=self.owners(),
             threshold=int(self.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
         )
         assert type(result) == dict
         assert len(result) == 9

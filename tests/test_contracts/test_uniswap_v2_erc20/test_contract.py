@@ -75,7 +75,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(fn_name="approve", args=[spender_address, approval_value])
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -109,7 +109,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(fn_name="transfer", args=[spender_address, value])
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -144,7 +144,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             self.ledger_api, self.contract_address
         ).encodeABI(fn_name="transferFrom", args=[from_address, to_address, value])
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
@@ -187,7 +187,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             args=[owner_address, spender_address, value, deadline, v, r, s],
         )
         with mock.patch.object(
-            self.ledger_api.api.eth, "getTransactionCount", return_value=NONCE
+            self.ledger_api.api.eth, "get_transaction_count", return_value=NONCE
         ):
             with mock.patch.object(
                 self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID

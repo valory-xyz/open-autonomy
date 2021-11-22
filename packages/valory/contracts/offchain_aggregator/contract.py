@@ -87,7 +87,7 @@ class OffchainAggregatorContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.getCode(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         # local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]  # noqa:  E800
         verified = deployed_bytecode == DEPLOYED_BYTECODE
         return dict(verified=verified)
@@ -271,7 +271,7 @@ class OffchainAggregatorContract(Contract):
         eth_value: int = 0,
     ) -> Optional[JSONLike]:
         """Build transaction method."""
-        nonce = ledger_api.api.eth.getTransactionCount(sender_address)
+        nonce = ledger_api.api.eth.get_transaction_count(sender_address)
         tx = tx.buildTransaction(
             {
                 "gas": gas,

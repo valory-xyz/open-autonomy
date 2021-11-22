@@ -108,6 +108,7 @@ async def test_get_deploy_transaction(
             body=dict(
                 deployer_address=crypto.address,
                 gas=5000000,
+                gas_price=10 * 10,
                 owners=owners,
                 threshold=threshold,
             )
@@ -170,6 +171,7 @@ async def test_get_deploy_transaction_with_validate_and_call_callable(
             body=dict(
                 deployer_address=crypto.address,
                 gas=5000000,
+                gas_price=10 ** 10,
                 owners=owners,
                 threshold=threshold,
             )
