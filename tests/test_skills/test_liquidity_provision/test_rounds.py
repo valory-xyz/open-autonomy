@@ -29,8 +29,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
     BaseTxPayload,
+    CollectDifferentUntilAllRound,
+    CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     ConsensusParams,
+    OnlyKeeperSendsRound,
+    VotingRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
@@ -133,6 +137,63 @@ class BaseRoundTestClass:
         assert state_attr_check(state) == state_attr_check(actual_next_state)
         assert event == Event.DONE
 
+    def _test_different_until_all_round(
+        self,
+        test_round: CollectDifferentUntilAllRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        update_fn: Callable,
+        state_attr_check: Callable,
+    ) -> None:
+        """Test for rounds derived from CollectDifferentUntilAllRound."""
+
+    def _test_collect_different_until_threshold_round(
+        self,
+        test_round: CollectDifferentUntilThresholdRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        update_fn: Callable,
+        state_attr_check: Callable,
+    ) -> None:
+        """Test for rounds derived from CollectDifferentUntilThresholdRound."""
+
+        (_, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.collection_threshold_reached
+        self._test_no_majority_event(test_round)
+        assert test_round.end_block() is None
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.collection_threshold_reached
+
+        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(PeriodState, state)
+        assert state_attr_check(state) == state_attr_check(actual_next_state)
+        assert event == Event.DONE
+
+    def _test_only_keeper_sends_round(
+        self,
+        test_round: OnlyKeeperSendsRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        update_fn: Callable,
+        state_attr_check: Callable,
+    ) -> None:
+        """Test for rounds derived from OnlyKeeperSendsRound."""
+
+    def _test_voting_round(
+        self,
+        test_round: VotingRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        update_fn: Callable,
+        state_attr_check: Callable,
+    ) -> None:
+        """Test for rounds derived from VotingRound."""
+
 
 class TestTransactionHashBaseRound(BaseRoundTestClass):
     """Test TransactionHashBaseRound"""
@@ -166,33 +227,16 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
         test_round = TransactionSignatureBaseRound(
             self.period_state, self.consensus_params
         )
-        (sender, first_payload), *payloads = get_participant_to_signature(
-            self.participants
-        ).items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.collection_threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.collection_threshold_reached
-        actual_next_state = self.period_state.update(
-            participant_to_signature=MappingProxyType(
-                get_participant_to_signature(self.participants)
+        self._test_collect_different_until_threshold_round(
+            test_round=test_round,
+            round_payloads=get_participant_to_tx_hash(self.participants),
+            update_fn=lambda _period_state, _test_round: _period_state.update(
+                participant_to_signature=MappingProxyType(
+                    get_participant_to_signature(self.participants)
+                ),
             ),
+            state_attr_check=lambda state: state.participant_to_signature.keys(),
         )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_signature.keys()
-            == cast(PeriodState, actual_next_state).participant_to_signature.keys()
-        )
-        assert event == Event.DONE
 
 
 class TestTransactionSendBaseRound(BaseRoundTestClass):
