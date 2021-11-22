@@ -419,7 +419,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             transaction = Transaction(payload, signature_bytes)
             response = yield from self._submit_tx(transaction.encode())
             response = cast(HttpMessage, response)
-            json_body = json.loads(response.body)
+            try:
+                json_body = json.loads(response.body)
+            except json.JSONDecodeError as e:  # pragma: nocover
+                raise ValueError(
+                    f"Unable to decode response: {response} with body {str(response.body)}"
+                ) from e
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             if not self._check_http_return_code_200(response):
                 self.context.logger.info(
@@ -693,7 +698,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             if response.status_code != 200:
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
-            json_body = json.loads(response.body)
+            try:
+                json_body = json.loads(response.body)
+            except json.JSONDecodeError as e:  # pragma: nocover
+                raise ValueError(
+                    f"Unable to decode response: {response} with body {str(response.body)}"
+                ) from e
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE
 
