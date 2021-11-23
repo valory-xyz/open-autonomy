@@ -36,7 +36,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: ABCIPriceEstimationHandler
+    class_name: ABCIAPYEstimationHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
