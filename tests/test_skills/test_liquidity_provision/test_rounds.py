@@ -20,22 +20,9 @@
 """Tests for rounds.py file in valory/liquidity_provision."""
 
 from types import MappingProxyType
-from typing import Callable, Dict, FrozenSet, Mapping, Union, cast  # noqa : F401
+from typing import FrozenSet, Mapping  # noqa : F401
 from unittest import mock
 
-import pytest
-
-from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
-    AbstractRound,
-    BaseTxPayload,
-    CollectDifferentUntilAllRound,
-    CollectDifferentUntilThresholdRound,
-    CollectSameUntilThresholdRound,
-    ConsensusParams,
-    OnlyKeeperSendsRound,
-    VotingRound,
-)
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
 )
@@ -50,6 +37,12 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
 )
 from packages.valory.skills.price_estimation_abci.payloads import FinalizationTxPayload
 
+from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+    BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectSameUntilThresholdRoundTest,
+    BaseOnlyKeeperSendsRoundTest,
+    BaseVotingRoundTest,
+)
 from tests.test_skills.test_price_estimation_abci.test_rounds import (
     get_participant_to_signature,
     get_participant_to_tx_hash,
@@ -77,187 +70,11 @@ def get_participant_to_strategy(
     )
 
 
-class BaseRoundTestClass:
-    """Base test class for Rounds."""
-
-    period_state: PeriodState
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()  # type: ignore
-        cls.period_state = PeriodState(participants=cls.participants)
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            _, event = result
-            assert event == Event.NO_MAJORITY
-
-    def _test_collect_same_until_threshold_round(
-        self,
-        test_round: CollectSameUntilThresholdRound,
-        round_payloads: Mapping[str, BaseTxPayload],
-        update_fn: Callable,
-        state_attr_check: Callable,
-    ) -> None:
-        """Test rounds derived from CollectionRound."""
-
-        (_, first_payload), *payloads = round_payloads.items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
-            _ = test_round.most_voted_payload
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "tx_hash"
-
-        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
-        res = test_round.end_block()
-        assert res is not None
-
-        state, event = res
-        state = cast(PeriodState, state)
-
-        assert state_attr_check(state) == state_attr_check(actual_next_state)
-        assert event == Event.DONE
-
-    def _test_different_until_all_round(
-        self,
-        test_round: CollectDifferentUntilAllRound,
-        round_payloads: Mapping[str, BaseTxPayload],
-        update_fn: Callable,
-        state_attr_check: Callable,
-    ) -> None:
-        """Test for rounds derived from CollectDifferentUntilAllRound."""
-
-    def _test_collect_different_until_threshold_round(
-        self,
-        test_round: CollectDifferentUntilThresholdRound,
-        round_payloads: Mapping[str, BaseTxPayload],
-        update_fn: Callable,
-        state_attr_check: Callable,
-    ) -> None:
-        """Test for rounds derived from CollectDifferentUntilThresholdRound."""
-
-        (_, first_payload), *payloads = round_payloads.items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.collection_threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.collection_threshold_reached
-
-        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
-        res = test_round.end_block()
-        assert res is not None
-
-        state, event = res
-        state = cast(PeriodState, state)
-        assert state_attr_check(state) == state_attr_check(actual_next_state)
-        assert event == Event.DONE
-
-    def _test_only_keeper_sends_round(
-        self,
-        test_round: OnlyKeeperSendsRound,
-        keeper_payloads: BaseTxPayload,
-        update_fn: Callable,
-        state_attr_check: Callable,
-    ) -> None:
-        """Test for rounds derived from OnlyKeeperSendsRound."""
-
-        assert test_round.end_block() is None
-
-        test_round.process_payload(keeper_payloads)
-        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
-        res = test_round.end_block()
-        assert res is not None
-
-        state, event = res
-        state = cast(PeriodState, state)
-        assert state_attr_check(state) == state_attr_check(actual_next_state)
-        assert event == Event.DONE
-
-    def _test_voting_round_positive(
-        self,
-        test_round: VotingRound,
-        round_payloads: Mapping[str, BaseTxPayload],
-        update_fn: Callable,
-        state_attr_check: Callable,
-    ) -> None:
-        """Test for rounds derived from VotingRound."""
-
-        (sender, first_payload), *payloads = round_payloads.items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.positive_vote_threshold_reached
-        assert test_round.end_block() is None
-        self._test_no_majority_event(test_round)
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-        assert test_round.positive_vote_threshold_reached
-
-        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
-        res = test_round.end_block()
-        assert res is not None
-
-        state, event = res
-        state = cast(PeriodState, state)
-        assert state_attr_check(state) == state_attr_check(actual_next_state)
-        assert event == Event.DONE
-
-    def _test_voting_round_negative(
-        self,
-        test_round: VotingRound,
-        round_payloads: Mapping[str, BaseTxPayload],
-        update_fn: Callable,
-        state_attr_check: Callable,
-    ) -> None:
-        """Test for rounds derived from VotingRound."""
-
-        (sender, first_payload), *payloads = round_payloads.items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.negative_vote_threshold_reached
-        assert test_round.end_block() is None
-        self._test_no_majority_event(test_round)
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-        assert test_round.negative_vote_threshold_reached
-
-        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
-        res = test_round.end_block()
-        assert res is not None
-
-        state, event = res
-        state = cast(PeriodState, state)
-        assert state_attr_check(state) == state_attr_check(actual_next_state)
-        assert event == Event.EXIT
-
-
-class TestTransactionHashBaseRound(BaseRoundTestClass):
+class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionHashBaseRound"""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -265,21 +82,28 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
-        self._test_collect_same_until_threshold_round(
+        self._test_round(
             test_round=test_round,
             round_payloads=get_participant_to_tx_hash(self.participants),
-            update_fn=lambda _period_state, _test_round: _period_state.update(
+            state_update_fn=lambda _period_state, _test_round: _period_state.update(
                 participant_to_tx_hash=MappingProxyType(
                     get_participant_to_tx_hash(self.participants)
                 ),
                 most_voted_tx_hash=_test_round.most_voted_payload,
             ),
-            state_attr_check=lambda state: state.participant_to_tx_hash.keys(),
+            state_attr_checks=[
+                lambda state: state.participant_to_tx_hash.keys(),
+            ],
+            most_voted_payload="tx_hash",
+            exit_event=Event.DONE,
         )
 
 
-class TestTransactionSignatureBaseRound(BaseRoundTestClass):
+class TestTransactionSignatureBaseRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test TransactionSignatureBaseRound."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -288,20 +112,26 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
         test_round = TransactionSignatureBaseRound(
             self.period_state, self.consensus_params
         )
-        self._test_collect_different_until_threshold_round(
+        self._test_round(
             test_round=test_round,
             round_payloads=get_participant_to_tx_hash(self.participants),
-            update_fn=lambda _period_state, _test_round: _period_state.update(
+            state_update_fn=lambda _period_state, _test_round: _period_state.update(
                 participant_to_signature=MappingProxyType(
                     get_participant_to_signature(self.participants)
                 ),
             ),
-            state_attr_check=lambda state: state.participant_to_signature.keys(),
+            state_attr_checks=[
+                lambda state: state.participant_to_signature.keys(),
+            ],
+            exit_event=Event.DONE,
         )
 
 
-class TestTransactionSendBaseRound(BaseRoundTestClass):
+class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
     """Test TransactionSendBaseRound."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -310,36 +140,49 @@ class TestTransactionSendBaseRound(BaseRoundTestClass):
 
         keeper_payload = FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
         test_round = TransactionSendBaseRound(
-            self.period_state.update(most_voted_keeper_address=keeper_payload.sender,),
+            self.period_state.update(
+                most_voted_keeper_address=keeper_payload.sender,
+            ),
             self.consensus_params,
         )
-        self._test_only_keeper_sends_round(
+        self._test_round(
             test_round=test_round,
             keeper_payloads=keeper_payload,
-            update_fn=lambda _period_state, _test_round: _period_state.update(
-                final_tx_hash=_test_round.keeper_payload),
-            state_attr_check=lambda state: state.final_tx_hash
+            state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                final_tx_hash=_test_round.keeper_payload
+            ),
+            state_attr_checks=[
+                lambda state: state.final_tx_hash,
+            ],
+            exit_event=Event.DONE,
         )
 
 
-class TestTransactionValidationBaseRound(BaseRoundTestClass):
+class TestTransactionValidationBaseRound(BaseVotingRoundTest):
     """Test TransactionValidationBaseRound"""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
         test_round = TransactionValidationBaseRound(
-            self.period_state, self.consensus_params)
+            self.period_state, self.consensus_params
+        )
         self._test_voting_round_positive(
             test_round=test_round,
             round_payloads=get_participant_to_votes(self.participants),
-            update_fn=lambda _period_state, _test_round: _period_state.update(
+            state_update_fn=lambda _period_state, _test_round: _period_state.update(
                 participant_to_votes=MappingProxyType(
                     get_participant_to_votes(self.participants)
                 ),
             ),
-            state_attr_check=lambda state: state.participant_to_votes.keys()
+            state_attr_checks=[
+                lambda state: state.participant_to_votes.keys(),
+            ],
+            exit_event=Event.DONE,
         )
 
     def test_negative_votes(
@@ -347,59 +190,49 @@ class TestTransactionValidationBaseRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
         test_round = TransactionValidationBaseRound(
-            self.period_state, self.consensus_params)
+            self.period_state, self.consensus_params
+        )
         self._test_voting_round_negative(
             test_round=test_round,
             round_payloads=get_participant_to_votes(self.participants, False),
-            update_fn=lambda _period_state, _test_round: _period_state.update(
+            state_update_fn=lambda _period_state, _test_round: _period_state.update(
                 participant_to_votes=MappingProxyType(
                     get_participant_to_votes(self.participants)
                 ),
             ),
-            state_attr_check=lambda state: None
+            state_attr_checks=[
+                lambda state: None,
+            ],
+            exit_event=Event.EXIT,
         )
 
 
-class TestStrategyEvaluationRound(BaseRoundTestClass):
+class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
     """Test StrategyEvaluationRound"""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
         test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
-
-        (sender, first_payload), *payloads = get_participant_to_strategy(
-            self.participants
-        ).items()
-
-        test_round.process_payload(first_payload)
-        mock_obj = mock.patch.object(
+        with mock.patch.object(
             StrategyEvaluationPayload, "strategy", return_value="strategy"
-        )
-
-        with mock_obj:
-            assert not test_round.threshold_reached
-            self._test_no_majority_event(test_round)
-            assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        with mock_obj:
-            assert test_round.threshold_reached
-            actual_next_state = self.period_state.update(
-                participant_to_strategy=get_participant_to_strategy(self.participants),
-                most_voted_strategy=test_round.most_voted_payload,
+        ):
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_strategy(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_strategy=get_participant_to_strategy(
+                        self.participants
+                    ),
+                    most_voted_strategy=test_round.most_voted_payload,
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_strategy.keys(),
+                ],
+                most_voted_payload=StrategyEvaluationPayload.strategy,
+                exit_event=Event.RESET_TIMEOUT,
             )
-
-        with mock_obj:
-            res = test_round.end_block()
-
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_strategy.keys()
-            == cast(PeriodState, actual_next_state).participant_to_strategy.keys()
-        )
-        assert event == Event.RESET_TIMEOUT

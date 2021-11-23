@@ -20,7 +20,19 @@
 """Test the base round classes."""
 
 import re
-from typing import AbstractSet, Any, Dict, List, Mapping, Optional
+from typing import (
+    AbstractSet,
+    Any,
+    Callable,
+    Dict,
+    FrozenSet,
+    List,
+    Mapping,
+    Optional,
+    Type,
+    cast,
+)
+from unittest import mock
 
 import pytest
 
@@ -39,10 +51,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 
-from tests.test_skills.test_price_estimation_abci.test_rounds import (
-    MAX_PARTICIPANTS,
-    get_participants,
-)
+
+MAX_PARTICIPANTS: int = 4
+
+
+def get_participants() -> FrozenSet[str]:
+    """Participants"""
+    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
 class DummyTxPayload(BaseTxPayload):
@@ -98,7 +113,7 @@ class DummyPeriodState(BasePeriodState):
 
 
 def get_dummy_tx_payloads(
-    participants: List[str],
+    participants: FrozenSet[str],
     value: Any = None,
     vote: bool = False,
     is_value_none: bool = False,
@@ -110,30 +125,8 @@ def get_dummy_tx_payloads(
             value=(value or agent) if not is_value_none else value,
             vote=vote,
         )
-        for agent in participants
+        for agent in sorted(participants)
     ]
-
-
-class BaseTestClass:
-    """Base test class."""
-
-    period_state: BasePeriodState
-    participants: List[str]
-    consensus_params: ConsensusParams
-    tx_payloads: List[DummyTxPayload]
-
-    def setup(
-        self,
-    ) -> None:
-        """Setup test class."""
-
-        self.participants = sorted(get_participants())
-        self.tx_payloads = get_dummy_tx_payloads(self.participants)
-
-        self.period_state = DummyPeriodState(
-            participants=self.participants  # type: ignore
-        )
-        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
 
 class DummyRound(AbstractRound):
@@ -173,17 +166,41 @@ class DummyVotingRound(VotingRound, DummyRound):
     """Dummy Class for VotingRound"""
 
 
-class BaseCollectionRoundTest(BaseTestClass):
-    """Tests for rounds derived from CollectionRound."""
+class BaseRoundTestClass:
+    """Base test class."""
 
-    def _test_round(
-        self, test_round: CollectionRound, round_payloads: Mapping[str, BaseTxPayload]
+    period_state: BasePeriodState
+    participants: FrozenSet[str]
+    consensus_params: ConsensusParams
+
+    _period_state_class: Type[BasePeriodState] = BasePeriodState
+    _event_class: Any
+
+    @classmethod
+    def setup(
+        cls,
     ) -> None:
-        """Test round."""
+        """Setup test class."""
+
+        cls.participants = get_participants()
+        cls.period_state = cls._period_state_class(
+            participants=cls.participants
+        )  # type: ignore
+        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+
+    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
+        """Test the NO_MAJORITY event."""
+        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
+            result = round_obj.end_block()
+            assert result is not None
+            _, event = result
+            assert event == self._event_class.NO_MAJORITY
 
 
-class BaseCollectDifferentUntilAllRoundTest(BaseTestClass):
+class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectDifferentUntilAllRound."""
+
+    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
@@ -193,49 +210,237 @@ class BaseCollectDifferentUntilAllRoundTest(BaseTestClass):
         """Test round."""
 
 
-class BaseCollectSameUntilThresholdRoundTest(BaseTestClass):
+class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectSameUntilThresholdRound."""
+
+    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
         test_round: CollectSameUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        most_voted_payload: Any,
+        exit_event: Any,
     ) -> None:
-        """Test round."""
+        """Test rounds derived from CollectionRound."""
+
+        (_, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.threshold_reached
+        assert test_round.end_block() is None
+        self._test_no_majority_event(test_round)
+        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
+            _ = test_round.most_voted_payload
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.threshold_reached
+        assert test_round.most_voted_payload == most_voted_payload
+
+        actual_next_state = cast(
+            self._period_state_class,  # type: ignore
+            state_update_fn(self.period_state, test_round),
+        )
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(self._period_state_class, state)  # type: ignore
+
+        for state_attr_getter in state_attr_checks:
+            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+
+        assert event == exit_event
 
 
-class BaseOnlyKeeperSendsRoundTest(BaseTestClass):
+class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from OnlyKeeperSendsRound."""
+
+    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
         test_round: OnlyKeeperSendsRound,
-        round_payloads: Mapping[str, BaseTxPayload],
+        keeper_payloads: BaseTxPayload,
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
     ) -> None:
-        """Test round."""
+        """Test for rounds derived from OnlyKeeperSendsRound."""
+
+        assert test_round.end_block() is None
+        assert not test_round.has_keeper_sent_payload
+
+        test_round.process_payload(keeper_payloads)
+        assert test_round.has_keeper_sent_payload
+
+        actual_next_state = cast(
+            self._period_state_class,  # type: ignore
+            state_update_fn(self.period_state, test_round),  # type: ignore
+        )
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(self._period_state_class, state)  # type: ignore
+        for state_attr_getter in state_attr_checks:
+            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        assert event == exit_event
 
 
-class BaseVotingRoundTest(BaseTestClass):
+class BaseVotingRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from VotingRound."""
 
+    _period_state_class: Type[BasePeriodState] = BasePeriodState
+
     def _test_round(
-        self, test_round: VotingRound, round_payloads: Mapping[str, BaseTxPayload]
+        self,
+        test_round: VotingRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
+        test_positive: bool = True,
     ) -> None:
-        """Test round."""
+        """Test for rounds derived from VotingRound."""
+
+        (sender, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        if test_positive:
+            assert not test_round.positive_vote_threshold_reached
+        else:
+            assert not test_round.negative_vote_threshold_reached
+
+        assert test_round.end_block() is None
+        self._test_no_majority_event(test_round)
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+
+        if test_positive:
+            assert test_round.positive_vote_threshold_reached
+        else:
+            assert test_round.negative_vote_threshold_reached
+
+        actual_next_state = cast(
+            self._period_state_class,  # type: ignore
+            state_update_fn(self.period_state, test_round),  # type: ignore
+        )
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(self._period_state_class, state)  # type: ignore
+        for state_attr_getter in state_attr_checks:
+            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        assert event == exit_event
+
+    def _test_voting_round_positive(
+        self,
+        test_round: VotingRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
+    ) -> None:
+        """Test for rounds derived from VotingRound."""
+
+        self._test_round(
+            test_round,
+            round_payloads,
+            state_update_fn,
+            state_attr_checks,
+            exit_event,
+            test_positive=True,
+        )
+
+    def _test_voting_round_negative(
+        self,
+        test_round: VotingRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
+    ) -> None:
+        """Test for rounds derived from VotingRound."""
+
+        self._test_round(
+            test_round,
+            round_payloads,
+            state_update_fn,
+            state_attr_checks,
+            exit_event,
+            test_positive=False,
+        )
 
 
-class BaseCollectDifferentUntilThresholdRoundTest(BaseTestClass):
+class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectDifferentUntilThresholdRound."""
+
+    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
         test_round: CollectDifferentUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
     ) -> None:
-        """Test round."""
+        """Test for rounds derived from CollectDifferentUntilThresholdRound."""
+
+        (_, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.collection_threshold_reached
+        assert test_round.end_block() is None
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+
+        assert test_round.collection_threshold_reached
+
+        actual_next_state = cast(
+            self._period_state_class,  # type: ignore
+            state_update_fn(self.period_state, test_round),  # type: ignore
+        )
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(self._period_state_class, state)  # type: ignore
+
+        for state_attr_getter in state_attr_checks:
+            assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+        assert event == exit_event
 
 
-class TestCollectionRound(BaseTestClass):
+class _BaseRoundTestClass(BaseRoundTestClass):
+    """Base test class."""
+
+    period_state: BasePeriodState
+    participants: FrozenSet[str]
+    consensus_params: ConsensusParams
+    tx_payloads: List[DummyTxPayload]
+
+    _period_state_class = DummyPeriodState
+
+    @classmethod
+    def setup(
+        cls,
+    ) -> None:
+        """Setup test class."""
+
+        super().setup()
+        cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
+
+
+class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
 
     def test_run(
@@ -280,7 +485,7 @@ class TestCollectionRound(BaseTestClass):
             test_round.check_payload(DummyTxPayload("sender", "value"))
 
 
-class TestCollectDifferentUntilAllRound(BaseTestClass):
+class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
     """Test class for CollectDifferentUntilAllRound."""
 
     def test_run(
@@ -315,7 +520,7 @@ class TestCollectDifferentUntilAllRound(BaseTestClass):
             test_round.process_payload(payload)
 
 
-class TestCollectSameUntilThresholdRound(BaseTestClass):
+class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectSameUntilThresholdRound."""
 
     def test_run(
@@ -369,7 +574,7 @@ class TestCollectSameUntilThresholdRound(BaseTestClass):
         assert test_round.most_voted_payload is None
 
 
-class TestOnlyKeeperSendsRound(BaseTestClass):
+class TestOnlyKeeperSendsRound(_BaseRoundTestClass):
     """Test OnlyKeeperSendsRound."""
 
     def test_run(
@@ -424,7 +629,7 @@ class TestOnlyKeeperSendsRound(BaseTestClass):
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
 
-class TestVotingRound(BaseTestClass):
+class TestVotingRound(_BaseRoundTestClass):
     """Test VotingRound."""
 
     def test_negative_threshold(
@@ -464,7 +669,7 @@ class TestVotingRound(BaseTestClass):
         assert test_round.positive_vote_threshold_reached
 
 
-class TestCollectDifferentUntilThresholdRound(BaseTestClass):
+class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectDifferentUntilThresholdRound."""
 
     def test_run(
