@@ -32,7 +32,7 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: PriceEstimationConsensusBehaviour
+    class_name: APYEstimationConsensusBehaviour
 handlers:
   abci:
     args: {}
