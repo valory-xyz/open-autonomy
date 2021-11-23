@@ -19,7 +19,7 @@
 
 """Test various price apis."""
 import logging  # noqa: F401
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import requests
 
@@ -106,7 +106,7 @@ class TestSubgraphs:
         assert is_list_of_strings(pair_ids)
 
     @staticmethod
-    def test_pairs(spooky_specs: SpecsType, pairs_q: str) -> None:
+    def test_pairs(spooky_specs: SpecsType, pairs_q: str, pool_fields: Tuple[str, ...]) -> None:
         """Test SpookySwap's pairs request from subgraph."""
         spooky_specs['response_key'] += ':pairs'
         api = SpookySwapSubgraph(**spooky_specs)
@@ -118,27 +118,5 @@ class TestSubgraphs:
         assert len(pairs) > 0
         assert isinstance(pairs[0], dict)
 
-        keys = (
-            'createdAtBlockNumber',
-            'createdAtTimestamp',
-            'id',
-            'liquidityProviderCount',
-            'reserve0',
-            'reserve1',
-            'reserveETH',
-            'reserveUSD',
-            'token0Price',
-            'token1Price',
-            'totalSupply',
-            'trackedReserveETH',
-            'untrackedVolumeUSD',
-            'txCount',
-            'volumeToken0',
-            'volumeToken1',
-            'volumeUSD',
-            'token0',
-            'token1'
-        )
-
         for pair in pairs:
-            assert all((key in pair for key in keys))
+            assert all((key in pair for key in pool_fields))

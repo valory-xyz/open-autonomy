@@ -1,6 +1,6 @@
 """Configurations for APY skill's tests."""
 
-from typing import Dict, Union, Any
+from typing import Dict, Union, Any, Tuple
 
 import pytest
 from aea.skills.base import SkillContext
@@ -138,6 +138,32 @@ def pairs_q() -> str:
         }
     }
     '''
+
+
+@pytest.fixture
+def pool_fields() -> Tuple[str, ...]:
+    """The fields of a pool."""
+    return (
+        'createdAtBlockNumber',
+        'createdAtTimestamp',
+        'id',
+        'liquidityProviderCount',
+        'reserve0',
+        'reserve1',
+        'reserveETH',
+        'reserveUSD',
+        'token0Price',
+        'token1Price',
+        'totalSupply',
+        'trackedReserveETH',
+        'untrackedVolumeUSD',
+        'txCount',
+        'volumeToken0',
+        'volumeToken1',
+        'volumeUSD',
+        'token0',
+        'token1'
+    )
 
 
 def is_list_of_strings(lst: Any) -> bool:
