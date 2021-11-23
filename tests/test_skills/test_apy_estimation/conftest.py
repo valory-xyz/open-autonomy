@@ -1,9 +1,13 @@
 """Configurations for APY skill's tests."""
 
 from typing import Dict, Union, Any, Tuple
+from unittest import mock
 
+import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
+
+from packages.valory.skills.apy_estimation.models import SharedState
 
 HeaderType = Dict[str, str]
 SpecsType = Dict[str, Union[str, int, HeaderType]]
@@ -164,6 +168,18 @@ def pool_fields() -> Tuple[str, ...]:
         'token0',
         'token1'
     )
+
+
+@pytest.fixture
+def shared_state():
+    """Initialize a test shared state."""
+    return SharedState(name="", skill_context=mock.MagicMock())
+
+
+@pytest.fixture
+def transformation():
+    """Test value for the transformed history."""
+    return pd.DataFrame({'test': ['test']})
 
 
 def is_list_of_strings(lst: Any) -> bool:
