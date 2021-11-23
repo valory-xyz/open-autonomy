@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
     TransactionType, CollectSameUntilThresholdRound,
 )
-from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload
+from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload, FetchingPayload
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     ObservationPayload,
@@ -138,7 +138,7 @@ class CollectHistoryRound(
     """
 
     round_id = "collect_history"
-    allowed_tx_type = ObservationPayload.transaction_type
+    allowed_tx_type = FetchingPayload.transaction_type
     payload_attribute = "history"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
