@@ -35,7 +35,7 @@ from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
-    TransformRound,
+    TransformRound, ResetRound,
 )
 from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file
 from packages.valory.skills.apy_estimation.tools.queries import (
@@ -44,7 +44,6 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     pairs_q,
     top_n_pairs_q,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import ResetBehaviour
 from packages.valory.skills.price_estimation_abci.payloads import EstimatePayload
 from packages.valory.skills.price_estimation_abci.rounds import EstimateConsensusRound
 from packages.valory.skills.simple_abci.behaviours import (
@@ -292,6 +291,18 @@ class EstimateBehaviour(APYEstimationBaseState):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+
+class ResetBehaviour(APYEstimationBaseState):
+    """Reset state."""
+
+    matching_round = ResetRound
+    state_id = "reset"
+    pause = False
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        raise NotImplementedError()
 
 
 class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):

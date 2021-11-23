@@ -93,3 +93,31 @@ class TransformationPayload(BaseSimpleAbciPayload):
     def data(self) -> Dict:
         """Get the data."""
         return {"transformation": self.transformation}
+
+
+class ResetPayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'reset'."""
+
+    transaction_type = TransactionType.RESET
+
+    def __init__(
+        self, sender: str, period_count: int, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'reset' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param period_count: the period count id
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._period_count = period_count
+
+    @property
+    def period_count(self) -> int:
+        """Get the period_count."""
+        return self._period_count
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(period_count=self.period_count)

@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
     TransactionType, CollectSameUntilThresholdRound,
 )
-from packages.valory.skills.apy_estimation.payloads import TransformationPayload
+from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     ObservationPayload,
@@ -49,10 +49,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
-)
-from packages.valory.skills.price_estimation_abci.rounds import (
-    RandomnessRound,
-    ResetRound,
 )
 from packages.valory.skills.simple_abci.rounds import RegistrationRound
 
@@ -179,6 +175,43 @@ class TransformRound(CollectDifferentUntilThresholdRound, APYEstimationAbstractR
         raise NotImplementedError()
 
 
+class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """This class represents the base reset round."""
+
+    round_id = "reset"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_count=self.most_voted_payload,
+                participant_to_randomness=None,
+                most_voted_randomness=None,
+                participant_to_selection=None,
+                most_voted_keeper_address=None,
+                participant_to_votes=None,
+                participant_to_observations=None,
+                participant_to_estimate=None,
+                estimate=None,
+                most_voted_estimate=None,
+                participant_to_tx_hash=None,
+                most_voted_tx_hash=None,
+                participant_to_signature=None,
+                final_tx_hash=None,
+                transformation=None,
+                participant_to_transformation=None,
+                most_voted_observation=None,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
     """APY estimation ABCI application."""
 
@@ -202,7 +235,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: RegistrationRound,  # TODO change this to APY estimation when implemented.
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
