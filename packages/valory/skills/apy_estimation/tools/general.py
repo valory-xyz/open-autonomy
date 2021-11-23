@@ -1,7 +1,7 @@
 """Tools for the APY skill."""
 import json
+import os
 import time
-from pathlib import Path
 from typing import Generator, List
 
 import pandas as pd
@@ -35,7 +35,10 @@ def create_pathdirs(path: str) -> None:
 
     :param path: the given path.
     """
-    return Path(path).mkdir(parents=True, exist_ok=True)
+    dirname = os.path.dirname(path)
+
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
 
 
 def list_to_json_file(path: str, li: List) -> None:
