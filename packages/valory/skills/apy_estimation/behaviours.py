@@ -27,9 +27,8 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.models import SharedState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.apy_estimation.models import APYParams
+from packages.valory.skills.apy_estimation.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation.payloads import FetchingPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,

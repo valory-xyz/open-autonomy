@@ -21,16 +21,18 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, SharedState
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, SharedState as BaseSharedState, \
+    Requests as BaseRequests
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.simple_abci.models import Params as BaseParams
 
+Requests = BaseRequests
 
 MARGIN = 5
 
 
-class APYSharedState(SharedState):
+class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
