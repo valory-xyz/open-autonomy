@@ -25,7 +25,7 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Type, cast
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Type, cast, OrderedDict
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
@@ -556,7 +556,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: List[Tuple[str, str]] = None,
+        headers: List[OrderedDict[str, str]] = None,
         parameters: List[Tuple[str, str]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
@@ -607,7 +607,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: List[Tuple[str, str]] = None,
+        headers: List[OrderedDict[str, str]] = None,
         parameters: List[Tuple[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
@@ -631,8 +631,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         header_string = ""
         if headers:
-            for key, val in headers:
-                header_string += f"{key}: {val}\r\n"
+            for header in headers:
+                for key, val in header.items():
+                    header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
