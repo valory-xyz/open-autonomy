@@ -179,13 +179,25 @@ class BaseRoundTestClass:
     def _test_only_keeper_sends_round(
         self,
         test_round: OnlyKeeperSendsRound,
-        round_payloads: Mapping[str, BaseTxPayload],
+        keeper_payloads: BaseTxPayload,
         update_fn: Callable,
         state_attr_check: Callable,
     ) -> None:
         """Test for rounds derived from OnlyKeeperSendsRound."""
 
-    def _test_voting_round(
+        assert test_round.end_block() is None
+
+        test_round.process_payload(keeper_payloads)
+        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(PeriodState, state)
+        assert state_attr_check(state) == state_attr_check(actual_next_state)
+        assert event == Event.DONE
+
+    def _test_voting_round_positive(
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],
@@ -193,6 +205,55 @@ class BaseRoundTestClass:
         state_attr_check: Callable,
     ) -> None:
         """Test for rounds derived from VotingRound."""
+
+        (sender, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.positive_vote_threshold_reached
+        assert test_round.end_block() is None
+        self._test_no_majority_event(test_round)
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+        assert test_round.positive_vote_threshold_reached
+
+        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(PeriodState, state)
+        assert state_attr_check(state) == state_attr_check(actual_next_state)
+        assert event == Event.DONE
+
+    def _test_voting_round_negative(
+        self,
+        test_round: VotingRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        update_fn: Callable,
+        state_attr_check: Callable,
+    ) -> None:
+        """Test for rounds derived from VotingRound."""
+
+        (sender, first_payload), *payloads = round_payloads.items()
+
+        test_round.process_payload(first_payload)
+        assert not test_round.negative_vote_threshold_reached
+        assert test_round.end_block() is None
+        self._test_no_majority_event(test_round)
+
+        for _, payload in payloads:
+            test_round.process_payload(payload)
+        assert test_round.negative_vote_threshold_reached
+
+        actual_next_state = cast(PeriodState, update_fn(self.period_state, test_round))
+        res = test_round.end_block()
+        assert res is not None
+
+        state, event = res
+        state = cast(PeriodState, state)
+        assert state_attr_check(state) == state_attr_check(actual_next_state)
+        assert event == Event.EXIT
 
 
 class TestTransactionHashBaseRound(BaseRoundTestClass):
@@ -247,30 +308,18 @@ class TestTransactionSendBaseRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
 
+        keeper_payload = FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
         test_round = TransactionSendBaseRound(
-            self.period_state.update(
-                most_voted_keeper_address="agent_0",
-            ),
+            self.period_state.update(most_voted_keeper_address=keeper_payload.sender,),
             self.consensus_params,
         )
-
-        assert test_round.end_block() is None
-        test_round.process_payload(
-            FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
+        self._test_only_keeper_sends_round(
+            test_round=test_round,
+            keeper_payloads=keeper_payload,
+            update_fn=lambda _period_state, _test_round: _period_state.update(
+                final_tx_hash=_test_round.keeper_payload),
+            state_attr_check=lambda state: state.final_tx_hash
         )
-
-        actual_next_state = self.period_state.update(
-            final_tx_hash=test_round.keeper_payload
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).final_tx_hash
-            == cast(PeriodState, actual_next_state).final_tx_hash
-        )
-        assert event == Event.DONE
 
 
 class TestTransactionValidationBaseRound(BaseRoundTestClass):
@@ -281,62 +330,34 @@ class TestTransactionValidationBaseRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
         test_round = TransactionValidationBaseRound(
-            self.period_state, self.consensus_params
-        )
-        (sender, first_payload), *payloads = get_participant_to_votes(
-            self.participants
-        ).items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.positive_vote_threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
-        actual_next_state = self.period_state.update(
-            participant_to_votes=MappingProxyType(
-                get_participant_to_votes(self.participants)
+            self.period_state, self.consensus_params)
+        self._test_voting_round_positive(
+            test_round=test_round,
+            round_payloads=get_participant_to_votes(self.participants),
+            update_fn=lambda _period_state, _test_round: _period_state.update(
+                participant_to_votes=MappingProxyType(
+                    get_participant_to_votes(self.participants)
+                ),
             ),
+            state_attr_check=lambda state: state.participant_to_votes.keys()
         )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_votes.keys()
-            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
-        )
-        assert event == Event.DONE
 
     def test_negative_votes(
         self,
     ) -> None:
         """Run tests."""
         test_round = TransactionValidationBaseRound(
-            self.period_state, self.consensus_params
+            self.period_state, self.consensus_params)
+        self._test_voting_round_negative(
+            test_round=test_round,
+            round_payloads=get_participant_to_votes(self.participants, False),
+            update_fn=lambda _period_state, _test_round: _period_state.update(
+                participant_to_votes=MappingProxyType(
+                    get_participant_to_votes(self.participants)
+                ),
+            ),
+            state_attr_check=lambda state: None
         )
-        (sender, first_payload), *payloads = get_participant_to_votes(
-            self.participants, False
-        ).items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.negative_vote_threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.negative_vote_threshold_reached
-
-        res = test_round.end_block()
-        assert res is not None
-
-        _, event = res
-        assert event == Event.EXIT
 
 
 class TestStrategyEvaluationRound(BaseRoundTestClass):
