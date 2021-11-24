@@ -67,7 +67,7 @@ class UseGnosisSafeHardHatNet:
     @classmethod
     @pytest.fixture(autouse=True)
     def _start_hardhat(
-        cls, gnosis_safe_hardhat: Any, hardhat_port: Any, key_pairs: Any
+        cls, gnosis_safe_hardhat_scope_function: Any, hardhat_port: Any, key_pairs: Any
     ) -> None:
         """Start an HardHat instance."""
         cls.key_pairs = key_pairs
