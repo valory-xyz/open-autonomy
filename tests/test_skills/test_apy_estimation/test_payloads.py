@@ -18,13 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads.py module of the skill."""
-import pandas as pd
 
 from packages.valory.skills.apy_estimation.payloads import (
     TransactionType,
     FetchingPayload,
     TransformationPayload,
     ResetPayload,
+    PreprocessPayload,
 )
 
 
@@ -46,14 +46,26 @@ class TestPayloads:
         assert payload.data == {"history": "x0"}
 
     @staticmethod
-    def test_transformation_payload(transformation) -> None:
+    def test_transformation_payload() -> None:
         """Test `TransformationPayload`"""
-        payload = TransformationPayload(sender="sender", transformation=transformation, id_="id")
+        payload = TransformationPayload(sender="sender", transformation_hash='x0', id_="id")
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
-        pd.testing.assert_frame_equal(payload.transformation, transformation)
+        assert payload.transformation == "x0"
         assert payload.id_ == "id"
-        pd.testing.assert_frame_equal(payload.data['transformation'], transformation)
+        assert payload.data == {"transformation": "x0"}
+
+    @staticmethod
+    def test_preprocess_payload() -> None:
+        """Test `PreprocessPayload`"""
+        payload = PreprocessPayload(sender="sender", train_hash='x0', test_hash='x1', pair_name='test', id_="id")
+
+        assert payload.transaction_type == TransactionType.PREPROCESS
+        assert payload.train == "x0"
+        assert payload.test == "x1"
+        assert payload.pair_name == "test"
+        assert payload.id_ == "id"
+        assert payload.data == {"train": 'x0', "test": 'x1', "pair_name": 'test'}
 
     @staticmethod
     def test_reset_payload() -> None:

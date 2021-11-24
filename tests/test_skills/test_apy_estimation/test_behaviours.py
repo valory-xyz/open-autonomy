@@ -375,3 +375,11 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_transform_behaviour(self):
         # TODO
         assert False
+
+
+class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test PreprocessBehaviour."""
+
+    def test_preprocess_behaviour(self):
+        # TODO
+        assert False

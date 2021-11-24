@@ -167,3 +167,21 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         """Test the no-majority event."""
         test_round = CollectHistoryRound(self.period_state, self.consensus_params)
         self._test_no_majority_event(test_round)
+
+
+class TestTransformRound(BaseRoundTestClass):
+    """Test `TransformRound`."""
+
+    def test_run(self) -> None:
+        """Runs test."""
+        # TODO
+        assert False
+
+
+class TestPreprocessRound(BaseRoundTestClass):
+    """Test `PreprocessRound`."""
+
+    def test_run(self) -> None:
+        """Runs test."""
+        # TODO
+        assert False

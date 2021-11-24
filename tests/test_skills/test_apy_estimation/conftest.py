@@ -176,12 +176,6 @@ def shared_state():
     return SharedState(name="", skill_context=mock.MagicMock())
 
 
-@pytest.fixture
-def transformation():
-    """Test value for the transformed history."""
-    return pd.DataFrame({'test': ['test']})
-
-
 def is_list_of_strings(lst: Any) -> bool:
     """Check if arg is a list of strings."""
     res = False

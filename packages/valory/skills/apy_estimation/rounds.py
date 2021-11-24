@@ -131,8 +131,8 @@ class CollectHistoryRound(
     """
     This class represents the 'collect-history' round.
 
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the votes for the historical data
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the historical data.
 
     It schedules the TransformRound.
     """
@@ -164,8 +164,23 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     """
     This class represents the 'Transform' round.
 
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the transformed data.
+
+    It schedules the PreprocessRound.
+    """
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        raise NotImplementedError()
+
+
+class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """
+    This class represents the 'Preprocess' round.
+
     Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the observations
+    Output: a new period state with the prior round data and the votes for the preprocessed data.
 
     It schedules the EstimateConsensusRound.
     """
@@ -226,6 +241,10 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         TransformRound: {
+            Event.DONE: PreprocessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+        },
+        PreprocessRound: {
             Event.DONE: EstimateConsensusRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },

@@ -33,8 +33,9 @@ class TransactionType(Enum):
     RANDOMNESS = "randomness"
     SELECT_KEEPER = "select_keeper"
     RESET = "reset"
-    TRANSFORMATION = "transformation"
     FETCHING = "fetching"
+    TRANSFORMATION = "transformation"
+    PREPROCESS = "preprocess"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -75,7 +76,7 @@ class TransformationPayload(BaseSimpleAbciPayload):
     def __init__(
         self, sender: str, transformation_hash: str, id_: Optional[str] = None
     ) -> None:
-        """Initialize an 'transformation' transaction payload.
+        """Initialize a 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param transformation_hash: the transformation's hash.
@@ -93,6 +94,48 @@ class TransformationPayload(BaseSimpleAbciPayload):
     def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"transformation": self._transformation_hash}
+    
+
+class PreprocessPayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'preprocess'."""
+
+    transaction_type = TransactionType.PREPROCESS
+
+    def __init__(
+        self, sender: str, train_hash: str, test_hash: str, pair_name: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize a 'preprocess' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param train_hash: the train data hash.
+        :param test_hash: the test data hash.
+        :param pair_name: the name of the pool for which the preprocessed data are for.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._train_hash = train_hash
+        self._pair_name = pair_name
+        self._test_hash = test_hash
+
+    @property
+    def train(self) -> str:
+        """Get the training hash."""
+        return self._train_hash
+
+    @property
+    def test(self) -> str:
+        """Get the test hash."""
+        return self._test_hash
+
+    @property
+    def pair_name(self) -> str:
+        """Get the pool pair's name."""
+        return self._pair_name
+
+    @property
+    def data(self) -> Dict[str, str]:
+        """Get the data."""
+        return {"train": self._train_hash, "test": self._test_hash, "pair_name": self._pair_name}
 
 
 class ResetPayload(BaseSimpleAbciPayload):

@@ -22,6 +22,7 @@ import os
 from abc import ABC
 from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any
 
+import numpy as np
 import pandas as pd
 from aea.helpers.ipfs.base import IPFSHashOnly
 
@@ -30,15 +31,17 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
-from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload
+from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
-    TransformRound, ResetRound,
+    TransformRound, ResetRound, PreprocessRound,
 )
 from packages.valory.skills.apy_estimation.tasks import TransformTask
+from packages.valory.skills.apy_estimation.tools.etl import load_hist
 from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file, \
     read_json_list_file
 from packages.valory.skills.apy_estimation.tools.queries import (
@@ -55,6 +58,7 @@ from packages.valory.skills.simple_abci.behaviours import (
 )
 
 benchmark_tool = BenchmarkTool()
+PAIR_ID = '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
 
 
 class APYEstimationBaseState(BaseState, ABC):
@@ -316,6 +320,48 @@ class TransformBehaviour(APYEstimationBaseState):
             self.set_done()
 
 
+class PreprocessBehaviour(APYEstimationBaseState):
+    """Preprocess historical data (train-test split)."""
+
+    state_id = "preprocess"
+    matching_round = PreprocessRound
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        # TODO Currently we run it only for one pool, the USDC-FTM.
+        #  Eventually, we will have to run this and all the following behaviours for all the available pools.
+
+        # Get the historical data and preprocess them.
+        transformed_history_save_path = os.path.join(self.params.data_folder, 'transformed_historical_data.csv')
+        pairs_hist = load_hist(transformed_history_save_path)
+        (y_train, y_test), pair_name = prepare_pair_data(pairs_hist, PAIR_ID)
+        self.context.logger.info("Data have been preprocessed.")
+
+        # Store and hash the preprocessed data.
+        hasher = IPFSHashOnly()
+        hashes = []
+        for filename, split in {'train': y_train, 'test': y_test}.items():
+            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'{filename}.csv')
+            create_pathdirs(save_path)
+            np.savetxt(save_path, split, ',')
+            hashes.append(hasher.get(save_path))
+
+        # Pass the hash as a Payload.
+        payload = PreprocessPayload(
+            self.context.agent_address,
+            hashes[0],
+            hashes[1],
+            pair_name
+        )
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
 class EstimateBehaviour(APYEstimationBaseState):
     """Estimate APY."""
 
@@ -372,6 +418,7 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
         RegistrationBehaviour,
         FetchBehaviour,
         TransformBehaviour,
+        PreprocessBehaviour,
         EstimateBehaviour,
         ResetBehaviour,
     }

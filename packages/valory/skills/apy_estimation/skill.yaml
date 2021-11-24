@@ -115,4 +115,6 @@ models:
 dependencies:
   pandas:
     version: <1.4,>=1.3.4
+  pmdarima:
+    version: <1.9,>=1.8.4
 is_abstract: false
