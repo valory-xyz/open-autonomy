@@ -20,10 +20,9 @@
 """This module contains the tests of the ledger API connection module."""
 import asyncio
 import logging
-from typing import Any, Dict, Generator, Optional, cast
+from typing import Any, Dict, Optional, cast
 from unittest.mock import Mock, patch
 
-import docker
 import pytest
 from aea.common import Address
 from aea.configurations.data_types import PublicId
@@ -54,8 +53,7 @@ from packages.valory.protocols.ledger_api.dialogues import (
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 
 from tests.conftest import ETHEREUM_KEY_DEPLOYER
-from tests.helpers.docker.base import launch_image
-from tests.helpers.docker.ganache import DEFAULT_GANACHE_CHAIN_ID, GanacheDockerImage
+from tests.helpers.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
@@ -74,24 +72,6 @@ gas_strategies = pytest.mark.parametrize(
         {"gas_price_strategy": "average"},
     ],
 )
-
-
-@pytest.mark.integration
-@pytest.mark.ledger
-@pytest.fixture(scope="class")
-def ganache_image(
-    ganache_configuration: Any,
-    ganache_addr: Any,
-    ganache_port: Any,
-    timeout: float = 2.0,
-    max_attempts: int = 10,
-) -> Generator:
-    """Launch the Ganache image."""
-    client = docker.from_env()
-    image = GanacheDockerImage(
-        client, ganache_addr, ganache_port, config=ganache_configuration
-    )
-    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
 class LedgerApiDialogues(BaseLedgerApiDialogues):
@@ -113,7 +93,7 @@ class LedgerApiDialogues(BaseLedgerApiDialogues):
         )
 
 
-@pytest.mark.usefixtures("ganache_image")
+@pytest.mark.usefixtures("ganache_scope_class")
 class TestLedgerConnection:
     """Tests for ledger connection."""
 

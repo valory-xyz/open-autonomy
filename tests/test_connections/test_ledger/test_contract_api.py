@@ -19,10 +19,9 @@
 
 """This module contains the tests of the ledger API connection for the contract APIs."""
 import asyncio
-from typing import Any, Dict, Generator, List, Tuple, cast
+from typing import Any, Dict, List, Tuple, cast
 from unittest import mock
 
-import docker
 import pytest
 from aea.common import Address
 from aea.contracts.base import Contract
@@ -43,27 +42,10 @@ from packages.valory.protocols.contract_api.dialogues import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
-from tests.conftest import (
-    DEFAULT_HARDHAT_ADDR,
-    DEFAULT_HARDHAT_PORT,
-    ETHEREUM_KEY_DEPLOYER,
-    get_key,
-)
-from tests.helpers.docker.base import launch_image
-from tests.helpers.docker.gnosis_safe_net import GnosisSafeNetDockerImage
+from tests.conftest import ETHEREUM_KEY_DEPLOYER, get_key
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
-
-
-@pytest.mark.integration
-@pytest.mark.ledger
-@pytest.fixture(scope="class")
-def gnosis_safe_hardhat_image() -> Generator:
-    """Launch the HardHat node with Gnosis Safe contracts deployed."""
-    client = docker.from_env()
-    image = GnosisSafeNetDockerImage(client, DEFAULT_HARDHAT_ADDR, DEFAULT_HARDHAT_PORT)
-    yield from launch_image(image, timeout=3.0, max_attempts=40)
 
 
 class ContractApiDialogues(BaseContractApiDialogues):
@@ -94,7 +76,7 @@ class ContractApiDialogues(BaseContractApiDialogues):
         )
 
 
-@pytest.mark.usefixtures("gnosis_safe_hardhat_image")
+@pytest.mark.usefixtures("gnosis_safe_hardhat_scope_class")
 class TestContractDispatcher:
     """Test contract dispatcher."""
 
