@@ -981,7 +981,7 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     ) -> None:
         """Setup test."""
         directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
+            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
         )
         _ = get_register_contract(directory)
         super().setup_class()
@@ -1022,37 +1022,42 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-class TestDeployTransactionHardhat(BaseContractTestHardHatAMMNet):
+class TestSwapHardhat(BaseContractTestHardHatAMMNet):
     """Test."""
 
-    def test_deployed(self) -> None:
-        """Run tests."""
+    amount_out_min = 10
+    path = [ADDRESS_FTM, ADDRESS_BOO]
+    to_address = ADDRESS_ONE
+    deadline = 300
 
-        result = self.contract.get_deploy_transaction(
-            ledger_api=self.ledger_api,
-            deployer_address=str(self.deployer_crypto.address),
-            owners=self.owners(),
-            threshold=int(self.threshold()),
-            gas=DEFAULT_GAS,
-            gas_price=DEFAULT_GAS_PRICE,
+    def test_swap_exact_ETH_for_tokens(self) -> None:
+        """Test swap_exact_ETH_for_tokens."""
+        eth_value = 0
+        gas = 100
+        data = self.contract.get_instance(
+            self.ledger_api, self.contract_address
+        ).encodeABI(
+            fn_name="swapExactETHForTokens",
+            args=[self.amount_out_min, self.path, self.to_address, self.deadline],
         )
-        assert type(result) == dict
-        assert len(result) == 9
-        data = result.pop("data")
-        assert type(data) == str
-        assert len(data) > 0 and data.startswith("0x")
-        assert all(
-            [
-                key in result
-                for key in [
-                    "value",
-                    "from",
-                    "gas",
-                    "gasPrice",
-                    "chainId",
-                    "nonce",
-                    "to",
-                    "contract_address",
-                ]
-            ]
-        ), "Error, found: {}".format(result)
+
+        result = self.contract.swap_exact_ETH_for_tokens(
+            self.ledger_api,
+            CONTRACT_ADDRESS,
+            ADDRESS_ONE,
+            gas,
+            DEFAULT_GAS_PRICE,
+            self.amount_out_min,
+            self.path,
+            self.to_address,
+            self.deadline,
+        )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": data,
+            "gas": gas,
+            "gasPrice": DEFAULT_GAS_PRICE,
+            "nonce": NONCE,
+            "to": CONTRACT_ADDRESS,
+            "value": eth_value,
+        }
