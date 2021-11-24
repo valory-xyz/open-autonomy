@@ -1,22 +1,26 @@
 #! /usr/bin/python3
-from pathlib import Path
-import signal
-from glob import glob
-import time
+import hashlib
 import os
-
+import signal
+import time
 from argparse import ArgumentParser
+from glob import glob
+from pathlib import Path
+
 
 parser = ArgumentParser()
-parser.add_argument('-p', "--path_to_monitor",
-                    help='path to monitor for changes.',
-                    default="/app")
-parser.add_argument('-dp', "--destination_path",
-                    help="path for the configuration to be copied to",
-                    default="./out")
-parser.add_argument('-i', "--interval", default=1)
+parser.add_argument(
+    "-p", "--path_to_monitor", help="path to monitor for changes.", default="/app"
+)
+parser.add_argument(
+    "-dp",
+    "--destination_path",
+    help="path for the configuration to be copied to",
+    default="./out",
+)
+parser.add_argument("-i", "--interval", default=1)
 
-import hashlib
+
 def md5(fname):
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
@@ -27,14 +31,13 @@ def md5(fname):
 
 def restart_host():
     # This is a little inelegant, but ... effective.
-    data = [x.rstrip().strip() for x in os.popen('ps h -eo pid')][2:]
+    data = [x.rstrip().strip() for x in os.popen("ps h -eo pid")][2:]
     [os.kill(int(i), signal.SIGINT) for i in data]
-
-
 
 
 def hash_files(files):
     return "".join([md5(file) for file in files])
+
 
 def main():
     args = parser.parse_args()
@@ -52,6 +55,6 @@ def main():
         time.sleep(1)
         state = new_state
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()
