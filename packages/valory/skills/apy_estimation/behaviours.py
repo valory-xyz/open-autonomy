@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the APY estimation skill."""
+import os
 from abc import ABC
 from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any
 
@@ -80,9 +81,14 @@ class FetchBehaviour(APYEstimationBaseState):
     state_id = "fetch"
     matching_round = CollectHistoryRound
 
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        self._save_path = ''
+
     def setup(self) -> None:
         """Set the behaviour up."""
-        create_pathdirs(self.params.history_save_path)
+        self._save_path = os.path.join(self.params.data_folder, 'historical_data.json')
+        create_pathdirs(self._save_path)
 
     def _handle_response(
         self, res: Dict, res_context: str, keys: Tuple[Union[str, int], ...]
@@ -228,11 +234,11 @@ class FetchBehaviour(APYEstimationBaseState):
 
             if len(pairs_hist) > 0:
                 # Store historical data to a json file.
-                list_to_json_file(self.params.history_save_path, pairs_hist)
+                list_to_json_file(self._save_path, pairs_hist)
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
-                hist_hash = hasher.get(self.params.history_save_path)
+                hist_hash = hasher.get(self._save_path)
 
                 # Pass the hash as a Payload.
                 payload = FetchingPayload(
@@ -258,12 +264,17 @@ class TransformBehaviour(APYEstimationBaseState):
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        self._history_save_path = self._transformed_history_save_path = ''
         self._async_result = None
 
     def setup(self):
         """Setup behaviour."""
+        self._history_save_path = os.path.join(self.params.data_folder, 'historical_data.json')
+        self._transformed_history_save_path = os.path.join(self.params.data_folder, 'transformed_historical_data.csv')
+        create_pathdirs(self._transformed_history_save_path)
+
         # Load historical data from a json file.
-        pairs_hist = read_json_list_file(self.params.history_save_path)
+        pairs_hist = read_json_list_file(self._history_save_path)
 
         my_task = TransformTask()
         task_id = self.context.task_manager.enqueue_task(my_task, args=(pairs_hist,))
@@ -276,7 +287,7 @@ class TransformBehaviour(APYEstimationBaseState):
             yield from self.sleep(self.params.sleep_time)
 
         else:
-            # Get the transformed data.
+            # Get the transformed data from the task.
             completed_task = self._async_result.get()
             transformed_history = cast(pd.DataFrame, completed_task.result)
             self.context.logger.info(
@@ -285,11 +296,11 @@ class TransformBehaviour(APYEstimationBaseState):
             )
 
             # Store the transformed data.
-            transformed_history.to_csv(self.params.transformed_history_save_path)
+            transformed_history.to_csv(self._transformed_history_save_path)
 
             # Hash the file.
             hasher = IPFSHashOnly()
-            hist_hash = hasher.get(self.params.transformed_history_save_path)
+            hist_hash = hasher.get(self._transformed_history_save_path)
 
             # Pass the hash as a Payload.
             payload = TransformationPayload(

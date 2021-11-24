@@ -75,6 +75,5 @@ class APYParams(BaseParams):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.history_duration = self._ensure("history_duration", kwargs)
-        self.history_save_path = self._ensure("history_save_path", kwargs)
-        self.transformed_history_save_path = self._ensure("transformed_history_save_path", kwargs)
+        self.data_folder = self._ensure("data_folder", kwargs)
         super().__init__(*args, **kwargs)
