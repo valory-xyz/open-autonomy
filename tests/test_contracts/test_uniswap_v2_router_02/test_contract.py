@@ -20,9 +20,10 @@
 """Tests for valory/uniswap_v2_router02 contract."""
 
 from pathlib import Path
-from typing import Dict
+import secrets
+from typing import Any, Dict, List, Optional, Tuple
 from unittest import mock
-
+from web3 import Web3
 from aea.test_tools.test_contract import BaseContractTestCase
 
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
@@ -31,6 +32,9 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 
 from tests.conftest import ROOT_DIR
 
+from tests.test_contracts.base import BaseHardhatGnosisAndUniswapContractTest
+
+from tests.helpers.contracts import get_register_contract
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 ADDRESS_ONE = "0x46F415F7BF30f4227F98def9d2B22ff62738fD68"
@@ -40,6 +44,8 @@ ADDRESS_FTM = "0x4E15361FD6b4BB609Fa63C81A2be19d873717870"
 ADDRESS_BOO = "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE"
 NONCE = 0
 CHAIN_ID = 1
+DEFAULT_GAS = 1000000
+DEFAULT_GAS_PRICE = 1000000
 
 
 class TestUniswapV2Router02Contract(BaseContractTestCase):
@@ -955,3 +961,98 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.ledger_api, self.contract_address, self.amount_out, self.path
             )
         assert result == []
+
+
+class BaseContractTestHardHatUniswapNet(BaseHardhatGnosisAndUniswapContractTest):
+    """Base test case for Uniswap v2 Router02 contract"""
+
+    NB_OWNERS: int = 4
+    THRESHOLD: int = 1
+    SALT_NONCE: Optional[int] = None
+    contract_directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+    )
+    sanitize_from_deploy_tx = ["contract_address"]
+    contract: UniswapV2Router02Contract
+
+    @classmethod
+    def setup_class(
+        cls,
+    ) -> None:
+        """Setup test."""
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
+        )
+        _ = get_register_contract(directory)
+        super().setup_class()
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        return dict(
+            owners=cls.owners(),
+            threshold=int(cls.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
+
+    @classmethod
+    def owners(cls) -> List[str]:
+        """Get the owners."""
+        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
+
+    @classmethod
+    def deployer(cls) -> Tuple[str, str]:
+        """Get the key pair of the deployer."""
+        # for simplicity, get the first owner
+        return cls.key_pairs()[0]
+
+    @classmethod
+    def threshold(
+        cls,
+    ) -> int:
+        """Returns the amount of threshold."""
+        return cls.THRESHOLD
+
+    @classmethod
+    def get_nonce(cls) -> int:
+        """Get the nonce."""
+        if cls.SALT_NONCE is not None:
+            return cls.SALT_NONCE
+        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+
+
+class TestDeployTransactionHardhat(BaseContractTestHardHatUniswapNet):
+    """Test."""
+
+    def test_deployed(self) -> None:
+        """Run tests."""
+
+        result = self.contract.get_deploy_transaction(
+            ledger_api=self.ledger_api,
+            deployer_address=str(self.deployer_crypto.address),
+            owners=self.owners(),
+            threshold=int(self.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
+        assert type(result) == dict
+        assert len(result) == 9
+        data = result.pop("data")
+        assert type(data) == str
+        assert len(data) > 0 and data.startswith("0x")
+        assert all(
+            [
+                key in result
+                for key in [
+                    "value",
+                    "from",
+                    "gas",
+                    "gasPrice",
+                    "chainId",
+                    "nonce",
+                    "to",
+                    "contract_address",
+                ]
+            ]
+        ), "Error, found: {}".format(result)

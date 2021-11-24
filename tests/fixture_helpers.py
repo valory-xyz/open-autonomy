@@ -38,6 +38,7 @@ from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
+from tests.helpers.docker.uniswap_gnosis_net import GnosisSafeAndUniswapNetDockerImage
 
 
 logger = logging.getLogger(__name__)
@@ -148,12 +149,6 @@ class HardHatBaseTest(DockerBaseTest):
         return setup_class_kwargs
 
     @classmethod
-    def _build_image(cls) -> DockerImage:
-        """Build the image."""
-        client = docker.from_env()
-        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
-
-    @classmethod
     def key_pairs(cls) -> List[Tuple[str, str]]:
         """Get the key pairs which are funded."""
         return KEY_PAIRS
@@ -162,3 +157,23 @@ class HardHatBaseTest(DockerBaseTest):
     def url(cls) -> str:
         """Get the url under which the image is reachable."""
         return f"{cls.addr}:{cls.port}"
+
+
+class HardHatGnosisBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
+
+
+class HardHatGnosisAndUniswapBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis and Uniswap deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GnosisSafeAndUniswapNetDockerImage(client, cls.addr, cls.port)
