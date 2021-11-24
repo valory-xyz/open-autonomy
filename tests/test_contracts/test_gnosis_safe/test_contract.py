@@ -41,7 +41,10 @@ from tests.conftest import (
     ROOT_DIR,
 )
 from tests.helpers.contracts import get_register_contract
-from tests.test_contracts.base import BaseGanacheContractTest, BaseHardhatGnosisContractTest
+from tests.test_contracts.base import (
+    BaseGanacheContractTest,
+    BaseHardhatGnosisContractTest,
+)
 
 
 DEFAULT_GAS = 1000000

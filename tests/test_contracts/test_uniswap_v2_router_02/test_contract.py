@@ -19,22 +19,22 @@
 
 """Tests for valory/uniswap_v2_router02 contract."""
 
-from pathlib import Path
 import secrets
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from unittest import mock
-from web3 import Web3
+
 from aea.test_tools.test_contract import BaseContractTestCase
+from web3 import Web3
 
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
 
 from tests.conftest import ROOT_DIR
-
+from tests.helpers.contracts import get_register_contract
 from tests.test_contracts.base import BaseHardhatGnosisAndUniswapContractTest
 
-from tests.helpers.contracts import get_register_contract
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 ADDRESS_ONE = "0x46F415F7BF30f4227F98def9d2B22ff62738fD68"
