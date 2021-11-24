@@ -383,3 +383,19 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_preprocess_behaviour(self):
         # TODO
         assert False
+
+
+class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test OptimizeBehaviour."""
+
+    def test_optimize_behaviour(self):
+        # TODO
+        assert False
+
+
+class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test TrainBehaviour."""
+
+    def test_train_behaviour(self):
+        # TODO
+        assert False

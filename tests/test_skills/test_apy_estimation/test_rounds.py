@@ -185,3 +185,21 @@ class TestPreprocessRound(BaseRoundTestClass):
         """Runs test."""
         # TODO
         assert False
+
+
+class TestOptimizeRound(BaseRoundTestClass):
+    """Test `OptimizeRound`."""
+
+    def test_run(self) -> None:
+        """Runs test."""
+        # TODO
+        assert False
+
+
+class TestTrainRound(BaseRoundTestClass):
+    """Test `TrainRound`."""
+
+    def test_run(self) -> None:
+        """Runs test."""
+        # TODO
+        assert False

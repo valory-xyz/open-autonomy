@@ -76,4 +76,5 @@ class APYParams(BaseParams):
         """Initialize the parameters object."""
         self.history_duration = self._ensure("history_duration", kwargs)
         self.data_folder = self._ensure("data_folder", kwargs)
+        self.optimizer_params = self._ensure("optimizer", kwargs)
         super().__init__(*args, **kwargs)

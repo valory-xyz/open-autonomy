@@ -18,6 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads.py module of the skill."""
+from datetime import datetime
+
+from optuna.distributions import UniformDistribution
+from optuna.trial import FrozenTrial, TrialState
 
 from packages.valory.skills.apy_estimation.payloads import (
     TransactionType,
@@ -25,6 +29,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     TransformationPayload,
     ResetPayload,
     PreprocessPayload,
+    OptimizationPayload,
 )
 
 
@@ -66,6 +71,25 @@ class TestPayloads:
         assert payload.pair_name == "test"
         assert payload.id_ == "id"
         assert payload.data == {"train": 'x0', "test": 'x1', "pair_name": 'test'}
+
+    @staticmethod
+    def test_optimization_payload() -> None:
+        """Test `OptimizationPayload`"""
+        expected_trial = FrozenTrial(number=0, values=[1.9552610244116478e-05],
+                                     datetime_start=datetime(2021, 10, 4, 6, 39, 11, 4182),
+                                     datetime_complete=datetime(2021, 10, 4, 6, 39, 11, 7168),
+                                     params={'test': 2.004421833357796},
+                                     distributions={'test': UniformDistribution(high=10.0, low=-10.0)}, user_attrs={},
+                                     system_attrs={}, intermediate_values={}, trial_id=0,
+                                     state=TrialState.COMPLETE, value=None)
+
+        payload = OptimizationPayload(sender="sender", study_hash='x0', best_trial=expected_trial, id_="id")
+
+        assert payload.transaction_type == TransactionType.TRANSFORMATION
+        assert payload.study == "x0"
+        assert payload.best_trial == expected_trial
+        assert payload.id_ == "id"
+        assert payload.data == {"study": "x0", "best_trial": expected_trial}
 
     @staticmethod
     def test_reset_payload() -> None:

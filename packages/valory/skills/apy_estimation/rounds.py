@@ -179,8 +179,38 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
     """
     This class represents the 'Preprocess' round.
 
-    Input: a period state with the prior round data
+    Input: a period state with the prior round data.
     Output: a new period state with the prior round data and the votes for the preprocessed data.
+
+    It schedules the Optimize.
+    """
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        raise NotImplementedError()
+
+
+class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """
+    This class represents the 'Optimize' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the hyperparameters.
+
+    It schedules the TrainRound.
+    """
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        raise NotImplementedError()
+
+
+class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """
+    This class represents the 'Train' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the model.
 
     It schedules the EstimateConsensusRound.
     """
@@ -245,6 +275,14 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         PreprocessRound: {
+            Event.DONE: OptimizeRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+        },
+        OptimizeRound: {
+            Event.DONE: TrainRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+        },
+        TrainRound: {
             Event.DONE: EstimateConsensusRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },

@@ -22,6 +22,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 import pandas as pd
+from optuna.trial import FrozenTrial
 
 from packages.valory.skills.simple_abci.payloads import BaseSimpleAbciPayload
 
@@ -36,6 +37,8 @@ class TransactionType(Enum):
     FETCHING = "fetching"
     TRANSFORMATION = "transformation"
     PREPROCESS = "preprocess"
+    OPTIMIZATION = "optimization"
+    TRAINING = "training"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -59,7 +62,7 @@ class FetchingPayload(BaseSimpleAbciPayload):
 
     @property
     def history(self) -> str:
-        """Get the fetched history."""
+        """Get the history's hash."""
         return self._history
 
     @property
@@ -87,7 +90,7 @@ class TransformationPayload(BaseSimpleAbciPayload):
 
     @property
     def transformation(self) -> str:
-        """Get the transformation."""
+        """Get the transformation's hash."""
         return self._transformation_hash
 
     @property
@@ -136,6 +139,39 @@ class PreprocessPayload(BaseSimpleAbciPayload):
     def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"train": self._train_hash, "test": self._test_hash, "pair_name": self._pair_name}
+
+
+class OptimizationPayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'optimization'."""
+
+    transaction_type = TransactionType.OPTIMIZATION
+
+    def __init__(self, sender: str, study_hash: str, best_trial: FrozenTrial, id_: Optional[str] = None) -> None:
+        """Initialize an 'optimization' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param study_hash: the optimization study's hash.
+        :param best_trial: the best trial of the study.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._study_hash = study_hash
+        self._best_trial = best_trial
+
+    @property
+    def study(self) -> str:
+        """Get the optimization study's hash."""
+        return self._study_hash
+
+    @property
+    def best_trial(self) -> FrozenTrial:
+        """Get the best trial of the optimization's study."""
+        return self._best_trial
+
+    @property
+    def data(self) -> Dict[str, str]:
+        """Get the data."""
+        return {"study_hash": self._study_hash, "best_trial": self._best_trial}
 
 
 class ResetPayload(BaseSimpleAbciPayload):
