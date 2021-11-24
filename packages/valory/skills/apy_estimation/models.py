@@ -21,8 +21,11 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, SharedState as BaseSharedState, \
-    Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
+    SharedState as BaseSharedState,
+    Requests as BaseRequests,
+)
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.simple_abci.models import Params as BaseParams
@@ -73,4 +76,5 @@ class APYParams(BaseParams):
         """Initialize the parameters object."""
         self.history_duration = self._ensure("history_duration", kwargs)
         self.history_save_path = self._ensure("history_save_path", kwargs)
+        self.transformed_history_save_path = self._ensure("transformed_history_save_path", kwargs)
         super().__init__(*args, **kwargs)

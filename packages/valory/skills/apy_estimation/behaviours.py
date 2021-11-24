@@ -19,8 +19,9 @@
 
 """This module contains the behaviours for the APY estimation skill."""
 from abc import ABC
-from typing import Dict, Generator, Set, Tuple, Type, Union, cast
+from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any
 
+import pandas as pd
 from aea.helpers.ipfs.base import IPFSHashOnly
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -29,14 +30,16 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
-from packages.valory.skills.apy_estimation.payloads import FetchingPayload
+from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
     TransformRound, ResetRound,
 )
-from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file
+from packages.valory.skills.apy_estimation.tasks import TransformTask
+from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file, \
+    read_json_list_file
 from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
@@ -253,9 +256,53 @@ class TransformBehaviour(APYEstimationBaseState):
     state_id = "transform"
     matching_round = TransformRound
 
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        self._async_result = None
+
+    def setup(self):
+        """Setup behaviour."""
+        # Load historical data from a json file.
+        pairs_hist = read_json_list_file(self.params.history_save_path)
+
+        my_task = TransformTask()
+        task_id = self.context.task_manager.enqueue_task(my_task, args=(pairs_hist,))
+        self._async_result = self.context.task_manager.get_task_result(task_id)
+
     def async_act(self) -> Generator:
         """Do the action."""
-        raise NotImplementedError()
+        if self._async_result.ready() is False:
+            self.context.logger.debug("The transform task is not finished yet.")
+            yield from self.sleep(self.params.sleep_time)
+
+        else:
+            # Get the transformed data.
+            completed_task = self._async_result.get()
+            transformed_history = cast(pd.DataFrame, completed_task.result)
+            self.context.logger.info(
+                "Data have been transformed. Showing The first row:\n",
+                transformed_history.head(1)
+            )
+
+            # Store the transformed data.
+            transformed_history.to_csv(self.params.transformed_history_save_path)
+
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            hist_hash = hasher.get(self.params.transformed_history_save_path)
+
+            # Pass the hash as a Payload.
+            payload = TransformationPayload(
+                self.context.agent_address,
+                hist_hash,
+            )
+
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
 
 
 class EstimateBehaviour(APYEstimationBaseState):

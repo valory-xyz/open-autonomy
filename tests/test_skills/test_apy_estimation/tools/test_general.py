@@ -91,3 +91,8 @@ class TestGeneral:
         test_list.append(b'non-serializable')
         with pytest.raises(TypeError):
             list_to_json_file(path, test_list)
+
+    @staticmethod
+    def test_read_json_list_file():
+        # TODO
+        assert False

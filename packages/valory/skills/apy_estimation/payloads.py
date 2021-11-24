@@ -62,7 +62,7 @@ class FetchingPayload(BaseSimpleAbciPayload):
         return self._history
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"history": self._history}
 
@@ -73,26 +73,26 @@ class TransformationPayload(BaseSimpleAbciPayload):
     transaction_type = TransactionType.TRANSFORMATION
 
     def __init__(
-        self, sender: str, transformation: pd.DataFrame, id_: Optional[str] = None
+        self, sender: str, transformation_hash: str, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param transformation: the transformation of the history.
+        :param transformation_hash: the transformation's hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._transformation = transformation
+        self._transformation_hash = transformation_hash
 
     @property
-    def transformation(self) -> pd.DataFrame:
+    def transformation(self) -> str:
         """Get the transformation."""
-        return self._transformation
+        return self._transformation_hash
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> Dict[str, str]:
         """Get the data."""
-        return {"transformation": self.transformation}
+        return {"transformation": self._transformation_hash}
 
 
 class ResetPayload(BaseSimpleAbciPayload):

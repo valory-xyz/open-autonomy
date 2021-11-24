@@ -160,7 +160,7 @@ class CollectHistoryRound(
         return state, event
 
 
-class TransformRound(CollectDifferentUntilThresholdRound, APYEstimationAbstractRound):
+class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
     This class represents the 'Transform' round.
 

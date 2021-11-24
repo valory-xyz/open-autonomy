@@ -2,14 +2,9 @@
 import json
 import os
 import time
-from typing import Generator, List
+from typing import Generator
 
-import pandas as pd
-
-
-def transform(observations: List) -> pd.DataFrame:
-    """Transforms the observations."""
-    raise NotImplementedError()
+from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
 
 
 def gen_unix_timestamps(duration: int) -> Generator:
@@ -41,7 +36,7 @@ def create_pathdirs(path: str) -> None:
         os.makedirs(dirname, exist_ok=True)
 
 
-def list_to_json_file(path: str, li: List) -> None:
+def list_to_json_file(path: str, li: ResponseItemType) -> None:
     """Dump a list to a json file.
 
     :param path: the path to store the json file.
@@ -49,3 +44,12 @@ def list_to_json_file(path: str, li: List) -> None:
     """
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(li, f, ensure_ascii=False, indent=4)
+
+
+def read_json_list_file(path: str) -> ResponseItemType:
+    """Dump a list to a json file.
+
+    :param path: the path to store the json file.
+    """
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)

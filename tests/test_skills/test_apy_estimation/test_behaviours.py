@@ -367,3 +367,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.end_round()
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
+
+
+class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test FetchBehaviour."""
+
+    def test_transform_behaviour(self):
+        # TODO
+        assert False
