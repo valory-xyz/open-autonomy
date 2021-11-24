@@ -19,9 +19,10 @@
 
 """This module contains the tests of the ledger API connection for the contract APIs."""
 import asyncio
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, Dict, Generator, List, Tuple, cast
 from unittest import mock
 
+import docker
 import pytest
 from aea.common import Address
 from aea.contracts.base import Contract
@@ -42,10 +43,27 @@ from packages.valory.protocols.contract_api.dialogues import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
-from tests.conftest import ETHEREUM_KEY_DEPLOYER, get_key
+from tests.conftest import (
+    DEFAULT_HARDHAT_ADDR,
+    DEFAULT_HARDHAT_PORT,
+    ETHEREUM_KEY_DEPLOYER,
+    get_key,
+)
+from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.gnosis_safe_net import GnosisSafeNetDockerImage
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
+
+
+@pytest.mark.integration
+@pytest.mark.ledger
+@pytest.fixture(scope="class")
+def gnosis_safe_hardhat_image() -> Generator:
+    """Launch the HardHat node with Gnosis Safe contracts deployed."""
+    client = docker.from_env()
+    image = GnosisSafeNetDockerImage(client, DEFAULT_HARDHAT_ADDR, DEFAULT_HARDHAT_PORT)
+    yield from launch_image(image, timeout=3.0, max_attempts=40)
 
 
 class ContractApiDialogues(BaseContractApiDialogues):
@@ -76,422 +94,414 @@ class ContractApiDialogues(BaseContractApiDialogues):
         )
 
 
-@pytest.mark.asyncio
-async def test_get_deploy_transaction(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get deploy transaction with contract gnosis_safe_contract.
+@pytest.mark.usefixtures("gnosis_safe_hardhat_image")
+class TestContractDispatcher:
+    """Test contract dispatcher."""
 
-    NOTE: we already deploy it once at base!
+    @pytest.mark.asyncio
+    async def test_get_deploy_transaction(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+        owners: List[str],
+        threshold: int,
+    ) -> None:
+        """
+        Test get deploy transaction with contract gnosis_safe_contract.
 
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    crypto = make_crypto(
-        EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
-    )
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="get_deploy_transaction",
-        kwargs=ContractApiMessage.Kwargs(
-            body=dict(
-                deployer_address=crypto.address,
-                gas=5000000,
-                gas_price=10 * 10,
-                owners=owners,
-                threshold=threshold,
-            )
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        :param owners: fixture
+        :param threshold: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        crypto = make_crypto(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
+        )
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="get_deploy_transaction",
+            kwargs=ContractApiMessage.Kwargs(
+                body=dict(
+                    deployer_address=crypto.address,
+                    gas=5000000,
+                    gas_price=10 * 10,
+                    owners=owners,
+                    threshold=threshold,
+                )
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
 
-    await ledger_apis_connection.send(envelope)
-    await asyncio.sleep(0.01)
-    response = await ledger_apis_connection.receive()
-
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.RAW_TRANSACTION
-    ), "Error: {}".format(response_message.message)
-    response_dialogue = contract_api_dialogues.update(response_message)
-    assert response_dialogue == contract_api_dialogue
-    assert isinstance(response_message.raw_transaction, RawTransaction)
-    assert response_message.raw_transaction.ledger_id == EthereumCrypto.identifier
-    assert len(response.message.raw_transaction.body) == 9
-    assert len(str(response.message.raw_transaction.body["data"])) > 0
-    assert (
-        response.message.raw_transaction.body["contract_address"] != contract_address
-    ), "new deployment should have new address"
-
-
-@pytest.mark.asyncio
-async def test_get_deploy_transaction_with_validate_and_call_callable(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get deploy transaction with contract gnosis_safe_contract ( using _validate_and_call_callable instead of _stub_call method ).
-
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    crypto = make_crypto(
-        EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
-    )
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="get_deploy_transaction",
-        kwargs=ContractApiMessage.Kwargs(
-            body=dict(
-                deployer_address=crypto.address,
-                gas=5000000,
-                gas_price=10 ** 10,
-                owners=owners,
-                threshold=threshold,
-            )
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
-
-    with mock.patch.object(
-        ledger_apis_connection._contract_dispatcher, "_call_stub", return_value=None
-    ):
         await ledger_apis_connection.send(envelope)
         await asyncio.sleep(0.01)
         response = await ledger_apis_connection.receive()
 
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.RAW_TRANSACTION
-    ), "Error: {}".format(response_message.message)
-    response_dialogue = contract_api_dialogues.update(response_message)
-    assert response_dialogue == contract_api_dialogue
-    assert isinstance(response_message.raw_transaction, RawTransaction)
-    assert response_message.raw_transaction.ledger_id == EthereumCrypto.identifier
-    assert len(response.message.raw_transaction.body) == 9
-    assert len(str(response.message.raw_transaction.body["data"])) > 0
-    assert (
-        response.message.raw_transaction.body["contract_address"] != contract_address
-    ), "new deployment should have new address"
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative
+            == ContractApiMessage.Performative.RAW_TRANSACTION
+        ), "Error: {}".format(response_message.message)
+        response_dialogue = contract_api_dialogues.update(response_message)
+        assert response_dialogue == contract_api_dialogue
+        assert isinstance(response_message.raw_transaction, RawTransaction)
+        assert response_message.raw_transaction.ledger_id == EthereumCrypto.identifier
+        assert len(response.message.raw_transaction.body) == 9
+        assert len(str(response.message.raw_transaction.body["data"])) > 0
+        assert (
+            response.message.raw_transaction.body["contract_address"]
+            != contract_address
+        ), "new deployment should have new address"
 
+    @pytest.mark.asyncio
+    async def test_get_deploy_transaction_with_validate_and_call_callable(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+        owners: List[str],
+        threshold: int,
+    ) -> None:
+        """
+        Test get deploy transaction with contract gnosis_safe_contract ( using _validate_and_call_callable instead of _stub_call method ).
 
-@pytest.mark.asyncio
-async def test_get_state(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get state with contract gnosis_safe_contract.
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        :param owners: fixture
+        :param threshold: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        crypto = make_crypto(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
+        )
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="get_deploy_transaction",
+            kwargs=ContractApiMessage.Kwargs(
+                body=dict(
+                    deployer_address=crypto.address,
+                    gas=5000000,
+                    gas_price=10 ** 10,
+                    owners=owners,
+                    threshold=threshold,
+                )
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
 
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_STATE,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="get_state",
-        contract_address=contract_address,
-        kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
-
-    with mock.patch(
-        "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_state",
-        return_value={},
-    ):
-        await ledger_apis_connection.send(envelope)
-        await asyncio.sleep(0.01)
-        response = await ledger_apis_connection.receive()
-
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.STATE
-    ), "Error: {}".format(response_message.message)
-    response_dialogue = contract_api_dialogues.update(response_message)
-    assert response_dialogue == contract_api_dialogue
-    assert isinstance(response_message.state, State)
-    assert response_message.state.ledger_id == EthereumCrypto.identifier
-    assert len(response.message.state.body) == 0
-
-
-@pytest.mark.asyncio
-async def test_get_state_with_validate_and_call_callable(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get state with contract gnosis_safe_contract ( using _validate_and_call_callable instead of _call_stub method).
-
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_STATE,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="get_state",
-        contract_address=contract_address,
-        kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
-
-    with mock.patch.object(
-        ledger_apis_connection._contract_dispatcher, "_call_stub", return_value=None
-    ):
-
-        def get_state(
-            ledger_api: Any, contract_api: Any, *args: Any, **kwargs: Any
-        ) -> Dict:
-            """Mock `get_state` method from GnosisSafeContract."""
-            return {}
-
-        with mock.patch(
-            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_state",
-            new_callable=lambda: get_state,
+        with mock.patch.object(
+            ledger_apis_connection._contract_dispatcher, "_call_stub", return_value=None
         ):
             await ledger_apis_connection.send(envelope)
             await asyncio.sleep(0.01)
             response = await ledger_apis_connection.receive()
 
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.STATE
-    ), "Error: {}".format(response_message.message)
-    response_dialogue = contract_api_dialogues.update(response_message)
-    assert response_dialogue == contract_api_dialogue
-    assert isinstance(response_message.state, State)
-    assert response_message.state.ledger_id == EthereumCrypto.identifier
-    assert len(response.message.state.body) == 0
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative
+            == ContractApiMessage.Performative.RAW_TRANSACTION
+        ), "Error: {}".format(response_message.message)
+        response_dialogue = contract_api_dialogues.update(response_message)
+        assert response_dialogue == contract_api_dialogue
+        assert isinstance(response_message.raw_transaction, RawTransaction)
+        assert response_message.raw_transaction.ledger_id == EthereumCrypto.identifier
+        assert len(response.message.raw_transaction.body) == 9
+        assert len(str(response.message.raw_transaction.body["data"])) > 0
+        assert (
+            response.message.raw_transaction.body["contract_address"]
+            != contract_address
+        ), "new deployment should have new address"
 
+    @pytest.mark.asyncio
+    async def test_get_state(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+    ) -> None:
+        """
+        Test get state with contract gnosis_safe_contract.
 
-@pytest.mark.asyncio
-async def test_get_raw_transaction(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get raw transaction with contract get_raw_transaction.
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_STATE,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="get_state",
+            contract_address=contract_address,
+            kwargs=ContractApiMessage.Kwargs(
+                {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
 
-    NOTE: we already deploy it once at base!
+        with mock.patch(
+            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_state",
+            return_value={},
+        ):
+            await ledger_apis_connection.send(envelope)
+            await asyncio.sleep(0.01)
+            response = await ledger_apis_connection.receive()
 
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="get_raw_transaction",
-        contract_address=contract_address,
-        kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative == ContractApiMessage.Performative.STATE
+        ), "Error: {}".format(response_message.message)
+        response_dialogue = contract_api_dialogues.update(response_message)
+        assert response_dialogue == contract_api_dialogue
+        assert isinstance(response_message.state, State)
+        assert response_message.state.ledger_id == EthereumCrypto.identifier
+        assert len(response.message.state.body) == 0
 
-    with mock.patch(
-        "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_transaction",
-        return_value={},
-    ):
-        await ledger_apis_connection.send(envelope)
-        await asyncio.sleep(0.01)
-        response = await ledger_apis_connection.receive()
+    @pytest.mark.asyncio
+    async def test_get_state_with_validate_and_call_callable(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+    ) -> None:
+        """
+        Test get state with contract gnosis_safe_contract ( using _validate_and_call_callable instead of _call_stub method).
 
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.RAW_TRANSACTION
-    ), "Error: {}".format(response_message.message)
-    response_dialogue = contract_api_dialogues.update(response_message)
-    assert response_dialogue == contract_api_dialogue
-    assert isinstance(response_message.raw_transaction, RawTransaction)
-    assert response_message.raw_transaction.ledger_id == EthereumCrypto.identifier
-    assert len(response.message.raw_transaction.body) == 0
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_STATE,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="get_state",
+            contract_address=contract_address,
+            kwargs=ContractApiMessage.Kwargs(
+                {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
 
+        with mock.patch.object(
+            ledger_apis_connection._contract_dispatcher, "_call_stub", return_value=None
+        ):
 
-@pytest.mark.asyncio
-async def test_get_raw_message(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get raw message with contract get_raw_transaction.
+            def get_state(
+                ledger_api: Any, contract_api: Any, *args: Any, **kwargs: Any
+            ) -> Dict:
+                """Mock `get_state` method from GnosisSafeContract."""
+                return {}
 
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_RAW_MESSAGE,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="get_raw_message",
-        contract_address=contract_address,
-        kwargs=ContractApiMessage.Kwargs(
-            {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
+            with mock.patch(
+                "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_state",
+                new_callable=lambda: get_state,
+            ):
+                await ledger_apis_connection.send(envelope)
+                await asyncio.sleep(0.01)
+                response = await ledger_apis_connection.receive()
 
-    with mock.patch(
-        "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_message",
-        return_value=b"{}",
-    ):
-        await ledger_apis_connection.send(envelope)
-        await asyncio.sleep(0.01)
-        response = await ledger_apis_connection.receive()
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative == ContractApiMessage.Performative.STATE
+        ), "Error: {}".format(response_message.message)
+        response_dialogue = contract_api_dialogues.update(response_message)
+        assert response_dialogue == contract_api_dialogue
+        assert isinstance(response_message.state, State)
+        assert response_message.state.ledger_id == EthereumCrypto.identifier
+        assert len(response.message.state.body) == 0
 
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.RAW_MESSAGE
-    ), "Error: {}".format(response_message.message)
-    response_dialogue = contract_api_dialogues.update(response_message)
-    assert response_dialogue == contract_api_dialogue
-    assert isinstance(response_message.raw_message, RawMessage)
-    assert response_message.raw_message.ledger_id == EthereumCrypto.identifier
-    assert response.message.raw_message.body == b"{}"
+    @pytest.mark.asyncio
+    async def test_get_raw_transaction(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+    ) -> None:
+        """
+        Test get raw transaction with contract get_raw_transaction.
 
+        NOTE: we already deploy it once at base!
 
-@pytest.mark.asyncio
-async def test_get_error_message(
-    gnosis_safe_contract: Tuple[Contract, str],
-    ledger_apis_connection: LedgerConnection,
-    owners: List[str],
-    threshold: int,
-) -> None:
-    """
-    Test get_error_message method of contract dispatcher.
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="get_raw_transaction",
+            contract_address=contract_address,
+            kwargs=ContractApiMessage.Kwargs(
+                {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
 
-    :param gnosis_safe_contract: fixture
-    :param ledger_apis_connection: fixture
-    :param owners: fixture
-    :param threshold: fixture
-    """
-    _, contract_address = gnosis_safe_contract
-    contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
-    crypto = make_crypto(
-        EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
-    )
-    request, contract_api_dialogue = contract_api_dialogues.create(
-        counterparty=str(ledger_apis_connection.connection_id),
-        performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
-        ledger_id=EthereumCrypto.identifier,
-        contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
-        callable="callable",
-        kwargs=ContractApiMessage.Kwargs(
-            body=dict(
-                deployer_address=crypto.address,
-                gas=5000000,
-                owners=owners,
-                threshold=threshold,
-            )
-        ),
-    )
-    envelope = Envelope(
-        to=request.to,
-        sender=request.sender,
-        message=request,
-    )
+        with mock.patch(
+            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_transaction",
+            return_value={},
+        ):
+            await ledger_apis_connection.send(envelope)
+            await asyncio.sleep(0.01)
+            response = await ledger_apis_connection.receive()
 
-    with mock.patch.object(
-        ledger_apis_connection._contract_dispatcher.contract_registry,  # type: ignore
-        "make",
-        return_value=None,
-    ):
-        await ledger_apis_connection.send(envelope)
-        await asyncio.sleep(0.01)
-        response = await ledger_apis_connection.receive()
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative
+            == ContractApiMessage.Performative.RAW_TRANSACTION
+        ), "Error: {}".format(response_message.message)
+        response_dialogue = contract_api_dialogues.update(response_message)
+        assert response_dialogue == contract_api_dialogue
+        assert isinstance(response_message.raw_transaction, RawTransaction)
+        assert response_message.raw_transaction.ledger_id == EthereumCrypto.identifier
+        assert len(response.message.raw_transaction.body) == 0
 
-    assert response is not None
-    assert isinstance(response.message, ContractApiMessage)
-    response_message = cast(ContractApiMessage, response.message)
-    assert (
-        response_message.performative == ContractApiMessage.Performative.ERROR
-    ), "Error: {}".format(response_message.message)
+    @pytest.mark.asyncio
+    async def test_get_raw_message(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+    ) -> None:
+        """
+        Test get raw message with contract get_raw_transaction.
+
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_RAW_MESSAGE,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="get_raw_message",
+            contract_address=contract_address,
+            kwargs=ContractApiMessage.Kwargs(
+                {"agent_address": get_key(ETHEREUM_KEY_DEPLOYER), "token_id": 1}
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
+
+        with mock.patch(
+            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_message",
+            return_value=b"{}",
+        ):
+            await ledger_apis_connection.send(envelope)
+            await asyncio.sleep(0.01)
+            response = await ledger_apis_connection.receive()
+
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative == ContractApiMessage.Performative.RAW_MESSAGE
+        ), "Error: {}".format(response_message.message)
+        response_dialogue = contract_api_dialogues.update(response_message)
+        assert response_dialogue == contract_api_dialogue
+        assert isinstance(response_message.raw_message, RawMessage)
+        assert response_message.raw_message.ledger_id == EthereumCrypto.identifier
+        assert response.message.raw_message.body == b"{}"
+
+    @pytest.mark.asyncio
+    async def test_get_error_message(
+        self,
+        gnosis_safe_contract: Tuple[Contract, str],
+        ledger_apis_connection: LedgerConnection,
+        owners: List[str],
+        threshold: int,
+    ) -> None:
+        """
+        Test get_error_message method of contract dispatcher.
+
+        :param gnosis_safe_contract: fixture
+        :param ledger_apis_connection: fixture
+        :param owners: fixture
+        :param threshold: fixture
+        """
+        _, contract_address = gnosis_safe_contract
+        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        crypto = make_crypto(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
+        )
+        request, contract_api_dialogue = contract_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
+            ledger_id=EthereumCrypto.identifier,
+            contract_id=str(GNOSIS_SAFE_PUBLIC_ID),
+            callable="callable",
+            kwargs=ContractApiMessage.Kwargs(
+                body=dict(
+                    deployer_address=crypto.address,
+                    gas=5000000,
+                    owners=owners,
+                    threshold=threshold,
+                )
+            ),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
+
+        with mock.patch.object(
+            ledger_apis_connection._contract_dispatcher.contract_registry,  # type: ignore
+            "make",
+            return_value=None,
+        ):
+            await ledger_apis_connection.send(envelope)
+            await asyncio.sleep(0.01)
+            response = await ledger_apis_connection.receive()
+
+        assert response is not None
+        assert isinstance(response.message, ContractApiMessage)
+        response_message = cast(ContractApiMessage, response.message)
+        assert (
+            response_message.performative == ContractApiMessage.Performative.ERROR
+        ), "Error: {}".format(response_message.message)

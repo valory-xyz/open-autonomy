@@ -232,7 +232,7 @@ def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
 
 @pytest.fixture()
 def ledger_api(
-    ethereum_testnet_config: Dict, gnosis_safe_hardhat: Generator
+    ethereum_testnet_config: Dict,
 ) -> Generator[LedgerApi, None, None]:
     """Ledger api fixture."""
     ledger_id, config = EthereumCrypto.identifier, ethereum_testnet_config
