@@ -5,9 +5,9 @@ ENV TENDERMINT_VERSION=0.34.11
 
 RUN apk update && \
     apk upgrade && \
-    apk --no-cache add curl jq file
+    apk --no-cache add curl jq file \
+    bash python3 openrc
 
-RUN apk add bash
 
 RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
     chmod u+x wait-for-it.sh &&\
@@ -27,5 +27,12 @@ ENTRYPOINT ["/usr/bin/wrapper.sh"]
 CMD ["node", "--proxy_app", "kvstore"]
 STOPSIGNAL SIGTERM
 
+
+
+
 COPY wrapper.sh /usr/bin/wrapper.sh
 COPY config-template.toml /etc/tendermint/config-template.toml
+
+RUN mkdir -p /app
+COPY config_loader.py /app/config_loader.py
+
