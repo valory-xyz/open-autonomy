@@ -19,10 +19,7 @@
 
 """This module contains the transaction payloads for the APY estimation app."""
 from enum import Enum
-from typing import Dict, Optional
-
-import pandas as pd
-from optuna.trial import FrozenTrial
+from typing import Dict, Optional, Any, Union
 
 from packages.valory.skills.simple_abci.payloads import BaseSimpleAbciPayload
 
@@ -77,7 +74,7 @@ class TransformationPayload(BaseSimpleAbciPayload):
     transaction_type = TransactionType.TRANSFORMATION
 
     def __init__(
-        self, sender: str, transformation_hash: str, id_: Optional[str] = None
+            self, sender: str, transformation_hash: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'transformation' transaction payload.
 
@@ -97,7 +94,7 @@ class TransformationPayload(BaseSimpleAbciPayload):
     def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"transformation": self._transformation_hash}
-    
+
 
 class PreprocessPayload(BaseSimpleAbciPayload):
     """Represent a transaction payload of type 'preprocess'."""
@@ -105,7 +102,7 @@ class PreprocessPayload(BaseSimpleAbciPayload):
     transaction_type = TransactionType.PREPROCESS
 
     def __init__(
-        self, sender: str, train_hash: str, test_hash: str, pair_name: str, id_: Optional[str] = None
+            self, sender: str, train_hash: str, test_hash: str, pair_name: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'preprocess' transaction payload.
 
@@ -146,17 +143,17 @@ class OptimizationPayload(BaseSimpleAbciPayload):
 
     transaction_type = TransactionType.OPTIMIZATION
 
-    def __init__(self, sender: str, study_hash: str, best_trial: FrozenTrial, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, study_hash: str, best_params: Dict[str, Any], id_: Optional[str] = None) -> None:
         """Initialize an 'optimization' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param study_hash: the optimization study's hash.
-        :param best_trial: the best trial of the study.
+        :param best_params: the best params of the study.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
         self._study_hash = study_hash
-        self._best_trial = best_trial
+        self._best_params = best_params
 
     @property
     def study(self) -> str:
@@ -164,14 +161,40 @@ class OptimizationPayload(BaseSimpleAbciPayload):
         return self._study_hash
 
     @property
-    def best_trial(self) -> FrozenTrial:
-        """Get the best trial of the optimization's study."""
-        return self._best_trial
+    def best_params(self) -> Dict[str, Any]:
+        """Get the best params of the optimization's study."""
+        return self._best_params
 
     @property
-    def data(self) -> Dict[str, str]:
+    def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
         """Get the data."""
-        return {"study_hash": self._study_hash, "best_trial": self._best_trial}
+        return {"study_hash": self._study_hash, "best_params": self._best_params}
+
+
+class TrainingPayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'training'."""
+
+    transaction_type = TransactionType.TRAINING
+
+    def __init__(self, sender: str, model_hash: str, id_: Optional[str] = None) -> None:
+        """Initialize a 'training' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param model_hash: the model's hash.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._model_hash = model_hash
+
+    @property
+    def model(self) -> str:
+        """Get the model's hash."""
+        return self._model_hash
+
+    @property
+    def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
+        """Get the data."""
+        return {"model": self._model_hash}
 
 
 class ResetPayload(BaseSimpleAbciPayload):
@@ -180,7 +203,7 @@ class ResetPayload(BaseSimpleAbciPayload):
     transaction_type = TransactionType.RESET
 
     def __init__(
-        self, sender: str, period_count: int, id_: Optional[str] = None
+            self, sender: str, period_count: int, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'reset' transaction payload.
 

@@ -16,16 +16,27 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test forecasting operations."""
+"""ML input output operations."""
+
+import pickle
+
+from pmdarima.pipeline import Pipeline
 
 
-class TestForecasting:
-    @staticmethod
-    def test_init_forecaster():
-        # TODO
-        assert False
+def save_forecaster(path: str, forecaster: Pipeline):
+    """Save a `pmdarima` forecaster.
 
-    @staticmethod
-    def test_train_forecaster():
-        # TODO
-        assert False
+    :param path: path to store the forecaster.
+    :param forecaster: the `pmdarima` forecasting model.
+    """
+    with open(path, 'wb') as pkl:
+        pickle.dump(forecaster, pkl)
+
+
+def load_forecaster(path) -> Pipeline:
+    """Load a `pmdarima` forecaster.
+
+    :param path: path to store the forecaster.
+    """
+    with open(path, 'rb') as pkl:
+        return pickle.load(pkl)

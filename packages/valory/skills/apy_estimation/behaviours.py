@@ -26,23 +26,25 @@ import numpy as np
 import pandas as pd
 from aea.helpers.ipfs.base import IPFSHashOnly
 from optuna import Study
+from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.apy_estimation.ml.io import save_forecaster
 from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload, \
-    OptimizationPayload
+    OptimizationPayload, TrainingPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
-    TransformRound, ResetRound, PreprocessRound, OptimizeRound,
+    TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound,
 )
-from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask
+from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask
 from packages.valory.skills.apy_estimation.tools.etl import load_hist
 from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file, \
     read_json_list_file
@@ -282,8 +284,8 @@ class TransformBehaviour(APYEstimationBaseState):
         # Load historical data from a json file.
         pairs_hist = read_json_list_file(self._history_save_path)
 
-        my_task = TransformTask()
-        task_id = self.context.task_manager.enqueue_task(my_task, args=(pairs_hist,))
+        transform_task = TransformTask()
+        task_id = self.context.task_manager.enqueue_task(transform_task, args=(pairs_hist,))
         self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
@@ -412,8 +414,67 @@ class OptimizeBehaviour(APYEstimationBaseState):
             payload = OptimizationPayload(
                 self.context.agent_address,
                 study_hash,
-                study.best_trial
+                study.best_params
             )
+
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
+
+
+class TrainBehaviour(APYEstimationBaseState):
+    """Train an estimator."""
+
+    state_id = "train"
+    matching_round = TrainRound
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        self._async_result = None
+
+    def setup(self):
+        """Setup behaviour."""
+        # Load training data.
+        if self.period_state.full_training:
+            y = []
+            for split in ('train', 'test'):
+                path = os.path.join(self.params.data_folder, PAIR_ID, f'{split}.csv')
+                y.append(np.loadtxt(path, delimiter=','))
+            y = np.concatenate(y)
+        else:
+            path = os.path.join(self.params.data_folder, PAIR_ID, 'train.csv')
+            y = np.loadtxt(path, delimiter=',')
+
+        train_task = TrainTask()
+        task_id = self.context.task_manager.enqueue_task(train_task, args=(y,), kwargs=self.period_state.best_params)
+        self._async_result = self.context.task_manager.get_task_result(task_id)
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        if self._async_result.ready() is False:
+            self.context.logger.debug("The training task is not finished yet.")
+            yield from self.sleep(self.params.sleep_time)
+
+        else:
+            # Train the estimator.
+            completed_task = self._async_result.get()
+            forecaster = cast(Pipeline, completed_task.result)
+            self.context.logger.info("Training has finished.")
+
+            # Store the results.
+            prefix = "fully_trained" if self.period_state.full_training else ""
+            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'{prefix}_forecaster.pkl')
+            save_forecaster(save_path, forecaster)
+
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            model_hash = hasher.get(save_path)
+
+            # Pass the hash and the best trial as a Payload.
+            payload = TrainingPayload(self.context.agent_address, model_hash)
 
             # Finish behaviour.
             with benchmark_tool.measure(self).consensus():

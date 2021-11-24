@@ -20,16 +20,16 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from types import MappingProxyType
-from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast
+from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast, Any
 
 import pandas as pd
+from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    CollectDifferentUntilThresholdRound,
     EventType,
     TransactionType, CollectSameUntilThresholdRound,
 )
@@ -81,6 +81,8 @@ class PeriodState(PriceEstimationPeriodState):
         most_voted_tx_hash: Optional[str] = None,
         participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
         final_tx_hash: Optional[str] = None,
+        best_params: Optional[Dict[str, Any]] = None,
+        full_training: Optional[bool] = False
     ) -> None:
         """Initialize the state."""
         super().__init__(
@@ -106,6 +108,22 @@ class PeriodState(PriceEstimationPeriodState):
         self._transformation = transformation
         self._participant_to_transformation = participant_to_transformation
         self._most_voted_observation = most_voted_observation
+        self._best_params = best_params
+        self._full_training = full_training
+
+    @property
+    def best_params(self) -> Dict[str, Any]:
+        """Get the best_params."""
+        enforce(
+            self._best_params is not None,
+            "'best_params' field is None",
+        )
+        return self._best_params
+
+    @property
+    def full_training(self) -> bool:
+        """Get the full_training flag."""
+        return self._full_training
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -272,18 +290,22 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
         },
         TransformRound: {
             Event.DONE: PreprocessRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         PreprocessRound: {
             Event.DONE: OptimizeRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         OptimizeRound: {
             Event.DONE: TrainRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         TrainRound: {
             Event.DONE: EstimateConsensusRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateConsensusRound: {

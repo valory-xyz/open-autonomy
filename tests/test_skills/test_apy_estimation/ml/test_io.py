@@ -16,16 +16,14 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test forecasting operations."""
+"""Test IO operations."""
 
 
-class TestForecasting:
+class TestIO:
     @staticmethod
-    def test_init_forecaster():
-        # TODO
+    def test_save_forecaster():
         assert False
 
     @staticmethod
-    def test_train_forecaster():
-        # TODO
+    def test_load_forecaster():
         assert False

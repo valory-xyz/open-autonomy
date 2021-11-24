@@ -29,7 +29,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     TransformationPayload,
     ResetPayload,
     PreprocessPayload,
-    OptimizationPayload,
+    OptimizationPayload, TrainingPayload,
 )
 
 
@@ -75,21 +75,23 @@ class TestPayloads:
     @staticmethod
     def test_optimization_payload() -> None:
         """Test `OptimizationPayload`"""
-        expected_trial = FrozenTrial(number=0, values=[1.9552610244116478e-05],
-                                     datetime_start=datetime(2021, 10, 4, 6, 39, 11, 4182),
-                                     datetime_complete=datetime(2021, 10, 4, 6, 39, 11, 7168),
-                                     params={'test': 2.004421833357796},
-                                     distributions={'test': UniformDistribution(high=10.0, low=-10.0)}, user_attrs={},
-                                     system_attrs={}, intermediate_values={}, trial_id=0,
-                                     state=TrialState.COMPLETE, value=None)
-
-        payload = OptimizationPayload(sender="sender", study_hash='x0', best_trial=expected_trial, id_="id")
+        payload = OptimizationPayload(sender="sender", study_hash='x0', best_params={'test': 2.0421833357796}, id_="id")
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
         assert payload.study == "x0"
-        assert payload.best_trial == expected_trial
+        assert payload.best_params == {'test': 2.004421833357796}
         assert payload.id_ == "id"
-        assert payload.data == {"study": "x0", "best_trial": expected_trial}
+        assert payload.data == {"study": "x0", "best_trial": {'test': 2.004421833357796}}
+
+    @staticmethod
+    def test_training_payload() -> None:
+        """Test `TrainingPayload`"""
+        payload = TrainingPayload(sender="sender", model_hash='x0', id_="id")
+
+        assert payload.transaction_type == TransactionType.TRANSFORMATION
+        assert payload._model_hash == "x0"
+        assert payload.id_ == "id"
+        assert payload.data == {"model_hash": "x0"}
 
     @staticmethod
     def test_reset_payload() -> None:

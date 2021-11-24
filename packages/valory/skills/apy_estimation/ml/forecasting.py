@@ -20,6 +20,7 @@
 
 from typing import Optional
 
+import numpy as np
 import pmdarima as pm
 from pmdarima.pipeline import Pipeline
 
@@ -49,5 +50,31 @@ def init_forecaster(p: int, q: int, d: int, m: int, k: Optional[int] = None,
         ('fourier', pm.preprocessing.FourierFeaturizer(m, k)),
         ('arima', pm.arima.ARIMA(order, maxiter=maxiter, suppress_warnings=suppress_warnings))
     ])
+
+    return forecaster
+
+
+def train_forecaster(y_train: np.ndarray, p: int, q: int, d: int, m: int, k: Optional[int] = None,
+                     maxiter: int = 150, suppress_warnings: bool = True) -> pm.pipeline.Pipeline:
+    """Train a forecasting model.
+
+    Args:
+        y_train: the training timeseries.
+        m : the seasonal periodicity of the endogenous vector, y.
+        k : the number of sine and cosine terms (each) to include.
+         I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
+         which is the default value if not set. The value of k can be selected by minimizing the AIC.
+        p: the order (number of time lags) of the autoregressive model (AR).
+        q: the order of the moving-average model (MA).
+        d: the degree of differencing (the number of times the data have had past values subtracted) (I).
+        maxiter: the maximum number of function evaluations. Default is 150.
+        suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
+         If suppress_warnings is True, all of these warnings will be squelched. Default is True.
+
+    Returns:
+        a trained `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
+    """
+    forecaster = init_forecaster(p, q, d, m, k, maxiter, suppress_warnings)
+    forecaster.fit(y_train)
 
     return forecaster
