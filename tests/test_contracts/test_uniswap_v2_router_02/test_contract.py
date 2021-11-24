@@ -19,20 +19,17 @@
 
 """Tests for valory/uniswap_v2_router02 contract."""
 
-import secrets
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, cast
 from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
-from web3 import Web3
 
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.contracts import get_register_contract
 from tests.test_contracts.base import BaseHardhatAMMContractTest
 
 
@@ -43,7 +40,7 @@ ADDRESS_THREE = "0x7A1236d5195e31f1F573AD618b2b6FEFC85C5Ce6"
 ADDRESS_FTM = "0x4E15361FD6b4BB609Fa63C81A2be19d873717870"
 ADDRESS_BOO = "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE"
 NONCE = 0
-CHAIN_ID = 1
+CHAIN_ID = 31337
 DEFAULT_GAS = 1000000
 DEFAULT_GAS_PRICE = 1000000
 
@@ -1014,52 +1011,19 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     )
     sanitize_from_deploy_tx = ["contract_address"]
     contract: UniswapV2Router02Contract
-
-    @classmethod
-    def setup_class(
-        cls,
-    ) -> None:
-        """Setup test."""
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
-        )
-        _ = get_register_contract(directory)
-        super().setup_class()
+    weth_address: str
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(
-            owners=cls.owners(),
-            threshold=int(cls.threshold()),
-            gas=DEFAULT_GAS,
-            gas_price=DEFAULT_GAS_PRICE,
-        )
+        return {}
 
     @classmethod
-    def owners(cls) -> List[str]:
-        """Get the owners."""
-        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
-
-    @classmethod
-    def deployer(cls) -> Tuple[str, str]:
-        """Get the key pair of the deployer."""
-        # for simplicity, get the first owner
-        return cls.key_pairs()[0]
-
-    @classmethod
-    def threshold(
-        cls,
-    ) -> int:
-        """Returns the amount of threshold."""
-        return cls.THRESHOLD
-
-    @classmethod
-    def get_nonce(cls) -> int:
-        """Get the nonce."""
-        if cls.SALT_NONCE is not None:
-            return cls.SALT_NONCE
-        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+    def deploy(cls, **kwargs: Any) -> None:
+        """Deploy the contract."""
+        # addresses taken from
+        cls.contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+        cls.weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 
 
 class TestSwapHardhat(BaseContractTestHardHatAMMNet):
@@ -1072,18 +1036,25 @@ class TestSwapHardhat(BaseContractTestHardHatAMMNet):
 
     def test_swap_exact_ETH_for_tokens(self) -> None:
         """Test swap_exact_ETH_for_tokens."""
+        assert self.contract_address is not None
         eth_value = 0
         gas = 100
-        data = self.contract.get_instance(
-            self.ledger_api, self.contract_address
-        ).encodeABI(
-            fn_name="swapExactETHForTokens",
-            args=[self.amount_out_min, self.path, self.to_address, self.deadline],
+
+        data = self.contract.get_method_data(
+            self.ledger_api,
+            self.contract_address,
+            "swapExactETHForTokens",
+            amount_out_min=self.amount_out_min,
+            path=self.path,
+            to=self.to_address,
+            deadline=self.deadline,
         )
+        assert data is not None
+        data_ = "0x" + cast(bytes, data["data"]).hex()
 
         result = self.contract.swap_exact_ETH_for_tokens(
             self.ledger_api,
-            CONTRACT_ADDRESS,
+            self.contract_address,
             ADDRESS_ONE,
             gas,
             DEFAULT_GAS_PRICE,
@@ -1094,10 +1065,25 @@ class TestSwapHardhat(BaseContractTestHardHatAMMNet):
         )
         assert result == {
             "chainId": CHAIN_ID,
-            "data": data,
+            "data": data_,
             "gas": gas,
             "gasPrice": DEFAULT_GAS_PRICE,
             "nonce": NONCE,
-            "to": CONTRACT_ADDRESS,
+            "to": self.contract_address,
             "value": eth_value,
         }
+
+    def test_quote(self) -> None:
+        """Test quote."""
+        assert self.contract_address is not None
+        amount_a = 10 * 10
+        reserve_a = 10 * 10
+        reserve_b = 10 * 10
+        quote = self.contract.quote(
+            self.ledger_api,
+            self.contract_address,
+            amount_a,
+            reserve_a,
+            reserve_b,
+        )
+        assert quote is not None
