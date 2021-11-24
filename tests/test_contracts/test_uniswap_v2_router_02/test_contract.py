@@ -33,7 +33,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 
 from tests.conftest import ROOT_DIR
 from tests.helpers.contracts import get_register_contract
-from tests.test_contracts.base import BaseHardhatGnosisAndUniswapContractTest
+from tests.test_contracts.base import BaseHardhatAMMContractTest
 
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
@@ -963,8 +963,8 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
         assert result == []
 
 
-class BaseContractTestHardHatUniswapNet(BaseHardhatGnosisAndUniswapContractTest):
-    """Base test case for Uniswap v2 Router02 contract"""
+class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
+    """Base test case for AMM contracts"""
 
     NB_OWNERS: int = 4
     THRESHOLD: int = 1
@@ -1022,7 +1022,7 @@ class BaseContractTestHardHatUniswapNet(BaseHardhatGnosisAndUniswapContractTest)
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-class TestDeployTransactionHardhat(BaseContractTestHardHatUniswapNet):
+class TestDeployTransactionHardhat(BaseContractTestHardHatAMMNet):
     """Test."""
 
     def test_deployed(self) -> None:

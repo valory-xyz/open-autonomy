@@ -27,6 +27,7 @@ from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -38,7 +39,6 @@ from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from tests.helpers.docker.uniswap_gnosis_net import GnosisSafeAndUniswapNetDockerImage
 
 
 logger = logging.getLogger(__name__)
@@ -169,11 +169,11 @@ class HardHatGnosisBaseTest(HardHatBaseTest):
         return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
 
 
-class HardHatGnosisAndUniswapBaseTest(HardHatBaseTest):
+class HardHatAMMBaseTest(HardHatBaseTest):
     """Base pytest class for HardHat with Gnosis and Uniswap deployed."""
 
     @classmethod
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return GnosisSafeAndUniswapNetDockerImage(client, cls.addr, cls.port)
+        return AMMNetDockerImage(client, cls.addr, cls.port)

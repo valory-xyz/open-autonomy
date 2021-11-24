@@ -33,7 +33,7 @@ from aea_ledger_ethereum import EthereumCrypto
 
 from tests.fixture_helpers import (
     GanacheBaseTest,
-    HardHatGnosisAndUniswapBaseTest,
+    HardHatAMMBaseTest,
     HardHatGnosisBaseTest,
 )
 from tests.helpers.contracts import get_register_contract
@@ -109,7 +109,5 @@ class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest):
     """Base test case for testing contracts on Hardhat with Gnosis."""
 
 
-class BaseHardhatGnosisAndUniswapContractTest(
-    BaseContractTest, HardHatGnosisAndUniswapBaseTest
-):
-    """Base test case for testing contracts on Hardhat with Gnosis and Uniswap."""
+class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest):
+    """Base test case for testing AMM contracts on Hardhat."""

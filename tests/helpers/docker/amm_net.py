@@ -33,7 +33,7 @@ from tests.helpers.docker.base import DockerImage
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
-GNOSIS_SAFE_CONTRACTS_ROOT_DIR = THIRD_PARTY / "safe-contracts"
+AMM_CONTRACTS_ROOT_DIR = THIRD_PARTY / "contracts-amm"
 
 _SLEEP_TIME = 1
 
@@ -46,7 +46,7 @@ MULTISEND_CONTRACT = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 
 
-class GnosisSafeAndUniswapNetDockerImage(DockerImage):
+class AMMNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, using HardHat."""
 
     def __init__(
@@ -75,7 +75,7 @@ class GnosisSafeAndUniswapNetDockerImage(DockerImage):
         cmd = self._build_command()
         working_dir = "/build"
         volumes = {
-            str(GNOSIS_SAFE_CONTRACTS_ROOT_DIR): {
+            str(AMM_CONTRACTS_ROOT_DIR): {
                 "bind": working_dir,
                 "mode": "rw",
             },
