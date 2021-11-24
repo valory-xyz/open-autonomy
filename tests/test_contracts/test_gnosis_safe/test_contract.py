@@ -41,7 +41,10 @@ from tests.conftest import (
     ROOT_DIR,
 )
 from tests.helpers.contracts import get_register_contract
-from tests.test_contracts.base import BaseGanacheContractTest, BaseHardhatContractTest
+from tests.test_contracts.base import (
+    BaseGanacheContractTest,
+    BaseHardhatGnosisContractTest,
+)
 
 
 DEFAULT_GAS = 1000000
@@ -107,7 +110,7 @@ class BaseContractTest(BaseGanacheContractTest):
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
+class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
     """Base test case for GnosisSafeContract"""
 
     NB_OWNERS: int = 4

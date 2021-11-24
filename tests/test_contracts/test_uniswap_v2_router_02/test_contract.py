@@ -19,17 +19,21 @@
 
 """Tests for valory/uniswap_v2_router02 contract."""
 
+import secrets
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict, List, Optional, Tuple
 from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
+from web3 import Web3
 
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.contracts import get_register_contract
+from tests.test_contracts.base import BaseHardhatAMMContractTest
 
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
@@ -40,6 +44,8 @@ ADDRESS_FTM = "0x4E15361FD6b4BB609Fa63C81A2be19d873717870"
 ADDRESS_BOO = "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE"
 NONCE = 0
 CHAIN_ID = 1
+DEFAULT_GAS = 1000000
+DEFAULT_GAS_PRICE = 1000000
 
 
 class TestUniswapV2Router02Contract(BaseContractTestCase):
@@ -995,3 +1001,103 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.ledger_api, self.contract_address, self.amount_out, self.path
             )
         assert result == []
+
+
+class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
+    """Base test case for AMM contracts"""
+
+    NB_OWNERS: int = 4
+    THRESHOLD: int = 1
+    SALT_NONCE: Optional[int] = None
+    contract_directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+    )
+    sanitize_from_deploy_tx = ["contract_address"]
+    contract: UniswapV2Router02Contract
+
+    @classmethod
+    def setup_class(
+        cls,
+    ) -> None:
+        """Setup test."""
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+        )
+        _ = get_register_contract(directory)
+        super().setup_class()
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        return dict(
+            owners=cls.owners(),
+            threshold=int(cls.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
+
+    @classmethod
+    def owners(cls) -> List[str]:
+        """Get the owners."""
+        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
+
+    @classmethod
+    def deployer(cls) -> Tuple[str, str]:
+        """Get the key pair of the deployer."""
+        # for simplicity, get the first owner
+        return cls.key_pairs()[0]
+
+    @classmethod
+    def threshold(
+        cls,
+    ) -> int:
+        """Returns the amount of threshold."""
+        return cls.THRESHOLD
+
+    @classmethod
+    def get_nonce(cls) -> int:
+        """Get the nonce."""
+        if cls.SALT_NONCE is not None:
+            return cls.SALT_NONCE
+        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+
+
+class TestSwapHardhat(BaseContractTestHardHatAMMNet):
+    """Test."""
+
+    amount_out_min = 10
+    path = [ADDRESS_FTM, ADDRESS_BOO]
+    to_address = ADDRESS_ONE
+    deadline = 300
+
+    def test_swap_exact_ETH_for_tokens(self) -> None:
+        """Test swap_exact_ETH_for_tokens."""
+        eth_value = 0
+        gas = 100
+        data = self.contract.get_instance(
+            self.ledger_api, self.contract_address
+        ).encodeABI(
+            fn_name="swapExactETHForTokens",
+            args=[self.amount_out_min, self.path, self.to_address, self.deadline],
+        )
+
+        result = self.contract.swap_exact_ETH_for_tokens(
+            self.ledger_api,
+            CONTRACT_ADDRESS,
+            ADDRESS_ONE,
+            gas,
+            DEFAULT_GAS_PRICE,
+            self.amount_out_min,
+            self.path,
+            self.to_address,
+            self.deadline,
+        )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": data,
+            "gas": gas,
+            "gasPrice": DEFAULT_GAS_PRICE,
+            "nonce": NONCE,
+            "to": CONTRACT_ADDRESS,
+            "value": eth_value,
+        }

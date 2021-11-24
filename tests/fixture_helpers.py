@@ -27,6 +27,7 @@ from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -148,12 +149,6 @@ class HardHatBaseTest(DockerBaseTest):
         return setup_class_kwargs
 
     @classmethod
-    def _build_image(cls) -> DockerImage:
-        """Build the image."""
-        client = docker.from_env()
-        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
-
-    @classmethod
     def key_pairs(cls) -> List[Tuple[str, str]]:
         """Get the key pairs which are funded."""
         return KEY_PAIRS
@@ -162,3 +157,23 @@ class HardHatBaseTest(DockerBaseTest):
     def url(cls) -> str:
         """Get the url under which the image is reachable."""
         return f"{cls.addr}:{cls.port}"
+
+
+class HardHatGnosisBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
+
+
+class HardHatAMMBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis and Uniswap deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return AMMNetDockerImage(client, cls.addr, cls.port)
