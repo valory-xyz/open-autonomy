@@ -115,9 +115,8 @@ def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
         """
     {
         pairs(
-            where: {id_in: [" """
-        + '","'.join(top_n_ids)
-        + """"]},
+            where: {id_in: 
+            [\"""" + '","'.join(top_n_ids) + """"]},
             block: {number: """
         + str(block)
         + """}
