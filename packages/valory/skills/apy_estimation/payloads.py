@@ -36,6 +36,7 @@ class TransactionType(Enum):
     PREPROCESS = "preprocess"
     OPTIMIZATION = "optimization"
     TRAINING = "training"
+    TESTING = "testing"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -195,6 +196,32 @@ class TrainingPayload(BaseSimpleAbciPayload):
     def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
         """Get the data."""
         return {"model": self._model_hash}
+
+
+class TestingPayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'testing'."""
+
+    transaction_type = TransactionType.TESTING
+
+    def __init__(self, sender: str, report_hash: str, id_: Optional[str] = None) -> None:
+        """Initialize a 'testing' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param report_hash: the test's report hash.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._report_hash = report_hash
+
+    @property
+    def report_hash(self) -> str:
+        """Get the test's report hash."""
+        return self._report_hash
+
+    @property
+    def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
+        """Get the data."""
+        return {"report_hash": self._report_hash}
 
 
 class ResetPayload(BaseSimpleAbciPayload):

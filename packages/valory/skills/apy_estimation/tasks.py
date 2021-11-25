@@ -26,7 +26,7 @@ from aea.skills.tasks import Task
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.apy_estimation.ml.forecasting import train_forecaster
+from packages.valory.skills.apy_estimation.ml.forecasting import train_forecaster, test_forecaster, TestReportType
 from packages.valory.skills.apy_estimation.ml.optimization import optimize, ScoringType
 from packages.valory.skills.apy_estimation.tools.etl import transform_hist_data, ResponseItemType
 
@@ -56,3 +56,12 @@ class TrainTask(Task):
                 suppress_warnings: bool = True) -> Pipeline:
         """Execute the task."""
         return train_forecaster(y_train, p, q, d, m, k, maxiter, suppress_warnings)
+
+
+class TestTask(Task):
+    """Test a forecaster."""
+
+    def execute(self, forecaster, y_train: np.ndarray, y_test: np.ndarray, pair_name: str,
+                steps_forward: int = 1) -> TestReportType:
+        """Execute the task."""
+        return test_forecaster(forecaster, y_train, y_test, pair_name, steps_forward)

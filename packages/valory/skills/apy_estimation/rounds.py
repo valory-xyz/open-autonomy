@@ -19,6 +19,7 @@
 
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
+from enum import Enum
 from types import MappingProxyType
 from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast, Any
 
@@ -45,12 +46,20 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     EstimateConsensusRound,
-    Event,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
 from packages.valory.skills.simple_abci.rounds import RegistrationRound
+
+
+class Event(Enum):
+    """Event enumeration for the price estimation demo."""
+    DONE = "done"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
+    RESET_TIMEOUT = "reset_timeout"
+    FULLY_TRAINED = "fully_trained"
 
 
 class PeriodState(PriceEstimationPeriodState):
@@ -82,7 +91,8 @@ class PeriodState(PriceEstimationPeriodState):
         participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
         final_tx_hash: Optional[str] = None,
         best_params: Optional[Dict[str, Any]] = None,
-        full_training: Optional[bool] = False
+        full_training: Optional[bool] = False,
+        pair_name: Optional[str] = None
     ) -> None:
         """Initialize the state."""
         super().__init__(
@@ -110,6 +120,7 @@ class PeriodState(PriceEstimationPeriodState):
         self._most_voted_observation = most_voted_observation
         self._best_params = best_params
         self._full_training = full_training
+        self._pair_name = pair_name
 
     @property
     def best_params(self) -> Dict[str, Any]:
@@ -124,6 +135,15 @@ class PeriodState(PriceEstimationPeriodState):
     def full_training(self) -> bool:
         """Get the full_training flag."""
         return self._full_training
+
+    @property
+    def pair_name(self) -> str:
+        """Get the pair_name."""
+        enforce(
+            self._pair_name is not None,
+            "'pair_name' field is None",
+        )
+        return self._pair_name
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -230,11 +250,27 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     Input: a period state with the prior round data.
     Output: a new period state with the prior round data and the votes for the model.
 
+    It schedules the TestRound.
+    """
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        raise NotImplementedError()
+
+
+class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """
+    This class represents the 'Test' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the results.
+
     It schedules the EstimateConsensusRound.
     """
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """Process the end of the block."""
+        # TODO full_training -> True
         raise NotImplementedError()
 
 
@@ -304,7 +340,13 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         TrainRound: {
-            Event.DONE: EstimateConsensusRound,
+            Event.FULLY_TRAINED: EstimateConsensusRound,
+            Event.DONE: TestRound,
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+        },
+        TestRound: {
+            Event.DONE: TrainRound,
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
@@ -321,7 +363,5 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
-        Event.VALIDATE_TIMEOUT: 30.0,
-        Event.DEPLOY_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }

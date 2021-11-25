@@ -29,7 +29,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     TransformationPayload,
     ResetPayload,
     PreprocessPayload,
-    OptimizationPayload, TrainingPayload,
+    OptimizationPayload, TrainingPayload, TestingPayload,
 )
 
 
@@ -89,9 +89,19 @@ class TestPayloads:
         payload = TrainingPayload(sender="sender", model_hash='x0', id_="id")
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
-        assert payload._model_hash == "x0"
+        assert payload.model == "x0"
         assert payload.id_ == "id"
         assert payload.data == {"model_hash": "x0"}
+
+    @staticmethod
+    def test_testing_payload() -> None:
+        """Test `TestingPayload`"""
+        payload = TestingPayload(sender="sender", report_hash='x0', id_="id")
+
+        assert payload.transaction_type == TransactionType.TRANSFORMATION
+        assert payload.report_hash == "x0"
+        assert payload.id_ == "id"
+        assert payload.data == {"report_hash": "x0"}
 
     @staticmethod
     def test_reset_payload() -> None:

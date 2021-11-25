@@ -29,3 +29,28 @@ class TestForecasting:
     def test_train_forecaster():
         # TODO
         assert False
+
+    @staticmethod
+    def test_baseline():
+        # TODO
+        assert False
+
+    @staticmethod
+    def test_calc_metrics():
+        # TODO
+        assert False
+
+    @staticmethod
+    def test_report_metrics():
+        # TODO
+        assert False
+
+    @staticmethod
+    def test_walk_forward_test():
+        # TODO
+        assert False
+
+    @staticmethod
+    def test_test_forecaster():
+        # TODO
+        assert False

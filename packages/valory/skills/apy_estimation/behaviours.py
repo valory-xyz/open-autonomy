@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the APY estimation skill."""
+import json
 import os
 from abc import ABC
 from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any
@@ -33,21 +34,22 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.apy_estimation.ml.io import save_forecaster
+from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation.ml.io import save_forecaster, load_forecaster
 from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload, \
-    OptimizationPayload, TrainingPayload
+    OptimizationPayload, TrainingPayload, TestingPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
-    TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound,
+    TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound, TestRound,
 )
-from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask
+from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask, TestTask
 from packages.valory.skills.apy_estimation.tools.etl import load_hist
-from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file, \
-    read_json_list_file
+from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, to_json_file, \
+    read_json_file
 from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
@@ -242,7 +244,7 @@ class FetchBehaviour(APYEstimationBaseState):
 
             if len(pairs_hist) > 0:
                 # Store historical data to a json file.
-                list_to_json_file(self._save_path, pairs_hist)
+                to_json_file(self._save_path, pairs_hist)
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
@@ -282,7 +284,7 @@ class TransformBehaviour(APYEstimationBaseState):
         create_pathdirs(self._transformed_history_save_path)
 
         # Load historical data from a json file.
-        pairs_hist = read_json_list_file(self._history_save_path)
+        pairs_hist = read_json_file(self._history_save_path)
 
         transform_task = TransformTask()
         task_id = self.context.task_manager.enqueue_task(transform_task, args=(pairs_hist,))
@@ -465,8 +467,8 @@ class TrainBehaviour(APYEstimationBaseState):
             self.context.logger.info("Training has finished.")
 
             # Store the results.
-            prefix = "fully_trained" if self.period_state.full_training else ""
-            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'{prefix}_forecaster.pkl')
+            prefix = "fully_trained_" if self.period_state.full_training else ""
+            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'{prefix}forecaster.pkl')
             save_forecaster(save_path, forecaster)
 
             # Hash the file.
@@ -475,6 +477,64 @@ class TrainBehaviour(APYEstimationBaseState):
 
             # Pass the hash and the best trial as a Payload.
             payload = TrainingPayload(self.context.agent_address, model_hash)
+
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
+
+
+class TestBehaviour(APYEstimationBaseState):
+    """Test an estimator."""
+
+    state_id = "test"
+    matching_round = TestRound
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        self._async_result = None
+
+    def setup(self):
+        """Setup behaviour."""
+        # Load test data.
+        y = {'train': None, 'y_test': None}
+        for split in ('train', 'test'):
+            path = os.path.join(self.params.data_folder, PAIR_ID, f'{split}.csv')
+            y[split] = np.loadtxt(path, delimiter=',')
+
+        model_path = os.path.join(self.params.data_folder, PAIR_ID, f'forecaster.pkl')
+        forecaster = load_forecaster(model_path)
+
+        test_task = TestTask()
+        task_args = (forecaster, y['train'], y['test'], self.period_state.pair_name,
+                     self.params.testing['steps_forward'])
+        task_id = self.context.task_manager.enqueue_task(test_task, task_args)
+        self._async_result = self.context.task_manager.get_task_result(task_id)
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        if self._async_result.ready() is False:
+            self.context.logger.debug("The training task is not finished yet.")
+            yield from self.sleep(self.params.sleep_time)
+
+        else:
+            # Train the estimator.
+            completed_task = self._async_result.get()
+            report = cast(TestReportType, completed_task.result)
+            self.context.logger.info(f"Testing has finished. Report follows:\n{json.dumps(report)}")
+
+            # Store the results.
+            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'test_report.json')
+            to_json_file(save_path, report)
+
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            report_hash = hasher.get(save_path)
+
+            # Pass the hash and the best trial as a Payload.
+            payload = TestingPayload(self.context.agent_address, report_hash)
 
             # Finish behaviour.
             with benchmark_tool.measure(self).consensus():

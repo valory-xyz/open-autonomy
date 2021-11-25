@@ -24,7 +24,7 @@ import time
 
 import pytest
 
-from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, list_to_json_file
+from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, to_json_file
 
 
 class TestGeneral:
@@ -71,18 +71,18 @@ class TestGeneral:
         assert os.path.isdir(path_to_folder)
 
     @staticmethod
-    def test_list_to_json_file(tmp_path):
+    def test_to_json_file(tmp_path):
         """Test list to json file."""
         test_list = [{'key0': 1, 'key1': 'test'}, 2, 'test']
 
         # test non existing path.
         path = os.path.join('non_existing_path', 'file.json')
         with pytest.raises(FileNotFoundError):
-            list_to_json_file(path, test_list)
+            to_json_file(path, test_list)
 
         # test existing path with serializable list.
         path = os.path.join(tmp_path, 'file.json')
-        list_to_json_file(path, test_list)
+        to_json_file(path, test_list)
         with open(path, 'r', encoding='utf-8') as f:
             li = json.load(f)
             assert li == test_list
@@ -90,9 +90,9 @@ class TestGeneral:
         # test existing path with non-serializable list.
         test_list.append(b'non-serializable')
         with pytest.raises(TypeError):
-            list_to_json_file(path, test_list)
+            to_json_file(path, test_list)
 
     @staticmethod
-    def test_read_json_list_file():
+    def test_read_json_file():
         # TODO
         assert False

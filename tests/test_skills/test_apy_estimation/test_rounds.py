@@ -203,3 +203,12 @@ class TestTrainRound(BaseRoundTestClass):
         """Runs test."""
         # TODO
         assert False
+
+
+class TestTestRound(BaseRoundTestClass):
+    """Test `TestRound`."""
+
+    def test_run(self) -> None:
+        """Runs test."""
+        # TODO
+        assert False

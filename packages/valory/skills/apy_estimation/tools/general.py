@@ -2,9 +2,13 @@
 import json
 import os
 import time
-from typing import Generator
+from typing import Generator, Union
 
+from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
+
+
+StoredJSONType = Union[ResponseItemType, TestReportType]
 
 
 def gen_unix_timestamps(duration: int) -> Generator:
@@ -36,20 +40,20 @@ def create_pathdirs(path: str) -> None:
         os.makedirs(dirname, exist_ok=True)
 
 
-def list_to_json_file(path: str, li: ResponseItemType) -> None:
+def to_json_file(path: str, obj: StoredJSONType) -> None:
     """Dump a list to a json file.
 
     :param path: the path to store the json file.
-    :param li: the list to convert and store.
+    :param obj: the object to convert and store.
     """
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(li, f, ensure_ascii=False, indent=4)
+        json.dump(obj, f, ensure_ascii=False, indent=4)
 
 
-def read_json_list_file(path: str) -> ResponseItemType:
-    """Dump a list to a json file.
+def read_json_file(path: str) -> ResponseItemType:
+    """Read a json `ResponseItemType` file.
 
-    :param path: the path to store the json file.
+    :param path: the path to retrieve the json file from.
     """
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)

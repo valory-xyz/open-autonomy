@@ -399,3 +399,11 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_train_behaviour(self):
         # TODO
         assert False
+
+
+class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test TestBehaviour."""
+
+    def test_test_behaviour(self):
+        # TODO
+        assert False
