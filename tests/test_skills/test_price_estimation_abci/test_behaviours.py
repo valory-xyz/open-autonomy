@@ -75,7 +75,9 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationConsensusBehaviour,
     RandomnessAtStartupBehaviour,
     RandomnessInOperationBehaviour,
+    RegistrationBaseBehaviour,
     RegistrationBehaviour,
+    RegistrationStartupBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperAAtStartupBehaviour,
@@ -579,7 +581,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             )
         mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RegistrationBehaviour.state_id
+        assert state.state_id == RegistrationStartupBehaviour.state_id
 
     def test_tendermint_healthcheck_height_differs(self) -> None:
         """Test the tendermint health check does finish if local-height != remote-height."""
@@ -637,14 +639,17 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
 
 
-class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test case to test RegistrationBehaviour."""
+class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Base test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBaseBehaviour
+    next_behaviour_class = BaseState
 
     def test_registration(self) -> None:
         """Test registration."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            RegistrationBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(),
         )
         assert (
@@ -652,30 +657,29 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == RegistrationBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-
-        # for sender in ["sender_a", "sender_b", "sender_c", "sender_d"]:  # noqa: E800
-        #     incoming_message = self.build_incoming_message(  # noqa: E800
-        #         message_type=AbciMessage,  # noqa: E800
-        #         dialogue_reference=("stub", ""),  # noqa: E800
-        #         performative=AbciMessage.Performative.REQUEST_DELIVER_TX,  # noqa: E800
-        #         target=0,  # noqa: E800
-        #         message_id=1,  # noqa: E800
-        #         to=str(self.skill.skill_context.skill_id),  # noqa: E800
-        #         sender=str(ABCI_SERVER_PUBLIC_ID),  # noqa: E800
-        #         tx=,  # noqa: E800
-        #     )  # noqa: E800
-        #     self.http_handler.handle(incoming_message)  # noqa: E800
-        # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
-
         self._test_done_flag_set()
 
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessAtStartupBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationStartupBehaviour."""
+
+    behaviour_class = RegistrationStartupBehaviour
+    next_behaviour_class = RandomnessAtStartupBehaviour
+
+
+class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
 
 
 class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
