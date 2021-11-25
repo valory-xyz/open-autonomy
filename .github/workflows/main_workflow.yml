@@ -101,9 +101,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Checkout submodules
-        uses: srt32/git-actions@v0.0.3
         with:
-          args: git submodule update --init --recursive
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
       - uses: actions/setup-python@master
         with:
           submodules: recursive
