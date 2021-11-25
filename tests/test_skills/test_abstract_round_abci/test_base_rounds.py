@@ -224,8 +224,8 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         yield test_round
 
         actual_next_state = cast(
-            self._period_state_class,
-            state_update_fn(self.period_state, test_round),  # type: ignore
+            self._period_state_class,  # type: ignore
+            state_update_fn(self.period_state, test_round),
         )
 
         res = test_round.end_block()
