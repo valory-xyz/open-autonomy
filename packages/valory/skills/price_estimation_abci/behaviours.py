@@ -64,6 +64,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RandomnessRound,
     RandomnessStartupRound,
     RegistrationRound,
+    RegistrationStartupRound,
     ResetAndPauseRound,
     ResetRound,
     SelectKeeperARound,
@@ -165,11 +166,8 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
-class RegistrationBehaviour(PriceEstimationBaseState):
-    """Register to the next round."""
-
-    state_id = "register"
-    matching_round = RegistrationRound
+class RegistrationBaseBehaviour(PriceEstimationBaseState):
+    """Register to the next periods."""
 
     def async_act(self) -> Generator:
         """
@@ -194,6 +192,20 @@ class RegistrationBehaviour(PriceEstimationBaseState):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+
+class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
+    """Register to the next periods."""
+
+    state_id = "register_startup"
+    matching_round = RegistrationStartupRound
+
+
+class RegistrationBehaviour(RegistrationBaseBehaviour):
+    """Register to the next periods."""
+
+    state_id = "register"
+    matching_round = RegistrationRound
 
 
 class RandomnessBehaviour(PriceEstimationBaseState):
@@ -1144,6 +1156,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
+        RegistrationStartupBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
         SelectKeeperAAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore

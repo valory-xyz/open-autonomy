@@ -33,6 +33,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 
 
 MARGIN = 5
+MULTIPLIER = 2
 
 
 Requests = BaseRequests
@@ -51,6 +52,9 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+            self.context.params.round_timeout_seconds * MULTIPLIER
+        )
         PriceEstimationAbciApp.event_to_timeout[Event.VALIDATE_TIMEOUT] = (
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
@@ -59,7 +63,7 @@ class SharedState(BaseSharedState):
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
-        PriceEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+        PriceEstimationAbciApp.event_to_timeout[Event.RESET_AND_PAUSE_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN
         )
 

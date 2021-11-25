@@ -278,15 +278,15 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         sender = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
         )
-        # note: sender.address == self.owners()[1]  # noqa:  E800
+        assert sender.address == self.owners()[1]
         receiver = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
         )
-        # note: receiver.address == self.owners()[2]  # noqa:  E800
+        assert receiver.address == self.owners()[2]
         fourth = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_3
         )
-        # note: fourth.address == self.owners()[3]  # noqa:  E800
+        assert fourth.address == self.owners()[3]
         cryptos = [self.deployer_crypto, sender, receiver, fourth]
         tx_hash = self.contract.get_raw_safe_transaction_hash(
             ledger_api=self.ledger_api,
