@@ -197,6 +197,11 @@ kind delete cluster
 
 Ensure accurate configuration. Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
 
+```bash
+count=0
+docker ps --format '{{.ID}}' --filter='ancestor=valory/price_estimation:0.1.0' | while read -r line ; do docker logs "$line" > node_${count}.txt; (( count++ )); done
+```
+
 To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (most recent call last):"`
 
 To save logs to file: `docker logs d425a72bada2 > node_4.txt`

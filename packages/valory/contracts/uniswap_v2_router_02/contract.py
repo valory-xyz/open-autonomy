@@ -56,7 +56,7 @@ class UniswapV2Router02Contract(Contract):
         contract_address: str,
         method_name: str,
         **kwargs: Any,
-    ) -> JSONLike:
+    ) -> Optional[JSONLike]:
         """
         Get a contract call encoded data.
 
@@ -69,14 +69,18 @@ class UniswapV2Router02Contract(Contract):
         instance = cls.get_instance(ledger_api, contract_address)
 
         method_name = snake_to_camel(method_name)
+        kwargs = {snake_to_camel(key): value for key, value in kwargs.items()}
 
-        # Get an ordered argument list from the method's abi
-        method = instance.get_function_by_name(method_name)
-        input_names = [i["name"] for i in method.abi["inputs"]]
-        args = [kwargs[i] for i in input_names]
+        try:
+            # Get an ordered argument list from the method's abi
+            method = instance.get_function_by_name(method_name)
+            input_names = [i["name"] for i in method.abi["inputs"]]
 
-        # Encode and return the contract call
-        data = instance.encodeABI(fn_name=method_name, args=args)
+            args = [kwargs[i] for i in input_names]
+            # Encode and return the contract call
+            data = instance.encodeABI(fn_name=method_name, args=args)
+        except KeyError:  # pragma: nocover # TOFIX catch other exceptions which can occur
+            return None
         return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
     @classmethod
