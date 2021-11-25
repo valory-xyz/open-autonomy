@@ -198,16 +198,10 @@ class BaseRoundTestClass:
             assert event == self._event_class.NO_MAJORITY
 
     def _complete_run(self, test_runner: Generator) -> None:
-        """Run test."""
-        next(test_runner)
-        next(test_runner)
-        next(test_runner)
-
-    def _test_round(self, *args: Any, **kwargs: Any) -> None:
         """
-        This method contains generic test logic for the round.
+        This method represents logic to execute test logic defined in _test_round method.
 
-        Test logic should follow these steps
+        _test_round should follow these steps
 
         1. process first payload
         2. yield test_round
@@ -216,7 +210,12 @@ class BaseRoundTestClass:
         5. yield test_round
         6. yield state, event ( returned from end_block )
         7. test state and event
+
+        :param test_runner: test runner
         """
+        next(test_runner)
+        next(test_runner)
+        next(test_runner)
 
 
 class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
@@ -404,7 +403,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):
             state_update_fn,
             state_attr_checks,
             exit_event,
-            threshold_check=lambda x: x.positive_vote_threshold_reached
+            threshold_check=lambda x: x.positive_vote_threshold_reached,
         )
 
     def _test_voting_round_negative(
@@ -423,7 +422,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):
             state_update_fn,
             state_attr_checks,
             exit_event,
-            threshold_check=lambda x: x.negative_vote_threshold_reached
+            threshold_check=lambda x: x.negative_vote_threshold_reached,
         )
 
     def _test_voting_round_none(
@@ -442,7 +441,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):
             state_update_fn,
             state_attr_checks,
             exit_event,
-            threshold_check=lambda x: x.none_vote_threshold_reached
+            threshold_check=lambda x: x.none_vote_threshold_reached,
         )
 
 

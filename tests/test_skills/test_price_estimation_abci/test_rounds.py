@@ -23,9 +23,6 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional, Type, cast
 from unittest import mock
 
-import pytest
-from aea.exceptions import AEAEnforceError
-
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseTxPayload,
@@ -343,18 +340,22 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests."""
 
         test_round = RandomnessRound(self.period_state, self.consensus_params)
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_randomness(self.participants, 1),
-            state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                participant_to_randomness=MappingProxyType(
-                    dict(get_participant_to_randomness(self.participants, 1))
-                )
-            ),
-            state_attr_checks=[lambda state: state.participant_to_randomness.keys()],
-            most_voted_payload=RANDOMNESS,
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_randomness(self.participants, 1),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_randomness=MappingProxyType(
+                        dict(get_participant_to_randomness(self.participants, 1))
+                    )
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_randomness.keys()
+                ],
+                most_voted_payload=RANDOMNESS,
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class TestSelectKeeperRound(BaseCollectSameUntilThresholdRoundTest):
@@ -381,18 +382,20 @@ class TestSelectKeeperRound(BaseCollectSameUntilThresholdRoundTest):
         test_round = SelectKeeperRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_selection(self.participants),
-            state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                participant_to_selection=MappingProxyType(
-                    dict(get_participant_to_selection(self.participants))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_selection(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_selection=MappingProxyType(
+                        dict(get_participant_to_selection(self.participants))
+                    ),
                 ),
-            ),
-            state_attr_checks=[lambda state: state.participant_to_selection.keys()],
-            most_voted_payload="keeper",
-            exit_event=Event.DONE,
-        ))
+                state_attr_checks=[lambda state: state.participant_to_selection.keys()],
+                most_voted_payload="keeper",
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
@@ -420,15 +423,17 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_round(
-            test_round=test_round,  # type: ignore
-            keeper_payloads=self.payload_class(keeper, get_safe_contract_address()),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                **{self.update_keyword: get_safe_contract_address()}
-            ),
-            state_attr_checks=[lambda state: getattr(state, self.update_keyword)],
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,  # type: ignore
+                keeper_payloads=self.payload_class(keeper, get_safe_contract_address()),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    **{self.update_keyword: get_safe_contract_address()}
+                ),
+                state_attr_checks=[lambda state: getattr(state, self.update_keyword)],
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class TestDeploySafeRound(BaseDeployTestClass):
@@ -461,17 +466,21 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
         test_round = CollectObservationRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_observations(self.participants),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                participant_to_observations=get_participant_to_observations(
-                    self.participants
-                )
-            ),
-            state_attr_checks=[lambda state: state.participant_to_observations.keys()],
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_observations(self.participants),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    participant_to_observations=get_participant_to_observations(
+                        self.participants
+                    )
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_observations.keys()
+                ],
+                exit_event=Event.DONE,
+            )
+        )
 
     def test_run_b(
         self,
@@ -482,19 +491,23 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_observations(
-                frozenset(list(self.participants)[:-1])
-            ),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                participant_to_observations=get_participant_to_observations(
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_observations(
                     frozenset(list(self.participants)[:-1])
-                )
-            ),
-            state_attr_checks=[lambda state: state.participant_to_observations.keys()],
-            exit_event=Event.DONE,
-        ))
+                ),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    participant_to_observations=get_participant_to_observations(
+                        frozenset(list(self.participants)[:-1])
+                    )
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_observations.keys()
+                ],
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
@@ -511,19 +524,21 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
         test_round = EstimateConsensusRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_estimate(self.participants),
-            state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                participant_to_estimate=dict(
-                    get_participant_to_estimate(self.participants)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_estimate(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_estimate=dict(
+                        get_participant_to_estimate(self.participants)
+                    ),
+                    most_voted_estimate=_test_round.most_voted_payload,
                 ),
-                most_voted_estimate=_test_round.most_voted_payload,
-            ),
-            state_attr_checks=[lambda state: state.participant_to_estimate.keys()],
-            most_voted_payload=1.0,
-            exit_event=Event.DONE,
-        ))
+                state_attr_checks=[lambda state: state.participant_to_estimate.keys()],
+                most_voted_payload=1.0,
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
@@ -542,14 +557,16 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         hash_ = "tx_hash"
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_tx_hash(self.participants, hash_),
-            state_update_fn=lambda _period_state, _test_round: _period_state,
-            state_attr_checks=[],
-            most_voted_payload=hash_,
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_tx_hash(self.participants, hash_),
+                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_attr_checks=[],
+                most_voted_payload=hash_,
+                exit_event=Event.DONE,
+            )
+        )
 
     def test_run_none(
         self,
@@ -561,14 +578,16 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         hash_ = None
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_tx_hash(self.participants, hash_),
-            state_update_fn=lambda _period_state, _test_round: _period_state,
-            state_attr_checks=[],
-            most_voted_payload=hash_,
-            exit_event=Event.NONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_tx_hash(self.participants, hash_),
+                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_attr_checks=[],
+                most_voted_payload=hash_,
+                exit_event=Event.NONE,
+            )
+        )
 
 
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
@@ -586,13 +605,15 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_signature(self.participants),
-            state_update_fn=lambda _period_state, _: _period_state,
-            state_attr_checks=[],
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_signature(self.participants),
+                state_update_fn=lambda _period_state, _: _period_state,
+                state_attr_checks=[],
+                exit_event=Event.DONE,
+            )
+        )
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
@@ -622,15 +643,17 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             consensus_params=self.consensus_params,
         )
 
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            keeper_payloads=FinalizationTxPayload(sender=keeper, tx_hash="tx_hash"),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                final_tx_hash=get_final_tx_hash()
-            ),
-            state_attr_checks=[lambda state: state.final_tx_hash],
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                keeper_payloads=FinalizationTxPayload(sender=keeper, tx_hash="tx_hash"),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    final_tx_hash=get_final_tx_hash()
+                ),
+                state_attr_checks=[lambda state: state.final_tx_hash],
+                exit_event=Event.DONE,
+            )
+        )
 
     def test_run_failure(
         self,
@@ -648,15 +671,17 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             consensus_params=self.consensus_params,
         )
 
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            keeper_payloads=FinalizationTxPayload(sender=keeper, tx_hash=None),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                final_tx_hash=get_final_tx_hash()
-            ),
-            state_attr_checks=[],
-            exit_event=Event.FAILED,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                keeper_payloads=FinalizationTxPayload(sender=keeper, tx_hash=None),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    final_tx_hash=get_final_tx_hash()
+                ),
+                state_attr_checks=[],
+                exit_event=Event.FAILED,
+            )
+        )
 
 
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
@@ -677,18 +702,20 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_selection(self.participants),
-            state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                participant_to_selection=MappingProxyType(
-                    dict(get_participant_to_selection(self.participants))
-                )
-            ),
-            state_attr_checks=[lambda state: state.participant_to_selection.keys()],
-            most_voted_payload="keeper",
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_selection(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_selection=MappingProxyType(
+                        dict(get_participant_to_selection(self.participants))
+                    )
+                ),
+                state_attr_checks=[lambda state: state.participant_to_selection.keys()],
+                most_voted_payload="keeper",
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class TestSelectKeeperARound(BaseSelectKeeperRoundTest):
@@ -734,19 +761,21 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
         next_period_count = 2
-        self._complete_run(self._test_round(
-            test_round=test_round,
-            round_payloads=get_participant_to_period_count(
-                self.participants, next_period_count
-            ),
-            state_update_fn=lambda *_: PeriodState(
-                participants=self.participants,
-                period_count=test_round.most_voted_payload,
-            ),
-            state_attr_checks=[lambda state: state.participants],
-            most_voted_payload=next_period_count,
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_period_count(
+                    self.participants, next_period_count
+                ),
+                state_update_fn=lambda *_: PeriodState(
+                    participants=self.participants,
+                    period_count=test_round.most_voted_payload,
+                ),
+                state_attr_checks=[lambda state: state.participants],
+                most_voted_payload=next_period_count,
+                exit_event=Event.DONE,
+            )
+        )
 
 
 class BaseValidateRoundTest(BaseVotingRoundTest):
@@ -767,17 +796,19 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_voting_round_positive(
-            test_round=test_round,
-            round_payloads=get_participant_to_votes(self.participants),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                participant_to_votes=MappingProxyType(
-                    dict(get_participant_to_votes(self.participants))
-                )
-            ),
-            state_attr_checks=[lambda state: state.participant_to_votes.keys()],
-            exit_event=Event.DONE,
-        ))
+        self._complete_run(
+            self._test_voting_round_positive(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    participant_to_votes=MappingProxyType(
+                        dict(get_participant_to_votes(self.participants))
+                    )
+                ),
+                state_attr_checks=[lambda state: state.participant_to_votes.keys()],
+                exit_event=Event.DONE,
+            )
+        )
 
     def test_negative_votes(
         self,
@@ -788,17 +819,19 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_voting_round_negative(
-            test_round=test_round,
-            round_payloads=get_participant_to_votes(self.participants, vote=False),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                participant_to_votes=MappingProxyType(
-                    dict(get_participant_to_votes(self.participants, vote=False))
-                )
-            ),
-            state_attr_checks=[],
-            exit_event=Event.NEGATIVE,
-        ))
+        self._complete_run(
+            self._test_voting_round_negative(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants, vote=False),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    participant_to_votes=MappingProxyType(
+                        dict(get_participant_to_votes(self.participants, vote=False))
+                    )
+                ),
+                state_attr_checks=[],
+                exit_event=Event.NEGATIVE,
+            )
+        )
 
     def test_none_votes(
         self,
@@ -809,19 +842,19 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        self._complete_run(self._test_voting_round_none(
-            test_round=test_round,
-            round_payloads=get_participant_to_votes(self.participants, vote=None),
-            state_update_fn=lambda _period_state, _: _period_state.update(
-                participant_to_votes=MappingProxyType(
-                    dict(get_participant_to_votes(
-                        self.participants, vote=None
-                    ))
-                )
-            ),
-            state_attr_checks=[],
-            exit_event=Event.NONE,
-        ))
+        self._complete_run(
+            self._test_voting_round_none(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants, vote=None),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    participant_to_votes=MappingProxyType(
+                        dict(get_participant_to_votes(self.participants, vote=None))
+                    )
+                ),
+                state_attr_checks=[],
+                exit_event=Event.NONE,
+            )
+        )
 
 
 class TestValidateSafeRound(BaseValidateRoundTest):
