@@ -197,6 +197,27 @@ class BaseRoundTestClass:
             _, event = result
             assert event == self._event_class.NO_MAJORITY
 
+    def _complete_run(self, test_runner: Generator) -> None:
+        """Run test."""
+        next(test_runner)
+        next(test_runner)
+        next(test_runner)
+
+    def _test_round(self, *args: Any, **kwargs: Any) -> None:
+        """
+        This method contains generic test logic for the round.
+
+        Test logic should follow these steps
+
+        1. process first payload
+        2. yield test_round
+        3. test collection, end_block and thresholds
+        4. process rest of the payloads
+        5. yield test_round
+        6. yield state, event ( returned from end_block )
+        7. test state and event
+        """
+
 
 class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectDifferentUntilAllRound."""
@@ -213,6 +234,7 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
 
         first_payload = round_payloads.pop(0)
         test_round.process_payload(first_payload)
+        yield test_round
         assert test_round.collection == {
             first_payload.sender,
         }
@@ -220,8 +242,8 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
 
         for payload in round_payloads:
             test_round.process_payload(payload)
-        assert test_round.collection_threshold_reached
         yield test_round
+        assert test_round.collection_threshold_reached
 
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
@@ -230,7 +252,6 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
 
         res = test_round.end_block()
         yield res
-
         if exit_event is None:
             assert res is exit_event
         else:
@@ -253,13 +274,13 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         state_attr_checks: List[Callable],
         most_voted_payload: Any,
         exit_event: Any,
-    ) -> None:
+    ) -> Generator:
         """Test rounds derived from CollectionRound."""
 
         (_, first_payload), *payloads = round_payloads.items()
 
         test_round.process_payload(first_payload)
-
+        yield test_round
         assert test_round.collection[first_payload.sender] == first_payload
         assert not test_round.threshold_reached
         assert test_round.end_block() is None
@@ -270,6 +291,7 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
 
         for _, payload in payloads:
             test_round.process_payload(payload)
+        yield test_round
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == most_voted_payload
 
@@ -278,6 +300,7 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
             state_update_fn(self.period_state, test_round),
         )
         res = test_round.end_block()
+        yield res
         assert res is not None
 
         state, event = res
@@ -298,20 +321,23 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
         state_update_fn: Callable,
         state_attr_checks: List[Callable],
         exit_event: Any,
-    ) -> None:
+    ) -> Generator:
         """Test for rounds derived from OnlyKeeperSendsRound."""
 
         assert test_round.end_block() is None
         assert not test_round.has_keeper_sent_payload
 
         test_round.process_payload(keeper_payloads)
+        yield test_round
         assert test_round.has_keeper_sent_payload
 
+        yield test_round
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
             state_update_fn(self.period_state, test_round),  # type: ignore
         )
         res = test_round.end_block()
+        yield res
         assert res is not None
 
         state, event = res
@@ -331,34 +357,29 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         state_update_fn: Callable,
         state_attr_checks: List[Callable],
         exit_event: Any,
-        test_positive: bool = True,
-    ) -> None:
+        threshold_check: Callable,
+    ) -> Generator:
         """Test for rounds derived from VotingRound."""
 
         (sender, first_payload), *payloads = round_payloads.items()
 
         test_round.process_payload(first_payload)
-        if test_positive:
-            assert not test_round.positive_vote_threshold_reached
-        else:
-            assert not test_round.negative_vote_threshold_reached
-
+        yield test_round
+        assert not threshold_check(test_round)  # negative_vote_threshold_reached
         assert test_round.end_block() is None
         self._test_no_majority_event(test_round)
 
         for _, payload in payloads:
             test_round.process_payload(payload)
-
-        if test_positive:
-            assert test_round.positive_vote_threshold_reached
-        else:
-            assert test_round.negative_vote_threshold_reached
+        yield test_round
+        assert threshold_check(test_round)
 
         actual_next_state = cast(
             self._period_state_class,  # type: ignore
             state_update_fn(self.period_state, test_round),  # type: ignore
         )
         res = test_round.end_block()
+        yield res
         assert res is not None
 
         state, event = res
@@ -374,16 +395,16 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         state_update_fn: Callable,
         state_attr_checks: List[Callable],
         exit_event: Any,
-    ) -> None:
+    ) -> Generator:
         """Test for rounds derived from VotingRound."""
 
-        self._test_round(
+        return self._test_round(
             test_round,
             round_payloads,
             state_update_fn,
             state_attr_checks,
             exit_event,
-            test_positive=True,
+            threshold_check=lambda x: x.positive_vote_threshold_reached
         )
 
     def _test_voting_round_negative(
@@ -393,16 +414,35 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         state_update_fn: Callable,
         state_attr_checks: List[Callable],
         exit_event: Any,
-    ) -> None:
+    ) -> Generator:
         """Test for rounds derived from VotingRound."""
 
-        self._test_round(
+        return self._test_round(
             test_round,
             round_payloads,
             state_update_fn,
             state_attr_checks,
             exit_event,
-            test_positive=False,
+            threshold_check=lambda x: x.negative_vote_threshold_reached
+        )
+
+    def _test_voting_round_none(
+        self,
+        test_round: VotingRound,
+        round_payloads: Mapping[str, BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
+    ) -> Generator:
+        """Test for rounds derived from VotingRound."""
+
+        return self._test_round(
+            test_round,
+            round_payloads,
+            state_update_fn,
+            state_attr_checks,
+            exit_event,
+            threshold_check=lambda x: x.none_vote_threshold_reached
         )
 
 
@@ -416,18 +456,19 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         state_update_fn: Callable,
         state_attr_checks: List[Callable],
         exit_event: Any,
-    ) -> None:
+    ) -> Generator:
         """Test for rounds derived from CollectDifferentUntilThresholdRound."""
 
         (_, first_payload), *payloads = round_payloads.items()
 
         test_round.process_payload(first_payload)
+        yield test_round
         assert not test_round.collection_threshold_reached
         assert test_round.end_block() is None
 
         for _, payload in payloads:
             test_round.process_payload(payload)
-
+        yield test_round
         assert test_round.collection_threshold_reached
 
         actual_next_state = cast(
@@ -435,6 +476,7 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
             state_update_fn(self.period_state, test_round),  # type: ignore
         )
         res = test_round.end_block()
+        yield res
         assert res is not None
 
         state, event = res

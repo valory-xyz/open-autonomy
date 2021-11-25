@@ -82,7 +82,7 @@ class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests."""
 
         test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
-        self._test_round(
+        self._complete_run(self._test_round(
             test_round=test_round,
             round_payloads=get_participant_to_tx_hash(self.participants),
             state_update_fn=lambda _period_state, _test_round: _period_state.update(
@@ -96,7 +96,7 @@ class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
             ],
             most_voted_payload="tx_hash",
             exit_event=Event.DONE,
-        )
+        ))
 
 
 class TestTransactionSignatureBaseRound(BaseCollectDifferentUntilThresholdRoundTest):
@@ -112,7 +112,7 @@ class TestTransactionSignatureBaseRound(BaseCollectDifferentUntilThresholdRoundT
         test_round = TransactionSignatureBaseRound(
             self.period_state, self.consensus_params
         )
-        self._test_round(
+        self._complete_run(self._test_round(
             test_round=test_round,
             round_payloads=get_participant_to_tx_hash(self.participants),
             state_update_fn=lambda _period_state, _test_round: _period_state.update(
@@ -124,7 +124,14 @@ class TestTransactionSignatureBaseRound(BaseCollectDifferentUntilThresholdRoundT
                 lambda state: state.participant_to_signature.keys(),
             ],
             exit_event=Event.DONE,
+        ))
+
+    def test_no_majority(self,) -> None:
+        """Test no majority."""
+        test_round = TransactionSignatureBaseRound(
+            self.period_state, self.consensus_params
         )
+        self._test_no_majority_event(test_round)
 
 
 class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
@@ -145,7 +152,7 @@ class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
             ),
             self.consensus_params,
         )
-        self._test_round(
+        self._complete_run(self._test_round(
             test_round=test_round,
             keeper_payloads=keeper_payload,
             state_update_fn=lambda _period_state, _test_round: _period_state.update(
@@ -155,7 +162,7 @@ class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
                 lambda state: state.final_tx_hash,
             ],
             exit_event=Event.DONE,
-        )
+        ))
 
 
 class TestTransactionValidationBaseRound(BaseVotingRoundTest):
@@ -171,7 +178,7 @@ class TestTransactionValidationBaseRound(BaseVotingRoundTest):
         test_round = TransactionValidationBaseRound(
             self.period_state, self.consensus_params
         )
-        self._test_voting_round_positive(
+        self._complete_run(self._test_voting_round_positive(
             test_round=test_round,
             round_payloads=get_participant_to_votes(self.participants),
             state_update_fn=lambda _period_state, _test_round: _period_state.update(
@@ -183,7 +190,7 @@ class TestTransactionValidationBaseRound(BaseVotingRoundTest):
                 lambda state: state.participant_to_votes.keys(),
             ],
             exit_event=Event.DONE,
-        )
+        ))
 
     def test_negative_votes(
         self,
@@ -192,7 +199,7 @@ class TestTransactionValidationBaseRound(BaseVotingRoundTest):
         test_round = TransactionValidationBaseRound(
             self.period_state, self.consensus_params
         )
-        self._test_voting_round_negative(
+        self._complete_run(self._test_voting_round_negative(
             test_round=test_round,
             round_payloads=get_participant_to_votes(self.participants, False),
             state_update_fn=lambda _period_state, _test_round: _period_state.update(
@@ -204,7 +211,7 @@ class TestTransactionValidationBaseRound(BaseVotingRoundTest):
                 lambda state: None,
             ],
             exit_event=Event.EXIT,
-        )
+        ))
 
 
 class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
@@ -221,7 +228,7 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
         with mock.patch.object(
             StrategyEvaluationPayload, "strategy", return_value="strategy"
         ):
-            self._test_round(
+            self._complete_run(self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_strategy(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
@@ -235,4 +242,55 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
                 ],
                 most_voted_payload=StrategyEvaluationPayload.strategy,
                 exit_event=Event.RESET_TIMEOUT,
-            )
+            ))
+
+
+def test_period_state() -> None:
+    """Test PeriodState."""
+
+    participants = get_participants()
+    period_count = 0
+    period_setup_params = {}
+    most_voted_strategy = {}
+    most_voted_keeper_address = "0x_keeper"
+    safe_contract_address = "0x_contract"
+    multisend_contract_address = "0x_multisend"
+    most_voted_tx_hash = "tx_hash"
+    final_tx_hash = "tx_hash"
+    participant_to_votes = get_participant_to_votes(participants)
+    participant_to_tx_hash = get_participant_to_tx_hash(participants)
+    participant_to_signature = get_participant_to_signature(participants)
+    participant_to_strategy = get_participant_to_strategy(participants)
+
+    period_state = PeriodState(
+        participants=participants,
+        period_count=period_count,
+        period_setup_params=period_setup_params,
+        most_voted_strategy=most_voted_strategy,
+        most_voted_keeper_address=most_voted_keeper_address,
+        safe_contract_address=safe_contract_address,
+        multisend_contract_address=multisend_contract_address,
+        most_voted_tx_hash=most_voted_tx_hash,
+        final_tx_hash=final_tx_hash,
+        participant_to_votes=participant_to_votes,
+        participant_to_tx_hash=participant_to_tx_hash,
+        participant_to_signature=participant_to_signature,
+        participant_to_strategy=participant_to_strategy,
+    )
+
+    period_state.participants == participants
+    period_state.period_count == period_count
+    period_state.period_setup_params == period_setup_params
+    period_state.most_voted_strategy == most_voted_strategy
+    period_state.most_voted_keeper_address == most_voted_keeper_address
+    period_state.safe_contract_address == safe_contract_address
+    period_state.multisend_contract_address == multisend_contract_address
+    period_state.most_voted_tx_hash == most_voted_tx_hash
+    period_state.final_tx_hash == final_tx_hash
+    period_state.participant_to_votes == participant_to_votes
+    period_state.participant_to_tx_hash == participant_to_tx_hash
+    period_state.participant_to_signature == participant_to_signature
+    period_state.participant_to_strategy == participant_to_strategy
+
+    period_state = period_state.reset()
+    period_state.participants == period_state.participants
