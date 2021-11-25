@@ -212,3 +212,12 @@ class TestTestRound(BaseRoundTestClass):
         """Runs test."""
         # TODO
         assert False
+
+
+class TestEstimateRound(BaseRoundTestClass):
+    """Test `EstimateRound`."""
+
+    def test_run(self) -> None:
+        """Runs test."""
+        # TODO
+        assert False

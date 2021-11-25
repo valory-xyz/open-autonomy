@@ -98,6 +98,8 @@ models:
         seed: 0
       testing:
         steps_forward: 1
+      estimation:
+        steps_forward: 1
     class_name: APYParams
   requests:
     args: {}

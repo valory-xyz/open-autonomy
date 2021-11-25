@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for the APY estimation app."""
 from enum import Enum
-from typing import Dict, Optional, Any, Union
+from typing import Dict, Optional, Any, Union, List
 
 from packages.valory.skills.simple_abci.payloads import BaseSimpleAbciPayload
 
@@ -37,6 +37,7 @@ class TransactionType(Enum):
     OPTIMIZATION = "optimization"
     TRAINING = "training"
     TESTING = "testing"
+    ESTIMATION = "estimation"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -193,7 +194,7 @@ class TrainingPayload(BaseSimpleAbciPayload):
         return self._model_hash
 
     @property
-    def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
+    def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"model": self._model_hash}
 
@@ -219,9 +220,35 @@ class TestingPayload(BaseSimpleAbciPayload):
         return self._report_hash
 
     @property
-    def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
+    def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"report_hash": self._report_hash}
+
+
+class EstimatePayload(BaseSimpleAbciPayload):
+    """Represent a transaction payload of type 'estimate'."""
+
+    transaction_type = TransactionType.ESTIMATION
+
+    def __init__(self, sender: str, estimation: List[float], id_: Optional[str] = None) -> None:
+        """Initialize an 'estimate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param estimation: the estimation.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._estimation = estimation
+
+    @property
+    def estimation(self) -> List[float]:
+        """Get the estimation."""
+        return self._estimation
+
+    @property
+    def data(self) -> Dict[str, List[float]]:
+        """Get the data."""
+        return {"estimation": self._estimation}
 
 
 class ResetPayload(BaseSimpleAbciPayload):

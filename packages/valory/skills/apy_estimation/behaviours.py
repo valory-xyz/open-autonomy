@@ -39,12 +39,12 @@ from packages.valory.skills.apy_estimation.ml.io import save_forecaster, load_fo
 from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload, \
-    OptimizationPayload, TrainingPayload, TestingPayload
+    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
-    TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound, TestRound,
+    TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound, TestRound, EstimateRound,
 )
 from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask, TestTask
 from packages.valory.skills.apy_estimation.tools.etl import load_hist
@@ -56,8 +56,6 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     pairs_q,
     top_n_pairs_q,
 )
-from packages.valory.skills.price_estimation_abci.payloads import EstimatePayload
-from packages.valory.skills.price_estimation_abci.rounds import EstimateConsensusRound
 from packages.valory.skills.simple_abci.behaviours import (
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
@@ -548,7 +546,7 @@ class EstimateBehaviour(APYEstimationBaseState):
     """Estimate APY."""
 
     state_id = "estimate"
-    matching_round = EstimateConsensusRound
+    matching_round = EstimateRound
 
     def async_act(self) -> Generator:
         """
@@ -560,16 +558,18 @@ class EstimateBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-
         with benchmark_tool.measure(self).local():
+            model_path = os.path.join(self.params.data_folder, PAIR_ID, f'fully_trained_forecaster.pkl')
+            forecaster = load_forecaster(model_path)
+            estimation = forecaster.predict(self.params.estimation['steps_forward'])
+
             self.context.logger.info(
                 "Got estimate of APY for %s: %s",
-                # TODO pool_name param,
-                self.context.state.period_state.estimate,
+                self.period_state.pair_name,
+                estimation,
             )
-            payload = EstimatePayload(
-                self.context.agent_address, self.context.state.period_state.estimate
-            )
+
+            payload = EstimatePayload(self.context.agent_address, estimation)
 
         with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)

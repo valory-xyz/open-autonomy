@@ -18,10 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads.py module of the skill."""
-from datetime import datetime
-
-from optuna.distributions import UniformDistribution
-from optuna.trial import FrozenTrial, TrialState
 
 from packages.valory.skills.apy_estimation.payloads import (
     TransactionType,
@@ -29,7 +25,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     TransformationPayload,
     ResetPayload,
     PreprocessPayload,
-    OptimizationPayload, TrainingPayload, TestingPayload,
+    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload,
 )
 
 
@@ -77,7 +73,7 @@ class TestPayloads:
         """Test `OptimizationPayload`"""
         payload = OptimizationPayload(sender="sender", study_hash='x0', best_params={'test': 2.0421833357796}, id_="id")
 
-        assert payload.transaction_type == TransactionType.TRANSFORMATION
+        assert payload.transaction_type == TransactionType.OPTIMIZATION
         assert payload.study == "x0"
         assert payload.best_params == {'test': 2.004421833357796}
         assert payload.id_ == "id"
@@ -88,7 +84,7 @@ class TestPayloads:
         """Test `TrainingPayload`"""
         payload = TrainingPayload(sender="sender", model_hash='x0', id_="id")
 
-        assert payload.transaction_type == TransactionType.TRANSFORMATION
+        assert payload.transaction_type == TransactionType.TRAINING
         assert payload.model == "x0"
         assert payload.id_ == "id"
         assert payload.data == {"model_hash": "x0"}
@@ -98,10 +94,20 @@ class TestPayloads:
         """Test `TestingPayload`"""
         payload = TestingPayload(sender="sender", report_hash='x0', id_="id")
 
-        assert payload.transaction_type == TransactionType.TRANSFORMATION
+        assert payload.transaction_type == TransactionType.TESTING
         assert payload.report_hash == "x0"
         assert payload.id_ == "id"
         assert payload.data == {"report_hash": "x0"}
+
+    @staticmethod
+    def test_estimate_payload() -> None:
+        """Test `EstimatePayload`"""
+        payload = EstimatePayload(sender="sender", estimation=[2.0044, 5.8365], id_="id")
+
+        assert payload.transaction_type == TransactionType.ESTIMATION
+        assert payload.estimation == [2.0044, 5.8365]
+        assert payload.id_ == "id"
+        assert payload.data == {"estimation": [2.0044, 5.8365]}
 
     @staticmethod
     def test_reset_payload() -> None:

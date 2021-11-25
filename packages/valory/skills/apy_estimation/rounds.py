@@ -34,9 +34,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
     TransactionType, CollectSameUntilThresholdRound,
 )
-from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload, FetchingPayload
+from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload, FetchingPayload, \
+    EstimatePayload
 from packages.valory.skills.price_estimation_abci.payloads import (
-    EstimatePayload,
     ObservationPayload,
     RandomnessPayload,
     SelectKeeperPayload,
@@ -274,6 +274,37 @@ class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         raise NotImplementedError()
 
 
+class EstimateRound(
+    CollectSameUntilThresholdRound, APYEstimationAbstractRound
+):
+    """
+    This class represents the 'estimate' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for each estimate.
+
+    It schedules the .
+    """
+
+    round_id = "estimate"
+    allowed_tx_type = EstimatePayload.transaction_type
+    payload_attribute = "estimate"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_estimate=MappingProxyType(self.collection),
+                most_voted_estimate=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
 class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """This class represents the base reset round."""
 
@@ -340,7 +371,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         TrainRound: {
-            Event.FULLY_TRAINED: EstimateConsensusRound,
+            Event.FULLY_TRAINED: EstimateRound,
             Event.DONE: TestRound,
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
@@ -350,7 +381,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
-        EstimateConsensusRound: {
+        EstimateRound: {
             Event.DONE: ResetRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period

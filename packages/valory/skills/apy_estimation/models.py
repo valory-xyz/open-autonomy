@@ -78,4 +78,5 @@ class APYParams(BaseParams):
         self.data_folder = self._ensure("data_folder", kwargs)
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
+        self.estimation = self._ensure("estimation", kwargs)
         super().__init__(*args, **kwargs)

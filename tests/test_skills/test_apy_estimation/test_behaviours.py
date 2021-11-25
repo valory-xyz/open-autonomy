@@ -407,3 +407,11 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_test_behaviour(self):
         # TODO
         assert False
+        
+        
+class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test EstimateBehaviour."""
+
+    def test_estimate_behaviour(self):
+        # TODO
+        assert False
