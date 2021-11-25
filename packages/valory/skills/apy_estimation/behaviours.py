@@ -66,7 +66,7 @@ PAIR_ID = '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
 
 
 class APYEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the price estimation skill."""
+    """Base state behaviour for the APY estimation skill."""
 
     @property
     def period_state(self) -> PeriodState:

@@ -48,7 +48,7 @@ def get_participants() -> FrozenSet[str]:
 def get_participant_to_fetching(
         participants: FrozenSet[str],
 ) -> Dict[str, FetchingPayload]:
-    """participant_to_observations"""
+    """participant_to_fetching"""
     return {
         participant: FetchingPayload(sender=participant, history_hash='x0')
         for participant in participants
@@ -149,17 +149,17 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         assert test_round.most_voted_payload == 'x0'
 
         actual_next_state = self.period_state.update(
-            participant_to_observations=dict(
+            participant_to_fetching=dict(
                 get_participant_to_fetching(self.participants)
             ),
-            most_voted_observation=test_round.most_voted_payload,
+            most_voted_history=test_round.most_voted_payload,
         )
         res = test_round.end_block()
         assert res is not None
         state, event = res
         assert (
-                cast(PeriodState, state).participant_to_observations.keys()
-                == cast(PeriodState, actual_next_state).participant_to_observations.keys()
+                cast(PeriodState, state).participant_to_fetching.keys()
+                == cast(PeriodState, actual_next_state).participant_to_fetching.keys()
         )
         assert event == Event.DONE
 

@@ -21,9 +21,8 @@
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast, Any
+from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast, Any, List
 
-import pandas as pd
 from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -36,25 +35,11 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload, FetchingPayload, \
     EstimatePayload
-from packages.valory.skills.price_estimation_abci.payloads import (
-    ObservationPayload,
-    RandomnessPayload,
-    SelectKeeperPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    ValidatePayload,
-)
-from packages.valory.skills.price_estimation_abci.rounds import (
-    EstimateConsensusRound,
-)
-from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PriceEstimationPeriodState,
-)
 from packages.valory.skills.simple_abci.rounds import RegistrationRound
 
 
 class Event(Enum):
-    """Event enumeration for the price estimation demo."""
+    """Event enumeration for the APY estimation demo."""
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
@@ -62,7 +47,7 @@ class Event(Enum):
     FULLY_TRAINED = "fully_trained"
 
 
-class PeriodState(PriceEstimationPeriodState):
+class PeriodState(BasePeriodState):
     """Class to represent a period state. This state is replicated by the tendermint application."""
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
@@ -70,57 +55,83 @@ class PeriodState(PriceEstimationPeriodState):
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
         period_setup_params: Optional[Dict] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
-        safe_contract_address: Optional[str] = None,
-        oracle_contract_address: Optional[str] = None,
-        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
-        participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
-        most_voted_observation: Optional[str] = None,
+        participant_to_fetching: Optional[Mapping[str, FetchingPayload]] = None,
+        most_voted_history: Optional[str] = None,
         participant_to_transformation: Optional[
             Mapping[str, TransformationPayload]
         ] = None,
+        most_voted_transformation: Optional[str] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
-        transformation: Optional[pd.DataFrame] = None,
-        estimate: Optional[float] = None,
-        most_voted_estimate: Optional[float] = None,
-        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
-        most_voted_tx_hash: Optional[str] = None,
-        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        final_tx_hash: Optional[str] = None,
+        most_voted_estimate: Optional[List[float]] = None,
         best_params: Optional[Dict[str, Any]] = None,
         full_training: Optional[bool] = False,
         pair_name: Optional[str] = None
     ) -> None:
         """Initialize the state."""
-        super().__init__(
-            participants,
-            period_count,
-            period_setup_params,
-            participant_to_randomness,
-            most_voted_randomness,
-            participant_to_selection,
-            most_voted_keeper_address,
-            safe_contract_address,
-            oracle_contract_address,
-            participant_to_votes,
-            participant_to_observations,
-            participant_to_estimate,
-            estimate,
-            most_voted_estimate,
-            participant_to_tx_hash,
-            most_voted_tx_hash,
-            participant_to_signature,
-            final_tx_hash,
-        )
-        self._transformation = transformation
+        super().__init__(participants, period_count, period_setup_params)
+        self. _participant_to_fetching = participant_to_fetching
+        self._most_voted_history = most_voted_history
         self._participant_to_transformation = participant_to_transformation
-        self._most_voted_observation = most_voted_observation
+        self._most_voted_transformation = most_voted_transformation
+        self._participant_to_estimate = participant_to_estimate
+        self._most_voted_estimate = most_voted_estimate
         self._best_params = best_params
         self._full_training = full_training
         self._pair_name = pair_name
+
+    @property
+    def participant_to_fetching(self) -> Mapping[str, FetchingPayload]:
+        """Get the participant_to_fetching."""
+        enforce(
+            self._participant_to_fetching is not None,
+            "'participant_to_fetching' field is None",
+        )
+        return self._participant_to_fetching
+
+    @property
+    def most_voted_history(self) -> str:
+        """Get the most_voted_history."""
+        enforce(
+            self._most_voted_history is not None,
+            "'most_voted_history' field is None",
+        )
+        return self._most_voted_history
+
+    @property
+    def participant_to_transformation(self) -> Mapping[str, TransformationPayload]:
+        """Get the participant_to_transformation."""
+        enforce(
+            self._participant_to_transformation is not None,
+            "'participant_to_transformation' field is None",
+        )
+        return self._participant_to_transformation
+
+    @property
+    def most_voted_transformation(self) -> str:
+        """Get the most_voted_transformation."""
+        enforce(
+            self._most_voted_transformation is not None,
+            "'most_voted_transformation' field is None",
+        )
+        return self._most_voted_transformation
+
+    @property
+    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
+        """Get the participant_to_estimate."""
+        enforce(
+            self._participant_to_estimate is not None,
+            "'participant_to_estimate' field is None",
+        )
+        return self._participant_to_estimate
+
+    @property
+    def most_voted_estimate(self) -> Optional[List[float]]:
+        """Get the most_voted_estimate."""
+        enforce(
+            self._most_voted_estimate is not None,
+            "'most_voted_estimate' field is None",
+        )
+        return self._most_voted_estimate
 
     @property
     def best_params(self) -> Dict[str, Any]:
@@ -147,7 +158,7 @@ class PeriodState(PriceEstimationPeriodState):
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the price estimation skill."""
+    """Abstract round for the APY estimation skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -185,8 +196,8 @@ class CollectHistoryRound(
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
-                participant_to_observations=MappingProxyType(self.collection),
-                most_voted_observation=self.most_voted_payload,
+                participant_to_fetching=MappingProxyType(self.collection),
+                most_voted_history=self.most_voted_payload,
             )
             state, event = updated_state, Event.DONE
 
@@ -322,7 +333,7 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 participant_to_selection=None,
                 most_voted_keeper_address=None,
                 participant_to_votes=None,
-                participant_to_observations=None,
+                participant_to_fetching=None,
                 participant_to_estimate=None,
                 estimate=None,
                 most_voted_estimate=None,
@@ -332,7 +343,7 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 final_tx_hash=None,
                 transformation=None,
                 participant_to_transformation=None,
-                most_voted_observation=None,
+                most_voted_history=None,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
