@@ -187,6 +187,21 @@ class TestGetTransactionReceipt(BaseTestMessageConstruction):
         )
 
 
+class TestGetTransactionReceiptWithParams(BaseTestMessageConstruction):
+    """Test message."""
+
+    def build_message(self) -> LedgerApiMessage:
+        """Build the message."""
+        return LedgerApiMessage(
+            performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,  # type: ignore
+            transaction_digest=LedgerApiMessage.TransactionDigest(
+                ledger_id=LEDGER_ID, body=""
+            ),
+            retry_timeout=3,
+            retry_attempts=1,
+        )
+
+
 class TestTransactionReceipt(BaseTestMessageConstruction):
     """Test message."""
 
