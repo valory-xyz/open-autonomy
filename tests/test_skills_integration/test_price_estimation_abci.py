@@ -39,8 +39,8 @@ from tests.helpers.tendermint_utils import (
 CHECK_STRINGS = (
     "Entered in the 'tendermint_healthcheck' behaviour state",
     "'tendermint_healthcheck' behaviour state is done",
-    "Entered in the 'registration' round for period 0",
-    "'registration' round is done",
+    "Entered in the 'registration_at_startup' round for period 0",
+    "'registration_at_startup' round is done",
     "Entered in the 'randomness_startup' round for period 0",
     "'randomness_startup' round is done",
     "Entered in the 'select_keeper_a_startup' round for period 0",
