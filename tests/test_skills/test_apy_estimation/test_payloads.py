@@ -62,11 +62,10 @@ class TestPayloads:
         payload = PreprocessPayload(sender="sender", train_hash='x0', test_hash='x1', pair_name='test', id_="id")
 
         assert payload.transaction_type == TransactionType.PREPROCESS
-        assert payload.train == "x0"
-        assert payload.test == "x1"
+        assert payload.train_test_hash == "x0x1"
         assert payload.pair_name == "test"
         assert payload.id_ == "id"
-        assert payload.data == {"train": 'x0', "test": 'x1', "pair_name": 'test'}
+        assert payload.data == {"train_test": 'x0x1', "pair_name": 'test'}
 
     @staticmethod
     def test_optimization_payload() -> None:

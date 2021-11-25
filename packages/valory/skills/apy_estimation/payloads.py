@@ -116,18 +116,13 @@ class PreprocessPayload(BaseSimpleAbciPayload):
         """
         super().__init__(sender, id_)
         self._train_hash = train_hash
-        self._pair_name = pair_name
         self._test_hash = test_hash
+        self._pair_name = pair_name
 
     @property
-    def train(self) -> str:
-        """Get the training hash."""
-        return self._train_hash
-
-    @property
-    def test(self) -> str:
-        """Get the test hash."""
-        return self._test_hash
+    def train_test_hash(self) -> str:
+        """Get the training and testing hash concatenation."""
+        return self._train_hash + self._test_hash
 
     @property
     def pair_name(self) -> str:
@@ -137,7 +132,7 @@ class PreprocessPayload(BaseSimpleAbciPayload):
     @property
     def data(self) -> Dict[str, str]:
         """Get the data."""
-        return {"train": self._train_hash, "test": self._test_hash, "pair_name": self._pair_name}
+        return {"train_test": self.train_test_hash, "pair_name": self._pair_name}
 
 
 class OptimizationPayload(BaseSimpleAbciPayload):
