@@ -19,7 +19,6 @@
 
 """Test the base.py module of the skill."""
 import logging  # noqa: F401
-import re
 from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional, Type, cast
 from unittest import mock
@@ -28,11 +27,9 @@ import pytest
 from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbstractRound,
     BaseTxPayload,
     ConsensusParams,
-    TransactionNotValidError,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeployOraclePayload,
@@ -79,6 +76,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+    BaseCollectDifferentUntilAllRoundTest,
     BaseCollectDifferentUntilThresholdRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
@@ -240,8 +238,11 @@ class BaseRoundTestClass:
             assert event == Event.NO_MAJORITY
 
 
-class TestRegistrationRound(BaseRoundTestClass):
+class TestRegistrationRound(BaseCollectDifferentUntilAllRoundTest):
     """Test RegistrationRound."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run_fastforward(
         self,
@@ -308,53 +309,25 @@ class TestRegistrationRound(BaseRoundTestClass):
         confirmations: Optional[int] = None,
     ) -> None:
         """Run with given round."""
-        registration_payloads = [
-            RegistrationPayload(sender=participant) for participant in self.participants
-        ]
 
-        first_participant = registration_payloads.pop(0)
-        test_round.process_payload(first_participant)
-        assert test_round.collection == {
-            first_participant.sender,
-        }
-        assert test_round.end_block() is None
+        test_runner = self._test_round(
+            test_round=test_round,
+            round_payloads=[
+                RegistrationPayload(sender=participant)
+                for participant in self.participants
+            ],
+            state_update_fn=lambda *x: PeriodState(participants=test_round.collection),
+            state_attr_checks=[lambda state: state.participants],
+            exit_event=expected_event,
+        )
 
-        with pytest.raises(
-            TransactionNotValidError,
-            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: registration",
-        ):
-            test_round.check_payload(first_participant)
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=f"payload attribute sender with value {first_participant.sender} has already been added for round: registration",
-        ):
-            test_round.process_payload(first_participant)
-
-        for participant_payload in registration_payloads:
-            test_round.process_payload(participant_payload)
-        assert test_round.collection_threshold_reached
-
+        test_round = next(test_runner)
         if confirmations is not None:
             test_round.block_confirmations = confirmations
-
         prior_confirmations = test_round.block_confirmations
 
-        actual_next_state = PeriodState(participants=test_round.collection)
-
-        res = test_round.end_block()
+        _ = next(test_runner)
         assert test_round.block_confirmations == prior_confirmations + 1
-
-        if expected_event is None:
-            assert res is expected_event
-        else:
-            assert res is not None
-            state, event = res
-            assert (
-                cast(PeriodState, state).participants
-                == cast(PeriodState, actual_next_state).participants
-            )
-            assert event == expected_event
 
 
 class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
@@ -685,11 +658,14 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         )
 
 
-class BaseSelectKeeperRoundTest(BaseRoundTestClass):
+class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     """Test SelectKeeperARound"""
 
     test_class: Type[SelectKeeperRound]
     test_payload: Type[SelectKeeperPayload]
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -700,70 +676,18 @@ class BaseSelectKeeperRoundTest(BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        select_keeper_payloads = get_participant_to_selection(self.participants)
-        first_payload = select_keeper_payloads.pop(
-            sorted(list(select_keeper_payloads.keys()))[0]
-        )
-
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert not test_round.threshold_reached
-        assert test_round.end_block() is None
-
-        with pytest.raises(
-            ABCIAppInternalError, match="internal error: not enough votes"
-        ):
-            _ = test_round.most_voted_payload
-
-        with pytest.raises(ABCIAppInternalError):
-            test_round.process_payload(self.test_payload(sender="sender", keeper=""))
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=f"internal error: sender agent_0 has already sent value for round: {self.test_class.round_id}",
-        ):
-            test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=f"sender agent_0 has already sent value for round: {self.test_class.round_id}",
-        ):
-            test_round.check_payload(first_payload)
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+        self._test_round(
+            test_round=test_round,
+            round_payloads=get_participant_to_selection(self.participants),
+            state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                participant_to_selection=MappingProxyType(
+                    dict(get_participant_to_selection(self.participants))
+                )
             ),
-        ):
-            test_round.check_payload(
-                self.test_payload(sender="sender", keeper="keeper")
-            )
-
-        for payload in select_keeper_payloads.values():
-            test_round.process_payload(payload)
-        assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "keeper"
-
-        actual_next_state = self.period_state.update(
-            participant_to_selection=MappingProxyType(
-                dict(get_participant_to_selection(self.participants))
-            )
+            state_attr_checks=[lambda state: state.participant_to_selection.keys()],
+            most_voted_payload="keeper",
+            exit_event=Event.DONE,
         )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_selection.keys()
-            == cast(PeriodState, actual_next_state).participant_to_selection.keys()
-        )
-        assert event == Event.DONE
-
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = self.test_class(self.period_state, self.consensus_params)
-        self._test_no_majority_event(test_round)
 
 
 class TestSelectKeeperARound(BaseSelectKeeperRoundTest):

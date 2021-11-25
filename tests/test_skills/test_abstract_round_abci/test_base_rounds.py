@@ -26,6 +26,7 @@ from typing import (
     Callable,
     Dict,
     FrozenSet,
+    Generator,
     List,
     Mapping,
     Optional,
@@ -173,7 +174,7 @@ class BaseRoundTestClass:
     participants: FrozenSet[str]
     consensus_params: ConsensusParams
 
-    _period_state_class: Type[BasePeriodState] = BasePeriodState
+    _period_state_class: Type[BasePeriodState]
     _event_class: Any
 
     @classmethod
@@ -200,20 +201,49 @@ class BaseRoundTestClass:
 class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectDifferentUntilAllRound."""
 
-    _period_state_class: Type[BasePeriodState] = BasePeriodState
-
     def _test_round(
         self,
         test_round: CollectDifferentUntilAllRound,
-        round_payloads: Mapping[str, BaseTxPayload],
-    ) -> None:
+        round_payloads: List[BaseTxPayload],
+        state_update_fn: Callable,
+        state_attr_checks: List[Callable],
+        exit_event: Any,
+    ) -> Generator:
         """Test round."""
+
+        first_payload = round_payloads.pop(0)
+        test_round.process_payload(first_payload)
+        assert test_round.collection == {
+            first_payload.sender,
+        }
+        assert test_round.end_block() is None
+
+        for payload in round_payloads:
+            test_round.process_payload(payload)
+        assert test_round.collection_threshold_reached
+        yield test_round
+
+        actual_next_state = cast(
+            self._period_state_class,
+            state_update_fn(self.period_state, test_round),  # type: ignore
+        )
+
+        res = test_round.end_block()
+        yield res
+
+        if exit_event is None:
+            assert res is exit_event
+        else:
+            assert res is not None
+            state, event = res
+            state = cast(self._period_state_class, state)  # type: ignore
+            for state_attr_getter in state_attr_checks:
+                assert state_attr_getter(state) == state_attr_getter(actual_next_state)
+            assert event == exit_event
 
 
 class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectSameUntilThresholdRound."""
-
-    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
@@ -229,15 +259,17 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         (_, first_payload), *payloads = round_payloads.items()
 
         test_round.process_payload(first_payload)
+
+        assert test_round.collection[first_payload.sender] == first_payload
         assert not test_round.threshold_reached
         assert test_round.end_block() is None
+
         self._test_no_majority_event(test_round)
         with pytest.raises(ABCIAppInternalError, match="not enough votes"):
             _ = test_round.most_voted_payload
 
         for _, payload in payloads:
             test_round.process_payload(payload)
-
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == most_voted_payload
 
@@ -253,14 +285,11 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
 
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
-
         assert event == exit_event
 
 
 class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from OnlyKeeperSendsRound."""
-
-    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
@@ -294,8 +323,6 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
 
 class BaseVotingRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from VotingRound."""
-
-    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
@@ -381,8 +408,6 @@ class BaseVotingRoundTest(BaseRoundTestClass):
 
 class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
     """Tests for rounds derived from CollectDifferentUntilThresholdRound."""
-
-    _period_state_class: Type[BasePeriodState] = BasePeriodState
 
     def _test_round(
         self,
