@@ -67,7 +67,7 @@ class AMMNetDockerImage(DockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["run", "hardhat", "node", "--port", str(self.port)]
+        cmd = ["run", "hardhat", "extra-compile", "--port", str(self.port)]
         return cmd
 
     def create(self) -> Container:
