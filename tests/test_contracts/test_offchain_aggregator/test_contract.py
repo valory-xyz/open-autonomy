@@ -170,7 +170,7 @@ class TestDeployTransaction(BaseContractTest):
         sender = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
         )
-        # note: sender.address == self.transmitters()[0]  # noqa:  E800
+        assert sender.address == self.transmitters()[0]
         tx_signed = sender.sign_transaction(result)
         tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
         assert tx_hash is not None, "Tx hash is none"
