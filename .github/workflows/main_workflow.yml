@@ -100,11 +100,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - name: Checkout submodules
+      - name: Checkout submodule 1
         uses: actions/checkout@v2
         with:
-          submodules: recursive
+          repository: valory-xyz/contracts-amm
           token: ${{ secrets.ACCESS_TOKEN }}
+          path: third_party
+      - name: Checkout submodule 2
+        uses: actions/checkout@v2
+        with:
+          repository: gnosis/safe-contracts
+          path: third_party
       - uses: actions/setup-python@master
         with:
           submodules: recursive
