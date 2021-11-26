@@ -3,4 +3,4 @@
 	url = https://github.com/gnosis/safe-contracts
 [submodule "third_party/contracts-amm"]
 	path = third_party/contracts-amm
-	url = https://github.com:valory-xyz/contracts-amm
+	url = https://github.com/valory-xyz/contracts-amm
