@@ -514,7 +514,7 @@ class TestBehaviour(APYEstimationBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
         if self._async_result.ready() is False:
-            self.context.logger.debug("The training task is not finished yet.")
+            self.context.logger.debug("The testing task is not finished yet.")
             yield from self.sleep(self.params.sleep_time)
 
         else:
