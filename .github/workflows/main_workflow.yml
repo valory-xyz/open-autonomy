@@ -101,7 +101,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Checkout submodules
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
