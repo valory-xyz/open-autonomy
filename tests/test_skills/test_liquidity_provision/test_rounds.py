@@ -20,16 +20,9 @@
 """Tests for rounds.py file in valory/liquidity_provision."""
 
 from types import MappingProxyType
-from typing import FrozenSet, Mapping, cast  # noqa : F401
+from typing import Dict, FrozenSet, Mapping  # noqa : F401
 from unittest import mock
 
-import pytest
-
-from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
-    AbstractRound,
-    ConsensusParams,
-)
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
 )
@@ -44,6 +37,12 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
 )
 from packages.valory.skills.price_estimation_abci.payloads import FinalizationTxPayload
 
+from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+    BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectSameUntilThresholdRoundTest,
+    BaseOnlyKeeperSendsRoundTest,
+    BaseVotingRoundTest,
+)
 from tests.test_skills.test_price_estimation_abci.test_rounds import (
     get_participant_to_signature,
     get_participant_to_tx_hash,
@@ -71,34 +70,11 @@ def get_participant_to_strategy(
     )
 
 
-class BaseRoundTestClass:
-    """Base test class for Rounds."""
-
-    period_state: PeriodState
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()  # type: ignore
-        cls.period_state = PeriodState(participants=cls.participants)
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            _, event = result
-            assert event == Event.NO_MAJORITY
-
-
-class TestTransactionHashBaseRound(BaseRoundTestClass):
+class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionHashBaseRound"""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -106,43 +82,30 @@ class TestTransactionHashBaseRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
-        (sender, first_payload), *payloads = get_participant_to_tx_hash(
-            self.participants
-        ).items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        with pytest.raises(ABCIAppInternalError, match="not enough votes"):
-            _ = test_round.most_voted_payload
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "tx_hash"
-
-        actual_next_state = self.period_state.update(
-            participant_to_tx_hash=MappingProxyType(
-                get_participant_to_tx_hash(self.participants)
-            ),
-            most_voted_tx_hash=test_round.most_voted_payload,
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_tx_hash(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_tx_hash=MappingProxyType(
+                        get_participant_to_tx_hash(self.participants)
+                    ),
+                    most_voted_tx_hash=_test_round.most_voted_payload,
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_tx_hash.keys(),
+                ],
+                most_voted_payload="tx_hash",
+                exit_event=Event.DONE,
+            )
         )
 
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_tx_hash.keys()
-            == cast(PeriodState, actual_next_state).participant_to_tx_hash.keys()
-        )
-        assert event == Event.DONE
 
-
-class TestTransactionSignatureBaseRound(BaseRoundTestClass):
+class TestTransactionSignatureBaseRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test TransactionSignatureBaseRound."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -151,71 +114,70 @@ class TestTransactionSignatureBaseRound(BaseRoundTestClass):
         test_round = TransactionSignatureBaseRound(
             self.period_state, self.consensus_params
         )
-        (sender, first_payload), *payloads = get_participant_to_signature(
-            self.participants
-        ).items()
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_tx_hash(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_signature=MappingProxyType(
+                        get_participant_to_signature(self.participants)
+                    ),
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_signature.keys(),
+                ],
+                exit_event=Event.DONE,
+            )
+        )
 
-        test_round.process_payload(first_payload)
-        assert not test_round.collection_threshold_reached
+    def test_no_majority(
+        self,
+    ) -> None:
+        """Test no majority."""
+        test_round = TransactionSignatureBaseRound(
+            self.period_state, self.consensus_params
+        )
         self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.collection_threshold_reached
-        actual_next_state = self.period_state.update(
-            participant_to_signature=MappingProxyType(
-                get_participant_to_signature(self.participants)
-            ),
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_signature.keys()
-            == cast(PeriodState, actual_next_state).participant_to_signature.keys()
-        )
-        assert event == Event.DONE
 
 
-class TestTransactionSendBaseRound(BaseRoundTestClass):
+class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
     """Test TransactionSendBaseRound."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
+        keeper_payload = FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
         test_round = TransactionSendBaseRound(
             self.period_state.update(
-                most_voted_keeper_address="agent_0",
+                most_voted_keeper_address=keeper_payload.sender,
             ),
             self.consensus_params,
         )
-
-        assert test_round.end_block() is None
-        test_round.process_payload(
-            FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                keeper_payloads=keeper_payload,
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    final_tx_hash=_test_round.keeper_payload
+                ),
+                state_attr_checks=[
+                    lambda state: state.final_tx_hash,
+                ],
+                exit_event=Event.DONE,
+            )
         )
 
-        actual_next_state = self.period_state.update(
-            final_tx_hash=test_round.keeper_payload
-        )
 
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).final_tx_hash
-            == cast(PeriodState, actual_next_state).final_tx_hash
-        )
-        assert event == Event.DONE
-
-
-class TestTransactionValidationBaseRound(BaseRoundTestClass):
+class TestTransactionValidationBaseRound(BaseVotingRoundTest):
     """Test TransactionValidationBaseRound"""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
@@ -224,33 +186,21 @@ class TestTransactionValidationBaseRound(BaseRoundTestClass):
         test_round = TransactionValidationBaseRound(
             self.period_state, self.consensus_params
         )
-        (sender, first_payload), *payloads = get_participant_to_votes(
-            self.participants
-        ).items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.positive_vote_threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
-        actual_next_state = self.period_state.update(
-            participant_to_votes=MappingProxyType(
-                get_participant_to_votes(self.participants)
-            ),
+        self._complete_run(
+            self._test_voting_round_positive(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_votes=MappingProxyType(
+                        get_participant_to_votes(self.participants)
+                    ),
+                ),
+                state_attr_checks=[
+                    lambda state: state.participant_to_votes.keys(),
+                ],
+                exit_event=Event.DONE,
+            )
         )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_votes.keys()
-            == cast(PeriodState, actual_next_state).participant_to_votes.keys()
-        )
-        assert event == Event.DONE
 
     def test_negative_votes(
         self,
@@ -259,67 +209,102 @@ class TestTransactionValidationBaseRound(BaseRoundTestClass):
         test_round = TransactionValidationBaseRound(
             self.period_state, self.consensus_params
         )
-        (sender, first_payload), *payloads = get_participant_to_votes(
-            self.participants, False
-        ).items()
-
-        test_round.process_payload(first_payload)
-        assert not test_round.negative_vote_threshold_reached
-        self._test_no_majority_event(test_round)
-        assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.negative_vote_threshold_reached
-
-        res = test_round.end_block()
-        assert res is not None
-
-        _, event = res
-        assert event == Event.EXIT
+        self._complete_run(
+            self._test_voting_round_negative(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants, False),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_votes=MappingProxyType(
+                        get_participant_to_votes(self.participants)
+                    ),
+                ),
+                state_attr_checks=[
+                    lambda state: None,
+                ],
+                exit_event=Event.EXIT,
+            )
+        )
 
 
-class TestStrategyEvaluationRound(BaseRoundTestClass):
+class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
     """Test StrategyEvaluationRound"""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
         test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
-
-        (sender, first_payload), *payloads = get_participant_to_strategy(
-            self.participants
-        ).items()
-
-        test_round.process_payload(first_payload)
-        mock_obj = mock.patch.object(
+        with mock.patch.object(
             StrategyEvaluationPayload, "strategy", return_value="strategy"
-        )
-
-        with mock_obj:
-            assert not test_round.threshold_reached
-            self._test_no_majority_event(test_round)
-            assert test_round.end_block() is None
-
-        for _, payload in payloads:
-            test_round.process_payload(payload)
-
-        with mock_obj:
-            assert test_round.threshold_reached
-            actual_next_state = self.period_state.update(
-                participant_to_strategy=get_participant_to_strategy(self.participants),
-                most_voted_strategy=test_round.most_voted_payload,
+        ):
+            self._complete_run(
+                self._test_round(
+                    test_round=test_round,
+                    round_payloads=get_participant_to_strategy(self.participants),
+                    state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                        participant_to_strategy=get_participant_to_strategy(
+                            self.participants
+                        ),
+                        most_voted_strategy=test_round.most_voted_payload,
+                    ),
+                    state_attr_checks=[
+                        lambda state: state.participant_to_strategy.keys(),
+                    ],
+                    most_voted_payload=StrategyEvaluationPayload.strategy,
+                    exit_event=Event.RESET_TIMEOUT,
+                )
             )
 
-        with mock_obj:
-            res = test_round.end_block()
 
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_strategy.keys()
-            == cast(PeriodState, actual_next_state).participant_to_strategy.keys()
-        )
-        assert event == Event.RESET_TIMEOUT
+def test_period_state() -> None:
+    """Test PeriodState."""
+
+    participants = get_participants()
+    period_count = 0
+    period_setup_params: Dict = {}
+    most_voted_strategy: Dict = {}
+    most_voted_keeper_address = "0x_keeper"
+    safe_contract_address = "0x_contract"
+    multisend_contract_address = "0x_multisend"
+    most_voted_tx_hash = "tx_hash"
+    final_tx_hash = "tx_hash"
+    participant_to_votes = get_participant_to_votes(participants)
+    participant_to_tx_hash = get_participant_to_tx_hash(participants)
+    participant_to_signature = get_participant_to_signature(participants)
+    participant_to_strategy = get_participant_to_strategy(participants)
+
+    period_state = PeriodState(
+        participants=participants,
+        period_count=period_count,
+        period_setup_params=period_setup_params,
+        most_voted_strategy=most_voted_strategy,
+        most_voted_keeper_address=most_voted_keeper_address,
+        safe_contract_address=safe_contract_address,
+        multisend_contract_address=multisend_contract_address,
+        most_voted_tx_hash=most_voted_tx_hash,
+        final_tx_hash=final_tx_hash,
+        participant_to_votes=participant_to_votes,
+        participant_to_tx_hash=participant_to_tx_hash,
+        participant_to_signature=participant_to_signature,
+        participant_to_strategy=participant_to_strategy,
+    )
+
+    assert period_state.participants == participants
+    assert period_state.period_count == period_count
+    assert period_state.period_setup_params == period_setup_params
+    assert period_state.most_voted_strategy == most_voted_strategy
+    assert period_state.most_voted_keeper_address == most_voted_keeper_address
+    assert period_state.safe_contract_address == safe_contract_address
+    assert period_state.multisend_contract_address == multisend_contract_address
+    assert period_state.most_voted_tx_hash == most_voted_tx_hash
+    assert period_state.final_tx_hash == final_tx_hash
+    assert period_state.participant_to_votes == participant_to_votes
+    assert period_state.participant_to_tx_hash == participant_to_tx_hash
+    assert period_state.participant_to_signature == participant_to_signature
+    assert period_state.participant_to_strategy == participant_to_strategy
+
+    period_state = period_state.reset()
+    assert period_state.participants == period_state.participants
