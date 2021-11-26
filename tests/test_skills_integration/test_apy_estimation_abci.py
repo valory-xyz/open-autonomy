@@ -63,52 +63,52 @@ states_checks_config = {
     "registration": {
         "state_name": "registration",
         "extra_logs": (),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "collect_history": {
         "state_name": "collect_history",
         "extra_logs": ("Retrieved top ", "Retrieved block: ", "Retrieved ETH price for block ", "Retrieved top "),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "transform": {
         "state_name": "transform",
         "extra_logs": ("Data have been transformed. Showing the first row:\n",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "preprocess": {
         "state_name": "preprocess",
         "extra_logs": ("Data have been preprocessed.",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "optimize": {
         "state_name": "optimize",
         "extra_logs": ("Optimization has finished. Showing the results:\n",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "train": {
         "state_name": "train",
         "extra_logs": ("Training has finished.",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "test": {
         "state_name": "test",
         "extra_logs": ("Testing has finished. Report follows:\n",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "full_train": {
         "state_name": "train",
         "extra_logs": ("Training has finished.",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "estimate": {
         "state_name": "estimate",
         "extra_logs": ("Got estimate of APY for ",),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
     "reset_and_pause": {
         "state_name": "reset_and_pause",
         "extra_logs": ("Finalized estimate: ", "Period end."),
-        "only_at_first_period": True,
+        "only_at_first_period": False,
     },
 }
 
