@@ -106,11 +106,15 @@ jobs:
           repository: valory-xyz/contracts-amm
           token: ${{ secrets.ACCESS_TOKEN }}
           path: third_party
+          clean: False
+          submodules: recursive
       - name: Checkout submodule 2
         uses: actions/checkout@v2
         with:
           repository: gnosis/safe-contracts
           path: third_party
+          clean: False
+          submodules: recursive
       - uses: actions/setup-python@master
         with:
           submodules: recursive
