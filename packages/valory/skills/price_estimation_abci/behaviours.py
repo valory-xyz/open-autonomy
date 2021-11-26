@@ -64,6 +64,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     RandomnessRound,
     RandomnessStartupRound,
     RegistrationRound,
+    RegistrationStartupRound,
     ResetAndPauseRound,
     ResetRound,
     SelectKeeperARound,
@@ -111,16 +112,18 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
 
     _check_started: Optional[datetime.datetime] = None
     _timeout: float
+    _is_healthy: bool
 
     def start(self) -> None:
         """Set up the behaviour."""
         if self._check_started is None:
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
+            self._is_healthy = False
 
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
-        if self._check_started is None:
+        if self._check_started is None or self._is_healthy:
             return False  # pragma: no cover
         return datetime.datetime.now() > self._check_started + datetime.timedelta(
             0, self._timeout
@@ -132,12 +135,21 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
+        if not self._is_healthy:
+            health = yield from self._get_health()
+            try:
+                json_body = json.loads(health.body.decode())
+            except json.JSONDecodeError:
+                self.context.logger.error("Tendermint not running yet, trying again!")
+                yield from self.sleep(self.params.sleep_time)
+                return
+            self._is_healthy = True
         status = yield from self._get_status()
         try:
             json_body = json.loads(status.body.decode())
         except json.JSONDecodeError:
             self.context.logger.error(
-                "Tendermint not running or accepting transactions yet, trying again!"
+                "Tendermint not accepting transactions yet, trying again!"
             )
             yield from self.sleep(self.params.sleep_time)
             return
@@ -154,11 +166,8 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
-class RegistrationBehaviour(PriceEstimationBaseState):
-    """Register to the next round."""
-
-    state_id = "register"
-    matching_round = RegistrationRound
+class RegistrationBaseBehaviour(PriceEstimationBaseState):
+    """Register to the next periods."""
 
     def async_act(self) -> Generator:
         """
@@ -183,6 +192,20 @@ class RegistrationBehaviour(PriceEstimationBaseState):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+
+class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
+    """Register to the next periods."""
+
+    state_id = "register_startup"
+    matching_round = RegistrationStartupRound
+
+
+class RegistrationBehaviour(RegistrationBaseBehaviour):
+    """Register to the next periods."""
+
+    state_id = "register"
+    matching_round = RegistrationRound
 
 
 class RandomnessBehaviour(PriceEstimationBaseState):
@@ -394,6 +417,8 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
             owners=owners,
             threshold=threshold,
             deployer_address=self.context.agent_address,
+            gas=10 ** 7,
+            gas_price=10 ** 10,  # TOFIX
         )
         if (
             contract_api_response.performative
@@ -493,6 +518,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
+            gas_price=10 ** 10,  # TOFIX
         )
         if (
             contract_api_response.performative
@@ -1091,7 +1117,7 @@ class BaseResetBehaviour(PriceEstimationBaseState):
             self.context.logger.info("Period end.")
             benchmark_tool.save()
 
-            yield from self.sleep(self.params.observation_interval)
+            yield from self.wait_from_last_timestamp(self.params.observation_interval)
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
@@ -1130,6 +1156,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
+        RegistrationStartupBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
         SelectKeeperAAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore

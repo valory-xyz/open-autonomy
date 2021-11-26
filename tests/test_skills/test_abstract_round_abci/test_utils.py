@@ -18,9 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the utils.py module of the skill."""
+import os
+import tempfile
+from pathlib import Path
+from unittest import mock
 
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.skills.abstract_round_abci.utils import locate
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, locate
 
 from tests.helpers.base import cd
 from tests.helpers.constants import ROOT_DIR
@@ -60,3 +64,28 @@ class TestLocate:
 
         result = locate("ThisClassDoesNotExist")
         assert result is None
+
+
+class TestBenchmark:
+    """Test the benchmark class."""
+
+    def test_end_2_end(self) -> None:
+        """Test end 2 end of the tool."""
+        benchmark = BenchmarkTool()
+        assert type(benchmark.data) == dict
+
+        with mock.patch.object(benchmark.logger, "info") as mock_info:
+            benchmark.log()
+            mock_info.assert_called_with("Agent Address : None")
+
+        benchmark.save()
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = Path(tempdir, "logs")
+            os.makedirs(path)
+            curdir = os.getcwd()
+            os.chdir(tempdir)
+            try:
+                benchmark.save()
+            finally:
+                os.chdir(curdir)

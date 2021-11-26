@@ -8,14 +8,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  base.py: QmUDGUrvcZWKRnQV3NprfhfqU5fmdHUM5TkzggSwBhnVU9
-  behaviour_utils.py: QmedgpvUB17N3X84q8GRwVUXnEye6xLTDkEnMY8E8xxEss
+  base.py: QmbYY27S1RPm6QcNX9ErcdwAG2qP7r5piR1JjN2p4gd8VR
+  behaviour_utils.py: QmPWNPKrhMWvqu7yFE8KM4JJYoChVKZNjXXj3yiLgNSbDF
   behaviours.py: QmPcrdPCqeo3j8LWLX3wU8GvgXaDfMqvieUX6eHaL9Gc3M
   dialogues.py: QmYfj3fqnexykT5WgaEXfprK3BWC1Y2eE9LDzkVyPnyr6o
   handlers.py: QmcS8YRzVATDtg1pmjVveaToZPRocDqSwJMCsWqxeybuAs
   models.py: QmRXu2E3HQdAWzgVpUWpXhgjrr3jsfjgp5NH64q9jueqwJ
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
-  utils.py: QmRjzBXP8yBuJn9uuvr1NvHEtwWGDbDkXgU51fpW5uE2Qw
+  utils.py: QmPrUK572cm3K5YPB5mhoeAzaTKmsjUAmdDginV3EBsC8q
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

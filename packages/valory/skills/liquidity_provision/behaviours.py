@@ -21,14 +21,21 @@
 import binascii
 import pprint
 from abc import ABC
-from typing import Generator, Mapping, Optional, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
-from aea_ledger_ethereum import EthereumApi
+from aea.crypto.registries import crypto_registry
+from aea_ledger_ethereum import EthereumApi, EthereumCrypto
+from hexbytes import HexBytes
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.gnosis_safe.contract import (
-    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
+from packages.valory.contracts.multisend.contract import (
+    MultiSendContract,
+    MultiSendOperation,
+)
+from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
+from packages.valory.contracts.uniswap_v2_router_02.contract import (
+    UniswapV2Router02Contract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -38,51 +45,27 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
-    AllowanceCheckPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
-    AddAllowanceSelectKeeperRound,
-    AddAllowanceSendRound,
-    AddAllowanceSignatureRound,
-    AddAllowanceTransactionHashRound,
-    AddAllowanceValidationRound,
-    AddLiquiditySelectKeeperRound,
-    AddLiquiditySendRound,
-    AddLiquiditySignatureRound,
-    AddLiquidityTransactionHashRound,
-    AddLiquidityValidationRound,
-    AllowanceCheckRound,
+    DeploySafeRandomnessRound,
+    DeploySafeSelectKeeperRound,
+    EnterPoolRandomnessRound,
+    EnterPoolSelectKeeperRound,
+    EnterPoolTransactionHashRound,
+    EnterPoolTransactionSendRound,
+    EnterPoolTransactionSignatureRound,
+    EnterPoolTransactionValidationRound,
+    ExitPoolRandomnessRound,
+    ExitPoolSelectKeeperRound,
+    ExitPoolTransactionHashRound,
+    ExitPoolTransactionSendRound,
+    ExitPoolTransactionSignatureRound,
+    ExitPoolTransactionValidationRound,
     LiquidityProvisionAbciApp,
     PeriodState,
-    RemoveAllowanceSelectKeeperRound,
-    RemoveAllowanceSendRound,
-    RemoveAllowanceSignatureRound,
-    RemoveAllowanceTransactionHashRound,
-    RemoveAllowanceValidationRound,
-    RemoveLiquiditySelectKeeperRound,
-    RemoveLiquiditySendRound,
-    RemoveLiquiditySignatureRound,
-    RemoveLiquidityTransactionHashRound,
-    RemoveLiquidityValidationRound,
-    SelectKeeperMainRound,
     StrategyEvaluationRound,
-    SwapBackSelectKeeperRound,
-    SwapBackSendRound,
-    SwapBackSignatureRound,
-    SwapBackTransactionHashRound,
-    SwapBackValidationRound,
-    SwapSelectKeeperRound,
-    SwapSendRound,
-    SwapSignatureRound,
-    SwapTransactionHashRound,
-    SwapValidationRound,
-    TransactionHashBaseRound,
-    TransactionSendBaseRound,
-    TransactionSignatureBaseRound,
-    TransactionValidationBaseRound,
-    WaitRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeploySafeBehaviour as DeploySafeSendBehaviour,
@@ -92,6 +75,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     RegistrationBehaviour,
+    ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
     TendermintHealthcheckBehaviour,
@@ -105,17 +89,15 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import RandomnessRound
 
+
+TEMP_GAS = 10 ** 7  # TOFIX
+TEMP_GAS_PRICE = 0.1  # TOFIX
+ETHER_VALUE = 0  # TOFIX
+MAX_ALLOWANCE = 2 ** 256 - 1
+CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 
 benchmark_tool = BenchmarkTool()
-
-
-class RandomnessBehaviour(RandomnessBehaviourPriceEstimation):
-    """Get randomness."""
-
-    state_id = "randomness"
-    matching_round = RandomnessRound
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -132,55 +114,8 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class TransactionHashBaseBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare transaction hash."""
-
-    state_id = "swap_tx_hash"
-    matching_round = TransactionHashBaseRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Request the transaction hash for the transaction. This is the hash that needs to be signed by a threshold of agents.
-        - Send the transaction hash as a transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            data = self.period_state.encoded_most_voted_swap_tx_hash
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address="",
-                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-                contract_callable="get_raw_safe_transaction_hash",
-                to_address="",
-                value=0,
-                data=data,
-            )
-            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
-            safe_tx_hash = safe_tx_hash[2:]
-            self.context.logger.info(f"Hash of the Swap transaction: {safe_tx_hash}")
-            payload = TransactionHashPayload(self.context.agent_address, safe_tx_hash)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
 class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """Signature base behaviour."""
-
-    state_id = "signature"
-    matching_round = TransactionSignatureBaseRound
 
     def async_act(self) -> Generator:
         """
@@ -197,7 +132,7 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             self.context.logger.info(
-                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_swap_tx_hash}"
+                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
@@ -214,7 +149,7 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(
-            self.period_state.most_voted_swap_tx_hash[:64]
+            self.period_state.most_voted_tx_hash[:64]
         )
         self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
         signature_response = yield from self.wait_for_message()
@@ -227,10 +162,6 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
 class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """Finalize state."""
-
-    state_id = "tx_send"
-    matching_round = TransactionSendBaseRound
-    participants = {}  # type: Mapping[str, SignaturePayload]
 
     def async_act(self) -> Generator[None, None, None]:
         """
@@ -264,12 +195,14 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 "I am the designated sender, sending the safe transaction..."
             )
             tx_hash = yield from self._send_safe_transaction()
-            if tx_hash is None:
+            if tx_hash is None:  # pragma: nocover
                 raise RuntimeError("This needs to be fixed!")  # TOFIX
             self.context.logger.info(
                 f"Transaction hash of the final transaction: {tx_hash}"
             )
-            self.context.logger.info(f"Signatures: {pprint.pformat(self.participants)}")
+            self.context.logger.info(
+                f"Signatures: {pprint.pformat(self.period_state.participants)}"
+            )
             payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
 
         with benchmark_tool.measure(
@@ -291,7 +224,8 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             signatures_by_owner={
-                key: payload.signature for key, payload in self.participants.items()
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
             },
         )
         tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
@@ -303,12 +237,6 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
 class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
     """ValidateTransaction."""
-
-    state_id = "validate_transaction"
-    matching_round = TransactionValidationBaseRound
-    final_tx_hash = ""
-    data = {}  # type: dict
-    participants = {}  # type: Mapping[str, SignaturePayload]
 
     def async_act(self) -> Generator:
         """
@@ -338,19 +266,19 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.final_swap_tx_hash,
+            self.period_state.final_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.info(
-                f"tx {self.period_state.final_swap_tx_hash} receipt check timed out!"
+                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
         is_settled = EthereumApi.is_transaction_settled(response)
         if not is_settled:  # pragma: nocover
             self.context.logger.info(
-                f"tx {self.period_state.final_swap_tx_hash} not settled!"
+                f"tx {self.period_state.final_tx_hash} not settled!"
             )
             return False
         contract_api_msg = yield from self.get_contract_api_response(
@@ -358,12 +286,12 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="verify_tx",
-            tx_hash=self.period_state.final_swap_tx_hash,
+            tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
             signatures_by_owner={
                 key: payload.signature
-                for key, payload in self.period_state.participant_to_swap_signature.items()
+                for key, payload in self.period_state.participant_to_signature.items()
             },
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
@@ -378,20 +306,44 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         return verified
 
 
-class SelectKeeperMainBehaviour(SelectKeeperBehaviour):
+class DeploySafeRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "deploy_safe_randomness"
+    matching_round = DeploySafeRandomnessRound
+
+
+class DeploySafeSelectKeeperBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_main"
-    matching_round = SelectKeeperMainRound
+    state_id = "deploy_safe_select_keeper"
+    matching_round = DeploySafeSelectKeeperRound
 
 
 def get_strategy_update() -> dict:
     """Get a strategy update."""
     strategy = {
         "action": StrategyType.GO,
-        "pair": ["FTM", "BOO"],
-        "pool": "0x0000000000000000000000000000",
-        "amountETH": 0.1,  # Be careful with floats and determinism here
+        "chain": "Fantom",
+        "base": {"address": "0xUSDT_ADDRESS", "balance": 100},
+        "pair": {
+            "token_a": {
+                "ticker": "FTM",
+                "address": "0xFTM_ADDRESS",
+                "amount": 1,
+                "amount_min": 1,
+                # If any, only token_a can be the native one (ETH, FTM...)
+                "is_native": True,
+            },
+            "token_b": {
+                "ticker": "BOO",
+                "address": "0xBOO_ADDRESS",
+                "amount": 1,
+                "amount_min": 1,
+            },
+        },
+        "router_address": "0x0000000000000000000000000000",
+        "liquidity_to_remove": 1,
     }
     return strategy
 
@@ -410,16 +362,16 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = get_strategy_update()
-            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
-
-            if strategy["action"] == StrategyType.WAIT:
+            if strategy["action"] == StrategyType.WAIT:  # pragma: nocover
                 self.context.logger.info("Current strategy is still optimal. Waiting.")
 
             if strategy["action"] == StrategyType.GO:
                 self.context.logger.info(
-                    f"Performing strategy update: moving {strategy['amountETH']} into "
-                    "{strategy['pair'][0]}-{strategy['pair'][1]} (pool {strategy['pool']})"
+                    "Performing strategy update: moving into "
+                    + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
                 )
+            strategy["action"] = strategy["action"].value  # type: ignore
+            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
 
         with benchmark_tool.measure(
             self,
@@ -430,71 +382,226 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class WaitBehaviour(LiquidityProvisionBaseBehaviour):
-    """Wait until next strategy evaluation."""
+class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
+    """Prepare the 'enter pool' multisend tx."""
 
-    state_id = "wait"
-    matching_round = WaitRound
-
-
-class SwapSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "swap_select_keeper"
-    matching_round = SwapSelectKeeperRound
-
-
-class SwapTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Swap tokens: prepare transaction hash."""
-
-    state_id = "swap_tx_hash"
-    matching_round = SwapTransactionHashRound
-
-
-class SwapSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Swap tokens: sign the transaction."""
-
-    state_id = "swap_signature"
-    matching_round = SwapSignatureRound
-
-
-class SwapSendBehaviour(TransactionSendBaseBehaviour):
-    """Swap tokens: send the transaction."""
-
-    state_id = "swap_send"
-    matching_round = SwapSendRound
-
-
-class SwapValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Swap tokens: validate the tx."""
-
-    state_id = "swap_validation"
-    matching_round = SwapValidationRound
-
-
-def get_allowance() -> int:
-    """Get the allowance."""
-    return 0
-
-
-class AllowanceCheckBehaviour(LiquidityProvisionBaseBehaviour):
-    """Check the current token allowance."""
-
-    state_id = "allowance_check"
-    matching_round = AllowanceCheckRound
+    state_id = "enter_pool_tx_hash"
+    matching_round = EnterPoolTransactionHashRound
 
     def async_act(self) -> Generator:
-        """Do the action."""
-        allowance = get_allowance()
-        payload = AllowanceCheckPayload(self.context.agent_address, allowance)
+        """
+        Do the action.
 
-        if allowance == self.period_state.most_voted_strategy["amountETH"]:
-            self.context.logger.info(
-                "Insufficient allowance. Transitioning to allowance increase."
+        Steps:
+        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+
+            strategy = self.period_state.most_voted_strategy
+
+            # Prepare a uniswap tx list. We should check what token balances we have at this point.
+            # It is possible that we don't need to swap. For now let's assume we have just USDT
+            # and always swap back to it.
+            multi_send_txs = []
+
+            # Swap first token (can be native or not)
+            method_name = (
+                "swap_exact_tokens_for_ETH"
+                if strategy["pair"]["token_a"]["is_native"]
+                else "swap_exact_tokens_for_tokens"
             )
-        else:
-            self.context.logger.info(
-                "Sufficient allowance. Transitioning to add liquidity."
+
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["router_address"],
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name=method_name,
+                amount_in=int(strategy["pair"]["token_a"]["amount"]),
+                amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                path=[
+                    strategy["base"]["address"],
+                    strategy["pair"]["token_a"]["address"],
+                ],
+                to=self.period_state.safe_contract_address,
+                deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+            )
+            swap_a_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(swap_a_data)),
+                }
+            )
+
+            # Swap second token (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["router_address"],
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="swap_exact_tokens_for_tokens",
+                amount_in=int(strategy["pair"]["token_b"]["amount"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                path=[
+                    strategy["base"]["address"],
+                    strategy["pair"]["token_b"]["address"],
+                ],
+                to=self.period_state.safe_contract_address,
+                deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+            )
+            swap_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(swap_b_data)),
+                }
+            )
+
+            # Add allowance for token A (can be native or not)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_a"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=strategy["router_address"],
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=MAX_ALLOWANCE,
+            )
+            allowance_a_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_a_data)),
+                }
+            )
+
+            # Add allowance for token B (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_b"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=strategy["router_address"],
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=MAX_ALLOWANCE,
+            )
+            allowance_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_b_data)),
+                }
+            )
+
+            # Add liquidity
+            if strategy["pair"]["token_a"]["is_native"]:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="add_liquidity_ETH",
+                    token=strategy["pair"]["token_b"]["address"],
+                    amount_token_desired=int(strategy["pair"]["token_b"]["amount"]),
+                    amount_token_min=int(
+                        strategy["pair"]["token_b"]["amount_min"] * 0.99
+                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    amount_ETH_min=int(
+                        strategy["pair"]["token_a"]["amount_min"] * 0.99
+                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    to=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(liquidity_data)),
+                    }
+                )
+
+            else:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="add_liquidity",
+                    token_a=strategy["pair"]["token_a"]["address"],
+                    token_b=strategy["pair"]["token_b"]["address"],
+                    amount_a_desired=int(strategy["pair"]["token_a"]["amount"]),
+                    amount_b_desired=int(strategy["pair"]["token_b"]["amount"]),
+                    amount_a_min=int(
+                        strategy["pair"]["token_a"]["amount_min"] * 0.99
+                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    amount_b_min=int(
+                        strategy["pair"]["token_b"]["amount_min"] * 0.99
+                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    to=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(liquidity_data)),
+                    }
+                )
+
+            # Get the tx list data from multisend contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(MultiSendContract.contract_id),
+                contract_callable="get_tx_data",
+                multi_send_txs=multi_send_txs,
+            )
+            multisend_data = contract_api_msg.raw_transaction.body["data"]
+
+            # Get the tx hash from Gnosis Safe contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address=self.period_state.multisend_contract_address,
+                value=ETHER_VALUE,
+                data=multisend_data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(
+                sender=self.context.agent_address, tx_hash=safe_tx_hash
             )
 
         with benchmark_tool.measure(
@@ -506,179 +613,317 @@ class AllowanceCheckBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class AddAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "add_allowance_select_keeper"
-    matching_round = AddAllowanceSelectKeeperRound
-
-
-class AddAllowanceTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Approve token: prepare transaction hash."""
-
-    state_id = "add_allowance_tx_hash"
-    matching_round = AddAllowanceTransactionHashRound
-
-
-class AddAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Approve token: sign the transaction."""
-
-    state_id = "add_allowance_signature"
-    matching_round = AddAllowanceSignatureRound
-
-
-class AddAllowanceSendBehaviour(TransactionSendBaseBehaviour):
-    """Approve token: send the transaction."""
-
-    state_id = "add_allowance_send"
-    matching_round = AddAllowanceSendRound
-
-
-class AddAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Approve token: validate the tx."""
-
-    state_id = "add_allowance_validation"
-    matching_round = AddAllowanceValidationRound
-
-
-class AddLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "add_liquidity_select_keeper"
-    matching_round = AddLiquiditySelectKeeperRound
-
-
-class AddLiquidityTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Enter liquidity pool: prepare transaction hash."""
-
-    state_id = "add_liquidity_tx_hash"
-    matching_round = AddLiquidityTransactionHashRound
-
-
-class AddLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Enter liquidity pool: sign the transaction."""
-
-    state_id = "add_liquidity_signature"
-    matching_round = AddLiquiditySignatureRound
-
-
-class AddLiquiditySendBehaviour(TransactionSendBaseBehaviour):
-    """Enter liquidity pool: send the transaction."""
-
-    state_id = "add_liquidity_send"
-    matching_round = AddLiquiditySendRound
-
-
-class AddLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Enter liquidity pool: validate the tx."""
-
-    state_id = "add_liquidity_validation"
-    matching_round = AddLiquidityValidationRound
-
-
-class RemoveLiquiditySelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "remove_liquidity_select_keeper"
-    matching_round = RemoveLiquiditySelectKeeperRound
-
-
-class RemoveLiquidityTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Leave liquidity pool: prepare transaction hash."""
-
-    state_id = "remove_liquidity_tx_hash"
-    matching_round = RemoveLiquidityTransactionHashRound
-
-
-class RemoveLiquiditySignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Leave liquidity pool: sign the transaction."""
-
-    state_id = "remove_liquidity_signature"
-    matching_round = RemoveLiquiditySignatureRound
-
-
-class RemoveLiquiditySendBehaviour(TransactionSendBaseBehaviour):
-    """Leave liquidity pool: send the transaction."""
-
-    state_id = "remove_liquidity_send"
-    matching_round = RemoveLiquiditySendRound
-
-
-class RemoveLiquidityValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Leave liquidity pool: validate the tx."""
-
-    state_id = "remove_liquidity_validation"
-    matching_round = RemoveLiquidityValidationRound
-
-
-class RemoveAllowanceSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "remove_allowance_select_keeper"
-    matching_round = RemoveAllowanceSelectKeeperRound
-
-
-class RemoveAllowanceTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Cancel token allowance: prepare transaction hash."""
-
-    state_id = "remove_allowance_tx_hash"
-    matching_round = RemoveAllowanceTransactionHashRound
-
-
-class RemoveAllowanceSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Cancel token allowance: sign the transaction."""
-
-    state_id = "remove_allowance_signature"
-    matching_round = RemoveAllowanceSignatureRound
-
-
-class RemoveAllowanceSendBehaviour(TransactionSendBaseBehaviour):
-    """Cancel token allowance: send the transaction."""
-
-    state_id = "remove_allowance_send"
-    matching_round = RemoveAllowanceSendRound
-
-
-class RemoveAllowanceValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Cancel token allowance: validate the tx."""
-
-    state_id = "remove_allowance_validation"
-    matching_round = RemoveAllowanceValidationRound
-
-
-class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "swap_back_select_keeper"
-    matching_round = SwapBackSelectKeeperRound
-
-
-class SwapBackTransactionHashBehaviour(TransactionHashBaseBehaviour):
-    """Swap tokens back to original holdings: prepare transaction hash."""
-
-    state_id = "swap_back_tx_hash"
-    matching_round = SwapBackTransactionHashRound
-
-
-class SwapBackSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Swap tokens back to original holdings: sign the transaction."""
-
-    state_id = "swap_back_signature"
-    matching_round = SwapBackSignatureRound
-
-
-class SwapBackSendBehaviour(TransactionSendBaseBehaviour):
-    """Swap tokens back to original holdings: send the transaction."""
-
-    state_id = "swap_back_send"
-    matching_round = SwapBackSendRound
-
-
-class SwapBackValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Swap tokens back to original holdings: validate the tx."""
-
-    state_id = "swap_back_validation"
-    matching_round = SwapBackValidationRound
+class EnterPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
+    """Sign the 'enter pool' multisend tx."""
+
+    state_id = "enter_pool_tx_signature"
+    matching_round = EnterPoolTransactionSignatureRound
+
+
+class EnterPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
+    """Send the 'enter pool' multisend tx."""
+
+    state_id = "enter_pool_tx_send"
+    matching_round = EnterPoolTransactionSendRound
+
+
+class EnterPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+    """Validate the 'enter pool' multisend tx."""
+
+    state_id = "enter_pool_tx_validation"
+    matching_round = EnterPoolTransactionValidationRound
+
+
+class EnterPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "enter_pool_randomness"
+    matching_round = EnterPoolRandomnessRound
+
+
+class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
+    """'exit pool' select keeper."""
+
+    state_id = "enter_pool_select_keeper"
+    matching_round = EnterPoolSelectKeeperRound
+
+
+class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_hash"
+    matching_round = ExitPoolTransactionHashRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+
+            strategy = self.period_state.most_voted_strategy
+
+            # Prepare a uniswap tx list. We should check what token balances we have at this point.
+            # It is possible that we don't need to swap. For now let's assume we have just USDT
+            # and always swap back to it.
+            multi_send_txs = []
+
+            # Remove liquidity
+            if strategy["pair"]["token_a"]["is_native"]:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="remove_liquidity_ETH",
+                    token=strategy["pair"]["token_b"]["address"],
+                    liquidity=strategy["liquidity_to_remove"],
+                    amount_token_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                    amount_ETH_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    to=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(liquidity_data)),
+                    }
+                )
+
+            else:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="remove_liquidity",
+                    token_a=strategy["pair"]["token_a"]["address"],
+                    token_b=strategy["pair"]["token_b"]["address"],
+                    liquidity=strategy["liquidity_to_remove"],
+                    amount_a_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    amount_b_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                    to=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(liquidity_data)),
+                    }
+                )
+
+            # Remove allowance for token A (can be native or not)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_a"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=strategy["router_address"],
+                value=0,
+            )
+            allowance_a_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_a_data)),
+                }
+            )
+
+            # Remove allowance for token B (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_b"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=strategy["router_address"],
+                value=0,
+            )
+            allowance_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(allowance_b_data)),
+                }
+            )
+
+            # Swap first token back (can be native or not)
+            if strategy["pair"]["token_a"]["is_native"]:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="swap_exact_ETH_for_tokens",
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    path=[
+                        strategy["pair"]["token_a"]["address"],
+                        strategy["base"]["address"],
+                    ],
+                    to=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                swap_a_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(swap_a_data)),
+                    }
+                )
+
+            else:
+
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["router_address"],
+                    contract_id=str(UniswapV2Router02Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="swap_exact_tokens_for_tokens",
+                    amount_in=int(strategy["pair"]["token_a"]["amount"]),
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    path=[
+                        strategy["pair"]["token_a"]["address"],
+                        strategy["base"]["address"],
+                    ],
+                    to=self.period_state.safe_contract_address,
+                    deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+                )
+                swap_a_data = contract_api_msg.raw_transaction.body["data"]
+                multi_send_txs.append(
+                    {
+                        # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                        "operation": MultiSendOperation.CALL,
+                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "value": 1,
+                        "data": HexBytes(str(swap_a_data)),
+                    }
+                )
+
+            # Swap second token back (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["router_address"],
+                contract_id=str(UniswapV2Router02Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="swap_exact_tokens_for_tokens",
+                amount_in=int(strategy["pair"]["token_b"]["amount"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                path=[
+                    strategy["pair"]["token_b"]["address"],
+                    strategy["base"]["address"],
+                ],
+                to=self.period_state.safe_contract_address,
+                deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
+            )
+            swap_b_data = contract_api_msg.raw_transaction.body["data"]
+            multi_send_txs.append(
+                {
+                    # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
+                    "operation": MultiSendOperation.CALL,
+                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "value": 1,
+                    "data": HexBytes(str(swap_b_data)),
+                }
+            )
+
+            # Get the tx list data from multisend contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(MultiSendContract.contract_id),
+                contract_callable="get_tx_data",
+                multi_send_txs=multi_send_txs,
+            )
+            multisend_data = contract_api_msg.raw_transaction.body["data"]
+
+            # Get the tx hash from Gnosis Safe contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address=self.period_state.multisend_contract_address,
+                value=ETHER_VALUE,
+                data=multisend_data,
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(
+                sender=self.context.agent_address, tx_hash=safe_tx_hash
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
+class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_signature"
+    matching_round = ExitPoolTransactionSignatureRound
+
+
+class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_send"
+    matching_round = ExitPoolTransactionSendRound
+
+
+class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_validation"
+    matching_round = ExitPoolTransactionValidationRound
+
+
+class ExitPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "exit_pool_randomness"
+    matching_round = ExitPoolRandomnessRound
+
+
+class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
+    """'exit pool' select keeper."""
+
+    state_id = "exit_pool_select_keeper"
+    matching_round = ExitPoolSelectKeeperRound
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
@@ -689,44 +934,27 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
-        RandomnessBehaviour,  # type: ignore
-        SelectKeeperMainBehaviour,  # type: ignore
+        DeploySafeRandomnessBehaviour,  # type: ignore
+        DeploySafeSelectKeeperBehaviour,  # type: ignore
         DeploySafeSendBehaviour,  # type: ignore
         DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
-        WaitBehaviour,  # type: ignore
-        SwapSelectKeeperBehaviour,  # type: ignore
-        SwapTransactionHashBehaviour,  # type: ignore
-        SwapSignatureBehaviour,  # type: ignore
-        SwapSendBehaviour,  # type: ignore
-        SwapValidationBehaviour,  # type: ignore
-        AllowanceCheckBehaviour,  # type: ignore
-        AddAllowanceSelectKeeperBehaviour,  # type: ignore
-        AddAllowanceTransactionHashBehaviour,  # type: ignore
-        AddAllowanceSignatureBehaviour,  # type: ignore
-        AddAllowanceSendBehaviour,  # type: ignore
-        AddAllowanceValidationBehaviour,  # type: ignore
-        AddLiquiditySelectKeeperBehaviour,  # type: ignore
-        AddLiquidityTransactionHashBehaviour,  # type: ignore
-        AddLiquiditySignatureBehaviour,  # type: ignore
-        AddLiquiditySendBehaviour,  # type: ignore
-        AddLiquidityValidationBehaviour,  # type: ignore
-        RemoveLiquiditySelectKeeperBehaviour,  # type: ignore
-        RemoveLiquidityTransactionHashBehaviour,  # type: ignore
-        RemoveLiquiditySignatureBehaviour,  # type: ignore
-        RemoveLiquiditySendBehaviour,  # type: ignore
-        RemoveLiquidityValidationBehaviour,  # type: ignore
-        RemoveAllowanceSelectKeeperBehaviour,  # type: ignore
-        RemoveAllowanceTransactionHashBehaviour,  # type: ignore
-        RemoveAllowanceSignatureBehaviour,  # type: ignore
-        RemoveAllowanceSendBehaviour,  # type: ignore
-        RemoveAllowanceValidationBehaviour,  # type: ignore
-        SwapBackSelectKeeperBehaviour,  # type: ignore
-        SwapBackTransactionHashBehaviour,  # type: ignore
-        SwapBackSignatureBehaviour,  # type: ignore
-        SwapBackSendBehaviour,  # type: ignore
-        SwapBackValidationBehaviour,  # type: ignore
+        EnterPoolSelectKeeperBehaviour,  # type: ignore
+        EnterPoolTransactionHashBehaviour,  # type: ignore
+        EnterPoolTransactionSignatureBehaviour,  # type: ignore
+        EnterPoolTransactionSendBehaviour,  # type: ignore
+        EnterPoolTransactionValidationBehaviour,  # type: ignore
+        EnterPoolRandomnessBehaviour,  # type: ignore
+        EnterPoolSelectKeeperBehaviour,  # type: ignore
+        ExitPoolSelectKeeperBehaviour,  # type: ignore
+        ExitPoolTransactionHashBehaviour,  # type: ignore
+        ExitPoolTransactionSignatureBehaviour,  # type: ignore
+        ExitPoolTransactionSendBehaviour,  # type: ignore
+        ExitPoolTransactionValidationBehaviour,  # type: ignore
+        ExitPoolRandomnessBehaviour,  # type: ignore
+        ExitPoolSelectKeeperBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:

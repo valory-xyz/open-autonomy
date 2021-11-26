@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
+import datetime
 import json
 import logging
 import time
@@ -74,7 +75,9 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     PriceEstimationConsensusBehaviour,
     RandomnessAtStartupBehaviour,
     RandomnessInOperationBehaviour,
+    RegistrationBaseBehaviour,
     RegistrationBehaviour,
+    RegistrationStartupBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperAAtStartupBehaviour,
@@ -436,7 +439,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.mock_http_request(
                 request_kwargs=dict(
                     method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    url=self.skill.skill_context.params.tendermint_url + "/health",
                     headers="",
                     version="",
                     body=b"",
@@ -451,7 +454,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             )
         mock_logger.assert_any_call(
             logging.ERROR,
-            "Tendermint not running or accepting transactions yet, trying again!",
+            "Tendermint not running yet, trying again!",
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
@@ -475,7 +478,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ):
                 self.price_estimation_behaviour.act_wrapper()
 
-    def test_tendermint_healthcheck_live(self) -> None:
+    def test_tendermint_healthcheck_live_and_no_status(self) -> None:
         """Test the tendermint health check does finish if healthy."""
         assert (
             cast(
@@ -485,6 +488,71 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == TendermintHealthcheckBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="", status_code=500, status_text="", headers="", body=b""
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.ERROR, "Tendermint not accepting transactions yet, trying again!"
+        )
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
+
+    def test_tendermint_healthcheck_live_and_status(self) -> None:
+        """Test the tendermint health check does finish if healthy."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
         ) as mock_logger:
@@ -513,7 +581,7 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             )
         mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RegistrationBehaviour.state_id
+        assert state.state_id == RegistrationStartupBehaviour.state_id
 
     def test_tendermint_healthcheck_height_differs(self) -> None:
         """Test the tendermint health check does finish if local-height != remote-height."""
@@ -524,6 +592,14 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == TendermintHealthcheckBehaviour.state_id
         )
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.price_estimation_behaviour.current_state,
+        )._check_started = datetime.datetime.now()
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.price_estimation_behaviour.current_state,
+        )._is_healthy = True
         self.price_estimation_behaviour.act_wrapper()
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
@@ -563,14 +639,17 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
 
 
-class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test case to test RegistrationBehaviour."""
+class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Base test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBaseBehaviour
+    next_behaviour_class = BaseState
 
     def test_registration(self) -> None:
         """Test registration."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            RegistrationBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(),
         )
         assert (
@@ -578,30 +657,29 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == RegistrationBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-
-        # for sender in ["sender_a", "sender_b", "sender_c", "sender_d"]:  # noqa: E800
-        #     incoming_message = self.build_incoming_message(  # noqa: E800
-        #         message_type=AbciMessage,  # noqa: E800
-        #         dialogue_reference=("stub", ""),  # noqa: E800
-        #         performative=AbciMessage.Performative.REQUEST_DELIVER_TX,  # noqa: E800
-        #         target=0,  # noqa: E800
-        #         message_id=1,  # noqa: E800
-        #         to=str(self.skill.skill_context.skill_id),  # noqa: E800
-        #         sender=str(ABCI_SERVER_PUBLIC_ID),  # noqa: E800
-        #         tx=,  # noqa: E800
-        #     )  # noqa: E800
-        #     self.http_handler.handle(incoming_message)  # noqa: E800
-        # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
-
         self._test_done_flag_set()
 
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessAtStartupBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationStartupBehaviour."""
+
+    behaviour_class = RegistrationStartupBehaviour
+    next_behaviour_class = RandomnessAtStartupBehaviour
+
+
+class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
 
 
 class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -1565,10 +1643,15 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.price_estimation_behaviour.context.params.observation_interval = 0.1
-        self.price_estimation_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.price_estimation_behaviour.act_wrapper()
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            new_callable=mock.PropertyMock,
+        ) as pmock:
+            pmock.return_value = datetime.datetime.now()
+            self.price_estimation_behaviour.context.params.observation_interval = 0.1
+            self.price_estimation_behaviour.act_wrapper()
+            time.sleep(0.3)
+            self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1594,15 +1677,20 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            new_callable=mock.PropertyMock,
+        ) as pmock:
+            pmock.return_value = datetime.datetime.now()
+            self.price_estimation_behaviour.context.params.observation_interval = 0.1
 
-        with patch.object(
-            self.price_estimation_behaviour.context.logger, "info"
-        ) as mock_logger:
+            with patch.object(
+                self.price_estimation_behaviour.context.logger, "info"
+            ) as mock_logger:
+                self.price_estimation_behaviour.act_wrapper()
+                mock_logger.assert_any_call("Finalized estimate not available.")
+            time.sleep(0.3)
             self.price_estimation_behaviour.act_wrapper()
-            mock_logger.assert_any_call("Finalized estimate not available.")
-        time.sleep(0.3)
-        self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()

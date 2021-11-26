@@ -60,6 +60,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState,
     RandomnessRound,
     RegistrationRound,
+    RegistrationStartupRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     ResetRound as ConsensusReachedRound,
@@ -234,8 +235,8 @@ class BaseRoundTestClass:
             assert event == Event.NO_MAJORITY
 
 
-class TestRegistrationRound(BaseRoundTestClass):
-    """Test RegistrationRound."""
+class TestRegistrationStartupRound(BaseRoundTestClass):
+    """Test RegistrationStartupRound."""
 
     def test_run_fastforward(
         self,
@@ -252,41 +253,36 @@ class TestRegistrationRound(BaseRoundTestClass):
             ),
         )
 
-        test_round = RegistrationRound(
+        test_round = RegistrationStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round, Event.FAST_FORWARD)
-
-    def test_run_fastforward_contracts_set(
-        self,
-    ) -> None:
-        """Run test."""
-
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
-                safe_contract_address="stub_safe_contract_address",
-                oracle_contract_address="stub_oracle_contract_address",
-            ),
-        )
-
-        test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round, Event.FAST_FORWARD)
+        self._run_with_round(test_round, Event.FAST_FORWARD, 1)
 
     def test_run_default(
         self,
     ) -> None:
         """Run test."""
 
-        test_round = RegistrationRound(
+        test_round = RegistrationStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round, Event.DONE)
+        self._run_with_round(test_round, Event.DONE, 1)
+
+    def test_run_default_not_finished(
+        self,
+    ) -> None:
+        """Run test."""
+
+        test_round = RegistrationStartupRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._run_with_round(test_round)
 
     def _run_with_round(
-        self, test_round: RegistrationRound, expected_event: Event
+        self,
+        test_round: RegistrationStartupRound,
+        expected_event: Optional[Event] = None,
+        confirmations: Optional[int] = None,
     ) -> None:
         """Run with given round."""
         registration_payloads = [
@@ -316,16 +312,117 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.process_payload(participant_payload)
         assert test_round.collection_threshold_reached
 
+        if confirmations is not None:
+            test_round.block_confirmations = confirmations
+
+        prior_confirmations = test_round.block_confirmations
+
         actual_next_state = PeriodState(participants=test_round.collection)
 
         res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participants
-            == cast(PeriodState, actual_next_state).participants
+        assert test_round.block_confirmations == prior_confirmations + 1
+
+        if expected_event is None:
+            assert res is expected_event
+        else:
+            assert res is not None
+            state, event = res
+            assert (
+                cast(PeriodState, state).participants
+                == cast(PeriodState, actual_next_state).participants
+            )
+            assert event == expected_event
+
+
+class TestRegistrationRound(BaseRoundTestClass):
+    """Test RegistrationRound."""
+
+    def test_run_default(
+        self,
+    ) -> None:
+        """Run test."""
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                safe_contract_address="stub_safe_contract_address",
+                oracle_contract_address="stub_oracle_contract_address",
+            ),
         )
-        assert event == expected_event
+        test_round = RegistrationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._run_with_round(test_round, Event.DONE, 10)
+
+    def test_run_default_not_finished(
+        self,
+    ) -> None:
+        """Run test."""
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(
+                safe_contract_address="stub_safe_contract_address",
+                oracle_contract_address="stub_oracle_contract_address",
+            ),
+        )
+        test_round = RegistrationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._run_with_round(test_round)
+
+    def _run_with_round(
+        self,
+        test_round: RegistrationRound,
+        expected_event: Optional[Event] = None,
+        confirmations: Optional[int] = None,
+    ) -> None:
+        """Run with given round."""
+        registration_payloads = [
+            RegistrationPayload(sender=participant) for participant in self.participants
+        ]
+
+        first_participant = registration_payloads.pop(0)
+        test_round.process_payload(first_participant)
+        assert test_round.collection[first_participant.sender] == first_participant
+        assert test_round.end_block() is None
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"sender {first_participant.sender} has already sent value for round: registration",
+        ):
+            test_round.check_payload(first_participant)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"internal error: sender {first_participant.sender} has already sent value for round: registration",
+        ):
+            test_round.process_payload(first_participant)
+
+        for participant_payload in registration_payloads:
+            test_round.process_payload(participant_payload)
+        assert test_round.collection_threshold_reached
+
+        if confirmations is not None:
+            test_round.block_confirmations = confirmations
+
+        prior_confirmations = test_round.block_confirmations
+
+        actual_next_state = PeriodState(
+            participants=frozenset(list(test_round.collection.keys()))
+        )
+
+        res = test_round.end_block()
+        assert test_round.block_confirmations == prior_confirmations + 1
+
+        if expected_event is None:
+            assert res is expected_event
+        else:
+            assert res is not None
+            state, event = res
+            assert (
+                cast(PeriodState, state).participants
+                == cast(PeriodState, actual_next_state).participants
+            )
+            assert event == expected_event
 
 
 class TestRandomnessRound(BaseRoundTestClass):
@@ -631,10 +728,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
             observation=1.0,
         )
 
-        payload_1 = ObservationPayload(
-            sender=sorted(list(self.participants))[0],
-            observation=1.0,
-        )
         participant_to_observations_payloads = get_participant_to_observations(
             self.participants
         )
@@ -653,7 +746,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
         self._run(
             test_round,
             payload_0,
-            payload_1,
             first_payload,
             participant_to_observations_payloads,
             actual_next_state,
@@ -673,10 +765,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
             observation=1.0,
         )
 
-        payload_1 = ObservationPayload(
-            sender=sorted(list(self.participants))[0],
-            observation=1.0,
-        )
         participant_to_observations_payloads = get_participant_to_observations(
             frozenset(list(self.participants)[:-1])
         )
@@ -695,7 +783,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
         self._run(
             test_round,
             payload_0,
-            payload_1,
             first_payload,
             participant_to_observations_payloads,
             actual_next_state,
@@ -706,7 +793,6 @@ class TestCollectObservationRound(BaseRoundTestClass):
         self,
         test_round: CollectObservationRound,
         payload_0: ObservationPayload,
-        payload_1: ObservationPayload,
         first_payload: ObservationPayload,
         participant_to_observations_payloads: dict,
         actual_next_state: PeriodState,
@@ -743,7 +829,7 @@ class TestCollectObservationRound(BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match=f"sender {payload_1.sender} has already sent value for round: collect_observation",
+            match=f"sender {first_payload.sender} has already sent value for round: collect_observation",
         ):
             test_round.check_payload(first_payload)
 

@@ -20,6 +20,7 @@
 """Conftest module for Pytest."""
 import logging
 import socket
+import time
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Generator, List, Tuple, cast
 from unittest.mock import MagicMock
@@ -94,8 +95,6 @@ def tendermint_port() -> int:
     return DEFAULT_TENDERMINT_PORT
 
 
-@pytest.mark.integration
-@pytest.mark.ledger
 @pytest.fixture(scope="function")
 def tendermint(
     tendermint_port: Any,
@@ -140,19 +139,29 @@ def threshold() -> int:
     return THRESHOLD
 
 
-@pytest.mark.integration
-@pytest.mark.ledger
 @pytest.fixture(scope="function")
-def gnosis_safe_hardhat(
+def gnosis_safe_hardhat_scope_function(
     hardhat_addr: Any,
     hardhat_port: Any,
     timeout: float = 3.0,
     max_attempts: int = 40,
 ) -> Generator:
-    """Launch the HardHat node with Gnosis Safe contracts deployed."""
+    """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
     image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def gnosis_safe_hardhat_scope_class(
+    timeout: float = 3.0,
+    max_attempts: int = 40,
+) -> Generator:
+    """Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    logging.info(f"Launching Hardhat at port {DEFAULT_HARDHAT_PORT}")
+    image = GnosisSafeNetDockerImage(client, DEFAULT_HARDHAT_ADDR, DEFAULT_HARDHAT_PORT)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -174,17 +183,31 @@ def ganache_configuration() -> Dict:
     return GANACHE_CONFIGURATION
 
 
-@pytest.mark.integration
-@pytest.mark.ledger
 @pytest.fixture(scope="function")
-def ganache(
+def ganache_scope_function(
     ganache_configuration: Any,
     ganache_addr: Any,
     ganache_port: Any,
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test."""
+    client = docker.from_env()
+    image = GanacheDockerImage(
+        client, ganache_addr, ganache_port, config=ganache_configuration
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def ganache_scope_class(
+    ganache_configuration: Any,
+    ganache_addr: Any,
+    ganache_port: Any,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
     client = docker.from_env()
     image = GanacheDockerImage(
         client, ganache_addr, ganache_port, config=ganache_configuration
@@ -231,7 +254,7 @@ def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
 
 @pytest.fixture()
 def ledger_api(
-    ethereum_testnet_config: Dict, gnosis_safe_hardhat: Generator
+    ethereum_testnet_config: Dict,
 ) -> Generator[LedgerApi, None, None]:
     """Ledger api fixture."""
     ledger_id, config = EthereumCrypto.identifier, ethereum_testnet_config
@@ -272,6 +295,8 @@ async def ledger_apis_connection(
         "ethereum"
     ] = ethereum_testnet_config
 
+    connection.request_retry_attempts = 1  # type: ignore
+    connection.request_retry_attempts = 2  # type: ignore
     await connection.connect()
     yield connection
     await connection.disconnect()
@@ -306,18 +331,20 @@ def gnosis_safe_contract(
         ledger_api=ledger_api,
         deployer_address=crypto.address,
         gas=5000000,
+        gas_price=5000000,
         owners=owners,
         threshold=threshold,
     )
     assert tx is not None
     contract_address = tx.pop("contract_address")  # hack
     assert isinstance(contract_address, str)
-    gas = ledger_api.api.eth.estimateGas(transaction=tx)
+    gas = ledger_api.api.eth.estimate_gas(transaction=tx)
     tx["gas"] = gas
     tx_signed = crypto.sign_transaction(tx)
-    tx_receipt = ledger_api.send_signed_transaction(tx_signed)
-    assert tx_receipt is not None
-    receipt = ledger_api.get_transaction_receipt(tx_receipt)
+    tx_digest = ledger_api.send_signed_transaction(tx_signed)
+    assert tx_digest is not None
+    time.sleep(0.5)
+    receipt = ledger_api.get_transaction_receipt(tx_digest)
     assert receipt is not None
     # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
     yield contract, contract_address

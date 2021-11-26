@@ -19,6 +19,7 @@
 
 """Tests for valory/offchain_aggregator contract."""
 
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, cast
 
@@ -43,7 +44,8 @@ class BaseContractTest(BaseGanacheContractTest):
     DECIMALS: int = 18
     DESCRIPTION: str = "BTC"
     NB_TRANSMITTERS: int = 1
-    GAS: int = 10 ** 7
+    GAS: int = 10 ** 10
+    GAS_PRICE: int = 10 ** 10
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
     )
@@ -87,7 +89,7 @@ class TestDeployTransaction(BaseContractTest):
             **self.deployment_kwargs()
         )
         assert type(result) == dict
-        assert len(result) == 6
+        assert len(result) == 7
         data = result.pop("data")
         assert type(data) == str
         assert len(data) > 0 and data.startswith("0x")
@@ -157,8 +159,8 @@ class TestDeployTransaction(BaseContractTest):
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             sender_address=self.transmitters()[0],
-            gas=10 ** 6,
-            gas_price=10 ** 4,
+            gas=self.GAS,
+            gas_price=self.GAS_PRICE,
             epoch_=epoch_,
             round_=round_,
             amount_=amount_,
@@ -168,10 +170,13 @@ class TestDeployTransaction(BaseContractTest):
         sender = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
         )
-        # note: sender.address == self.transmitters()[0]  # noqa:  E800
+        assert sender.address == self.transmitters()[0]
         tx_signed = sender.sign_transaction(result)
         tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
-        assert tx_hash is not None, "Tx hash not none"
+        assert tx_hash is not None, "Tx hash is none"
+        time.sleep(1)
+        tx_receipt = self.ledger_api.get_transaction_receipt(tx_hash)
+        assert tx_receipt is not None, "Tx receipt is none"
         result_ = cast(
             List,
             self.contract.latest_round_data(

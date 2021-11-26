@@ -77,6 +77,7 @@ class Event(Enum):
     VALIDATE_TIMEOUT = "validate_timeout"
     DEPLOY_TIMEOUT = "deploy_timeout"
     RESET_TIMEOUT = "reset_timeout"
+    RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     FAILED = "failed"
 
 
@@ -327,7 +328,9 @@ class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         return self.period_state, Event.NO_MAJORITY
 
 
-class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
+class RegistrationStartupRound(
+    CollectDifferentUntilAllRound, PriceEstimationAbstractRound
+):
     """
     This class represents the registration round.
 
@@ -337,14 +340,18 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
     It schedules the SelectKeeperARound.
     """
 
-    round_id = "registration"
+    round_id = "registration_at_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
+    required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+        if self.collection_threshold_reached:
+            self.block_confirmations += 1
         if (  # fast forward at setup
             self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
             and self.period_state.period_setup_params != {}
             and self.period_state.period_setup_params.get("safe_contract_address", None)
             is not None
@@ -364,22 +371,51 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
                 ),
             )
             return state, Event.FAST_FORWARD
-        if (  # contracts are set from previos rounds
+        if (
             self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
+        ):  # initial deployment round
+            state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+            )
+            return state, Event.DONE
+        return None
+
+
+class RegistrationRound(
+    CollectDifferentUntilThresholdRound, PriceEstimationAbstractRound
+):
+    """
+    This class represents the registration round during operation.
+
+    Input: a period state with the contracts from previous rounds
+    Output: a period state with the set of participants.
+
+    It schedules the SelectKeeperARound.
+    """
+
+    round_id = "registration"
+    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_attribute = "sender"
+    required_block_confirmations = 10
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            self.block_confirmations += 1
+        if (  # contracts are set from previous rounds
+            self.collection_threshold_reached
+            and self.block_confirmations
+            > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
             and hasattr(self.period_state, "are_contracts_set")
             and self.period_state.are_contracts_set
         ):
             state = PeriodState(
-                participants=self.collection,
+                participants=frozenset(list(self.collection.keys())),
                 period_count=self.period_state.period_count,
                 safe_contract_address=self.period_state.safe_contract_address,
                 oracle_contract_address=self.period_state.oracle_contract_address,
-            )
-            return state, Event.FAST_FORWARD
-        if self.collection_threshold_reached:  # initial deployment round
-            state = PeriodState(
-                participants=self.collection,
-                period_count=self.period_state.period_count,
             )
             return state, Event.DONE
         return None
@@ -799,21 +835,21 @@ class ValidateTransactionRound(ValidateRound):
 class PriceEstimationAbciApp(AbciApp[Event]):
     """Price estimation ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {
+        RegistrationStartupRound: {
             Event.DONE: RandomnessStartupRound,
             Event.FAST_FORWARD: RandomnessRound,
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessStartupRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationStartupRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperAStartupRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
@@ -821,10 +857,10 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         ValidateSafeRound: {
             Event.DONE: DeployOracleRound,
-            Event.NEGATIVE: RegistrationRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RegistrationRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RegistrationRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+            Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
@@ -832,15 +868,15 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         SelectKeeperBStartupRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         ValidateOracleRound: {
             Event.DONE: RandomnessRound,
-            Event.NEGATIVE: RegistrationRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RegistrationRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RegistrationRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+            Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
@@ -891,13 +927,16 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         },
         ResetRound: {
             Event.DONE: RandomnessRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we see if we can assemble a new group of agents
+            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we see if we can assemble a new group of agents
         },
         ResetAndPauseRound: {
             Event.DONE: RandomnessRound,
-            Event.RESET_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.RESET_AND_PAUSE_TIMEOUT: RegistrationRound,  # if the round times out we see if we can assemble a new group of agents
+            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we see if we can assemble a new group of agents
+        },
+        RegistrationRound: {
+            Event.DONE: RandomnessRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {

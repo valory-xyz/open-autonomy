@@ -20,6 +20,7 @@
 """Base test classes."""
 
 import os
+import time
 from abc import ABC
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -79,6 +80,7 @@ class BaseContractTest(ABC):
         tx_hash = cls.ledger_api.send_signed_transaction(tx_signed)
         if tx_hash is None:
             return None
+        time.sleep(0.5)  # give it time to mine the block
         tx_receipt = cls.ledger_api.get_transaction_receipt(tx_hash)
         if tx_receipt is None:
             return None

@@ -19,34 +19,26 @@ profiles:
         docker:
           dockerfile: Dockerfile
     deploy:
-      kubeContext: kind-kind
       kubectl:
         manifests:
-        - kubernetes_configs/build/config_job.yaml
-        - kubernetes_configs/build/agent_node_deployment*.yaml
-  - name: configure
-    build:
-      artifacts:
-      - image: valory/hardhat
-        context: ./
-        docker:
-          dockerfile: DockerFiles/hardhat/Dockerfile
-      - image: valory/oracle-poc
-        context: ../..
-        docker:
-          dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
-      - image: valory/localnode
-        context: ./networks/local/localnode/
-        docker:
-          dockerfile: Dockerfile
+        - kubernetes_configs/build/*
+  - name: configure-remotecluster
     deploy:
       kubectl:
         manifests:
-        - kubernetes_configs/hardhat/hardhat-deployment.yaml
-        - kubernetes_configs/hardhat/hardhat-service.yaml
         - kubernetes_configs/configuration/secret.yaml
+        - https://raw.githubusercontent.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/master/deploy/kubernetes/deployment.yaml
+        - https://raw.githubusercontent.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/master/deploy/kubernetes/rbac.yaml
+        - https://raw.githubusercontent.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/master/deploy/kubernetes/class.yaml
+        - kubernetes_configs/configuration/storage/remotestorage.yaml
+        - kubernetes_configs/configuration/networking/ip_pools.yaml
+  - name: configure-localcluster
+    deploy:
+      kubectl:
+        manifests:
+        - kubernetes_configs/configuration/secret.yaml
+        - kubernetes_configs/configuration/storage/localstorage.yaml
         - kubernetes_configs/configuration/networking/calico.yaml
-        - kubernetes_configs/configuration/networking/localnet-networkpolicy.yaml
   - name: dashboard
     deploy:
       kubectl:

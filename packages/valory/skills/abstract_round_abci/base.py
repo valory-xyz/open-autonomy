@@ -509,6 +509,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """Initialize the round."""
         self._consensus_params = consensus_params
         self._state = state
+        self.block_confirmations = 0
 
         self._check_class_attributes()
 
@@ -1175,7 +1176,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
                 # last timestamp can be in the past relative to last seen block time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
-                self.logger.debug(
+                self.logger.info(
                     "scheduling timeout of %s seconds for event %s with deadline %s",
                     timeout,
                     event,
@@ -1278,15 +1279,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         :param timestamp: the latest block's timestamp.
         """
-        self.logger.debug("arrived block with timestamp: %s", timestamp)
-        self.logger.debug("current AbciApp time: %s", self._last_timestamp)
+        self.logger.info("arrived block with timestamp: %s", timestamp)
+        self.logger.info("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
         if self._timeouts.size == 0:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
-            self.logger.debug("no pending timeout, move time forward")
+            self.logger.info("no pending timeout, move time forward")
             self._last_timestamp = timestamp
             return
 
@@ -1306,9 +1307,12 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # clearly, it is earlier than the current highest known
             # timestamp that comes from the consensus engine.
             # However, we need it to correctly simulate the timeouts
-            # of the next rounds.
-            self._last_timestamp = expired_deadline
-            self.logger.debug("current AbciApp time: %s", self._last_timestamp)
+            # of the next rounds. (for now we set it to timestamp to explore
+            # the impact)
+            self._last_timestamp = timestamp
+            self.logger.info(
+                "current AbciApp time after expired deadline: %s", self.last_timestamp
+            )
 
             self.process_event(timeout_event)
 
@@ -1421,13 +1425,16 @@ class Period:
         return self.abci_app.last_round_id
 
     @property
-    def last_timestamp(self) -> Optional[datetime.datetime]:
+    def last_timestamp(self) -> datetime.datetime:
         """Get the last timestamp."""
-        return (
+        last_timestamp = (
             self._blockchain.blocks[-1].timestamp
             if self._blockchain.length != 0
             else None
         )
+        if last_timestamp is None:
+            raise ABCIAppInternalError("last timestamp is None")
+        return last_timestamp
 
     @property
     def latest_result(self) -> Optional[Any]:
