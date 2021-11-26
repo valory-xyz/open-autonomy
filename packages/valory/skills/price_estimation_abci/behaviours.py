@@ -36,7 +36,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.price_estimation_abci.models import Params, SharedState
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeployOraclePayload,
@@ -85,6 +85,7 @@ from packages.valory.skills.price_estimation_abci.tools import (
 
 
 benchmark_tool = BenchmarkTool()
+drand_check = VerifyDrand()
 
 SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
@@ -241,6 +242,11 @@ class RandomnessBehaviour(PriceEstimationBaseState):
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
+            self.context.logger.info("Verifying DRAND values.")
+            check, error = drand_check.verify(observation, self.params.lof_pubkey)
+            if not check:  # pragma: nocheck
+                raise ValueError(error)
+            self.context.logger.info("DRAND check successful.")
             payload = RandomnessPayload(
                 self.context.agent_address,
                 observation["round"],
