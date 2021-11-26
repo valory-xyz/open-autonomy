@@ -35,7 +35,8 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Integration tests for the valory/apy_estimation_abci skill."""
+"""Integration tests for the valory/apy_estimation skill."""
+
 import json
 import logging
 import time
@@ -170,10 +171,10 @@ class BaseTestABCIAPYEstimationSkill(
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.set_config("agent.default_ledger", "ethereum")
             self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
-            self.add_item("skill", "valory/apy_estimation_abci:0.1.0", local=False)
+            self.add_item("skill", "valory/apy_estimation:0.1.0", local=False)
             self.set_config(
                 "vendor.valory.connections.abci.config.target_skill_id",
-                "valory/apy_estimation_abci:0.1.0",
+                "valory/apy_estimation:0.1.0",
             )
             # each agent has its Tendermint node instance
             self.set_config(
@@ -206,15 +207,15 @@ class BaseTestABCIAPYEstimationSkill(
                 "list",
             )
             self.set_config(
-                "vendor.valory.skills.apy_estimation_abci.models.params.args.consensus.max_participants",
+                "vendor.valory.skills.apy_estimation.models.params.args.consensus.max_participants",
                 self.NB_AGENTS,
             )
             self.set_config(
-                "vendor.valory.skills.apy_estimation_abci.models.params.args.round_timeout_seconds",
+                "vendor.valory.skills.apy_estimation.models.params.args.round_timeout_seconds",
                 self.KEEPER_TIMEOUT,
             )
             self.set_config(
-                "vendor.valory.skills.apy_estimation_abci.models.params.args.tendermint_url",
+                "vendor.valory.skills.apy_estimation.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
             )
 
