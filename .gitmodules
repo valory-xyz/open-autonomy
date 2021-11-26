@@ -1,6 +1,6 @@
 [submodule "third_party/safe-contract"]
 	path = third_party/safe-contracts
-	url = git@github.com/gnosis/safe-contracts.git
+	url = https://github.com/gnosis/safe-contracts
 [submodule "third_party/contracts-amm"]
 	path = third_party/contracts-amm
-	url = git@github.com:valory-xyz/contracts-amm.git
+	url = https://github.com:valory-xyz/contracts-amm
