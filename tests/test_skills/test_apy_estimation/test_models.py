@@ -20,8 +20,7 @@
 """Test the models.py module of the skill."""
 
 from packages.valory.skills.apy_estimation.models import MARGIN
-from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp
-from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
 
 
 class TestSharedState:

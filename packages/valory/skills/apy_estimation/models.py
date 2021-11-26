@@ -24,10 +24,9 @@ from typing import Any
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
     SharedState as BaseSharedState,
-    Requests as BaseRequests,
+    Requests as BaseRequests, BaseParams,
 )
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
-from packages.valory.skills.simple_abci.models import Params as BaseParams
 
 Requests = BaseRequests
 
@@ -73,6 +72,12 @@ class APYParams(BaseParams):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
+        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
+        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
+        self.sleep_time = self._ensure("sleep_time", kwargs)
+        self.retry_attempts = self._ensure("retry_attempts", kwargs)
+        self.retry_timeout = self._ensure("retry_timeout", kwargs)
+        self.observation_interval = self._ensure("observation_interval", kwargs)
         self.history_duration = self._ensure("history_duration", kwargs)
         self.data_folder = self._ensure("data_folder", kwargs)
         self.optimizer_params = self._ensure("optimizer", kwargs)

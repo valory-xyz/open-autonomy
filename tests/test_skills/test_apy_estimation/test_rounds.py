@@ -20,7 +20,7 @@
 """Test the base.py module of the skill."""
 import logging  # noqa: F401
 import re
-from typing import Dict, FrozenSet, cast
+from typing import Dict, FrozenSet, cast, Optional
 from unittest import mock
 
 import pytest
@@ -31,10 +31,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     TransactionNotValidError,
 )
-from packages.valory.skills.apy_estimation.payloads import FetchingPayload
+from packages.valory.skills.apy_estimation.payloads import FetchingPayload, RegistrationPayload
 from packages.valory.skills.apy_estimation.rounds import (
     Event,
-    PeriodState, CollectHistoryRound,
+    PeriodState, CollectHistoryRound, RegistrationRound,
 )
 
 MAX_PARTICIPANTS: int = 4
@@ -82,6 +82,74 @@ class BaseRoundTestClass:
             assert event == Event.NO_MAJORITY
 
 
+class TestRegistrationRound(BaseRoundTestClass):
+    """Test RegistrationRound."""
+
+    def test_run_default(
+            self,
+    ) -> None:
+        """Run test."""
+
+        test_round = RegistrationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+        self._run_with_round(test_round, Event.DONE, 1)
+
+    def _run_with_round(
+            self,
+            test_round: RegistrationRound,
+            expected_event: Optional[Event] = None,
+            confirmations: Optional[int] = None,
+    ) -> None:
+        """Run with given round."""
+        registration_payloads = [
+            RegistrationPayload(sender=participant) for participant in self.participants
+        ]
+
+        first_participant = registration_payloads.pop(0)
+        test_round.process_payload(first_participant)
+        assert test_round.collection == {
+            first_participant.sender,
+        }
+        assert test_round.end_block() is None
+
+        with pytest.raises(
+                TransactionNotValidError,
+                match=f"payload attribute sender with value {first_participant.sender} "
+                      "has already been added for round: registration",
+        ):
+            test_round.check_payload(first_participant)
+
+        with pytest.raises(
+                ABCIAppInternalError,
+                match=f"payload attribute sender with value {first_participant.sender} "
+                      "has already been added for round: registration",
+        ):
+            test_round.process_payload(first_participant)
+
+        for participant_payload in registration_payloads:
+            test_round.process_payload(participant_payload)
+        assert test_round.collection_threshold_reached
+
+        if confirmations is not None:
+            test_round.block_confirmations = confirmations
+
+        actual_next_state = PeriodState(participants=test_round.collection)
+
+        res = test_round.end_block()
+
+        if expected_event is None:
+            assert res is expected_event
+        else:
+            assert res is not None
+            state, event = res
+            assert (
+                    cast(PeriodState, state).participants
+                    == cast(PeriodState, actual_next_state).participants
+            )
+            assert event == expected_event
+
+
 class TestCollectHistoryRound(BaseRoundTestClass):
     """Test `CollectHistoryRound`."""
 
@@ -120,7 +188,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         test_round.process_payload(first_payload)
 
         assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() == (None, None)
+        assert test_round.end_block() == None
         assert not test_round.threshold_reached
 
         with pytest.raises(

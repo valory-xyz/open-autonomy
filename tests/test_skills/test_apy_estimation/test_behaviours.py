@@ -20,11 +20,17 @@
 """Tests for valory/apy_estimation skill's behaviours."""
 
 import json
+import logging
+import time
 from copy import copy
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Type, cast, Tuple
 from unittest import mock
+from unittest.mock import patch
 
+import pytest
+from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import (
     SignedMessage,
 )
@@ -48,9 +54,8 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.abstract_round_abci.handlers import LedgerApiHandler, HttpHandler, ContractApiHandler, \
     SigningHandler
 from packages.valory.skills.apy_estimation.behaviours import APYEstimationConsensusBehaviour, FetchBehaviour, \
-    TransformBehaviour
-from packages.valory.skills.apy_estimation.rounds import PeriodState
-from packages.valory.skills.price_estimation_abci.rounds import Event
+    TransformBehaviour, TendermintHealthcheckBehaviour, RegistrationBehaviour
+from packages.valory.skills.apy_estimation.rounds import PeriodState, Event
 from tests.conftest import ROOT_DIR
 
 
@@ -129,8 +134,6 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
                     period_state, self.skill.skill_context.params.consensus_params
                 )
             )
-
-        assert self.apy_estimation_behaviour.current_state.state_id == FetchBehaviour.state_id
 
     def mock_http_request(self, request_kwargs: Dict, response_kwargs: Dict) -> None:
         """
@@ -278,6 +281,255 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+
+
+class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test case to test TendermintHealthcheckBehaviour."""
+
+    def test_tendermint_healthcheck_not_live(self) -> None:
+        """Test the tendermint health check does not finish if not healthy."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        with patch.object(
+            self.apy_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/health",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=500,
+                    status_text="",
+                    headers="",
+                    body=b"",
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.ERROR,
+            "Tendermint not running yet, trying again!",
+        )
+        time.sleep(1)
+        self.apy_estimation_behaviour.act_wrapper()
+
+    def test_tendermint_healthcheck_not_live_raises(self) -> None:
+        """Test the tendermint health check raises if not healthy for too long."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        with mock.patch.object(
+            self.apy_estimation_behaviour.current_state,
+            "_is_timeout_expired",
+            return_value=True,
+        ):
+            with pytest.raises(
+                AEAActException, match="Tendermint node did not come live!"
+            ):
+                self.apy_estimation_behaviour.act_wrapper()
+
+    def test_tendermint_healthcheck_live_and_no_status(self) -> None:
+        """Test the tendermint health check does finish if healthy."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
+        with patch.object(
+            self.apy_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="", status_code=500, status_text="", headers="", body=b""
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.ERROR, "Tendermint not accepting transactions yet, trying again!"
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.apy_estimation_behaviour.act_wrapper()
+
+    def test_tendermint_healthcheck_live_and_status(self) -> None:
+        """Test the tendermint health check does finish if healthy."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
+        with patch.object(
+            self.apy_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            current_height = self.apy_estimation_behaviour.context.state.period.height
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(
+                        {
+                            "result": {
+                                "sync_info": {"latest_block_height": current_height}
+                            }
+                        }
+                    ).encode("utf-8"),
+                ),
+            )
+        mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == RegistrationBehaviour.state_id
+
+    def test_tendermint_healthcheck_height_differs(self) -> None:
+        """Test the tendermint health check does finish if local-height != remote-height."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.apy_estimation_behaviour.current_state,
+        )._check_started = datetime.now()
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.apy_estimation_behaviour.current_state,
+        )._is_healthy = True
+        self.apy_estimation_behaviour.act_wrapper()
+        with patch.object(
+            self.apy_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            current_height = self.apy_estimation_behaviour.context.state.period.height
+            new_different_height = current_height + 1
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(
+                        {
+                            "result": {
+                                "sync_info": {
+                                    "latest_block_height": new_different_height
+                                }
+                            }
+                        }
+                    ).encode("utf-8"),
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.INFO, "local height != remote height; retrying..."
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.apy_estimation_behaviour.act_wrapper()
+
+
+class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Base test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBehaviour
+    next_behaviour_class = FetchBehaviour
+
+    def test_registration(self) -> None:
+        """Test registration."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):

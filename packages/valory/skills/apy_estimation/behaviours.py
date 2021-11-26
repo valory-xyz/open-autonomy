@@ -18,10 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the APY estimation skill."""
+import datetime
 import json
 import os
 from abc import ABC
-from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any
+from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -39,13 +40,13 @@ from packages.valory.skills.apy_estimation.ml.io import save_forecaster, load_fo
 from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload, \
-    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload, ResetPayload
+    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload, ResetPayload, RegistrationPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
     TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound, TestRound, EstimateRound,
-    ResetAndPauseRound,
+    ResetAndPauseRound, RegistrationRound,
 )
 from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask, TestTask
 from packages.valory.skills.apy_estimation.tools.etl import load_hist
@@ -56,10 +57,6 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     eth_price_usd_q,
     pairs_q,
     top_n_pairs_q,
-)
-from packages.valory.skills.simple_abci.behaviours import (
-    RegistrationBehaviour,
-    TendermintHealthcheckBehaviour,
 )
 
 benchmark_tool = BenchmarkTool()
@@ -78,6 +75,109 @@ class APYEstimationBaseState(BaseState, ABC):
     def params(self) -> APYParams:
         """Return the params."""
         return cast(APYParams, self.context.params)
+
+
+class TendermintHealthcheckBehaviour(APYEstimationBaseState):
+    """Check whether Tendermint nodes are running."""
+
+    state_id = "tendermint_healthcheck"
+    matching_round = None
+
+    _check_started: Optional[datetime.datetime] = None
+    _timeout: float
+    _is_healthy: bool
+
+    def start(self) -> None:
+        """Set up the behaviour."""
+        if self._check_started is None:
+            self._check_started = datetime.datetime.now()
+            self._timeout = self.params.max_healthcheck
+            self._is_healthy = False
+
+    def _is_timeout_expired(self) -> bool:
+        """Check if the timeout expired."""
+        expired = False  # pragma: no cover
+
+        if self._check_started is not None and not self._is_healthy:
+            expired = datetime.datetime.now() > self._check_started + datetime.timedelta(0, self._timeout)
+
+        return expired
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        self.start()
+        if self._is_timeout_expired():
+            # if the Tendermint node cannot update the app then the app cannot work
+            raise RuntimeError("Tendermint node did not come live!")
+
+        if not self._is_healthy:
+            health = yield from self._get_health()
+            try:
+                json.loads(health.body.decode())
+
+            except json.JSONDecodeError:
+                self.context.logger.error("Tendermint not running yet, trying again!")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            self._is_healthy = True
+
+        status = yield from self._get_status()
+
+        try:
+            json_body = json.loads(status.body.decode())
+
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Tendermint not accepting transactions yet, trying again!"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return
+
+        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+        local_height = self.context.state.period.height
+        self.context.logger.info(
+            "local-height = %s, remote-height=%s", local_height, remote_height
+        )
+
+        if local_height != remote_height:
+            self.context.logger.info("local height != remote height; retrying...")
+            yield from self.sleep(self.params.sleep_time)
+            return
+
+        self.context.logger.info("local height == remote height; done")
+        self.set_done()
+
+
+class RegistrationBehaviour(APYEstimationBaseState):
+    """Register to the next periods."""
+
+    state_id = "register"
+    matching_round = RegistrationRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            payload = RegistrationPayload(self.context.agent_address)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class EmptyResponseError(Exception):
@@ -646,8 +746,12 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
         FetchBehaviour,
         TransformBehaviour,
         PreprocessBehaviour,
+        OptimizeBehaviour,
+        TrainBehaviour,
+        TestBehaviour,
         EstimateBehaviour,
         ResetBehaviour,
+        ResetAndPauseBehaviour,
     }
 
     def setup(self) -> None:

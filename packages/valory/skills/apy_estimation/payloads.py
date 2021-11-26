@@ -18,10 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the APY estimation app."""
+from abc import ABC
 from enum import Enum
 from typing import Dict, Optional, Any, Union, List
 
-from packages.valory.skills.simple_abci.payloads import BaseSimpleAbciPayload
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
 class TransactionType(Enum):
@@ -44,7 +45,21 @@ class TransactionType(Enum):
         return self.value
 
 
-class FetchingPayload(BaseSimpleAbciPayload):
+class BaseAPYPayload(BaseTxPayload, ABC):
+    """Base class for the simple abci demo."""
+
+    def __hash__(self) -> int:
+        """Hash the payload."""
+        return hash(tuple(sorted(self.data.items())))
+
+
+class RegistrationPayload(BaseAPYPayload):
+    """Represent a transaction payload of type 'registration'."""
+
+    transaction_type = TransactionType.REGISTRATION
+
+
+class FetchingPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'fetching'."""
 
     transaction_type = TransactionType.FETCHING
@@ -70,7 +85,7 @@ class FetchingPayload(BaseSimpleAbciPayload):
         return {"history": self._history}
 
 
-class TransformationPayload(BaseSimpleAbciPayload):
+class TransformationPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'transformation'."""
 
     transaction_type = TransactionType.TRANSFORMATION
@@ -98,7 +113,7 @@ class TransformationPayload(BaseSimpleAbciPayload):
         return {"transformation": self._transformation_hash}
 
 
-class PreprocessPayload(BaseSimpleAbciPayload):
+class PreprocessPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'preprocess'."""
 
     transaction_type = TransactionType.PREPROCESS
@@ -135,7 +150,7 @@ class PreprocessPayload(BaseSimpleAbciPayload):
         return {"train_test": self.train_test_hash, "pair_name": self._pair_name}
 
 
-class OptimizationPayload(BaseSimpleAbciPayload):
+class OptimizationPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'optimization'."""
 
     transaction_type = TransactionType.OPTIMIZATION
@@ -168,7 +183,7 @@ class OptimizationPayload(BaseSimpleAbciPayload):
         return {"study_hash": self._study_hash, "best_params": self._best_params}
 
 
-class TrainingPayload(BaseSimpleAbciPayload):
+class TrainingPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'training'."""
 
     transaction_type = TransactionType.TRAINING
@@ -194,7 +209,7 @@ class TrainingPayload(BaseSimpleAbciPayload):
         return {"model": self._model_hash}
 
 
-class TestingPayload(BaseSimpleAbciPayload):
+class TestingPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'testing'."""
 
     transaction_type = TransactionType.TESTING
@@ -220,7 +235,7 @@ class TestingPayload(BaseSimpleAbciPayload):
         return {"report_hash": self._report_hash}
 
 
-class EstimatePayload(BaseSimpleAbciPayload):
+class EstimatePayload(BaseAPYPayload):
     """Represent a transaction payload of type 'estimate'."""
 
     transaction_type = TransactionType.ESTIMATION
@@ -246,7 +261,7 @@ class EstimatePayload(BaseSimpleAbciPayload):
         return {"estimation": self._estimation}
 
 
-class ResetPayload(BaseSimpleAbciPayload):
+class ResetPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESET

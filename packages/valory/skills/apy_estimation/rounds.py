@@ -30,11 +30,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    TransactionType, CollectSameUntilThresholdRound,
+    TransactionType, CollectSameUntilThresholdRound, CollectDifferentUntilAllRound,
 )
 from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload, FetchingPayload, \
-    EstimatePayload, PreprocessPayload, OptimizationPayload, TrainingPayload, TestingPayload
-from packages.valory.skills.simple_abci.rounds import RegistrationRound
+    EstimatePayload, PreprocessPayload, OptimizationPayload, TrainingPayload, TestingPayload, RegistrationPayload
 
 
 class Event(Enum):
@@ -264,6 +263,34 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         return self.period_state, Event.NO_MAJORITY
 
 
+class RegistrationRound(CollectDifferentUntilAllRound, APYEstimationAbstractRound):
+    """
+    This class represents the registration round.
+
+    Input: None
+    Output: a period state with the set of participants.
+
+    It schedules the SelectKeeperARound.
+    """
+
+    round_id = "registration"
+    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_attribute = "sender"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        state_event = None
+
+        if self.collection_threshold_reached:
+            updated_state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+            )
+            state_event = updated_state, Event.DONE
+
+        return state_event
+
+
 class CollectHistoryRound(
     CollectSameUntilThresholdRound, APYEstimationAbstractRound
 ):
@@ -282,21 +309,21 @@ class CollectHistoryRound(
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 participant_to_fetching=MappingProxyType(self.collection),
                 most_voted_history=self.most_voted_payload,
             )
-            state, event = updated_state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -315,21 +342,21 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 participant_to_transformation=MappingProxyType(self.collection),
                 most_voted_transformation=self.most_voted_payload,
             )
-            state, event = updated_state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -348,21 +375,21 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 participant_to_preprocess=MappingProxyType(self.collection),
                 most_voted_preprocess=self.most_voted_payload,
             )
-            state, event = updated_state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -381,21 +408,21 @@ class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 participant_to_optimize=MappingProxyType(self.collection),
                 most_voted_study=self.most_voted_payload,
             )
-            state, event = updated_state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -414,7 +441,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
@@ -429,12 +456,14 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             else:
                 event = Event.DONE
 
+            state_event = state, event
+
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -453,7 +482,7 @@ class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
@@ -461,14 +490,14 @@ class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 most_voted_report=self.most_voted_payload,
                 full_training=True,
             )
-            state, event = updated_state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -487,21 +516,21 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 participant_to_estimate=MappingProxyType(self.collection),
                 most_voted_estimate=self.most_voted_payload,
             )
-            state, event = updated_state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -513,10 +542,10 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        state = event = None
+        state_event = None
 
         if self.threshold_reached:
-            state = self.period_state.update(
+            updated_state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participant_to_fetching=None,
                 most_voted_history=None,
@@ -537,14 +566,14 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 pair_name=None
             )
 
-            state, event = state, Event.DONE
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
-            state, event = self._return_no_majority_event()
+            state_event = self._return_no_majority_event()
 
-        return state, event
+        return state_event
 
 
 class ResetAndPauseRound(ResetRound):
