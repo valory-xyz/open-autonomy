@@ -39,12 +39,13 @@ from packages.valory.skills.apy_estimation.ml.io import save_forecaster, load_fo
 from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload, \
-    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload
+    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload, ResetPayload
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     PeriodState,
     TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound, TestRound, EstimateRound,
+    ResetAndPauseRound,
 )
 from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask, TestTask
 from packages.valory.skills.apy_estimation.tools.etl import load_hist
@@ -578,16 +579,60 @@ class EstimateBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class ResetBehaviour(APYEstimationBaseState):
+class BaseResetBehaviour(APYEstimationBaseState):
+    """Reset state."""
+
+    pause = True
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+        if self.pause:
+
+            if self.period_state.is_most_voted_estimate_set:
+                self.context.logger.info(f"Finalized estimate: {self.period_state.most_voted_estimate}")
+
+            else:
+                self.context.logger.info("Finalized estimate not available.")
+
+            self.context.logger.info("Period end.")
+            benchmark_tool.save()
+
+            yield from self.wait_from_last_timestamp(self.params.observation_interval)
+
+        else:
+            self.context.logger.info(
+                f"Period {self.period_state.period_count} was not finished. Resetting!"
+            )
+
+        payload = ResetPayload(self.context.agent_address, self.period_state.period_count + 1)
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
+class ResetBehaviour(BaseResetBehaviour):
     """Reset state."""
 
     matching_round = ResetRound
     state_id = "reset"
     pause = False
 
-    def async_act(self) -> Generator:
-        """Do the action."""
-        raise NotImplementedError()
+
+class ResetAndPauseBehaviour(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = ResetAndPauseRound
+    state_id = "reset_and_pause"
 
 
 class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):

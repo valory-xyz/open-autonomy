@@ -219,6 +219,11 @@ class PeriodState(BasePeriodState):
         return self._most_voted_estimate
 
     @property
+    def is_most_voted_estimate_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self._most_voted_estimate is not None
+
+    @property
     def best_params(self) -> Dict[str, Any]:
         """Get the best_params."""
         enforce(
@@ -542,6 +547,12 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         return state, event
 
 
+class ResetAndPauseRound(ResetRound):
+    """This class represents the 'consensus-reached' round (the final round)."""
+
+    round_id = "reset_and_pause"
+
+
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
     """APY estimation ABCI application."""
 
@@ -582,11 +593,11 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateRound: {
-            Event.DONE: ResetRound,
+            Event.DONE: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
-        ResetRound: {
+        ResetAndPauseRound: {
             Event.DONE: RegistrationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
