@@ -365,9 +365,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
                     for participant in self.participants
                 ]
             ),
-            state_update_fn=(
-                lambda *x: PeriodState(participants=self.participants)
-            ), 
+            state_update_fn=(lambda *x: PeriodState(participants=self.participants)),
             state_attr_checks=[lambda state: state.participants],
             exit_event=expected_event,
         )

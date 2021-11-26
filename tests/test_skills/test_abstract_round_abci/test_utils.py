@@ -146,8 +146,8 @@ class TestVerifyDrand:
 
         drand_value = DRAND_VALUE.copy()
         drand_value["randomness"] = "".join(
-            list(drand_value["randomness"])[:-1] + ["0"]
-        )  # type: ignore
+            list(drand_value["randomness"])[:-1] + ["0"]  # type: ignore
+        )
         result, error = self.drand_check.verify(drand_value, LOF_PUBKEY)
         assert not result
         assert error == "Failed randomness hash check."
