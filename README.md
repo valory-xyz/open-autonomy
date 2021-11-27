@@ -28,9 +28,10 @@ As opposed to traditional smart contracts, Valory apps go beyond simple, purely 
       make new_env && pipenv shell
 
 
-- Build the Hardhat project:
+- Build the Hardhat projects:
 
       cd third_party/safe-contracts && yarn install
+      cd third_party/contracts-amm && yarn install
 
 
 ## Getting started

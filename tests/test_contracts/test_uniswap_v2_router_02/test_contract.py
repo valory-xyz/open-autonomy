@@ -20,7 +20,7 @@
 """Tests for valory/uniswap_v2_router02 contract."""
 
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict, Optional, cast
 from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
@@ -30,6 +30,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 )
 
 from tests.conftest import ROOT_DIR
+from tests.test_contracts.base import BaseHardhatAMMContractTest
 
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
@@ -39,7 +40,9 @@ ADDRESS_THREE = "0x7A1236d5195e31f1F573AD618b2b6FEFC85C5Ce6"
 ADDRESS_FTM = "0x4E15361FD6b4BB609Fa63C81A2be19d873717870"
 ADDRESS_BOO = "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE"
 NONCE = 0
-CHAIN_ID = 1
+CHAIN_ID = 31337
+DEFAULT_GAS = 1000000
+DEFAULT_GAS_PRICE = 1000000
 
 
 class TestUniswapV2Router02Contract(BaseContractTestCase):
@@ -995,3 +998,92 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 self.ledger_api, self.contract_address, self.amount_out, self.path
             )
         assert result == []
+
+
+class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
+    """Base test case for AMM contracts"""
+
+    NB_OWNERS: int = 4
+    THRESHOLD: int = 1
+    SALT_NONCE: Optional[int] = None
+    contract_directory = Path(
+        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+    )
+    sanitize_from_deploy_tx = ["contract_address"]
+    contract: UniswapV2Router02Contract
+    weth_address: str
+
+    @classmethod
+    def deployment_kwargs(cls) -> Dict[str, Any]:
+        """Get deployment kwargs."""
+        return {}
+
+    @classmethod
+    def deploy(cls, **kwargs: Any) -> None:
+        """Deploy the contract."""
+        # addresses taken from
+        cls.contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+        cls.weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+
+
+class TestSwapHardhat(BaseContractTestHardHatAMMNet):
+    """Test."""
+
+    amount_out_min = 10
+    path = [ADDRESS_FTM, ADDRESS_BOO]
+    to_address = ADDRESS_ONE
+    deadline = 300
+
+    def test_swap_exact_ETH_for_tokens(self) -> None:
+        """Test swap_exact_ETH_for_tokens."""
+        assert self.contract_address is not None
+        eth_value = 0
+        gas = 100
+
+        data = self.contract.get_method_data(
+            self.ledger_api,
+            self.contract_address,
+            "swapExactETHForTokens",
+            amount_out_min=self.amount_out_min,
+            path=self.path,
+            to=self.to_address,
+            deadline=self.deadline,
+        )
+        assert data is not None
+        data_ = "0x" + cast(bytes, data["data"]).hex()
+
+        result = self.contract.swap_exact_ETH_for_tokens(
+            self.ledger_api,
+            self.contract_address,
+            ADDRESS_ONE,
+            gas,
+            DEFAULT_GAS_PRICE,
+            self.amount_out_min,
+            self.path,
+            self.to_address,
+            self.deadline,
+        )
+        assert result == {
+            "chainId": CHAIN_ID,
+            "data": data_,
+            "gas": gas,
+            "gasPrice": DEFAULT_GAS_PRICE,
+            "nonce": NONCE,
+            "to": self.contract_address,
+            "value": eth_value,
+        }
+
+    def test_quote(self) -> None:
+        """Test quote."""
+        assert self.contract_address is not None
+        amount_a = 10 * 10
+        reserve_a = 10 * 10
+        reserve_b = 10 * 10
+        quote = self.contract.quote(
+            self.ledger_api,
+            self.contract_address,
+            amount_a,
+            reserve_a,
+            reserve_b,
+        )
+        assert quote is not None
