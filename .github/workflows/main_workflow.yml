@@ -143,7 +143,6 @@ jobs:
           # build hardhat node in third_party/contracts-amm
           cd ../..
           cd third_party/contracts-amm &&\
-            sudo chown -R $(whoami) .husky &&\
             yarn
       #    # set up environment depending on the platform in use
       #    - if: matrix.os == 'ubuntu-latest'
