@@ -13,4 +13,6 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.rou
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node3:26657"
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 1200 --type int
+aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "http://hardhat:8545"
+aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id 31337 --type int
 aea build
