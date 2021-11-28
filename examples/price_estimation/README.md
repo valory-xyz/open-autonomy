@@ -14,7 +14,7 @@ Make sure you have installed on your machine:
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
-## Run
+## Run a local demo
 
 To set up the network:
 
@@ -187,7 +187,7 @@ Watch for changes and automatically build tag and deploy and changes within the 
 skaffold dev --profile minikube
 ```
 
-# tear down
+### tear down
 ```
 kind delete cluster
 ```
@@ -195,7 +195,7 @@ kind delete cluster
 
 ## Deployment on Ropsten
 
-Ensure accurate configuration. Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
+Ensure accurate configuration, in paricular, swap folder names of `configure_agents` and `configure_agents_ropsten` (`mv configure_agents configure_agents_old` and `mv configure_agents_ropsten configure_agents`). Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
 
 ```bash
 count=0
