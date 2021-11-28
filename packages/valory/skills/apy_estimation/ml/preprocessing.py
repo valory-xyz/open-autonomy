@@ -24,13 +24,14 @@ import numpy as np
 import pandas as pd
 import pmdarima as pm
 
+
 TrainTestSplitType = Tuple[np.ndarray, np.ndarray]
 
 
 def prepare_pair_data(
-        pairs_hist: pd.DataFrame,
-        pair_id: str,
-        test_size: Optional[Union[float, int]] = .25,
+    pairs_hist: pd.DataFrame,
+    pair_id: str,
+    test_size: Optional[Union[float, int]] = 0.25,
 ) -> Tuple[TrainTestSplitType, str]:
     """Prepare the timeseries data for a specific pair.
 
@@ -48,15 +49,15 @@ def prepare_pair_data(
         the train-test split for the specific pair and the pair's name.
     """
     # Create mask for the given pair.
-    pair_m = pairs_hist['id'] == pair_id
+    pair_m = pairs_hist["id"] == pair_id
 
     # Get the pair's name.
-    pair_name = pairs_hist.loc[pair_m, 'pairName'].iloc[0]
+    pair_name = pairs_hist.loc[pair_m, "pairName"].iloc[0]
 
     # Get the pair's APY, set the block's timestamp as an index
     # and convert it to a pandas period to create the timeseries.
-    y = pairs_hist.loc[pair_m, ['block_timestamp', 'APY']].set_index('block_timestamp')
-    y.index = y.index.to_period('D')
+    y = pairs_hist.loc[pair_m, ["block_timestamp", "APY"]].set_index("block_timestamp")
+    y.index = y.index.to_period("D")
 
     # Perform a train test split.
     y_train, y_test = pm.model_selection.train_test_split(y, test_size=test_size)

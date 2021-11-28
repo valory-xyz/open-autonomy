@@ -18,14 +18,15 @@
 
 """Optimization operations"""
 
-from typing import Union, Callable, Optional
+from typing import Callable, Optional, Union
 
 import numpy as np
-import pmdarima as pm
 import optuna
+import pmdarima as pm
 from sklearn.metrics import mean_pinball_loss
 
 from packages.valory.skills.apy_estimation.ml.forecasting import init_forecaster
+
 
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]
 ScoringType = Union[ScoringFuncType, str]
@@ -40,6 +41,7 @@ def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
     Returns:
         a mean pinball loss scoring function, which accepts y_true and y_pred and returns a score.
     """
+
     def pinball_loss(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Define mean pinball loss."""
         return mean_pinball_loss(y_true, y_pred, alpha=alpha)
@@ -74,27 +76,36 @@ class Objective:
             the average score of the cross validation results.
         """
         # Create hyperparameter suggestions.
-        p = trial.suggest_int('p', 1, 4)
-        q = trial.suggest_int('q', 1, 4)
-        d = trial.suggest_int('d', 1, 2)
+        p = trial.suggest_int("p", 1, 4)
+        q = trial.suggest_int("q", 1, 4)
+        d = trial.suggest_int("d", 1, 2)
 
-        m = trial.suggest_int('m', 8, 20)
-        k = trial.suggest_int('k', 1, 6)
+        m = trial.suggest_int("m", 8, 20)
+        k = trial.suggest_int("k", 1, 6)
 
         # Generate the forecaster with the suggestions.
         forecaster = init_forecaster(p, q, d, m, k)
 
         # Perform CV and get the average of the results.
         cv = pm.model_selection.SlidingWindowForecastCV(window_size=120)
-        scores = pm.model_selection.cross_val_score(forecaster, self.__y, scoring=self.__scoring, cv=cv)
+        scores = pm.model_selection.cross_val_score(
+            forecaster, self.__y, scoring=self.__scoring, cv=cv
+        )
         average_score = np.average(scores)
 
         return average_score
 
 
-def optimize(y: np.ndarray, n_trials: Optional[int] = None, timeout: Optional[float] = None, n_jobs: int = 1,
-             show_progress_bar: bool = True, scoring: ScoringType = 'pinball', alpha: Optional[float] = None,
-             seed: Optional[int] = None) -> optuna.study.Study:
+def optimize(
+    y: np.ndarray,
+    n_trials: Optional[int] = None,
+    timeout: Optional[float] = None,
+    n_jobs: int = 1,
+    show_progress_bar: bool = True,
+    scoring: ScoringType = "pinball",
+    alpha: Optional[float] = None,
+    seed: Optional[int] = None,
+) -> optuna.study.Study:
     """Run the optimizer.
 
     Args:
@@ -123,7 +134,7 @@ def optimize(y: np.ndarray, n_trials: Optional[int] = None, timeout: Optional[fl
     Returns:
         the `optuna` study.
     """
-    if scoring == 'pinball':
+    if scoring == "pinball":
         scoring = pinball_loss_scorer(alpha)
 
     # Make the sampler behave in a deterministic way.
@@ -134,6 +145,8 @@ def optimize(y: np.ndarray, n_trials: Optional[int] = None, timeout: Optional[fl
     objective_func = Objective(y, scoring)
 
     # Start the optimization of the study.
-    study.optimize(objective_func, n_trials, timeout, n_jobs, show_progress_bar=show_progress_bar)
+    study.optimize(
+        objective_func, n_trials, timeout, n_jobs, show_progress_bar=show_progress_bar
+    )
 
     return study

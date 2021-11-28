@@ -20,7 +20,7 @@
 """Test the base.py module of the skill."""
 import logging  # noqa: F401
 import re
-from typing import Dict, FrozenSet, cast, Optional
+from typing import Dict, FrozenSet, Optional, cast
 from unittest import mock
 
 import pytest
@@ -31,11 +31,17 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     TransactionNotValidError,
 )
-from packages.valory.skills.apy_estimation.payloads import FetchingPayload, RegistrationPayload
-from packages.valory.skills.apy_estimation.rounds import (
-    Event,
-    PeriodState, CollectHistoryRound, RegistrationRound,
+from packages.valory.skills.apy_estimation.payloads import (
+    FetchingPayload,
+    RegistrationPayload,
 )
+from packages.valory.skills.apy_estimation.rounds import (
+    CollectHistoryRound,
+    Event,
+    PeriodState,
+    RegistrationRound,
+)
+
 
 MAX_PARTICIPANTS: int = 4
 
@@ -46,11 +52,11 @@ def get_participants() -> FrozenSet[str]:
 
 
 def get_participant_to_fetching(
-        participants: FrozenSet[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
-        participant: FetchingPayload(sender=participant, history_hash='x0')
+        participant: FetchingPayload(sender=participant, history_hash="x0")
         for participant in participants
     }
 
@@ -64,7 +70,7 @@ class BaseRoundTestClass:
 
     @classmethod
     def setup(
-            cls,
+        cls,
     ) -> None:
         """Setup the test class."""
 
@@ -86,7 +92,7 @@ class TestRegistrationRound(BaseRoundTestClass):
     """Test RegistrationRound."""
 
     def test_run_default(
-            self,
+        self,
     ) -> None:
         """Run test."""
 
@@ -96,10 +102,10 @@ class TestRegistrationRound(BaseRoundTestClass):
         self._run_with_round(test_round, Event.DONE, 1)
 
     def _run_with_round(
-            self,
-            test_round: RegistrationRound,
-            expected_event: Optional[Event] = None,
-            confirmations: Optional[int] = None,
+        self,
+        test_round: RegistrationRound,
+        expected_event: Optional[Event] = None,
+        confirmations: Optional[int] = None,
     ) -> None:
         """Run with given round."""
         registration_payloads = [
@@ -114,16 +120,16 @@ class TestRegistrationRound(BaseRoundTestClass):
         assert test_round.end_block() is None
 
         with pytest.raises(
-                TransactionNotValidError,
-                match=f"payload attribute sender with value {first_participant.sender} "
-                      "has already been added for round: registration",
+            TransactionNotValidError,
+            match=f"payload attribute sender with value {first_participant.sender} "
+            "has already been added for round: registration",
         ):
             test_round.check_payload(first_participant)
 
         with pytest.raises(
-                ABCIAppInternalError,
-                match=f"payload attribute sender with value {first_participant.sender} "
-                      "has already been added for round: registration",
+            ABCIAppInternalError,
+            match=f"payload attribute sender with value {first_participant.sender} "
+            "has already been added for round: registration",
         ):
             test_round.process_payload(first_participant)
 
@@ -144,8 +150,8 @@ class TestRegistrationRound(BaseRoundTestClass):
             assert res is not None
             state, event = res
             assert (
-                    cast(PeriodState, state).participants
-                    == cast(PeriodState, actual_next_state).participants
+                cast(PeriodState, state).participants
+                == cast(PeriodState, actual_next_state).participants
             )
             assert event == expected_event
 
@@ -154,7 +160,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
     """Test `CollectHistoryRound`."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Runs test."""
 
@@ -163,20 +169,24 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         )
 
         with pytest.raises(
-                ABCIAppInternalError,
-                match=re.escape(
-                    "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-                ),
+            ABCIAppInternalError,
+            match=re.escape(
+                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
         ):
-            test_round.process_payload(FetchingPayload(sender="sender", history_hash='x0'))
+            test_round.process_payload(
+                FetchingPayload(sender="sender", history_hash="x0")
+            )
 
         with pytest.raises(
-                TransactionNotValidError,
-                match=re.escape(
-                    "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-                ),
+            TransactionNotValidError,
+            match=re.escape(
+                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
+            ),
         ):
-            test_round.check_payload(FetchingPayload(sender="sender", history_hash='x0'))
+            test_round.check_payload(
+                FetchingPayload(sender="sender", history_hash="x0")
+            )
 
         participant_to_fetching_payloads = get_participant_to_fetching(
             self.participants
@@ -192,29 +202,31 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         assert not test_round.threshold_reached
 
         with pytest.raises(
-                ABCIAppInternalError, match="internal error: not enough votes"
+            ABCIAppInternalError, match="internal error: not enough votes"
         ):
             _ = test_round.most_voted_payload
 
         with pytest.raises(
-                ABCIAppInternalError,
-                match="internal error: sender agent_0 has already sent value for round: collect_history",
+            ABCIAppInternalError,
+            match="internal error: sender agent_0 has already sent value for round: collect_history",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
-                TransactionNotValidError,
-                match="sender agent_0 has already sent value for round: collect_history",
+            TransactionNotValidError,
+            match="sender agent_0 has already sent value for round: collect_history",
         ):
             test_round.check_payload(
-                FetchingPayload(sender=sorted(list(self.participants))[0], history_hash='x0')
+                FetchingPayload(
+                    sender=sorted(list(self.participants))[0], history_hash="x0"
+                )
             )
 
         for payload in participant_to_fetching_payloads.values():
             test_round.process_payload(payload)
 
         assert test_round.threshold_reached
-        assert test_round.most_voted_payload == 'x0'
+        assert test_round.most_voted_payload == "x0"
 
         actual_next_state = self.period_state.update(
             participant_to_fetching=dict(
@@ -226,8 +238,8 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         assert res is not None
         state, event = res
         assert (
-                cast(PeriodState, state).participant_to_fetching.keys()
-                == cast(PeriodState, actual_next_state).participant_to_fetching.keys()
+            cast(PeriodState, state).participant_to_fetching.keys()
+            == cast(PeriodState, actual_next_state).participant_to_fetching.keys()
         )
         assert event == Event.DONE
 

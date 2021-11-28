@@ -23,17 +23,18 @@ import json
 import pytest
 
 from packages.valory.skills.apy_estimation.tools.queries import (
-    eth_price_usd_q,
     block_from_timestamp_q,
-    top_n_pairs_q,
+    eth_price_usd_q,
     pairs_q,
+    top_n_pairs_q,
 )
+
 
 eth_q_parameterization = pytest.mark.parametrize(
     (
-        'bundle_id',
-        'block',
-        'expected',
+        "bundle_id",
+        "block",
+        "expected",
     ),
     [
         (
@@ -65,9 +66,9 @@ eth_q_parameterization = pytest.mark.parametrize(
                 )
                 {ethPrice}
             }
-            """
-        )
-    ]
+            """,
+        ),
+    ],
 )
 
 
@@ -109,7 +110,7 @@ class TestQueries:
 
     @staticmethod
     def test_pairs_q():
-        actual = pairs_q(0, ['x0', 'x1', 'x2'])
+        actual = pairs_q(0, ["x0", "x1", "x2"])
         expected = """
                    {
                        pairs(

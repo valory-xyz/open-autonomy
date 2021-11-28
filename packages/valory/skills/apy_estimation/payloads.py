@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the APY estimation app."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional, Any, Union, List
+from typing import Any, Dict, List, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -64,7 +64,9 @@ class FetchingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.FETCHING
 
-    def __init__(self, sender: str, history_hash: str, id_: Optional[str] = None) -> None:
+    def __init__(
+        self, sender: str, history_hash: str, id_: Optional[str] = None
+    ) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -91,7 +93,7 @@ class TransformationPayload(BaseAPYPayload):
     transaction_type = TransactionType.TRANSFORMATION
 
     def __init__(
-            self, sender: str, transformation_hash: str, id_: Optional[str] = None
+        self, sender: str, transformation_hash: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'transformation' transaction payload.
 
@@ -119,7 +121,12 @@ class PreprocessPayload(BaseAPYPayload):
     transaction_type = TransactionType.PREPROCESS
 
     def __init__(
-            self, sender: str, train_hash: str, test_hash: str, pair_name: str, id_: Optional[str] = None
+        self,
+        sender: str,
+        train_hash: str,
+        test_hash: str,
+        pair_name: str,
+        id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'preprocess' transaction payload.
 
@@ -155,7 +162,13 @@ class OptimizationPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.OPTIMIZATION
 
-    def __init__(self, sender: str, study_hash: str, best_params: Dict[str, Any], id_: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        sender: str,
+        study_hash: str,
+        best_params: Dict[str, Any],
+        id_: Optional[str] = None,
+    ) -> None:
         """Initialize an 'optimization' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -214,7 +227,9 @@ class TestingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.TESTING
 
-    def __init__(self, sender: str, report_hash: str, id_: Optional[str] = None) -> None:
+    def __init__(
+        self, sender: str, report_hash: str, id_: Optional[str] = None
+    ) -> None:
         """Initialize a 'testing' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -240,7 +255,9 @@ class EstimatePayload(BaseAPYPayload):
 
     transaction_type = TransactionType.ESTIMATION
 
-    def __init__(self, sender: str, estimation: List[float], id_: Optional[str] = None) -> None:
+    def __init__(
+        self, sender: str, estimation: List[float], id_: Optional[str] = None
+    ) -> None:
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -267,7 +284,7 @@ class ResetPayload(BaseAPYPayload):
     transaction_type = TransactionType.RESET
 
     def __init__(
-            self, sender: str, period_count: int, id_: Optional[str] = None
+        self, sender: str, period_count: int, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'reset' transaction payload.
 

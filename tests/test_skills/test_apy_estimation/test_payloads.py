@@ -20,12 +20,15 @@
 """Test the payloads.py module of the skill."""
 
 from packages.valory.skills.apy_estimation.payloads import (
-    TransactionType,
+    EstimatePayload,
     FetchingPayload,
-    TransformationPayload,
-    ResetPayload,
+    OptimizationPayload,
     PreprocessPayload,
-    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload,
+    ResetPayload,
+    TestingPayload,
+    TrainingPayload,
+    TransactionType,
+    TransformationPayload,
 )
 
 
@@ -39,7 +42,7 @@ class TestPayloads:
     @staticmethod
     def test_fetching_payload() -> None:
         """Test `FetchingPayload`"""
-        payload = FetchingPayload(sender="sender", history_hash='x0', id_="id")
+        payload = FetchingPayload(sender="sender", history_hash="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.FETCHING
         assert payload.history == "x0"
@@ -49,7 +52,9 @@ class TestPayloads:
     @staticmethod
     def test_transformation_payload() -> None:
         """Test `TransformationPayload`"""
-        payload = TransformationPayload(sender="sender", transformation_hash='x0', id_="id")
+        payload = TransformationPayload(
+            sender="sender", transformation_hash="x0", id_="id"
+        )
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
         assert payload.transformation == "x0"
@@ -59,29 +64,39 @@ class TestPayloads:
     @staticmethod
     def test_preprocess_payload() -> None:
         """Test `PreprocessPayload`"""
-        payload = PreprocessPayload(sender="sender", train_hash='x0', test_hash='x1', pair_name='test', id_="id")
+        payload = PreprocessPayload(
+            sender="sender", train_hash="x0", test_hash="x1", pair_name="test", id_="id"
+        )
 
         assert payload.transaction_type == TransactionType.PREPROCESS
         assert payload.train_test_hash == "x0x1"
         assert payload.pair_name == "test"
         assert payload.id_ == "id"
-        assert payload.data == {"train_test": 'x0x1', "pair_name": 'test'}
+        assert payload.data == {"train_test": "x0x1", "pair_name": "test"}
 
     @staticmethod
     def test_optimization_payload() -> None:
         """Test `OptimizationPayload`"""
-        payload = OptimizationPayload(sender="sender", study_hash='x0', best_params={'test': 2.0421833357796}, id_="id")
+        payload = OptimizationPayload(
+            sender="sender",
+            study_hash="x0",
+            best_params={"test": 2.0421833357796},
+            id_="id",
+        )
 
         assert payload.transaction_type == TransactionType.OPTIMIZATION
         assert payload.study == "x0"
-        assert payload.best_params == {'test': 2.004421833357796}
+        assert payload.best_params == {"test": 2.004421833357796}
         assert payload.id_ == "id"
-        assert payload.data == {"study": "x0", "best_trial": {'test': 2.004421833357796}}
+        assert payload.data == {
+            "study": "x0",
+            "best_trial": {"test": 2.004421833357796},
+        }
 
     @staticmethod
     def test_training_payload() -> None:
         """Test `TrainingPayload`"""
-        payload = TrainingPayload(sender="sender", model_hash='x0', id_="id")
+        payload = TrainingPayload(sender="sender", model_hash="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.TRAINING
         assert payload.model == "x0"
@@ -91,7 +106,7 @@ class TestPayloads:
     @staticmethod
     def test_testing_payload() -> None:
         """Test `TestingPayload`"""
-        payload = TestingPayload(sender="sender", report_hash='x0', id_="id")
+        payload = TestingPayload(sender="sender", report_hash="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.TESTING
         assert payload.report_hash == "x0"
@@ -101,7 +116,9 @@ class TestPayloads:
     @staticmethod
     def test_estimate_payload() -> None:
         """Test `EstimatePayload`"""
-        payload = EstimatePayload(sender="sender", estimation=[2.0044, 5.8365], id_="id")
+        payload = EstimatePayload(
+            sender="sender", estimation=[2.0044, 5.8365], id_="id"
+        )
 
         assert payload.transaction_type == TransactionType.ESTIMATION
         assert payload.estimation == [2.0044, 5.8365]

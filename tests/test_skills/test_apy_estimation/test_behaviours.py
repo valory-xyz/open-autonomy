@@ -25,15 +25,13 @@ import time
 from copy import copy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Type, cast, Tuple
+from typing import Any, Dict, Tuple, Type, cast
 from unittest import mock
 from unittest.mock import patch
 
 import pytest
 from aea.exceptions import AEAActException
-from aea.helpers.transaction.base import (
-    SignedMessage,
-)
+from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -51,20 +49,28 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.handlers import LedgerApiHandler, HttpHandler, ContractApiHandler, \
-    SigningHandler
-from packages.valory.skills.apy_estimation.behaviours import APYEstimationConsensusBehaviour, FetchBehaviour, \
-    TransformBehaviour, TendermintHealthcheckBehaviour, RegistrationBehaviour
-from packages.valory.skills.apy_estimation.rounds import PeriodState, Event
+from packages.valory.skills.abstract_round_abci.handlers import (
+    ContractApiHandler,
+    HttpHandler,
+    LedgerApiHandler,
+    SigningHandler,
+)
+from packages.valory.skills.apy_estimation.behaviours import (
+    APYEstimationConsensusBehaviour,
+    FetchBehaviour,
+    RegistrationBehaviour,
+    TendermintHealthcheckBehaviour,
+    TransformBehaviour,
+)
+from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
+
 from tests.conftest import ROOT_DIR
 
 
 class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing APYEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "apy_estimation"
-    )
+    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "apy_estimation")
 
     apy_estimation_behaviour: APYEstimationConsensusBehaviour
     ledger_handler: LedgerApiHandler
@@ -564,54 +570,59 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             headers="",
         )
 
-        # monkeypatch.setattr(
-        #     'packages.valory.skills.apy_estimation.behaviours.top_n_pairs_q',
-        #     lambda *x: top_n_pairs_q
-        # )
-
         # top pairs' ids request.
-        with mock.patch(
-                'packages.valory.skills.apy_estimation.behaviours.top_n_pairs_q',
-                new_callable=lambda *x: top_n_pairs_q
-        ):
-            self.apy_estimation_behaviour.act_wrapper()
-            self.apy_estimation_behaviour.context.logger.info(top_n_pairs_q)
-            request_kwargs['body'] = top_n_pairs_q
-            res = {"data": {"pairs": [{'id': 'x0'}, {'id': 'x2'}]}}
-            response_kwargs['body'] = json.dumps(res).encode("utf-8")
-            self.mock_http_request(request_kwargs, response_kwargs)
-
-        # block request.
+        # with mock.patch(
+        #         'packages.valory.skills.apy_estimation.behaviours.top_n_pairs_q',
+        #         new_callable=lambda *x: top_n_pairs_q
+        # ):
         self.apy_estimation_behaviour.act_wrapper()
-        monkeypatch.setattr(
-            'packages.valory.skills.apy_estimation.behaviours.block_from_timestamp_q',
-            block_from_timestamp_q
-        )
-        request_kwargs['body'] = block_from_timestamp_q
-        res = {"data": {"blocks": [{'timestamp': '1', 'number': '1'}]}}
-        response_kwargs['body'] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.context.logger.info(top_n_pairs_q)
+        request_kwargs["body"] = json.dumps(top_n_pairs_q).encode("utf-8")
+        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.mock_http_request(request_kwargs, response_kwargs)
+
+        request_kwargs = dict(
+            method="POST",
+            url="https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks",
+            headers="Content-Type: application/json\r\n",
+            version="",
+        )
+
+        # # block request.
+        # self.apy_estimation_behaviour.act_wrapper()
+        # # TOFIX: mock timestamp in gen_unix_timestamps
+        # request_kwargs['body'] = json.dumps(block_from_timestamp_q).encode("utf-8")
+        # res = {"data": {"blocks": [{'timestamp': '1', 'number': '1'}]}}
+        # response_kwargs['body'] = json.dumps(res).encode("utf-8")
+        # self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
         self.apy_estimation_behaviour.act_wrapper()
         monkeypatch.setattr(
-            'packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q',
-            eth_price_usd_q
+            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
+            eth_price_usd_q,
         )
-        request_kwargs['body'] = eth_price_usd_q
-        res = {"data": {"bundles": [{'ethPrice': '0.8973548'}]}}
-        response_kwargs['body'] = json.dumps(res).encode("utf-8")
+        request_kwargs["body"] = eth_price_usd_q
+        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # top pairs data.
         self.apy_estimation_behaviour.act_wrapper()
         monkeypatch.setattr(
-            'packages.valory.skills.apy_estimation.behaviours.pairs_q',
-            pairs_q
+            "packages.valory.skills.apy_estimation.behaviours.pairs_q", pairs_q
         )
-        request_kwargs['body'] = pairs_q
-        res = {"data": {"pairs": [{field: dummy_value for field in pool_fields} for dummy_value in ('dum1', 'dum2')]}}
-        response_kwargs['body'] = json.dumps(res).encode("utf-8")
+        request_kwargs["body"] = pairs_q
+        res = {
+            "data": {
+                "pairs": [
+                    {field: dummy_value for field in pool_fields}
+                    for dummy_value in ("dum1", "dum2")
+                ]
+            }
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.mock_http_request(request_kwargs, response_kwargs)
 
         self.mock_a2a_transaction()
@@ -659,8 +670,8 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_test_behaviour(self):
         # TODO
         assert False
-        
-        
+
+
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 

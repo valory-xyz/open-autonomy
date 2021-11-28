@@ -16,6 +16,7 @@
 #
 # ------------------------------------------------------------------------------
 
+
 class TestProcessing:
     @staticmethod
     def test_calc_change():

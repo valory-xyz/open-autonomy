@@ -22,7 +22,7 @@ import datetime
 import json
 import os
 from abc import ABC
-from typing import Dict, Generator, Set, Tuple, Type, Union, cast, Any, Optional
+from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -36,22 +36,47 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation.ml.io import save_forecaster, load_forecaster
+from packages.valory.skills.apy_estimation.ml.io import load_forecaster, save_forecaster
 from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
 from packages.valory.skills.apy_estimation.models import APYParams, SharedState
-from packages.valory.skills.apy_estimation.payloads import FetchingPayload, TransformationPayload, PreprocessPayload, \
-    OptimizationPayload, TrainingPayload, TestingPayload, EstimatePayload, ResetPayload, RegistrationPayload
+from packages.valory.skills.apy_estimation.payloads import (
+    EstimatePayload,
+    FetchingPayload,
+    OptimizationPayload,
+    PreprocessPayload,
+    RegistrationPayload,
+    ResetPayload,
+    TestingPayload,
+    TrainingPayload,
+    TransformationPayload,
+)
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
+    EstimateRound,
+    OptimizeRound,
     PeriodState,
-    TransformRound, ResetRound, PreprocessRound, OptimizeRound, TrainRound, TestRound, EstimateRound,
-    ResetAndPauseRound, RegistrationRound,
+    PreprocessRound,
+    RegistrationRound,
+    ResetAndPauseRound,
+    ResetRound,
+    TestRound,
+    TrainRound,
+    TransformRound,
 )
-from packages.valory.skills.apy_estimation.tasks import TransformTask, OptimizeTask, TrainTask, TestTask
+from packages.valory.skills.apy_estimation.tasks import (
+    OptimizeTask,
+    TestTask,
+    TrainTask,
+    TransformTask,
+)
 from packages.valory.skills.apy_estimation.tools.etl import load_hist
-from packages.valory.skills.apy_estimation.tools.general import gen_unix_timestamps, create_pathdirs, to_json_file, \
-    read_json_file
+from packages.valory.skills.apy_estimation.tools.general import (
+    create_pathdirs,
+    gen_unix_timestamps,
+    read_json_file,
+    to_json_file,
+)
 from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
@@ -59,8 +84,9 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     top_n_pairs_q,
 )
 
+
 benchmark_tool = BenchmarkTool()
-PAIR_ID = '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+PAIR_ID = "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"
 
 
 class APYEstimationBaseState(BaseState, ABC):
@@ -99,7 +125,10 @@ class TendermintHealthcheckBehaviour(APYEstimationBaseState):
         expired = False  # pragma: no cover
 
         if self._check_started is not None and not self._is_healthy:
-            expired = datetime.datetime.now() > self._check_started + datetime.timedelta(0, self._timeout)
+            expired = (
+                datetime.datetime.now()
+                > self._check_started + datetime.timedelta(0, self._timeout)
+            )
 
         return expired
 
@@ -192,11 +221,11 @@ class FetchBehaviour(APYEstimationBaseState):
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-        self._save_path = ''
+        self._save_path = ""
 
     def setup(self) -> None:
         """Set the behaviour up."""
-        self._save_path = os.path.join(self.params.data_folder, 'historical_data.json')
+        self._save_path = os.path.join(self.params.data_folder, "historical_data.json")
         create_pathdirs(self._save_path)
 
     def _handle_response(
@@ -373,20 +402,26 @@ class TransformBehaviour(APYEstimationBaseState):
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-        self._history_save_path = self._transformed_history_save_path = ''
+        self._history_save_path = self._transformed_history_save_path = ""
         self._async_result = None
 
     def setup(self):
         """Setup behaviour."""
-        self._history_save_path = os.path.join(self.params.data_folder, 'historical_data.json')
-        self._transformed_history_save_path = os.path.join(self.params.data_folder, 'transformed_historical_data.csv')
+        self._history_save_path = os.path.join(
+            self.params.data_folder, "historical_data.json"
+        )
+        self._transformed_history_save_path = os.path.join(
+            self.params.data_folder, "transformed_historical_data.csv"
+        )
         create_pathdirs(self._transformed_history_save_path)
 
         # Load historical data from a json file.
         pairs_hist = read_json_file(self._history_save_path)
 
         transform_task = TransformTask()
-        task_id = self.context.task_manager.enqueue_task(transform_task, args=(pairs_hist,))
+        task_id = self.context.task_manager.enqueue_task(
+            transform_task, args=(pairs_hist,)
+        )
         self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
@@ -401,7 +436,7 @@ class TransformBehaviour(APYEstimationBaseState):
             transformed_history = cast(pd.DataFrame, completed_task.result)
             self.context.logger.info(
                 "Data have been transformed. Showing the first row:\n",
-                transformed_history.head(1)
+                transformed_history.head(1),
             )
 
             # Store the transformed data.
@@ -437,7 +472,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
         #  Eventually, we will have to run this and all the following behaviours for all the available pools.
 
         # Get the historical data and preprocess them.
-        transformed_history_save_path = os.path.join(self.params.data_folder, 'transformed_historical_data.csv')
+        transformed_history_save_path = os.path.join(
+            self.params.data_folder, "transformed_historical_data.csv"
+        )
         pairs_hist = load_hist(transformed_history_save_path)
         (y_train, y_test), pair_name = prepare_pair_data(pairs_hist, PAIR_ID)
         self.context.logger.info("Data have been preprocessed.")
@@ -445,18 +482,17 @@ class PreprocessBehaviour(APYEstimationBaseState):
         # Store and hash the preprocessed data.
         hasher = IPFSHashOnly()
         hashes = []
-        for filename, split in {'train': y_train, 'test': y_test}.items():
-            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'{filename}.csv')
+        for filename, split in {"train": y_train, "test": y_test}.items():
+            save_path = os.path.join(
+                self.params.data_folder, PAIR_ID, f"{filename}.csv"
+            )
             create_pathdirs(save_path)
-            np.savetxt(save_path, split, ',')
+            np.savetxt(save_path, split, ",")
             hashes.append(hasher.get(save_path))
 
         # Pass the hash as a Payload.
         payload = PreprocessPayload(
-            self.context.agent_address,
-            hashes[0],
-            hashes[1],
-            pair_name
+            self.context.agent_address, hashes[0], hashes[1], pair_name
         )
 
         # Finish behaviour.
@@ -480,11 +516,13 @@ class OptimizeBehaviour(APYEstimationBaseState):
     def setup(self):
         """Setup behaviour."""
         # Load training data.
-        path = os.path.join(self.params.data_folder, PAIR_ID, 'train.csv')
-        y = np.loadtxt(path, delimiter=',')
+        path = os.path.join(self.params.data_folder, PAIR_ID, "train.csv")
+        y = np.loadtxt(path, delimiter=",")
 
         optimize_task = OptimizeTask()
-        task_id = self.context.task_manager.enqueue_task(optimize_task, args=(y,), kwargs=self.params.optimizer_params)
+        task_id = self.context.task_manager.enqueue_task(
+            optimize_task, args=(y,), kwargs=self.params.optimizer_params
+        )
         self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
@@ -500,11 +538,13 @@ class OptimizeBehaviour(APYEstimationBaseState):
             study_results = study.trials_dataframe()
             self.context.logger.info(
                 "Optimization has finished. Showing the results:\n",
-                study_results.to_string()
+                study_results.to_string(),
             )
 
             # Store the results.
-            save_path = os.path.join(self.params.data_folder, PAIR_ID, 'study_results.csv')
+            save_path = os.path.join(
+                self.params.data_folder, PAIR_ID, "study_results.csv"
+            )
             study_results.to_csv(save_path)
 
             # Hash the file.
@@ -513,9 +553,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
             # Pass the hash and the best trial as a Payload.
             payload = OptimizationPayload(
-                self.context.agent_address,
-                study_hash,
-                study.best_params
+                self.context.agent_address, study_hash, study.best_params
             )
 
             # Finish behaviour.
@@ -541,16 +579,18 @@ class TrainBehaviour(APYEstimationBaseState):
         # Load training data.
         if self.period_state.full_training:
             y = []
-            for split in ('train', 'test'):
-                path = os.path.join(self.params.data_folder, PAIR_ID, f'{split}.csv')
-                y.append(np.loadtxt(path, delimiter=','))
+            for split in ("train", "test"):
+                path = os.path.join(self.params.data_folder, PAIR_ID, f"{split}.csv")
+                y.append(np.loadtxt(path, delimiter=","))
             y = np.concatenate(y)
         else:
-            path = os.path.join(self.params.data_folder, PAIR_ID, 'train.csv')
-            y = np.loadtxt(path, delimiter=',')
+            path = os.path.join(self.params.data_folder, PAIR_ID, "train.csv")
+            y = np.loadtxt(path, delimiter=",")
 
         train_task = TrainTask()
-        task_id = self.context.task_manager.enqueue_task(train_task, args=(y,), kwargs=self.period_state.best_params)
+        task_id = self.context.task_manager.enqueue_task(
+            train_task, args=(y,), kwargs=self.period_state.best_params
+        )
         self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
@@ -567,7 +607,9 @@ class TrainBehaviour(APYEstimationBaseState):
 
             # Store the results.
             prefix = "fully_trained_" if self.period_state.full_training else ""
-            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'{prefix}forecaster.pkl')
+            save_path = os.path.join(
+                self.params.data_folder, PAIR_ID, f"{prefix}forecaster.pkl"
+            )
             save_forecaster(save_path, forecaster)
 
             # Hash the file.
@@ -598,17 +640,22 @@ class TestBehaviour(APYEstimationBaseState):
     def setup(self):
         """Setup behaviour."""
         # Load test data.
-        y = {'train': None, 'y_test': None}
-        for split in ('train', 'test'):
-            path = os.path.join(self.params.data_folder, PAIR_ID, f'{split}.csv')
-            y[split] = np.loadtxt(path, delimiter=',')
+        y = {"train": None, "y_test": None}
+        for split in ("train", "test"):
+            path = os.path.join(self.params.data_folder, PAIR_ID, f"{split}.csv")
+            y[split] = np.loadtxt(path, delimiter=",")
 
-        model_path = os.path.join(self.params.data_folder, PAIR_ID, f'forecaster.pkl')
+        model_path = os.path.join(self.params.data_folder, PAIR_ID, f"forecaster.pkl")
         forecaster = load_forecaster(model_path)
 
         test_task = TestTask()
-        task_args = (forecaster, y['train'], y['test'], self.period_state.pair_name,
-                     self.params.testing['steps_forward'])
+        task_args = (
+            forecaster,
+            y["train"],
+            y["test"],
+            self.period_state.pair_name,
+            self.params.testing["steps_forward"],
+        )
         task_id = self.context.task_manager.enqueue_task(test_task, task_args)
         self._async_result = self.context.task_manager.get_task_result(task_id)
 
@@ -622,10 +669,14 @@ class TestBehaviour(APYEstimationBaseState):
             # Train the estimator.
             completed_task = self._async_result.get()
             report = cast(TestReportType, completed_task.result)
-            self.context.logger.info(f"Testing has finished. Report follows:\n{json.dumps(report)}")
+            self.context.logger.info(
+                f"Testing has finished. Report follows:\n{json.dumps(report)}"
+            )
 
             # Store the results.
-            save_path = os.path.join(self.params.data_folder, PAIR_ID, f'test_report.json')
+            save_path = os.path.join(
+                self.params.data_folder, PAIR_ID, f"test_report.json"
+            )
             to_json_file(save_path, report)
 
             # Hash the file.
@@ -660,9 +711,11 @@ class EstimateBehaviour(APYEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         with benchmark_tool.measure(self).local():
-            model_path = os.path.join(self.params.data_folder, PAIR_ID, f'fully_trained_forecaster.pkl')
+            model_path = os.path.join(
+                self.params.data_folder, PAIR_ID, f"fully_trained_forecaster.pkl"
+            )
             forecaster = load_forecaster(model_path)
-            estimation = forecaster.predict(self.params.estimation['steps_forward'])
+            estimation = forecaster.predict(self.params.estimation["steps_forward"])
 
             self.context.logger.info(
                 "Got estimate of APY for %s: %s",
@@ -699,7 +752,9 @@ class BaseResetBehaviour(APYEstimationBaseState):
         if self.pause:
 
             if self.period_state.is_most_voted_estimate_set:
-                self.context.logger.info(f"Finalized estimate: {self.period_state.most_voted_estimate}")
+                self.context.logger.info(
+                    f"Finalized estimate: {self.period_state.most_voted_estimate}"
+                )
 
             else:
                 self.context.logger.info("Finalized estimate not available.")
@@ -714,7 +769,9 @@ class BaseResetBehaviour(APYEstimationBaseState):
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
-        payload = ResetPayload(self.context.agent_address, self.period_state.period_count + 1)
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()

@@ -46,7 +46,7 @@ def to_json_file(path: str, obj: StoredJSONType) -> None:
     :param path: the path to store the json file.
     :param obj: the object to convert and store.
     """
-    with open(path, 'w', encoding='utf-8') as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False, indent=4)
 
 
@@ -55,5 +55,5 @@ def read_json_file(path: str) -> ResponseItemType:
 
     :param path: the path to retrieve the json file from.
     """
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)

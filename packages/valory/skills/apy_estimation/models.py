@@ -21,12 +21,13 @@
 
 from typing import Any
 
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
-    ApiSpecs,
     SharedState as BaseSharedState,
-    Requests as BaseRequests, BaseParams,
 )
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
+
 
 Requests = BaseRequests
 

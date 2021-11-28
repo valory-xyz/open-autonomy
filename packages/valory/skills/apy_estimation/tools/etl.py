@@ -18,48 +18,56 @@
 
 """ETL related operations."""
 
-from typing import List, Dict
+from typing import Dict, List
 
 import pandas as pd
+
 
 ResponseItemType = List[Dict[str, str]]
 
 # Define a dictionary with the data types for each column of the historical data.
 HIST_DTYPES = {
-    'createdAtBlockNumber': int,
-    'createdAtTimestamp': int,
-    'id': str,
-    'liquidityProviderCount': int,
-    'reserve0': float,
-    'reserve1': float,
-    'reserveETH': float,
-    'reserveUSD': float,
-    'token0Price': float,
-    'token1Price': float,
-    'totalSupply': float,
-    'trackedReserveETH': float,
-    'untrackedVolumeUSD': float,
-    'txCount': int,
-    'volumeToken0': float,
-    'volumeToken1': float,
-    'volumeUSD': float,
-    'for_timestamp': int,
-    'block_number': int,
-    'block_timestamp': int,
-    'eth_price': float,
-    'token0': object,
-    'token1': object
+    "createdAtBlockNumber": int,
+    "createdAtTimestamp": int,
+    "id": str,
+    "liquidityProviderCount": int,
+    "reserve0": float,
+    "reserve1": float,
+    "reserveETH": float,
+    "reserveUSD": float,
+    "token0Price": float,
+    "token1Price": float,
+    "totalSupply": float,
+    "trackedReserveETH": float,
+    "untrackedVolumeUSD": float,
+    "txCount": int,
+    "volumeToken0": float,
+    "volumeToken1": float,
+    "volumeUSD": float,
+    "for_timestamp": int,
+    "block_number": int,
+    "block_timestamp": int,
+    "eth_price": float,
+    "token0": object,
+    "token1": object,
 }
 
 # Define a dictionary with the data types of the columns of the transformed historical data.
 TRANSFORMED_HIST_DTYPES = HIST_DTYPES.copy()
-for new_str_col in ('token0_id', 'token0_name', 'token0_symbol', 'token1_id', 'token1_name', 'token1_symbol'):
+for new_str_col in (
+    "token0_id",
+    "token0_name",
+    "token0_symbol",
+    "token1_id",
+    "token1_name",
+    "token1_symbol",
+):
     TRANSFORMED_HIST_DTYPES[new_str_col] = str
 
-for new_float_col in ('updatedVolumeUSD', 'updatedReserveUSD', 'current_change', 'APY'):
+for new_float_col in ("updatedVolumeUSD", "updatedReserveUSD", "current_change", "APY"):
     TRANSFORMED_HIST_DTYPES[new_float_col] = float
 
-for old_col in ('token0', 'token1'):
+for old_col in ("token0", "token1"):
     del TRANSFORMED_HIST_DTYPES[old_col]
 
 
@@ -84,8 +92,8 @@ def calc_apy(x: pd.DataFrame) -> pd.Series:
     Returns:
         a series with the daily APYs.
     """
-    if x['updatedReserveUSD']:
-        return (x['current_change'] * .002 * 365 * 100) / x['updatedReserveUSD']
+    if x["updatedReserveUSD"]:
+        return (x["current_change"] * 0.002 * 365 * 100) / x["updatedReserveUSD"]
 
 
 def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
@@ -111,40 +119,60 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     pairs_hist = pd.DataFrame(pairs_hist_raw).astype(HIST_DTYPES)
 
     # Split the dictionary-like token cols.
-    token_cols = ['token0', 'token1']
+    token_cols = ["token0", "token1"]
     for token_col in token_cols:
-        pairs_hist[f'{token_col}_id'] = pairs_hist[token_col].apply(lambda x: x['id']).astype(str)
-        pairs_hist[f'{token_col}_name'] = pairs_hist[token_col].apply(lambda x: x['name']).astype(str)
-        pairs_hist[f'{token_col}_symbol'] = pairs_hist[token_col].apply(lambda x: x['symbol']).astype(str)
+        pairs_hist[f"{token_col}_id"] = (
+            pairs_hist[token_col].apply(lambda x: x["id"]).astype(str)
+        )
+        pairs_hist[f"{token_col}_name"] = (
+            pairs_hist[token_col].apply(lambda x: x["name"]).astype(str)
+        )
+        pairs_hist[f"{token_col}_symbol"] = (
+            pairs_hist[token_col].apply(lambda x: x["symbol"]).astype(str)
+        )
     # Drop the original dictionary-like token cols.
     pairs_hist.drop(columns=token_cols, inplace=True)
 
     # Create pair's name.
-    pairs_hist['pairName'] = pairs_hist['token0_name'] + ' - ' + pairs_hist['token1_name']
+    pairs_hist["pairName"] = (
+        pairs_hist["token0_name"] + " - " + pairs_hist["token1_name"]
+    )
 
     # Create a volume USD and a reserve USD taking the untracked amount into consideration as well.
-    pairs_hist['updatedVolumeUSD'] = pairs_hist['volumeUSD']
-    pairs_hist['updatedReserveUSD'] = pairs_hist['trackedReserveETH'] * pairs_hist['eth_price']
+    pairs_hist["updatedVolumeUSD"] = pairs_hist["volumeUSD"]
+    pairs_hist["updatedReserveUSD"] = (
+        pairs_hist["trackedReserveETH"] * pairs_hist["eth_price"]
+    )
 
     # Create a mask for all the untracked cases.
-    not_tracked_m = pairs_hist['updatedVolumeUSD'] == 0
+    not_tracked_m = pairs_hist["updatedVolumeUSD"] == 0
 
     # Keep the untracked amount for the untracked cases.
-    pairs_hist.loc[not_tracked_m, 'updatedVolumeUSD'] = pairs_hist.loc[not_tracked_m, 'untrackedVolumeUSD']
-    pairs_hist.loc[not_tracked_m, 'updatedReserveUSD'] = pairs_hist.loc[not_tracked_m, 'reserveUSD']
+    pairs_hist.loc[not_tracked_m, "updatedVolumeUSD"] = pairs_hist.loc[
+        not_tracked_m, "untrackedVolumeUSD"
+    ]
+    pairs_hist.loc[not_tracked_m, "updatedReserveUSD"] = pairs_hist.loc[
+        not_tracked_m, "reserveUSD"
+    ]
 
     # Calculate the current change of volume in USD.
-    pairs_hist['current_change'] = pairs_hist.groupby('id')['updatedVolumeUSD'].transform(calc_change)
+    pairs_hist["current_change"] = pairs_hist.groupby("id")[
+        "updatedVolumeUSD"
+    ].transform(calc_change)
     # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
     pairs_hist.dropna(inplace=True)
 
     # Calculate APY.
-    pairs_hist['APY'] = pairs_hist.apply(calc_apy, axis=1)
+    pairs_hist["APY"] = pairs_hist.apply(calc_apy, axis=1)
     # Drop rows with NaN APY values.
-    pairs_hist.dropna(subset=['APY'], inplace=True)
+    pairs_hist.dropna(subset=["APY"], inplace=True)
 
     # Sort the dictionary.
-    pairs_hist.sort_values(by=['block_timestamp', 'token0_symbol', 'token1_symbol'], ascending=True, inplace=True)
+    pairs_hist.sort_values(
+        by=["block_timestamp", "token0_symbol", "token1_symbol"],
+        ascending=True,
+        inplace=True,
+    )
 
     return pairs_hist
 
@@ -159,6 +187,8 @@ def load_hist(path: str) -> pd.DataFrame:
     pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
 
     # Convert the `block_timestamp` to a pandas datetime.
-    pairs_hist['block_timestamp'] = pd.to_datetime(pairs_hist['block_timestamp'], unit='s')
+    pairs_hist["block_timestamp"] = pd.to_datetime(
+        pairs_hist["block_timestamp"], unit="s"
+    )
 
     return pairs_hist

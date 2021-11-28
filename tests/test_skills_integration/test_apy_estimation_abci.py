@@ -53,6 +53,7 @@ from tests.helpers.tendermint_utils import (
     TendermintLocalNetworkBuilder,
 )
 
+
 # check log messages of the happy path
 CHECK_STRINGS = [
     "Entered in the 'tendermint_healthcheck' behaviour state",
@@ -67,7 +68,12 @@ states_checks_config = {
     },
     "collect_history": {
         "state_name": "collect_history",
-        "extra_logs": ("Retrieved top ", "Retrieved block: ", "Retrieved ETH price for block ", "Retrieved top "),
+        "extra_logs": (
+            "Retrieved top ",
+            "Retrieved block: ",
+            "Retrieved ETH price for block ",
+            "Retrieved top ",
+        ),
         "only_at_first_period": False,
     },
     "transform": {
@@ -118,15 +124,19 @@ def build_check_strings() -> None:
     for period in (0, 1):
         for state, config in states_checks_config.items():
             if period == 0:
-                CHECK_STRINGS.append(f"Entered in the '{config['state_name']}' round for period {period}")
+                CHECK_STRINGS.append(
+                    f"Entered in the '{config['state_name']}' round for period {period}"
+                )
 
-                for log in config['extra_logs']:
+                for log in config["extra_logs"]:
                     CHECK_STRINGS.append(log)
 
                 CHECK_STRINGS.append(f"'{config['state_name']}' round is done")
 
-            elif not config['only_at_first_period']:
-                CHECK_STRINGS.append(f"Entered in the '{config['state_name']}' round for period {period}")
+            elif not config["only_at_first_period"]:
+                CHECK_STRINGS.append(
+                    f"Entered in the '{config['state_name']}' round for period {period}"
+                )
 
 
 build_check_strings()
@@ -249,7 +259,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestABCIAPYEstimationSki
         for process in self.processes:
             missing_strings = self.missing_from_output(process, CHECK_STRINGS, 120)
             assert (
-                    missing_strings == []
+                missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
             assert self.is_successfully_terminated(
@@ -304,7 +314,7 @@ class TestDelayedStart(
         logging.info("Waiting Tendermint nodes to be up (but the last)")
         for rpc_addr in self.tendermint_net_builder.http_rpc_laddrs[:-1]:
             if not tendermint_health_check(
-                    rpc_addr, max_retries=20, sleep_interval=3.0
+                rpc_addr, max_retries=20, sleep_interval=3.0
             ):
                 pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")
 
@@ -318,7 +328,7 @@ class TestDelayedStart(
         for process in self.processes:
             missing_strings = self.missing_from_output(process, CHECK_STRINGS, 120)
             assert (
-                    missing_strings == []
+                missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
             assert self.is_successfully_terminated(

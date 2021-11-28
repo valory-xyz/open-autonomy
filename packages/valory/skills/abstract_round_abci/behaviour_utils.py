@@ -25,7 +25,18 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Type, cast, OrderedDict
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    OrderedDict,
+    Tuple,
+    Type,
+    cast,
+)
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message

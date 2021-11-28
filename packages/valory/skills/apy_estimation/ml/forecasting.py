@@ -18,21 +18,34 @@
 
 """Forecasting operations"""
 
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import numpy as np
 from pmdarima import ARIMA
 from pmdarima.metrics import smape
 from pmdarima.pipeline import Pipeline
 from pmdarima.preprocessing import FourierFeaturizer
-from sklearn.metrics import mean_pinball_loss, explained_variance_score, max_error, mean_squared_error
+from sklearn.metrics import (
+    explained_variance_score,
+    max_error,
+    mean_pinball_loss,
+    mean_squared_error,
+)
+
 
 MetricsType = Dict[str, float]
 TestReportType = Dict[str, str]
 
 
-def init_forecaster(p: int, q: int, d: int, m: int, k: Optional[int] = None,
-                    maxiter: int = 150, suppress_warnings: bool = True) -> Pipeline:
+def init_forecaster(
+    p: int,
+    q: int,
+    d: int,
+    m: int,
+    k: Optional[int] = None,
+    maxiter: int = 150,
+    suppress_warnings: bool = True,
+) -> Pipeline:
     """Initialize a forecasting model.
 
     Args:
@@ -52,16 +65,29 @@ def init_forecaster(p: int, q: int, d: int, m: int, k: Optional[int] = None,
     """
     order = (p, q, d)
 
-    forecaster = Pipeline([
-        ('fourier', FourierFeaturizer(m, k)),
-        ('arima', ARIMA(order, maxiter=maxiter, suppress_warnings=suppress_warnings))
-    ])
+    forecaster = Pipeline(
+        [
+            ("fourier", FourierFeaturizer(m, k)),
+            (
+                "arima",
+                ARIMA(order, maxiter=maxiter, suppress_warnings=suppress_warnings),
+            ),
+        ]
+    )
 
     return forecaster
 
 
-def train_forecaster(y_train: np.ndarray, p: int, q: int, d: int, m: int, k: Optional[int] = None,
-                     maxiter: int = 150, suppress_warnings: bool = True) -> Pipeline:
+def train_forecaster(
+    y_train: np.ndarray,
+    p: int,
+    q: int,
+    d: int,
+    m: int,
+    k: Optional[int] = None,
+    maxiter: int = 150,
+    suppress_warnings: bool = True,
+) -> Pipeline:
     """Train a forecasting model.
 
     Args:
@@ -119,17 +145,22 @@ def calc_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsType:
         a dictionary with the names of the metrics mapped to their values.
     """
     metrics = {
-        'mean pinball loss': mean_pinball_loss(y_true, y_pred),
-        'SMAPE': smape(y_true, y_pred),
-        'Explained Variance': explained_variance_score(y_true, y_pred),
-        'Max Error': max_error(y_true, y_pred),
-        'MSE': mean_squared_error(y_true, y_pred)
+        "mean pinball loss": mean_pinball_loss(y_true, y_pred),
+        "SMAPE": smape(y_true, y_pred),
+        "Explained Variance": explained_variance_score(y_true, y_pred),
+        "Max Error": max_error(y_true, y_pred),
+        "MSE": mean_squared_error(y_true, y_pred),
     }
 
     return metrics
 
 
-def report_metrics(y_true: np.ndarray, y_pred: np.ndarray, pair_name: str, model_name: Optional[str] = None) -> str:
+def report_metrics(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    pair_name: str,
+    model_name: Optional[str] = None,
+) -> str:
     """Calculate and report various regression metrics. These are:
      * Mean Pinball Loss
      * SMAPE
@@ -149,20 +180,22 @@ def report_metrics(y_true: np.ndarray, y_pred: np.ndarray, pair_name: str, model
     """
     metrics = calc_metrics(y_true, y_pred)
 
-    title = f'Pool {pair_name} metrics report'
-    title += ':' if model_name is None else f' for {model_name}:'
+    title = f"Pool {pair_name} metrics report"
+    title += ":" if model_name is None else f" for {model_name}:"
 
-    separator = '-' * len([letter for letter in title])
+    separator = "-" * len([letter for letter in title])
 
-    report = f'\n{separator}\n{title}\n{separator}\n'
+    report = f"\n{separator}\n{title}\n{separator}\n"
 
     for name, value in metrics.items():
-        report += f'\t{name}: {value}'
+        report += f"\t{name}: {value}"
 
     return report
 
 
-def walk_forward_test(forecaster: Pipeline, y_test: np.ndarray, steps_forward: int = 1) -> np.ndarray:
+def walk_forward_test(
+    forecaster: Pipeline, y_test: np.ndarray, steps_forward: int = 1
+) -> np.ndarray:
     """Test the given forecasting model, using the Direct Multi-step Forecast Strategy.
 
     Args:
@@ -183,13 +216,18 @@ def walk_forward_test(forecaster: Pipeline, y_test: np.ndarray, steps_forward: i
         else:
             y_pred.extend(y_hat)
 
-        forecaster.update(y_test[i:i + steps_forward])
+        forecaster.update(y_test[i : i + steps_forward])
 
     return np.asarray(y_pred)
 
 
-def test_forecaster(forecaster: Pipeline, y_train: np.ndarray,
-                    y_test: np.ndarray, pair_name: str, steps_forward: int = 1) -> TestReportType:
+def test_forecaster(
+    forecaster: Pipeline,
+    y_train: np.ndarray,
+    y_test: np.ndarray,
+    pair_name: str,
+    steps_forward: int = 1,
+) -> TestReportType:
     """Test the trained forecaster.
 
     Args:
@@ -204,12 +242,14 @@ def test_forecaster(forecaster: Pipeline, y_train: np.ndarray,
 
     # Get baseline's and model's predictions.
     report = {
-        'Baseline': baseline(t0, y_test),
-        'ARIMA': walk_forward_test(forecaster, y_test, steps_forward)
+        "Baseline": baseline(t0, y_test),
+        "ARIMA": walk_forward_test(forecaster, y_test, steps_forward),
     }
 
     # Report baseline's and model's metrics.
     for reporting_model, model_predictions in report.items():
-        report[reporting_model] = report_metrics(y_test, model_predictions, pair_name, reporting_model)
+        report[reporting_model] = report_metrics(
+            y_test, model_predictions, pair_name, reporting_model
+        )
 
     return report

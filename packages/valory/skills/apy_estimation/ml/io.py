@@ -29,7 +29,7 @@ def save_forecaster(path: str, forecaster: Pipeline):
     :param path: path to store the forecaster.
     :param forecaster: the `pmdarima` forecasting model.
     """
-    with open(path, 'wb') as pkl:
+    with open(path, "wb") as pkl:
         pickle.dump(forecaster, pkl)
 
 
@@ -38,5 +38,5 @@ def load_forecaster(path) -> Pipeline:
 
     :param path: path to store the forecaster.
     """
-    with open(path, 'rb') as pkl:
+    with open(path, "rb") as pkl:
         return pickle.load(pkl)

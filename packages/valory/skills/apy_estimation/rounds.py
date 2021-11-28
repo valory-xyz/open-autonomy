@@ -21,7 +21,7 @@
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast, Any, List
+from typing import AbstractSet, Any, Dict, List, Mapping, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 
@@ -30,14 +30,26 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    TransactionType, CollectSameUntilThresholdRound, CollectDifferentUntilAllRound,
+    CollectDifferentUntilAllRound,
+    CollectSameUntilThresholdRound,
+    TransactionType,
 )
-from packages.valory.skills.apy_estimation.payloads import TransformationPayload, ResetPayload, FetchingPayload, \
-    EstimatePayload, PreprocessPayload, OptimizationPayload, TrainingPayload, TestingPayload, RegistrationPayload
+from packages.valory.skills.apy_estimation.payloads import (
+    EstimatePayload,
+    FetchingPayload,
+    OptimizationPayload,
+    PreprocessPayload,
+    RegistrationPayload,
+    ResetPayload,
+    TestingPayload,
+    TrainingPayload,
+    TransformationPayload,
+)
 
 
 class Event(Enum):
     """Event enumeration for the APY estimation demo."""
+
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
@@ -55,7 +67,9 @@ class PeriodState(BasePeriodState):
         period_setup_params: Optional[Dict] = None,
         participant_to_fetching: Optional[Mapping[str, FetchingPayload]] = None,
         most_voted_history: Optional[str] = None,
-        participant_to_transformation: Optional[Mapping[str, TransformationPayload]] = None,
+        participant_to_transformation: Optional[
+            Mapping[str, TransformationPayload]
+        ] = None,
         most_voted_transformation: Optional[str] = None,
         participant_to_preprocess: Optional[Mapping[str, PreprocessPayload]] = None,
         most_voted_preprocess: Optional[str] = None,
@@ -69,11 +83,11 @@ class PeriodState(BasePeriodState):
         most_voted_estimate: Optional[List[float]] = None,
         best_params: Optional[Dict[str, Any]] = None,
         full_training: Optional[bool] = False,
-        pair_name: Optional[str] = None
+        pair_name: Optional[str] = None,
     ) -> None:
         """Initialize the state."""
         super().__init__(participants, period_count, period_setup_params)
-        self. _participant_to_fetching = participant_to_fetching
+        self._participant_to_fetching = participant_to_fetching
         self._most_voted_history = most_voted_history
         self._participant_to_transformation = participant_to_transformation
         self._most_voted_transformation = most_voted_transformation
@@ -144,7 +158,7 @@ class PeriodState(BasePeriodState):
             "'most_voted_preprocess' field is None",
         )
         return self._most_voted_preprocess
-    
+
     @property
     def participant_to_optimize(self) -> Mapping[str, OptimizationPayload]:
         """Get the participant_to_optimize."""
@@ -291,9 +305,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, APYEstimationAbstractRoun
         return state_event
 
 
-class CollectHistoryRound(
-    CollectSameUntilThresholdRound, APYEstimationAbstractRound
-):
+class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
     This class represents the 'collect-history' round.
 
@@ -563,7 +575,7 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 most_voted_estimate=None,
                 best_params=None,
                 full_training=False,
-                pair_name=None
+                pair_name=None,
             )
 
             state_event = updated_state, Event.DONE

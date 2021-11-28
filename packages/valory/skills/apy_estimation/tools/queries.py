@@ -61,14 +61,20 @@ def block_from_timestamp_q(timestamp: int) -> bytes:
     """
     query = (
         """
-    {blocks(first: 1, orderBy: timestamp, orderDirection: asc, where: 
     {
-    timestamp_gte: """
+        blocks(
+            first: 1,
+            orderBy: timestamp,
+            orderDirection: asc,
+            where: {
+                timestamp_gte: """
         + str(timestamp)
-        + """, timestamp_lte: """
+        + """,
+                timestamp_lte: """
         + str(timestamp + 600)
         + """
-        })
+            }
+        )
         {
             timestamp
             number
@@ -93,8 +99,10 @@ def top_n_pairs_q(top_n: int) -> bytes:
         pairs(
             first: """
         + str(top_n)
-        + """, orderBy: trackedReserveETH, 
-        orderDirection: desc) 
+        + """,
+            orderBy: trackedReserveETH,
+            orderDirection: desc
+        )
         {id}
     }
     """
@@ -116,7 +124,9 @@ def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
     {
         pairs(
             where: {id_in: 
-            [\"""" + '","'.join(top_n_ids) + """"]},
+            [\""""
+        + '","'.join(top_n_ids)
+        + """"]},
             block: {number: """
         + str(block)
         + """}
