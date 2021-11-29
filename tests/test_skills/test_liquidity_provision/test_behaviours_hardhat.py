@@ -17,8 +17,14 @@
 #
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision skill behaviours with Hardhat."""
-import time
-from typing import Dict, cast
+import asyncio
+from pathlib import Path
+from threading import Thread
+from typing import Any, Dict, Optional, cast
+
+from aea.mail.base import Envelope
+from aea.multiplexer import Multiplexer
+from aea.skills.base import Handler
 
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
@@ -26,12 +32,14 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    EnterPoolTransactionHashBehaviour,
+    EnterPoolTransactionHashBehaviour, get_strategy_update
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 
+from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
+from tests.helpers.contracts import get_register_contract
 from tests.test_skills.test_liquidity_provision.test_behaviours import (
     LiquidityProvisionBehaviourBaseCase,
 )
@@ -41,42 +49,82 @@ DEFAULT_GAS = 1000000
 DEFAULT_GAS_PRICE = 1000000
 
 
-def get_default_strategy(is_native: bool = True) -> Dict:
-    """Returns default strategy."""
-    return {
-        "action": StrategyType.GO.value,
-        "chain": "Fantom",
-        "base": {"address": "0xUSDT_ADDRESS", "balance": 100},
-        "pair": {
-            "token_a": {
-                "ticker": "FTM",
-                "address": "0xFTM_ADDRESS",
-                "amount": 1,
-                "amount_min": 1,
-                # If any, only token_a can be the native one (ETH, FTM...)
-                "is_native": is_native,
-            },
-            "token_b": {
-                "ticker": "BOO",
-                "address": "0xBOO_ADDRESS",
-                "amount": 1,
-                "amount_min": 1,
-            },
-        },
-        "router_address": "router_address",
-        "liquidity_to_remove": 1,
-    }
-
-
 class TestEnterPoolTransactionHashBehaviourHardhat(
     LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
 ):
     """Test liquidity pool behaviours in a Hardhat environment."""
 
+    @classmethod
+    def _setup_class(cls, **kwargs: Any):
+        pass
+
+    @classmethod
+    def setup(cls, **kwargs: Any) -> None:
+        """Setup."""
+        super().setup()
+        # register all contracts we need
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+        )
+        _ = get_register_contract(directory)
+        # setup a multiplexer with the required connections
+        cls.running_loop = asyncio.new_event_loop()
+        cls.thread_loop = Thread(target=cls.running_loop.run_forever)
+        cls.thread_loop.start()
+        cls.multiplexer = Multiplexer(
+            [make_ledger_api_connection()], loop=cls.running_loop
+        )
+        cls.multiplexer.connect()
+
+    @classmethod
+    def teardown(cls) -> None:
+        """Tear down the multiplexer."""
+        super().teardown()
+        cls.multiplexer.disconnect()
+        cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
+        cls.thread_loop.join()
+
+    def process_message_cycle(
+        self, handler: Optional[Handler] = None, expected_content: Optional[Dict] = None
+    ) -> None:
+        """
+        Processes one request-response type message cycle.
+
+        Steps:
+        1. Calls act on behaviour to generate outgoing message
+        2. Checks for message in outbox
+        3. Sends message to multiplexer and waits for response.
+        4. Passes message to handler
+        5. Calls act on behaviour to process incoming message
+
+        :param handler: the handler to handle a potential incoming message
+        """
+        self.liquidity_provision_behaviour.act_wrapper()
+        self.assert_quantity_in_outbox(1)
+        message = self.get_message_from_outbox()
+        assert message is not None, "No message in outbox."
+        self.multiplexer.put(
+            Envelope(
+                to=message.to,
+                sender=message.sender,
+                message=message,
+                context=None,
+            )
+        )
+        if handler is not None:
+            envelope = self.multiplexer.get(block=True)
+            assert envelope is not None, "No envelope"
+            incoming_message = envelope.message
+            if expected_content is not None:
+                assert all(
+                    [incoming_message._body.get(key, None) == value for key, value in expected_content.items()]
+                ), f"Actual content: {incoming_message._body}, expected: {expected_content}"
+            handler.handle(incoming_message)
+        self.liquidity_provision_behaviour.act_wrapper()
+
     def test_swap(self):
         """Test a swap tx: WETH for token A."""
-
-        strategy = get_default_strategy()
+        strategy = get_strategy_update()
         period_state = PeriodState(
             most_voted_tx_hash="0x",
             safe_contract_address="safe_contract_address",
@@ -96,35 +144,12 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             ).state_id
             == EnterPoolTransactionHashBehaviour.state_id
         )
-        self.liquidity_provision_behaviour.act_wrapper()
+        # amount_in = 10  # noqa: E800
+        # amount_out_min = 1  # noqa: E800
 
-        amount_in = 10
-        amount_out_min = 1
-
-        contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-        weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-        tokenA_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
-        account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-
-        contract_api_msg = yield from self.liquidity_provision_behaviour.current_state.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=contract_address,
-            contract_id=str(UniswapV2Router02Contract.contract_id),
-            contract_callable="swap_exact_tokens_for_tokens",
-            amount_in=amount_in,
-            amount_out_min=amount_out_min,
-            path=[
-                weth_address,
-                tokenA_address,
-            ],
-            to=account_1_address,
-            deadline=int(time.time()) + 300,  # 5 min into the future
-        )
-
-        # Send the tx
-        tx_hash = yield from self.liquidity_provision_behaviour.current_state.send_raw_transaction(
-            contract_api_msg.raw_transaction
-        )
-
-        # Verify the tx
-        assert tx_hash is not None
+        # contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"  # noqa: E800
+        # weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"  # noqa: E800
+        # tokenA_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # noqa: E800
+        # account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"  # noqa: E800
+        expected_content = {"performative": ContractApiMessage.Performative.RAW_TRANSACTION}
+        self.process_message_cycle(self.contract_handler, expected_content)

@@ -49,6 +49,8 @@ def snake_to_camel(string: str) -> str:
 class UniswapV2Router02Contract(Contract):
     """The Uniswap V2 Router02 contract."""
 
+    contract_id = PUBLIC_ID
+
     @classmethod
     def get_method_data(
         cls,

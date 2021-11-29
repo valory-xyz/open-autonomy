@@ -96,6 +96,7 @@ TEMP_GAS_PRICE = 0.1  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
+ROUTER_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"  # TOFIX, needs to be configurable on skill
 
 benchmark_tool = BenchmarkTool()
 
@@ -342,7 +343,7 @@ def get_strategy_update() -> dict:
                 "amount_min": 1,
             },
         },
-        "router_address": "0x0000000000000000000000000000",
+        "router_address": ROUTER_ADDRESS,
         "liquidity_to_remove": 1,
     }
     return strategy
