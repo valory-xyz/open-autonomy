@@ -416,7 +416,7 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 most_voted_estimate=None,
             )
 
-            if self.round_id == "cycle_reset":
+            if self.round_id == "reset":
                 updated_state = updated_state.update(
                     best_params=None,
                     full_training=False,
