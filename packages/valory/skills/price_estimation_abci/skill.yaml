@@ -9,10 +9,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmcvK6dvwBeQCzLB3etu5umZ772p6pSLNkNqn5xYth7K2e
+  behaviours.py: QmSDajjt92MEPFaAZUtvhDDXNaG3kZZRx2UmcConDisMcH
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmaPw11uzQdpk1FGxHhWcde7ceKziWA1Vom1G88B8hCiiH
+  models.py: QmbnB3ChLEk8tTwmf5M8ZYyNDCaNYngkvkcvmzNM89DhqF
   payloads.py: QmUoPRpUXYhYf4dUaPnaSuoKo8ssJD6Xor1ctF3HRZYjBW
   rounds.py: QmUCpozQhsb8JmpmFoJLTCtdvV1dtFzXL89WN3ppbb8rEQ
   tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
@@ -70,6 +70,7 @@ models:
     args:
       consensus:
         max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       max_healthcheck: 120
       observation_interval: 10
       oracle:
