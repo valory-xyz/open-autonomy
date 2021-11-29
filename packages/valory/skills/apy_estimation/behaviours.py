@@ -22,6 +22,7 @@ import datetime
 import json
 import os
 from abc import ABC
+from multiprocessing.pool import AsyncResult
 from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 import numpy as np
@@ -53,12 +54,12 @@ from packages.valory.skills.apy_estimation.payloads import (
 from packages.valory.skills.apy_estimation.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
+    CycleResetRound,
     EstimateRound,
     OptimizeRound,
     PeriodState,
     PreprocessRound,
     RegistrationRound,
-    CycleResetRound,
     ResetRound,
     TestRound,
     TrainRound,
@@ -219,6 +220,7 @@ class FetchBehaviour(APYEstimationBaseState):
     matching_round = CollectHistoryRound
 
     def __init__(self, **kwargs: Any):
+        """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._save_path = ""
 
@@ -241,7 +243,6 @@ class FetchBehaviour(APYEstimationBaseState):
             )
 
             self.context.spooky_subgraph.increment_retries()
-            yield from self.sleep(self.params.sleep_time)
             raise EmptyResponseError()
 
         value = res[keys[0]]
@@ -252,7 +253,9 @@ class FetchBehaviour(APYEstimationBaseState):
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
         self.context.spooky_subgraph.reset_retries()
 
-    def async_act(self) -> Generator:
+    def async_act(
+        self,
+    ) -> Generator:  # pylint: disable=too-many-locals,too-many-statements
         """
         Do the action.
 
@@ -297,6 +300,7 @@ class FetchBehaviour(APYEstimationBaseState):
                         keys=("pairs", 0, "id"),
                     )
                 except EmptyResponseError:
+                    yield from self.sleep(self.params.sleep_time)
                     return
 
                 pair_ids = [pair["id"] for pair in res["pairs"]]
@@ -319,6 +323,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             res, res_context="block", keys=("blocks", 0)
                         )
                     except EmptyResponseError:
+                        yield from self.sleep(self.params.sleep_time)
                         return
 
                     fetched_block = res["blocks"][0]
@@ -340,6 +345,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             keys=("bundles", 0, "ethPrice"),
                         )
                     except EmptyResponseError:
+                        yield from self.sleep(self.params.sleep_time)
                         return
 
                     eth_price = float(res["bundles"][0]["ethPrice"])
@@ -359,6 +365,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             keys=("pairs", 0),
                         )
                     except EmptyResponseError:
+                        yield from self.sleep(self.params.sleep_time)
                         return
 
                     # Add extra fields to the pairs.
@@ -375,9 +382,13 @@ class FetchBehaviour(APYEstimationBaseState):
                 try:
                     to_json_file(self._save_path, pairs_hist)
                 except OSError:
-                    self.context.logger.error(f"Path '{self._save_path}' could not be found!")
+                    self.context.logger.error(
+                        f"Path '{self._save_path}' could not be found!"
+                    )
                 except TypeError:
-                    self.context.logger.error(f"Historical data cannot be JSON serialized!")
+                    self.context.logger.error(
+                        "Historical data cannot be JSON serialized!"
+                    )
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
@@ -405,12 +416,13 @@ class TransformBehaviour(APYEstimationBaseState):
     state_id = "transform"
     matching_round = TransformRound
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._history_save_path = self._transformed_history_save_path = ""
-        self._async_result = None
+        self._async_result: Optional[AsyncResult] = None
 
-    def setup(self):
+    def setup(self) -> None:
         """Setup behaviour."""
         self._history_save_path = os.path.join(
             self.params.data_folder, "historical_data.json"
@@ -421,55 +433,72 @@ class TransformBehaviour(APYEstimationBaseState):
         create_pathdirs(self._transformed_history_save_path)
 
         # Load historical data from a json file.
+        pairs_hist = None
+
         try:
             pairs_hist = read_json_file(self._history_save_path)
-        except OSError:
-            self.context.logger.error(f"Path '{self._history_save_path}' could not be found!")
-        except json.JSONDecodeError:
-            self.context.logger.error(f"File '{self._history_save_path}' has an invalid JSON encoding!")
-        except ValueError:
-            self.context.logger.error(f"There is an encoding error in the '{self._history_save_path}' file!")
 
-        transform_task = TransformTask()
-        task_id = self.context.task_manager.enqueue_task(
-            transform_task, args=(pairs_hist,)
-        )
-        self._async_result = self.context.task_manager.get_task_result(task_id)
+        except OSError:
+            self.context.logger.error(
+                f"Path '{self._history_save_path}' could not be found!"
+            )
+
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                f"File '{self._history_save_path}' has an invalid JSON encoding!"
+            )
+
+        except ValueError:
+            self.context.logger.error(
+                f"There is an encoding error in the '{self._history_save_path}' file!"
+            )
+
+        if pairs_hist is not None:
+            transform_task = TransformTask()
+            task_id = self.context.task_manager.enqueue_task(
+                transform_task, args=(pairs_hist,)
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result.ready() is False:
-            self.context.logger.debug("The transform task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
+        if self._async_result is not None:
+
+            if self._async_result.ready() is False:
+                self.context.logger.debug("The transform task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+
+            else:
+                # Get the transformed data from the task.
+                completed_task = self._async_result.get()
+                transformed_history = cast(pd.DataFrame, completed_task.result)
+                self.context.logger.info(
+                    "Data have been transformed. Showing the first row:\n",
+                    transformed_history.head(1),
+                )
+
+                # Store the transformed data.
+                transformed_history.to_csv(self._transformed_history_save_path)
+
+                # Hash the file.
+                hasher = IPFSHashOnly()
+                hist_hash = hasher.get(self._transformed_history_save_path)
+
+                # Pass the hash as a Payload.
+                payload = TransformationPayload(
+                    self.context.agent_address,
+                    hist_hash,
+                )
+
+                # Finish behaviour.
+                with benchmark_tool.measure(self).consensus():
+                    yield from self.send_a2a_transaction(payload)
+                    yield from self.wait_until_round_end()
+
+                self.set_done()
 
         else:
-            # Get the transformed data from the task.
-            completed_task = self._async_result.get()
-            transformed_history = cast(pd.DataFrame, completed_task.result)
-            self.context.logger.info(
-                "Data have been transformed. Showing the first row:\n",
-                transformed_history.head(1),
-            )
-
-            # Store the transformed data.
-            transformed_history.to_csv(self._transformed_history_save_path)
-
-            # Hash the file.
-            hasher = IPFSHashOnly()
-            hist_hash = hasher.get(self._transformed_history_save_path)
-
-            # Pass the hash as a Payload.
-            payload = TransformationPayload(
-                self.context.agent_address,
-                hist_hash,
-            )
-
-            # Finish behaviour.
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
+            self.context.logger.error("Undefined behaviour encountered with `Task`.")
 
 
 class PreprocessBehaviour(APYEstimationBaseState):
@@ -488,7 +517,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
             self.params.data_folder, "transformed_historical_data.csv"
         )
         pairs_hist = load_hist(transformed_history_save_path)
-        (y_train, y_test), pair_name = prepare_pair_data(pairs_hist, self.params.pair_id)
+        (y_train, y_test), pair_name = prepare_pair_data(
+            pairs_hist, self.params.pair_id
+        )
         self.context.logger.info("Data have been preprocessed.")
 
         # Store and hash the preprocessed data.
@@ -521,11 +552,12 @@ class OptimizeBehaviour(APYEstimationBaseState):
     state_id = "optimize"
     matching_round = OptimizeRound
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._async_result = None
+        self._async_result: Optional[AsyncResult] = None
 
-    def setup(self):
+    def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
         path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
@@ -539,41 +571,46 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result.ready() is False:
-            self.context.logger.debug("The optimization task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
+        if self._async_result is not None:
+
+            if self._async_result.ready() is False:
+                self.context.logger.debug("The optimization task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+
+            else:
+                # Run the optimizer and get the study's result.
+                completed_task = self._async_result.get()
+                study = cast(Study, completed_task.result)
+                study_results = study.trials_dataframe()
+                self.context.logger.info(
+                    "Optimization has finished. Showing the results:\n",
+                    study_results.to_string(),
+                )
+
+                # Store the results.
+                save_path = os.path.join(
+                    self.params.data_folder, self.params.pair_id, "study_results.csv"
+                )
+                study_results.to_csv(save_path)
+
+                # Hash the file.
+                hasher = IPFSHashOnly()
+                study_hash = hasher.get(save_path)
+
+                # Pass the hash and the best trial as a Payload.
+                payload = OptimizationPayload(
+                    self.context.agent_address, study_hash, study.best_params
+                )
+
+                # Finish behaviour.
+                with benchmark_tool.measure(self).consensus():
+                    yield from self.send_a2a_transaction(payload)
+                    yield from self.wait_until_round_end()
+
+                self.set_done()
 
         else:
-            # Run the optimizer and get the study's result.
-            completed_task = self._async_result.get()
-            study = cast(Study, completed_task.result)
-            study_results = study.trials_dataframe()
-            self.context.logger.info(
-                "Optimization has finished. Showing the results:\n",
-                study_results.to_string(),
-            )
-
-            # Store the results.
-            save_path = os.path.join(
-                self.params.data_folder, self.params.pair_id, "study_results.csv"
-            )
-            study_results.to_csv(save_path)
-
-            # Hash the file.
-            hasher = IPFSHashOnly()
-            study_hash = hasher.get(save_path)
-
-            # Pass the hash and the best trial as a Payload.
-            payload = OptimizationPayload(
-                self.context.agent_address, study_hash, study.best_params
-            )
-
-            # Finish behaviour.
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
+            self.context.logger.error("Undefined behaviour encountered with `Task`.")
 
 
 class TrainBehaviour(APYEstimationBaseState):
@@ -582,21 +619,26 @@ class TrainBehaviour(APYEstimationBaseState):
     state_id = "train"
     matching_round = TrainRound
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._async_result = None
+        self._async_result: Optional[AsyncResult] = None
 
-    def setup(self):
+    def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
         if self.period_state.full_training:
             y = []
             for split in ("train", "test"):
-                path = os.path.join(self.params.data_folder, self.params.pair_id, f"{split}.csv")
+                path = os.path.join(
+                    self.params.data_folder, self.params.pair_id, f"{split}.csv"
+                )
                 y.append(np.loadtxt(path, delimiter=","))
             y = np.concatenate(y)
         else:
-            path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
+            path = os.path.join(
+                self.params.data_folder, self.params.pair_id, "train.csv"
+            )
             y = np.loadtxt(path, delimiter=",")
 
         train_task = TrainTask()
@@ -607,36 +649,43 @@ class TrainBehaviour(APYEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result.ready() is False:
-            self.context.logger.debug("The training task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
+        if self._async_result is not None:
+
+            if self._async_result.ready() is False:
+                self.context.logger.debug("The training task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+
+            else:
+                # Train the estimator.
+                completed_task = self._async_result.get()
+                forecaster = cast(Pipeline, completed_task.result)
+                self.context.logger.info("Training has finished.")
+
+                # Store the results.
+                prefix = "fully_trained_" if self.period_state.full_training else ""
+                save_path = os.path.join(
+                    self.params.data_folder,
+                    self.params.pair_id,
+                    f"{prefix}forecaster.pkl",
+                )
+                save_forecaster(save_path, forecaster)
+
+                # Hash the file.
+                hasher = IPFSHashOnly()
+                model_hash = hasher.get(save_path)
+
+                # Pass the hash and the best trial as a Payload.
+                payload = TrainingPayload(self.context.agent_address, model_hash)
+
+                # Finish behaviour.
+                with benchmark_tool.measure(self).consensus():
+                    yield from self.send_a2a_transaction(payload)
+                    yield from self.wait_until_round_end()
+
+                self.set_done()
 
         else:
-            # Train the estimator.
-            completed_task = self._async_result.get()
-            forecaster = cast(Pipeline, completed_task.result)
-            self.context.logger.info("Training has finished.")
-
-            # Store the results.
-            prefix = "fully_trained_" if self.period_state.full_training else ""
-            save_path = os.path.join(
-                self.params.data_folder, self.params.pair_id, f"{prefix}forecaster.pkl"
-            )
-            save_forecaster(save_path, forecaster)
-
-            # Hash the file.
-            hasher = IPFSHashOnly()
-            model_hash = hasher.get(save_path)
-
-            # Pass the hash and the best trial as a Payload.
-            payload = TrainingPayload(self.context.agent_address, model_hash)
-
-            # Finish behaviour.
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
+            self.context.logger.error("Undefined behaviour encountered with `Task`.")
 
 
 class TestBehaviour(APYEstimationBaseState):
@@ -645,19 +694,24 @@ class TestBehaviour(APYEstimationBaseState):
     state_id = "test"
     matching_round = TestRound
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._async_result = None
+        self._async_result: Optional[AsyncResult] = None
 
-    def setup(self):
+    def setup(self) -> None:
         """Setup behaviour."""
         # Load test data.
         y = {"train": None, "y_test": None}
         for split in ("train", "test"):
-            path = os.path.join(self.params.data_folder, self.params.pair_id, f"{split}.csv")
+            path = os.path.join(
+                self.params.data_folder, self.params.pair_id, f"{split}.csv"
+            )
             y[split] = np.loadtxt(path, delimiter=",")
 
-        model_path = os.path.join(self.params.data_folder, self.params.pair_id, f"forecaster.pkl")
+        model_path = os.path.join(
+            self.params.data_folder, self.params.pair_id, "forecaster.pkl"
+        )
         forecaster = load_forecaster(model_path)
 
         test_task = TestTask()
@@ -673,42 +727,47 @@ class TestBehaviour(APYEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result.ready() is False:
-            self.context.logger.debug("The testing task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
+        if self._async_result is not None:
+
+            if self._async_result.ready() is False:
+                self.context.logger.debug("The testing task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+
+            else:
+                # Train the estimator.
+                completed_task = self._async_result.get()
+                report = cast(TestReportType, completed_task.result)
+                self.context.logger.info(
+                    f"Testing has finished. Report follows:\n{json.dumps(report)}"
+                )
+
+                # Store the results.
+                save_path = os.path.join(
+                    self.params.data_folder, self.params.pair_id, "test_report.json"
+                )
+                try:
+                    to_json_file(save_path, report)
+                except OSError:
+                    self.context.logger.error(f"Path '{save_path}' could not be found!")
+                except TypeError:
+                    self.context.logger.error("Report cannot be JSON serialized!")
+
+                # Hash the file.
+                hasher = IPFSHashOnly()
+                report_hash = hasher.get(save_path)
+
+                # Pass the hash and the best trial as a Payload.
+                payload = TestingPayload(self.context.agent_address, report_hash)
+
+                # Finish behaviour.
+                with benchmark_tool.measure(self).consensus():
+                    yield from self.send_a2a_transaction(payload)
+                    yield from self.wait_until_round_end()
+
+                self.set_done()
 
         else:
-            # Train the estimator.
-            completed_task = self._async_result.get()
-            report = cast(TestReportType, completed_task.result)
-            self.context.logger.info(
-                f"Testing has finished. Report follows:\n{json.dumps(report)}"
-            )
-
-            # Store the results.
-            save_path = os.path.join(
-                self.params.data_folder, self.params.pair_id, f"test_report.json"
-            )
-            try:
-                to_json_file(save_path, report)
-            except OSError:
-                self.context.logger.error(f"Path '{save_path}' could not be found!")
-            except TypeError:
-                self.context.logger.error(f"Report cannot be JSON serialized!")
-
-            # Hash the file.
-            hasher = IPFSHashOnly()
-            report_hash = hasher.get(save_path)
-
-            # Pass the hash and the best trial as a Payload.
-            payload = TestingPayload(self.context.agent_address, report_hash)
-
-            # Finish behaviour.
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
+            self.context.logger.error("Undefined behaviour encountered with `Task`.")
 
 
 class EstimateBehaviour(APYEstimationBaseState):
@@ -729,7 +788,9 @@ class EstimateBehaviour(APYEstimationBaseState):
         """
         with benchmark_tool.measure(self).local():
             model_path = os.path.join(
-                self.params.data_folder, self.params.pair_id, f"fully_trained_forecaster.pkl"
+                self.params.data_folder,
+                self.params.pair_id,
+                "fully_trained_forecaster.pkl",
             )
             forecaster = load_forecaster(model_path)
             estimation = forecaster.predict(self.params.estimation["steps_forward"])

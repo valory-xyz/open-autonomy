@@ -17,8 +17,7 @@
 # ------------------------------------------------------------------------------
 
 """Forecasting operations"""
-
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, cast
 
 import numpy as np
 from pmdarima import ARIMA
@@ -37,7 +36,7 @@ MetricsType = Dict[str, float]
 TestReportType = Dict[str, str]
 
 
-def init_forecaster(
+def init_forecaster(  # pylint: disable=too-many-arguments
     p: int,
     q: int,
     d: int,
@@ -78,7 +77,7 @@ def init_forecaster(
     return forecaster
 
 
-def train_forecaster(
+def train_forecaster(  # pylint: disable=too-many-arguments
     y_train: np.ndarray,
     p: int,
     q: int,
@@ -114,6 +113,7 @@ def train_forecaster(
 
 def baseline(t0: float, y_test: np.ndarray) -> np.ndarray:
     """Create the baseline model's 'predictions'.
+
     Given a timeseries, the baseline model will be "predicting" at each step $t_n$ the value of $t_{n-1}$.
 
     Args:
@@ -130,7 +130,9 @@ def baseline(t0: float, y_test: np.ndarray) -> np.ndarray:
 
 
 def calc_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsType:
-    """Calculate various regression metrics. These are:
+    """Calculate various regression metrics.
+
+    These are:
      * Mean Pinball Loss
      * SMAPE
      * Explained Variance
@@ -161,7 +163,9 @@ def report_metrics(
     pair_name: str,
     model_name: Optional[str] = None,
 ) -> str:
-    """Calculate and report various regression metrics. These are:
+    """Calculate and report various regression metrics.
+
+    These are:
      * Mean Pinball Loss
      * SMAPE
      * Explained Variance
@@ -183,7 +187,7 @@ def report_metrics(
     title = f"Pool {pair_name} metrics report"
     title += ":" if model_name is None else f" for {model_name}:"
 
-    separator = "-" * len([letter for letter in title])
+    separator = "-" * len(list(title))
 
     report = f"\n{separator}\n{title}\n{separator}\n"
 
@@ -241,7 +245,7 @@ def test_forecaster(
     t0 = y_train[-1][0]
 
     # Get baseline's and model's predictions.
-    report = {
+    report: Dict[str, Union[str, np.ndarray]] = {
         "Baseline": baseline(t0, y_test),
         "ARIMA": walk_forward_test(forecaster, y_test, steps_forward),
     }
@@ -249,7 +253,7 @@ def test_forecaster(
     # Report baseline's and model's metrics.
     for reporting_model, model_predictions in report.items():
         report[reporting_model] = report_metrics(
-            y_test, model_predictions, pair_name, reporting_model
+            y_test, cast(np.ndarray, model_predictions), pair_name, reporting_model
         )
 
-    return report
+    return cast(TestReportType, report)

@@ -636,6 +636,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test FetchBehaviour."""
 
     def test_transform_behaviour(self):
+        """Run test for `transform_behaviour`."""
         # TODO
         assert False
 
@@ -644,6 +645,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 
     def test_preprocess_behaviour(self):
+        """Run test for `preprocess_behaviour`."""
         # TODO
         assert False
 
@@ -652,6 +654,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test OptimizeBehaviour."""
 
     def test_optimize_behaviour(self):
+        """Run test for `optimize_behaviour`."""
         # TODO
         assert False
 
@@ -660,6 +663,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TrainBehaviour."""
 
     def test_train_behaviour(self):
+        """Run test for `train_behaviour`."""
         # TODO
         assert False
 
@@ -668,6 +672,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TestBehaviour."""
 
     def test_test_behaviour(self):
+        """Run test for `test_behaviour`."""
         # TODO
         assert False
 
@@ -676,5 +681,6 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
     def test_estimate_behaviour(self):
+        """Run test for `estimate_behaviour`."""
         # TODO
         assert False

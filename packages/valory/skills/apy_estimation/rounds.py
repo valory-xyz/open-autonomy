@@ -45,6 +45,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     TransformationPayload,
 )
 
+
 N_ESTIMATIONS_BEFORE_RETRAIN = 60
 
 
@@ -69,9 +70,9 @@ class PeriodState(BasePeriodState):
         period_setup_params: Optional[Dict] = None,
         most_voted_estimate: Optional[List[float]] = None,
         best_params: Optional[Dict[str, Any]] = None,
-        full_training: Optional[bool] = False,
+        full_training: bool = False,
         pair_name: Optional[str] = None,
-        n_estimations: Optional[int] = None
+        n_estimations: Optional[int] = None,
     ) -> None:
         """Initialize the state."""
         super().__init__(participants, period_count, period_setup_params)
@@ -102,7 +103,7 @@ class PeriodState(BasePeriodState):
             self._best_params is not None,
             "'best_params' field is None",
         )
-        return self._best_params
+        return cast(Dict[str, Any], self._best_params)
 
     @property
     def full_training(self) -> bool:
@@ -116,12 +117,16 @@ class PeriodState(BasePeriodState):
             self._pair_name is not None,
             "'pair_name' field is None",
         )
-        return self._pair_name
+        return cast(str, self._pair_name)
 
     @property
     def n_estimations(self) -> int:
         """Get the n_estimations."""
-        return self._n_estimations
+        enforce(
+            self._n_estimations is not None,
+            "'n_estimations' field is None",
+        )
+        return cast(int, self._n_estimations)
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -370,9 +375,15 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         state_event = None
 
         if self.threshold_reached:
-            updated_state = self.period_state.update(n_estimations=self.period_state.n_estimations + 1)
+            updated_state = self.period_state.update(
+                n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+            )
 
-            if updated_state.n_estimations % N_ESTIMATIONS_BEFORE_RETRAIN == 0:
+            if (
+                cast(PeriodState, updated_state).n_estimations
+                % N_ESTIMATIONS_BEFORE_RETRAIN
+                == 0
+            ):
                 event = Event.DONE
             else:
                 event = Event.ESTIMATION_CYCLE

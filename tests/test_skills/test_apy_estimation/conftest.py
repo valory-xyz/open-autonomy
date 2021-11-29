@@ -3,7 +3,6 @@
 from typing import Any, Dict, Tuple, Union
 from unittest import mock
 
-import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
 

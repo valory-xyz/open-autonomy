@@ -82,6 +82,8 @@ def make_request(api_specs: Dict, query: str) -> requests.Response:
 
 
 class TestSubgraphs:
+    """Test for subgraphs."""
+
     @staticmethod
     def test_eth_price(spooky_specs: SpecsType, eth_price_usd_q: str) -> None:
         """Test SpookySwap's eth price request from subgraph."""

@@ -68,7 +68,7 @@ class SpookySwapSubgraph(ApiSpecs):
         super().__init__(*args, **kwargs)
 
 
-class APYParams(BaseParams):
+class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

@@ -49,7 +49,7 @@ def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
     return pinball_loss
 
 
-class Objective:
+class Objective:  # pylint: disable=too-few-public-methods
     """Class for the objective function that `optuna` will optimize."""
 
     def __init__(self, y: np.ndarray, scoring: ScoringType) -> None:
@@ -96,7 +96,7 @@ class Objective:
         return average_score
 
 
-def optimize(
+def optimize(  # pylint: disable=too-many-arguments
     y: np.ndarray,
     seed: int,
     n_trials: Optional[int] = None,
@@ -135,7 +135,10 @@ def optimize(
         the `optuna` study.
     """
     if scoring == "pinball":
-        scoring = pinball_loss_scorer(alpha)
+        if alpha is not None:
+            scoring = pinball_loss_scorer(alpha)
+        else:
+            scoring = pinball_loss_scorer()
 
     # Make the sampler behave in a deterministic way.
     sampler = optuna.samplers.TPESampler(seed=seed)

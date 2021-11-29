@@ -5,10 +5,10 @@ from typing import List, Optional
 
 def finalize_q(query: str) -> bytes:
     """Finalize the given query string, i.e., add it under a `queries` key and convert it to bytes."""
-    query = {'query': query}
-    query = json.dumps(query).encode("utf-8")
+    finalized_query = {"query": query}
+    encoded_query = json.dumps(finalized_query).encode("utf-8")
 
-    return query
+    return encoded_query
 
 
 def eth_price_usd_q(bundle_id: int, block: Optional[int] = None) -> bytes:
@@ -131,7 +131,7 @@ def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
         """
     {
         pairs(
-            where: {id_in: 
+            where: {id_in:
             [\""""
         + '","'.join(top_n_ids)
         + """"]},

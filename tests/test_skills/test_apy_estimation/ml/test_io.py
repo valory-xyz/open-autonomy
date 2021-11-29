@@ -20,10 +20,14 @@
 
 
 class TestIO:
+    """Tests for ML io operations."""
+
     @staticmethod
     def test_save_forecaster():
+        """Test `save_forecaster`."""
         assert False
 
     @staticmethod
     def test_load_forecaster():
+        """Test `load_forecaster`."""
         assert False

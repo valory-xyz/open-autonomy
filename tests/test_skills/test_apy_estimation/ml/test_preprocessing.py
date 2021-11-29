@@ -20,6 +20,9 @@
 
 
 class TestPreprocessing:
+    """Tests for preprocessing operations."""
+
     def test_prepare_pair_data(self):
+        """Test `prepare_pair_data`."""
         # TODO
         assert False

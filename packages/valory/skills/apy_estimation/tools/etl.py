@@ -92,8 +92,12 @@ def calc_apy(x: pd.DataFrame) -> pd.Series:
     Returns:
         a series with the daily APYs.
     """
+    res = None
+
     if x["updatedReserveUSD"]:
-        return (x["current_change"] * 0.002 * 365 * 100) / x["updatedReserveUSD"]
+        res = (x["current_change"] * 0.002 * 365 * 100) / x["updatedReserveUSD"]
+
+    return res
 
 
 def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:

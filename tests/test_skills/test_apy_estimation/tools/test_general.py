@@ -32,6 +32,8 @@ from packages.valory.skills.apy_estimation.tools.general import (
 
 
 class TestGeneral:
+    """Tests for general tools."""
+
     @staticmethod
     def test_gen_unix_timestamps(monkeypatch):
         """Test get UNIX timestamps."""
@@ -108,5 +110,6 @@ class TestGeneral:
 
     @staticmethod
     def test_read_json_file():
+        """Test `read_json_file`."""
         # TODO
         assert False

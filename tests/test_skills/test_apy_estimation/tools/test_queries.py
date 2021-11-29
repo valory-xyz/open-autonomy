@@ -26,8 +26,9 @@ import pytest
 from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
+    finalize_q,
     pairs_q,
-    top_n_pairs_q, finalize_q,
+    top_n_pairs_q,
 )
 
 
@@ -79,31 +80,40 @@ def identity(arg: Any) -> Any:
 
 
 class TestQueries:
+    """Tests for `Queries`."""
+
     @staticmethod
     def test_finalize_q():
+        """Test `finalize_q`."""
         # Test result.
-        test_string = 'test_string: {test: value}'
+        test_string = "test_string: {test: value}"
         actual = finalize_q(test_string)
-        expected = {'query': test_string}
+        expected = {"query": test_string}
         expected = json.dumps(expected).encode("utf-8")
         assert actual == expected
 
     @staticmethod
     @eth_q_parameterization
     def test_eth_price_usd_q(bundle_id, block, expected, monkeypatch):
-        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
+        """Test `eth_price_usd_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+        )
         actual = eth_price_usd_q(bundle_id, block)
         assert actual.split() == expected.split()
 
     @staticmethod
     def test_block_from_timestamp_q(monkeypatch):
-        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
+        """Test `block_from_timestamp_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+        )
         actual = block_from_timestamp_q(100)
         expected = """
                    {
                    blocks(
-                   first: 
-                   1, orderBy: timestamp, orderDirection: asc, where: 
+                   first:
+                   1, orderBy: timestamp, orderDirection: asc, where:
                        {
                            timestamp_gte: 100, timestamp_lte: 700
                        }
@@ -118,14 +128,17 @@ class TestQueries:
 
     @staticmethod
     def test_top_n_pairs_q(monkeypatch):
-        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
+        """Test `top_n_pairs_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+        )
         actual = top_n_pairs_q(0)
         expected = """
                    {
                        pairs(
-                           first: 0, orderBy: trackedReserveETH, 
+                           first: 0, orderBy: trackedReserveETH,
                        orderDirection: desc
-                       ) 
+                       )
                        {id}
                    }
                    """
@@ -133,7 +146,10 @@ class TestQueries:
 
     @staticmethod
     def test_pairs_q(monkeypatch):
-        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
+        """Test `pairs_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+        )
         actual = pairs_q(0, ["x0", "x1", "x2"])
         expected = """
                    {

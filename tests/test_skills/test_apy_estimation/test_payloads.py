@@ -33,12 +33,17 @@ from packages.valory.skills.apy_estimation.payloads import (
 
 
 class TestTransactionType:
+    """Test for `TransactionType`."""
+
     def test__str__(self):
+        """Test `__str__`."""
         for transaction_type in TransactionType:
             assert transaction_type.value == str(transaction_type)
 
 
 class TestPayloads:
+    """Test for `Payloads`."""
+
     @staticmethod
     def test_fetching_payload() -> None:
         """Test `FetchingPayload`"""

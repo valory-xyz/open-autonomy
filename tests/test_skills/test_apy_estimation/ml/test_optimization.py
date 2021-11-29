@@ -20,16 +20,23 @@
 
 
 class TestOptimization:
+    """Tests for the optimization operations."""
+
     @staticmethod
     def test_pinball_loss_scorer():
+        """Test `pinball_loss_scorer`."""
         assert False
 
     @staticmethod
     def test_optimize():
+        """Test `optimize`."""
         assert False
 
 
 class TestObjective:
+    """Tests for `Objective`."""
+
     @staticmethod
     def test__call__():
+        """Test `__call__`."""
         assert False

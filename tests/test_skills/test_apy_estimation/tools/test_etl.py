@@ -16,24 +16,32 @@
 #
 # ------------------------------------------------------------------------------
 
+"""Tests for ETL."""
+
 
 class TestProcessing:
+    """Tests for `Preprocessing`."""
+
     @staticmethod
     def test_calc_change():
+        """Test `calc_change`."""
         # TODO
         assert False
 
     @staticmethod
     def test_calc_apy():
+        """Test `calc_change`."""
         # TODO
         assert False
 
     @staticmethod
     def test_transform_hist_data():
+        """Test `transform_hist_data`."""
         # TODO
         assert False
 
     @staticmethod
     def test_load_hist():
+        """Test `load_hist`."""
         # TODO
         assert False

@@ -39,15 +39,12 @@
 
 import json
 import logging
-import time
 from pathlib import Path
 from typing import List
 
-import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
-from tests.helpers.base import tendermint_health_check
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -122,7 +119,7 @@ states_checks_config = {
 def build_check_strings() -> None:
     """Build check strings based on the `states_checks_config`."""
     for period in (0, 1):
-        for state, config in states_checks_config.items():
+        for _, config in states_checks_config.items():
             if period == 0:
                 CHECK_STRINGS.append(
                     f"Entered in the '{config['state_name']}' round for period {period}"

@@ -23,7 +23,7 @@ import pickle
 from pmdarima.pipeline import Pipeline
 
 
-def save_forecaster(path: str, forecaster: Pipeline):
+def save_forecaster(path: str, forecaster: Pipeline) -> None:
     """Save a `pmdarima` forecaster.
 
     :param path: path to store the forecaster.
@@ -33,7 +33,7 @@ def save_forecaster(path: str, forecaster: Pipeline):
         pickle.dump(forecaster, pkl)
 
 
-def load_forecaster(path) -> Pipeline:
+def load_forecaster(path: str) -> Pipeline:
     """Load a `pmdarima` forecaster.
 
     :param path: path to store the forecaster.

@@ -198,7 +198,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         test_round.process_payload(first_payload)
 
         assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() == None
+        assert test_round.end_block() is None
         assert not test_round.threshold_reached
 
         with pytest.raises(

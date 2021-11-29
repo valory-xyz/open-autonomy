@@ -8,22 +8,22 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYMv9a274LT6GAtDsJ4xg3My5cwjUQSCfjJkDj3dDoQMp
   __init__.py: QmaCjC8M5r4UfeMesEYDRCSofpswiWkbf6WgC8Zc9sw1UK
-  behaviours.py: QmZTWLX6VqdpE2fxdJzXzjdKWovBpGZuyEQRLzAmBLTxpQ
+  behaviours.py: Qmb55D1jVx6QNRQhVXG76ftWJ1h6ExJv6vo5w68zNpNCj6
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmVBiDL6Apzrkw19NNmNG1KQ5wCFPXFiVAUPE8z3sc2Zhu
   ml/__init__.py: QmRV17fdhmtfVtYazK9x7MNPVHdhM4rf58dzY9UnFoKpq3
-  ml/forecasting.py: QmNYnTyvFaXievNXZ7bwmZzifnMpZ4xmtfkZ7tbAa1bCuq
-  ml/io.py: Qmci8XHnx3X6jdPgfKPBv6QMp2GRuTurXkUAxc65DEJptE
-  ml/optimization.py: Qmf51cQCfqhTGEBpJDnJ51qdJ3ymw7BnrEYeiURoGhW75H
+  ml/forecasting.py: QmYvPVBu7UN3WETVEztnNXaFKtpjA8JNgzu89FAMACGKv1
+  ml/io.py: QmUWEvTthuWGBuK4TTyhWE5NREgygUjuExABGtFV3tTMFk
+  ml/optimization.py: QmTghvzBUJwB5LnzXkU54bqcmprTCaeNmcAKpuDfUi9mgF
   ml/preprocessing.py: QmTqvnDwsGon55FyteTvE8pAfxnqZDPpXPCTT9Aw8jSQ1g
-  models.py: QmciGGxMMVLieK7wSz8PP3LWP7kT8DhZnepKnV227yKUGp
+  models.py: QmTb2WsUefNp9chDNgs5PN3jwUhiTGC8RhfXPGbzAcxEPv
   payloads.py: QmcX3FnXdoMxQ7tqLhAFgB5kUp3LcsZWdzDubVBAuMUknq
-  rounds.py: QmaBh5su3HmdkRY1EhekVf12Yet9ts9Q9ku3ZvbUU6qH18
-  tasks.py: QmQBQx88AvsnSP82rnsBHgSUGbzKXtrGJW29gKiLZgSaV1
+  rounds.py: QmTBFtVUh5zHub7YE7Ns5ewmTgxqPXH8Z9oXEk2P6TYgff
+  tasks.py: QmZKT3UWhVeWMgwjxiAZh2o92cZpRHEoyPB6utFyoBDE14
   tools/__init__.py: QmczcDSeL3tgo4whbicN8msiJgNAHD5jVfb9K8sD2bR2uY
-  tools/etl.py: QmW9854io1awyJQBKimJpMMMu537T6T8Lq9VRznPxRGkRk
+  tools/etl.py: QmPMqbetwx8eMALUJ1E5FT4qYEGZw3C2Ewx2uHGLHpCB7U
   tools/general.py: QmPrNC5YeCA7dD7rgiJMZ4mV9oCQorckNXMHPLNBNXHWRr
-  tools/queries.py: QmZPYn13iU4CU1pjTEDxgbqRxUNwS1q6uTQcsmZWv41Ex9
+  tools/queries.py: QmP1aTqLzZaCFd82HBMMiYLPQ5W8aWpfvfECRWwMsyUYJ1
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
