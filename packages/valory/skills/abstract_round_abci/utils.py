@@ -267,18 +267,19 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
     https://github.com/ethereum/py_ecc
     """
 
-    def _int_to_bytes_big(self, value: int) -> bytes:  # pylint: disable=no-self-use
+    @classmethod
+    def _int_to_bytes_big(cls, value: int) -> bytes:
         """Convert int to bytes."""
         return int.to_bytes(value, 8, byteorder="big", signed=False)
 
-    def _verify_randomness_hash(  # pylint: disable=no-self-use
-        self, randomness: bytes, signature: bytes
-    ) -> bool:
+    @classmethod
+    def _verify_randomness_hash(cls, randomness: bytes, signature: bytes) -> bool:
         """Verify randomness hash."""
         return sha256(signature).digest() == randomness
 
-    def _verify_signature(  # pylint: disable=no-self-use
-        self, pubkey: BLSPubkey, message: bytes, signature: BLSSignature
+    @classmethod
+    def _verify_signature(
+        cls, pubkey: BLSPubkey, message: bytes, signature: BLSSignature
     ) -> bool:
         """Veryfy randomness signature."""
         return bls.Verify(pubkey, message, signature)

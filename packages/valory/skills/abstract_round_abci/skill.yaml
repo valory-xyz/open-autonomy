@@ -15,7 +15,7 @@ fingerprint:
   handlers.py: QmcS8YRzVATDtg1pmjVveaToZPRocDqSwJMCsWqxeybuAs
   models.py: QmRXu2E3HQdAWzgVpUWpXhgjrr3jsfjgp5NH64q9jueqwJ
   serializer.py: QmNQQ6aeDN87oKS95sN2WygzwK7r7Hz8QfkE7zT16XwUyP
-  utils.py: QmdbNoxNwAPDVU1TCFF5eqGKghKkpLapE9dbdV6SjPqBwn
+  utils.py: QmTdckogZmucjLqJtvncDpR4Tyotv7U1CjMYTzFnB6aSym
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -74,5 +74,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  py-ecc:
+    version: ==5.2.0
 is_abstract: true
