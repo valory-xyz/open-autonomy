@@ -45,6 +45,8 @@ from packages.valory.skills.apy_estimation.payloads import (
     TransformationPayload,
 )
 
+N_ESTIMATIONS_BEFORE_RETRAIN = 60
+
 
 class Event(Enum):
     """Event enumeration for the APY estimation demo."""
@@ -54,6 +56,7 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
     FULLY_TRAINED = "fully_trained"
+    ESTIMATION_CYCLE = "estimation_cycle"
 
 
 class PeriodState(BasePeriodState):
@@ -68,6 +71,7 @@ class PeriodState(BasePeriodState):
         best_params: Optional[Dict[str, Any]] = None,
         full_training: Optional[bool] = False,
         pair_name: Optional[str] = None,
+        n_estimations: Optional[int] = None
     ) -> None:
         """Initialize the state."""
         super().__init__(participants, period_count, period_setup_params)
@@ -75,6 +79,7 @@ class PeriodState(BasePeriodState):
         self._best_params = best_params
         self._full_training = full_training
         self._pair_name = pair_name
+        self._n_estimations = n_estimations
 
     @property
     def most_voted_estimate(self) -> Optional[List[float]]:
@@ -112,6 +117,11 @@ class PeriodState(BasePeriodState):
             "'pair_name' field is None",
         )
         return self._pair_name
+
+    @property
+    def n_estimations(self) -> int:
+        """Get the n_estimations."""
+        return self._n_estimations
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -348,7 +358,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     Input: a period state with the prior round data.
     Output: a new period state with the prior round data and the votes for each estimate.
 
-    It schedules the .
+    It schedules the `ResetRound` or the `CycleResetRound`.
     """
 
     round_id = "estimate"
@@ -360,7 +370,14 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         state_event = None
 
         if self.threshold_reached:
-            state_event = self.period_state, Event.DONE
+            updated_state = self.period_state.update(n_estimations=self.period_state.n_estimations + 1)
+
+            if updated_state.n_estimations % N_ESTIMATIONS_BEFORE_RETRAIN == 0:
+                event = Event.DONE
+            else:
+                event = Event.ESTIMATION_CYCLE
+
+            state_event = updated_state, event
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -386,10 +403,14 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 period_count=self.most_voted_payload,
                 period_setup_params=None,
                 most_voted_estimate=None,
-                best_params=None,
-                full_training=False,
-                pair_name=None,
             )
+
+            if self.round_id == "cycle_reset":
+                updated_state = updated_state.update(
+                    best_params=None,
+                    full_training=False,
+                    pair_name=None,
+                )
 
             state_event = updated_state, Event.DONE
 
@@ -401,10 +422,10 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         return state_event
 
 
-class ResetAndPauseRound(ResetRound):
+class CycleResetRound(ResetRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
-    round_id = "reset_and_pause"
+    round_id = "cycle_reset"
 
 
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
@@ -447,14 +468,20 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateRound: {
-            Event.DONE: ResetAndPauseRound,
+            Event.DONE: ResetRound,
+            Event.ESTIMATION_CYCLE: CycleResetRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
-        ResetAndPauseRound: {
-            Event.DONE: RegistrationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+        ResetRound: {
+            Event.DONE: CollectHistoryRound,
+            Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we try to assemble a new group of agents
+            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we try to assemble a new group of agents
+        },
+        CycleResetRound: {
+            Event.DONE: EstimateRound,
+            Event.RESET_TIMEOUT: ResetRound,  # if the round times out we try to assemble a new group of agents
+            Event.NO_MAJORITY: ResetRound,  # if we cannot agree we try to assemble a new group of agents
         },
     }
     event_to_timeout: Dict[Event, float] = {

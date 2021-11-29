@@ -58,7 +58,7 @@ from packages.valory.skills.apy_estimation.rounds import (
     PeriodState,
     PreprocessRound,
     RegistrationRound,
-    ResetAndPauseRound,
+    CycleResetRound,
     ResetRound,
     TestRound,
     TrainRound,
@@ -752,7 +752,7 @@ class EstimateBehaviour(APYEstimationBaseState):
 class BaseResetBehaviour(APYEstimationBaseState):
     """Reset state."""
 
-    pause = True
+    cycle = False
 
     def async_act(self) -> Generator:
         """
@@ -766,7 +766,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if self.pause:
+        if self.cycle:
 
             if self.period_state.is_most_voted_estimate_set:
                 self.context.logger.info(
@@ -799,14 +799,14 @@ class ResetBehaviour(BaseResetBehaviour):
 
     matching_round = ResetRound
     state_id = "reset"
-    pause = False
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset state."""
+class CycleResetBehaviour(BaseResetBehaviour):
+    """Cycle reset state."""
 
-    matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
+    matching_round = CycleResetRound
+    state_id = "cycle_reset"
+    cycle = True
 
 
 class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
@@ -825,7 +825,7 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TestBehaviour,
         EstimateBehaviour,
         ResetBehaviour,
-        ResetAndPauseBehaviour,
+        CycleResetBehaviour,
     }
 
     def setup(self) -> None:
