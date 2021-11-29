@@ -108,8 +108,8 @@ states_checks_config = {
         "extra_logs": ("Got estimate of APY for ",),
         "only_at_first_period": False,
     },
-    "reset_and_pause": {
-        "state_name": "reset_and_pause",
+    "cycle_reset": {
+        "state_name": "cycle_reset",
         "extra_logs": ("Finalized estimate: ", "Period end."),
         "only_at_first_period": False,
     },
