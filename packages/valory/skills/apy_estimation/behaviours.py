@@ -246,7 +246,7 @@ class FetchBehaviour(APYEstimationBaseState):
             raise EmptyResponseError()
 
         value = res[keys[0]]
-        if len(keys):
+        if len(keys) > 1:
             for key in keys[1:]:
                 value = value[key]
 
