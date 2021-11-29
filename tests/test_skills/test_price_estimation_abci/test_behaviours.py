@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
+import binascii
 import datetime
 import json
 import logging
@@ -746,6 +747,43 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_invalid_drand_value(
+        self,
+    ) -> None:
+        """Test invalid drand values."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+
+        drand_value = DRAND_VALUE.copy()
+        drand_value["randomness"] = binascii.hexlify(b"randomness_hex").decode()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(drand_value).encode(),
+            ),
+        )
 
     def test_invalid_response(
         self,

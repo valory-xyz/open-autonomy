@@ -34,7 +34,7 @@ from tests.helpers.base import cd
 from tests.helpers.constants import ROOT_DIR
 
 
-LOF_PUBKEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
 
 DRAND_VALUE = {
     "round": 1416669,
@@ -124,23 +124,23 @@ class TestVerifyDrand:
         """Setup test."""
         self.drand_check = VerifyDrand()
 
-    def test_veify(
+    def test_verify(
         self,
     ) -> None:
         """Test verify method."""
 
-        result, error = self.drand_check.verify(DRAND_VALUE, LOF_PUBKEY)
+        result, error = self.drand_check.verify(DRAND_VALUE, DRAND_PUBLIC_KEY)
         assert result
         assert error is None
 
-    def test_veify_fails(
+    def test_verify_fails(
         self,
     ) -> None:
         """Test verify method."""
 
         drand_value = DRAND_VALUE.copy()
         del drand_value["randomness"]
-        result, error = self.drand_check.verify(drand_value, LOF_PUBKEY)
+        result, error = self.drand_check.verify(drand_value, DRAND_PUBLIC_KEY)
         assert not result
         assert error == "DRAND dict is missing value for 'randomness'"
 
@@ -148,7 +148,7 @@ class TestVerifyDrand:
         drand_value["randomness"] = "".join(
             list(drand_value["randomness"])[:-1] + ["0"]  # type: ignore
         )
-        result, error = self.drand_check.verify(drand_value, LOF_PUBKEY)
+        result, error = self.drand_check.verify(drand_value, DRAND_PUBLIC_KEY)
         assert not result
         assert error == "Failed randomness hash check."
 
@@ -156,7 +156,7 @@ class TestVerifyDrand:
         with mock.patch.object(
             self.drand_check, "_verify_signature", return_value=False
         ):
-            result, error = self.drand_check.verify(drand_value, LOF_PUBKEY)
+            result, error = self.drand_check.verify(drand_value, DRAND_PUBLIC_KEY)
 
         assert not result
         assert error == "Failed bls.Verify check."
