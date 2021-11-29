@@ -86,7 +86,6 @@ from packages.valory.skills.apy_estimation.tools.queries import (
 
 
 benchmark_tool = BenchmarkTool()
-PAIR_ID = "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"
 
 
 class APYEstimationBaseState(BaseState, ABC):
@@ -489,7 +488,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             self.params.data_folder, "transformed_historical_data.csv"
         )
         pairs_hist = load_hist(transformed_history_save_path)
-        (y_train, y_test), pair_name = prepare_pair_data(pairs_hist, PAIR_ID)
+        (y_train, y_test), pair_name = prepare_pair_data(pairs_hist, self.params.pair_id)
         self.context.logger.info("Data have been preprocessed.")
 
         # Store and hash the preprocessed data.
@@ -497,7 +496,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         hashes = []
         for filename, split in {"train": y_train, "test": y_test}.items():
             save_path = os.path.join(
-                self.params.data_folder, PAIR_ID, f"{filename}.csv"
+                self.params.data_folder, self.params.pair_id, f"{filename}.csv"
             )
             create_pathdirs(save_path)
             np.savetxt(save_path, split, ",")
@@ -529,7 +528,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
     def setup(self):
         """Setup behaviour."""
         # Load training data.
-        path = os.path.join(self.params.data_folder, PAIR_ID, "train.csv")
+        path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
         y = np.loadtxt(path, delimiter=",")
 
         optimize_task = OptimizeTask()
@@ -556,7 +555,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
             # Store the results.
             save_path = os.path.join(
-                self.params.data_folder, PAIR_ID, "study_results.csv"
+                self.params.data_folder, self.params.pair_id, "study_results.csv"
             )
             study_results.to_csv(save_path)
 
@@ -593,11 +592,11 @@ class TrainBehaviour(APYEstimationBaseState):
         if self.period_state.full_training:
             y = []
             for split in ("train", "test"):
-                path = os.path.join(self.params.data_folder, PAIR_ID, f"{split}.csv")
+                path = os.path.join(self.params.data_folder, self.params.pair_id, f"{split}.csv")
                 y.append(np.loadtxt(path, delimiter=","))
             y = np.concatenate(y)
         else:
-            path = os.path.join(self.params.data_folder, PAIR_ID, "train.csv")
+            path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
             y = np.loadtxt(path, delimiter=",")
 
         train_task = TrainTask()
@@ -621,7 +620,7 @@ class TrainBehaviour(APYEstimationBaseState):
             # Store the results.
             prefix = "fully_trained_" if self.period_state.full_training else ""
             save_path = os.path.join(
-                self.params.data_folder, PAIR_ID, f"{prefix}forecaster.pkl"
+                self.params.data_folder, self.params.pair_id, f"{prefix}forecaster.pkl"
             )
             save_forecaster(save_path, forecaster)
 
@@ -655,10 +654,10 @@ class TestBehaviour(APYEstimationBaseState):
         # Load test data.
         y = {"train": None, "y_test": None}
         for split in ("train", "test"):
-            path = os.path.join(self.params.data_folder, PAIR_ID, f"{split}.csv")
+            path = os.path.join(self.params.data_folder, self.params.pair_id, f"{split}.csv")
             y[split] = np.loadtxt(path, delimiter=",")
 
-        model_path = os.path.join(self.params.data_folder, PAIR_ID, f"forecaster.pkl")
+        model_path = os.path.join(self.params.data_folder, self.params.pair_id, f"forecaster.pkl")
         forecaster = load_forecaster(model_path)
 
         test_task = TestTask()
@@ -688,7 +687,7 @@ class TestBehaviour(APYEstimationBaseState):
 
             # Store the results.
             save_path = os.path.join(
-                self.params.data_folder, PAIR_ID, f"test_report.json"
+                self.params.data_folder, self.params.pair_id, f"test_report.json"
             )
             try:
                 to_json_file(save_path, report)
@@ -730,7 +729,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         """
         with benchmark_tool.measure(self).local():
             model_path = os.path.join(
-                self.params.data_folder, PAIR_ID, f"fully_trained_forecaster.pkl"
+                self.params.data_folder, self.params.pair_id, f"fully_trained_forecaster.pkl"
             )
             forecaster = load_forecaster(model_path)
             estimation = forecaster.predict(self.params.estimation["steps_forward"])
