@@ -3,6 +3,14 @@ import json
 from typing import List, Optional
 
 
+def finalize_q(query: str) -> bytes:
+    """Finalize the given query string, i.e., add it under a `queries` key and convert it to bytes."""
+    query = {'query': query}
+    query = json.dumps(query).encode("utf-8")
+
+    return query
+
+
 def eth_price_usd_q(bundle_id: int, block: Optional[int] = None) -> bytes:
     """Create query to get current ETH price in USD.
 
@@ -50,7 +58,7 @@ def eth_price_usd_q(bundle_id: int, block: Optional[int] = None) -> bytes:
         """
         )
 
-    return json.dumps(query).encode("utf-8")
+    return finalize_q(query)
 
 
 def block_from_timestamp_q(timestamp: int) -> bytes:
@@ -83,7 +91,7 @@ def block_from_timestamp_q(timestamp: int) -> bytes:
     """
     )
 
-    return json.dumps(query).encode("utf-8")
+    return finalize_q(query)
 
 
 def top_n_pairs_q(top_n: int) -> bytes:
@@ -108,7 +116,7 @@ def top_n_pairs_q(top_n: int) -> bytes:
     """
     )
 
-    return json.dumps(query).encode("utf-8")
+    return finalize_q(query)
 
 
 def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
@@ -163,4 +171,4 @@ def pairs_q(block: int, top_n_ids: List[str]) -> bytes:
     """
     )
 
-    return json.dumps(query).encode("utf-8")
+    return finalize_q(query)

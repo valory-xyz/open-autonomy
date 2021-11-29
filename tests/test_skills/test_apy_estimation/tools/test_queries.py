@@ -19,6 +19,7 @@
 
 """Test the `tools/general.py` module of the skill."""
 import json
+from typing import Any
 
 import pytest
 
@@ -26,7 +27,7 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
     pairs_q,
-    top_n_pairs_q,
+    top_n_pairs_q, finalize_q,
 )
 
 
@@ -72,44 +73,67 @@ eth_q_parameterization = pytest.mark.parametrize(
 )
 
 
+def identity(arg: Any) -> Any:
+    """Define an identity function."""
+    return arg
+
+
 class TestQueries:
     @staticmethod
-    @eth_q_parameterization
-    def test_eth_price_usd_q(bundle_id, block, expected):
-        actual = eth_price_usd_q(bundle_id, block)
-        assert str(json.loads(actual)).split() == expected.split()
+    def test_finalize_q():
+        # Test result.
+        test_string = 'test_string: {test: value}'
+        actual = finalize_q(test_string)
+        expected = {'query': test_string}
+        expected = json.dumps(expected).encode("utf-8")
+        assert actual == expected
 
     @staticmethod
-    def test_block_from_timestamp_q():
+    @eth_q_parameterization
+    def test_eth_price_usd_q(bundle_id, block, expected, monkeypatch):
+        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
+        actual = eth_price_usd_q(bundle_id, block)
+        assert actual.split() == expected.split()
+
+    @staticmethod
+    def test_block_from_timestamp_q(monkeypatch):
+        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
         actual = block_from_timestamp_q(100)
         expected = """
-                   {blocks(first: 1, orderBy: timestamp, orderDirection: asc, where: 
+                   {
+                   blocks(
+                   first: 
+                   1, orderBy: timestamp, orderDirection: asc, where: 
                        {
                            timestamp_gte: 100, timestamp_lte: 700
-                       })
+                       }
+                       )
                        {
                            timestamp
                            number
                        }
                        }
                    """
-        assert str(json.loads(actual)).split() == expected.split()
+        assert actual.split() == expected.split()
 
     @staticmethod
-    def test_top_n_pairs_q():
+    def test_top_n_pairs_q(monkeypatch):
+        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
         actual = top_n_pairs_q(0)
         expected = """
                    {
                        pairs(
                            first: 0, orderBy: trackedReserveETH, 
-                       orderDirection: desc) 
+                       orderDirection: desc
+                       ) 
                        {id}
                    }
                    """
-        assert str(json.loads(actual)).split() == expected.split()
+        assert actual.split() == expected.split()
 
     @staticmethod
-    def test_pairs_q():
+    def test_pairs_q(monkeypatch):
+        monkeypatch.setattr('packages.valory.skills.apy_estimation.tools.queries.finalize_q', identity)
         actual = pairs_q(0, ["x0", "x1", "x2"])
         expected = """
                    {
@@ -147,4 +171,4 @@ class TestQueries:
                        }
                    }
                    """
-        assert str(json.loads(actual)).split() == expected.split()
+        assert actual.split() == expected.split()
