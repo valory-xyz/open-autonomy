@@ -228,19 +228,11 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == "x0"
 
-        actual_next_state = self.period_state.update(
-            participant_to_fetching=dict(
-                get_participant_to_fetching(self.participants)
-            ),
-            most_voted_history=test_round.most_voted_payload,
-        )
+        actual_next_state = self.period_state
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        assert (
-            cast(PeriodState, state).participant_to_fetching.keys()
-            == cast(PeriodState, actual_next_state).participant_to_fetching.keys()
-        )
+        assert state == actual_next_state
         assert event == Event.DONE
 
     def test_no_majority_event(self) -> None:
