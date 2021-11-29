@@ -98,13 +98,13 @@ class Objective:
 
 def optimize(
     y: np.ndarray,
+    seed: int,
     n_trials: Optional[int] = None,
     timeout: Optional[float] = None,
     n_jobs: int = 1,
     show_progress_bar: bool = True,
     scoring: ScoringType = "pinball",
     alpha: Optional[float] = None,
-    seed: Optional[int] = None,
 ) -> optuna.study.Study:
     """Run the optimizer.
 

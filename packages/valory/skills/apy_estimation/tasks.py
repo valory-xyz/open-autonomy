@@ -52,17 +52,17 @@ class OptimizeTask(Task):
     def execute(
         self,
         y: np.ndarray,
+        seed: int,
         n_trials: Optional[int] = None,
         timeout: Optional[float] = None,
         n_jobs: int = 1,
         show_progress_bar: bool = False,
         scoring: ScoringType = "pinball",
         alpha: Optional[float] = None,
-        seed: Optional[int] = None,
     ) -> Study:
         """Execute the task."""
         return optimize(
-            y, n_trials, timeout, n_jobs, show_progress_bar, scoring, alpha, seed
+            y, seed, n_trials, timeout, n_jobs, show_progress_bar, scoring, alpha
         )
 
 
