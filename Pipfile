@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+open-aea = {version = "<2.0.0,>=1.2.0", extras = ["all"]}
 open-aea-ledger-ethereum = "<2.0.0,>=1.2.0"
-py-ecc = "*"
 
 [dev-packages]
 bandit = "==1.7.0"
@@ -25,12 +25,14 @@ isort = "==5.9.3"
 markdown = "==3.3.4"
 markdown-include = "==0.6.0"
 mkdocs = "==1.2.3"
+mkdocs-mermaid-plugin = {git = "https://github.com/pugong/mkdocs-mermaid-plugin.git"}
 mkdocs-material = "==7.1.10"
 multidict = "==5.2.0"
 mypy = "==0.910"
 pydoc-markdown = "==4.3.2"
 pydocstyle = "==6.1.1"
 pymdown-extensions = "==8.2"
+py-ecc = "*"
 py-eth-sig-utils = "==0.4.0"
 pytest = "==6.2.5"
 pytest-asyncio = "==0.15.1"
@@ -47,10 +49,3 @@ aiohttp = "<3.8,>=3.7.4.post0"
 
 [requires]
 python_version = "3.8"
-
-[packages.open-aea]
-version = "<2.0.0,>=1.2.0"
-extras = [ "all",]
-
-[dev-packages.mkdocs-mermaid-plugin]
-git = "https://github.com/pugong/mkdocs-mermaid-plugin.git"
