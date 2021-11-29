@@ -278,15 +278,16 @@ class FetchBehaviour(APYEstimationBaseState):
             ).local():
                 # Fetch top n pool ids.
                 spooky_api_specs = self.context.spooky_subgraph.get_spec()
-                spooky_needed_specs = {
-                    "method": spooky_api_specs["method"],
-                    "url": spooky_api_specs["url"],
-                    "headers": spooky_api_specs["headers"],
-                }
+                available_specs = set(spooky_api_specs.keys())
+                needed_specs = {"method", "url", "headers"}
+                unwanted_specs = available_specs - (available_specs & needed_specs)
+
+                for unwanted in unwanted_specs:
+                    spooky_api_specs.pop(unwanted)
 
                 res_raw = yield from self.get_http_response(
                     content=top_n_pairs_q(self.context.spooky_subgraph.top_n_pools),
-                    **spooky_needed_specs,
+                    **spooky_api_specs,
                 )
                 res = self.context.spooky_subgraph.process_response(res_raw)
 
@@ -329,7 +330,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             self.context.spooky_subgraph.bundle_id,
                             fetched_block["number"],
                         ),
-                        **spooky_needed_specs,
+                        **spooky_api_specs,
                     )
                     res = self.context.spooky_subgraph.process_response(res_raw)
 
@@ -347,7 +348,7 @@ class FetchBehaviour(APYEstimationBaseState):
                     # Fetch top n pool data for block.
                     res_raw = yield from self.get_http_response(
                         content=pairs_q(fetched_block["number"], pair_ids),
-                        **spooky_needed_specs,
+                        **spooky_api_specs,
                     )
                     res = self.context.spooky_subgraph.process_response(res_raw)
 
