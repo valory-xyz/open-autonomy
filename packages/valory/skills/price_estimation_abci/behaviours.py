@@ -243,10 +243,14 @@ class RandomnessBehaviour(PriceEstimationBaseState):
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
             self.context.logger.info("Verifying DRAND values.")
-            check, error = drand_check.verify(observation, self.params.lof_pubkey)
-            if not check:  # pragma: nocover
-                raise ValueError(error)
-            self.context.logger.info("DRAND check successful.")
+            check, error = drand_check.verify(observation, self.params.drand_public_key)
+            if check:
+                self.context.logger.info("DRAND check successful.")
+            else:
+                self.context.logger.info(f"DRAND check failed, {error}.")
+                observation["randomness"] = ""
+                observation["round"] = ""
+
             payload = RandomnessPayload(
                 self.context.agent_address,
                 observation["round"],

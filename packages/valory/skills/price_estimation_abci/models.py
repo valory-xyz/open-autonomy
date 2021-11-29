@@ -82,7 +82,7 @@ class Params(BaseParams):
         self.retry_attempts = self._ensure("retry_attempts", kwargs)
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.oracle_params = self._ensure("oracle", kwargs)
-        self.lof_pubkey = self._ensure("lof_pubkey", kwargs)
+        self.drand_public_key = self._ensure("drand_public_key", kwargs)
         super().__init__(*args, **kwargs)
 
 
