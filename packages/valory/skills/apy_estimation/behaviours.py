@@ -229,7 +229,7 @@ class FetchBehaviour(APYEstimationBaseState):
         create_pathdirs(self._save_path)
 
     def _handle_response(
-        self, res: Dict, res_context: str, keys: Tuple[Union[str, int], ...]
+        self, res: Optional[Dict], res_context: str, keys: Tuple[Union[str, int], ...]
     ) -> None:
         """Handle a response from a subgraph.
 
