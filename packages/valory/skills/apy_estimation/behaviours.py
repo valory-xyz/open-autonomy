@@ -372,7 +372,12 @@ class FetchBehaviour(APYEstimationBaseState):
 
             if len(pairs_hist) > 0:
                 # Store historical data to a json file.
-                to_json_file(self._save_path, pairs_hist)
+                try:
+                    to_json_file(self._save_path, pairs_hist)
+                except OSError:
+                    self.context.logger.error(f"Path '{self._save_path}' could not be found!")
+                except TypeError:
+                    self.context.logger.error(f"Historical data cannot be JSON serialized!")
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
@@ -416,7 +421,14 @@ class TransformBehaviour(APYEstimationBaseState):
         create_pathdirs(self._transformed_history_save_path)
 
         # Load historical data from a json file.
-        pairs_hist = read_json_file(self._history_save_path)
+        try:
+            pairs_hist = read_json_file(self._history_save_path)
+        except OSError:
+            self.context.logger.error(f"Path '{self._history_save_path}' could not be found!")
+        except json.JSONDecodeError:
+            self.context.logger.error(f"File '{self._history_save_path}' has an invalid JSON encoding!")
+        except ValueError:
+            self.context.logger.error(f"There is an encoding error in the '{self._history_save_path}' file!")
 
         transform_task = TransformTask()
         task_id = self.context.task_manager.enqueue_task(
@@ -677,7 +689,12 @@ class TestBehaviour(APYEstimationBaseState):
             save_path = os.path.join(
                 self.params.data_folder, PAIR_ID, f"test_report.json"
             )
-            to_json_file(save_path, report)
+            try:
+                to_json_file(save_path, report)
+            except OSError:
+                self.context.logger.error(f"Path '{save_path}' could not be found!")
+            except TypeError:
+                self.context.logger.error(f"Report cannot be JSON serialized!")
 
             # Hash the file.
             hasher = IPFSHashOnly()
