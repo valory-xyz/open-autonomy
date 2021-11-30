@@ -46,6 +46,7 @@ from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
 from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
@@ -527,7 +528,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore  # type: ignore
                 ),
             ),
         )
@@ -559,13 +560,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -585,13 +586,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -611,7 +612,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -646,7 +647,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -662,7 +663,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx".hex()},
                 ),
             ),
         )
@@ -685,7 +686,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -755,7 +756,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -787,13 +788,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -813,13 +814,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -839,7 +840,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -876,7 +877,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -892,7 +893,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -906,7 +907,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     dict(
                         to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
-                        data="64756d6d795f7478",
+                        data=b"dummy_tx",  # type: ignore
                     )
                 ),
             ),
@@ -915,7 +916,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1058,7 +1059,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1229,13 +1230,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -1255,13 +1256,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -1281,7 +1282,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1312,7 +1313,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1344,7 +1345,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1360,7 +1361,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1376,7 +1377,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1438,13 +1439,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -1464,13 +1465,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -1490,7 +1491,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1522,7 +1523,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1554,7 +1555,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1570,7 +1571,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1586,7 +1587,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )

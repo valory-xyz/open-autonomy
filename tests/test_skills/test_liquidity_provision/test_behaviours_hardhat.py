@@ -23,7 +23,7 @@ from threading import Thread
 from typing import Any, Dict, Optional, cast
 
 from aea.helpers.transaction.base import RawTransaction
-from aea.mail.base import Envelope
+from aea.mail.base import Envelope, Message
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
 
@@ -52,6 +52,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
 ):
     """Test liquidity pool behaviours in a Hardhat environment."""
+
+    running_loop: asyncio.AbstractEventLoop
+    thread_loop: Thread
+    multiplexer: Multiplexer
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -131,6 +135,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             envelope = self.multiplexer.get(block=True)
             assert envelope is not None, "No envelope"
             incoming_message = envelope.message
+            assert isinstance(incoming_message, Message)
 
             if expected_content is not None:
                 assert all(
@@ -151,7 +156,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             handler.handle(incoming_message)
         self.liquidity_provision_behaviour.act_wrapper()
 
-    def process_n_messsages(self, state_id, ncycles):
+    def process_n_messsages(self, state_id: str, ncycles: int) -> None:
         """
         Process n message cycles.
 
@@ -198,10 +203,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
         self.mock_a2a_transaction()
 
-    def test_enter_pool(self):
+    def test_enter_pool(self) -> None:
         """Test enter pool."""
         self.process_n_messsages(EnterPoolTransactionHashBehaviour.state_id, 7)
 
-    def test_exit_pool(self):
+    def test_exit_pool(self) -> None:
         """Test exit pool."""
         self.process_n_messsages(ExitPoolTransactionHashBehaviour.state_id, 7)
