@@ -31,7 +31,11 @@ from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum import EthereumCrypto
 
-from tests.fixture_helpers import GanacheBaseTest, HardHatBaseTest
+from tests.fixture_helpers import (
+    GanacheBaseTest,
+    HardHatAMMBaseTest,
+    HardHatGnosisBaseTest,
+)
 from tests.helpers.contracts import get_register_contract
 
 
@@ -101,5 +105,9 @@ class BaseGanacheContractTest(BaseContractTest, GanacheBaseTest):
     """Base test case for testing contracts on Ganache."""
 
 
-class BaseHardhatContractTest(BaseContractTest, HardHatBaseTest):
-    """Base test case for testing contracts on Ganache."""
+class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest):
+    """Base test case for testing contracts on Hardhat with Gnosis."""
+
+
+class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest):
+    """Base test case for testing AMM contracts on Hardhat."""

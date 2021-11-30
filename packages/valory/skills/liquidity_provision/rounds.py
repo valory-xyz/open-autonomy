@@ -178,7 +178,7 @@ class PeriodState(
             self._multisend_contract_address is not None,
             "'multisend_contract_address' field is None",
         )
-        return cast(str, self._safe_contract_address)
+        return cast(str, self._multisend_contract_address)
 
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:

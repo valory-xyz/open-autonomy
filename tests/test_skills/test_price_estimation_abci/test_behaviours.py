@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
+import binascii
 import datetime
 import json
 import logging
@@ -101,6 +102,22 @@ from packages.valory.skills.price_estimation_abci.rounds import Event, PeriodSta
 from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
 
 from tests.conftest import ROOT_DIR
+
+
+DRAND_VALUE = {
+    "round": 1416669,
+    "randomness": "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11",
+    "signature": (
+        "b44d00516f46da3a503f9559a634869b6dc2e5d839e46ec61a090e3032172954929a5"
+        "d9bd7197d7739fe55db770543c71182562bd0ad20922eb4fe6b8a1062ed21df3b68de"
+        "44694eb4f20b35262fa9d63aa80ad3f6172dd4d33a663f21179604"
+    ),
+    "previous_signature": (
+        "903c60a4b937a804001032499a855025573040cb86017c38e2b1c3725286756ce8f33"
+        "61188789c17336beaf3f9dbf84b0ad3c86add187987a9a0685bc5a303e37b008fba8c"
+        "44f02a416480dd117a3ff8b8075b1b7362c58af195573623187463"
+    ),
+}
 
 
 class DummyRoundId:
@@ -719,12 +736,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps(
-                    {
-                        "round": 1283255,
-                        "randomness": "04d4866c26e03347d2431caa82ab2d7b7bdbec8b58bca9460c96f5265d878feb",
-                    }
-                ).encode("utf-8"),
+                body=json.dumps(DRAND_VALUE).encode("utf-8"),
             ),
         )
 
@@ -735,6 +747,43 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_invalid_drand_value(
+        self,
+    ) -> None:
+        """Test invalid drand values."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+
+        drand_value = DRAND_VALUE.copy()
+        drand_value["randomness"] = binascii.hexlify(b"randomness_hex").decode()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(drand_value).encode(),
+            ),
+        )
 
     def test_invalid_response(
         self,
