@@ -31,6 +31,7 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
+    ExitPoolTransactionHashBehaviour,
     get_strategy_update,
 )
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
@@ -139,10 +140,11 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                 ), f"Actual content: {incoming_message._body}, expected: {expected_content}"
 
             handler.handle(incoming_message)
-        self.liquidity_provision_behaviour.act_wrapper()  # noqa: E800
+        self.liquidity_provision_behaviour.act_wrapper()
 
-    def test_enter_pool(self):
-        """Test enter pool."""
+
+    def process_n_messsages(self, state_id, n):
+        """Process n message cycles."""
         strategy = get_strategy_update()
         period_state = PeriodState(
             most_voted_tx_hash="0x",
@@ -154,7 +156,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            state_id=state_id,
             period_state=period_state,
         )
         assert (
@@ -162,48 +164,24 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                 BaseState,
                 cast(BaseState, self.liquidity_provision_behaviour.current_state),
             ).state_id
-            == EnterPoolTransactionHashBehaviour.state_id
+            == state_id
         )
 
         expected_content = {
             "performative": ContractApiMessage.Performative.RAW_TRANSACTION
         }
 
-        for _ in range(7):
+        for _ in range(n):
             self.process_message_cycle(self.contract_handler, expected_content)
 
         self.mock_a2a_transaction()
+
+
+    def test_enter_pool(self):
+        """Test enter pool."""
+        self.process_n_messsages(EnterPoolTransactionHashBehaviour.state_id, 7)
 
 
     def test_exit_pool(self):
         """Test enter pool."""
-        strategy = get_strategy_update()
-        period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="0x5FbDB2315678afecb367f032d93F642f64180aa3",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-            router_contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-        )
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionHashBehaviour.state_id,
-            period_state=period_state,
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionHashBehaviour.state_id
-        )
-
-        expected_content = {
-            "performative": ContractApiMessage.Performative.RAW_TRANSACTION
-        }
-
-        for _ in range(7):
-            self.process_message_cycle(self.contract_handler, expected_content)
-
-        self.mock_a2a_transaction()
+        self.process_n_messsages(ExitPoolTransactionHashBehaviour.state_id, 7)
