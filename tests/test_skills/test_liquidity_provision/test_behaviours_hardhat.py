@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision skill behaviours with Hardhat."""
 import asyncio
-import json
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, Optional, cast
@@ -42,12 +41,7 @@ from tests.helpers.contracts import get_register_contract
 from tests.test_skills.test_liquidity_provision.test_behaviours import (
     LiquidityProvisionBehaviourBaseCase,
 )
-from packages.open_aea.protocols.signing import SigningMessage
-from aea.helpers.transaction.base import (
-    SignedMessage,)
-from packages.valory.skills.abstract_round_abci.base import (
-    OK_CODE,
-)
+
 
 DEFAULT_GAS = 1000000
 DEFAULT_GAS_PRICE = 1000000
@@ -59,7 +53,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     """Test liquidity pool behaviours in a Hardhat environment."""
 
     @classmethod
-    def _setup_class(cls, **kwargs: Any):
+    def _setup_class(cls, **kwargs: Any) -> None:
+        """Setup class."""
         pass
 
     @classmethod
@@ -142,9 +137,13 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             handler.handle(incoming_message)
         self.liquidity_provision_behaviour.act_wrapper()
 
+    def process_n_messsages(self, state_id, ncycles):
+        """
+        Process n message cycles.
 
-    def process_n_messsages(self, state_id, n):
-        """Process n message cycles."""
+        :param: state_id: the behaviour to fast forward to
+        :param: ncycles: the number of message cycles to process
+        """
         strategy = get_strategy_update()
         period_state = PeriodState(
             most_voted_tx_hash="0x",
@@ -152,7 +151,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-            router_contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+            router_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -171,17 +170,15 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             "performative": ContractApiMessage.Performative.RAW_TRANSACTION
         }
 
-        for _ in range(n):
+        for _ in range(ncycles):
             self.process_message_cycle(self.contract_handler, expected_content)
 
         self.mock_a2a_transaction()
-
 
     def test_enter_pool(self):
         """Test enter pool."""
         self.process_n_messsages(EnterPoolTransactionHashBehaviour.state_id, 7)
 
-
     def test_exit_pool(self):
-        """Test enter pool."""
+        """Test exit pool."""
         self.process_n_messsages(ExitPoolTransactionHashBehaviour.state_id, 7)
