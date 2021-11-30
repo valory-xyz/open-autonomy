@@ -113,7 +113,6 @@ def get_default_strategy(is_native: bool = True) -> Dict:
                 "amount_min": 1,
             },
         },
-        "router_address": "router_address",
         "liquidity_to_remove": 1,
     }
 
@@ -443,6 +442,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -478,6 +478,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -503,7 +504,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
@@ -535,7 +536,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -574,7 +575,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -600,7 +601,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -620,7 +621,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity_ETH",
@@ -705,6 +706,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -730,7 +732,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
@@ -753,7 +755,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": str.encode("dummy_tx").decode()},
                 ),
             ),
         )
@@ -762,7 +764,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -801,7 +803,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -827,7 +829,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -847,7 +849,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity",
@@ -938,6 +940,7 @@ class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBase
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -984,6 +987,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1016,6 +1020,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
             participant_to_signature=get_participant_to_signature(participants),
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1103,6 +1108,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
             safe_contract_address="safe_contract_address",
             most_voted_keeper_address="most_voted_keeper_address",
             participant_to_signature=get_participant_to_signature(participants),
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1182,6 +1188,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1201,7 +1208,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity_ETH",
@@ -1238,7 +1245,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1264,7 +1271,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1283,7 +1290,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_ETH_for_tokens",
@@ -1314,7 +1321,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -1389,6 +1396,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address"
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1408,7 +1416,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity",
@@ -1446,7 +1454,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1472,7 +1480,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1491,7 +1499,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -1523,7 +1531,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
