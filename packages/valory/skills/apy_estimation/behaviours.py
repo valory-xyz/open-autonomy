@@ -253,9 +253,9 @@ class FetchBehaviour(APYEstimationBaseState):
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
         self.context.spooky_subgraph.reset_retries()
 
-    def async_act(
+    def async_act(  # pylint: disable=too-many-locals,too-many-statements
         self,
-    ) -> Generator:  # pylint: disable=too-many-locals,too-many-statements
+    ) -> Generator:
         """
         Do the action.
 
