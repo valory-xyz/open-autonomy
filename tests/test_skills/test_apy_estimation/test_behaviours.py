@@ -571,49 +571,44 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # top pairs' ids request.
-        # with mock.patch(
-        #         'packages.valory.skills.apy_estimation.behaviours.top_n_pairs_q',
-        #         new_callable=lambda *x: top_n_pairs_q
-        # ):
-        self.apy_estimation_behaviour.act_wrapper()
-        self.apy_estimation_behaviour.context.logger.info(top_n_pairs_q)
-        request_kwargs["body"] = json.dumps(top_n_pairs_q).encode("utf-8")
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
         res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
-        request_kwargs = dict(
-            method="POST",
-            url="https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks",
-            headers="Content-Type: application/json\r\n",
-            version="",
+        # block request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
         )
-
-        # # block request.
-        # self.apy_estimation_behaviour.act_wrapper()
-        # # TOFIX: mock timestamp in gen_unix_timestamps
-        # request_kwargs['body'] = json.dumps(block_from_timestamp_q).encode("utf-8")
-        # res = {"data": {"blocks": [{'timestamp': '1', 'number': '1'}]}}
-        # response_kwargs['body'] = json.dumps(res).encode("utf-8")
-        # self.mock_http_request(request_kwargs, response_kwargs)
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
+            lambda _: 1618735147,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
-        self.apy_estimation_behaviour.act_wrapper()
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
             eth_price_usd_q,
         )
-        request_kwargs["body"] = eth_price_usd_q
-        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         # top pairs data.
-        self.apy_estimation_behaviour.act_wrapper()
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.pairs_q", pairs_q
-        )
-        request_kwargs["body"] = pairs_q
+        request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
         res = {
             "data": {
                 "pairs": [
@@ -623,6 +618,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             }
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.pairs_q",
+            pairs_q,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
         self.mock_a2a_transaction()

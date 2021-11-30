@@ -219,7 +219,7 @@ class TrainingPayload(BaseAPYPayload):
     @property
     def data(self) -> Dict[str, str]:
         """Get the data."""
-        return {"model": self._model_hash}
+        return {"model_hash": self._model_hash}
 
 
 class TestingPayload(BaseAPYPayload):
