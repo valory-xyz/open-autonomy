@@ -26,13 +26,10 @@ from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
 
-from packages.valory.contracts.uniswap_v2_router_02.contract import (
-    UniswapV2Router02Contract,
-)
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    EnterPoolTransactionHashBehaviour, get_strategy_update
+    EnterPoolTransactionHashBehaviour, ExitPoolTransactionHashBehaviour, get_strategy_update
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
@@ -65,6 +62,21 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         # register all contracts we need
         directory = Path(
             ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+        )
+        _ = get_register_contract(directory)
+
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
+        )
+        _ = get_register_contract(directory)
+
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "multisend"
+        )
+        _ = get_register_contract(directory)
+
+        directory = Path(
+            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
         )
         _ = get_register_contract(directory)
         # setup a multiplexer with the required connections
@@ -119,18 +131,19 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                 assert all(
                     [incoming_message._body.get(key, None) == value for key, value in expected_content.items()]
                 ), f"Actual content: {incoming_message._body}, expected: {expected_content}"
-            handler.handle(incoming_message)
-        self.liquidity_provision_behaviour.act_wrapper()
 
-    def test_swap(self):
-        """Test a swap tx: WETH for token A."""
+            handler.handle(incoming_message)
+        # self.liquidity_provision_behaviour.act_wrapper()
+
+    def test_enter_pool(self):
+        """Test enter pool."""
         strategy = get_strategy_update()
         period_state = PeriodState(
             most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
+            safe_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
+            multisend_contract_address="0x6ddfb9b458dFf9534C7bC9440bdb12fae10b26d8", # random. We need to deploy it in Hardhat.
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -152,4 +165,13 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         # tokenA_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # noqa: E800
         # account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"  # noqa: E800
         expected_content = {"performative": ContractApiMessage.Performative.RAW_TRANSACTION}
-        self.process_message_cycle(self.contract_handler, expected_content)
+
+        self.process_message_cycle(self.contract_handler, expected_content) # swap A
+        self.process_message_cycle(self.contract_handler, expected_content) # swap B
+        self.process_message_cycle(self.contract_handler, expected_content) # approve A
+        self.process_message_cycle(self.contract_handler, expected_content) # approve B
+        self.process_message_cycle(self.contract_handler, expected_content) # add liquidity
+        self.process_message_cycle(self.contract_handler, expected_content) # get multisend data
+        self.process_message_cycle(self.contract_handler, expected_content) # get safe tx hash
+
+        # mock a2a
