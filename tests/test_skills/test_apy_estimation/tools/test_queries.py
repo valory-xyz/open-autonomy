@@ -19,9 +19,10 @@
 
 """Test the `tools/general.py` module of the skill."""
 import json
-from typing import Any
+from typing import Any, Optional
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation.tools.queries import (
     block_from_timestamp_q,
@@ -30,7 +31,6 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     pairs_q,
     top_n_pairs_q,
 )
-
 
 eth_q_parameterization = pytest.mark.parametrize(
     (
@@ -83,7 +83,7 @@ class TestQueries:
     """Tests for `Queries`."""
 
     @staticmethod
-    def test_finalize_q():
+    def test_finalize_q() -> None:
         """Test `finalize_q`."""
         # Test result.
         test_string = "test_string: {test: value}"
@@ -94,7 +94,7 @@ class TestQueries:
 
     @staticmethod
     @eth_q_parameterization
-    def test_eth_price_usd_q(bundle_id, block, expected, monkeypatch):
+    def test_eth_price_usd_q(bundle_id: int, block: Optional[int], expected: str, monkeypatch: MonkeyPatch) -> None:
         """Test `eth_price_usd_q`."""
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
@@ -103,7 +103,7 @@ class TestQueries:
         assert actual.split() == expected.split()
 
     @staticmethod
-    def test_block_from_timestamp_q(monkeypatch):
+    def test_block_from_timestamp_q(monkeypatch: MonkeyPatch) -> None:
         """Test `block_from_timestamp_q`."""
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
@@ -127,7 +127,7 @@ class TestQueries:
         assert actual.split() == expected.split()
 
     @staticmethod
-    def test_top_n_pairs_q(monkeypatch):
+    def test_top_n_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `top_n_pairs_q`."""
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
@@ -145,7 +145,7 @@ class TestQueries:
         assert actual.split() == expected.split()
 
     @staticmethod
-    def test_pairs_q(monkeypatch):
+    def test_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `pairs_q`."""
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity

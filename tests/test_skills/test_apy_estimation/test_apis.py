@@ -39,12 +39,9 @@ SubgraphResponseType = Dict[str, ResponseItemType]
 def make_request(api_specs: Dict, query: str) -> requests.Response:
     """Make a request to a subgraph.
 
-    Args:
-        api_specs: the subgraph's api_specs.
-        query: the query.
-
-    Returns:
-        a response dictionary.
+    :param api_specs: the subgraph's api_specs.
+    :param query: the query.
+    :return: a response dictionary.
     """
     if api_specs["method"] == "POST":
         r = requests.post(

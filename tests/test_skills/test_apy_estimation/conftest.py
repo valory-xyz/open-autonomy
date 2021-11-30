@@ -10,7 +10,7 @@ from packages.valory.skills.apy_estimation.models import SharedState
 
 
 HeaderType = Dict[str, str]
-SpecsType = Dict[str, Union[str, int, HeaderType]]
+SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
 
 
 @pytest.fixture
@@ -177,7 +177,7 @@ def pool_fields() -> Tuple[str, ...]:
 
 
 @pytest.fixture
-def shared_state():
+def shared_state() -> SharedState:
     """Initialize a test shared state."""
     return SharedState(name="", skill_context=mock.MagicMock())
 

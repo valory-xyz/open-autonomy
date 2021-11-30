@@ -74,11 +74,8 @@ for old_col in ("token0", "token1"):
 def calc_change(volume_usd: pd.Series) -> pd.Series:
     """Calculate the change between two days. The series argument needs to be sorted by date!
 
-    Args:
-        volume_usd: a series with volumes, sorted by date.
-
-    Returns:
-        a new series with the current day's change for each date of the given `volume_usd` series.
+    :param volume_usd: a series with volumes, sorted by date.
+    :return: a new series with the current day's change for each date of the given `volume_usd` series.
     """
     return volume_usd - volume_usd.shift(1)
 
@@ -86,11 +83,8 @@ def calc_change(volume_usd: pd.Series) -> pd.Series:
 def calc_apy(x: pd.DataFrame) -> pd.Series:
     """Calculates the APY for a given pool's info.
 
-    Args:
-        x: a dataframe with historical data.
-
-    Returns:
-        a series with the daily APYs.
+    :param x: a dataframe with historical data.
+    :return: a series with the daily APYs.
     """
     res = None
 
@@ -103,11 +97,8 @@ def calc_apy(x: pd.DataFrame) -> pd.Series:
 def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     """Transform pairs' history into a dataframe and add extra fields.
 
-    Args:
-        pairs_hist_raw: the pairs historical data non-transformed.
-
-    Returns:
-        a dataframe with the given historical data, containing extra fields. These are:
+    :param pairs_hist_raw: the pairs historical data non-transformed.
+    :return: a dataframe with the given historical data, containing extra fields. These are:
          * [token0_id, token0_name, token0_symbol]: split from `token0`.
          * [token1_id, token1_name, token1_symbol]: split from `token1`.
          * pairName: the current's pair's name, which is derived by: 'token0_name - token1_name'.
@@ -184,8 +175,8 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
 def load_hist(path: str) -> pd.DataFrame:
     """Load the already fetched and transformed historical data.
 
-    Returns:
-        a dataframe with the historical data.
+    :param path: the path to the historical data.
+    :return: a dataframe with the historical data.
     """
     # Read the already fetched data.
     pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)

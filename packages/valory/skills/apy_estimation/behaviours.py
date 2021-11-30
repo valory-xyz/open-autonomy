@@ -236,6 +236,7 @@ class FetchBehaviour(APYEstimationBaseState):
 
         :param res: the response to handle.
         :param res_context: the context of the current response.
+        :param keys: keys to get the information from the response.
         """
         if res is None:
             self.context.logger.error(

@@ -23,25 +23,25 @@ class TestProcessing:
     """Tests for `Preprocessing`."""
 
     @staticmethod
-    def test_calc_change():
+    def test_calc_change() -> None:
         """Test `calc_change`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_calc_apy():
+    def test_calc_apy() -> None:
         """Test `calc_change`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_transform_hist_data():
+    def test_transform_hist_data() -> None:
         """Test `transform_hist_data`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_load_hist():
+    def test_load_hist() -> None:
         """Test `load_hist`."""
         # TODO
         assert True

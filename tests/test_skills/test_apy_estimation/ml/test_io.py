@@ -23,11 +23,11 @@ class TestIO:
     """Tests for ML io operations."""
 
     @staticmethod
-    def test_save_forecaster():
+    def test_save_forecaster() -> None:
         """Test `save_forecaster`."""
         assert True
 
     @staticmethod
-    def test_load_forecaster():
+    def test_load_forecaster() -> None:
         """Test `load_forecaster`."""
         assert True

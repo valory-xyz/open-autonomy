@@ -35,11 +35,8 @@ ScoringType = Union[ScoringFuncType, str]
 def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
     """Scoring function for mean pinball loss.
 
-    Args:
-        alpha: the pinball loss' alpha value.
-
-    Returns:
-        a mean pinball loss scoring function, which accepts y_true and y_pred and returns a score.
+    :param alpha: the pinball loss' alpha value.
+    :return: a mean pinball loss scoring function, which accepts y_true and y_pred and returns a score.
     """
 
     def pinball_loss(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -55,10 +52,9 @@ class Objective:  # pylint: disable=too-few-public-methods
     def __init__(self, y: np.ndarray, scoring: ScoringType) -> None:
         """Init function for the Objective.
 
-        Args:
-            y: the timeseries data, based on which the Cross-Validated optimization will be performed.
-            scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.
-             Valid string scoring metrics include:
+        :param y: the timeseries data, based on which the Cross-Validated optimization will be performed.
+        :param scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.
+           Valid string scoring metrics include:
               * ‘smape’
               * ‘mean_absolute_error’
               * ‘mean_squared_error’
@@ -69,11 +65,8 @@ class Objective:  # pylint: disable=too-few-public-methods
     def __call__(self, trial: optuna.trial.Trial) -> float:
         """Define the optimization objective function.
 
-        Args:
-            trial: an optuna Trial.
-
-        Returns:
-            the average score of the cross validation results.
+        :param trial: an optuna Trial.
+        :return: the average score of the cross validation results.
         """
         # Create hyperparameter suggestions.
         p = trial.suggest_int("p", 1, 4)
@@ -108,31 +101,26 @@ def optimize(  # pylint: disable=too-many-arguments
 ) -> optuna.study.Study:
     """Run the optimizer.
 
-    Args:
-        y: the data with which the optimization will be done.
-        n_trials: the number of trials. If this argument is set to None,
-         there is no limitation on the number of trials. If timeout is also set to None,
-         the study continues to create trials until it receives a termination signal such as Ctrl+C or SIGTERM.
-        timeout: stop study after the given number of second(s).
-         If this argument is set to None, the study is executed without time limitation.
-         If n_trials is also set to None, the study continues to create trials
-         until it receives a termination signal such as Ctrl+C or SIGTERM.
-        n_jobs: the number of parallel jobs. If this argument is set to -1, the number is set to CPU count.
-        show_progress_bar: flag to show progress bars or not. To disable progress bar, set this to False.
-        Currently, progress bar is experimental feature in `optuna` and disabled when n_jobs != 1.
-        scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.
-         Valid string scoring metrics include:
+    :param y: the data with which the optimization will be done.
+    :param n_trials: the number of trials. If this argument is set to None,
+       there is no limitation on the number of trials. If timeout is also set to None,
+       the study continues to create trials until it receives a termination signal such as Ctrl+C or SIGTERM.
+    :param timeout: stop study after the given number of second(s).
+       * If this argument is set to None, the study is executed without time limitation.
+       * If n_trials is also set to None, the study continues to create trials
+          until it receives a termination signal such as Ctrl+C or SIGTERM.
+    :param n_jobs: the number of parallel jobs. If this argument is set to -1, the number is set to CPU count.
+    :param show_progress_bar: flag to show progress bars or not. To disable progress bar, set this to False.
+       Currently, progress bar is experimental feature in `optuna` and disabled when n_jobs != 1.
+    :param scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.
+       Valid string scoring metrics include:
           * ‘smape’
           * ’pinball’
           * ‘mean_absolute_error’
           * ‘mean_squared_error’
-        alpha: Parameter for the pinball scoring function. If another scoring fn is used, then it is ignored.
-        seed: Seed for random number generator.
-    Raises:
-        RuntimeError: if nested invocation of this method occurs.
-
-    Returns:
-        the `optuna` study.
+    :param alpha: Parameter for the pinball scoring function. If another scoring fn is used, then it is ignored.
+    :param seed: Seed for random number generator.
+    :return: the `optuna` study.
     """
     if scoring == "pinball":
         if alpha is not None:

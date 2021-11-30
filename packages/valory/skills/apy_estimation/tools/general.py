@@ -2,7 +2,7 @@
 import json
 import os
 import time
-from typing import Generator, Union
+from typing import Iterator, Union
 
 from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
@@ -11,14 +11,11 @@ from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
 StoredJSONType = Union[ResponseItemType, TestReportType]
 
 
-def gen_unix_timestamps(duration: int) -> Generator:
+def gen_unix_timestamps(duration: int) -> Iterator[int]:
     """Generate the UNIX timestamps from `duration` months ago up to today.
 
-    Args:
-        duration: the duration of the timestamps to be returned, in months (more precisely, in 30 days).
-
-    Returns:
-        a list with the UNIX timestamps.
+    :param duration: the duration of the timestamps to be returned, in months (more precisely, in 30 days).
+    :return: the UNIX timestamps.
     """
     day_in_unix = 24 * 60 * 60
 
@@ -54,6 +51,7 @@ def read_json_file(path: str) -> ResponseItemType:
     """Read a json `ResponseItemType` file.
 
     :param path: the path to retrieve the json file from.
+    :return: the deserialized json file's content.
     """
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)

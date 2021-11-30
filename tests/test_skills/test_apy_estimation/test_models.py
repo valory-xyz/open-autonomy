@@ -19,7 +19,7 @@
 
 """Test the models.py module of the skill."""
 
-from packages.valory.skills.apy_estimation.models import MARGIN
+from packages.valory.skills.apy_estimation.models import MARGIN, SharedState
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
 
 
@@ -28,8 +28,8 @@ class TestSharedState:
 
     def test_setup(
         self,
-        shared_state,
-    ):
+        shared_state: SharedState,
+    ) -> None:
         """Test setup."""
         shared_state.setup()
         assert (

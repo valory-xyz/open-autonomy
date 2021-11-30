@@ -37,6 +37,7 @@ def load_forecaster(path: str) -> Pipeline:
     """Load a `pmdarima` forecaster.
 
     :param path: path to store the forecaster.
+    :return: a `pmdarima.pipeline.Pipeline`.
     """
     with open(path, "rb") as pkl:
         return pickle.load(pkl)

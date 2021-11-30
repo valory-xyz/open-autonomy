@@ -47,20 +47,17 @@ def init_forecaster(  # pylint: disable=too-many-arguments
 ) -> Pipeline:
     """Initialize a forecasting model.
 
-    Args:
-        m : the seasonal periodicity of the endogenous vector, y.
-        k : the number of sine and cosine terms (each) to include.
-         I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
-         which is the default value if not set. The value of k can be selected by minimizing the AIC.
-        p: the order (number of time lags) of the autoregressive model (AR).
-        q: the order of the moving-average model (MA).
-        d: the degree of differencing (the number of times the data have had past values subtracted) (I).
-        maxiter: the maximum number of function evaluations. Default is 150.
-        suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
-         If suppress_warnings is True, all of these warnings will be squelched. Default is True.
-
-    Returns:
-        a `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
+    :param m: the seasonal periodicity of the endogenous vector, y.
+    :param k: the number of sine and cosine terms (each) to include.
+       I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
+       which is the default value if not set. The value of k can be selected by minimizing the AIC.
+    :param p: the order (number of time lags) of the autoregressive model (AR).
+    :param q: the order of the moving-average model (MA).
+    :param d: the degree of differencing (the number of times the data have had past values subtracted) (I).
+    :param maxiter: the maximum number of function evaluations. Default is 150.
+    :param suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
+       If suppress_warnings is True, all of these warnings will be squelched. Default is True.
+    :return: a `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
     """
     order = (p, q, d)
 
@@ -89,21 +86,18 @@ def train_forecaster(  # pylint: disable=too-many-arguments
 ) -> Pipeline:
     """Train a forecasting model.
 
-    Args:
-        y_train: the training timeseries.
-        m : the seasonal periodicity of the endogenous vector, y.
-        k : the number of sine and cosine terms (each) to include.
-         I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
-         which is the default value if not set. The value of k can be selected by minimizing the AIC.
-        p: the order (number of time lags) of the autoregressive model (AR).
-        q: the order of the moving-average model (MA).
-        d: the degree of differencing (the number of times the data have had past values subtracted) (I).
-        maxiter: the maximum number of function evaluations. Default is 150.
-        suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
-         If suppress_warnings is True, all of these warnings will be squelched. Default is True.
-
-    Returns:
-        a trained `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
+    :param y_train: the training timeseries.
+    :param m: the seasonal periodicity of the endogenous vector, y.
+    :param k: the number of sine and cosine terms (each) to include.
+       I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
+       which is the default value if not set. The value of k can be selected by minimizing the AIC.
+    :param p: the order (number of time lags) of the autoregressive model (AR).
+    :param q: the order of the moving-average model (MA).
+    :param d: the degree of differencing (the number of times the data have had past values subtracted) (I).
+    :param maxiter: the maximum number of function evaluations. Default is 150.
+    :param suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
+       If suppress_warnings is True, all of these warnings will be squelched. Default is True.
+    :return: a trained `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
     """
     forecaster = init_forecaster(p, q, d, m, k, maxiter, suppress_warnings)
     forecaster.fit(y_train)
@@ -116,12 +110,9 @@ def baseline(t0: float, y_test: np.ndarray) -> np.ndarray:
 
     Given a timeseries, the baseline model will be "predicting" at each step $t_n$ the value of $t_{n-1}$.
 
-    Args:
-        t0: the current timestep, i.e., the last value of the training set.
-        y_test: the test values.
-
-    Returns:
-        the "predictions" of the baseline model.
+    :param t0: the current timestep, i.e., the last value of the training set.
+    :param y_test: the test values.
+    :return: the "predictions" of the baseline model.
     """
     # TODO consider walk_forward arg as well and pass a t0 of equal len.
     y_test = np.insert(y_test, 0, t0)
@@ -139,12 +130,9 @@ def calc_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsType:
      * Max Error
      * MSE
 
-    Args:
-        y_true: ground truth (correct) target values.
-        y_pred: estimated target values.
-
-    Returns:
-        a dictionary with the names of the metrics mapped to their values.
+    :param y_true: ground truth (correct) target values.
+    :param y_pred: estimated target values.
+    :return: a dictionary with the names of the metrics mapped to their values.
     """
     metrics = {
         "mean pinball loss": mean_pinball_loss(y_true, y_pred),
@@ -172,15 +160,12 @@ def report_metrics(
      * Max Error
      * MSE
 
-    Args:
-        y_true: ground truth (correct) target values.
-        y_pred: estimated target values.
-        pair_name: the name of the pool for which the metrics are reported.
-        model_name: the name of the model for which the metrics are reported.
-         The model's name will appear in the report's title.
-
-    Returns:
-        a report string.
+    :param y_true: ground truth (correct) target values.
+    :param y_pred: estimated target values.
+    :param pair_name: the name of the pool for which the metrics are reported.
+    :param model_name: the name of the model for which the metrics are reported.
+       The model's name will appear in the report's title.
+    :return: a report string.
     """
     metrics = calc_metrics(y_true, y_pred)
 
@@ -202,13 +187,10 @@ def walk_forward_test(
 ) -> np.ndarray:
     """Test the given forecasting model, using the Direct Multi-step Forecast Strategy.
 
-    Args:
-        forecaster: a `pmdarima` pipeline model.
-        y_test: the test timeseries.
-        steps_forward: how many timesteps the model will be predicting in the future.
-
-    Returns:
-        a `numpy` array with the forecaster's predictions.
+    :param forecaster: a `pmdarima` pipeline model.
+    :param y_test: the test timeseries.
+    :param steps_forward: how many timesteps the model will be predicting in the future.
+    :return: a `numpy` array with the forecaster's predictions.
     """
     y_pred = []
 
@@ -232,14 +214,14 @@ def test_forecaster(
     pair_name: str,
     steps_forward: int = 1,
 ) -> TestReportType:
-    """Test the trained forecaster.
+    """Test the trained forecaster and compare it with a Naive Baseline method.
 
-    Args:
-        forecaster: a `pmdarima` pipeline model.
-        y_train: the train timeseries.
-        y_test: the test timeseries.
-        pair_name: the pair's name.
-        steps_forward: how many timesteps the model will be predicting in the future.
+    :param forecaster: a `pmdarima` pipeline model.
+    :param y_train: the train timeseries.
+    :param y_test: the test timeseries.
+    :param pair_name: the pair's name.
+    :param steps_forward: how many timesteps the model will be predicting in the future.
+    :return: a test report for each tested method/model.
     """
     # Get the current timestep, i.e., the last value of the training set.
     t0 = y_train[-1][0]

@@ -23,12 +23,12 @@ class TestOptimization:
     """Tests for the optimization operations."""
 
     @staticmethod
-    def test_pinball_loss_scorer():
+    def test_pinball_loss_scorer() -> None:
         """Test `pinball_loss_scorer`."""
         assert True
 
     @staticmethod
-    def test_optimize():
+    def test_optimize() -> None:
         """Test `optimize`."""
         assert True
 
@@ -37,6 +37,6 @@ class TestObjective:
     """Tests for `Objective`."""
 
     @staticmethod
-    def test__call__():
+    def test__call__() -> None:
         """Test `__call__`."""
         assert True
