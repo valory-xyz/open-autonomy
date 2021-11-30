@@ -755,7 +755,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": str.encode("dummy_tx").decode()},
+                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
                 ),
             ),
         )
