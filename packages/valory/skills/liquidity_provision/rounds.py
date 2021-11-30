@@ -88,6 +88,7 @@ class PeriodState(
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
         multisend_contract_address: Optional[str] = None,
+        router_contract_address: Optional[str] = None,
         most_voted_tx_hash: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
@@ -107,6 +108,7 @@ class PeriodState(
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
         self._multisend_contract_address = multisend_contract_address
+        self._router_contract_address = router_contract_address
         self._participant_to_signature = participant_to_signature
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_tx_hash = most_voted_tx_hash
@@ -179,6 +181,15 @@ class PeriodState(
             "'multisend_contract_address' field is None",
         )
         return cast(str, self._multisend_contract_address)
+
+    @property
+    def router_contract_address(self) -> str:
+        """Get the router02 contract address."""
+        enforce(
+            self._router_contract_address is not None,
+            "'router_contract_address' field is None",
+        )
+        return cast(str, self._router_contract_address)
 
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:

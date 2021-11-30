@@ -95,7 +95,6 @@ TEMP_GAS_PRICE = 0.1  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
-ROUTER_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"  # TOFIX, needs to be configurable on skill
 WETH_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 TOKEN_A_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 TOKEN_B_ADDRESS = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
@@ -349,7 +348,6 @@ def get_strategy_update() -> dict:
                 "amount_min": 1,
             },
         },
-        "router_address": ROUTER_ADDRESS,
         "liquidity_to_remove": 1,
     }
     return strategy
@@ -375,7 +373,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             if strategy["action"] == StrategyType.GO:
                 self.context.logger.info(
                     "Performing strategy update: moving into "
-                    + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
+                    + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {self.period_state.router_contract_address})"
                 )
             strategy["action"] = strategy["action"].value  # type: ignore
             payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
@@ -426,7 +424,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=self.period_state.router_contract_address,
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name=method_name,
@@ -453,7 +451,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Swap second token (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=self.period_state.router_contract_address,
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
@@ -484,7 +482,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
@@ -508,7 +506,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
@@ -530,7 +528,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="add_liquidity_ETH",
@@ -562,7 +560,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="add_liquidity",
@@ -696,7 +694,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
@@ -724,7 +722,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="remove_liquidity",
@@ -756,7 +754,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 value=0,
             )
             allowance_a_data = cast(
@@ -779,7 +777,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 value=0,
             )
             allowance_b_data = cast(
@@ -800,7 +798,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_ETH_for_tokens",
@@ -827,7 +825,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_tokens_for_tokens",
@@ -854,7 +852,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Swap second token back (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=self.period_state.router_contract_address,
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
