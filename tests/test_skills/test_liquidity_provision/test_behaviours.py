@@ -442,7 +442,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -478,7 +478,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -706,7 +706,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -940,7 +940,7 @@ class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBase
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -987,7 +987,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1020,7 +1020,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
             participant_to_signature=get_participant_to_signature(participants),
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1108,7 +1108,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
             safe_contract_address="safe_contract_address",
             most_voted_keeper_address="most_voted_keeper_address",
             participant_to_signature=get_participant_to_signature(participants),
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1188,7 +1188,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1396,7 +1396,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address"
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,

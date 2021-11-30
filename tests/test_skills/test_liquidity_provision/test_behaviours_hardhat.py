@@ -22,6 +22,7 @@ from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, Optional, cast
 
+from aea.helpers.transaction.base import RawTransaction
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
@@ -95,7 +96,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         cls.thread_loop.join()
 
     def process_message_cycle(
-        self, handler: Optional[Handler] = None, expected_content: Optional[Dict] = None
+        self,
+        handler: Optional[Handler] = None,
+        expected_content: Optional[Dict] = None,
+        expected_types: Optional[Dict] = None,
     ) -> None:
         """
         Processes one request-response type message cycle.
@@ -109,6 +113,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
         :param handler: the handler to handle a potential incoming message
         :param expected_content: the content to be expected
+        :param expected_types: the types to be expected
         """
         self.liquidity_provision_behaviour.act_wrapper()
         self.assert_quantity_in_outbox(1)
@@ -126,6 +131,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             envelope = self.multiplexer.get(block=True)
             assert envelope is not None, "No envelope"
             incoming_message = envelope.message
+
             if expected_content is not None:
                 assert all(
                     [
@@ -133,6 +139,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                         for key, value in expected_content.items()
                     ]
                 ), f"Actual content: {incoming_message._body}, expected: {expected_content}"
+
+            if expected_types is not None:
+                assert all(
+                    [
+                        type(incoming_message._body.get(key, None)) == value_type
+                        for key, value_type in expected_types.items()
+                    ]
+                ), "Content type mismatch"
 
             handler.handle(incoming_message)
         self.liquidity_provision_behaviour.act_wrapper()
@@ -170,8 +184,17 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             "performative": ContractApiMessage.Performative.RAW_TRANSACTION
         }
 
+        expected_types = {
+            "dialogue_reference": tuple,
+            "message_id": int,
+            "raw_transaction": RawTransaction,
+            "target": int,
+        }
+
         for _ in range(ncycles):
-            self.process_message_cycle(self.contract_handler, expected_content)
+            self.process_message_cycle(
+                self.contract_handler, expected_content, expected_types
+            )
 
         self.mock_a2a_transaction()
 
