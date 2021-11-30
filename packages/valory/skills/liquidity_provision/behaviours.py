@@ -23,8 +23,7 @@ import pprint
 from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
-from aea.crypto.registries import crypto_registry
-from aea_ledger_ethereum import EthereumApi, EthereumCrypto
+from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -326,7 +325,11 @@ def get_strategy_update() -> dict:
     strategy = {
         "action": StrategyType.GO,
         "chain": "Fantom",
-        "base": {"ticker": "WETH", "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", "balance": 100},
+        "base": {
+            "ticker": "WETH",
+            "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+            "balance": 100,
+        },
         "pair": {
             "token_a": {
                 "ticker": "TKA",
@@ -438,7 +441,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
                     "data": HexBytes(swap_a_data.hex()),
                 }
@@ -465,7 +468,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
                     "data": HexBytes(swap_b_data.hex()),
                 }
@@ -482,12 +485,14 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
-            allowance_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+            allowance_a_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
                     "data": HexBytes(allowance_a_data.hex()),
                 }
@@ -504,12 +509,14 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
-            allowance_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+            allowance_b_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
                     "data": HexBytes(allowance_b_data.hex()),
                 }
@@ -535,12 +542,14 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "to": self.period_state.multisend_contract_address,
                         "value": 1,
                         "data": HexBytes(liquidity_data.hex()),
                     }
@@ -567,12 +576,14 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "to": self.period_state.multisend_contract_address,
                         "value": 1,
                         "data": HexBytes(liquidity_data.hex()),
                     }
@@ -587,8 +598,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs=multi_send_txs,
             )
             multisend_data = contract_api_msg.raw_transaction.body["data"]
-
-            import pdb; pdb.set_trace();
 
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
@@ -695,13 +704,15 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
@@ -722,13 +733,15 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
@@ -743,13 +756,15 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 spender=strategy["router_address"],
                 value=0,
             )
-            allowance_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+            allowance_a_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                    "value": 1,
+                    "to": self.period_state.multisend_contract_address,
+                    "value": 0,
                     "data": HexBytes(allowance_a_data.hex()),
                 }
             )
@@ -764,13 +779,15 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 spender=strategy["router_address"],
                 value=0,
             )
-            allowance_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+            allowance_b_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                    "value": 1,
+                    "to": self.period_state.multisend_contract_address,
+                    "value": 0,
                     "data": HexBytes(allowance_b_data.hex()),
                 }
             )
@@ -797,8 +814,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
                         "data": HexBytes(swap_a_data.hex()),
                     }
                 )
@@ -825,8 +842,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
                         "data": HexBytes(swap_a_data.hex()),
                     }
                 )
@@ -852,8 +869,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                    "value": 1,
+                    "to": self.period_state.multisend_contract_address,
+                    "value": 0,
                     "data": HexBytes(swap_b_data.hex()),
                 }
             )

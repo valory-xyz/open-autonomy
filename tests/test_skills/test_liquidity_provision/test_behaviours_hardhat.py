@@ -29,9 +29,9 @@ from aea.skills.base import Handler
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    EnterPoolTransactionHashBehaviour, ExitPoolTransactionHashBehaviour, get_strategy_update
+    EnterPoolTransactionHashBehaviour,
+    get_strategy_update,
 )
-from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
@@ -70,14 +70,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         )
         _ = get_register_contract(directory)
 
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "multisend"
-        )
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "multisend")
         _ = get_register_contract(directory)
 
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
-        )
+        directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         _ = get_register_contract(directory)
         # setup a multiplexer with the required connections
         cls.running_loop = asyncio.new_event_loop()
@@ -110,6 +106,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         5. Calls act on behaviour to process incoming message
 
         :param handler: the handler to handle a potential incoming message
+        :param expected_content: the content to be expected
         """
         self.liquidity_provision_behaviour.act_wrapper()
         self.assert_quantity_in_outbox(1)
@@ -129,21 +126,24 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             incoming_message = envelope.message
             if expected_content is not None:
                 assert all(
-                    [incoming_message._body.get(key, None) == value for key, value in expected_content.items()]
+                    [
+                        incoming_message._body.get(key, None) == value
+                        for key, value in expected_content.items()
+                    ]
                 ), f"Actual content: {incoming_message._body}, expected: {expected_content}"
 
             handler.handle(incoming_message)
-        # self.liquidity_provision_behaviour.act_wrapper()
+        # self.liquidity_provision_behaviour.act_wrapper()  # noqa: E800
 
     def test_enter_pool(self):
         """Test enter pool."""
         strategy = get_strategy_update()
         period_state = PeriodState(
             most_voted_tx_hash="0x",
-            safe_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+            safe_contract_address="0x5FbDB2315678afecb367f032d93F642f64180aa3",
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
-            multisend_contract_address="0x6ddfb9b458dFf9534C7bC9440bdb12fae10b26d8", # random. We need to deploy it in Hardhat.
+            multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -157,21 +157,12 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             ).state_id
             == EnterPoolTransactionHashBehaviour.state_id
         )
-        # amount_in = 10  # noqa: E800
-        # amount_out_min = 1  # noqa: E800
 
-        # contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"  # noqa: E800
-        # weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"  # noqa: E800
-        # tokenA_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # noqa: E800
-        # account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"  # noqa: E800
-        expected_content = {"performative": ContractApiMessage.Performative.RAW_TRANSACTION}
+        expected_content = {
+            "performative": ContractApiMessage.Performative.RAW_TRANSACTION
+        }
 
-        self.process_message_cycle(self.contract_handler, expected_content) # swap A
-        self.process_message_cycle(self.contract_handler, expected_content) # swap B
-        self.process_message_cycle(self.contract_handler, expected_content) # approve A
-        self.process_message_cycle(self.contract_handler, expected_content) # approve B
-        self.process_message_cycle(self.contract_handler, expected_content) # add liquidity
-        self.process_message_cycle(self.contract_handler, expected_content) # get multisend data
-        self.process_message_cycle(self.contract_handler, expected_content) # get safe tx hash
+        for _ in range(7):
+            self.process_message_cycle(self.contract_handler, expected_content)
 
         # mock a2a
