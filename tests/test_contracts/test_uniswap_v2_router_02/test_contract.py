@@ -1013,21 +1013,17 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     contract: UniswapV2Router02Contract
     weth_address: str
 
+    contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+    weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+    tokenA_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+    tokenB_address = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+    account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+    account_2_address = "0x71bE63f3384f5fb98995898A86B02Fb2426c5788"
+
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
         return {}
-
-    @classmethod
-    def deploy(cls, **kwargs: Any) -> None:
-        """Deploy the contract."""
-        # addresses taken from
-        cls.contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-        cls.weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-        cls.tokenA_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
-        cls.tokenB_address = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
-        cls.account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-        cls.account_2_address = "0x71bE63f3384f5fb98995898A86B02Fb2426c5788"
 
 
 class TestSwapHardhat(BaseContractTestHardHatAMMNet):
