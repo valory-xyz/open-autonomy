@@ -599,8 +599,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: List[OrderedDict[str, str]] = None,
-        parameters: List[Tuple[str, str]] = None,
+        headers: Optional[List[OrderedDict[str, str]]] = None,
+        parameters: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Send an http request message from the skill context.
@@ -650,8 +650,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: List[OrderedDict[str, str]] = None,
-        parameters: List[Tuple[str, str]] = None,
+        headers: Optional[List[OrderedDict[str, str]]] = None,
+        parameters: Optional[List[Tuple[str, str]]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
