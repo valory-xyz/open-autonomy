@@ -96,6 +96,9 @@ ETHER_VALUE = 0  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 ROUTER_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"  # TOFIX, needs to be configurable on skill
+WETH_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+TOKEN_A_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+TOKEN_B_ADDRESS = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
 
 benchmark_tool = BenchmarkTool()
 
@@ -324,16 +327,16 @@ def get_strategy_update() -> dict:
     """Get a strategy update."""
     strategy = {
         "action": StrategyType.GO,
-        "chain": "Fantom",
+        "chain": "Ethereum",
         "base": {
             "ticker": "WETH",
-            "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+            "address": WETH_ADDRESS,
             "balance": 100,
         },
         "pair": {
             "token_a": {
                 "ticker": "TKA",
-                "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+                "address": TOKEN_A_ADDRESS,
                 "amount": 1,
                 "amount_min": 1,
                 # If any, only token_a can be the native one (ETH, FTM...)
@@ -341,7 +344,7 @@ def get_strategy_update() -> dict:
             },
             "token_b": {
                 "ticker": "TKB",
-                "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+                "address": TOKEN_B_ADDRESS,
                 "amount": 1,
                 "amount_min": 1,
             },
