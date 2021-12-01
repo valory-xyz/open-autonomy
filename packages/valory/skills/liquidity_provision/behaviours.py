@@ -967,14 +967,12 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         DeploySafeSendBehaviour,  # type: ignore
         DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
-        EnterPoolSelectKeeperBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
         EnterPoolTransactionSignatureBehaviour,  # type: ignore
         EnterPoolTransactionSendBehaviour,  # type: ignore
         EnterPoolTransactionValidationBehaviour,  # type: ignore
         EnterPoolRandomnessBehaviour,  # type: ignore
         EnterPoolSelectKeeperBehaviour,  # type: ignore
-        ExitPoolSelectKeeperBehaviour,  # type: ignore
         ExitPoolTransactionHashBehaviour,  # type: ignore
         ExitPoolTransactionSignatureBehaviour,  # type: ignore
         ExitPoolTransactionSendBehaviour,  # type: ignore
