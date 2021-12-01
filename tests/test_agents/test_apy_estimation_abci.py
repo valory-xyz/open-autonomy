@@ -21,6 +21,7 @@
 
 import json
 import logging
+import pytest
 from pathlib import Path
 from typing import List, Tuple, cast
 
@@ -251,6 +252,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestABCIAPYEstimationSki
             ), "ABCI agent wasn't successfully terminated."
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,
@@ -261,6 +263,7 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,
@@ -271,6 +274,7 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,

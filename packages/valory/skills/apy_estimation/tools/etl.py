@@ -19,7 +19,7 @@
 
 """ETL related operations."""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -81,7 +81,7 @@ def calc_change(volume_usd: pd.Series) -> pd.Series:
     return volume_usd - volume_usd.shift(1)
 
 
-def calc_apy(x: pd.DataFrame) -> pd.Series:
+def calc_apy(x: pd.DataFrame) -> Optional[pd.Series]:
     """Calculates the APY for a given pool's info.
 
     :param x: a dataframe with historical data.

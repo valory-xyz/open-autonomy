@@ -21,7 +21,7 @@ fingerprint:
   rounds.py: QmbytBY8TGM3kgkc2G2dAiX6UQk95R3j19gEaUpW5YizR8
   tasks.py: QmajDUQTTbPH1kZ88jy1v53oyuNx94k6KzCM6tDfTGPVY3
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: QmaCTWDhYavuyXJmuPwmn2uFSgSGZUnEJTTvjJrLrozTAT
+  tools/etl.py: QmRTL9Z81Nih12aEQ9QEvnV3cYcBCi6acfJvBBN1jFF5Wh
   tools/general.py: QmZHB3UivwLy8La7dSA3B4ConeWnKtKqe6hsrKG7NSn6G2
   tools/queries.py: Qmcgnd1HGGBhSLpnAAJi5QsKfiijvEVcHHHtytsVd6jopj
 fingerprint_ignore_patterns: []

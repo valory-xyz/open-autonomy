@@ -541,6 +541,7 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
+@pytest.mark.skip
 class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test FetchBehaviour."""
 
