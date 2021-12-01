@@ -32,6 +32,7 @@ from packages.valory.skills.apy_estimation.tools.queries import (
     top_n_pairs_q,
 )
 
+
 eth_q_parameterization = pytest.mark.parametrize(
     (
         "bundle_id",
@@ -94,7 +95,9 @@ class TestQueries:
 
     @staticmethod
     @eth_q_parameterization
-    def test_eth_price_usd_q(bundle_id: int, block: Optional[int], expected: str, monkeypatch: MonkeyPatch) -> None:
+    def test_eth_price_usd_q(
+        bundle_id: int, block: Optional[int], expected: str, monkeypatch: MonkeyPatch
+    ) -> None:
         """Test `eth_price_usd_q`."""
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity

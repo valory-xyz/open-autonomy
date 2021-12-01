@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
 #   Copyright 2021 Valory AG
@@ -19,7 +20,6 @@
 """ML input output operations."""
 
 import joblib
-
 from pmdarima.pipeline import Pipeline
 
 

@@ -10,20 +10,20 @@ fingerprint:
   __init__.py: QmaCjC8M5r4UfeMesEYDRCSofpswiWkbf6WgC8Zc9sw1UK
   behaviours.py: QmcQWZtVf7VRgydbKEZ7NGF1JGp2fe991D2NZXUoyDGJAC
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmVBiDL6Apzrkw19NNmNG1KQ5wCFPXFiVAUPE8z3sc2Zhu
-  ml/__init__.py: QmRV17fdhmtfVtYazK9x7MNPVHdhM4rf58dzY9UnFoKpq3
-  ml/forecasting.py: QmUV374ByiwzBTqci9SXii8jesaPtbUcEAooZ21z7m8WnK
-  ml/io.py: QmS6TztyEefeQuntGLA2Es7Hmy73hCz1Vo3Az9dxNgFUsb
-  ml/optimization.py: QmVBZgT4ue7JtgtGm4MYA6Utkt4YQ1FfVyFYxDyHfzLedE
-  ml/preprocessing.py: QmfRA3GtFwSAnDYMdPg3JWy6Vh1iMGnNfDS5AzDbJcBvD7
+  handlers.py: QmXuHV84WmZqLmgMzu5cDTskxVPquWfrPpGNdcFc3kB5qe
+  ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
+  ml/forecasting.py: QmUeFkUpsgALHs4CJPy9ETmZmHdvthyxhwHYCXqjB11wff
+  ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
+  ml/optimization.py: QmUTzx8QJYto8QcsiBw6Qf1MPMM4jTZQvu1nHe9hdn9ktn
+  ml/preprocessing.py: QmY2tFnLgZLmMD7jHaxxc4L8mDMi2CfEimjeFQnky5mqeR
   models.py: QmTb2WsUefNp9chDNgs5PN3jwUhiTGC8RhfXPGbzAcxEPv
   payloads.py: QmRBme5VGjzAXrME9dkc3CBxCAstwfabvDAUZnphVA4qKG
   rounds.py: QmTjwX4hfRDaREG1fqYRY9uYQYfdZPq8bUv1LVUdhUUrjk
-  tasks.py: QmZKT3UWhVeWMgwjxiAZh2o92cZpRHEoyPB6utFyoBDE14
-  tools/__init__.py: QmczcDSeL3tgo4whbicN8msiJgNAHD5jVfb9K8sD2bR2uY
-  tools/etl.py: QmNniaidwmzzDixMJie2NSytUWqw3pSBsVM8uZQb7oGRxR
-  tools/general.py: Qmd7UdKUsQ2FZnQUkuZu8B5WKpevaPBiQM1eKgCrafKMyo
-  tools/queries.py: QmP1aTqLzZaCFd82HBMMiYLPQ5W8aWpfvfECRWwMsyUYJ1
+  tasks.py: QmajDUQTTbPH1kZ88jy1v53oyuNx94k6KzCM6tDfTGPVY3
+  tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
+  tools/etl.py: QmaCTWDhYavuyXJmuPwmn2uFSgSGZUnEJTTvjJrLrozTAT
+  tools/general.py: QmWnkUgRLkMikLzV2poT4S7gTb9yPXeYjvxomuct89jZHe
+  tools/queries.py: Qmcgnd1HGGBhSLpnAAJi5QsKfiijvEVcHHHtytsVd6jopj
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -135,6 +135,8 @@ models:
     args: {}
     class_name: SharedState
 dependencies:
+  joblib:
+    version: <1.2,>=1.1.0
   numpy:
     version: <1.22,>=1.21.4
   optuna:
@@ -145,6 +147,4 @@ dependencies:
     version: <1.9,>=1.8.4
   scikit-learn:
     version: <1.1,>=1.0.1
-  joblib:
-    version: <1.2,>=1.1.0
 is_abstract: false
