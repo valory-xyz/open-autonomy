@@ -46,6 +46,7 @@ from packages.valory.skills.liquidity_provision.models import Params, SharedStat
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    TransactionHashPayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
     DeploySafeRandomnessRound,
@@ -85,7 +86,6 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
-    TransactionHashPayload,
     ValidatePayload,
 )
 
@@ -93,6 +93,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 TEMP_GAS = 10 ** 7  # TOFIX
 TEMP_GAS_PRICE = 0.1  # TOFIX
 ETHER_VALUE = 0  # TOFIX
+SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 WETH_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
@@ -225,6 +226,9 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=self.context.agent_address,
+            value=ETHER_VALUE,
+            data=self.period_state.most_voted_tx_data,
+            safe_tx_gas=SAFE_TX_GAS,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -233,7 +237,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
         tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
         if tx_hash is None:
             return None  # pragma: nocover
-        self.context.logger.info(f"Finalization tx hash: {tx_hash}")
+        self.context.logger.info(f"Sent tx hash: {tx_hash}")
         return tx_hash
 
 
@@ -611,10 +615,13 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 data=multisend_data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
-                sender=self.context.agent_address, tx_hash=safe_tx_hash
+                sender=self.context.agent_address,
+                tx_hash=safe_tx_hash,
+                tx_data=safe_tx_data,
             )
 
         with benchmark_tool.measure(

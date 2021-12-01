@@ -90,6 +90,7 @@ class PeriodState(
         multisend_contract_address: Optional[str] = None,
         router_contract_address: Optional[str] = None,
         most_voted_tx_hash: Optional[str] = None,
+        most_voted_tx_data: Optional[bytes] = None,
         final_tx_hash: Optional[str] = None,
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
@@ -112,6 +113,7 @@ class PeriodState(
         self._participant_to_signature = participant_to_signature
         self._most_voted_strategy = most_voted_strategy
         self._most_voted_tx_hash = most_voted_tx_hash
+        self._most_voted_tx_data = most_voted_tx_data
         self._final_tx_hash = final_tx_hash
         self._participant_to_votes = participant_to_votes
         self._participant_to_tx_hash = participant_to_tx_hash
@@ -217,6 +219,15 @@ class PeriodState(
         return cast(str, self._most_voted_tx_hash)
 
     @property
+    def most_voted_tx_data(self) -> bytes:
+        """Get the most_voted_enter_pool_tx_data."""
+        enforce(
+            self._most_voted_tx_data is not None,
+            "'most_voted_tx_data' field is None",
+        )
+        return cast(bytes, self._most_voted_tx_data)
+
+    @property
     def final_tx_hash(self) -> str:
         """Get the final_enter_pool_tx_hash."""
         enforce(
@@ -264,7 +275,8 @@ class TransactionHashBaseRound(
         if self.threshold_reached:
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
+                most_voted_tx_hash=self.most_voted_payload.tx_hash,
+                most_voted_tx_data=self.most_voted_payload.tx_data,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
