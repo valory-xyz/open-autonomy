@@ -36,6 +36,7 @@ class TransactionType(Enum):
     TRANSACTION_SIGNATURE = "tx_signature"
     TRANSACTION_SEND = "tx_send"
     TRANSACTION_VALIDATION = "tx_validation"
+    TX_HASH = "tx_hash"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""

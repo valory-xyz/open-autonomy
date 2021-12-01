@@ -19,8 +19,9 @@
 
 """Tests for rounds.py file in valory/liquidity_provision."""
 
+import json
 from types import MappingProxyType
-from typing import Dict, FrozenSet, Mapping  # noqa : F401
+from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
 from packages.valory.skills.liquidity_provision.payloads import (
@@ -35,7 +36,10 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     TransactionSignatureBaseRound,
     TransactionValidationBaseRound,
 )
-from packages.valory.skills.price_estimation_abci.payloads import FinalizationTxPayload
+from packages.valory.skills.price_estimation_abci.payloads import (
+    FinalizationTxPayload,
+    TransactionHashPayload,
+)
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilThresholdRoundTest,
@@ -45,7 +49,6 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
 )
 from tests.test_skills.test_price_estimation_abci.test_rounds import (
     get_participant_to_signature,
-    get_participant_to_tx_hash,
     get_participant_to_votes,
 )
 
@@ -70,6 +73,20 @@ def get_participant_to_strategy(
     )
 
 
+def get_participant_to_tx_hash(
+    participants: FrozenSet[str],
+    hash_: Optional[str] = "tx_hash",
+    data_: Optional[str] = "tx_data",
+) -> Mapping[str, TransactionHashPayload]:
+    """participant_to_tx_hash"""
+    return {
+        participant: TransactionHashPayload(
+            sender=participant, tx_hash=json.dumps({"tx_hash": hash_, "tx_data": data_})
+        )
+        for participant in participants
+    }
+
+
 class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionHashBaseRound"""
 
@@ -82,20 +99,24 @@ class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests."""
 
         test_round = TransactionHashBaseRound(self.period_state, self.consensus_params)
+        payloads = get_participant_to_tx_hash(self.participants)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_tx_hash(self.participants),
+                round_payloads=payloads,
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    participant_to_tx_hash=MappingProxyType(
-                        get_participant_to_tx_hash(self.participants)
-                    ),
-                    most_voted_tx_hash=_test_round.most_voted_payload,
+                    participant_to_tx_hash=MappingProxyType(payloads),
+                    most_voted_tx_hash=json.loads(_test_round.most_voted_payload)[
+                        "tx_hash"
+                    ],
+                    most_voted_tx_data=json.loads(_test_round.most_voted_payload)[
+                        "tx_data"
+                    ],
                 ),
                 state_attr_checks=[
                     lambda state: state.participant_to_tx_hash.keys(),
                 ],
-                most_voted_payload="tx_hash",
+                most_voted_payload=payloads["agent_1"].tx_hash,
                 exit_event=Event.DONE,
             )
         )
