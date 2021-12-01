@@ -615,13 +615,12 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 data=multisend_data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
-            safe_tx_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
                 sender=self.context.agent_address,
                 tx_hash=safe_tx_hash,
-                tx_data=safe_tx_data,
+                tx_data=b'' # multisend_data is a JSONLike, we need  bytes
             )
 
         with benchmark_tool.measure(
