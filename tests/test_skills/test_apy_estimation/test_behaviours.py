@@ -657,7 +657,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
 
-    randomness_behaviour_class: Type[BaseState] = RandomnessBehaviour
+    randomness_behaviour_class: Type[BaseState] = RandomnessBehaviour  # type: ignore
     next_behaviour_class: Type[BaseState] = OptimizeBehaviour
 
     drand_response = {
