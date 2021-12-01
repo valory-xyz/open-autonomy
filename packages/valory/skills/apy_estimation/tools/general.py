@@ -35,7 +35,7 @@ def gen_unix_timestamps(duration: int) -> Iterator[int]:
     """Generate the UNIX timestamps from `duration` months ago up to today.
 
     :param duration: the duration of the timestamps to be returned, in months (more precisely, in 30 days).
-    :return: the UNIX timestamps.
+    :yields: the UNIX timestamps.
     """
     day_in_unix = 24 * 60 * 60
 

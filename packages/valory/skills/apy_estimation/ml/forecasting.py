@@ -50,14 +50,14 @@ def init_forecaster(  # pylint: disable=too-many-arguments
 
     :param m: the seasonal periodicity of the endogenous vector, y.
     :param k: the number of sine and cosine terms (each) to include.
-       I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
-       which is the default value if not set. The value of k can be selected by minimizing the AIC.
+        I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
+        which is the default value if not set. The value of k can be selected by minimizing the AIC.
     :param p: the order (number of time lags) of the autoregressive model (AR).
     :param q: the order of the moving-average model (MA).
     :param d: the degree of differencing (the number of times the data have had past values subtracted) (I).
     :param maxiter: the maximum number of function evaluations. Default is 150.
     :param suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
-       If suppress_warnings is True, all of these warnings will be squelched. Default is True.
+        If suppress_warnings is True, all of these warnings will be squelched. Default is True.
     :return: a `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
     """
     order = (p, q, d)
@@ -91,14 +91,14 @@ def train_forecaster(  # pylint: disable=too-many-arguments
     :param y_train: the training timeseries.
     :param m: the seasonal periodicity of the endogenous vector, y.
     :param k: the number of sine and cosine terms (each) to include.
-       I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
-       which is the default value if not set. The value of k can be selected by minimizing the AIC.
+        I.e., if k is 2, 4 new features will be generated. k must not exceed m/2,
+        which is the default value if not set. The value of k can be selected by minimizing the AIC.
     :param p: the order (number of time lags) of the autoregressive model (AR).
     :param q: the order of the moving-average model (MA).
     :param d: the degree of differencing (the number of times the data have had past values subtracted) (I).
     :param maxiter: the maximum number of function evaluations. Default is 150.
     :param suppress_warnings: many warnings might be thrown inside of `statsmodels` - which is used by `pmdarima` - .
-       If suppress_warnings is True, all of these warnings will be squelched. Default is True.
+        If suppress_warnings is True, all of these warnings will be squelched. Default is True.
     :return: a trained `pmdarima` pipeline, consisting of a fourier featurizer and an ARIMA model.
     """
     forecaster = init_forecaster(p, q, d, m, k, maxiter, suppress_warnings)
@@ -156,17 +156,17 @@ def report_metrics(
     """Calculate and report various regression metrics.
 
     These are:
-     * Mean Pinball Loss
-     * SMAPE
-     * Explained Variance
-     * Max Error
-     * MSE
+        * Mean Pinball Loss
+        * SMAPE
+        * Explained Variance
+        * Max Error
+        * MSE
 
     :param y_true: ground truth (correct) target values.
     :param y_pred: estimated target values.
     :param pair_name: the name of the pool for which the metrics are reported.
     :param model_name: the name of the model for which the metrics are reported.
-       The model's name will appear in the report's title.
+        The model's name will appear in the report's title.
     :return: a report string.
     """
     metrics = calc_metrics(y_true, y_pred)

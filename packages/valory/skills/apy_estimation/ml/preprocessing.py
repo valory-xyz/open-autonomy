@@ -39,11 +39,11 @@ def prepare_pair_data(
     :param pairs_hist: the pairs histories dataframe.
     :param pair_id: the id of the pair that its data should be prepared.
     :param test_size: float, int or None, optional (default=None)
-       * If float, should be between 0.0 and 1.0 and represent the proportion of the dataset
-       to include in the test split.
-       * If int, represents the absolute number of test samples.
-       * If None, the value is set to the complement of the train size.
-       * If train_size is also None, it will be set to 0.25.
+        * If float, should be between 0.0 and 1.0 and represent the proportion of the dataset
+        to include in the test split.
+        * If int, represents the absolute number of test samples.
+        * If None, the value is set to the complement of the train size.
+        * If train_size is also None, it will be set to 0.25.
     :return: the train-test split for the specific pair and the pair's name.
     """
     # Create mask for the given pair.

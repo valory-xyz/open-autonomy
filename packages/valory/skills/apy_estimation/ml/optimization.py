@@ -54,11 +54,12 @@ class Objective:  # pylint: disable=too-few-public-methods
         """Init function for the Objective.
 
         :param y: the timeseries data, based on which the Cross-Validated optimization will be performed.
-        :param scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.
-           Valid string scoring metrics include:
-              * ‘smape’
-              * ‘mean_absolute_error’
-              * ‘mean_squared_error’
+        :param scoring: The scoring metric to use.
+            If a callable, must adhere to the signature `metric(true, predicted)`.
+            Valid string scoring metrics include:
+               * ‘smape’
+               * ‘mean_absolute_error’
+               * ‘mean_squared_error’
         """
         self.__y = y
         self.__scoring = scoring
@@ -104,21 +105,21 @@ def optimize(  # pylint: disable=too-many-arguments
 
     :param y: the data with which the optimization will be done.
     :param n_trials: the number of trials. If this argument is set to None,
-       there is no limitation on the number of trials. If timeout is also set to None,
-       the study continues to create trials until it receives a termination signal such as Ctrl+C or SIGTERM.
+        there is no limitation on the number of trials. If timeout is also set to None,
+        the study continues to create trials until it receives a termination signal such as Ctrl+C or SIGTERM.
     :param timeout: stop study after the given number of second(s).
-       * If this argument is set to None, the study is executed without time limitation.
-       * If n_trials is also set to None, the study continues to create trials
-          until it receives a termination signal such as Ctrl+C or SIGTERM.
+        * If this argument is set to None, the study is executed without time limitation.
+        * If n_trials is also set to None, the study continues to create trials
+            until it receives a termination signal such as Ctrl+C or SIGTERM.
     :param n_jobs: the number of parallel jobs. If this argument is set to -1, the number is set to CPU count.
     :param show_progress_bar: flag to show progress bars or not. To disable progress bar, set this to False.
-       Currently, progress bar is experimental feature in `optuna` and disabled when n_jobs != 1.
+        Currently, progress bar is experimental feature in `optuna` and disabled when n_jobs != 1.
     :param scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.
-       Valid string scoring metrics include:
-          * ‘smape’
-          * ’pinball’
-          * ‘mean_absolute_error’
-          * ‘mean_squared_error’
+        Valid string scoring metrics include:
+            * ‘smape’
+            * ’pinball’
+            * ‘mean_absolute_error’
+            * ‘mean_squared_error’
     :param alpha: Parameter for the pinball scoring function. If another scoring fn is used, then it is ignored.
     :param seed: Seed for random number generator.
     :return: the `optuna` study.
