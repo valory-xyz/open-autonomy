@@ -71,7 +71,7 @@ class PeriodState(BasePeriodState):
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
         period_setup_params: Optional[Dict] = None,
-        most_voted_randomness: Optional[str] = None,
+        most_voted_randomness: Optional[int] = None,
         most_voted_estimate: Optional[List[float]] = None,
         best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
@@ -88,13 +88,13 @@ class PeriodState(BasePeriodState):
         self._n_estimations = n_estimations
 
     @property
-    def most_voted_randomness(self) -> str:
+    def most_voted_randomness(self) -> int:
         """Get the most_voted_randomness."""
         enforce(
             self._most_voted_randomness is not None,
             "'most_voted_randomness' field is None",
         )
-        return cast(str, self._most_voted_randomness)
+        return cast(int, self._most_voted_randomness)
 
     @property
     def most_voted_estimate(self) -> Optional[List[float]]:
