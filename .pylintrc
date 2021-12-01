@@ -19,7 +19,7 @@ C0302: http://pylint-messages.wikidot.com/messages:c0302 > Too many lines in mod
 R0801: similar lines
 
 [IMPORTS]
-ignored-modules=
+ignored-modules=pandas,pmdarima,numpy,optuna,joblib,sklearn
 
 [DESIGN]
 # min-public-methods=1
