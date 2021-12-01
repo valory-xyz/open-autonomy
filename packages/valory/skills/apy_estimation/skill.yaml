@@ -145,4 +145,6 @@ dependencies:
     version: <1.9,>=1.8.4
   scikit-learn:
     version: <1.1,>=1.0.1
+  joblib:
+    version: <1.2,>=1.1.0
 is_abstract: false

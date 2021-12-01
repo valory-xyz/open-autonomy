@@ -51,6 +51,7 @@ pmdarima = "<1.9,>=1.8.4"
 scikit-learn = "<1.1,>=1.0.1"
 numpy = "<1.22,>=1.21.4"
 optuna = "<2.11,>=2.10.0"
+joblib = "<1.2,>=1.1.0"
 
 [requires]
 python_version = "3.8"
