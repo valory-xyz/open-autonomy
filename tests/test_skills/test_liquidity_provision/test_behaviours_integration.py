@@ -264,7 +264,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
         if type(handler) == ContractApiHandler:
             expected_content = {
-                "performative": ContractApiMessage.Performative.RAW_TRANSACTION
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
             }
             expected_types = {
                 "dialogue_reference": tuple,
@@ -275,7 +275,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
         elif type(handler) == SigningHandler:
             expected_content = {
-                "performative": SigningMessage.Performative.SIGNED_MESSAGE
+                "performative": SigningMessage.Performative.SIGNED_MESSAGE  # type: ignore
             }
 
         for _ in range(ncycles):
