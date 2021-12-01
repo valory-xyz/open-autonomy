@@ -46,6 +46,7 @@ from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
 from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
@@ -113,7 +114,6 @@ def get_default_strategy(is_native: bool = True) -> Dict:
                 "amount_min": 1,
             },
         },
-        "router_address": "router_address",
         "liquidity_to_remove": 1,
     }
 
@@ -443,6 +443,7 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -478,6 +479,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -503,7 +505,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
@@ -526,7 +528,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore  # type: ignore
                 ),
             ),
         )
@@ -535,7 +537,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -558,13 +560,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -574,7 +576,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -584,13 +586,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -600,7 +602,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -610,7 +612,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -620,7 +622,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity_ETH",
@@ -645,7 +647,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -661,7 +663,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx".hex()},
                 ),
             ),
         )
@@ -684,7 +686,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -705,6 +707,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -730,7 +733,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name=method_name,
@@ -753,7 +756,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -762,7 +765,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -785,13 +788,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_swap_exact_tokens_for_tokens_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -801,7 +804,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -811,13 +814,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -827,7 +830,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=MAX_ALLOWANCE,
                     )
                 ),
@@ -837,7 +840,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -847,7 +850,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="add_liquidity",
@@ -874,7 +877,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -890,7 +893,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -904,7 +907,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     dict(
                         to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
-                        data="64756d6d795f7478",
+                        data=b"dummy_tx",  # type: ignore
                     )
                 ),
             ),
@@ -913,7 +916,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -938,6 +941,7 @@ class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBase
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -984,6 +988,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1016,6 +1021,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
             participant_to_signature=get_participant_to_signature(participants),
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1053,7 +1059,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1103,6 +1109,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
             safe_contract_address="safe_contract_address",
             most_voted_keeper_address="most_voted_keeper_address",
             participant_to_signature=get_participant_to_signature(participants),
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1182,6 +1189,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1201,7 +1209,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity_ETH",
@@ -1222,13 +1230,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -1238,7 +1246,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1248,13 +1256,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -1264,7 +1272,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1274,7 +1282,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1283,7 +1291,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_ETH_for_tokens",
@@ -1305,7 +1313,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1314,7 +1322,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -1337,7 +1345,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1353,7 +1361,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1369,7 +1377,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1389,6 +1397,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             most_voted_keeper_address="most_voted_keeper_address",
             most_voted_strategy=strategy,
             multisend_contract_address="multisend_contract_address",
+            router_contract_address="router_contract_address",
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1408,7 +1417,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="remove_liquidity",
@@ -1430,13 +1439,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_a"]["address"],
@@ -1446,7 +1455,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1456,13 +1465,13 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
 
         self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["pair"]["token_b"]["address"],
@@ -1472,7 +1481,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=strategy["router_address"],
+                        spender=period_state.router_contract_address,
                         value=0,
                     )
                 ),
@@ -1482,7 +1491,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1491,7 +1500,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -1514,7 +1523,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1523,7 +1532,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=period_state.router_contract_address,
                 kwargs=Kwargs(
                     dict(
                         method_name="swap_exact_tokens_for_tokens",
@@ -1546,7 +1555,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1562,7 +1571,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"data": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )
@@ -1578,7 +1587,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": binascii.hexlify(b"dummy_tx").decode()},
+                    body={"tx_hash": b"dummy_tx"},  # type: ignore
                 ),
             ),
         )

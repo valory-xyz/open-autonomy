@@ -1011,7 +1011,13 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     )
     sanitize_from_deploy_tx = ["contract_address"]
     contract: UniswapV2Router02Contract
-    weth_address: str
+
+    contract_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+    weth_address = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+    tokenA_address = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+    tokenB_address = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+    account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+    account_2_address = "0x71bE63f3384f5fb98995898A86B02Fb2426c5788"
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
@@ -1021,9 +1027,7 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     @classmethod
     def deploy(cls, **kwargs: Any) -> None:
         """Deploy the contract."""
-        # addresses taken from
-        cls.contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-        cls.weth_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+        pass
 
 
 class TestSwapHardhat(BaseContractTestHardHatAMMNet):
