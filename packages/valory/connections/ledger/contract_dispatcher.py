@@ -27,7 +27,7 @@ from aea.common import JSONLike
 from aea.contracts import Contract, contract_registry
 from aea.crypto.base import LedgerApi
 from aea.crypto.registries import Registry
-from aea.exceptions import AEAException
+from aea.exceptions import AEAException, parse_exception
 from aea.helpers.transaction.base import RawMessage, RawTransaction, State
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
@@ -159,7 +159,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             response = self.get_error_message(exception, ledger_api, message, dialogue)
         except Exception as exception:  # pylint: disable=broad-except  # pragma: nocover
             self.logger.error(
-                f"An error occurred while processing the contract api request: '{str(exception)}'."
+                f"An error occurred while processing the contract api request: '{parse_exception(exception)}'."
             )
             response = self.get_error_message(exception, ledger_api, message, dialogue)
         return response
