@@ -1025,6 +1025,10 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
         """Get deployment kwargs."""
         return {}
 
+    @classmethod
+    def deploy(cls, **kwargs: Any) -> None:
+        """Dummy method."""
+
 
 class TestSwapHardhat(BaseContractTestHardHatAMMNet):
     """Test."""
