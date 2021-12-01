@@ -22,7 +22,7 @@
 import json
 import os
 import time
-from typing import Iterator, Union
+from typing import Iterator, Optional, Union
 
 from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
@@ -75,3 +75,20 @@ def read_json_file(path: str) -> ResponseItemType:
     """
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def filter_out_numbers(string: str) -> Optional[int]:
+    """Filter out all the numbers from a string.
+
+    :param string: the string to filter.
+    :return: a filtered out integer.
+    """
+    numeric_filter = filter(str.isdigit, string)
+    numeric_string = "".join(numeric_filter)
+
+    if numeric_string == "":
+        filtered_result = None
+    else:
+        filtered_result = int(numeric_string)
+
+    return filtered_result

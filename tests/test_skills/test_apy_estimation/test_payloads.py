@@ -24,6 +24,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     FetchingPayload,
     OptimizationPayload,
     PreprocessPayload,
+    RandomnessPayload,
     ResetPayload,
     TestingPayload,
     TrainingPayload,
@@ -78,6 +79,21 @@ class TestPayloads:
         assert payload.pair_name == "test"
         assert payload.id_ == "id"
         assert payload.data == {"train_test": "x0x1", "pair_name": "test"}
+
+    @staticmethod
+    def test_randomness_payload() -> None:
+        """Test `RandomnessPayload`"""
+
+        payload = RandomnessPayload(
+            sender="sender", round_id=1, randomness="1", id_="id"
+        )
+
+        assert payload.round_id == 1
+        assert payload.randomness == "1"
+        assert payload.id_ == "id"
+        assert payload.data == {"round_id": 1, "randomness": "1"}
+
+        assert payload.transaction_type == TransactionType.RANDOMNESS
 
     @staticmethod
     def test_optimization_payload() -> None:

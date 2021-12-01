@@ -65,6 +65,11 @@ states_checks_config = {
         "extra_logs": ("Data have been preprocessed.",),
         "only_at_first_period": False,
     },
+    "randomness": {
+        "state_name": "randomness",
+        "extra_logs": (),
+        "only_at_first_period": False,
+    },
     "optimize": {
         "state_name": "optimize",
         "extra_logs": ("Optimization has finished. Showing the results:\n",),

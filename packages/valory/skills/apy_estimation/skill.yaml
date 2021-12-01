@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYMv9a274LT6GAtDsJ4xg3My5cwjUQSCfjJkDj3dDoQMp
   __init__.py: QmaCjC8M5r4UfeMesEYDRCSofpswiWkbf6WgC8Zc9sw1UK
-  behaviours.py: QmcQWZtVf7VRgydbKEZ7NGF1JGp2fe991D2NZXUoyDGJAC
+  behaviours.py: QmaTyzzV72pzxWDR1zP5VWVWTPWEMcnXzvxRFkXPzzw4ZZ
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmXuHV84WmZqLmgMzu5cDTskxVPquWfrPpGNdcFc3kB5qe
   ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
@@ -16,13 +16,13 @@ fingerprint:
   ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
   ml/optimization.py: QmUTzx8QJYto8QcsiBw6Qf1MPMM4jTZQvu1nHe9hdn9ktn
   ml/preprocessing.py: QmY2tFnLgZLmMD7jHaxxc4L8mDMi2CfEimjeFQnky5mqeR
-  models.py: QmTb2WsUefNp9chDNgs5PN3jwUhiTGC8RhfXPGbzAcxEPv
-  payloads.py: QmRBme5VGjzAXrME9dkc3CBxCAstwfabvDAUZnphVA4qKG
-  rounds.py: QmTjwX4hfRDaREG1fqYRY9uYQYfdZPq8bUv1LVUdhUUrjk
+  models.py: QmSQAoFvXqCboHbEjzff555iqhZ7koC5ScxmjwrKjC2vnP
+  payloads.py: QmeueXnWhfMR6RGV26HWTmXWNUcZXA74oHCniYwBzQddCv
+  rounds.py: QmZCSnErVkkeyPVCBuWZimB8EGqusTiMkAzYaA1bxbUiPJ
   tasks.py: QmajDUQTTbPH1kZ88jy1v53oyuNx94k6KzCM6tDfTGPVY3
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: QmaCTWDhYavuyXJmuPwmn2uFSgSGZUnEJTTvjJrLrozTAT
-  tools/general.py: QmWnkUgRLkMikLzV2poT4S7gTb9yPXeYjvxomuct89jZHe
+  tools/general.py: Qmb3DxCNaTvJwfVQLWZ1fCsuroAAqx44PRY64XT4CBjC61
   tools/queries.py: Qmcgnd1HGGBhSLpnAAJi5QsKfiijvEVcHHHtytsVd6jopj
 fingerprint_ignore_patterns: []
 connections:
@@ -88,6 +88,7 @@ models:
       consensus:
         max_participants: 1
       data_folder: data
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
       history_duration: 6
@@ -100,7 +101,6 @@ models:
         show_progress_bar: false
         scoring: pinball
         alpha: 0.25
-        seed: 0
       pair_id: '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}
       retry_attempts: 400
@@ -111,6 +111,17 @@ models:
       testing:
         steps_forward: 1
     class_name: APYParams
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

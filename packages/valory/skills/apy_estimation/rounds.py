@@ -38,12 +38,14 @@ from packages.valory.skills.apy_estimation.payloads import (
     FetchingPayload,
     OptimizationPayload,
     PreprocessPayload,
+    RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
     TestingPayload,
     TrainingPayload,
     TransformationPayload,
 )
+from packages.valory.skills.apy_estimation.tools.general import filter_out_numbers
 
 
 N_ESTIMATIONS_BEFORE_RETRAIN = 60
@@ -58,6 +60,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     FULLY_TRAINED = "fully_trained"
     ESTIMATION_CYCLE = "estimation_cycle"
+    RANDOMNESS_INVALID = "randomness_invalid"
 
 
 class PeriodState(BasePeriodState):
@@ -68,6 +71,7 @@ class PeriodState(BasePeriodState):
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
         period_setup_params: Optional[Dict] = None,
+        most_voted_randomness: Optional[str] = None,
         most_voted_estimate: Optional[List[float]] = None,
         best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
@@ -76,11 +80,21 @@ class PeriodState(BasePeriodState):
     ) -> None:
         """Initialize the state."""
         super().__init__(participants, period_count, period_setup_params)
+        self._most_voted_randomness = most_voted_randomness
         self._most_voted_estimate = most_voted_estimate
         self._best_params = best_params
         self._full_training = full_training
         self._pair_name = pair_name
         self._n_estimations = n_estimations
+
+    @property
+    def most_voted_randomness(self) -> str:
+        """Get the most_voted_randomness."""
+        enforce(
+            self._most_voted_randomness is not None,
+            "'most_voted_randomness' field is None",
+        )
+        return cast(str, self._most_voted_randomness)
 
     @property
     def most_voted_estimate(self) -> Optional[List[float]]:
@@ -239,7 +253,7 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
     Input: a period state with the prior round data.
     Output: a new period state with the prior round data and the votes for the preprocessed data.
 
-    It schedules the Optimize.
+    It schedules the RandomnessRound.
     """
 
     round_id = "preprocess"
@@ -254,6 +268,44 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
             state_event = self.period_state, Event.DONE
 
         elif not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            state_event = self._return_no_majority_event()
+
+        return state_event
+
+
+class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """
+    This class represents the randomness round.
+
+    Input: a set of participants (addresses).
+    Output: a set of participants (addresses) and randomness.
+
+    It schedules the OptimizeRound.
+    """
+
+    round_id = "randomness"
+    allowed_tx_type = RandomnessPayload.transaction_type
+    payload_attribute = "randomness"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        state_event = None
+
+        if self.threshold_reached:
+            filtered_randomness = filter_out_numbers(self.most_voted_payload)
+
+            if filtered_randomness is None:
+                state_event = self.period_state, Event.RANDOMNESS_INVALID
+
+            else:
+                updated_state = self.period_state.update(
+                    most_voted_randomness=filtered_randomness
+                )
+                state_event = updated_state, Event.DONE
+
+        if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
             state_event = self._return_no_majority_event()
@@ -458,8 +510,14 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         PreprocessRound: {
-            Event.DONE: OptimizeRound,
+            Event.DONE: RandomnessRound,
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+        },
+        RandomnessRound: {
+            Event.DONE: OptimizeRound,
+            Event.RANDOMNESS_INVALID: RandomnessRound,
+            Event.NO_MAJORITY: RandomnessRound,  # if there is no majority we reset the period
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         OptimizeRound: {

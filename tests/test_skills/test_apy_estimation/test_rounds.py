@@ -33,17 +33,25 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.apy_estimation.payloads import (
     FetchingPayload,
+    RandomnessPayload,
     RegistrationPayload,
 )
 from packages.valory.skills.apy_estimation.rounds import (
     CollectHistoryRound,
     Event,
     PeriodState,
+    RandomnessRound,
     RegistrationRound,
+)
+
+from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
 )
 
 
 MAX_PARTICIPANTS: int = 4
+RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
+INVALID_RANDOMNESS: str = "invalid_randomness"
 
 
 def get_participants() -> FrozenSet[str]:
@@ -57,6 +65,34 @@ def get_participant_to_fetching(
     """participant_to_fetching"""
     return {
         participant: FetchingPayload(sender=participant, history_hash="x0")
+        for participant in participants
+    }
+
+
+def get_participant_to_randomness(
+    participants: FrozenSet[str], round_id: int
+) -> Dict[str, RandomnessPayload]:
+    """participant_to_randomness"""
+    return {
+        participant: RandomnessPayload(
+            sender=participant,
+            round_id=round_id,
+            randomness=RANDOMNESS,
+        )
+        for participant in participants
+    }
+
+
+def get_participant_to_invalid_randomness(
+    participants: FrozenSet[str], round_id: int
+) -> Dict[str, RandomnessPayload]:
+    """Invalid participant_to_randomness"""
+    return {
+        participant: RandomnessPayload(
+            sender=participant,
+            round_id=round_id,
+            randomness=INVALID_RANDOMNESS,
+        )
         for participant in participants
     }
 
@@ -257,6 +293,51 @@ class TestPreprocessRound(BaseRoundTestClass):
         """Runs test."""
         # TODO
         assert True
+
+
+class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test RandomnessRound."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_randomness(self.participants, 1),
+                state_update_fn=lambda period_state, _: period_state,
+                state_attr_checks=[],
+                most_voted_payload=RANDOMNESS,
+                exit_event=Event.DONE,
+            )
+        )
+
+    def test_invalid_randomness(self) -> None:
+        """Test the no-majority event."""
+        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_invalid_randomness(
+                    self.participants, 1
+                ),
+                state_update_fn=lambda period_state, _: period_state,
+                state_attr_checks=[],
+                most_voted_payload=INVALID_RANDOMNESS,
+                exit_event=Event.RANDOMNESS_INVALID,
+            )
+        )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestOptimizeRound(BaseRoundTestClass):

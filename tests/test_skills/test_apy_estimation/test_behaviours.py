@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/apy_estimation skill's behaviours."""
-
+import binascii
 import json
 import logging
 import time
@@ -58,6 +58,8 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 from packages.valory.skills.apy_estimation.behaviours import (
     APYEstimationConsensusBehaviour,
     FetchBehaviour,
+    OptimizeBehaviour,
+    RandomnessBehaviour,
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
     TransformBehaviour,
@@ -648,6 +650,191 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         """Run test for `preprocess_behaviour`."""
         # TODO
         assert True
+
+
+class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test RandomnessBehaviour."""
+
+    randomness_behaviour_class: Type[BaseState] = RandomnessBehaviour
+    next_behaviour_class: Type[BaseState] = OptimizeBehaviour
+
+    drand_response = {
+        "round": 1416669,
+        "randomness": "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11",
+        "signature": (
+            "b44d00516f46da3a503f9559a634869b6dc2e5d839e46ec61a090e3032172954929a5"
+            "d9bd7197d7739fe55db770543c71182562bd0ad20922eb4fe6b8a1062ed21df3b68de"
+            "44694eb4f20b35262fa9d63aa80ad3f6172dd4d33a663f21179604"
+        ),
+        "previous_signature": (
+            "903c60a4b937a804001032499a855025573040cb86017c38e2b1c3725286756ce8f33"
+            "61188789c17336beaf3f9dbf84b0ad3c86add187987a9a0685bc5a303e37b008fba8c"
+            "44f02a416480dd117a3ff8b8075b1b7362c58af195573623187463"
+        ),
+    }
+
+    def test_randomness_behaviour(
+        self,
+    ) -> None:
+        """Test RandomnessBehaviour."""
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(self.drand_response).encode("utf-8"),
+            ),
+        )
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_invalid_drand_value(
+        self,
+    ) -> None:
+        """Test invalid drand values."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        drand_invalid = self.drand_response.copy()
+        drand_invalid["randomness"] = binascii.hexlify(b"randomness_hex").decode()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(drand_invalid).encode(),
+            ),
+        )
+
+    def test_invalid_response(
+        self,
+    ) -> None:
+        """Test invalid json response."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="", status_code=200, status_text="", headers="", body=b""
+            ),
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        time.sleep(1)
+        self.apy_estimation_behaviour.act_wrapper()
+
+    def test_max_retries_reached(
+        self,
+    ) -> None:
+        """Test with max retries reached."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        with mock.patch.object(
+            self.apy_estimation_behaviour.context.randomness_api,
+            "is_retries_exceeded",
+            return_value=True,
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
+            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+            assert state.state_id == self.randomness_behaviour_class.state_id
+            self._test_done_flag_set()
+
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.apy_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.apy_estimation_behaviour.context.randomness_api._retries_attempted = 1
+        assert self.apy_estimation_behaviour.current_state is not None
+        self.apy_estimation_behaviour.current_state.clean_up()
+        assert (
+            self.apy_estimation_behaviour.context.randomness_api._retries_attempted == 0
+        )
 
 
 class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):

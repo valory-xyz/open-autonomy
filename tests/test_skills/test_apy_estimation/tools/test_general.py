@@ -113,3 +113,9 @@ class TestGeneral:
         """Test `read_json_file`."""
         # TODO
         assert True
+
+    @staticmethod
+    def test_filter_out_numbers() -> None:
+        """Test `filter_out_numbers`."""
+        # TODO
+        assert True
