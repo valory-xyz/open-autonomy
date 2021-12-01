@@ -22,7 +22,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Tuple, cast
 
 from aea.test_tools.test_cases import AEATestCaseMany
 
@@ -112,7 +112,7 @@ def build_check_strings() -> None:
                     f"Entered in the '{config['state_name']}' round for period {period}"
                 )
 
-                for log in config["extra_logs"]:
+                for log in cast(Tuple[str], config["extra_logs"]):
                     CHECK_STRINGS.append(log)
 
                 CHECK_STRINGS.append(f"'{config['state_name']}' round is done")

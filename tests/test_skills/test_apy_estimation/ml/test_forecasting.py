@@ -24,43 +24,43 @@ class TestForecasting:
     """Tests for forecasting operations."""
 
     @staticmethod
-    def test_init_forecaster():
+    def test_init_forecaster() -> None:
         """Test `init_forecaster`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_train_forecaster():
+    def test_train_forecaster() -> None:
         """Test `train_forecaster`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_baseline():
+    def test_baseline() -> None:
         """Test `baseline`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_calc_metrics():
+    def test_calc_metrics() -> None:
         """Test `calc_metrics`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_report_metrics():
+    def test_report_metrics() -> None:
         """Test `report_metrics`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_walk_forward_test():
+    def test_walk_forward_test() -> None:
         """Test `walk_forward_test`."""
         # TODO
         assert True
 
     @staticmethod
-    def test_test_forecaster():
+    def test_test_forecaster() -> None:
         """Test `test_forecaster`."""
         # TODO
         assert True

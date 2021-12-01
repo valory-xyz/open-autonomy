@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import time
 from abc import ABC
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Generator, Optional, Tuple, Type
 from unittest import mock
@@ -532,7 +533,10 @@ class TestBaseState:
             return_value=(MagicMock(), MagicMock()),
         ):
             self.behaviour._build_http_request_message(
-                "", "", parameters=[("foo", "bar")], headers=[("foo", "bar")]
+                "",
+                "",
+                parameters=[("foo", "bar")],
+                headers=[OrderedDict({"foo": "foo_val", "bar": "bar_val"})],
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())

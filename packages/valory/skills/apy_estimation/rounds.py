@@ -300,8 +300,9 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
                 state_event = self.period_state, Event.RANDOMNESS_INVALID
 
             else:
-                updated_state = self.period_state.update(
-                    most_voted_randomness=filtered_randomness
+                updated_state = cast(
+                    PeriodState,
+                    self.period_state.update(most_voted_randomness=filtered_randomness),
                 )
                 state_event = updated_state, Event.DONE
 

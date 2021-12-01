@@ -19,7 +19,7 @@
 
 """Test the `tools/general.py` module of the skill."""
 import json
-from typing import Any, Optional
+from typing import Any, Dict, Optional, Union
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -89,7 +89,7 @@ class TestQueries:
         # Test result.
         test_string = "test_string: {test: value}"
         actual = finalize_q(test_string)
-        expected = {"query": test_string}
+        expected: Union[Dict[str, str], bytes] = {"query": test_string}
         expected = json.dumps(expected).encode("utf-8")
         assert actual == expected
 

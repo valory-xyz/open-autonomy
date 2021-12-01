@@ -85,7 +85,7 @@ class TestSubgraphs:
     @staticmethod
     def test_eth_price(spooky_specs: SpecsType, eth_price_usd_q: str) -> None:
         """Test SpookySwap's eth price request from subgraph."""
-        spooky_specs["response_key"] += ":bundles"
+        spooky_specs["response_key"] += ":bundles"  # type: ignore
         api = SpookySwapSubgraph(**spooky_specs)
 
         res = make_request(api.get_spec(), eth_price_usd_q)
@@ -98,7 +98,7 @@ class TestSubgraphs:
         fantom_specs: SpecsType, block_from_timestamp_q: str
     ) -> None:
         """Test Fantom's block from timestamp request from subgraph."""
-        fantom_specs["response_key"] += ":blocks"
+        fantom_specs["response_key"] += ":blocks"  # type: ignore
         api = FantomSubgraph(**fantom_specs)
 
         res = make_request(api.get_spec(), block_from_timestamp_q)
@@ -112,7 +112,7 @@ class TestSubgraphs:
     @staticmethod
     def test_top_n_pairs(spooky_specs: SpecsType, top_n_pairs_q: str) -> None:
         """Test SpookySwap's top n pairs request from subgraph."""
-        spooky_specs["response_key"] += ":pairs"
+        spooky_specs["response_key"] += ":pairs"  # type: ignore
         api = SpookySwapSubgraph(**spooky_specs)
 
         res = make_request(api.get_spec(), top_n_pairs_q)
@@ -125,7 +125,7 @@ class TestSubgraphs:
         spooky_specs: SpecsType, pairs_q: str, pool_fields: Tuple[str, ...]
     ) -> None:
         """Test SpookySwap's pairs request from subgraph."""
-        spooky_specs["response_key"] += ":pairs"
+        spooky_specs["response_key"] += ":pairs"  # type: ignore
         api = SpookySwapSubgraph(**spooky_specs)
 
         res = make_request(api.get_spec(), pairs_q)

@@ -23,6 +23,7 @@ import os
 import time
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation.tools.general import (
     create_pathdirs,
@@ -35,7 +36,7 @@ class TestGeneral:
     """Tests for general tools."""
 
     @staticmethod
-    def test_gen_unix_timestamps(monkeypatch) -> None:
+    def test_gen_unix_timestamps(monkeypatch: MonkeyPatch) -> None:
         """Test get UNIX timestamps."""
         day_in_unix = 24 * 60 * 60
         n_months_to_check = 1
@@ -56,7 +57,7 @@ class TestGeneral:
     @pytest.mark.parametrize(
         "test_path", ("", "file.extension", "folder/file.extension")
     )
-    def test_create_pathdirs(tmp_path, test_path) -> None:
+    def test_create_pathdirs(tmp_path: str, test_path: str) -> None:
         """Test create pathdirs."""
         full_test_path = os.path.join(tmp_path, test_path)
         folder_name = os.path.dirname(test_path)
@@ -87,9 +88,9 @@ class TestGeneral:
         assert os.path.isdir(path_to_folder)
 
     @staticmethod
-    def test_to_json_file(tmp_path) -> None:
+    def test_to_json_file(tmp_path: str) -> None:
         """Test list to json file."""
-        test_list = [{"key0": 1, "key1": "test"}, 2, "test"]
+        test_list = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
 
         # test non existing path.
         path = os.path.join("non_existing_path", "file.json")
@@ -104,9 +105,9 @@ class TestGeneral:
             assert li == test_list
 
         # test existing path with non-serializable list.
-        test_list.append(b"non-serializable")
+        test_list.append(b"non-serializable")  # type: ignore
         with pytest.raises(TypeError):
-            to_json_file(path, test_list)
+            to_json_file(path, test_list)  # type: ignore
 
     @staticmethod
     def test_read_json_file() -> None:

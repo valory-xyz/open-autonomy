@@ -25,11 +25,12 @@ import time
 from copy import copy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple, Type, cast
+from typing import Any, Dict, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -545,11 +546,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_fetch_behaviour(
         self,
-        monkeypatch,
-        top_n_pairs_q,
-        block_from_timestamp_q,
-        eth_price_usd_q,
-        pairs_q,
+        monkeypatch: MonkeyPatch,
+        top_n_pairs_q: str,
+        block_from_timestamp_q: str,
+        eth_price_usd_q: str,
+        pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests."""
@@ -559,7 +560,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(),
         )
 
-        request_kwargs = dict(
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
             url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
             headers="Content-Type: application/json\r\n",
@@ -637,7 +638,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test FetchBehaviour."""
 
-    def test_transform_behaviour(self):
+    def test_transform_behaviour(self) -> None:
         """Run test for `transform_behaviour`."""
         # TODO
         assert True
@@ -646,7 +647,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 
-    def test_preprocess_behaviour(self):
+    def test_preprocess_behaviour(self) -> None:
         """Run test for `preprocess_behaviour`."""
         # TODO
         assert True
@@ -840,7 +841,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test OptimizeBehaviour."""
 
-    def test_optimize_behaviour(self):
+    def test_optimize_behaviour(self) -> None:
         """Run test for `optimize_behaviour`."""
         # TODO
         assert True
@@ -849,7 +850,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TrainBehaviour."""
 
-    def test_train_behaviour(self):
+    def test_train_behaviour(self) -> None:
         """Run test for `train_behaviour`."""
         # TODO
         assert True
@@ -858,7 +859,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TestBehaviour."""
 
-    def test_test_behaviour(self):
+    def test_test_behaviour(self) -> None:
         """Run test for `test_behaviour`."""
         # TODO
         assert True
@@ -867,7 +868,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
-    def test_estimate_behaviour(self):
+    def test_estimate_behaviour(self) -> None:
         """Run test for `estimate_behaviour`."""
         # TODO
         assert True
