@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the liquidity provision ABCI application."""
+import json
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
@@ -90,7 +91,7 @@ class PeriodState(
         multisend_contract_address: Optional[str] = None,
         router_contract_address: Optional[str] = None,
         most_voted_tx_hash: Optional[str] = None,
-        most_voted_tx_data: Optional[bytes] = None,
+        most_voted_tx_data: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
@@ -219,13 +220,13 @@ class PeriodState(
         return cast(str, self._most_voted_tx_hash)
 
     @property
-    def most_voted_tx_data(self) -> bytes:
+    def most_voted_tx_data(self) -> str:
         """Get the most_voted_enter_pool_tx_data."""
         enforce(
             self._most_voted_tx_data is not None,
             "'most_voted_tx_data' field is None",
         )
-        return cast(bytes, self._most_voted_tx_data)
+        return cast(str, self._most_voted_tx_data)
 
     @property
     def final_tx_hash(self) -> str:
@@ -273,10 +274,11 @@ class TransactionHashBaseRound(
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            dict_ = json.loads(self.most_voted_payload)
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload.tx_hash,
-                most_voted_tx_data=self.most_voted_payload.tx_data,
+                most_voted_tx_hash=dict_["tx_hash"],
+                most_voted_tx_data=dict_["tx_data"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(

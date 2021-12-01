@@ -19,6 +19,7 @@
 
 """This module contains the behaviours for the 'liquidity_provision' skill."""
 import binascii
+import json
 import pprint
 from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
@@ -46,7 +47,6 @@ from packages.valory.skills.liquidity_provision.models import Params, SharedStat
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
-    TransactionHashPayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
     DeploySafeRandomnessRound,
@@ -86,6 +86,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
+    TransactionHashPayload,
     ValidatePayload,
 )
 
@@ -602,7 +603,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
             )
-            multisend_data = contract_api_msg.raw_transaction.body["data"]
+            multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"])
 
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
@@ -615,13 +616,13 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 data=multisend_data,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
-            safe_tx_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
                 sender=self.context.agent_address,
-                tx_hash=safe_tx_hash,
-                tx_data=safe_tx_data,
+                tx_hash=json.dumps(
+                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
+                ),  # TOFIX
             )
 
         with benchmark_tool.measure(
