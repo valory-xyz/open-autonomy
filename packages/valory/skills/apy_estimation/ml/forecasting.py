@@ -62,6 +62,7 @@ def init_forecaster(  # pylint: disable=too-many-arguments
     """
     order = (p, q, d)
 
+    # The Pipeline is deterministic.
     forecaster = Pipeline(
         [
             ("fourier", FourierFeaturizer(m, k)),
