@@ -9,12 +9,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmUghyvR1WTBy4uvQMXDeAKyrPrvUNrPCBGK7VM3BogGEe
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmeKkHKxwkAeMT9PUreNWGcuBE9DcsRUjLMhwMfhJ75KyD
+  behaviours.py: QmZkdi71nC8K5HJNB2GgCFAMDTFdtVqVa4kdKXEtk5k1qA
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
   models.py: QmYwE5CY3s8vRsoRTDZS34gCLYswjt1C7RQNbTNVh6gMET
-  payloads.py: QmSqDdGszEVtETt6i41DqPuxhDMfJaHi5vKdryRMAiguvR
-  rounds.py: Qmf6Bq4rnZHdNQHKSvr9hsW4T9Fb2jeDqf47rEnpaUdfTL
+  payloads.py: QmT8J8jELpeZaqMoDTtya5RaRym53KWAsbT6LviHt9NLbz
+  rounds.py: QmVni35twDC5iFumpmsuoupYjurvmAei72EY7VNcQSv6rB
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

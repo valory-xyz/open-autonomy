@@ -1026,8 +1026,7 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
 
     @classmethod
     def deploy(cls, **kwargs: Any) -> None:
-        """Deploy the contract."""
-        pass
+        """Dummy method."""
 
 
 class TestSwapHardhat(BaseContractTestHardHatAMMNet):

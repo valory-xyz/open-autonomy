@@ -319,7 +319,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_signing_message,
             message_type=SigningMessage,
-            to="dummy_decision_maker_address",
+            to=self.skill.skill_context.decision_maker_address,
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
@@ -330,7 +330,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
             target=actual_signing_message.message_id,
             message_id=-1,
             to=str(self.skill.skill_context.skill_id),
-            sender="dummy_decision_maker_address",
+            sender=self.skill.skill_context.decision_maker_address,
             **response_kwargs,
         )
         self.signing_handler.handle(incoming_message)
@@ -686,7 +686,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx"},  # type: ignore
+                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
                 ),
             ),
         )
@@ -893,7 +893,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_tx_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
+                    body={"data": b"dummy_tx".hex()},  # type: ignore
                 ),
             ),
         )
@@ -907,7 +907,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     dict(
                         to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
-                        data=b"dummy_tx",  # type: ignore
+                        data=b"dummy_tx".hex(),  # type: ignore
                     )
                 ),
             ),
@@ -916,7 +916,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 callable="get_raw_safe_transaction_hash",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={"tx_hash": b"dummy_tx"},  # type: ignore
+                    body={"tx_hash": b"dummy_tx".hex()},  # type: ignore
                 ),
             ),
         )
@@ -1016,6 +1016,7 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
         period_state = PeriodState(
             participants=participants,
             most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+            most_voted_tx_data=b"some_data".hex(),
             safe_contract_address="safe_contract_address",
             most_voted_keeper_address=self.skill.skill_context.agent_address,
             most_voted_strategy=strategy,
@@ -1047,6 +1048,9 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                         sender_address=self.skill.skill_context.agent_address,
                         owners=tuple(period_state.participants),  # type: ignore
                         to_address=self.skill.skill_context.agent_address,
+                        value=0,
+                        data="736f6d655f64617461",
+                        safe_tx_gas=4000000,
                         signatures_by_owner={
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
