@@ -27,12 +27,18 @@ from aea.mail.base import Envelope, Message
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
 
+from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
+    EnterPoolTransactionSendBehaviour,
     ExitPoolTransactionHashBehaviour,
     get_strategy_update,
+)
+from packages.valory.skills.liquidity_provision.handlers import (
+    ContractApiHandler,
+    SigningHandler,
 )
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 
@@ -41,6 +47,9 @@ from tests.fixture_helpers import HardHatAMMBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.test_skills.test_liquidity_provision.test_behaviours import (
     LiquidityProvisionBehaviourBaseCase,
+)
+from tests.test_skills.test_price_estimation_abci.test_rounds import (
+    get_participant_to_signature,
 )
 
 
@@ -91,6 +100,16 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         )
         cls.multiplexer.connect()
 
+        cls.strategy = get_strategy_update()
+        cls.default_period_state = PeriodState(
+            most_voted_tx_hash="most_voted_tx_hash".encode().hex(),
+            safe_contract_address="0x5FbDB2315678afecb367f032d93F642f64180aa3",
+            most_voted_keeper_address="test_agent_address",
+            most_voted_strategy=cls.strategy,
+            multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+            router_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+        )
+
     @classmethod
     def teardown(cls) -> None:
         """Tear down the multiplexer."""
@@ -120,18 +139,28 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         :param expected_types: the types to be expected
         """
         self.liquidity_provision_behaviour.act_wrapper()
-        self.assert_quantity_in_outbox(1)
-        message = self.get_message_from_outbox()
-        assert message is not None, "No message in outbox."
-        self.multiplexer.put(
-            Envelope(
-                to=message.to,
-                sender=message.sender,
-                message=message,
-                context=None,
+
+        message = None
+
+        if type(handler) == SigningHandler:
+            self.assert_quantity_in_decision_making_queue(1)
+            message = self.get_message_from_decision_maker_inbox()
+            assert message is not None, "No message in outbox."
+
+        else:
+            self.assert_quantity_in_outbox(1)
+            message = self.get_message_from_outbox()
+            assert message is not None, "No message in outbox."
+            self.multiplexer.put(
+                Envelope(
+                    to=message.to,
+                    sender=message.sender,
+                    message=message,
+                    context=None,
+                )
             )
-        )
-        if handler is not None:
+
+        if handler is not None:  # here signing handler gets stuck
             envelope = self.multiplexer.get(block=True)
             assert envelope is not None, "No envelope"
             incoming_message = envelope.message
@@ -156,26 +185,26 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             handler.handle(incoming_message)
         self.liquidity_provision_behaviour.act_wrapper()
 
-    def process_n_messsages(self, state_id: str, ncycles: int) -> None:
+    def process_n_messsages(
+        self,
+        state_id: str,
+        ncycles: int,
+        handler: Optional[Handler] = None,
+        period_state: Optional[PeriodState] = None,
+    ) -> None:
         """
         Process n message cycles.
 
         :param: state_id: the behaviour to fast forward to
         :param: ncycles: the number of message cycles to process
+        :param: handler: a handler
+        :param: period_state: a period_state
         """
-        strategy = get_strategy_update()
-        period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="0x5FbDB2315678afecb367f032d93F642f64180aa3",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-            router_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-        )
+
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=state_id,
-            period_state=period_state,
+            period_state=period_state if period_state else self.default_period_state,
         )
         assert (
             cast(
@@ -185,28 +214,91 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             == state_id
         )
 
-        expected_content = {
-            "performative": ContractApiMessage.Performative.RAW_TRANSACTION
-        }
+        expected_content = None
+        expected_types = None
 
-        expected_types = {
-            "dialogue_reference": tuple,
-            "message_id": int,
-            "raw_transaction": RawTransaction,
-            "target": int,
-        }
+        if type(handler) == ContractApiHandler:
+            expected_content = {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION
+            }
+            expected_types = {
+                "dialogue_reference": tuple,
+                "message_id": int,
+                "raw_transaction": RawTransaction,
+                "target": int,
+            }
+
+        elif type(handler) == SigningHandler:
+            expected_content = {
+                "performative": SigningMessage.Performative.SIGNED_MESSAGE
+            }
 
         for _ in range(ncycles):
-            self.process_message_cycle(
-                self.contract_handler, expected_content, expected_types
-            )
+            self.process_message_cycle(handler, expected_content, expected_types)
 
         self.mock_a2a_transaction()
 
-    def test_enter_pool(self) -> None:
-        """Test enter pool."""
-        self.process_n_messsages(EnterPoolTransactionHashBehaviour.state_id, 7)
+    # Safe behaviours
 
-    def test_exit_pool(self) -> None:
-        """Test exit pool."""
-        self.process_n_messsages(ExitPoolTransactionHashBehaviour.state_id, 7)
+    def test_deploy_safe__send_behaviour(self) -> None:
+        """test_deploy_safe_behaviour"""
+
+    def test_deploy_safe_validation_behaviour(self) -> None:
+        """test_deploy_safe_validation_behaviour"""
+
+    # Enter pool behaviours
+
+    def test_enter_pool_tx_hash_behaviour(self) -> None:
+        """test_enter_pool_tx_hash_behaviour"""
+        self.process_n_messsages(
+            EnterPoolTransactionHashBehaviour.state_id, 7, self.contract_handler
+        )
+
+    def test_enter_pool_tx_sign_behaviour(self) -> None:
+        """test_enter_pool_tx_sign_behaviour"""
+
+    def test_enter_pool_tx_send_behaviour(self) -> None:
+        """test_enter_pool_tx_send_behaviour"""
+
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        most_voted_keeper_address = self.skill.skill_context.agent_address
+
+        period_state = PeriodState(
+            most_voted_tx_hash="most_voted_tx_hash".encode().hex(),
+            most_voted_tx_data=str.encode("dummy_data"),
+            safe_contract_address="0x5FbDB2315678afecb367f032d93F642f64180aa3",
+            most_voted_keeper_address=most_voted_keeper_address,
+            most_voted_strategy=self.strategy,
+            multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+            router_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+            participants=participants,
+            participant_to_signature=get_participant_to_signature(participants),
+        )
+
+        self.process_n_messsages(
+            EnterPoolTransactionSendBehaviour.state_id,
+            1,
+            self.contract_handler,
+            period_state,
+        )
+        self.mock_a2a_transaction()
+
+    def test_enter_pool_tx_validation_behaviour(self) -> None:
+        """test_enter_pool_tx_validation_behaviour"""
+
+    # Exit pool behaviours
+
+    def test_exit_pool_tx_hash_behaviour(self) -> None:
+        """test_exit_pool_tx_hash_behaviour"""
+        self.process_n_messsages(
+            ExitPoolTransactionHashBehaviour.state_id, 7, self.contract_handler
+        )
+
+    def test_exit_pool_tx_sign_behaviour(self) -> None:
+        """test_exit_pool_tx_sign_behaviour"""
+
+    def test_exit_pool_tx_send_behaviour(self) -> None:
+        """test_exit_pool_tx_send_behaviour"""
+
+    def test_exit_pool_tx_validation_behaviour(self) -> None:
+        """test_exit_pool_tx_validation_behaviour"""
