@@ -23,8 +23,7 @@ import pprint
 from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
-from aea.crypto.registries import crypto_registry
-from aea_ledger_ethereum import EthereumApi, EthereumCrypto
+from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -96,6 +95,9 @@ TEMP_GAS_PRICE = 0.1  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
+WETH_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+TOKEN_A_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
+TOKEN_B_ADDRESS = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"  # nosec
 
 benchmark_tool = BenchmarkTool()
 
@@ -324,25 +326,28 @@ def get_strategy_update() -> dict:
     """Get a strategy update."""
     strategy = {
         "action": StrategyType.GO,
-        "chain": "Fantom",
-        "base": {"address": "0xUSDT_ADDRESS", "balance": 100},
+        "chain": "Ethereum",
+        "base": {
+            "ticker": "WETH",
+            "address": WETH_ADDRESS,
+            "balance": 100,
+        },
         "pair": {
             "token_a": {
-                "ticker": "FTM",
-                "address": "0xFTM_ADDRESS",
+                "ticker": "TKA",
+                "address": TOKEN_A_ADDRESS,
                 "amount": 1,
                 "amount_min": 1,
                 # If any, only token_a can be the native one (ETH, FTM...)
-                "is_native": True,
+                "is_native": False,
             },
             "token_b": {
-                "ticker": "BOO",
-                "address": "0xBOO_ADDRESS",
+                "ticker": "TKB",
+                "address": TOKEN_B_ADDRESS,
                 "amount": 1,
                 "amount_min": 1,
             },
         },
-        "router_address": "0x0000000000000000000000000000",
         "liquidity_to_remove": 1,
     }
     return strategy
@@ -368,7 +373,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             if strategy["action"] == StrategyType.GO:
                 self.context.logger.info(
                     "Performing strategy update: moving into "
-                    + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {strategy['router_address']})"
+                    + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {self.period_state.router_contract_address})"
                 )
             strategy["action"] = strategy["action"].value  # type: ignore
             payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
@@ -419,7 +424,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=self.period_state.router_contract_address,
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name=method_name,
@@ -432,21 +437,21 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 to=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
             )
-            swap_a_data = contract_api_msg.raw_transaction.body["data"]
+            swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
-                    "data": HexBytes(str(swap_a_data)),
+                    "data": HexBytes(swap_a_data.hex()),
                 }
             )
 
             # Swap second token (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=self.period_state.router_contract_address,
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
@@ -459,14 +464,14 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 to=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
             )
-            swap_b_data = contract_api_msg.raw_transaction.body["data"]
+            swap_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
-                    "data": HexBytes(str(swap_b_data)),
+                    "data": HexBytes(swap_b_data.hex()),
                 }
             )
 
@@ -477,18 +482,20 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
-            allowance_a_data = contract_api_msg.raw_transaction.body["data"]
+            allowance_a_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
-                    "data": HexBytes(str(allowance_a_data)),
+                    "data": HexBytes(allowance_a_data.hex()),
                 }
             )
 
@@ -499,18 +506,20 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=MAX_ALLOWANCE,
             )
-            allowance_b_data = contract_api_msg.raw_transaction.body["data"]
+            allowance_b_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                    "to": self.period_state.multisend_contract_address,
                     "value": 1,
-                    "data": HexBytes(str(allowance_b_data)),
+                    "data": HexBytes(allowance_b_data.hex()),
                 }
             )
 
@@ -519,7 +528,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="add_liquidity_ETH",
@@ -534,14 +543,16 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "to": self.period_state.multisend_contract_address,
                         "value": 1,
-                        "data": HexBytes(str(liquidity_data)),
+                        "data": HexBytes(liquidity_data.hex()),
                     }
                 )
 
@@ -549,7 +560,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="add_liquidity",
@@ -566,14 +577,16 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
+                        "to": self.period_state.multisend_contract_address,
                         "value": 1,
-                        "data": HexBytes(str(liquidity_data)),
+                        "data": HexBytes(liquidity_data.hex()),
                     }
                 )
 
@@ -681,7 +694,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
@@ -692,14 +705,16 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
-                        "data": HexBytes(str(liquidity_data)),
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
+                        "data": HexBytes(liquidity_data.hex()),
                     }
                 )
 
@@ -707,7 +722,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="remove_liquidity",
@@ -719,14 +734,16 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                liquidity_data = contract_api_msg.raw_transaction.body["data"]
+                liquidity_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
-                        "data": HexBytes(str(liquidity_data)),
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
+                        "data": HexBytes(liquidity_data.hex()),
                     }
                 )
 
@@ -737,17 +754,19 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 value=0,
             )
-            allowance_a_data = contract_api_msg.raw_transaction.body["data"]
+            allowance_a_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                    "value": 1,
-                    "data": HexBytes(str(allowance_a_data)),
+                    "to": self.period_state.multisend_contract_address,
+                    "value": 0,
+                    "data": HexBytes(allowance_a_data.hex()),
                 }
             )
 
@@ -758,17 +777,19 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
-                spender=strategy["router_address"],
+                spender=self.period_state.router_contract_address,
                 value=0,
             )
-            allowance_b_data = contract_api_msg.raw_transaction.body["data"]
+            allowance_b_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                    "value": 1,
-                    "data": HexBytes(str(allowance_b_data)),
+                    "to": self.period_state.multisend_contract_address,
+                    "value": 0,
+                    "data": HexBytes(allowance_b_data.hex()),
                 }
             )
 
@@ -777,7 +798,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_ETH_for_tokens",
@@ -789,14 +810,14 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                swap_a_data = contract_api_msg.raw_transaction.body["data"]
+                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
-                        "data": HexBytes(str(swap_a_data)),
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
+                        "data": HexBytes(swap_a_data.hex()),
                     }
                 )
 
@@ -804,7 +825,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["router_address"],
+                    contract_address=self.period_state.router_contract_address,
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_tokens_for_tokens",
@@ -817,21 +838,21 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
-                swap_a_data = contract_api_msg.raw_transaction.body["data"]
+                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
                 multi_send_txs.append(
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                        "value": 1,
-                        "data": HexBytes(str(swap_a_data)),
+                        "to": self.period_state.multisend_contract_address,
+                        "value": 0,
+                        "data": HexBytes(swap_a_data.hex()),
                     }
                 )
 
             # Swap second token back (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["router_address"],
+                contract_address=self.period_state.router_contract_address,
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
@@ -844,14 +865,14 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 to=self.period_state.safe_contract_address,
                 deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
             )
-            swap_b_data = contract_api_msg.raw_transaction.body["data"]
+            swap_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
             multi_send_txs.append(
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": crypto_registry.make(EthereumCrypto.identifier).address,
-                    "value": 1,
-                    "data": HexBytes(str(swap_b_data)),
+                    "to": self.period_state.multisend_contract_address,
+                    "value": 0,
+                    "data": HexBytes(swap_b_data.hex()),
                 }
             )
 

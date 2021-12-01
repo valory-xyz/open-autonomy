@@ -87,6 +87,12 @@ GANACHE_CONFIGURATION = dict(
         (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
     ],
 )
+ETHEREUM_DEFAULT_LEDGER_CONFIG = {
+    "address": f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}",
+    "chain_id": DEFAULT_GANACHE_CHAIN_ID,
+    # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM, # noqa: E800
+    # "gas_price_api_key": GAS_PRICE_API_KEY, # noqa: E800
+}
 
 
 @pytest.fixture()
@@ -243,12 +249,8 @@ def get_host() -> str:
 def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
     """Get Ethereum ledger api configurations using Ganache."""
     new_uri = f"{ganache_addr}:{ganache_port}"
-    new_config = {
-        "address": new_uri,
-        "chain_id": DEFAULT_GANACHE_CHAIN_ID,
-        # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM, # noqa: E800
-        # "gas_price_api_key": GAS_PRICE_API_KEY, # noqa: E800
-    }
+    new_config = ETHEREUM_DEFAULT_LEDGER_CONFIG
+    new_config["address"] = new_uri
     return new_config
 
 
@@ -272,10 +274,9 @@ def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generat
     DEFAULT_LEDGER_CONFIGS[EthereumCrypto.identifier] = old_config
 
 
-@pytest.fixture()
-async def ledger_apis_connection(
-    request: Any, ethereum_testnet_config: Dict
-) -> AsyncGenerator:
+def make_ledger_api_connection(
+    ethereum_testnet_config: Dict = ETHEREUM_DEFAULT_LEDGER_CONFIG,
+) -> Connection:
     """Make a connection."""
     crypto = make_crypto(DEFAULT_LEDGER)
     identity = Identity("name", crypto.address, crypto.public_key)
@@ -297,6 +298,15 @@ async def ledger_apis_connection(
 
     connection.request_retry_attempts = 1  # type: ignore
     connection.request_retry_attempts = 2  # type: ignore
+    return connection
+
+
+@pytest.fixture()
+async def ledger_apis_connection(
+    request: Any, ethereum_testnet_config: Dict
+) -> AsyncGenerator:
+    """Make a connection."""
+    connection = make_ledger_api_connection(ethereum_testnet_config)
     await connection.connect()
     yield connection
     await connection.disconnect()

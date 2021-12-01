@@ -27,7 +27,7 @@ import types
 from hashlib import sha256
 from importlib.machinery import ModuleSpec
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
@@ -279,10 +279,15 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
 
     @classmethod
     def _verify_signature(
-        cls, pubkey: BLSPubkey, message: bytes, signature: BLSSignature
+        cls,
+        pubkey: Union[BLSPubkey, bytes],
+        message: bytes,
+        signature: Union[BLSSignature, bytes],
     ) -> bool:
         """Veryfy randomness signature."""
-        return bls.Verify(pubkey, message, signature)
+        return bls.Verify(
+            cast(BLSPubkey, pubkey), message, cast(BLSSignature, signature)
+        )
 
     def verify(self, data: Dict, pubkey: str) -> Tuple[bool, Optional[str]]:
         """
