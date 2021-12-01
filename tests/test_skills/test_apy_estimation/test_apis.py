@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test various price apis."""
+import ast
 import logging  # noqa: F401
 from typing import Dict, List, Tuple
 
@@ -88,7 +89,7 @@ class TestSubgraphs:
         api = SpookySwapSubgraph(**spooky_specs)
 
         res = make_request(api.get_spec(), eth_price_usd_q)
-        eth_price = eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
+        eth_price = ast.literal_eval(api.process_response(DummyMessage(res.content))[0]["ethPrice"])  # type: ignore
 
         assert isinstance(eth_price, float)
 
@@ -106,7 +107,7 @@ class TestSubgraphs:
         assert isinstance(block, dict)
         keys = ["number", "timestamp"]
         assert all((key in block for key in keys))
-        assert all(isinstance(eval(block[key]), int) for key in keys)
+        assert all(isinstance(ast.literal_eval(block[key]), int) for key in keys)
 
     @staticmethod
     def test_top_n_pairs(spooky_specs: SpecsType, top_n_pairs_q: str) -> None:
