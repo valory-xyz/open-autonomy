@@ -18,7 +18,7 @@
 
 """ML input output operations."""
 
-import pickle
+import joblib
 
 from pmdarima.pipeline import Pipeline
 
@@ -29,8 +29,7 @@ def save_forecaster(path: str, forecaster: Pipeline) -> None:
     :param path: path to store the forecaster.
     :param forecaster: the `pmdarima` forecasting model.
     """
-    with open(path, "wb") as pkl:
-        pickle.dump(forecaster, pkl)
+    joblib.dump(forecaster, path)
 
 
 def load_forecaster(path: str) -> Pipeline:
@@ -39,5 +38,4 @@ def load_forecaster(path: str) -> Pipeline:
     :param path: path to store the forecaster.
     :return: a `pmdarima.pipeline.Pipeline`.
     """
-    with open(path, "rb") as pkl:
-        return pickle.load(pkl)
+    return joblib.load(path)
