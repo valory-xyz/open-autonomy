@@ -25,7 +25,18 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Type, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    OrderedDict,
+    Tuple,
+    Type,
+    cast,
+)
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
@@ -587,9 +598,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
         method: str,
         url: str,
-        content: Dict = None,
-        headers: List[Tuple[str, str]] = None,
-        parameters: List[Tuple[str, str]] = None,
+        content: Optional[bytes] = None,
+        headers: Optional[List[OrderedDict[str, str]]] = None,
+        parameters: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Send an http request message from the skill context.
@@ -638,9 +649,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
         method: str,
         url: str,
-        content: Dict = None,
-        headers: List[Tuple[str, str]] = None,
-        parameters: List[Tuple[str, str]] = None,
+        content: Optional[bytes] = None,
+        headers: Optional[List[OrderedDict[str, str]]] = None,
+        parameters: Optional[List[Tuple[str, str]]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -663,8 +674,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         header_string = ""
         if headers:
-            for key, val in headers:
-                header_string += f"{key}: {val}\r\n"
+            for header in headers:
+                for key, val in header.items():
+                    header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
@@ -677,7 +689,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             url=url,
             headers=header_string,
             version="",
-            body=b"" if content is None else json.dumps(content).encode("utf-8"),
+            body=b"" if content is None else content,
         )
         request_http_message = cast(HttpMessage, request_http_message)
         http_dialogue = cast(HttpDialogue, http_dialogue)
