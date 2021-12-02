@@ -274,7 +274,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
         period_state = PeriodState(
             most_voted_tx_hash=most_voted_tx_hash.encode().hex(),
-            most_voted_tx_data=str.encode(multisend_data),
+            most_voted_tx_data=multisend_data.encode(),
             safe_contract_address=safe_contract_address,
             most_voted_keeper_address=keeper_address,
             most_voted_strategy=self.strategy,

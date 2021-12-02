@@ -602,7 +602,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
             )
-            multisend_data = contract_api_msg.raw_transaction.body["data"]
+            multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"]).encode()
 
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
@@ -617,10 +617,11 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+
             payload = TransactionHashPayload(
                 sender=self.context.agent_address,
                 tx_hash=safe_tx_hash,
-                tx_data=b'' # multisend_data is a JSONLike, we need  bytes
+                tx_data=multisend_data,
             )
 
         with benchmark_tool.measure(
