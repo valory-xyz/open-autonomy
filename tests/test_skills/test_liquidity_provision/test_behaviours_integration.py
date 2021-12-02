@@ -20,7 +20,7 @@
 import asyncio
 from pathlib import Path
 from threading import Thread
-from typing import Any, Dict, FrozenSet, Optional, Union, cast
+from typing import Any, Dict, Optional, Union, cast
 
 import pytest
 from aea.crypto.wallet import Wallet
@@ -61,16 +61,6 @@ from tests.test_skills.test_liquidity_provision.test_behaviours import (
 
 DEFAULT_GAS = 1000000
 DEFAULT_GAS_PRICE = 1000000
-
-
-def get_participant_to_signature(
-    participants: FrozenSet[str],
-) -> Dict[str, SignaturePayload]:
-    """participant_to_signature"""
-    return {
-        participant: SignaturePayload(sender=participant, signature=b"signature".hex())
-        for participant in participants
-    }
 
 
 class TestEnterPoolTransactionHashBehaviourHardhat(
@@ -135,15 +125,23 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             "decision_maker"
         )
 
+        # setup identity
+        cls.keeper_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+        cls.safe_contract_address = "0x3D8A80B48dCB6cBFF62B5728cc7735541f3a807c"
+        cls.multisend_contract_address = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+        cls.router_contract_address = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+
+        cls._skill._skill_context._agent_context._identity._address = cls.keeper_address
+
         # setup default objects
         cls.strategy = get_strategy_update()
         cls.default_period_state = PeriodState(
             most_voted_tx_hash="most_voted_tx_hash".encode().hex(),
-            safe_contract_address="0x5FbDB2315678afecb367f032d93F642f64180aa3",
+            safe_contract_address=cls.safe_contract_address,
             most_voted_keeper_address="test_agent_address",
             most_voted_strategy=cls.strategy,
-            multisend_contract_address="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-            router_contract_address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+            multisend_contract_address=cls.multisend_contract_address,
+            router_contract_address=cls.router_contract_address,
         )
 
     @classmethod
@@ -319,7 +317,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             period_state,
         )
 
-    @pytest.mark.skip  # fails with `ValueError: {'code': -32603, 'message': "Error: VM Exception while processing transaction: reverted with reason string 'GS020'"}`; needs correct signatures passed to period state!
+    @pytest.mark.skip
     def test_enter_pool_tx_send_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
@@ -327,25 +325,32 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         most_voted_tx_hash = (
             "d01ce5826697c7d7642762f68b86f5c3333bd7bf3b1a21494a04a8912fd29379"
         )
-        keeper_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-        safe_contract_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-        multisend_contract_address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-        router_contract_address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
 
-        # if you want to do this, set it above in identity during setup, self._skill._skill_context._agent_context._identity._address = keeper_address
-        participants = frozenset({keeper_address, "a_1", "a_2"})
+        participants = frozenset({self.keeper_address, "a_1", "a_2"})
+
+        safe_owners = {
+            "0xBcd4042DE499D14e55001CcbB24a551F3b954096": "0xf214f2b2cd398c806f84e317254e0f0b801d0643303237d97a22a48e01628897",
+            "0x71bE63f3384f5fb98995898A86B02Fb2426c5788": "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82",
+            "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a": "0xa267530f49f8280200edf313ee7af6b827f2a8bce2897751d06a843f644967b1",
+            "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec": "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd",
+        }
+
+        participant_to_signature = {
+            address: SignaturePayload(sender=address, signature=key.encode().hex())
+            for address, key in safe_owners.items()
+        }
 
         # first two values taken from test_enter_pool_tx_hash_behaviour flow
         period_state = PeriodState(
             most_voted_tx_hash=most_voted_tx_hash,
             most_voted_tx_data=multisend_data,
-            safe_contract_address=safe_contract_address,
-            most_voted_keeper_address=keeper_address,
+            safe_contract_address=self.safe_contract_address,
+            most_voted_keeper_address=self.keeper_address,
             most_voted_strategy=self.strategy,
-            multisend_contract_address=multisend_contract_address,
-            router_contract_address=router_contract_address,
+            multisend_contract_address=self.multisend_contract_address,
+            router_contract_address=self.router_contract_address,
             participants=participants,
-            participant_to_signature=get_participant_to_signature(participants),
+            participant_to_signature=participant_to_signature,
         )
         self.process_n_messsages(
             EnterPoolTransactionSendBehaviour.state_id,
