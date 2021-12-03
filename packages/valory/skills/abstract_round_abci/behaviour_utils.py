@@ -695,30 +695,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         http_dialogue = cast(HttpDialogue, http_dialogue)
         return request_http_message, http_dialogue
 
-    def _wait_until_transaction_submitted(
-        self, tx_hash: str
-    ) -> Generator[None, None, bool]:
-        """
-        Wait until transaction is submitted (but not yet delivered).
-
-        :param tx_hash: the transaction hash to check.
-        :yield: None
-        :return: True if it is delivered successfully, False otherwise
-        """
-        while True:
-            response = yield from self._get_tx_info(tx_hash)
-            if response.status_code != 200:
-                yield from self.sleep(_REQUEST_RETRY_DELAY)
-                continue
-            try:
-                json_body = json.loads(response.body)
-            except json.JSONDecodeError as e:  # pragma: nocover
-                raise ValueError(
-                    f"Unable to decode response: {response} with body {str(response.body)}"
-                ) from e
-            tx_result = json_body["result"]["tx_result"]
-            return tx_result["code"] == OK_CODE
-
     def _wait_until_transaction_delivered(
         self, tx_hash: str
     ) -> Generator[None, None, bool]:
