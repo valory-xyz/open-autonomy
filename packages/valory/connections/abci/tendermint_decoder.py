@@ -20,7 +20,7 @@
 
 # isort: skip_file  # noqa
 
-from typing import Callable, Tuple, cast
+from typing import Callable, Optional, Tuple, cast
 
 from aea.exceptions import enforce
 from google.protobuf.timestamp_pb2 import Timestamp as TimestampPb
@@ -80,7 +80,7 @@ class _TendermintProtocolDecoder:
     @classmethod
     def process(
         cls, message: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:
+    ) -> Optional[Tuple[AbciMessage, AbciDialogue]]:
         """Process an ABCI request or response."""
         is_request = isinstance(message, Request)
         enforce(is_request, "only Request messages are allowed")
@@ -88,8 +88,8 @@ class _TendermintProtocolDecoder:
         handler: Callable[
             [Request, AbciDialogues, str], Tuple[AbciMessage, AbciDialogue]
         ] = getattr(cls, message_type, cls.no_match)
-        abci_message, abci_dialogue = handler(message, dialogues, counterparty)
-        return abci_message, abci_dialogue
+        result = handler(message, dialogues, counterparty)
+        return result
 
     @classmethod
     def request_flush(

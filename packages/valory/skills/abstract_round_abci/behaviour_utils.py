@@ -430,6 +430,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             transaction = Transaction(payload, signature_bytes)
             response = yield from self._submit_tx(transaction.encode())
             response = cast(HttpMessage, response)
+            if not self._check_http_return_code_200(response):
+                self.context.logger.info(
+                    f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                )
+                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                continue
             try:
                 json_body = json.loads(response.body)
             except json.JSONDecodeError as e:  # pragma: nocover
@@ -437,12 +443,6 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     f"Unable to decode response: {response} with body {str(response.body)}"
                 ) from e
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
-            if not self._check_http_return_code_200(response):
-                self.context.logger.info(
-                    f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
-                )
-                yield from self.sleep(_REQUEST_RETRY_DELAY)
-                continue
             tx_hash = json_body["result"]["hash"]
             is_delivered = yield from self._wait_until_transaction_delivered(tx_hash)
             if is_delivered:
