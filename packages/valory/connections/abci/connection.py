@@ -118,8 +118,8 @@ class _TendermintABCISerializer:
             message = message_cls()
             try:
                 message.ParseFromString(data)
-            except DecodeError:
-                return  # pragma: nocover
+            except DecodeError:  # pragma: nocover
+                return
 
             yield message
 
