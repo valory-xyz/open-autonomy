@@ -30,6 +30,7 @@ from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
+from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
@@ -115,7 +116,10 @@ class _TendermintABCISerializer:
             if len(data) < length:
                 return  # pragma: nocover
             message = message_cls()
-            message.ParseFromString(data)
+            try:
+                message.ParseFromString(data)
+            except DecodeError:
+                return  # pragma: nocover
 
             yield message
 
@@ -234,20 +238,21 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     break
                 req_type = message.WhichOneof("value")
                 self.logger.debug(f"Received message of type: {req_type}")
-                request, dialogue = _TendermintProtocolDecoder.process(
+                result = _TendermintProtocolDecoder.process(
                     message, self._dialogues, str(self.target_skill_id)
                 )
-                # associate request to peer, so we remember who to reply to
-                self._request_id_to_socket[
-                    dialogue.incomplete_dialogue_label
-                ] = peer_name
-                if request is not None:
+                if result is not None:
+                    request, dialogue = result
+                    # associate request to peer, so we remember who to reply to
+                    self._request_id_to_socket[
+                        dialogue.incomplete_dialogue_label
+                    ] = peer_name
                     envelope = Envelope(
                         to=request.to, sender=request.sender, message=request
                     )
                     await self.queue.put(envelope)
                 else:  # pragma: nocover
-                    self.logger.warning(f"Decoded request {req_type} was None.")
+                    self.logger.warning(f"Decoded request {req_type} was not a match.")
 
     async def get_message(self) -> Envelope:
         """Get a message from the queue."""
