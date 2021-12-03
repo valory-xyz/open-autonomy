@@ -18,11 +18,15 @@
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision skill behaviours with Hardhat."""
 import asyncio
+import binascii
+import os
+import tempfile
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, Optional, Union, cast
 
 import pytest
+from aea.crypto.registries import make_crypto
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
 from aea.decision_maker.default import (
@@ -51,7 +55,7 @@ from packages.valory.skills.liquidity_provision.handlers import (
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 from packages.valory.skills.price_estimation_abci.payloads import SignaturePayload
 
-from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR, make_ledger_api_connection
+from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
 from tests.helpers.contracts import get_register_contract
 from tests.test_skills.test_liquidity_provision.test_behaviours import (
@@ -74,6 +78,11 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     decision_maker: DecisionMaker
     strategy: Dict
     default_period_state: PeriodState
+    safe_owners: Dict
+    safe_contract_address: str
+    multisend_contract_address: str
+    router_contract_address: str
+    keeper_address: str
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -105,8 +114,24 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             [make_ledger_api_connection()], loop=cls.running_loop
         )
         cls.multiplexer.connect()
+
+        # hardhat configuration
+        cls.safe_contract_address = "0xB5d1634d337C36016c2F6c0043Db74A2032f6281"
+        cls.multisend_contract_address = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+        cls.router_contract_address = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
+        safe_owners = {
+            "0xBcd4042DE499D14e55001CcbB24a551F3b954096": "0xf214f2b2cd398c806f84e317254e0f0b801d0643303237d97a22a48e01628897",
+            "0x71bE63f3384f5fb98995898A86B02Fb2426c5788": "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82",
+            "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a": "0xa267530f49f8280200edf313ee7af6b827f2a8bce2897751d06a843f644967b1",
+            "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec": "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd",
+        }
         # setup decision maker
-        wallet = Wallet(private_key_paths={"ethereum": str(ETHEREUM_KEY_PATH_1)})
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fp = os.path.join(temp_dir, "key.txt")
+            f = open(fp, "w")
+            f.write(safe_owners[next(iter(safe_owners))])
+            f.close()
+            wallet = Wallet(private_key_paths={"ethereum": str(fp)})
         identity = Identity(
             "test_agent_name",
             addresses=wallet.addresses,
@@ -114,6 +139,17 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             default_address_key="ethereum",
         )
         cls._skill._skill_context._agent_context._identity = identity  # type: ignore
+        cls.keeper_address = identity.address
+
+        cls.safe_owners = {}
+        for address, p_key in safe_owners.items():
+            with tempfile.TemporaryDirectory() as temp_dir:
+                fp = os.path.join(temp_dir, "key.txt")
+                f = open(fp, "w")
+                f.write(p_key)
+                f.close()
+                crypto = make_crypto("ethereum", private_key_path=str(fp))
+            cls.safe_owners[address] = crypto
 
         cls.decision_maker = DecisionMaker(
             decision_maker_handler=DefaultDecisionMakerHandler(identity, wallet, {})
@@ -124,14 +160,6 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         cls._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
             "decision_maker"
         )
-
-        # setup identity
-        cls.keeper_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
-        cls.safe_contract_address = "0x3D8A80B48dCB6cBFF62B5728cc7735541f3a807c"
-        cls.multisend_contract_address = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
-        cls.router_contract_address = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
-
-        cls._skill._skill_context._agent_context._identity._address = cls.keeper_address
 
         # setup default objects
         cls.strategy = get_strategy_update()
@@ -317,7 +345,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             period_state,
         )
 
-    @pytest.mark.skip
+    @pytest.mark.skip  # need to make sure tx hash provided matches with new signers, also other bugs likely present
     def test_enter_pool_tx_send_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
@@ -326,18 +354,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             "d01ce5826697c7d7642762f68b86f5c3333bd7bf3b1a21494a04a8912fd29379"
         )
 
-        participants = frozenset({self.keeper_address, "a_1", "a_2"})
-
-        safe_owners = {
-            "0xBcd4042DE499D14e55001CcbB24a551F3b954096": "0xf214f2b2cd398c806f84e317254e0f0b801d0643303237d97a22a48e01628897",
-            "0x71bE63f3384f5fb98995898A86B02Fb2426c5788": "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82",
-            "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a": "0xa267530f49f8280200edf313ee7af6b827f2a8bce2897751d06a843f644967b1",
-            "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec": "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd",
-        }
-
         participant_to_signature = {
-            address: SignaturePayload(sender=address, signature=key.encode().hex())
-            for address, key in safe_owners.items()
+            address: SignaturePayload(
+                sender=address,
+                signature=crypto.sign_message(
+                    binascii.unhexlify(most_voted_tx_hash), is_deprecated_mode=True
+                )[2:],
+            )
+            for address, crypto in self.safe_owners.items()
         }
 
         # first two values taken from test_enter_pool_tx_hash_behaviour flow
@@ -349,7 +373,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             most_voted_strategy=self.strategy,
             multisend_contract_address=self.multisend_contract_address,
             router_contract_address=self.router_contract_address,
-            participants=participants,
+            participants=frozenset(list(participant_to_signature.keys())),
             participant_to_signature=participant_to_signature,
         )
         self.process_n_messsages(
