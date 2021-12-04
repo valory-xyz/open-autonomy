@@ -404,6 +404,7 @@ class GnosisSafeContract(Contract):
         :param safe_nonce: Current nonce of the Safe. If not provided, it will be retrieved from network
         :return: the raw Safe transaction
         """
+        sender_address = ledger_api.api.toChecksumAddress(sender_address)
         to_address = ledger_api.api.toChecksumAddress(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
         signatures = cls._get_packed_signatures(owners, signatures_by_owner)
@@ -429,6 +430,7 @@ class GnosisSafeContract(Contract):
             "from": sender_address,
             "gasPrice": tx_gas_price,
         }
+        # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)

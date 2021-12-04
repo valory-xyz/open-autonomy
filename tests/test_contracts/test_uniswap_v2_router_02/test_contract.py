@@ -1012,10 +1012,10 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     sanitize_from_deploy_tx = ["contract_address"]
     contract: UniswapV2Router02Contract
 
-    contract_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
-    weth_address = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
-    tokenA_address = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
-    tokenB_address = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+    contract_address = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
+    weth_address = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+    tokenA_address = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+    tokenB_address = "0x9A676e781A523b5d0C0e43731313A708CB607508"
     account_1_address = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
     account_2_address = "0x71bE63f3384f5fb98995898A86B02Fb2426c5788"
 

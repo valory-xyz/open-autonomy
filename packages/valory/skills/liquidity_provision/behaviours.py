@@ -27,7 +27,6 @@ from typing import Generator, Optional, Set, Type, cast
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
 
-from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import (
     MultiSendContract,
@@ -49,8 +48,6 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
-    DeploySafeRandomnessRound,
-    DeploySafeSelectKeeperRound,
     EnterPoolRandomnessRound,
     EnterPoolSelectKeeperRound,
     EnterPoolTransactionHashRound,
@@ -68,20 +65,12 @@ from packages.valory.skills.liquidity_provision.rounds import (
     StrategyEvaluationRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    DeploySafeBehaviour as DeploySafeSendBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    RegistrationBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
-    TendermintHealthcheckBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    ValidateSafeBehaviour as DeploySafeValidationBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
@@ -97,9 +86,9 @@ ETHER_VALUE = 0  # TOFIX
 SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
-WETH_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-TOKEN_A_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
-TOKEN_B_ADDRESS = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"  # nosec
+WETH_ADDRESS = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
+TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
 
 benchmark_tool = BenchmarkTool()
 
@@ -155,9 +144,9 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
         safe_tx_hash_bytes = binascii.unhexlify(
             self.period_state.most_voted_tx_hash[:64]
         )
-        self._send_signing_request(safe_tx_hash_bytes, is_deprecated_mode=True)
-        signature_response = yield from self.wait_for_message()
-        signature_hex = cast(SigningMessage, signature_response).signed_message.body
+        signature_hex = yield from self.get_signature(
+            safe_tx_hash_bytes, is_deprecated_mode=True
+        )
         # remove the leading '0x'
         signature_hex = signature_hex[2:]
         self.context.logger.info(f"Signature: {signature_hex}")
@@ -196,18 +185,19 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             self.context.logger.info(
-                "I am the designated sender, sending the safe transaction..."
+                "I am the designated sender, attempting to send the safe transaction..."
             )
-            tx_hash = yield from self._send_safe_transaction()
-            if tx_hash is None:  # pragma: nocover
-                raise RuntimeError("This needs to be fixed!")  # TOFIX
-            self.context.logger.info(
-                f"Transaction hash of the final transaction: {tx_hash}"
-            )
-            self.context.logger.info(
-                f"Signatures: {pprint.pformat(self.period_state.participants)}"
-            )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_hash)
+            tx_digest = yield from self._send_safe_transaction()
+            if tx_digest is None:
+                self.context.logger.info(  # pragma: nocover
+                    "Did not succeed with finalising the transaction!"
+                )
+            else:
+                self.context.logger.info(f"Finalization tx digest: {tx_digest}")
+                self.context.logger.debug(
+                    f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
+                )
+            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
 
         with benchmark_tool.measure(
             self,
@@ -226,20 +216,25 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
-            to_address=self.context.agent_address,
+            to_address=self.period_state.multisend_contract_address,
             value=ETHER_VALUE,
-            data=self.period_state.most_voted_tx_data,
+            data=bytes.fromhex(self.period_state.most_voted_tx_data),
             safe_tx_gas=SAFE_TX_GAS,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
         )
-        tx_hash = yield from self.send_raw_transaction(contract_api_msg.raw_transaction)
-        if tx_hash is None:
-            return None  # pragma: nocover
-        self.context.logger.info(f"Sent tx hash: {tx_hash}")
-        return tx_hash
+        if (
+            contract_api_msg.performative
+            != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):  # pragma: nocover
+            self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
+            return None
+        tx_digest = yield from self.send_raw_transaction(
+            contract_api_msg.raw_transaction
+        )
+        return tx_digest
 
 
 class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
@@ -311,20 +306,6 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         )
         self.context.logger.info(verified_log)
         return verified
-
-
-class DeploySafeRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
-    """Get randomness."""
-
-    state_id = "deploy_safe_randomness"
-    matching_round = DeploySafeRandomnessRound
-
-
-class DeploySafeSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "deploy_safe_select_keeper"
-    matching_round = DeploySafeSelectKeeperRound
 
 
 def get_strategy_update() -> dict:
@@ -604,7 +585,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs=multi_send_txs,
             )
             multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"])
-
+            multisend_data = multisend_data[2:]
+            self.context.logger.info(f"Multisend data: {multisend_data}")
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -613,7 +595,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
                 value=ETHER_VALUE,
-                data=multisend_data,
+                data=bytes.fromhex(multisend_data),
+                safe_tx_gas=SAFE_TX_GAS,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
@@ -892,8 +875,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
             )
-            multisend_data = contract_api_msg.raw_transaction.body["data"]
-
+            multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"])
+            multisend_data = multisend_data[2:]
+            self.context.logger.info(f"Multisend data: {multisend_data}")
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -902,13 +886,17 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
                 value=ETHER_VALUE,
-                data=multisend_data,
+                data=bytes.fromhex(multisend_data),
+                safe_tx_gas=SAFE_TX_GAS,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
-                sender=self.context.agent_address, tx_hash=safe_tx_hash
+                sender=self.context.agent_address,
+                tx_hash=json.dumps(
+                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
+                ),  # TOFIX
             )
 
         with benchmark_tool.measure(
@@ -958,15 +946,9 @@ class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the liquidity provision."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
     behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        DeploySafeRandomnessBehaviour,  # type: ignore
-        DeploySafeSelectKeeperBehaviour,  # type: ignore
-        DeploySafeSendBehaviour,  # type: ignore
-        DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
         EnterPoolTransactionSignatureBehaviour,  # type: ignore
