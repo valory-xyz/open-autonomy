@@ -23,7 +23,7 @@ import os
 import tempfile
 from pathlib import Path
 from threading import Thread
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, Dict, List, Optional, cast
 
 from aea.crypto.registries import make_crypto
 from aea.crypto.wallet import Wallet
@@ -52,10 +52,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     ExitPoolTransactionHashBehaviour,
     get_strategy_update,
 )
-from packages.valory.skills.liquidity_provision.handlers import (
-    ContractApiHandler,
-    SigningHandler,
-)
+from packages.valory.skills.liquidity_provision.handlers import SigningHandler
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 from packages.valory.skills.price_estimation_abci.payloads import SignaturePayload
 
@@ -69,6 +66,23 @@ from tests.test_skills.test_liquidity_provision.test_behaviours import (
 
 DEFAULT_GAS = 1000000
 DEFAULT_GAS_PRICE = 1000000
+HANDLERS = List[Optional[Handler]]
+EXPECTED_CONTENT = List[
+    Optional[
+        Dict[
+            str,
+            Any,
+        ]
+    ]
+]
+EXPECTED_TYPES = List[
+    Optional[
+        Dict[
+            str,
+            Any,
+        ]
+    ]
+]
 
 
 class TestEnterPoolTransactionHashBehaviourHardhat(
@@ -269,7 +283,9 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         self,
         state_id: str,
         ncycles: int,
-        handler: Optional[Handler] = None,
+        handlers: Optional[HANDLERS] = None,
+        expected_content: Optional[EXPECTED_CONTENT] = None,
+        expected_types: Optional[EXPECTED_TYPES] = None,
         period_state: Optional[PeriodState] = None,
     ) -> None:
         """
@@ -277,9 +293,21 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
         :param: state_id: the behaviour to fast forward to
         :param: ncycles: the number of message cycles to process
-        :param: handler: a handler
+        :param: handlers: a list of handlers
+        :param expected_content: the expected_content
+        :param expected_types: the expected type
         :param: period_state: a period_state
         """
+        handlers = [None] * ncycles if handlers is None else handlers
+        expected_content = (
+            [None] * ncycles if expected_content is None else expected_content
+        )
+        expected_types = [None] * ncycles if expected_types is None else expected_types
+        assert (
+            len(expected_content) == len(expected_types)
+            and len(expected_content) == len(handlers)
+            and len(expected_content) == ncycles
+        ), "Number of cycles, handlers, contents and types does not match"
 
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -294,47 +322,36 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             == state_id
         )
 
-        expected_content: Dict[
-            str, Union[ContractApiMessage.Performative, SigningMessage.Performative]
-        ]
-        expected_types = None
-
-        if type(handler) == ContractApiHandler:
-            expected_content = {
-                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
-            }
-            expected_types = {
-                "dialogue_reference": tuple,
-                "message_id": int,
-                "raw_transaction": RawTransaction,
-                "target": int,
-            }
-
-        elif type(handler) == SigningHandler:
-            expected_content = {
-                "performative": SigningMessage.Performative.SIGNED_MESSAGE  # type: ignore
-            }
-
-        for _ in range(ncycles):
-            self.process_message_cycle(handler, expected_content, expected_types)
+        for i in range(ncycles):
+            self.process_message_cycle(
+                handlers[i], expected_content[i], expected_types[i]
+            )
 
         self.liquidity_provision_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-
-    # Safe behaviours
-
-    def test_deploy_safe_send_behaviour(self) -> None:
-        """test_deploy_safe_behaviour"""
-
-    def test_deploy_safe_validation_behaviour(self) -> None:
-        """test_deploy_safe_validation_behaviour"""
 
     # Enter pool behaviours
 
     def test_enter_pool_tx_hash_behaviour(self) -> None:
         """test_enter_pool_tx_hash_behaviour"""
+        cycles = 7
+        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            }
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [
+            {
+                "raw_transaction": RawTransaction,
+            }
+        ] * cycles
         self.process_n_messsages(
-            EnterPoolTransactionHashBehaviour.state_id, 7, self.contract_handler
+            EnterPoolTransactionHashBehaviour.state_id,
+            cycles,
+            handlers,
+            expected_content,
+            expected_types,
         )
 
     def test_enter_pool_tx_sign_behaviour(self) -> None:
@@ -348,10 +365,19 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             most_voted_strategy=self.strategy,
             participants=participants,
         )
+
+        cycles = 1
+        handlers: HANDLERS = [self.signing_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [None] * cycles
         self.process_n_messsages(
             EnterPoolTransactionSignatureBehaviour.state_id,
-            1,
-            self.signing_handler,
+            cycles,
+            handlers,
+            expected_content,
+            expected_types,
             period_state,
         )
 
@@ -381,58 +407,41 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             participant_to_signature=participant_to_signature,
         )
 
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionSendBehaviour.state_id,
-            period_state=period_state,
+        handlers: HANDLERS = [
+            self.contract_handler,
+            self.signing_handler,
+            self.ledger_handler,
+        ]
+        expected_content: EXPECTED_CONTENT = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": SigningMessage.Performative.SIGNED_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST  # type: ignore
+            },
+        ]
+        expected_types: EXPECTED_TYPES = [
+            {
+                "raw_transaction": RawTransaction,
+            },
+            {
+                "signed_transaction": SignedTransaction,
+            },
+            {
+                "transaction_digest": TransactionDigest,
+            },
+        ]
+        self.process_n_messsages(
+            EnterPoolTransactionSendBehaviour.state_id,
+            3,
+            handlers,
+            expected_content,
+            expected_types,
+            period_state,
         )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionSendBehaviour.state_id
-        )
-
-        expected_content = {
-            "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
-        }
-        expected_types = {
-            "dialogue_reference": tuple,
-            "message_id": int,
-            "raw_transaction": RawTransaction,
-            "target": int,
-        }
-        self.process_message_cycle(
-            self.contract_handler, expected_content, expected_types
-        )
-        expected_content = {
-            "performative": SigningMessage.Performative.SIGNED_TRANSACTION  # type: ignore
-        }
-        expected_types = {
-            "dialogue_reference": tuple,
-            "message_id": int,
-            "signed_transaction": SignedTransaction,
-            "target": int,
-        }
-        self.process_message_cycle(
-            self.signing_handler, expected_content, expected_types
-        )
-        expected_content = {
-            "performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST  # type: ignore
-        }
-        expected_types = {
-            "dialogue_reference": tuple,
-            "message_id": int,
-            "transaction_digest": TransactionDigest,
-            "target": int,
-        }
-        self.process_message_cycle(
-            self.ledger_handler, expected_content, expected_types
-        )
-
-        self.liquidity_provision_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
 
     def test_enter_pool_tx_validation_behaviour(self) -> None:
         """test_enter_pool_tx_validation_behaviour"""
@@ -441,8 +450,24 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
     def test_exit_pool_tx_hash_behaviour(self) -> None:
         """test_exit_pool_tx_hash_behaviour"""
+        cycles = 7
+        handlers: HANDLERS = [self.contract_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            }
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [
+            {
+                "raw_transaction": RawTransaction,
+            }
+        ] * cycles
         self.process_n_messsages(
-            ExitPoolTransactionHashBehaviour.state_id, 7, self.contract_handler
+            ExitPoolTransactionHashBehaviour.state_id,
+            cycles,
+            handlers,
+            expected_content,
+            expected_types,
         )
 
     def test_exit_pool_tx_sign_behaviour(self) -> None:

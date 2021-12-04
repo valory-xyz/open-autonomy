@@ -47,16 +47,10 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     BaseRandomnessRound,
-    CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
-    DeploySafeRound,
-    RegistrationRound,
     ResetAndPauseRound,
     ResetRound,
-)
-from packages.valory.skills.price_estimation_abci.rounds import (
-    ValidateSafeRound as DeploySafeValidationRound,
 )
 
 
@@ -365,20 +359,6 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
         return None
 
 
-class DeploySafeRandomnessRound(BaseRandomnessRound):
-    """Deploy safe randomness round."""
-
-    round_id = "deploy_safe_randomness"
-
-
-class DeploySafeSelectKeeperRound(
-    CollectDifferentUntilAllRound, LiquidityProvisionAbstractRound
-):
-    """This class represents the select keeper main round."""
-
-    round_id = "deploy_safe_randomness"
-
-
 class StrategyEvaluationRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
@@ -493,105 +473,83 @@ class ExitPoolSelectKeeperRound(
 class LiquidityProvisionAbciApp(AbciApp[Event]):
     """Liquidity Provision ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    initial_round_cls: Type[AbstractRound] = ResetRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: DeploySafeRandomnessRound},
-        DeploySafeRandomnessRound: {
-            Event.DONE: DeploySafeSelectKeeperRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        DeploySafeSelectKeeperRound: {
-            Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        DeploySafeRound: {
-            Event.DONE: DeploySafeValidationRound,
-            Event.EXIT: DeploySafeRandomnessRound,
-        },
-        DeploySafeValidationRound: {
+        ResetRound: {
             Event.DONE: StrategyEvaluationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
         },
         StrategyEvaluationRound: {
             Event.DONE: EnterPoolTransactionHashRound,
             Event.WAIT: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionHashRound: {
             Event.DONE: EnterPoolTransactionSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionSignatureRound: {
             Event.DONE: EnterPoolTransactionSendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionSendRound: {
             Event.DONE: EnterPoolTransactionValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionValidationRound: {
-            Event.DONE: ExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.DONE: ResetAndPauseRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
         },
         EnterPoolRandomnessRound: {
             Event.DONE: EnterPoolSelectKeeperRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolSelectKeeperRound: {
             Event.DONE: ExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ExitPoolTransactionHashRound: {
             Event.DONE: ExitPoolTransactionSignatureRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ExitPoolTransactionSignatureRound: {
             Event.DONE: ExitPoolTransactionSendRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ExitPoolTransactionSendRound: {
             Event.DONE: ExitPoolTransactionValidationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ExitPoolTransactionValidationRound: {
-            Event.DONE: ResetRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.DONE: ResetAndPauseRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
         },
         ExitPoolRandomnessRound: {
             Event.DONE: ExitPoolSelectKeeperRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ExitPoolSelectKeeperRound: {
             Event.DONE: ExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
-        ResetRound: {
-            Event.DONE: DeploySafeRandomnessRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ResetAndPauseRound: {
-            Event.DONE: DeploySafeRandomnessRound,
-            Event.RESET_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.DONE: StrategyEvaluationRound,
+            Event.RESET_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {

@@ -48,8 +48,6 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
-    DeploySafeRandomnessRound,
-    DeploySafeSelectKeeperRound,
     EnterPoolRandomnessRound,
     EnterPoolSelectKeeperRound,
     EnterPoolTransactionHashRound,
@@ -67,20 +65,12 @@ from packages.valory.skills.liquidity_provision.rounds import (
     StrategyEvaluationRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    DeploySafeBehaviour as DeploySafeSendBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    RegistrationBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
-    TendermintHealthcheckBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    ValidateSafeBehaviour as DeploySafeValidationBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
@@ -316,20 +306,6 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         )
         self.context.logger.info(verified_log)
         return verified
-
-
-class DeploySafeRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
-    """Get randomness."""
-
-    state_id = "deploy_safe_randomness"
-    matching_round = DeploySafeRandomnessRound
-
-
-class DeploySafeSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "deploy_safe_select_keeper"
-    matching_round = DeploySafeSelectKeeperRound
 
 
 def get_strategy_update() -> dict:
@@ -624,9 +600,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
-            import pdb
-
-            pdb.set_trace()
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
                 sender=self.context.agent_address,
@@ -902,8 +875,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_tx_data",
                 multi_send_txs=multi_send_txs,
             )
-            multisend_data = contract_api_msg.raw_transaction.body["data"]
-
+            multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"])
+            multisend_data = multisend_data[2:]
+            self.context.logger.info(f"Multisend data: {multisend_data}")
             # Get the tx hash from Gnosis Safe contract
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -912,13 +886,17 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
                 value=ETHER_VALUE,
-                data=multisend_data,
+                data=bytes.fromhex(multisend_data),
+                safe_tx_gas=SAFE_TX_GAS,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
             self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
             payload = TransactionHashPayload(
-                sender=self.context.agent_address, tx_hash=safe_tx_hash
+                sender=self.context.agent_address,
+                tx_hash=json.dumps(
+                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
+                ),  # TOFIX
             )
 
         with benchmark_tool.measure(
@@ -968,15 +946,9 @@ class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the liquidity provision."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
     behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        DeploySafeRandomnessBehaviour,  # type: ignore
-        DeploySafeSelectKeeperBehaviour,  # type: ignore
-        DeploySafeSendBehaviour,  # type: ignore
-        DeploySafeValidationBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
         EnterPoolTransactionSignatureBehaviour,  # type: ignore
