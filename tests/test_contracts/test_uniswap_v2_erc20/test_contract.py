@@ -84,16 +84,16 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                     self.ledger_api,
                     self.contract_address,
                     self.sender_address,
-                    gas,
-                    self.gas_price,
                     spender_address,
                     approval_value,
+                    gas=gas,
+                    gas_price=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
             "data": data,
             "gas": gas,
-            "gasPrice": self.gas_price,  # TOFIX
+            "gasPrice": self.gas_price,
             "nonce": NONCE,
             "to": CONTRACT_ADDRESS,
             "value": eth_value,
@@ -118,10 +118,10 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                     self.ledger_api,
                     self.contract_address,
                     self.sender_address,
-                    gas,
-                    self.gas_price,
                     spender_address,
                     value,
+                    gas=gas,
+                    gas_price=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -153,11 +153,11 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                     self.ledger_api,
                     self.contract_address,
                     self.sender_address,
-                    gas,
-                    self.gas_price,
                     from_address,
                     to_address,
                     value,
+                    gas=gas,
+                    gas_price=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -196,8 +196,6 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                     self.ledger_api,
                     self.contract_address,
                     self.sender_address,
-                    gas,
-                    self.gas_price,
                     owner_address,
                     spender_address,
                     value,
@@ -205,6 +203,8 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                     v,
                     r,
                     s,
+                    gas=gas,
+                    gas_price=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,

@@ -987,6 +987,8 @@ class FinalizeBehaviour(PriceEstimationBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            max_fee_per_gas=10 ** 10,  # TOFIX
+            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_msg.performative

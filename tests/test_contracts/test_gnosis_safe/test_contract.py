@@ -313,6 +313,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             to_address=receiver.address,
             value=value,
             data=data,
+            gas_price=10 ** 10,
             signatures_by_owner={
                 self.deployer_crypto.address.lower(): signatures_by_owners[
                     self.deployer_crypto.address
@@ -327,11 +328,11 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                 "data",
                 "from",
                 "gas",
-                "maxPri",
+                "gasPrice",
                 "nonce",
                 "to",
                 "value",
-            ]  # TOFIX
+            ]
             for key in tx.keys()
         ), "Missing key"
 
