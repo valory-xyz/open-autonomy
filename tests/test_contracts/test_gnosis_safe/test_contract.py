@@ -322,7 +322,16 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
 
         assert all(
             key
-            in ["chainId", "data", "from", "gas", "gasPrice", "nonce", "to", "value"]
+            in [
+                "chainId",
+                "data",
+                "from",
+                "gas",
+                "maxPri",
+                "nonce",
+                "to",
+                "value",
+            ]  # TOFIX
             for key in tx.keys()
         ), "Missing key"
 

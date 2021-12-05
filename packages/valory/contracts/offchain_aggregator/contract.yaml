@@ -9,7 +9,7 @@ fingerprint:
   README.md: QmVdWQBLXfvoZGSr7Bpy82m5m8aMLn2xc2SrKG2QeAdMFi
   __init__.py: QmV8z4Hn2SqLSC2rxTHkmpHo2egWsqSFsHxBngnwz4JSRJ
   build/VerySimpleOffchainAggregator.json: QmZQmgG4HdVQWoTH7cFYrcVEGPMFDnq1hXiCfrSAEtN46F
-  contract.py: QmVEVZKMNETX9xB71wRAqVsjRquZ34HK1QgMLWFqS2okUJ
+  contract.py: QmT7E4gyVuA6mWXcDKxdva69uegDAX4jnzeNqq6C2Y8TX6
 fingerprint_ignore_patterns: []
 class_name: OffchainAggregatorContract
 contract_interface_paths:

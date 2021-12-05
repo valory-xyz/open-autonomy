@@ -93,7 +93,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             "chainId": CHAIN_ID,
             "data": data,
             "gas": gas,
-            "gasPrice": self.gas_price,
+            "gasPrice": self.gas_price,  # TOFIX
             "nonce": NONCE,
             "to": CONTRACT_ADDRESS,
             "value": eth_value,

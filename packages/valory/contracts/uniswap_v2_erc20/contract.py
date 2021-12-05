@@ -90,21 +90,19 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         spender_address: str,
         value: int,
+        **kwargs: int,
     ) -> Optional[JSONLike]:
         """Set the allowance for spender_address on behalf of sender_address."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
             sender_address,
-            gas,
-            gas_price,
             "approve",
             spender_address,
             value,
+            **kwargs,
         )
 
     @classmethod
@@ -113,21 +111,19 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         to_address: str,
         value: int,
+        **kwargs: int,
     ) -> Optional[JSONLike]:
         """Transfer funds from sender_address to to_address."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
             sender_address,
-            gas,
-            gas_price,
             "transfer",
             to_address,
             value,
+            **kwargs,
         )
 
     @classmethod
@@ -136,23 +132,21 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         from_address: str,
         to_address: str,
         value: int,
+        **kwargs: int,
     ) -> Optional[JSONLike]:
         """As sender_address (third-party) transfer funds from from_address to to_address."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
             sender_address,
-            gas,
-            gas_price,
             "transferFrom",
             from_address,
             to_address,
             value,
+            **kwargs,
         )
 
     @classmethod
@@ -161,8 +155,6 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         owner_address: str,
         spender_address: str,
         value: int,
@@ -170,14 +162,13 @@ class UniswapV2ERC20Contract(Contract):
         v: int,
         r: bytes,
         s: bytes,
+        **kwargs: int,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender on behalf of owner where approval is granted via a signature. Sender can differ from owner."""
         return cls._prepare_tx(
             ledger_api,
             contract_address,
             sender_address,
-            gas,
-            gas_price,
             "permit",
             owner_address,
             spender_address,
@@ -186,6 +177,7 @@ class UniswapV2ERC20Contract(Contract):
             v,
             r,
             s,
+            **kwargs,
         )
 
     @classmethod
@@ -232,41 +224,60 @@ class UniswapV2ERC20Contract(Contract):
         return result
 
     @classmethod
-    def _prepare_tx(
+    def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         method_name: str,
         *method_args: Any,
+        eth_value: int = 0,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Optional[JSONLike]:
         """Prepare tx method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)
         tx = method(*method_args)
-        tx = cls._build_transaction(ledger_api, sender_address, tx, gas, gas_price)
+        tx = cls._build_transaction(
+            ledger_api,
+            sender_address,
+            tx,
+            eth_value,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
         return tx
 
     @classmethod
-    def _build_transaction(
+    def _build_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
         sender_address: str,
         tx: Any,
-        gas: int,
-        gas_price: int,
         eth_value: int = 0,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Optional[JSONLike]:
         """Build transaction method."""
         nonce = ledger_api.api.eth.get_transaction_count(sender_address)
-        tx = tx.buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": gas_price,
-                "nonce": nonce,
-                "value": eth_value,
-            }
-        )
+        tx_params = {
+            "nonce": nonce,
+            "value": eth_value,
+        }
+        if gas is not None:
+            tx_params["gas"] = gas
+        if gas_price is not None:
+            tx_params["gasPrice"] = gas_price
+        if max_fee_per_gas is not None:
+            tx_params["maxFeePerGas"] = max_fee_per_gas
+        if max_priority_fee_per_gas is not None:
+            tx_params["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+        tx = tx.buildTransaction(tx_params)
         return tx

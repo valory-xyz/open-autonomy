@@ -79,7 +79,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments
+    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
         ledger_api: LedgerApi,
         proxy_factory_address: str,
@@ -89,6 +89,8 @@ class GnosisSafeProxyFactoryContract(Contract):
         salt_nonce: int,
         gas: Optional[int] = None,
         gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
         nonce: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
@@ -102,6 +104,8 @@ class GnosisSafeProxyFactoryContract(Contract):
         :param salt_nonce: Uint256 for `create2` salt
         :param gas: Gas
         :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
         :param nonce: Nonce
         :return: Tuple(tx-hash, tx, deployed contract address)
         """
@@ -116,6 +120,12 @@ class GnosisSafeProxyFactoryContract(Contract):
 
         if gas_price is not None:
             tx_parameters["gasPrice"] = Wei(gas_price)
+
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)
+
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = Wei(max_priority_fee_per_gas)
 
         if gas is not None:
             tx_parameters["gas"] = Wei(gas)

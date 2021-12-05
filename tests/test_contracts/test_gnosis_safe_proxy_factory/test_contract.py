@@ -47,7 +47,7 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(gas=DEFAULT_GAS, gasPrice=DEFAULT_GAS_PRICE)
+        return dict(gas=DEFAULT_GAS, gasPrice=DEFAULT_GAS_PRICE)  # TOFIX
 
     def test_deploy(self) -> None:
         """Test deployment results."""
@@ -77,7 +77,7 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
                 in [
                     "value",
                     "gas",
-                    "gasPrice",
+                    "gasPrice",  # TOFIX
                     "chainId",
                     "from",
                     "to",
