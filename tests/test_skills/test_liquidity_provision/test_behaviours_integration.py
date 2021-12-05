@@ -25,7 +25,6 @@ from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-from aea.contract.base import Contract
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
@@ -110,14 +109,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     multisend_data: str
     most_voted_tx_hash: str
     ethereum_api: EthereumLedgerApi
-    gnosis_instance: Contract
+    gnosis_instance: Any
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
         """Setup class."""
         pass
 
-    def get_decoded_logs(self, gnosis_instance: Contract, receipt: dict) -> List[Dict]:
+    def get_decoded_logs(self, gnosis_instance: Any, receipt: dict) -> List[Dict]:
         """Get decoded logs."""
         # Find ABI events
         decoded_logs = []
