@@ -42,7 +42,7 @@ from aea.identity.base import Identity
 from aea.mail.base import Envelope, Message
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
-from aea_ledger_ethereum import EthereumLedgerApi
+from aea_ledger_ethereum import EthereumApi
 from web3 import Web3
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -108,7 +108,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     keeper_address: str
     multisend_data: str
     most_voted_tx_hash: str
-    ethereum_api: EthereumLedgerApi
+    ethereum_api: EthereumApi
     gnosis_instance: Any
 
     @classmethod
