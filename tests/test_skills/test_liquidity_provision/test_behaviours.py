@@ -1111,7 +1111,9 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
         period_state = PeriodState(
             participants=participants,
             most_voted_tx_hash="0x",
+            most_voted_tx_data=b"data".hex(),
             final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+            multisend_contract_address="multisend_contract_address",
             safe_contract_address="safe_contract_address",
             most_voted_keeper_address="most_voted_keeper_address",
             participant_to_signature=get_participant_to_signature(participants),
@@ -1157,7 +1159,10 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                     dict(
                         tx_hash=period_state.final_tx_hash,
                         owners=tuple(period_state.participants),  # type: ignore
-                        to_address=self.skill.skill_context.agent_address,
+                        to_address="multisend_contract_address",
+                        value=0,
+                        data=b"data",
+                        safe_tx_gas=4000000,
                         signatures_by_owner={
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()

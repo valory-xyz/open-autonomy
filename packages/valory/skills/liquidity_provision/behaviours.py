@@ -290,7 +290,10 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_callable="verify_tx",
             tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=self.context.agent_address,
+            to_address=self.period_state.multisend_contract_address,
+            value=ETHER_VALUE,
+            data=bytes.fromhex(self.period_state.most_voted_tx_data),
+            safe_tx_gas=SAFE_TX_GAS,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
