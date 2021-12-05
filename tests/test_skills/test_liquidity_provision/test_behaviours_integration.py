@@ -23,9 +23,10 @@ import os
 import tempfile
 from pathlib import Path
 from threading import Thread
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from aea.crypto.registries import make_crypto
+from aea.contract.base import Contract
+from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
 from aea.decision_maker.default import (
@@ -34,12 +35,16 @@ from aea.decision_maker.default import (
 from aea.helpers.transaction.base import (
     RawTransaction,
     SignedTransaction,
+    State,
     TransactionDigest,
+    TransactionReceipt,
 )
 from aea.identity.base import Identity
 from aea.mail.base import Envelope, Message
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
+from aea_ledger_ethereum import EthereumLedgerApi
+from web3 import Web3
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -49,6 +54,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
     EnterPoolTransactionSendBehaviour,
     EnterPoolTransactionSignatureBehaviour,
+    EnterPoolTransactionValidationBehaviour,
     ExitPoolTransactionHashBehaviour,
     get_strategy_update,
 )
@@ -103,11 +109,38 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     keeper_address: str
     multisend_data: str
     most_voted_tx_hash: str
+    ethereum_api: EthereumLedgerApi
+    gnosis_instance: Contract
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
         """Setup class."""
         pass
+
+    def get_decoded_logs(self, gnosis_instance: Contract, receipt: dict) -> List[Dict]:
+        """Get decoded logs."""
+        # Find ABI events
+        decoded_logs = []
+        abi_events = [abi for abi in gnosis_instance.abi if abi["type"] == "event"]
+        for logs in receipt["logs"]:
+            for receipt_event_signature_hex in logs["topics"]:
+                for event in abi_events:
+                    # Get event signature components
+                    name = event["name"]
+                    inputs = [param["type"] for param in event["inputs"]]
+                    inputs_ = ",".join(inputs)
+                    # Hash event signature
+                    event_signature_text = f"{name}({inputs_})"
+                    event_signature_hex = Web3.toHex(
+                        Web3.keccak(text=event_signature_text)
+                    )
+                    # Find match between log's event signature and ABI's event signature
+                    if event_signature_hex == receipt_event_signature_hex:
+                        decoded_log = gnosis_instance.events[
+                            event["name"]
+                        ]().processReceipt(receipt)
+                        decoded_logs.append({name: decoded_log})
+        return decoded_logs
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -125,7 +158,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "multisend")
         _ = get_register_contract(directory)
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
-        _ = get_register_contract(directory)
+        gnosis = get_register_contract(directory)
         # setup a multiplexer with the required connections
         cls.running_loop = asyncio.new_event_loop()
         cls.thread_loop = Thread(target=cls.running_loop.run_forever)
@@ -197,6 +230,11 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             router_contract_address=cls.router_contract_address,
         )
 
+        cls.ethereum_api = make_ledger_api("ethereum")
+        cls.gnosis_instance = gnosis.get_instance(
+            cls.ethereum_api, cls.safe_contract_address
+        )
+
     @classmethod
     def teardown(cls) -> None:
         """Tear down the multiplexer."""
@@ -218,7 +256,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         handler: Optional[Handler] = None,
         expected_content: Optional[Dict] = None,
         expected_types: Optional[Dict] = None,
-    ) -> None:
+    ) -> Optional[Message]:
         """
         Processes one request-response type message cycle.
 
@@ -232,6 +270,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         :param handler: the handler to handle a potential incoming message
         :param expected_content: the content to be expected
         :param expected_types: the types to be expected
+        :return: the incoming message
         """
         self.liquidity_provision_behaviour.act_wrapper()
 
@@ -278,6 +317,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                     ]
                 ), "Content type mismatch"
             handler.handle(incoming_message)
+            return incoming_message
+        return None
 
     def process_n_messsages(
         self,
@@ -287,7 +328,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         expected_content: Optional[EXPECTED_CONTENT] = None,
         expected_types: Optional[EXPECTED_TYPES] = None,
         period_state: Optional[PeriodState] = None,
-    ) -> None:
+    ) -> Tuple[Optional[Message], ...]:
         """
         Process n message cycles.
 
@@ -297,6 +338,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         :param expected_content: the expected_content
         :param expected_types: the expected type
         :param: period_state: a period_state
+        :return: tuple of incoming messages
         """
         handlers = [None] * ncycles if handlers is None else handlers
         expected_content = (
@@ -322,13 +364,16 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             == state_id
         )
 
+        incoming_messages = []
         for i in range(ncycles):
-            self.process_message_cycle(
+            incoming_message = self.process_message_cycle(
                 handlers[i], expected_content[i], expected_types[i]
             )
+            incoming_messages.append(incoming_message)
 
         self.liquidity_provision_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        return tuple(incoming_messages)
 
     # Enter pool behaviours
 
@@ -381,9 +426,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             period_state,
         )
 
-    def test_enter_pool_tx_send_behaviour(self) -> None:
+    def test_enter_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
+        # send
         participant_to_signature = {
             address: SignaturePayload(
                 sender=address,
@@ -393,7 +439,6 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             )
             for address, crypto in self.safe_owners.items()
         }
-
         # first two values taken from test_enter_pool_tx_hash_behaviour flow
         period_state = PeriodState(
             most_voted_tx_hash=self.most_voted_tx_hash,
@@ -406,7 +451,6 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             participants=frozenset(list(participant_to_signature.keys())),
             participant_to_signature=participant_to_signature,
         )
-
         handlers: HANDLERS = [
             self.contract_handler,
             self.signing_handler,
@@ -434,7 +478,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                 "transaction_digest": TransactionDigest,
             },
         ]
-        self.process_n_messsages(
+        _, _, msg = self.process_n_messsages(
             EnterPoolTransactionSendBehaviour.state_id,
             3,
             handlers,
@@ -442,9 +486,57 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             expected_types,
             period_state,
         )
+        assert msg is not None and isinstance(msg, LedgerApiMessage)
+        tx_digest = msg.transaction_digest.body
 
-    def test_enter_pool_tx_validation_behaviour(self) -> None:
-        """test_enter_pool_tx_validation_behaviour"""
+        # validate
+        period_state = PeriodState(
+            final_tx_hash=tx_digest,
+            most_voted_tx_hash=self.most_voted_tx_hash,
+            most_voted_tx_data=self.multisend_data,
+            safe_contract_address=self.safe_contract_address,
+            most_voted_keeper_address=self.keeper_address,
+            most_voted_strategy=self.strategy,
+            multisend_contract_address=self.multisend_contract_address,
+            router_contract_address=self.router_contract_address,
+            participants=frozenset(list(participant_to_signature.keys())),
+            participant_to_signature=participant_to_signature,
+        )
+        handlers = [
+            self.ledger_handler,
+            self.contract_handler,
+        ]
+        expected_content = [
+            {
+                "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
+            },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
+        ]
+        expected_types = [
+            {
+                "transaction_receipt": TransactionReceipt,
+            },
+            {
+                "state": State,
+            },
+        ]
+        _, msg = self.process_n_messsages(
+            EnterPoolTransactionValidationBehaviour.state_id,
+            2,
+            handlers,
+            expected_content,
+            expected_types,
+            period_state,
+        )
+        assert msg is not None and isinstance(msg, ContractApiMessage)
+        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        # eventually replace with https://pypi.org/project/eth-event/
+        receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
+        logs = self.get_decoded_logs(self.gnosis_instance, receipt)
+        assert not all(
+            [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
+        )
+        # note, currently the transaction passes but there is an execution failure; so it's not working yet!
 
     # Exit pool behaviours
 
@@ -473,8 +565,5 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     def test_exit_pool_tx_sign_behaviour(self) -> None:
         """test_exit_pool_tx_sign_behaviour"""
 
-    def test_exit_pool_tx_send_behaviour(self) -> None:
+    def test_exit_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_exit_pool_tx_send_behaviour"""
-
-    def test_exit_pool_tx_validation_behaviour(self) -> None:
-        """test_exit_pool_tx_validation_behaviour"""
