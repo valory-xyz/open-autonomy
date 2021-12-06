@@ -68,7 +68,7 @@ class TestGeneral:
             expected_folders_amount = 1
 
         else:
-            path_to_folder = tmp_path
+            path_to_folder = str(tmp_path)
             expected_folders_amount = 0
 
         create_pathdirs(full_test_path)

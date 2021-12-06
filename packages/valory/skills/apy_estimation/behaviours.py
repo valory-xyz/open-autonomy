@@ -233,13 +233,18 @@ class FetchBehaviour(APYEstimationBaseState):
         create_pathdirs(self._save_path)
 
     def _handle_response(
-        self, res: Optional[Dict], res_context: str, keys: Tuple[Union[str, int], ...], subgraph: ApiSpecs,
+        self,
+        res: Optional[Dict],
+        res_context: str,
+        keys: Tuple[Union[str, int], ...],
+        subgraph: ApiSpecs,
     ) -> None:
         """Handle a response from a subgraph.
 
         :param res: the response to handle.
         :param res_context: the context of the current response.
         :param keys: keys to get the information from the response.
+        :param subgraph: the subgraph specs that will be used.
         """
         if res is None:
             self.context.logger.error(
@@ -325,7 +330,10 @@ class FetchBehaviour(APYEstimationBaseState):
 
                     try:
                         self._handle_response(
-                            res, res_context="block", keys=("blocks", 0), subgraph=self.context.fantom_subgraph
+                            res,
+                            res_context="block",
+                            keys=("blocks", 0),
+                            subgraph=self.context.fantom_subgraph,
                         )
                     except EmptyResponseError:
                         yield from self.sleep(self.params.sleep_time)

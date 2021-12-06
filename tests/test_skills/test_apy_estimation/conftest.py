@@ -20,13 +20,13 @@
 
 """Configurations for APY skill's tests."""
 
-from typing import Any, Dict, Tuple, Union, Callable
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Tuple, Union
 from unittest import mock
 
 import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
-from dataclasses import dataclass
 
 from packages.valory.skills.apy_estimation.models import SharedState
 
@@ -213,6 +213,7 @@ def no_action() -> Callable[[Any], None]:
 @dataclass
 class TaskResult:
     """A dummy Task Result."""
+
     result: Any
 
 
