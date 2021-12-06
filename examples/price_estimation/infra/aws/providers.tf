@@ -40,7 +40,7 @@ module "aws_cluster" {
 
 resource "local_file" "kubeconfig-tempest" {
   content  = module.aws_cluster.kubeconfig-admin
-  filename = "kubefiles/kraken"
+  filename = "kubefiles/kubeconfig"
 }
 
 resource "aws_security_group_rule" "custom_security_group_egress" {

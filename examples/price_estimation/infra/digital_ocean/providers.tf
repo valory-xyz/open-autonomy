@@ -47,5 +47,5 @@ module "nemo" {
 
 resource "local_file" "kubeconfig-nemo" {
   content  = module.nemo.kubeconfig-admin
-  filename = "kubefiles/nemo"
+  filename = "kubefiles/kubeconfig"
 }
