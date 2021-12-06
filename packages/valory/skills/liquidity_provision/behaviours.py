@@ -319,22 +319,22 @@ def get_strategy_update() -> dict:
         "base": {
             "ticker": "WETH",
             "address": WETH_ADDRESS,
-            "balance": 100,
+            "balance": 10 ** 10,
         },
         "pair": {
             "token_a": {
                 "ticker": "TKA",
                 "address": TOKEN_A_ADDRESS,
-                "amount": 1,
-                "amount_min": 1,
+                "amount": 10 ** 4,
+                "amount_min": 10 ** 3,
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
             "token_b": {
                 "ticker": "TKB",
                 "address": TOKEN_B_ADDRESS,
-                "amount": 1,
-                "amount_min": 1,
+                "amount": 10 ** 4,
+                "amount_min": 10 ** 3,
             },
         },
         "liquidity_to_remove": 1,
@@ -431,8 +431,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
-                    "value": 1,
+                    "to": self.period_state.router_contract_address,
+                    "value": 0,
                     "data": HexBytes(swap_a_data.hex()),
                 }
             )
@@ -458,8 +458,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
-                    "value": 1,
+                    "to": self.period_state.router_contract_address,
+                    "value": 0,
                     "data": HexBytes(swap_b_data.hex()),
                 }
             )
@@ -482,8 +482,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
-                    "value": 1,
+                    "to": strategy["pair"]["token_a"]["address"],
+                    "value": 0,
                     "data": HexBytes(allowance_a_data.hex()),
                 }
             )
@@ -506,8 +506,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 {
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
-                    "value": 1,
+                    "to": strategy["pair"]["token_b"]["address"],
+                    "value": 0,
                     "data": HexBytes(allowance_b_data.hex()),
                 }
             )
@@ -539,8 +539,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
-                        "value": 1,
+                        "to": self.period_state.router_contract_address,
+                        "value": int(strategy["pair"]["token_a"]["amount"]),
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
@@ -573,8 +573,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
-                        "value": 1,
+                        "to": self.period_state.router_contract_address,
+                        "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
