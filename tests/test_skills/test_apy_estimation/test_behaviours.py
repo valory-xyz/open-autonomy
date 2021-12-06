@@ -635,6 +635,131 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
 
+    def test_fetch_behaviour_retries_exceeded(
+        self,
+        monkeypatch: MonkeyPatch
+    ) -> None:
+        """Run tests for exceeded retries."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            PeriodState(),
+        )
+
+        subgraphs_sorted_by_utilization_moment = (
+            self.apy_estimation_behaviour.context.spooky_subgraph,
+            self.apy_estimation_behaviour.context.fantom_subgraph
+        )
+        subgraphs_sorted_by_utilization_moment += tuple(subgraphs_sorted_by_utilization_moment[0] for _ in range(2))
+        for subgraph in subgraphs_sorted_by_utilization_moment:
+            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: bool)
+            self.apy_estimation_behaviour.act_wrapper()
+            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+            assert state.state_id == FetchBehaviour.state_id
+
+        self._test_done_flag_set()
+
+    def test_fetch_value_none(
+        self,
+        monkeypatch: MonkeyPatch,
+        top_n_pairs_q: str,
+        block_from_timestamp_q: str,
+        eth_price_usd_q: str,
+        pairs_q: str,
+        pool_fields: Tuple[str, ...],
+    ) -> None:
+        """Test when fetched value is none."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
+        )
+
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
+            method="POST",
+            url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
+            headers="Content-Type: application/json\r\n",
+            version="",
+        )
+        response_kwargs = dict(
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+        )
+
+        # top pairs' ids request.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+        # block request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
+            lambda _: 1618735147,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+        # ETH price request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
+            eth_price_usd_q,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+        # top pairs data.
+        request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+        res = {
+            "data": {
+                "pairs": [
+                    {field: dummy_value for field in pool_fields}
+                    for dummy_value in ("dum1", "dum2")
+                ]
+            }
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.pairs_q",
+            pairs_q,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test clean-up."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
+        )
+
+        self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted = 1
+        self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted = 1
+        assert self.apy_estimation_behaviour.current_state is not None
+        self.apy_estimation_behaviour.current_state.clean_up()
+        assert self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted == 0
+        assert self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted == 0
+
 
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test FetchBehaviour."""
