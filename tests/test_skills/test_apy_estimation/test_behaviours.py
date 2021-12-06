@@ -878,7 +878,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         assert behaviour.state_id == self.behaviour_class.state_id
 
-        path_to_file = os.path.join(tmp_path, "test.csv")
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
@@ -895,10 +894,8 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         behaviour.context.task_manager.start()
         behaviour.setup()
 
-        cast(pd.DataFrame, transform_task_result.result).to_csv(path_to_file)
         monkeypatch.setattr(pd.DataFrame, "to_csv", lambda *_: None)
-        ipfs_hash = IPFSHashOnly().get(path_to_file)
-        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: ipfs_hash)
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
 
         behaviour.act_wrapper()
         self.mock_a2a_transaction()
