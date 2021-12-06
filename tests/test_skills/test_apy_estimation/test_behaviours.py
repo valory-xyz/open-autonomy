@@ -26,7 +26,7 @@ import time
 from copy import copy
 from datetime import datetime
 from multiprocessing.pool import AsyncResult
-from pathlib import Path
+from pathlib import Path, PosixPath
 from typing import Any, Dict, Tuple, Type, Union, cast, Callable
 from unittest import mock
 from unittest.mock import patch
@@ -829,7 +829,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.end_round()
         assert behaviour.state_id == self.behaviour_class.state_id
 
-    def test_transform_behaviour(self, monkeypatch: MonkeyPatch, tmp_path: str, no_action: Callable[[Any], None],
+    def test_transform_behaviour(self, monkeypatch: MonkeyPatch, tmp_path: PosixPath, no_action: Callable[[Any], None],
                                  transform_task_result: TaskResult) -> None:
         """Run test for `transform_behaviour`."""
         behaviour = self.behaviour_class(
@@ -839,6 +839,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         assert behaviour.state_id == self.behaviour_class.state_id
 
+        path_to_file = os.path.join(tmp_path, "test.csv")
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
         monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
@@ -847,11 +848,10 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         behaviour.context.task_manager.start()
         behaviour.setup()
 
-        # setattr(behaviour, "_transformed_history_save_path", os.path.join(tmp_path, "test.csv"))
-        path_to_file = os.path.join(tmp_path, "test.csv")
-        monkeypatch.setattr(pd.DataFrame, "to_csv",
-                            lambda *_: cast(pd.DataFrame, transform_task_result.result).to_csv(path_to_file))
-        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: IPFSHashOnly().get(path_to_file))
+        cast(pd.DataFrame, transform_task_result.result).to_csv(path_to_file)
+        monkeypatch.setattr(pd.DataFrame, "to_csv", lambda *_: None)
+        ipfs_hash = IPFSHashOnly().get(path_to_file)
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: ipfs_hash)
 
         behaviour.act_wrapper()
         self.mock_a2a_transaction()
