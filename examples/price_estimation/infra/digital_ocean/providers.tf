@@ -27,13 +27,12 @@ resource "digitalocean_domain" "zone-for-clusters" {
   ip_address = "8.8.8.8"
 }
 
-
 module "nemo" {
   source = "git::https://github.com/poseidon/typhoon//digital-ocean/flatcar-linux/kubernetes?ref=v1.22.3"
 
   # Digital Ocean
   cluster_name = "price-estimation"
-  region       = "lon1"
+  region       = "nyc3"
   dns_zone     = "price-oracle.co.uk"
 
   # configuration

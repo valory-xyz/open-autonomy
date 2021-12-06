@@ -18,6 +18,9 @@ terraform {
   }
 }
 
+
+
+
 module "aws_cluster" {
   source = "git::https://github.com/poseidon/typhoon//aws/flatcar-linux/kubernetes?ref=v1.22.4"
 
@@ -38,5 +41,28 @@ module "aws_cluster" {
 resource "local_file" "kubeconfig-tempest" {
   content  = module.aws_cluster.kubeconfig-admin
   filename = "kubefiles/kraken"
+}
+
+resource "aws_security_group_rule" "custom_security_group_egress" {
+
+  type              = "egress"
+  from_port         = 26656
+  to_port           = 26657
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = module.aws_cluster.worker_security_groups[0]
+  #source_security_group_id = module.aws_cluster.worker_security_groups[0]
+# security_group_id =  module.aws_cluster.kubeconfig-admin
+}
+resource "aws_security_group_rule" "custom_security_group_ingress" {
+
+  type              = "ingress"
+  from_port         = 26656
+  to_port           = 26657
+  protocol          = "tcp"
+  security_group_id = module.aws_cluster.worker_security_groups[0]
+  cidr_blocks       = ["0.0.0.0/0"]
+# source_security_group_id = module.aws_cluster.worker_security_groups[0]
+# security_group_id =  module.aws_cluster.kubeconfig-admin
 }
 
