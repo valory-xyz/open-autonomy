@@ -489,8 +489,7 @@ class TransformBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 transformed_history = cast(pd.DataFrame, completed_task.result)
                 self.context.logger.info(
-                    "Data have been transformed. Showing the first row:\n",
-                    transformed_history.head(1),
+                    f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
                 )
 
                 # Store the transformed data.

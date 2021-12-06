@@ -21,17 +21,21 @@
 import binascii
 import json
 import logging
+import os
 import time
 from copy import copy
 from datetime import datetime
+from multiprocessing.pool import AsyncResult
 from pathlib import Path
-from typing import Any, Dict, Tuple, Type, Union, cast
+from typing import Any, Dict, Tuple, Type, Union, cast, Callable
 from unittest import mock
 from unittest.mock import patch
 
+import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
+from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
@@ -63,11 +67,12 @@ from packages.valory.skills.apy_estimation.behaviours import (
     RandomnessBehaviour,
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
-    TransformBehaviour,
+    TransformBehaviour, PreprocessBehaviour, APYEstimationBaseState,
 )
 from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
+from tests.test_skills.test_apy_estimation.conftest import TaskResult
 
 
 class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
@@ -81,6 +86,9 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    participants = frozenset()
+    behaviour_class: Type[APYEstimationBaseState]
+    next_behaviour_class: Type[APYEstimationBaseState]
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -120,6 +128,10 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.apy_estimation_behaviour.current_state).state_id
             == cls.apy_estimation_behaviour.initial_state_cls.state_id
         )
+
+    def create_enough_participants(self) -> None:
+        """Create enough participants."""
+        self.participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
 
     def fast_forward_to_state(
         self,
@@ -762,12 +774,91 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
 
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test FetchBehaviour."""
+    """Test TransformBehaviour."""
 
-    def test_transform_behaviour(self) -> None:
+    behaviour_class = TransformBehaviour
+    next_behaviour_class = PreprocessBehaviour
+
+    def test_setup(self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]) -> None:
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.tasks.transform_hist_data", lambda _: pd.DataFrame())
+        behaviour.context.task_manager.start()
+        behaviour.setup()
+
+        assert isinstance(behaviour._async_result, AsyncResult)
+        assert behaviour._async_result is not None
+
+    def test_task_not_setup(self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]) -> None:
+        """Run test for `transform_behaviour` when not set-up."""
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context
+        )
+
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+        behaviour.act_wrapper()
+        self.end_round()
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+    def test_task_not_ready(self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]) -> None:
+        """Run test for `transform_behaviour` when task result is not ready."""
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context
+        )
+
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.tasks.transform_hist_data", lambda _: pd.DataFrame())
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        behaviour.context.task_manager.start()
+        behaviour.setup()
+
+        behaviour.act_wrapper()
+        self.end_round()
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+    def test_transform_behaviour(self, monkeypatch: MonkeyPatch, tmp_path: str, no_action: Callable[[Any], None],
+                                 transform_task_result: TaskResult) -> None:
         """Run test for `transform_behaviour`."""
-        # TODO
-        assert True
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context
+        )
+
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
+        monkeypatch.setattr("packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+                            lambda _: transform_task_result)
+        behaviour.context.task_manager.start()
+        behaviour.setup()
+
+        # setattr(behaviour, "_transformed_history_save_path", os.path.join(tmp_path, "test.csv"))
+        path_to_file = os.path.join(tmp_path, "test.csv")
+        monkeypatch.setattr(pd.DataFrame, "to_csv",
+                            lambda *_: cast(pd.DataFrame, transform_task_result.result).to_csv(path_to_file))
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: IPFSHashOnly().get(path_to_file))
+
+        behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        assert behaviour.state_id == self.next_behaviour_class.state_id
 
 
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
