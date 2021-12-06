@@ -28,8 +28,10 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation.tools.general import (
     create_pathdirs,
+    filter_out_numbers,
     gen_unix_timestamps,
-    to_json_file, read_json_file,
+    read_json_file,
+    to_json_file,
 )
 
 
@@ -133,7 +135,28 @@ class TestGeneral:
             to_json_file(filepath, expected)  # type: ignore
 
     @staticmethod
-    def test_filter_out_numbers() -> None:
+    @pytest.mark.parametrize(
+        "unfiltered_string,expected",
+        (
+            (
+                "test0this1string",
+                1,
+            ),
+            (
+                "test0thi5s1string",
+                51,
+            ),
+            (
+                "345678",
+                345678,
+            ),
+            (
+                "test_this_string",
+                None,
+            ),
+        ),
+    )
+    def test_filter_out_numbers(unfiltered_string: str, expected: int) -> None:
         """Test `filter_out_numbers`."""
-        # TODO
-        assert True
+        filtered_num = filter_out_numbers(unfiltered_string)
+        assert filtered_num == expected
