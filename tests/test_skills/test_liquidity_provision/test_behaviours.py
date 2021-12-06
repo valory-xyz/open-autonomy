@@ -1161,7 +1161,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                         owners=tuple(period_state.participants),  # type: ignore
                         to_address="multisend_contract_address",
                         value=0,
-                        data=b"data",
+                        data=b"data",  # type: ignore
                         safe_tx_gas=4000000,
                         signatures_by_owner={
                             key: payload.signature

@@ -410,7 +410,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 if strategy["pair"]["token_a"]["is_native"]
                 else "swap_exact_tokens_for_tokens"
             )
-
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=self.period_state.router_contract_address,
@@ -514,7 +513,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Add liquidity
             if strategy["pair"]["token_a"]["is_native"]:
-
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                     contract_address=self.period_state.router_contract_address,
@@ -524,10 +522,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     token=strategy["pair"]["token_b"]["address"],
                     amount_token_desired=int(strategy["pair"]["token_b"]["amount"]),
                     amount_token_min=int(
-                        strategy["pair"]["token_b"]["amount_min"] * 0.99
+                        strategy["pair"]["token_b"]["amount_min"]
                     ),  # Review this factor. For now, we don't want to lose more than 1% here.
                     amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_min"] * 0.99
+                        strategy["pair"]["token_a"]["amount_min"]
                     ),  # Review this factor. For now, we don't want to lose more than 1% here.
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
@@ -546,7 +544,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 )
 
             else:
-
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                     contract_address=self.period_state.router_contract_address,
@@ -558,11 +555,11 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     amount_a_desired=int(strategy["pair"]["token_a"]["amount"]),
                     amount_b_desired=int(strategy["pair"]["token_b"]["amount"]),
                     amount_a_min=int(
-                        strategy["pair"]["token_a"]["amount_min"] * 0.99
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                        strategy["pair"]["token_a"]["amount_min"]
+                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
                     amount_b_min=int(
-                        strategy["pair"]["token_b"]["amount_min"] * 0.99
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                        strategy["pair"]["token_b"]["amount_min"]
+                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
                     to=self.period_state.safe_contract_address,
                     deadline=CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into the future
                 )
