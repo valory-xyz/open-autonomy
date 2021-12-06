@@ -21,6 +21,7 @@
 import json
 import os
 import time
+from pathlib import PosixPath
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -57,7 +58,7 @@ class TestGeneral:
     @pytest.mark.parametrize(
         "test_path", ("", "file.extension", "folder/file.extension")
     )
-    def test_create_pathdirs(tmp_path: str, test_path: str) -> None:
+    def test_create_pathdirs(tmp_path: PosixPath, test_path: str) -> None:
         """Test create pathdirs."""
         full_test_path = os.path.join(tmp_path, test_path)
         folder_name = os.path.dirname(test_path)
@@ -88,7 +89,7 @@ class TestGeneral:
         assert os.path.isdir(path_to_folder)
 
     @staticmethod
-    def test_to_json_file(tmp_path: str) -> None:
+    def test_to_json_file(tmp_path: PosixPath) -> None:
         """Test list to json file."""
         test_list = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
 
