@@ -1,9 +1,0 @@
-#!/sbin/openrc-run
-
-
-description="Executes an abitrary python script."
-
-
-start() {
-        python3 /tendermint/config_loader.py 
-}

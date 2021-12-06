@@ -177,8 +177,6 @@ spec:
     metadata:
       labels:
         app: agent-node-{validator_ix}
-  #    annotations:
-  #      cni.projectcalico.org/ipAddrs: "[\\\"{ip_address}\\\"]"
     spec:
       imagePullSecrets:
       - name: regcred
@@ -219,30 +217,6 @@ spec:
         volumeMounts:
           - mountPath: /build
             name: build   
-      initContainers:
- #    - name: config-nodes
- #      image: valory/localnode
- #      args: ["testnet",
- #       "--config",
- #       "/etc/tendermint/config-template.toml",
- #       "--o",  ".", {host_names},
- #       "--v", "{number_of_validators}"
- #       ]
- #      volumeMounts:
- #        - mountPath: /tendermint
- #          name: build
-#      - name: aea-init
-#        image: valory/oracle-poc
-#        command:
-#          - /usr/bin/python
-#        env: 
-#          - name: NUMBER_OF_NODES
-#            value: "{number_of_validators}"
-#        args: {config_command}
-#        volumeMounts:
-#          - mountPath: /build
-#            name: build
-#    
       volumes:
         - name: build
           persistentVolumeClaim:
