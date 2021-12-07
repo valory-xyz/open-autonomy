@@ -26,8 +26,9 @@ import time
 from copy import copy
 from datetime import datetime
 from multiprocessing.pool import AsyncResult
-from pathlib import Path, PosixPath
-from typing import Any, Dict, Tuple, Type, Union, cast, Callable
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -35,7 +36,6 @@ import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
-from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
@@ -61,18 +61,46 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.apy_estimation.behaviours import (
+    APYEstimationBaseState,
     APYEstimationConsensusBehaviour,
     FetchBehaviour,
     OptimizeBehaviour,
+    PreprocessBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
-    TransformBehaviour, PreprocessBehaviour, APYEstimationBaseState,
+    TransformBehaviour,
 )
 from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import TaskResult
+
+
+class DummyAsyncResult(object):
+    """Dummy class for AsyncResult."""
+
+    def __init__(
+        self,
+        task_result: TaskResult,
+        ready: bool = True,
+    ) -> None:
+        """Initialize class."""
+
+        self._ready = ready
+        self._task_result = task_result
+
+    def ready(
+        self,
+    ) -> bool:
+        """Returns bool"""
+        return True
+
+    def get(
+        self,
+    ) -> TaskResult:
+        """Returns task result."""
+        return self._task_result
 
 
 class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
@@ -86,7 +114,7 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    participants = frozenset()
+    participants: FrozenSet[str] = frozenset()
     behaviour_class: Type[APYEstimationBaseState]
     next_behaviour_class: Type[APYEstimationBaseState]
 
@@ -131,7 +159,9 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 
     def create_enough_participants(self) -> None:
         """Create enough participants."""
-        self.participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        self.participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1", "a_2"}
+        )
 
     def fast_forward_to_state(
         self,
@@ -647,10 +677,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
 
-    def test_fetch_behaviour_retries_exceeded(
-        self,
-        monkeypatch: MonkeyPatch
-    ) -> None:
+    def test_fetch_behaviour_retries_exceeded(self, monkeypatch: MonkeyPatch) -> None:
         """Run tests for exceeded retries."""
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
@@ -660,9 +687,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         subgraphs_sorted_by_utilization_moment = (
             self.apy_estimation_behaviour.context.spooky_subgraph,
-            self.apy_estimation_behaviour.context.fantom_subgraph
+            self.apy_estimation_behaviour.context.fantom_subgraph,
         )
-        subgraphs_sorted_by_utilization_moment += tuple(subgraphs_sorted_by_utilization_moment[0] for _ in range(2))
+        subgraphs_sorted_by_utilization_moment += tuple(  # type: ignore
+            subgraphs_sorted_by_utilization_moment[0] for _ in range(2)
+        )
         for subgraph in subgraphs_sorted_by_utilization_moment:
             monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: bool)
             self.apy_estimation_behaviour.act_wrapper()
@@ -769,8 +798,14 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted = 1
         assert self.apy_estimation_behaviour.current_state is not None
         self.apy_estimation_behaviour.current_state.clean_up()
-        assert self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted == 0
-        assert self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted == 0
+        assert (
+            self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted
+            == 0
+        )
+        assert (
+            self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted
+            == 0
+        )
 
 
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -779,27 +814,41 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = TransformBehaviour
     next_behaviour_class = PreprocessBehaviour
 
-    def test_setup(self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]) -> None:
+    def test_setup(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test behaviour setup."""
         behaviour = self.behaviour_class(
             name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context
+            skill_context=self.apy_estimation_behaviour.context,
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.tasks.transform_hist_data", lambda _: pd.DataFrame())
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
+            no_action,
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.read_json_file",
+            lambda _: {},
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+            lambda _: pd.DataFrame(),
+        )
         behaviour.context.task_manager.start()
         behaviour.setup()
 
         assert isinstance(behaviour._async_result, AsyncResult)
         assert behaviour._async_result is not None
 
-    def test_task_not_setup(self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]) -> None:
+    def test_task_not_setup(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
         """Run test for `transform_behaviour` when not set-up."""
         behaviour = self.behaviour_class(
             name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context
+            skill_context=self.apy_estimation_behaviour.context,
         )
 
         assert behaviour.state_id == self.behaviour_class.state_id
@@ -808,19 +857,30 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.end_round()
         assert behaviour.state_id == self.behaviour_class.state_id
 
-    def test_task_not_ready(self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]) -> None:
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         behaviour = self.behaviour_class(
             name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context
+            skill_context=self.apy_estimation_behaviour.context,
         )
 
         assert behaviour.state_id == self.behaviour_class.state_id
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.tasks.transform_hist_data", lambda _: pd.DataFrame())
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
+            no_action,
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.read_json_file",
+            lambda _: {},
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+            lambda _: pd.DataFrame(),
+        )
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
         behaviour.context.task_manager.start()
         behaviour.setup()
@@ -829,36 +889,54 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.end_round()
         assert behaviour.state_id == self.behaviour_class.state_id
 
-    def test_transform_behaviour(self, monkeypatch: MonkeyPatch, tmp_path: PosixPath, no_action: Callable[[Any], None],
-                                 transform_task_result: TaskResult) -> None:
+    def test_transform_behaviour(
+        self,
+        transform_task_result: TaskResult,
+    ) -> None:
         """Run test for `transform_behaviour`."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context
-        )
 
-        assert behaviour.state_id == self.behaviour_class.state_id
+        with mock.patch(
+            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+            return_value=transform_task_result,
+        ):
+            with mock.patch.object(
+                self._skill._skill_context._agent_context._task_manager,
+                "get_task_result",
+                new_callable=lambda: (
+                    lambda *_: DummyAsyncResult(transform_task_result)
+                ),
+            ):
+                with mock.patch.object(
+                    self._skill._skill_context._agent_context._task_manager,
+                    "enqueue_task",
+                    return_value=3,
+                ):
+                    with TemporaryDirectory() as temp_dir:
+                        self.apy_estimation_behaviour.current_state.params.data_folder = (  # type: ignore
+                            temp_dir
+                        )
+                        with open(
+                            os.path.join(temp_dir, "historical_data.json"), "w+"
+                        ) as fp:
+                            fp.write("{}")
+                        with open(
+                            os.path.join(temp_dir, "transformed_historical_data.csv"),
+                            "w+",
+                        ) as fp:
+                            fp.write("")
 
-        path_to_file = os.path.join(tmp_path, "test.csv")
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.create_pathdirs", no_action)
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.behaviours.read_json_file", lambda _: {})
-        monkeypatch.setattr("packages.valory.skills.apy_estimation.tasks.transform_hist_data",
-                            lambda _: transform_task_result)
-        behaviour.context.task_manager.start()
-        behaviour.setup()
+                        self.fast_forward_to_state(
+                            self.apy_estimation_behaviour,
+                            self.behaviour_class.state_id,
+                            PeriodState(),
+                        )
 
-        cast(pd.DataFrame, transform_task_result.result).to_csv(path_to_file)
-        monkeypatch.setattr(pd.DataFrame, "to_csv", lambda *_: None)
-        ipfs_hash = IPFSHashOnly().get(path_to_file)
-        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: ipfs_hash)
+                        self.apy_estimation_behaviour.current_state.setup()  # type: ignore
+                        self.apy_estimation_behaviour.act_wrapper()
 
-        behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-
-        assert behaviour.state_id == self.next_behaviour_class.state_id
+                        self.mock_a2a_transaction()
+                        self._test_done_flag_set()
+                        self.end_round()
 
 
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
