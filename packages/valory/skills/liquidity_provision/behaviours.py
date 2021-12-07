@@ -25,7 +25,6 @@ from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
-from hexbytes import HexBytes
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import (
@@ -432,8 +431,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
-                    "value": 1,
-                    "data": HexBytes(swap_a_data.hex()),
+                    "value": 0,
+                    "data": swap_a_data,
                 }
             )
 
@@ -459,8 +458,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
-                    "value": 1,
-                    "data": HexBytes(swap_b_data.hex()),
+                    "value": 0,
+                    "data": swap_b_data,
                 }
             )
 
@@ -483,8 +482,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
-                    "value": 1,
-                    "data": HexBytes(allowance_a_data.hex()),
+                    "value": 0,
+                    "data": allowance_a_data,
                 }
             )
 
@@ -507,8 +506,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
-                    "value": 1,
-                    "data": HexBytes(allowance_b_data.hex()),
+                    "value": 0,
+                    "data": allowance_b_data,
                 }
             )
 
@@ -540,8 +539,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
-                        "value": 1,
-                        "data": HexBytes(liquidity_data.hex()),
+                        "value": 0,
+                        "data": liquidity_data,
                     }
                 )
 
@@ -574,8 +573,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         # FIXME: CALL or DELEGATE_CALL? # pylint: disable=fixme
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
-                        "value": 1,
-                        "data": HexBytes(liquidity_data.hex()),
+                        "value": 0,
+                        "data": liquidity_data,
                     }
                 )
 
@@ -708,7 +707,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
+                        "data": liquidity_data,
                     }
                 )
 
@@ -737,7 +736,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
+                        "data": liquidity_data,
                     }
                 )
 
@@ -760,7 +759,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
                     "value": 0,
-                    "data": HexBytes(allowance_a_data.hex()),
+                    "data": allowance_a_data,
                 }
             )
 
@@ -783,7 +782,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
                     "value": 0,
-                    "data": HexBytes(allowance_b_data.hex()),
+                    "data": allowance_b_data,
                 }
             )
 
@@ -811,7 +810,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
+                        "data": swap_a_data,
                     }
                 )
 
@@ -839,7 +838,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
+                        "data": swap_a_data,
                     }
                 )
 
@@ -866,7 +865,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
                     "value": 0,
-                    "data": HexBytes(swap_b_data.hex()),
+                    "data": swap_b_data,
                 }
             )
 

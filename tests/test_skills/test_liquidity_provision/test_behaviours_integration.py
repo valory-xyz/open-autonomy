@@ -55,8 +55,8 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionSignatureBehaviour,
     EnterPoolTransactionValidationBehaviour,
     ExitPoolTransactionHashBehaviour,
-    ExitPoolTransactionSignatureBehaviour,
     ExitPoolTransactionSendBehaviour,
+    ExitPoolTransactionSignatureBehaviour,
     ExitPoolTransactionValidationBehaviour,
     get_strategy_update,
 )
@@ -93,7 +93,7 @@ EXPECTED_TYPES = List[
 ]
 
 
-class TestEnterPoolTransactionHashBehaviourHardhat(
+class TestLiquidityProvisionHardhat(
     LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
 ):
     """Test liquidity pool behaviours in a Hardhat environment."""
@@ -103,14 +103,17 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     multiplexer: Multiplexer
     decision_maker: DecisionMaker
     strategy: Dict
-    default_period_state: PeriodState
+    default_period_state_enter: PeriodState
+    default_period_state_exit: PeriodState
     safe_owners: Dict
     safe_contract_address: str
     multisend_contract_address: str
     router_contract_address: str
     keeper_address: str
-    multisend_data: str
-    most_voted_tx_hash: str
+    multisend_data_enter: str
+    multisend_data_exit: str
+    most_voted_tx_hash_enter: str
+    most_voted_tx_hash_exit: str
     ethereum_api: EthereumApi
     gnosis_instance: Any
 
@@ -370,7 +373,9 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=state_id,
-            period_state=period_state if period_state else self.default_period_state_enter,
+            period_state=period_state
+            if period_state
+            else self.default_period_state_enter,
         )
         assert (
             cast(
@@ -450,7 +455,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             address: SignaturePayload(
                 sender=address,
                 signature=crypto.sign_message(
-                    binascii.unhexlify(self.most_voted_tx_hash_enter), is_deprecated_mode=True
+                    binascii.unhexlify(self.most_voted_tx_hash_enter),
+                    is_deprecated_mode=True,
                 )[2:],
             )
             for address, crypto in self.safe_owners.items()
@@ -614,7 +620,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             address: SignaturePayload(
                 sender=address,
                 signature=crypto.sign_message(
-                    binascii.unhexlify(self.most_voted_tx_hash_exit), is_deprecated_mode=True
+                    binascii.unhexlify(self.most_voted_tx_hash_exit),
+                    is_deprecated_mode=True,
                 )[2:],
             )
             for address, crypto in self.safe_owners.items()
