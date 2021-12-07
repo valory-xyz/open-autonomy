@@ -763,7 +763,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 save_path = os.path.join(
                     self.params.data_folder,
                     self.params.pair_id,
-                    f"{prefix}forecaster.pkl",
+                    f"{prefix}forecaster.joblib",
                 )
                 save_forecaster(save_path, forecaster)
 
@@ -807,7 +807,7 @@ class TestBehaviour(APYEstimationBaseState):
             y[split] = np.loadtxt(path, delimiter=",")
 
         model_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "forecaster.pkl"
+            self.params.data_folder, self.params.pair_id, "forecaster.joblib"
         )
         forecaster = load_forecaster(model_path)
 
@@ -887,7 +887,7 @@ class EstimateBehaviour(APYEstimationBaseState):
             model_path = os.path.join(
                 self.params.data_folder,
                 self.params.pair_id,
-                "fully_trained_forecaster.pkl",
+                "fully_trained_forecaster.joblib",
             )
             forecaster = load_forecaster(model_path)
             estimation = forecaster.predict(self.params.estimation["steps_forward"])
