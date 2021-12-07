@@ -327,22 +327,25 @@ def get_strategy_update() -> dict:
         "base": {
             "ticker": "WETH",
             "address": WETH_ADDRESS,
-            "balance": 10 ** 10,
+            "amount_in_a": 10 ** 4,
+            "amount_in_b": 10 ** 4,
         },
         "pair": {
             "token_a": {
                 "ticker": "TKA",
                 "address": TOKEN_A_ADDRESS,
-                "amount": 10 ** 4,
-                "amount_min": 10 ** 3,
+                "amount_desired": 10 ** 3,
+                "amount_out_min": 10 ** 3,
+                "amount_desired_min": 10 ** 2,
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
             "token_b": {
                 "ticker": "TKB",
                 "address": TOKEN_B_ADDRESS,
-                "amount": 10 ** 4,
-                "amount_min": 10 ** 3,
+                "amount_desired": 10 ** 3,
+                "amount_out_min": 10 ** 3,
+                "amount_desired_min": 10 ** 2,
             },
         },
         "liquidity_to_remove": 1,  # TOFIX
@@ -412,6 +415,29 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # and always swap back to it.
             multi_send_txs = []
 
+            # Add allowance for base token (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["base"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=self.period_state.router_contract_address,
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=MAX_ALLOWANCE,
+            )
+            allowance_base_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": strategy["base"]["address"],
+                    "value": 0,
+                    "data": HexBytes(allowance_base_data.hex()),
+                }
+            )
+
             # Swap first token (can be native or not)
             method_name = (
                 "swap_exact_tokens_for_ETH"
@@ -424,8 +450,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name=method_name,
-                amount_in=int(strategy["pair"]["token_a"]["amount"]),
-                amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                amount_in=int(strategy["base"]["amount_in_a"]),
+                amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
                 path=[
                     strategy["base"]["address"],
                     strategy["pair"]["token_a"]["address"],
@@ -450,8 +476,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
-                amount_in=int(strategy["pair"]["token_b"]["amount"]),
-                amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                amount_in=int(strategy["base"]["amount_in_b"]),
+                amount_out_min=int(strategy["pair"]["token_b"]["amount_out_min"]),
                 path=[
                     strategy["base"]["address"],
                     strategy["pair"]["token_b"]["address"],
@@ -525,12 +551,14 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="add_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
-                    amount_token_desired=int(strategy["pair"]["token_b"]["amount"]),
+                    amount_token_desired=int(
+                        strategy["pair"]["token_b"]["amount_desired"]
+                    ),
                     amount_token_min=int(
-                        strategy["pair"]["token_b"]["amount_min"]
+                        strategy["pair"]["token_b"]["amount_desired_min"]
                     ),  # Review this factor. For now, we don't want to lose more than 1% here.
                     amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_min"]
+                        strategy["pair"]["token_a"]["amount_desired_min"]
                     ),  # Review this factor. For now, we don't want to lose more than 1% here.
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
@@ -542,7 +570,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.router_contract_address,
-                        "value": int(strategy["pair"]["token_a"]["amount"]),
+                        "value": int(strategy["pair"]["token_a"]["amount_desired"]),
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
@@ -556,13 +584,13 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="add_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    amount_a_desired=int(strategy["pair"]["token_a"]["amount"]),
-                    amount_b_desired=int(strategy["pair"]["token_b"]["amount"]),
+                    amount_a_desired=int(strategy["pair"]["token_a"]["amount_desired"]),
+                    amount_b_desired=int(strategy["pair"]["token_b"]["amount_desired"]),
                     amount_a_min=int(
-                        strategy["pair"]["token_a"]["amount_min"]
+                        strategy["pair"]["token_a"]["amount_desired_min"]
                     ),  # Review this factor. For now, we don't want to lose more than 10% here.
                     amount_b_min=int(
-                        strategy["pair"]["token_b"]["amount_min"]
+                        strategy["pair"]["token_b"]["amount_desired_min"]
                     ),  # Review this factor. For now, we don't want to lose more than 10% here.
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
@@ -696,8 +724,12 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
                     liquidity=strategy["liquidity_to_remove"],
-                    amount_token_min=int(strategy["pair"]["token_b"]["amount_min"]),
-                    amount_ETH_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    amount_token_min=int(
+                        strategy["pair"]["token_b"]["amount_desired_min"]
+                    ),  # FIX, get actual amount
+                    amount_ETH_min=int(
+                        strategy["pair"]["token_a"]["amount_desired_min"]
+                    ),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -724,8 +756,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
                     liquidity=strategy["liquidity_to_remove"],
-                    amount_a_min=int(strategy["pair"]["token_a"]["amount_min"]),
-                    amount_b_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                    amount_a_min=int(strategy["pair"]["token_a"]["amount_desired_min"]),
+                    amount_b_min=int(strategy["pair"]["token_b"]["amount_desired_min"]),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -794,7 +826,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_ETH_for_tokens",
-                    amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    amount_out_min=int(strategy["pair"]["token_a"]["amount_out_min"]),
                     path=[
                         strategy["pair"]["token_a"]["address"],
                         strategy["base"]["address"],
@@ -819,8 +851,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_tokens_for_tokens",
-                    amount_in=int(strategy["pair"]["token_a"]["amount"]),
-                    amount_out_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                    amount_in=int(strategy["pair"]["token_a"]["amount_out_min"]),
+                    amount_out_min=int(strategy["base"]["amount_in_a"]),
                     path=[
                         strategy["pair"]["token_a"]["address"],
                         strategy["base"]["address"],
@@ -845,8 +877,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
-                amount_in=int(strategy["pair"]["token_b"]["amount"]),
-                amount_out_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                amount_in=int(strategy["pair"]["token_b"]["amount_out_min"]),
+                amount_out_min=int(strategy["base"]["amount_in_b"]),
                 path=[
                     strategy["pair"]["token_b"]["address"],
                     strategy["base"]["address"],
