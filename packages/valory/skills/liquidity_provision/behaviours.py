@@ -27,7 +27,10 @@ from typing import Generator, Optional, Set, Type, cast
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
 
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SafeOperation,
+)
 from packages.valory.contracts.multisend.contract import (
     MultiSendContract,
     MultiSendOperation,
@@ -80,8 +83,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 )
 
 
-TEMP_GAS = 10 ** 7  # TOFIX
-TEMP_GAS_PRICE = 0.1  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
@@ -217,9 +218,11 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=self.period_state.multisend_contract_address,
-            value=ETHER_VALUE,
+            value=ETHER_VALUE,  # TOFIX: value, operation, safe_nonce, safe_tx_gas need to be configurable and synchronised
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
+            operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=SAFE_TX_GAS,
+            safe_nonce=0,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -291,9 +294,11 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
             to_address=self.period_state.multisend_contract_address,
-            value=ETHER_VALUE,
+            value=ETHER_VALUE,  # TOFIX: value, operation, safe_nonce and safe_tx_gas should be part of synchronised params
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
+            operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=SAFE_TX_GAS,
+            safe_nonce=0,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -337,7 +342,7 @@ def get_strategy_update() -> dict:
                 "amount_min": 10 ** 3,
             },
         },
-        "liquidity_to_remove": 1,
+        "liquidity_to_remove": 1,  # TOFIX
     }
     return strategy
 
@@ -596,7 +601,9 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 to_address=self.period_state.multisend_contract_address,
                 value=ETHER_VALUE,
                 data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
                 safe_tx_gas=SAFE_TX_GAS,
+                safe_nonce=0,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]
@@ -888,6 +895,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=ETHER_VALUE,
                 data=bytes.fromhex(multisend_data),
                 safe_tx_gas=SAFE_TX_GAS,
+                safe_nonce=1,
             )
             safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
             safe_tx_hash = safe_tx_hash[2:]

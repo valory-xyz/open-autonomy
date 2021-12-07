@@ -45,6 +45,7 @@ from packages.valory.connections.ledger.base import (
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
+from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.contracts.multisend.contract import MultiSendContract
 from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
@@ -631,12 +632,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
                         amount_token_desired=int(strategy["pair"]["token_b"]["amount"]),
-                        amount_token_min=int(
-                            strategy["pair"]["token_b"]["amount_min"] * 0.99
-                        ),
-                        amount_ETH_min=int(
-                            strategy["pair"]["token_a"]["amount_min"] * 0.99
-                        ),
+                        amount_token_min=int(strategy["pair"]["token_b"]["amount_min"]),
+                        amount_ETH_min=int(strategy["pair"]["token_a"]["amount_min"]),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -678,7 +675,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
                         data=b"ummy_tx",  # type: ignore
+                        operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
+                        safe_nonce=0,
                     )
                 ),
             ),
@@ -862,12 +861,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         token_b=strategy["pair"]["token_b"]["address"],
                         amount_a_desired=int(strategy["pair"]["token_a"]["amount"]),
                         amount_b_desired=int(strategy["pair"]["token_b"]["amount"]),
-                        amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_min"] * 0.99
-                        ),
-                        amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_min"] * 0.99
-                        ),
+                        amount_a_min=int(strategy["pair"]["token_a"]["amount_min"]),
+                        amount_b_min=int(strategy["pair"]["token_b"]["amount_min"]),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -909,7 +904,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         to_address=period_state.multisend_contract_address,
                         value=ETHER_VALUE,
                         data=b"ummy_tx",  # type: ignore
+                        operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
+                        safe_nonce=0,
                     )
                 ),
             ),
@@ -1052,11 +1049,13 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                         to_address="multisend_contract_address",
                         value=0,
                         data=b"some_data",  # type: ignore
+                        operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
                         signatures_by_owner={
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
                         },
+                        safe_nonce=0,
                     )
                 ),
             ),
@@ -1162,11 +1161,13 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                         to_address="multisend_contract_address",
                         value=0,
                         data=b"data",  # type: ignore
+                        operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
                         signatures_by_owner={
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
                         },
+                        safe_nonce=0,
                     )
                 ),
             ),

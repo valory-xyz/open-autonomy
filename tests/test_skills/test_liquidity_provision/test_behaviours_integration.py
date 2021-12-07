@@ -25,7 +25,6 @@ from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-import eth_event
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
 from aea.decision_maker.base import DecisionMaker
@@ -111,6 +110,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     most_voted_tx_hash: str
     ethereum_api: EthereumApi
     gnosis_instance: Any
+    multisend_instance: Any
+    router_instance: Any
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -216,18 +217,18 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         )
         cls.multisend_data = "8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053d00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb6075080000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c000000"
         cls.most_voted_tx_hash = (
-            "2e28d14b671fa06a49f029b1ab153be6db415b9b7e20042746ed6cf7d54fe7ea"
+            "2f2f31dd983a331eef405ef7cc3a3aa44a4ab115c12caedd18b59b5d37e2aedc"
         )
 
         # setup default objects
         cls.strategy = get_strategy_update()
         cls.default_period_state = PeriodState(
-            most_voted_tx_hash=cls.most_voted_tx_hash,
             safe_contract_address=cls.safe_contract_address,
             most_voted_keeper_address=cls.keeper_address,
             most_voted_strategy=cls.strategy,
             multisend_contract_address=cls.multisend_contract_address,
             router_contract_address=cls.router_contract_address,
+            participants=frozenset(list(cls.safe_owners.keys())),
         )
 
         cls.ethereum_api = make_ledger_api("ethereum")
@@ -240,9 +241,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         cls.router_instance = router.get_instance(
             cls.ethereum_api, cls.router_contract_address
         )
-        cls.topic_map_gnosis = eth_event.get_topic_map(cls.gnosis_instance.abi)
-        cls.topic_map_multisend = eth_event.get_topic_map(cls.multisend_instance.abi)
-        cls.topic_map_router = eth_event.get_topic_map(cls.router_instance.abi)
+        # import eth_event  # noqa: E800
+        # cls.topic_map_gnosis = eth_event.get_topic_map(cls.gnosis_instance.abi)  # noqa: E800
+        # cls.topic_map_multisend = eth_event.get_topic_map(cls.multisend_instance.abi)  # noqa: E800
+        # cls.topic_map_router = eth_event.get_topic_map(cls.router_instance.abi)  # noqa: E800
 
     @classmethod
     def teardown(cls) -> None:
@@ -407,9 +409,6 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             expected_content,
             expected_types,
         )
-        # import pdb
-
-        # pdb.set_trace()
         assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
         tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
         assert tx_data == self.multisend_data
@@ -419,14 +418,13 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
     def test_enter_pool_tx_sign_behaviour(self) -> None:
         """test_enter_pool_tx_sign_behaviour"""
-        participants = frozenset(list(self.safe_owners.keys()))
 
-        # first value taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = PeriodState(
-            most_voted_tx_hash=self.most_voted_tx_hash,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            participants=participants,
+        # value taken from test_enter_pool_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state.update(
+                most_voted_tx_hash=self.most_voted_tx_hash
+            ),
         )
 
         cycles = 1
@@ -457,17 +455,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             )
             for address, crypto in self.safe_owners.items()
         }
-        # first two values taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = PeriodState(
-            most_voted_tx_hash=self.most_voted_tx_hash,
-            most_voted_tx_data=self.multisend_data,
-            safe_contract_address=self.safe_contract_address,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            multisend_contract_address=self.multisend_contract_address,
-            router_contract_address=self.router_contract_address,
-            participants=frozenset(list(participant_to_signature.keys())),
-            participant_to_signature=participant_to_signature,
+        # values taken from test_enter_pool_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state.update(
+                most_voted_tx_hash=self.most_voted_tx_hash,
+                most_voted_tx_data=self.multisend_data,
+                participant_to_signature=participant_to_signature,
+            ),
         )
         handlers: HANDLERS = [
             self.contract_handler,
@@ -508,17 +503,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         tx_digest = msg.transaction_digest.body
 
         # validate
-        period_state = PeriodState(
-            final_tx_hash=tx_digest,
-            most_voted_tx_hash=self.most_voted_tx_hash,
-            most_voted_tx_data=self.multisend_data,
-            safe_contract_address=self.safe_contract_address,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            multisend_contract_address=self.multisend_contract_address,
-            router_contract_address=self.router_contract_address,
-            participants=frozenset(list(participant_to_signature.keys())),
-            participant_to_signature=participant_to_signature,
+        period_state = cast(
+            PeriodState,
+            self.default_period_state.update(
+                final_tx_hash=tx_digest,
+                most_voted_tx_hash=self.most_voted_tx_hash,
+                most_voted_tx_data=self.multisend_data,
+                participant_to_signature=participant_to_signature,
+            ),
         )
         handlers = [
             self.ledger_handler,
@@ -554,15 +546,13 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         assert not all(
             [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
         )
-        decoded_logs = eth_event.decode_logs(receipt["logs"], self.topic_map_gnosis)
-        print(decoded_logs)
-        # trace = self.ethereum_api.api.provider.make_request("debug_traceTransaction",[tx_digest, {}])
-        # struct_log = trace['result']['structLogs']
-        # decoded_trace = eth_event.decode_trace(struct_log, self.topic_map_gnosis, initial_address="0x5fc8d32690cc91d4c39d9d3abcbd16989f875707")
-        import pdb
-
-        pdb.set_trace()
-        # note, currently the transaction passes but there is an execution failure; so it's not working yet!
+        # import eth_event  # noqa: E800
+        # decoded_logs = eth_event.decode_logs(receipt["logs"], self.topic_map_gnosis)  # noqa: E800
+        # print(decoded_logs)  # noqa: E800
+        # trace = self.ethereum_api.api.provider.make_request("debug_traceTransaction",[tx_digest, {}])  # noqa: E800
+        # struct_log = trace['result']['structLogs']  # noqa: E800
+        # decoded_trace = eth_event.decode_trace(struct_log, self.topic_map_gnosis, initial_address="0x5fc8d32690cc91d4c39d9d3abcbd16989f875707")  # noqa: E800
+        # note, currently the transaction passes but there is an execution failure; so it's not working yet!  # noqa: E800
 
     # Exit pool behaviours
 
