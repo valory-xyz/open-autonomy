@@ -902,14 +902,14 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             return_value=transform_task_result,
         ):
             with mock.patch.object(
-                self._skill._skill_context._agent_context._task_manager,
+                self._skill._skill_context._agent_context._task_manager,  # type: ignore
                 "get_task_result",
                 new_callable=lambda: (
                     lambda *_: DummyAsyncResult(transform_task_result)
                 ),
             ):
                 with mock.patch.object(
-                    self._skill._skill_context._agent_context._task_manager,
+                    self._skill._skill_context._agent_context._task_manager,  # type: ignore
                     "enqueue_task",
                     return_value=3,
                 ):
@@ -965,7 +965,10 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         ):
             with mock.patch(
                 "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
-                new_callable=lambda *_: ((np.asarray([0] * 20), np.asarray([0] * 10)), ""),
+                new_callable=lambda *_: (
+                    (np.asarray([0] * 20), np.asarray([0] * 10)),
+                    "",
+                ),
             ):
                 with mock.patch(
                     "packages.valory.skills.apy_estimation.tools.etl.load_hist",
