@@ -41,7 +41,11 @@ from packages.valory.skills.apy_estimation.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
+    TestingPayload as _TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
@@ -388,7 +392,7 @@ class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
 
     round_id = "test"
-    allowed_tx_type = TestingPayload.transaction_type
+    allowed_tx_type = _TestingPayload.transaction_type
     payload_attribute = "report_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:

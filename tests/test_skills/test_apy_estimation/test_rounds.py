@@ -39,7 +39,11 @@ from packages.valory.skills.apy_estimation.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
+    TestingPayload as _TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
@@ -54,10 +58,9 @@ from packages.valory.skills.apy_estimation.rounds import (
     RandomnessRound,
     RegistrationRound,
     ResetRound,
-    TestRound,
-    TrainRound,
-    TransformRound,
 )
+from packages.valory.skills.apy_estimation.rounds import TestRound as _TestRound
+from packages.valory.skills.apy_estimation.rounds import TrainRound, TransformRound
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
@@ -156,10 +159,10 @@ def get_participant_to_train_payload(
 
 def get_participant_to_test_payload(
     participants: FrozenSet[str],
-) -> Dict[str, TestingPayload]:
+) -> Dict[str, _TestingPayload]:
     """Get testing payload."""
     return {
-        participant: TestingPayload(participant, "report_hash")
+        participant: _TestingPayload(participant, "report_hash")
         for participant in participants
     }
 
@@ -525,7 +528,7 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
     def test_run(self) -> None:
         """Runs test."""
 
-        test_round = TestRound(
+        test_round = _TestRound(
             self.period_state.update(full_training=True), self.consensus_params
         )
         self._complete_run(

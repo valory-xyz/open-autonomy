@@ -26,7 +26,11 @@ from packages.valory.skills.apy_estimation.payloads import (
     PreprocessPayload,
     RandomnessPayload,
     ResetPayload,
-    TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
+    TestingPayload as _TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
     TrainingPayload,
     TransactionType,
     TransformationPayload,
@@ -127,7 +131,7 @@ class TestPayloads:
     @staticmethod
     def test_testing_payload() -> None:
         """Test `TestingPayload`"""
-        payload = TestingPayload(sender="sender", report_hash="x0", id_="id")
+        payload = _TestingPayload(sender="sender", report_hash="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.TESTING
         assert payload.report_hash == "x0"
