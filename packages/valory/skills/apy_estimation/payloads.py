@@ -216,7 +216,7 @@ class OptimizationPayload(BaseAPYPayload):
         self._best_params = best_params
 
     @property
-    def study(self) -> str:
+    def study_hash(self) -> str:
         """Get the optimization study's hash."""
         return self._study_hash
 

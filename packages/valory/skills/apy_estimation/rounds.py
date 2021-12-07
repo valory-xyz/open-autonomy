@@ -258,7 +258,7 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
     round_id = "preprocess"
     allowed_tx_type = PreprocessPayload.transaction_type
-    payload_attribute = "train_test"
+    payload_attribute = "train_test_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
