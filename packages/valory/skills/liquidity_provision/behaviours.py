@@ -210,6 +210,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
     def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
         """Send a Safe transaction using the participants' signatures."""
+        strategy = self.period_state.most_voted_strategy
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -221,8 +222,8 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             value=ETHER_VALUE,  # TOFIX: value, operation, safe_nonce, safe_tx_gas need to be configurable and synchronised
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
-            safe_tx_gas=SAFE_TX_GAS,
-            safe_nonce=0,
+            safe_tx_gas=strategy["safe_tx_gas"],
+            safe_nonce=strategy["safe_nonce"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -270,6 +271,7 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Contract deployment verification."""
+        strategy = self.period_state.most_voted_strategy
         response = yield from self.get_transaction_receipt(
             self.period_state.final_tx_hash,
             self.params.retry_timeout,
@@ -297,8 +299,8 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             value=ETHER_VALUE,  # TOFIX: value, operation, safe_nonce and safe_tx_gas should be part of synchronised params
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
-            safe_tx_gas=SAFE_TX_GAS,
-            safe_nonce=0,
+            safe_tx_gas=strategy["safe_tx_gas"],
+            safe_nonce=strategy["safe_nonce"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()

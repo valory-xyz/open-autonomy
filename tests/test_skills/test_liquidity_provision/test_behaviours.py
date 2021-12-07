@@ -1163,11 +1163,13 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
     ) -> None:
         """Test tx hash behaviour."""
 
+        strategy = get_default_strategy()
         participants = get_participants()
         period_state = PeriodState(
             participants=participants,
             most_voted_tx_hash="0x",
             most_voted_tx_data=b"data".hex(),
+            most_voted_strategy=strategy,
             final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
             multisend_contract_address="multisend_contract_address",
             safe_contract_address="safe_contract_address",
