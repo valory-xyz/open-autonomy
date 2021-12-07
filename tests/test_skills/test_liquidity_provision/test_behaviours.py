@@ -98,6 +98,9 @@ def get_default_strategy(is_native: bool = True) -> Dict:
     return {
         "action": StrategyType.GO.value,
         "chain": "Fantom",
+        "safe_nonce": 0,
+        "safe_tx_gas": 4000000,
+        "deadline": 300,
         "base": {"address": "0xUSDT_ADDRESS", "balance": 100},
         "pair": {
             "token_a": {
@@ -559,32 +562,6 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_swap_exact_tokens_for_tokens_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2ERC20Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_a"]["address"],
-                kwargs=Kwargs(
-                    dict(
-                        method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
-                        value=MAX_ALLOWANCE,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
                     body={"data": b"dummy_tx"},  # type: ignore
@@ -1234,32 +1211,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_ETH_min=int(strategy["pair"]["token_a"]["amount_min"]),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2ERC20Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_a"]["address"],
-                kwargs=Kwargs(
-                    dict(
-                        method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
-                        value=0,
                     )
                 ),
             ),
