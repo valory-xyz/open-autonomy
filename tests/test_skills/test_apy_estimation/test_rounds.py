@@ -172,8 +172,7 @@ def get_participant_to_estimate_payload(
 ) -> Dict[str, EstimatePayload]:
     """Get estimate payload."""
     return {
-        participant: EstimatePayload(participant, [10.0, 11.0, 12.0])
-        for participant in participants
+        participant: EstimatePayload(participant, 10.0) for participant in participants
     }
 
 
@@ -545,7 +544,6 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
-@pytest.mark.skip
 class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `EstimateRound`."""
 
@@ -560,9 +558,11 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state,
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                ),
                 state_attr_checks=[],
-                most_voted_payload=[10.0, 11.0, 12.0],
+                most_voted_payload=10.0,
                 exit_event=Event.DONE,
             )
         )

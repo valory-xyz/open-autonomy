@@ -141,14 +141,12 @@ class TestPayloads:
     @staticmethod
     def test_estimate_payload() -> None:
         """Test `EstimatePayload`"""
-        payload = EstimatePayload(
-            sender="sender", estimation=[2.0044, 5.8365], id_="id"
-        )
+        payload = EstimatePayload(sender="sender", estimation=2.0044, id_="id")
 
         assert payload.transaction_type == TransactionType.ESTIMATION
-        assert payload.estimation == [2.0044, 5.8365]
+        assert payload.estimation == 2.0044
         assert payload.id_ == "id"
-        assert payload.data == {"estimation": [2.0044, 5.8365]}
+        assert payload.data == {"estimation": 2.0044}
 
     @staticmethod
     def test_reset_payload() -> None:

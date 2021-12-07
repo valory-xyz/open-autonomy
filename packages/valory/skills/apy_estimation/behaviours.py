@@ -890,6 +890,7 @@ class EstimateBehaviour(APYEstimationBaseState):
                 "fully_trained_forecaster.joblib",
             )
             forecaster = load_forecaster(model_path)
+            # currently, a `steps_forward != 1` will fail
             estimation = forecaster.predict(self.params.estimation["steps_forward"])
 
             self.context.logger.info(

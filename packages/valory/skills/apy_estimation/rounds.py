@@ -80,7 +80,7 @@ class PeriodState(BasePeriodState):
         best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
         pair_name: Optional[str] = None,
-        n_estimations: Optional[int] = None,
+        n_estimations: int = 0,
     ) -> None:
         """Initialize the state."""
         super().__init__(participants, period_count, period_setup_params)
