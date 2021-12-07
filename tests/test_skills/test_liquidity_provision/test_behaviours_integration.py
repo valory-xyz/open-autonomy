@@ -21,6 +21,7 @@ import asyncio
 import binascii
 import os
 import tempfile
+from copy import deepcopy
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, cast
@@ -110,6 +111,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     most_voted_tx_hash: str
     ethereum_api: EthereumApi
     gnosis_instance: Any
+    multisend_instance: Any
+    router_instance: Any
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -149,13 +152,13 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         directory = Path(
             ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
         )
-        _ = get_register_contract(directory)
+        router = get_register_contract(directory)
         directory = Path(
             ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
         )
         _ = get_register_contract(directory)
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "multisend")
-        _ = get_register_contract(directory)
+        multisend = get_register_contract(directory)
         directory = Path(ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         gnosis = get_register_contract(directory)
         # setup a multiplexer with the required connections
@@ -213,26 +216,39 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         cls._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
             "decision_maker"
         )
-        cls.multisend_data = "8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053d005fc8d32690cc91d4c39d9d3abcbd16989f8757070000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000010438ed17390000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd82005fc8d32690cc91d4c39d9d3abcbd16989f8757070000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000010438ed17390000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508005fc8d32690cc91d4c39d9d3abcbd16989f87570700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff005fc8d32690cc91d4c39d9d3abcbd16989f87570700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff005fc8d32690cc91d4c39d9d3abcbd16989f87570700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb6075080000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c000000"
+        cls.multisend_data = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000005d600610178da211fef7d417bc0e6fed39f05609ad78800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000"
         cls.most_voted_tx_hash = (
-            "73372550056a76035676ec5322a203b053b2c3db14491e7466984862f1d2d641"
+            "40f436677c8bb2f382d29c25106a202926d701858ef7eb9483fbccf2259cea25"
         )
 
         # setup default objects
         cls.strategy = get_strategy_update()
+        cls.strategy[
+            "deadline"
+        ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
         cls.default_period_state = PeriodState(
-            most_voted_tx_hash=cls.most_voted_tx_hash,
             safe_contract_address=cls.safe_contract_address,
             most_voted_keeper_address=cls.keeper_address,
             most_voted_strategy=cls.strategy,
             multisend_contract_address=cls.multisend_contract_address,
             router_contract_address=cls.router_contract_address,
+            participants=frozenset(list(cls.safe_owners.keys())),
         )
 
         cls.ethereum_api = make_ledger_api("ethereum")
         cls.gnosis_instance = gnosis.get_instance(
             cls.ethereum_api, cls.safe_contract_address
         )
+        cls.multisend_instance = multisend.get_instance(
+            cls.ethereum_api, cls.multisend_contract_address
+        )
+        cls.router_instance = router.get_instance(
+            cls.ethereum_api, cls.router_contract_address
+        )
+        # import eth_event  # noqa: E800
+        # cls.topic_map_gnosis = eth_event.get_topic_map(cls.gnosis_instance.abi)  # noqa: E800
+        # cls.topic_map_multisend = eth_event.get_topic_map(cls.multisend_instance.abi)  # noqa: E800
+        # cls.topic_map_router = eth_event.get_topic_map(cls.router_instance.abi)  # noqa: E800
 
     @classmethod
     def teardown(cls) -> None:
@@ -378,7 +394,9 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
     def test_enter_pool_tx_hash_behaviour(self) -> None:
         """test_enter_pool_tx_hash_behaviour"""
-        cycles = 7
+        timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
+        assert self.strategy["deadline"] > timestamp, "Increase timestamp!"
+        cycles = 8
         handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
             {
@@ -390,24 +408,29 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
                 "raw_transaction": RawTransaction,
             }
         ] * cycles
-        self.process_n_messsages(
+        _, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
             EnterPoolTransactionHashBehaviour.state_id,
             cycles,
             handlers,
             expected_content,
             expected_types,
         )
+        assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
+        tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
+        assert tx_data == self.multisend_data
+        assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
+        tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
+        assert tx_hash == self.most_voted_tx_hash
 
     def test_enter_pool_tx_sign_behaviour(self) -> None:
         """test_enter_pool_tx_sign_behaviour"""
-        participants = frozenset(list(self.safe_owners.keys()))
 
-        # first value taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = PeriodState(
-            most_voted_tx_hash=self.most_voted_tx_hash,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            participants=participants,
+        # value taken from test_enter_pool_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state.update(
+                most_voted_tx_hash=self.most_voted_tx_hash
+            ),
         )
 
         cycles = 1
@@ -438,17 +461,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             )
             for address, crypto in self.safe_owners.items()
         }
-        # first two values taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = PeriodState(
-            most_voted_tx_hash=self.most_voted_tx_hash,
-            most_voted_tx_data=self.multisend_data,
-            safe_contract_address=self.safe_contract_address,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            multisend_contract_address=self.multisend_contract_address,
-            router_contract_address=self.router_contract_address,
-            participants=frozenset(list(participant_to_signature.keys())),
-            participant_to_signature=participant_to_signature,
+        # values taken from test_enter_pool_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state.update(
+                most_voted_tx_hash=self.most_voted_tx_hash,
+                most_voted_tx_data=self.multisend_data,
+                participant_to_signature=participant_to_signature,
+            ),
         )
         handlers: HANDLERS = [
             self.contract_handler,
@@ -489,17 +509,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         tx_digest = msg.transaction_digest.body
 
         # validate
-        period_state = PeriodState(
-            final_tx_hash=tx_digest,
-            most_voted_tx_hash=self.most_voted_tx_hash,
-            most_voted_tx_data=self.multisend_data,
-            safe_contract_address=self.safe_contract_address,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            multisend_contract_address=self.multisend_contract_address,
-            router_contract_address=self.router_contract_address,
-            participants=frozenset(list(participant_to_signature.keys())),
-            participant_to_signature=participant_to_signature,
+        period_state = cast(
+            PeriodState,
+            self.default_period_state.update(
+                final_tx_hash=tx_digest,
+                most_voted_tx_hash=self.most_voted_tx_hash,
+                most_voted_tx_data=self.multisend_data,
+                participant_to_signature=participant_to_signature,
+            ),
         )
         handlers = [
             self.ledger_handler,
@@ -532,15 +549,28 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
-        assert not all(
+        assert all(
             [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
         )
-        # note, currently the transaction passes but there is an execution failure; so it's not working yet!
+        # import eth_event  # noqa: E800
+        # decoded_logs = eth_event.decode_logs(receipt["logs"], self.topic_map_gnosis)  # noqa: E800
+        # print(decoded_logs)  # noqa: E800
+        # trace = self.ethereum_api.api.provider.make_request("debug_traceTransaction",[tx_digest, {}])  # noqa: E800
+        # struct_log = trace['result']['structLogs']  # noqa: E800
+        # decoded_trace = eth_event.decode_trace(struct_log, self.topic_map_gnosis, initial_address="0x5fc8d32690cc91d4c39d9d3abcbd16989f875707")  # noqa: E800
+        # note, currently the transaction passes but there is an execution failure; so it's not working yet!  # noqa: E800
 
     # Exit pool behaviours
 
     def test_exit_pool_tx_hash_behaviour(self) -> None:
         """test_exit_pool_tx_hash_behaviour"""
+        timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
+        assert self.strategy["deadline"] > timestamp, "Increase timestamp!"
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 1
+        period_state = cast(
+            PeriodState, self.default_period_state.update(most_voted_strategy=strategy)
+        )
         cycles = 7
         handlers: HANDLERS = [self.contract_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
@@ -559,6 +589,7 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             handlers,
             expected_content,
             expected_types,
+            period_state,
         )
 
     def test_exit_pool_tx_sign_behaviour(self) -> None:

@@ -353,8 +353,8 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                     self.deployer_crypto.address
                 ]
             },
-        )["verified"]
-        assert verified, "Not verified"
+        )
+        assert verified["verified"], f"Not verified: {verified}"
 
     def test_verify_negative(self) -> None:
         """Test verify negative."""
