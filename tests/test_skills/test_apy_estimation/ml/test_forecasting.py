@@ -28,7 +28,11 @@ from packages.valory.skills.apy_estimation.ml.forecasting import (
     calc_metrics,
     init_forecaster,
     report_metrics,
-    test_forecaster,
+)
+from packages.valory.skills.apy_estimation.ml.forecasting import (
+    test_forecaster as _test_forecaster,
+)
+from packages.valory.skills.apy_estimation.ml.forecasting import (
     train_forecaster,
     walk_forward_test,
 )
@@ -152,7 +156,7 @@ class TestForecasting:
             lambda *_: "Report results.",
         )
 
-        actual = test_forecaster(MagicMock(), np.empty((5, 2)), np.empty(2), "test")
+        actual = _test_forecaster(MagicMock(), np.empty((5, 2)), np.empty(2), "test")
 
         expected = {}
         for testing_model in ("Baseline", "ARIMA"):

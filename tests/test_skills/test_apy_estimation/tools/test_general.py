@@ -28,7 +28,9 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation.tools.general import (
     create_pathdirs,
+    filter_out_numbers,
     gen_unix_timestamps,
+    read_json_file,
     to_json_file,
 )
 
@@ -93,7 +95,7 @@ class TestGeneral:
         """Test list to json file."""
         test_list = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
 
-        # test non existing path.
+        # test non-existing path.
         path = os.path.join("non_existing_path", "file.json")
         with pytest.raises(FileNotFoundError):
             to_json_file(path, test_list)
@@ -111,13 +113,50 @@ class TestGeneral:
             to_json_file(path, test_list)  # type: ignore
 
     @staticmethod
-    def test_read_json_file() -> None:
+    def test_read_json_file(tmp_path: PosixPath) -> None:
         """Test `read_json_file`."""
-        # TODO
-        assert True
+        # test non-existing path.
+        filepath = "non-existing"
+        with pytest.raises(FileNotFoundError):
+            read_json_file(filepath)
+
+        # test existing path with serializable list.
+        expected = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
+        filepath = os.path.join(tmp_path, "test.json")
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(expected, f, ensure_ascii=False, indent=4)
+
+        actual = read_json_file(filepath)
+        assert actual == expected
+
+        # test existing path with non-serializable list.
+        expected.append(b"non-serializable")  # type: ignore
+        with pytest.raises(TypeError):
+            to_json_file(filepath, expected)  # type: ignore
 
     @staticmethod
-    def test_filter_out_numbers() -> None:
+    @pytest.mark.parametrize(
+        "unfiltered_string,expected",
+        (
+            (
+                "test0this1string",
+                1,
+            ),
+            (
+                "test0thi5s1string",
+                51,
+            ),
+            (
+                "345678",
+                345678,
+            ),
+            (
+                "test_this_string",
+                None,
+            ),
+        ),
+    )
+    def test_filter_out_numbers(unfiltered_string: str, expected: int) -> None:
         """Test `filter_out_numbers`."""
-        # TODO
-        assert True
+        filtered_num = filter_out_numbers(unfiltered_string)
+        assert filtered_num == expected

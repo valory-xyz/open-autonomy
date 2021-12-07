@@ -106,7 +106,7 @@ class TestPayloads:
         )
 
         assert payload.transaction_type == TransactionType.OPTIMIZATION
-        assert payload.study == "x0"
+        assert payload.study_hash == "x0"
         assert payload.best_params == {"test": 2.0421833357796}
         assert payload.id_ == "id"
         assert payload.data == {

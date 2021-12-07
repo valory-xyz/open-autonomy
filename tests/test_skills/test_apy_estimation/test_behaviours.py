@@ -685,7 +685,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(),
         )
 
-        subgraphs_sorted_by_utilization_moment = (
+        subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
             self.apy_estimation_behaviour.context.spooky_subgraph,
             self.apy_estimation_behaviour.context.fantom_subgraph,
         )
@@ -951,8 +951,8 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
 
-    randomness_behaviour_class: Type[BaseState] = RandomnessBehaviour  # type: ignore
-    next_behaviour_class: Type[BaseState] = OptimizeBehaviour
+    randomness_behaviour_class = RandomnessBehaviour  # type: ignore
+    next_behaviour_class = OptimizeBehaviour
 
     drand_response = {
         "round": 1416669,
