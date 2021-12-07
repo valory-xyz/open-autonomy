@@ -62,6 +62,7 @@ for new_str_col in (
     "token1_id",
     "token1_name",
     "token1_symbol",
+    "pairName",
 ):
     TRANSFORMED_HIST_DTYPES[new_str_col] = str
 
@@ -81,11 +82,11 @@ def calc_change(volume_usd: pd.Series) -> pd.Series:
     return volume_usd - volume_usd.shift(1)
 
 
-def calc_apy(x: pd.DataFrame) -> Optional[pd.Series]:
+def calc_apy(x: pd.Series) -> Optional[float]:
     """Calculates the APY for a given pool's info.
 
-    :param x: a dataframe with historical data.
-    :return: a series with the daily APYs.
+    :param x: a series with historical data.
+    :return: the daily APY.
     """
     res = None
 
