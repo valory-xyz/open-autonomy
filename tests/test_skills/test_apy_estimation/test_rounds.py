@@ -429,7 +429,7 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda period_state, _: period_state,
                 state_attr_checks=[],
                 most_voted_payload=RANDOMNESS,
-                exit_event=Event.NO_MAJORITY,
+                exit_event=Event.DONE,
             )
         )
 
@@ -445,7 +445,7 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda period_state, _: period_state,
                 state_attr_checks=[],
                 most_voted_payload=INVALID_RANDOMNESS,
-                exit_event=Event.NO_MAJORITY,
+                exit_event=Event.RANDOMNESS_INVALID,
             )
         )
 
@@ -577,7 +577,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 ),
                 state_attr_checks=[lambda state: 60],
                 most_voted_payload=10.0,
-                exit_event=Event.ESTIMATION_CYCLE,
+                exit_event=Event.DONE,
             )
         )
 
