@@ -18,10 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
-from unittest.mock import MagicMock
+from typing import cast
 
 import numpy as np
+import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation.ml.forecasting import (
     baseline,
@@ -38,8 +40,34 @@ from packages.valory.skills.apy_estimation.ml.forecasting import (
 )
 
 
+class DummyPipeline:
+    """A dummy pipeline."""
+
+    @staticmethod
+    def predict(steps_forward: int) -> np.ndarray:
+        """Predict `steps_forward` timesteps in the future.
+
+        :param steps_forward: how many timesteps the model will be predicting in the future.
+        :return: a `numpy` array with the dummy predictions.
+        """
+        return np.zeros(steps_forward)
+
+    @staticmethod
+    def update(_y: np.ndarray) -> None:
+        """Update the dummy pipeline.
+
+        :param _y: The time-series data to add to the endogenous samples on which the
+            `DummyPipeline` was previously fit.
+        """
+        pass
+
+
 class TestForecasting:
     """Tests for forecasting operations."""
+
+    def setup(self) -> None:
+        """Initialize class."""
+        self._pipeline = cast(Pipeline, DummyPipeline())
 
     @staticmethod
     def test_init_forecaster() -> None:
@@ -135,15 +163,27 @@ class TestForecasting:
             str(metric_value) in report for metric_value in set(metrics_res.values())
         )
 
-    @staticmethod
-    def test_walk_forward_test() -> None:
+    def test_walk_forward_test(self) -> None:
         """Test `walk_forward_test`."""
-        predictions = walk_forward_test(MagicMock(), np.empty(5))
+        # Check with `steps_forward < 1`.
+        with pytest.raises(
+            ValueError, match="Timesteps to predict in the future cannot be -2 < 1."
+        ):
+            walk_forward_test(self._pipeline, np.empty(5), -2)
+
+        # Check with `steps_forward = 1`.
+        predictions = walk_forward_test(self._pipeline, np.empty(5))
         assert isinstance(predictions, np.ndarray)
         assert len(predictions) == 5
 
-    @staticmethod
-    def test_test_forecaster(monkeypatch: MonkeyPatch) -> None:
+        # Check with `steps_forward > 1`.
+        steps_forward = 4
+        predictions = walk_forward_test(self._pipeline, np.empty(5), steps_forward)
+        assert isinstance(predictions, np.ndarray)
+
+        assert len(predictions) == 8
+
+    def test_test_forecaster(self, monkeypatch: MonkeyPatch) -> None:
         """Test `test_forecaster`."""
         for testing_method in ("baseline", "walk_forward_test"):
             monkeypatch.setattr(
@@ -156,7 +196,7 @@ class TestForecasting:
             lambda *_: "Report results.",
         )
 
-        actual = _test_forecaster(MagicMock(), np.empty((5, 2)), np.empty(2), "test")
+        actual = _test_forecaster(self._pipeline, np.empty((5, 2)), np.empty(2), "test")
 
         expected = {}
         for testing_model in ("Baseline", "ARIMA"):
