@@ -361,10 +361,10 @@ class TestLiquidityProvisionHardhat(
         self,
         state_id: str,
         ncycles: int,
+        period_state: PeriodState,
         handlers: Optional[HANDLERS] = None,
         expected_content: Optional[EXPECTED_CONTENT] = None,
         expected_types: Optional[EXPECTED_TYPES] = None,
-        period_state: Optional[PeriodState] = None,
     ) -> Tuple[Optional[Message], ...]:
         """
         Process n message cycles.
@@ -391,9 +391,7 @@ class TestLiquidityProvisionHardhat(
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=state_id,
-            period_state=period_state
-            if period_state
-            else self.default_period_state_enter,
+            period_state=period_state,
         )
         assert (
             cast(
@@ -435,6 +433,7 @@ class TestLiquidityProvisionHardhat(
         _, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
             EnterPoolTransactionHashBehaviour.state_id,
             cycles,
+            self.default_period_state_enter,
             handlers,
             expected_content,
             expected_types,
@@ -465,10 +464,10 @@ class TestLiquidityProvisionHardhat(
         self.process_n_messsages(
             EnterPoolTransactionSignatureBehaviour.state_id,
             cycles,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
 
     def test_enter_pool_tx_send_and_validate_behaviour(self) -> None:
@@ -524,10 +523,10 @@ class TestLiquidityProvisionHardhat(
         _, _, msg = self.process_n_messsages(
             EnterPoolTransactionSendBehaviour.state_id,
             3,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
         assert msg is not None and isinstance(msg, LedgerApiMessage)
         tx_digest = msg.transaction_digest.body
@@ -563,10 +562,10 @@ class TestLiquidityProvisionHardhat(
         _, msg = self.process_n_messsages(
             EnterPoolTransactionValidationBehaviour.state_id,
             2,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
         assert msg is not None and isinstance(msg, ContractApiMessage)
         assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
@@ -582,7 +581,6 @@ class TestLiquidityProvisionHardhat(
         # trace = self.ethereum_api.api.provider.make_request("debug_traceTransaction",[tx_digest, {}])  # noqa: E800
         # struct_log = trace['result']['structLogs']  # noqa: E800
         # decoded_trace = eth_event.decode_trace(struct_log, self.topic_map_gnosis, initial_address="0x5fc8d32690cc91d4c39d9d3abcbd16989f875707")  # noqa: E800
-        # note, currently the transaction passes but there is an execution failure; so it's not working yet!  # noqa: E800
 
     # Exit pool behaviours
 
@@ -611,24 +609,21 @@ class TestLiquidityProvisionHardhat(
         self.process_n_messsages(
             ExitPoolTransactionHashBehaviour.state_id,
             cycles,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
 
     def test_exit_pool_tx_sign_behaviour(self) -> None:
         """test_exit_pool_tx_sign_behaviour"""
-        participants = frozenset(list(self.safe_owners.keys()))
-
         # first value taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = PeriodState(
-            most_voted_tx_hash=self.most_voted_tx_hash_exit,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            participants=participants,
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_exit.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_exit,
+            ),
         )
-
         cycles = 1
         handlers: HANDLERS = [self.signing_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
@@ -638,10 +633,10 @@ class TestLiquidityProvisionHardhat(
         self.process_n_messsages(
             ExitPoolTransactionSignatureBehaviour.state_id,
             cycles,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
 
     def test_exit_pool_tx_send_and_validate_behaviour(self) -> None:
@@ -659,16 +654,13 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
         # first two values taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = PeriodState(
-            most_voted_tx_hash=self.most_voted_tx_hash_exit,
-            most_voted_tx_data=self.multisend_data_exit,
-            safe_contract_address=self.safe_contract_address,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            multisend_contract_address=self.multisend_contract_address,
-            router_contract_address=self.router_contract_address,
-            participants=frozenset(list(participant_to_signature.keys())),
-            participant_to_signature=participant_to_signature,
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_exit.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_exit,
+                most_voted_tx_data=self.multisend_data_exit,
+                participant_to_signature=participant_to_signature,
+            ),
         )
         handlers: HANDLERS = [
             self.contract_handler,
@@ -700,26 +692,23 @@ class TestLiquidityProvisionHardhat(
         _, _, msg = self.process_n_messsages(
             ExitPoolTransactionSendBehaviour.state_id,
             3,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
         assert msg is not None and isinstance(msg, LedgerApiMessage)
         tx_digest = msg.transaction_digest.body
 
         # validate
-        period_state = PeriodState(
-            final_tx_hash=tx_digest,
-            most_voted_tx_hash=self.most_voted_tx_hash_exit,
-            most_voted_tx_data=self.multisend_data_exit,
-            safe_contract_address=self.safe_contract_address,
-            most_voted_keeper_address=self.keeper_address,
-            most_voted_strategy=self.strategy,
-            multisend_contract_address=self.multisend_contract_address,
-            router_contract_address=self.router_contract_address,
-            participants=frozenset(list(participant_to_signature.keys())),
-            participant_to_signature=participant_to_signature,
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_enter.update(
+                final_tx_hash=tx_digest,
+                most_voted_tx_hash=self.most_voted_tx_hash_exit,
+                most_voted_tx_data=self.multisend_data_exit,
+                participant_to_signature=participant_to_signature,
+            ),
         )
         handlers = [
             self.ledger_handler,
@@ -742,10 +731,10 @@ class TestLiquidityProvisionHardhat(
         _, msg = self.process_n_messsages(
             ExitPoolTransactionValidationBehaviour.state_id,
             2,
+            period_state,
             handlers,
             expected_content,
             expected_types,
-            period_state,
         )
         assert msg is not None and isinstance(msg, ContractApiMessage)
         assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"

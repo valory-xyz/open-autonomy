@@ -741,9 +741,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
-                        "data": liquidity_data,
+                        "data": HexBytes(liquidity_data.hex()),
                     }
                 )
 
@@ -769,9 +769,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
-                        "data": liquidity_data,
+                        "data": HexBytes(liquidity_data.hex()),
                     }
                 )
 
@@ -792,7 +792,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": strategy["pair"]["token_a"]["address"],
                         "value": 0,
                         "data": HexBytes(allowance_a_data.hex()),
                     }
@@ -814,9 +814,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
+                    "to": strategy["pair"]["token_a"]["address"],
                     "value": 0,
-                    "data": allowance_b_data,
+                    "data": HexBytes(allowance_b_data.hex()),
                 }
             )
 
@@ -840,9 +840,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
-                        "data": swap_a_data,
+                        "data": HexBytes(swap_a_data.hex()),
                     }
                 )
 
@@ -866,9 +866,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
-                        "data": swap_a_data,
+                        "data": HexBytes(swap_a_data.hex()),
                     }
                 )
 
@@ -892,9 +892,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
+                    "to": self.period_state.router_contract_address,
                     "value": 0,
-                    "data": swap_b_data,
+                    "data": HexBytes(swap_b_data.hex()),
                 }
             )
 
@@ -918,6 +918,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 to_address=self.period_state.multisend_contract_address,
                 value=ETHER_VALUE,
                 data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
                 safe_tx_gas=strategy["safe_tx_gas"],
                 safe_nonce=strategy["safe_nonce"],
             )
