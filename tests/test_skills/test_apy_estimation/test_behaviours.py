@@ -941,6 +941,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         self.end_round()
 
 
+@pytest.mark.skip
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 

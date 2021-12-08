@@ -545,7 +545,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
-    def test_run(self) -> None:
+    def test_estimation_cycle_run(self) -> None:
         """Runs test."""
 
         test_round = EstimateRound(self.period_state, self.consensus_params)
@@ -556,7 +556,26 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
                 ),
-                state_attr_checks=[],
+                state_attr_checks=[lambda state: state.n_estimations],
+                most_voted_payload=10.0,
+                exit_event=Event.ESTIMATION_CYCLE,
+            )
+        )
+
+    def test_restart_cycle_run(self) -> None:
+        """Runs test."""
+
+        test_round = EstimateRound(
+            self.period_state.update(n_estimations=59), self.consensus_params
+        )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_estimate_payload(self.participants),
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                ),
+                state_attr_checks=[lambda state: 60],
                 most_voted_payload=10.0,
                 exit_event=Event.ESTIMATION_CYCLE,
             )

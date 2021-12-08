@@ -73,14 +73,16 @@ class TestOptimization:
         assert actual == expected
 
     @staticmethod
+    @pytest.mark.parametrize("alpha", (None, 0.3))
     def test_optimize(
         monkeypatch: MonkeyPatch,
         observations: np.ndarray,
         no_action: Callable[[Any], None],
+        alpha: float,
     ) -> None:
         """Test `optimize`."""
         monkeypatch.setattr(optuna.Study, "optimize", no_action)
-        res = optimize(observations, 0)
+        res = optimize(observations, 0, alpha=alpha)
         assert isinstance(res, optuna.Study)
 
 
