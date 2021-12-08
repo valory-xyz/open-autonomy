@@ -501,7 +501,9 @@ class TransformBehaviour(APYEstimationBaseState):
                 )
 
                 # Store the transformed data.
-                transformed_history.to_csv(self._transformed_history_save_path)
+                transformed_history.to_csv(
+                    self._transformed_history_save_path, index=False
+                )
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
@@ -688,7 +690,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 save_path = os.path.join(
                     self.params.data_folder, self.params.pair_id, "study_results.csv"
                 )
-                study_results.to_csv(save_path)
+                study_results.to_csv(save_path, index=False)
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
