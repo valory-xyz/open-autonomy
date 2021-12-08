@@ -743,7 +743,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
+                        "data": liquidity_data,
                     }
                 )
 
@@ -771,7 +771,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
+                        "data": liquidity_data,
                     }
                 )
 
@@ -816,7 +816,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
                     "value": 0,
-                    "data": HexBytes(allowance_b_data.hex()),
+                    "data": allowance_b_data,
                 }
             )
 
@@ -842,7 +842,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
+                        "data": swap_a_data,
                     }
                 )
 
@@ -868,7 +868,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.multisend_contract_address,
                         "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
+                        "data": swap_a_data,
                     }
                 )
 
@@ -894,7 +894,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.period_state.multisend_contract_address,
                     "value": 0,
-                    "data": HexBytes(swap_b_data.hex()),
+                    "data": swap_b_data,
                 }
             )
 

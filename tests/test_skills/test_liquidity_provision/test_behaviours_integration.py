@@ -56,6 +56,9 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionSignatureBehaviour,
     EnterPoolTransactionValidationBehaviour,
     ExitPoolTransactionHashBehaviour,
+    ExitPoolTransactionSendBehaviour,
+    ExitPoolTransactionSignatureBehaviour,
+    ExitPoolTransactionValidationBehaviour,
     get_strategy_update,
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
@@ -91,7 +94,7 @@ EXPECTED_TYPES = List[
 ]
 
 
-class TestEnterPoolTransactionHashBehaviourHardhat(
+class TestLiquidityProvisionHardhat(
     LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
 ):
     """Test liquidity pool behaviours in a Hardhat environment."""
@@ -101,14 +104,17 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
     multiplexer: Multiplexer
     decision_maker: DecisionMaker
     strategy: Dict
-    default_period_state: PeriodState
+    default_period_state_enter: PeriodState
+    default_period_state_exit: PeriodState
     safe_owners: Dict
     safe_contract_address: str
     multisend_contract_address: str
     router_contract_address: str
     keeper_address: str
-    multisend_data: str
-    most_voted_tx_hash: str
+    multisend_data_enter: str
+    multisend_data_exit: str
+    most_voted_tx_hash_enter: str
+    most_voted_tx_hash_exit: str
     ethereum_api: EthereumApi
     gnosis_instance: Any
     multisend_instance: Any
@@ -216,9 +222,14 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         cls._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
             "decision_maker"
         )
-        cls.multisend_data = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000005d600610178da211fef7d417bc0e6fed39f05609ad78800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000"
-        cls.most_voted_tx_hash = (
+        cls.multisend_data_enter = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000005d600610178da211fef7d417bc0e6fed39f05609ad78800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed1739000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad7880000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f62810000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000"
+        cls.multisend_data_exit = "8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000051d005fc8d32690cc91d4c39d9d3abcbd16989f875707000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4baa2abde0000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c005fc8d32690cc91d4c39d9d3abcbd16989f87570700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000005fc8d32690cc91d4c39d9d3abcbd16989f87570700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000005fc8d32690cc91d4c39d9d3abcbd16989f8757070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed17390000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd82000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad788005fc8d32690cc91d4c39d9d3abcbd16989f8757070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed17390000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000b5d1634d337c36016c2f6c0043db74a2032f6281000000000000000000000000000000000000000000000000000000000000012c00000000000000000000000000000000000000000000000000000000000000020000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000000000000000000000000610178da211fef7d417bc0e6fed39f05609ad788000000"
+
+        cls.most_voted_tx_hash_enter = (
             "40f436677c8bb2f382d29c25106a202926d701858ef7eb9483fbccf2259cea25"
+        )
+        cls.most_voted_tx_hash_exit = (
+            "665b74f4b4eb9c02f3f174c4d56392a04ddffa1b89d876f524ff75b8e02ffe90"
         )
 
         # setup default objects
@@ -226,7 +237,18 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         cls.strategy[
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
-        cls.default_period_state = PeriodState(
+        cls.default_period_state_enter = PeriodState(
+            most_voted_tx_hash=cls.most_voted_tx_hash_enter,
+            safe_contract_address=cls.safe_contract_address,
+            most_voted_keeper_address=cls.keeper_address,
+            most_voted_strategy=cls.strategy,
+            multisend_contract_address=cls.multisend_contract_address,
+            router_contract_address=cls.router_contract_address,
+            participants=frozenset(list(cls.safe_owners.keys())),
+        )
+
+        cls.default_period_state_exit = PeriodState(
+            most_voted_tx_hash=cls.most_voted_tx_hash_exit,
             safe_contract_address=cls.safe_contract_address,
             most_voted_keeper_address=cls.keeper_address,
             most_voted_strategy=cls.strategy,
@@ -369,7 +391,9 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=state_id,
-            period_state=period_state if period_state else self.default_period_state,
+            period_state=period_state
+            if period_state
+            else self.default_period_state_enter,
         )
         assert (
             cast(
@@ -417,19 +441,18 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         )
         assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
         tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
-        assert tx_data == self.multisend_data
+        assert tx_data == self.multisend_data_enter
         assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
-        assert tx_hash == self.most_voted_tx_hash
+        assert tx_hash == self.most_voted_tx_hash_enter
 
     def test_enter_pool_tx_sign_behaviour(self) -> None:
         """test_enter_pool_tx_sign_behaviour"""
-
         # value taken from test_enter_pool_tx_hash_behaviour flow
         period_state = cast(
             PeriodState,
-            self.default_period_state.update(
-                most_voted_tx_hash=self.most_voted_tx_hash
+            self.default_period_state_enter.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_enter
             ),
         )
 
@@ -456,7 +479,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
             address: SignaturePayload(
                 sender=address,
                 signature=crypto.sign_message(
-                    binascii.unhexlify(self.most_voted_tx_hash), is_deprecated_mode=True
+                    binascii.unhexlify(self.most_voted_tx_hash_enter),
+                    is_deprecated_mode=True,
                 )[2:],
             )
             for address, crypto in self.safe_owners.items()
@@ -464,9 +488,9 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         # values taken from test_enter_pool_tx_hash_behaviour flow
         period_state = cast(
             PeriodState,
-            self.default_period_state.update(
-                most_voted_tx_hash=self.most_voted_tx_hash,
-                most_voted_tx_data=self.multisend_data,
+            self.default_period_state_enter.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_enter,
+                most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -511,10 +535,10 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         # validate
         period_state = cast(
             PeriodState,
-            self.default_period_state.update(
+            self.default_period_state_enter.update(
                 final_tx_hash=tx_digest,
-                most_voted_tx_hash=self.most_voted_tx_hash,
-                most_voted_tx_data=self.multisend_data,
+                most_voted_tx_hash=self.most_voted_tx_hash_enter,
+                most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -569,7 +593,8 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
         strategy = deepcopy(self.strategy)
         strategy["safe_nonce"] = 1
         period_state = cast(
-            PeriodState, self.default_period_state.update(most_voted_strategy=strategy)
+            PeriodState,
+            self.default_period_state_exit.update(most_voted_strategy=strategy),
         )
         cycles = 7
         handlers: HANDLERS = [self.contract_handler] * cycles
@@ -594,6 +619,140 @@ class TestEnterPoolTransactionHashBehaviourHardhat(
 
     def test_exit_pool_tx_sign_behaviour(self) -> None:
         """test_exit_pool_tx_sign_behaviour"""
+        participants = frozenset(list(self.safe_owners.keys()))
+
+        # first value taken from test_enter_pool_tx_hash_behaviour flow
+        period_state = PeriodState(
+            most_voted_tx_hash=self.most_voted_tx_hash_exit,
+            most_voted_keeper_address=self.keeper_address,
+            most_voted_strategy=self.strategy,
+            participants=participants,
+        )
+
+        cycles = 1
+        handlers: HANDLERS = [self.signing_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [None] * cycles
+        self.process_n_messsages(
+            ExitPoolTransactionSignatureBehaviour.state_id,
+            cycles,
+            handlers,
+            expected_content,
+            expected_types,
+            period_state,
+        )
 
     def test_exit_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_exit_pool_tx_send_behaviour"""
+
+        # send
+        participant_to_signature = {
+            address: SignaturePayload(
+                sender=address,
+                signature=crypto.sign_message(
+                    binascii.unhexlify(self.most_voted_tx_hash_exit),
+                    is_deprecated_mode=True,
+                )[2:],
+            )
+            for address, crypto in self.safe_owners.items()
+        }
+        # first two values taken from test_enter_pool_tx_hash_behaviour flow
+        period_state = PeriodState(
+            most_voted_tx_hash=self.most_voted_tx_hash_exit,
+            most_voted_tx_data=self.multisend_data_exit,
+            safe_contract_address=self.safe_contract_address,
+            most_voted_keeper_address=self.keeper_address,
+            most_voted_strategy=self.strategy,
+            multisend_contract_address=self.multisend_contract_address,
+            router_contract_address=self.router_contract_address,
+            participants=frozenset(list(participant_to_signature.keys())),
+            participant_to_signature=participant_to_signature,
+        )
+        handlers: HANDLERS = [
+            self.contract_handler,
+            self.signing_handler,
+            self.ledger_handler,
+        ]
+        expected_content: EXPECTED_CONTENT = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": SigningMessage.Performative.SIGNED_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST  # type: ignore
+            },
+        ]
+        expected_types: EXPECTED_TYPES = [
+            {
+                "raw_transaction": RawTransaction,
+            },
+            {
+                "signed_transaction": SignedTransaction,
+            },
+            {
+                "transaction_digest": TransactionDigest,
+            },
+        ]
+        _, _, msg = self.process_n_messsages(
+            ExitPoolTransactionSendBehaviour.state_id,
+            3,
+            handlers,
+            expected_content,
+            expected_types,
+            period_state,
+        )
+        assert msg is not None and isinstance(msg, LedgerApiMessage)
+        tx_digest = msg.transaction_digest.body
+
+        # validate
+        period_state = PeriodState(
+            final_tx_hash=tx_digest,
+            most_voted_tx_hash=self.most_voted_tx_hash_exit,
+            most_voted_tx_data=self.multisend_data_exit,
+            safe_contract_address=self.safe_contract_address,
+            most_voted_keeper_address=self.keeper_address,
+            most_voted_strategy=self.strategy,
+            multisend_contract_address=self.multisend_contract_address,
+            router_contract_address=self.router_contract_address,
+            participants=frozenset(list(participant_to_signature.keys())),
+            participant_to_signature=participant_to_signature,
+        )
+        handlers = [
+            self.ledger_handler,
+            self.contract_handler,
+        ]
+        expected_content = [
+            {
+                "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
+            },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
+        ]
+        expected_types = [
+            {
+                "transaction_receipt": TransactionReceipt,
+            },
+            {
+                "state": State,
+            },
+        ]
+        _, msg = self.process_n_messsages(
+            ExitPoolTransactionValidationBehaviour.state_id,
+            2,
+            handlers,
+            expected_content,
+            expected_types,
+            period_state,
+        )
+        assert msg is not None and isinstance(msg, ContractApiMessage)
+        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        # eventually replace with https://pypi.org/project/eth-event/
+        receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
+        logs = self.get_decoded_logs(self.gnosis_instance, receipt)
+        assert not all(
+            [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
+        )
+        # note, currently the transaction passes but there is an execution failure; so it's not working yet!
