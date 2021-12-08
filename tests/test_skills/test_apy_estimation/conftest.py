@@ -207,7 +207,7 @@ def shared_state() -> SharedState:
 @pytest.fixture
 def no_action() -> Callable[[Any], None]:
     """Create a no-action function."""
-    return lambda *_: None
+    return lambda *_, **__: None
 
 
 @dataclass

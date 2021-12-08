@@ -39,7 +39,11 @@ from packages.valory.skills.apy_estimation.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
+    TestingPayload as _TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
@@ -54,10 +58,9 @@ from packages.valory.skills.apy_estimation.rounds import (
     RandomnessRound,
     RegistrationRound,
     ResetRound,
-    TestRound,
-    TrainRound,
-    TransformRound,
 )
+from packages.valory.skills.apy_estimation.rounds import TestRound as _TestRound
+from packages.valory.skills.apy_estimation.rounds import TrainRound, TransformRound
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
@@ -156,10 +159,10 @@ def get_participant_to_train_payload(
 
 def get_participant_to_test_payload(
     participants: FrozenSet[str],
-) -> Dict[str, TestingPayload]:
+) -> Dict[str, _TestingPayload]:
     """Get testing payload."""
     return {
-        participant: TestingPayload(participant, "report_hash")
+        participant: _TestingPayload(participant, "report_hash")
         for participant in participants
     }
 
@@ -169,8 +172,7 @@ def get_participant_to_estimate_payload(
 ) -> Dict[str, EstimatePayload]:
     """Get estimate payload."""
     return {
-        participant: EstimatePayload(participant, [10.0, 11.0, 12.0])
-        for participant in participants
+        participant: EstimatePayload(participant, 10.0) for participant in participants
     }
 
 
@@ -525,7 +527,7 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
     def test_run(self) -> None:
         """Runs test."""
 
-        test_round = TestRound(
+        test_round = _TestRound(
             self.period_state.update(full_training=True), self.consensus_params
         )
         self._complete_run(
@@ -542,7 +544,6 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
-@pytest.mark.skip
 class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `EstimateRound`."""
 
@@ -557,9 +558,11 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state,
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                ),
                 state_attr_checks=[],
-                most_voted_payload=[10.0, 11.0, 12.0],
+                most_voted_payload=10.0,
                 exit_event=Event.DONE,
             )
         )

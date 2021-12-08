@@ -902,14 +902,14 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             return_value=transform_task_result,
         ):
             with mock.patch.object(
-                self._skill._skill_context._agent_context._task_manager,
+                self._skill._skill_context._agent_context._task_manager,  # type: ignore
                 "get_task_result",
                 new_callable=lambda: (
                     lambda *_: DummyAsyncResult(transform_task_result)
                 ),
             ):
                 with mock.patch.object(
-                    self._skill._skill_context._agent_context._task_manager,
+                    self._skill._skill_context._agent_context._task_manager,  # type: ignore
                     "enqueue_task",
                     return_value=3,
                 ):
@@ -963,31 +963,31 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             "packages.valory.skills.apy_estimation.tools.etl.load_hist",
             new_callable=lambda *_: pd.DataFrame(),
         ):
-            # with mock.patch(
-            #     "packages.valory.skills.apy_estimation.tools.general.create_pathdirs",
-            #     new_callable=no_action,
-            # ):
-            #     with mock.patch(
-            #         "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
-            #         new_callable=lambda *_: (
-            #             (np.asarray([0] * 20), np.asarray([0] * 10)),
-            #             "",
-            #         ),
-            #     ):
-            self.fast_forward_to_state(
-                self.apy_estimation_behaviour,
-                self.behaviour_class.state_id,
-                PeriodState(),
-            )
-            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-            assert state.state_id == self.behaviour_class.state_id
+            with mock.patch(
+                "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
+                new_callable=lambda *_: (
+                    (np.asarray([0] * 20), np.asarray([0] * 10)),
+                    "",
+                ),
+            ):
+                with mock.patch(
+                    "packages.valory.skills.apy_estimation.tools.etl.load_hist",
+                    new_callable=lambda *_: pd.DataFrame(),
+                ):
+                    self.fast_forward_to_state(
+                        self.apy_estimation_behaviour,
+                        self.behaviour_class.state_id,
+                        PeriodState(),
+                    )
+                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+                    assert state.state_id == self.behaviour_class.state_id
 
-            self.apy_estimation_behaviour.act_wrapper()
-            self.mock_a2a_transaction()
-            self._test_done_flag_set()
-            self.end_round()
-            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-            assert state.state_id == self.next_behaviour_class.state_id
+                    self.apy_estimation_behaviour.act_wrapper()
+                    self.mock_a2a_transaction()
+                    self._test_done_flag_set()
+                    self.end_round()
+                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+                    assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
