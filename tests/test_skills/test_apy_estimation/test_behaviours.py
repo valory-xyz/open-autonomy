@@ -951,44 +951,34 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_preprocess_behaviour(
         self,
         monkeypatch: MonkeyPatch,
+        transformed_historical_data: pd.DataFrame,
         tmp_path: PosixPath,
         no_action: Callable[[Any], None],
     ) -> None:
         """Run test for `preprocess_behaviour`."""
+        filepath = os.path.join(tmp_path, "test.csv")
+        # Increase the amount of dummy data for the train-test split.
+        transformed_historical_data = pd.DataFrame(
+            np.repeat(transformed_historical_data.values, 3, axis=0),
+            columns=transformed_historical_data.columns,
+        )
+        transformed_historical_data.to_csv(filepath, index=False)
+        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(np, "savetxt", no_action)
-        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
 
-        with mock.patch(
-            "packages.valory.skills.apy_estimation.tools.etl.load_hist",
-            new_callable=lambda *_: pd.DataFrame(),
-        ):
-            with mock.patch(
-                "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
-                new_callable=lambda *_: (
-                    (np.asarray([0] * 20), np.asarray([0] * 10)),
-                    "",
-                ),
-            ):
-                with mock.patch(
-                    "packages.valory.skills.apy_estimation.tools.etl.load_hist",
-                    new_callable=lambda *_: pd.DataFrame(),
-                ):
-                    self.fast_forward_to_state(
-                        self.apy_estimation_behaviour,
-                        self.behaviour_class.state_id,
-                        PeriodState(),
-                    )
-                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-                    assert state.state_id == self.behaviour_class.state_id
-
-                    self.apy_estimation_behaviour.act_wrapper()
-                    self.mock_a2a_transaction()
-                    self._test_done_flag_set()
-                    self.end_round()
-                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-                    assert state.state_id == self.next_behaviour_class.state_id
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):

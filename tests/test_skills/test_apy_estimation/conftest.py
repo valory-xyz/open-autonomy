@@ -228,6 +228,80 @@ def transform_task_result() -> TaskResult:
     return TaskResult(result)
 
 
+@pytest.fixture
+def transformed_historical_data() -> pd.DataFrame:
+    """Create dummy transformed historical data"""
+    return pd.DataFrame(
+        {
+            "createdAtBlockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "createdAtTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "id": [
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+                "x2",
+                "x3",
+                "x4",
+                "x5",
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+                "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            ],
+            "liquidityProviderCount": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "reserve0": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "reserve1": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "reserveETH": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "reserveUSD": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "token0Price": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "token1Price": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "totalSupply": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "trackedReserveETH": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "untrackedVolumeUSD": [1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.0, 9.4, 10.7],
+            "txCount": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "volumeToken0": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+            "volumeToken1": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+            "volumeUSD": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+            "for_timestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "block_number": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "block_timestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "eth_price": [1.2, 2.3, 3.4, 4.45634, 5.2, 6.0, 7.246, 8.26, 9.123, 10.56],
+            "token0_id": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
+            "token0_name": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
+            "token0_symbol": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
+            "token1_id": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
+            "token1_name": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
+            "token1_symbol": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
+            "pairName": [
+                "x - y",
+                "k - m",
+                "l - r",
+                "t - y",
+                "v - b",
+                "x - y",
+                "x - y",
+                "x - y",
+                "x - y",
+                "x - y",
+            ],
+            "updatedVolumeUSD": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
+            "updatedReserveUSD": [
+                1.68,
+                5.52,
+                11.559999999999999,
+                19.607896,
+                28.080000000000002,
+                38.400000000000006,
+                53.620400000000004,
+                66.08,
+                85.75619999999999,
+                112.992,
+            ],
+            "current_change": [None, None, None, None, None, 5.1, 1.2, 0.7, 0.9, 1.6],
+            "APY": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1],
+        }
+    )
+
+
 def is_list_of_strings(lst: Any) -> bool:
     """Check if arg is a list of strings."""
     res = False
