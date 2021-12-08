@@ -197,7 +197,7 @@ class BaseRoundTestClass:
             _, event = result
             assert event == self._event_class.NO_MAJORITY
 
-    def _complete_run(self, test_runner: Generator) -> None:
+    def _complete_run(self, test_runner: Generator, iter_count: int = 4) -> None:
         """
         This method represents logic to execute test logic defined in _test_round method.
 
@@ -213,9 +213,9 @@ class BaseRoundTestClass:
 
         :param test_runner: test runner
         """
-        next(test_runner)
-        next(test_runner)
-        next(test_runner)
+
+        for _ in range(iter_count):
+            next(test_runner)
 
 
 class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
@@ -260,6 +260,7 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
             for state_attr_getter in state_attr_checks:
                 assert state_attr_getter(state) == state_attr_getter(actual_next_state)
             assert event == exit_event
+        yield
 
 
 class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
@@ -308,6 +309,7 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
 
 class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
@@ -344,6 +346,7 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
 
 class BaseVotingRoundTest(BaseRoundTestClass):
@@ -386,6 +389,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
     def _test_voting_round_positive(
         self,
@@ -484,7 +488,7 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
-
+        yield
 
 class _BaseRoundTestClass(BaseRoundTestClass):
     """Base test class."""

@@ -309,6 +309,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 
         next(test_runner)
         assert test_round.block_confirmations == prior_confirmations + 1
+        next(test_runner)
 
 
 class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
@@ -378,6 +379,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
 
         next(test_runner)
         assert test_round.block_confirmations == prior_confirmations + 1
+        next(test_runner)
 
 
 class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):

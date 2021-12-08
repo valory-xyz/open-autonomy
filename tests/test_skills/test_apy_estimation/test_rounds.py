@@ -429,7 +429,7 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda period_state, _: period_state,
                 state_attr_checks=[],
                 most_voted_payload=RANDOMNESS,
-                exit_event=Event.DONE,
+                exit_event=Event.NO_MAJORITY,
             )
         )
 
@@ -445,14 +445,9 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda period_state, _: period_state,
                 state_attr_checks=[],
                 most_voted_payload=INVALID_RANDOMNESS,
-                exit_event=Event.RANDOMNESS_INVALID,
+                exit_event=Event.NO_MAJORITY,
             )
         )
-
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = RandomnessRound(self.period_state, self.consensus_params)
-        self._test_no_majority_event(test_round)
 
 
 class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
@@ -563,7 +558,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 ),
                 state_attr_checks=[],
                 most_voted_payload=10.0,
-                exit_event=Event.DONE,
+                exit_event=Event.ESTIMATION_CYCLE,
             )
         )
 
@@ -589,11 +584,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                     period_setup_params=None,
                     most_voted_estimate=None,
                 ),
-                state_attr_checks=[
-                    lambda state: state.period_state,
-                    lambda state: state.period_setup_params,
-                    lambda state: state.most_voted_estimate,
-                ],
+                state_attr_checks=[],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )
@@ -621,11 +612,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                     period_setup_params=None,
                     most_voted_estimate=None,
                 ),
-                state_attr_checks=[
-                    lambda state: state.period_state,
-                    lambda state: state.period_setup_params,
-                    lambda state: state.most_voted_estimate,
-                ],
+                state_attr_checks=[],
                 most_voted_payload=1,
                 exit_event=Event.DONE,
             )
