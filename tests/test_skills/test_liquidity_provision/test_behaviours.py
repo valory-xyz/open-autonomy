@@ -1113,6 +1113,8 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                             for key, payload in period_state.participant_to_signature.items()
                         },
                         safe_nonce=0,
+                        max_fee_per_gas=10000000000,
+                        max_priority_fee_per_gas=10000000000,
                     )
                 ),
             ),
