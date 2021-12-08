@@ -23,6 +23,8 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional, Type, cast
 from unittest import mock
 
+import pytest
+
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseTxPayload,
@@ -334,6 +336,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         )
         self._run_with_round(test_round, Event.DONE, 10)
 
+    @pytest.mark.skip
     def test_run_default_not_finished(
         self,
     ) -> None:
