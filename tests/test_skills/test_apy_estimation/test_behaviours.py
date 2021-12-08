@@ -21,17 +21,23 @@
 import binascii
 import json
 import logging
+import os
 import time
 from copy import copy
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Tuple, Type, Union, cast
+from multiprocessing.pool import AsyncResult
+from pathlib import Path, PosixPath
+from tempfile import TemporaryDirectory
+from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
+import numpy as np
+import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
+from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
@@ -57,9 +63,11 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.apy_estimation.behaviours import (
+    APYEstimationBaseState,
     APYEstimationConsensusBehaviour,
     FetchBehaviour,
     OptimizeBehaviour,
+    PreprocessBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
@@ -68,6 +76,33 @@ from packages.valory.skills.apy_estimation.behaviours import (
 from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
+from tests.test_skills.test_apy_estimation.conftest import TaskResult
+
+
+class DummyAsyncResult(object):
+    """Dummy class for AsyncResult."""
+
+    def __init__(
+        self,
+        task_result: TaskResult,
+        ready: bool = True,
+    ) -> None:
+        """Initialize class."""
+
+        self._ready = ready
+        self._task_result = task_result
+
+    def ready(
+        self,
+    ) -> bool:
+        """Returns bool"""
+        return True
+
+    def get(
+        self,
+    ) -> TaskResult:
+        """Returns task result."""
+        return self._task_result
 
 
 class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
@@ -81,6 +116,9 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    participants: FrozenSet[str] = frozenset()
+    behaviour_class: Type[APYEstimationBaseState]
+    next_behaviour_class: Type[APYEstimationBaseState]
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -119,6 +157,12 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         assert (
             cast(BaseState, cls.apy_estimation_behaviour.current_state).state_id
             == cls.apy_estimation_behaviour.initial_state_cls.state_id
+        )
+
+    def create_enough_participants(self) -> None:
+        """Create enough participants."""
+        self.participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1", "a_2"}
         )
 
     def fast_forward_to_state(
@@ -635,30 +679,323 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
 
+    def test_fetch_behaviour_retries_exceeded(self, monkeypatch: MonkeyPatch) -> None:
+        """Run tests for exceeded retries."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            PeriodState(),
+        )
+
+        subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
+            self.apy_estimation_behaviour.context.spooky_subgraph,
+            self.apy_estimation_behaviour.context.fantom_subgraph,
+        )
+        subgraphs_sorted_by_utilization_moment += tuple(  # type: ignore
+            subgraphs_sorted_by_utilization_moment[0] for _ in range(2)
+        )
+        for subgraph in subgraphs_sorted_by_utilization_moment:
+            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: bool)
+            self.apy_estimation_behaviour.act_wrapper()
+            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+            assert state.state_id == FetchBehaviour.state_id
+
+        self._test_done_flag_set()
+
+    def test_fetch_value_none(
+        self,
+        monkeypatch: MonkeyPatch,
+        top_n_pairs_q: str,
+        block_from_timestamp_q: str,
+        eth_price_usd_q: str,
+        pairs_q: str,
+        pool_fields: Tuple[str, ...],
+    ) -> None:
+        """Test when fetched value is none."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
+        )
+
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
+            method="POST",
+            url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
+            headers="Content-Type: application/json\r\n",
+            version="",
+        )
+        response_kwargs = dict(
+            version="",
+            status_code=200,
+            status_text="",
+            headers="",
+        )
+
+        # top pairs' ids request.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+        # block request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
+            lambda _: 1618735147,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+        # ETH price request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+        res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
+            eth_price_usd_q,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+        # top pairs data.
+        request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
+        res = {
+            "data": {
+                "pairs": [
+                    {field: dummy_value for field in pool_fields}
+                    for dummy_value in ("dum1", "dum2")
+                ]
+            }
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.pairs_q",
+            pairs_q,
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        time.sleep(1)
+
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test clean-up."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
+        )
+
+        self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted = 1
+        self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted = 1
+        assert self.apy_estimation_behaviour.current_state is not None
+        self.apy_estimation_behaviour.current_state.clean_up()
+        assert (
+            self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted
+            == 0
+        )
+        assert (
+            self.apy_estimation_behaviour.context.fantom_subgraph._retries_attempted
+            == 0
+        )
+
 
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test FetchBehaviour."""
+    """Test TransformBehaviour."""
 
-    def test_transform_behaviour(self) -> None:
+    behaviour_class = TransformBehaviour
+    next_behaviour_class = PreprocessBehaviour
+
+    def test_setup(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test behaviour setup."""
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context,
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
+            no_action,
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.read_json_file",
+            lambda _: {},
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+            lambda _: pd.DataFrame(),
+        )
+        behaviour.context.task_manager.start()
+        behaviour.setup()
+
+        assert isinstance(behaviour._async_result, AsyncResult)
+        assert behaviour._async_result is not None
+
+    def test_task_not_setup(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for `transform_behaviour` when not set-up."""
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context,
+        )
+
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+        behaviour.act_wrapper()
+        self.end_round()
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for `transform_behaviour` when task result is not ready."""
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context,
+        )
+
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
+            no_action,
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.read_json_file",
+            lambda _: {},
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+            lambda _: pd.DataFrame(),
+        )
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        behaviour.context.task_manager.start()
+        behaviour.setup()
+
+        behaviour.act_wrapper()
+        self.end_round()
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+    def test_transform_behaviour(
+        self,
+        transform_task_result: TaskResult,
+    ) -> None:
         """Run test for `transform_behaviour`."""
-        # TODO
-        assert True
+
+        with mock.patch(
+            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
+            return_value=transform_task_result,
+        ):
+            with mock.patch.object(
+                self._skill._skill_context._agent_context._task_manager,  # type: ignore
+                "get_task_result",
+                new_callable=lambda: (
+                    lambda *_: DummyAsyncResult(transform_task_result)
+                ),
+            ):
+                with mock.patch.object(
+                    self._skill._skill_context._agent_context._task_manager,  # type: ignore
+                    "enqueue_task",
+                    return_value=3,
+                ):
+                    with TemporaryDirectory() as temp_dir:
+                        self.apy_estimation_behaviour.current_state.params.data_folder = (  # type: ignore
+                            temp_dir
+                        )
+                        with open(
+                            os.path.join(temp_dir, "historical_data.json"), "w+"
+                        ) as fp:
+                            fp.write("{}")
+                        with open(
+                            os.path.join(temp_dir, "transformed_historical_data.csv"),
+                            "w+",
+                        ) as fp:
+                            fp.write("")
+
+                        self.fast_forward_to_state(
+                            self.apy_estimation_behaviour,
+                            self.behaviour_class.state_id,
+                            PeriodState(),
+                        )
+
+                        self.apy_estimation_behaviour.current_state.setup()  # type: ignore
+                        self.apy_estimation_behaviour.act_wrapper()
+
+                        self.mock_a2a_transaction()
+                        self._test_done_flag_set()
+                        self.end_round()
 
 
+@pytest.mark.skip
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 
-    def test_preprocess_behaviour(self) -> None:
+    behaviour_class = PreprocessBehaviour
+    next_behaviour_class = RandomnessBehaviour
+
+    def test_preprocess_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
+    ) -> None:
         """Run test for `preprocess_behaviour`."""
-        # TODO
-        assert True
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(np, "savetxt", no_action)
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+
+        with mock.patch(
+            "packages.valory.skills.apy_estimation.tools.etl.load_hist",
+            new_callable=lambda *_: pd.DataFrame(),
+        ):
+            with mock.patch(
+                "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
+                new_callable=lambda *_: (
+                    (np.asarray([0] * 20), np.asarray([0] * 10)),
+                    "",
+                ),
+            ):
+                with mock.patch(
+                    "packages.valory.skills.apy_estimation.tools.etl.load_hist",
+                    new_callable=lambda *_: pd.DataFrame(),
+                ):
+                    self.fast_forward_to_state(
+                        self.apy_estimation_behaviour,
+                        self.behaviour_class.state_id,
+                        PeriodState(),
+                    )
+                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+                    assert state.state_id == self.behaviour_class.state_id
+
+                    self.apy_estimation_behaviour.act_wrapper()
+                    self.mock_a2a_transaction()
+                    self._test_done_flag_set()
+                    self.end_round()
+                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+                    assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
 
-    randomness_behaviour_class: Type[BaseState] = RandomnessBehaviour  # type: ignore
-    next_behaviour_class: Type[BaseState] = OptimizeBehaviour
+    randomness_behaviour_class = RandomnessBehaviour  # type: ignore
+    next_behaviour_class = OptimizeBehaviour
 
     drand_response = {
         "round": 1416669,

@@ -20,9 +20,11 @@
 
 """Configurations for APY skill's tests."""
 
-from typing import Any, Dict, Tuple, Union
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Tuple, Union
 from unittest import mock
 
+import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
 
@@ -200,6 +202,30 @@ def pool_fields() -> Tuple[str, ...]:
 def shared_state() -> SharedState:
     """Initialize a test shared state."""
     return SharedState(name="", skill_context=mock.MagicMock())
+
+
+@pytest.fixture
+def no_action() -> Callable[[Any], None]:
+    """Create a no-action function."""
+    return lambda *_, **__: None
+
+
+@dataclass
+class TaskResult:
+    """A dummy Task Result."""
+
+    result: Any
+
+
+@pytest.fixture
+def transform_task_result() -> TaskResult:
+    """Create a result of the `TransformTask`.
+
+    :return: a dummy `Task` Result.
+    """
+    result = pd.DataFrame()
+
+    return TaskResult(result)
 
 
 def is_list_of_strings(lst: Any) -> bool:

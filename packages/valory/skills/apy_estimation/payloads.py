@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the APY estimation app."""
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -216,7 +216,7 @@ class OptimizationPayload(BaseAPYPayload):
         self._best_params = best_params
 
     @property
-    def study(self) -> str:
+    def study_hash(self) -> str:
         """Get the optimization study's hash."""
         return self._study_hash
 
@@ -291,7 +291,7 @@ class EstimatePayload(BaseAPYPayload):
     transaction_type = TransactionType.ESTIMATION
 
     def __init__(
-        self, sender: str, estimation: List[float], id_: Optional[str] = None
+        self, sender: str, estimation: float, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'estimate' transaction payload.
 
@@ -303,12 +303,12 @@ class EstimatePayload(BaseAPYPayload):
         self._estimation = estimation
 
     @property
-    def estimation(self) -> List[float]:
+    def estimation(self) -> float:
         """Get the estimation."""
         return self._estimation
 
     @property
-    def data(self) -> Dict[str, List[float]]:
+    def data(self) -> Dict[str, float]:
         """Get the data."""
         return {"estimation": self._estimation}
 

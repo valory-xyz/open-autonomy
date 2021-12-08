@@ -35,6 +35,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation.ml.io import load_forecaster, save_forecaster
@@ -232,20 +233,25 @@ class FetchBehaviour(APYEstimationBaseState):
         create_pathdirs(self._save_path)
 
     def _handle_response(
-        self, res: Optional[Dict], res_context: str, keys: Tuple[Union[str, int], ...]
+        self,
+        res: Optional[Dict],
+        res_context: str,
+        keys: Tuple[Union[str, int], ...],
+        subgraph: ApiSpecs,
     ) -> None:
         """Handle a response from a subgraph.
 
         :param res: the response to handle.
         :param res_context: the context of the current response.
         :param keys: keys to get the information from the response.
+        :param subgraph: api specs.
         """
         if res is None:
             self.context.logger.error(
-                f"Could not get {res_context} from {self.context.spooky_subgraph.api_id}"
+                f"Could not get {res_context} from {subgraph.api_id}"
             )
 
-            self.context.spooky_subgraph.increment_retries()
+            subgraph.increment_retries()
             raise EmptyResponseError()
 
         value = res[keys[0]]
@@ -254,7 +260,7 @@ class FetchBehaviour(APYEstimationBaseState):
                 value = value[key]
 
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
-        self.context.spooky_subgraph.reset_retries()
+        subgraph.reset_retries()
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
         self,
@@ -301,6 +307,7 @@ class FetchBehaviour(APYEstimationBaseState):
                         res,
                         res_context=f"top {self.context.spooky_subgraph.top_n_pools} pool ids (Showing first example)",
                         keys=("pairs", 0, "id"),
+                        subgraph=self.context.spooky_subgraph,
                     )
                 except EmptyResponseError:
                     yield from self.sleep(self.params.sleep_time)
@@ -323,7 +330,10 @@ class FetchBehaviour(APYEstimationBaseState):
 
                     try:
                         self._handle_response(
-                            res, res_context="block", keys=("blocks", 0)
+                            res,
+                            res_context="block",
+                            keys=("blocks", 0),
+                            subgraph=self.context.fantom_subgraph,
                         )
                     except EmptyResponseError:
                         yield from self.sleep(self.params.sleep_time)
@@ -346,6 +356,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             res,
                             res_context=f"ETH price for block {fetched_block}",
                             keys=("bundles", 0, "ethPrice"),
+                            subgraph=self.context.spooky_subgraph,
                         )
                     except EmptyResponseError:
                         yield from self.sleep(self.params.sleep_time)
@@ -366,6 +377,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             res_context=f"top {self.context.spooky_subgraph.top_n_pools} "
                             f"pool data for block {fetched_block} (Showing first example)",
                             keys=("pairs", 0),
+                            subgraph=self.context.spooky_subgraph,
                         )
                     except EmptyResponseError:
                         yield from self.sleep(self.params.sleep_time)
@@ -411,6 +423,15 @@ class FetchBehaviour(APYEstimationBaseState):
                     yield from self.wait_until_round_end()
 
                 self.set_done()
+
+    def clean_up(self) -> None:
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """
+        self.context.spooky_subgraph.reset_retries()
+        self.context.fantom_subgraph.reset_retries()
 
 
 class TransformBehaviour(APYEstimationBaseState):
@@ -476,8 +497,7 @@ class TransformBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 transformed_history = cast(pd.DataFrame, completed_task.result)
                 self.context.logger.info(
-                    "Data have been transformed. Showing the first row:\n",
-                    transformed_history.head(1),
+                    f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
                 )
 
                 # Store the transformed data.
@@ -743,7 +763,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 save_path = os.path.join(
                     self.params.data_folder,
                     self.params.pair_id,
-                    f"{prefix}forecaster.pkl",
+                    f"{prefix}forecaster.joblib",
                 )
                 save_forecaster(save_path, forecaster)
 
@@ -787,7 +807,7 @@ class TestBehaviour(APYEstimationBaseState):
             y[split] = np.loadtxt(path, delimiter=",")
 
         model_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "forecaster.pkl"
+            self.params.data_folder, self.params.pair_id, "forecaster.joblib"
         )
         forecaster = load_forecaster(model_path)
 
@@ -867,9 +887,10 @@ class EstimateBehaviour(APYEstimationBaseState):
             model_path = os.path.join(
                 self.params.data_folder,
                 self.params.pair_id,
-                "fully_trained_forecaster.pkl",
+                "fully_trained_forecaster.joblib",
             )
             forecaster = load_forecaster(model_path)
+            # currently, a `steps_forward != 1` will fail
             estimation = forecaster.predict(self.params.estimation["steps_forward"])
 
             self.context.logger.info(

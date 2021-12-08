@@ -21,13 +21,16 @@
 import json
 import os
 import time
+from pathlib import PosixPath
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation.tools.general import (
     create_pathdirs,
+    filter_out_numbers,
     gen_unix_timestamps,
+    read_json_file,
     to_json_file,
 )
 
@@ -57,7 +60,7 @@ class TestGeneral:
     @pytest.mark.parametrize(
         "test_path", ("", "file.extension", "folder/file.extension")
     )
-    def test_create_pathdirs(tmp_path: str, test_path: str) -> None:
+    def test_create_pathdirs(tmp_path: PosixPath, test_path: str) -> None:
         """Test create pathdirs."""
         full_test_path = os.path.join(tmp_path, test_path)
         folder_name = os.path.dirname(test_path)
@@ -67,7 +70,7 @@ class TestGeneral:
             expected_folders_amount = 1
 
         else:
-            path_to_folder = tmp_path
+            path_to_folder = tmp_path  # type: ignore
             expected_folders_amount = 0
 
         create_pathdirs(full_test_path)
@@ -88,11 +91,11 @@ class TestGeneral:
         assert os.path.isdir(path_to_folder)
 
     @staticmethod
-    def test_to_json_file(tmp_path: str) -> None:
+    def test_to_json_file(tmp_path: PosixPath) -> None:
         """Test list to json file."""
         test_list = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
 
-        # test non existing path.
+        # test non-existing path.
         path = os.path.join("non_existing_path", "file.json")
         with pytest.raises(FileNotFoundError):
             to_json_file(path, test_list)
@@ -110,13 +113,50 @@ class TestGeneral:
             to_json_file(path, test_list)  # type: ignore
 
     @staticmethod
-    def test_read_json_file() -> None:
+    def test_read_json_file(tmp_path: PosixPath) -> None:
         """Test `read_json_file`."""
-        # TODO
-        assert True
+        # test non-existing path.
+        filepath = "non-existing"
+        with pytest.raises(FileNotFoundError):
+            read_json_file(filepath)
+
+        # test existing path with serializable list.
+        expected = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
+        filepath = os.path.join(tmp_path, "test.json")
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(expected, f, ensure_ascii=False, indent=4)
+
+        actual = read_json_file(filepath)
+        assert actual == expected
+
+        # test existing path with non-serializable list.
+        expected.append(b"non-serializable")  # type: ignore
+        with pytest.raises(TypeError):
+            to_json_file(filepath, expected)  # type: ignore
 
     @staticmethod
-    def test_filter_out_numbers() -> None:
+    @pytest.mark.parametrize(
+        "unfiltered_string,expected",
+        (
+            (
+                "test0this1string",
+                1,
+            ),
+            (
+                "test0thi5s1string",
+                51,
+            ),
+            (
+                "345678",
+                345678,
+            ),
+            (
+                "test_this_string",
+                None,
+            ),
+        ),
+    )
+    def test_filter_out_numbers(unfiltered_string: str, expected: int) -> None:
         """Test `filter_out_numbers`."""
-        # TODO
-        assert True
+        filtered_num = filter_out_numbers(unfiltered_string)
+        assert filtered_num == expected

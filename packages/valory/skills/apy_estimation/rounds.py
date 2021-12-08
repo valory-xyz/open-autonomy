@@ -41,7 +41,11 @@ from packages.valory.skills.apy_estimation.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
+    TestingPayload as _TestingPayload,
+)
+from packages.valory.skills.apy_estimation.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
@@ -76,7 +80,7 @@ class PeriodState(BasePeriodState):
         best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
         pair_name: Optional[str] = None,
-        n_estimations: Optional[int] = None,
+        n_estimations: int = 0,
     ) -> None:
         """Initialize the state."""
         super().__init__(participants, period_count, period_setup_params)
@@ -258,7 +262,7 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
     round_id = "preprocess"
     allowed_tx_type = PreprocessPayload.transaction_type
-    payload_attribute = "train_test"
+    payload_attribute = "train_test_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -306,7 +310,7 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
                 )
                 state_event = updated_state, Event.DONE
 
-        if not self.is_majority_possible(
+        elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
             state_event = self._return_no_majority_event()
@@ -388,7 +392,7 @@ class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
 
     round_id = "test"
-    allowed_tx_type = TestingPayload.transaction_type
+    allowed_tx_type = _TestingPayload.transaction_type
     payload_attribute = "report_hash"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:

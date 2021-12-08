@@ -194,8 +194,12 @@ def walk_forward_test(
     :param steps_forward: how many timesteps the model will be predicting in the future.
     :return: a `numpy` array with the forecaster's predictions.
     """
-    y_pred = []
+    if steps_forward < 1:
+        raise ValueError(
+            f"Timesteps to predict in the future cannot be {steps_forward} < 1."
+        )
 
+    y_pred = []
     for i in range(0, len(y_test), steps_forward):
         y_hat = forecaster.predict(steps_forward)
 
