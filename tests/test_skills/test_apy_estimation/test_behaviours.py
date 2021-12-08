@@ -37,7 +37,6 @@ import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
-from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
@@ -305,7 +304,6 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         if current_state is None:
             return
-        current_state = cast(BaseState, current_state)
         if current_state.matching_round is None:
             return
         abci_app = current_state.context.state.period.abci_app
@@ -329,6 +327,19 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             ).round_id
             current_state.act_wrapper()
             assert current_state.is_done()
+
+    def _test_task_not_setup(self) -> None:
+        """Run test for behaviour when not set-up."""
+        behaviour = self.behaviour_class(
+            name=self.behaviour_class.state_id,
+            skill_context=self.apy_estimation_behaviour.context,
+        )
+
+        assert behaviour.state_id == self.behaviour_class.state_id
+
+        behaviour.act_wrapper()
+        self.end_round()
+        assert behaviour.state_id == self.behaviour_class.state_id
 
     @classmethod
     def teardown(cls) -> None:
@@ -844,31 +855,21 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert isinstance(behaviour._async_result, AsyncResult)
         assert behaviour._async_result is not None
 
-    def test_task_not_setup(
-        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
-    ) -> None:
+    def test_task_not_setup(self) -> None:
         """Run test for `transform_behaviour` when not set-up."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context,
-        )
-
-        assert behaviour.state_id == self.behaviour_class.state_id
-
-        behaviour.act_wrapper()
-        self.end_round()
-        assert behaviour.state_id == self.behaviour_class.state_id
+        self._test_task_not_setup()
 
     def test_task_not_ready(
         self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context,
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
         )
 
-        assert behaviour.state_id == self.behaviour_class.state_id
+        assert cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).state_id == self.behaviour_class.state_id
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(
@@ -883,13 +884,20 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
             lambda _: pd.DataFrame(),
         )
-        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
-        behaviour.context.task_manager.start()
-        behaviour.setup()
 
-        behaviour.act_wrapper()
-        self.end_round()
-        assert behaviour.state_id == self.behaviour_class.state_id
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(
+            TransformBehaviour, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        self.apy_estimation_behaviour.act_wrapper()
+        assert (
+                cast(
+                    TransformBehaviour, self.apy_estimation_behaviour.current_state
+                ).state_id
+                == self.behaviour_class.state_id
+        )
 
     def test_transform_behaviour(
         self,
