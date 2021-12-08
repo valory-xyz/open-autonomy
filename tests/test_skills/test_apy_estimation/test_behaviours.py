@@ -26,16 +26,18 @@ import time
 from copy import copy
 from datetime import datetime
 from multiprocessing.pool import AsyncResult
-from pathlib import Path
+from pathlib import Path, PosixPath
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
+import numpy as np
 import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
+from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
 
@@ -942,10 +944,50 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 
-    def test_preprocess_behaviour(self) -> None:
+    behaviour_class = PreprocessBehaviour
+    next_behaviour_class = RandomnessBehaviour
+
+    def test_preprocess_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
+    ) -> None:
         """Run test for `preprocess_behaviour`."""
-        # TODO
-        assert True
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(np, "savetxt", no_action)
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+
+        with mock.patch(
+            "packages.valory.skills.apy_estimation.tools.etl.load_hist",
+            new_callable=lambda *_: pd.DataFrame(),
+        ):
+            # with mock.patch(
+            #     "packages.valory.skills.apy_estimation.tools.general.create_pathdirs",
+            #     new_callable=no_action,
+            # ):
+            #     with mock.patch(
+            #         "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
+            #         new_callable=lambda *_: (
+            #             (np.asarray([0] * 20), np.asarray([0] * 10)),
+            #             "",
+            #         ),
+            #     ):
+            self.fast_forward_to_state(
+                self.apy_estimation_behaviour,
+                self.behaviour_class.state_id,
+                PeriodState(),
+            )
+            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+            assert state.state_id == self.behaviour_class.state_id
+
+            self.apy_estimation_behaviour.act_wrapper()
+            self.mock_a2a_transaction()
+            self._test_done_flag_set()
+            self.end_round()
+            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+            assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
