@@ -142,7 +142,7 @@ class DockerBaseTest(ABC):
     """Base pytest class for setting up Docker images."""
 
     timeout: float = 3.0
-    max_attempts: int = 40
+    max_attempts: int = 60
     addr: str
     port: int
 
