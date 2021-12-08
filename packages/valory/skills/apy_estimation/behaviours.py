@@ -553,7 +553,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 self.params.data_folder, self.params.pair_id, f"{filename}.csv"
             )
             create_pathdirs(save_path)
-            np.savetxt(save_path, split, ",")
+            split.to_csv(save_path, index=False)
             hashes.append(hasher.get(save_path))
 
         # Pass the hash as a Payload.
@@ -653,7 +653,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
-        y = np.loadtxt(path, delimiter=",")
+        y = pd.read_csv(path)
 
         optimize_task = OptimizeTask()
         task_id = self.context.task_manager.enqueue_task(
