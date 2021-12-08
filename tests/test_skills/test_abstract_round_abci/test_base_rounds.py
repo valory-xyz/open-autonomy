@@ -212,6 +212,7 @@ class BaseRoundTestClass:
         7. test state and event
 
         :param test_runner: test runner
+        :param iter_count: iter_count
         """
 
         for _ in range(iter_count):
@@ -489,6 +490,7 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
         yield
+
 
 class _BaseRoundTestClass(BaseRoundTestClass):
     """Base test class."""

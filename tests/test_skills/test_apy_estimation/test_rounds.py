@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-import logging  # noqa: F401
 import re
 from typing import Dict, FrozenSet, Optional, cast
 from unittest import mock
@@ -387,6 +386,11 @@ class TestTransformRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = TransformRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `PreprocessRound`."""
@@ -408,6 +412,11 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=Event.DONE,
             )
         )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = PreprocessRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
@@ -449,6 +458,11 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `OptimizeRound`."""
@@ -470,6 +484,11 @@ class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=Event.DONE,
             )
         )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = OptimizeRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
@@ -512,6 +531,11 @@ class TestTrainRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = TrainRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `TestRound`."""
@@ -537,6 +561,11 @@ class TestTestRound(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=Event.DONE,
             )
         )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = _TestRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
@@ -581,6 +610,11 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = EstimateRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `ResetRoundd`."""
@@ -609,6 +643,11 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = ResetRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
 
 class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `CycleResetRoundd`."""
@@ -636,6 +675,11 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=Event.DONE,
             )
         )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = CycleResetRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
 
 
 def test_period() -> None:
@@ -674,4 +718,4 @@ def test_period() -> None:
     assert period_state.full_training == full_training
     assert period_state.pair_name == pair_name
     assert period_state.n_estimations == n_estimations
-    assert period_state.is_most_voted_estimate_set
+    assert period_state.is_most_voted_estimate_set is not None

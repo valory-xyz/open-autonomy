@@ -310,7 +310,7 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
                 )
                 state_event = updated_state, Event.DONE
 
-        if not self.is_majority_possible(
+        elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
             state_event = self._return_no_majority_event()
