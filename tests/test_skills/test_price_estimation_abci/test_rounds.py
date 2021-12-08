@@ -23,8 +23,6 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional, Type, cast
 from unittest import mock
 
-import pytest
-
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseTxPayload,
@@ -336,7 +334,6 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         )
         self._run_with_round(test_round, Event.DONE, 10)
 
-    @pytest.mark.skip
     def test_run_default_not_finished(
         self,
     ) -> None:
@@ -351,13 +348,14 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         test_round = RegistrationRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round)
+        self._run_with_round(test_round, finished=False)
 
     def _run_with_round(
         self,
         test_round: RegistrationRound,
         expected_event: Optional[Event] = None,
         confirmations: Optional[int] = None,
+        finished: bool = True,
     ) -> None:
         """Run with given round."""
 
@@ -382,7 +380,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
 
         next(test_runner)
         assert test_round.block_confirmations == prior_confirmations + 1
-        next(test_runner)
+        if finished:
+            next(test_runner)
 
 
 class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
