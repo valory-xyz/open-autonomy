@@ -37,6 +37,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import pytest
+from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
 from aea.helpers.ipfs.base import IPFSHashOnly
@@ -51,6 +52,7 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
@@ -65,9 +67,11 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.apy_estimation.behaviours import (
     APYEstimationBaseState,
     APYEstimationConsensusBehaviour,
+    CycleResetBehaviour,
     EstimateBehaviour,
     FetchBehaviour,
     OptimizeBehaviour,
@@ -1543,5 +1547,138 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test CycleResetBehaviour."""
+
+    behaviour_class = CycleResetBehaviour
+    next_behaviour_class = EstimateBehaviour
+
+    def test_reset_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=8.1,
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
+        monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
+        cast(
+            CycleResetBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.observation_interval = 0.1
+        self.apy_estimation_behaviour.act_wrapper()
+        time.sleep(0.2)
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_reset_behaviour_without_most_voted_estimate(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Test reset behaviour without most voted estimate."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=None,
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
+        monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
+
+        self.apy_estimation_behaviour.context.params.observation_interval = 0.1
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                20,
+                "[test_agent_name] Entered in the 'cycle_reset' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Finalized estimate not available.",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Period end.",
+            ),
+        ]
+        time.sleep(0.2)
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test EstimateBehaviour."""
+
+    behaviour_class = ResetBehaviour
+    next_behaviour_class = FetchBehaviour
+
+    def test_reset_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Run test for `ResetBehaviour`."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                period_count=0,
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                20,
+                "[test_agent_name] Entered in the 'reset' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Period 0 was not finished. Resetting!",
+            ),
+        ]
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id

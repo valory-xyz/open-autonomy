@@ -689,9 +689,7 @@ def test_period() -> None:
     period_count = 1
     period_setup_params: Dict = {}
     most_voted_randomness = 1
-    most_voted_estimate = [
-        1.0,
-    ]
+    most_voted_estimate = 1.0
     best_params: Dict = {}
     full_training = False
     pair_name = ""
