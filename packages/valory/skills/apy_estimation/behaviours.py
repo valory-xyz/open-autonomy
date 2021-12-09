@@ -681,10 +681,8 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 study = cast(Study, completed_task.result)
                 study_results = study.trials_dataframe()
-                self.context.logger.info(
-                    "Optimization has finished. Showing the results:\n",
-                    study_results.to_string(),
-                )
+                self.context.logger.info("Optimization has finished. Showing the results:\n"
+                                         f"{study_results.to_string()}")
 
                 # Store the results.
                 save_path = os.path.join(
