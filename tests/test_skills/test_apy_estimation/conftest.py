@@ -83,18 +83,24 @@ def fantom_specs(_common_specs: SpecsType) -> SpecsType:
 @pytest.fixture
 def eth_price_usd_q() -> str:
     """Query string for fetching ethereum price in USD from SpookySwap."""
-    return """
-            {
-                bundles(
-                    first: 1,
-                    block: {number: 3830367},
-                    where: {
-                        id: 1
-                    }
-                )
-                {ethPrice}
-            }
+    return (
             """
+        {
+            bundles(
+                first: 1,
+                block: {number: """
+            + str(3830367)
+            + """},
+                where: {
+                    id: """
+            + str(1)
+            + """
+                }
+            )
+            {ethPrice}
+        }
+        """
+        )
 
 
 @pytest.fixture
@@ -140,11 +146,17 @@ def top_n_pairs_q() -> str:
 def pairs_q() -> str:
     """Query to get data for the first `top_n` pools based on their total liquidity."""
 
-    return """
+    return (
+        """
     {
         pairs(
-            where: {id_in: ["0xec454eda10accdd66209c57af8c12924556f3abd"]},
-            block: {number: 3830367}
+            where: {id_in:
+            [\""""
+        + '","'.join(["0xec454eda10accdd66209c57af8c12924556f3abd"])
+        + """"]},
+            block: {number: """
+        + str(3830367)
+        + """}
         ) {
             id
             token0 {
@@ -176,6 +188,7 @@ def pairs_q() -> str:
         }
     }
     """
+    )
 
 
 @pytest.fixture

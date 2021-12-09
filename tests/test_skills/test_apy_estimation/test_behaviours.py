@@ -685,6 +685,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             FetchBehaviour.state_id,
             PeriodState(),
         )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
+            lambda *_: iter((1618735147,)),
+        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -701,7 +705,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # top pairs' ids request.
         request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        res = {"data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -713,12 +717,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
-            lambda _: 1618735147,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
@@ -729,10 +729,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
-            eth_price_usd_q,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
