@@ -275,6 +275,17 @@ def train_task_result(observations: np.ndarray) -> TaskResult:
 
 
 @pytest.fixture
+def test_task_result() -> TaskResult:
+    """Create a result of the `TestTask`.
+
+    :return: a dummy `Task` Result.
+    """
+    result = {"test": "test"}
+
+    return TaskResult(result)
+
+
+@pytest.fixture
 def transformed_historical_data() -> pd.DataFrame:
     """Create dummy transformed historical data"""
     return pd.DataFrame(
@@ -346,6 +357,28 @@ def transformed_historical_data() -> pd.DataFrame:
             "APY": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1],
         }
     )
+
+
+class DummyPipeline:
+    """A dummy pipeline."""
+
+    @staticmethod
+    def predict(steps_forward: int) -> np.ndarray:
+        """Predict `steps_forward` timesteps in the future.
+
+        :param steps_forward: how many timesteps the model will be predicting in the future.
+        :return: a `numpy` array with the dummy predictions.
+        """
+        return np.zeros(steps_forward)
+
+    @staticmethod
+    def update(_y: np.ndarray) -> None:
+        """Update the dummy pipeline.
+
+        :param _y: The time-series data to add to the endogenous samples on which the
+            `DummyPipeline` was previously fit.
+        """
+        pass
 
 
 def is_list_of_strings(lst: Any) -> bool:
