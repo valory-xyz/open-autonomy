@@ -130,9 +130,11 @@ class TestGeneral:
         assert actual == expected
 
         # test existing path with non-serializable list.
-        expected.append(b"non-serializable")  # type: ignore
-        with pytest.raises(TypeError):
-            to_json_file(filepath, expected)  # type: ignore
+        with open(filepath, "wb") as f:
+            f.write(b"non-serializable")
+
+        with pytest.raises(json.JSONDecodeError):
+            read_json_file(filepath)  # type: ignore
 
     @staticmethod
     @pytest.mark.parametrize(
