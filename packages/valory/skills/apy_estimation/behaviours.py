@@ -730,13 +730,13 @@ class TrainBehaviour(APYEstimationBaseState):
                 path = os.path.join(
                     self.params.data_folder, self.params.pair_id, f"{split}.csv"
                 )
-                y.append(np.loadtxt(path, delimiter=","))
+                y.append(pd.read_csv(path).values)
             y = np.concatenate(y)
         else:
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, "train.csv"
             )
-            y = np.loadtxt(path, delimiter=",")
+            y = pd.read_csv(path).values
 
         train_task = TrainTask()
         task_id = self.context.task_manager.enqueue_task(
@@ -804,7 +804,7 @@ class TestBehaviour(APYEstimationBaseState):
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, f"{split}.csv"
             )
-            y[split] = np.loadtxt(path, delimiter=",")
+            y[split] = pd.read_csv(path).values
 
         model_path = os.path.join(
             self.params.data_folder, self.params.pair_id, "forecaster.joblib"
