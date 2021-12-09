@@ -87,7 +87,7 @@ ETHER_VALUE = 0  # TOFIX
 SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
-WETH_ADDRESS = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
 TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
 
@@ -741,7 +741,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
                     }
@@ -769,11 +769,33 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
+
+            # Remove allowance for base token (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["base"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=self.period_state.router_contract_address,
+                value=0,
+            )
+            allowance_base_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": strategy["pair"]["token_a"]["address"],
+                    "value": 0,
+                    "data": HexBytes(allowance_base_data.hex()),
+                }
+            )
 
             # Remove allowance for token A (only if it is not native)
             if not strategy["pair"]["token_a"]["is_native"]:
@@ -792,7 +814,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": strategy["pair"]["token_a"]["address"],
                         "value": 0,
                         "data": HexBytes(allowance_a_data.hex()),
                     }
@@ -814,7 +836,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
+                    "to": strategy["pair"]["token_a"]["address"],
                     "value": 0,
                     "data": HexBytes(allowance_b_data.hex()),
                 }
@@ -840,7 +862,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
                         "data": HexBytes(swap_a_data.hex()),
                     }
@@ -866,7 +888,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.multisend_contract_address,
+                        "to": self.period_state.router_contract_address,
                         "value": 0,
                         "data": HexBytes(swap_a_data.hex()),
                     }
@@ -892,7 +914,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.multisend_contract_address,
+                    "to": self.period_state.router_contract_address,
                     "value": 0,
                     "data": HexBytes(swap_b_data.hex()),
                 }
@@ -918,6 +940,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 to_address=self.period_state.multisend_contract_address,
                 value=ETHER_VALUE,
                 data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
                 safe_tx_gas=strategy["safe_tx_gas"],
                 safe_nonce=strategy["safe_nonce"],
             )
