@@ -90,6 +90,7 @@ CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
 TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
+LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"
 
 benchmark_tool = BenchmarkTool()
 
@@ -693,7 +694,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
 
-    def async_act(self) -> Generator:
+    def async_act(self) -> Generator:  # pylint: disable=too-many-statements
         """
         Do the action.
 
@@ -714,6 +715,29 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # It is possible that we don't need to swap. For now let's assume we have just USDT
             # and always swap back to it.
             multi_send_txs = []
+
+            # Add allowance for LP token to be spent by the router
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=LP_TOKEN_ADDRESS,
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=self.period_state.router_contract_address,
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=MAX_ALLOWANCE,
+            )
+            allowance_lp_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": LP_TOKEN_ADDRESS,
+                    "value": 0,
+                    "data": HexBytes(allowance_lp_data.hex()),
+                }
+            )
 
             # Remove liquidity
             if strategy["pair"]["token_a"]["is_native"]:
@@ -774,6 +798,28 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
+
+            # Remove allowance for LP token
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=LP_TOKEN_ADDRESS,
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=self.period_state.router_contract_address,
+                value=0,
+            )
+            allowance_lp_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": LP_TOKEN_ADDRESS,
+                    "value": 0,
+                    "data": HexBytes(allowance_lp_data.hex()),
+                }
+            )
 
             # Remove allowance for token A (only if it is not native)
             if not strategy["pair"]["token_a"]["is_native"]:

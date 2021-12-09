@@ -93,6 +93,9 @@ from tests.test_skills.test_price_estimation_abci.test_rounds import (
 )
 
 
+LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"
+
+
 def get_default_strategy(is_native: bool = True) -> Dict:
     """Returns default strategy."""
     return {
@@ -1277,6 +1280,32 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.liquidity_provision_behaviour.act_wrapper()
 
         self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=LP_TOKEN_ADDRESS,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=MAX_ALLOWANCE,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -1297,6 +1326,32 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=LP_TOKEN_ADDRESS,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=0,
                     )
                 ),
             ),
@@ -1491,6 +1546,32 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.liquidity_provision_behaviour.act_wrapper()
 
         self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=LP_TOKEN_ADDRESS,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=MAX_ALLOWANCE,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -1512,6 +1593,32 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=LP_TOKEN_ADDRESS,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=0,
                     )
                 ),
             ),
