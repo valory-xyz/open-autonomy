@@ -19,6 +19,7 @@
 
 """Tests for valory/apy_estimation skill's behaviours."""
 import binascii
+import importlib
 import json
 import logging
 import os
@@ -72,6 +73,11 @@ from packages.valory.skills.apy_estimation.behaviours import (
     RandomnessBehaviour,
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
+)
+from packages.valory.skills.apy_estimation.behaviours import (
+    TestBehaviour as _TestBehaviour,
+)
+from packages.valory.skills.apy_estimation.behaviours import (
     TrainBehaviour,
     TransformBehaviour,
 )
@@ -872,7 +878,12 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(most_voted_randomness=0),
         )
 
-        assert cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).state_id == self.behaviour_class.state_id
+        assert (
+            cast(
+                TransformBehaviour, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(
@@ -889,17 +900,15 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         self.apy_estimation_behaviour.context.task_manager.start()
-        cast(
-            TransformBehaviour, self.apy_estimation_behaviour.current_state
-        ).setup()
+        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
         self.apy_estimation_behaviour.act_wrapper()
         assert (
-                cast(
-                    TransformBehaviour, self.apy_estimation_behaviour.current_state
-                ).state_id
-                == self.behaviour_class.state_id
+            cast(
+                TransformBehaviour, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
         )
 
     def test_transform_behaviour(
@@ -1254,13 +1263,20 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
-        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: DummyAsyncResult(optimize_task_result))
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(optimize_task_result),
+        )
 
         cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         monkeypatch.setattr(pd.DataFrame, "to_csv", no_action)
-        monkeypatch.setattr(IPFSHashOnly, "get",
-                            lambda *_: "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11")
+        monkeypatch.setattr(
+            IPFSHashOnly,
+            "get",
+            lambda *_: "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11",
+        )
 
         self.apy_estimation_behaviour.act_wrapper()
 
@@ -1272,10 +1288,114 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TrainBehaviour."""
 
-    def test_train_behaviour(self) -> None:
-        """Run test for `train_behaviour`."""
-        # TODO
-        assert True
+    behaviour_class = TrainBehaviour
+    next_behaviour_class = _TestBehaviour
+
+    @pytest.mark.parametrize("full_training", (True, False))
+    def test_setup(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        full_training: bool,
+    ) -> None:
+        """Test behaviour setup."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(full_training=full_training, best_params={}),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    def test_task_not_setup(self) -> None:
+        """Run test for behaviour when not set-up."""
+        self._test_task_not_setup()
+
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(best_params={"p": 1, "q": 1, "d": 1, "m": 1}),
+        )
+
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        self.apy_estimation_behaviour.act_wrapper()
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+    def test_train_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        tmp_path: PosixPath,
+        train_task_result: TaskResult,
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(best_params={"p": 1, "q": 1, "d": 1, "m": 1}),
+        )
+        # patching fot setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(train_task_result),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        # changes for act.
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+
+        # act.
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
 
 
 class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):

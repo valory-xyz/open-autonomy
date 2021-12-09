@@ -23,7 +23,7 @@ import json
 import os
 from abc import ABC
 from multiprocessing.pool import AsyncResult
-from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -681,8 +681,10 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 study = cast(Study, completed_task.result)
                 study_results = study.trials_dataframe()
-                self.context.logger.info("Optimization has finished. Showing the results:\n"
-                                         f"{study_results.to_string()}")
+                self.context.logger.info(
+                    "Optimization has finished. Showing the results:\n"
+                    f"{study_results.to_string()}"
+                )
 
                 # Store the results.
                 save_path = os.path.join(
@@ -725,12 +727,12 @@ class TrainBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         if self.period_state.full_training:
-            y = []
+            y: Union[np.ndarray, List[np.ndarray]] = []
             for split in ("train", "test"):
                 path = os.path.join(
                     self.params.data_folder, self.params.pair_id, f"{split}.csv"
                 )
-                y.append(pd.read_csv(path).values)
+                cast(List[np.ndarray], y).append(pd.read_csv(path).values)
             y = np.concatenate(y)
         else:
             path = os.path.join(
@@ -799,7 +801,7 @@ class TestBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load test data.
-        y = {"train": None, "y_test": None}
+        y: Dict[str, Optional[np.ndarray]] = {"train": None, "y_test": None}
         for split in ("train", "test"):
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, f"{split}.csv"

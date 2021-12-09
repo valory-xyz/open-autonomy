@@ -20,16 +20,20 @@
 
 """Configurations for APY skill's tests."""
 
+import warnings
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Tuple, Union
 from unittest import mock
 
+import numpy as np
 import optuna
 import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
 from optuna.distributions import UniformDistribution
+from optuna.exceptions import ExperimentalWarning
 
+from packages.valory.skills.apy_estimation.ml.forecasting import train_forecaster
 from packages.valory.skills.apy_estimation.models import SharedState
 
 
@@ -238,6 +242,8 @@ def optimize_task_result() -> TaskResult:
     """
     study = optuna.create_study()
 
+    warnings.filterwarnings("ignore", category=ExperimentalWarning)
+
     trial = optuna.trial.create_trial(
         params={"x": 2.0},
         distributions={"x": UniformDistribution(0, 10)},
@@ -247,6 +253,25 @@ def optimize_task_result() -> TaskResult:
     study.add_trial(trial)
 
     return TaskResult(study)
+
+
+@pytest.fixture
+def observations() -> np.ndarray:
+    """Observations of a timeseries."""
+    return np.asarray([0] * 20)
+
+
+@pytest.fixture
+def train_task_result(observations: np.ndarray) -> TaskResult:
+    """Create a result of the `TrainTask`.
+
+    :param observations: the observations for the training.
+    :return: a dummy `Task` Result.
+    """
+    hyperparameters = 1, 1, 1, 3, 1
+    forecaster = train_forecaster(observations, *hyperparameters)
+
+    return TaskResult(forecaster)
 
 
 @pytest.fixture
