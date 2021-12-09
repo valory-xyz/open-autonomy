@@ -229,7 +229,7 @@ class TestLiquidityProvisionHardhat(
             "6deb604ebfa5e280876b7857818b0b64310e4d1f313b65042d8f2a8778f9a9fa"
         )
         cls.most_voted_tx_hash_exit = (
-            "2e11842b092c107f7353170003cf2472f7621d8563032cd6225ea63b0e84d8cb"
+            "c97efb90e7887a91d6f8e61541300e7d72e6e16c9049c3bc003ef1119fb656e3"
         )
 
         # setup default objects
@@ -605,15 +605,15 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_hash=self.most_voted_tx_hash_exit,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
-                most_voted_strategy=strategy
+                most_voted_strategy=strategy,
             ),
         )
-        handlers: HANDLERS = [
+        handlers = [
             self.contract_handler,
             self.signing_handler,
             self.ledger_handler,
         ]
-        expected_content: EXPECTED_CONTENT = [
+        expected_content = [
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
             },
@@ -624,7 +624,7 @@ class TestLiquidityProvisionHardhat(
                 "performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST  # type: ignore
             },
         ]
-        expected_types: EXPECTED_TYPES = [
+        expected_types = [
             {
                 "raw_transaction": RawTransaction,
             },
@@ -695,6 +695,14 @@ class TestLiquidityProvisionHardhat(
 
     def test_exit_pool_tx_hash_behaviour(self) -> None:
         """test_exit_pool_tx_hash_behaviour"""
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 1
+
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_exit.update(most_voted_strategy=strategy),
+        )
+
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
         assert self.strategy["deadline"] > timestamp, "Increase timestamp!"
         cycles = 8
@@ -712,7 +720,7 @@ class TestLiquidityProvisionHardhat(
         _, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
             ExitPoolTransactionHashBehaviour.state_id,
             cycles,
-            self.default_period_state_exit,
+            period_state,
             handlers,
             expected_content,
             expected_types,
@@ -726,11 +734,16 @@ class TestLiquidityProvisionHardhat(
 
     def test_exit_pool_tx_sign_behaviour(self) -> None:
         """test_exit_pool_tx_sign_behaviour"""
+
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 1
+
         # values taken from test_exit_pool_tx_hash_behaviour flow
         period_state = cast(
             PeriodState,
             self.default_period_state_exit.update(
                 most_voted_tx_hash=self.most_voted_tx_hash_exit,
+                most_voted_strategy=strategy,
             ),
         )
         cycles = 1
