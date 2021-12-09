@@ -814,7 +814,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": strategy["pair"]["token_a"]["address"],
+                    "to": strategy["pair"]["token_b"]["address"],
                     "value": 0,
                     "data": HexBytes(allowance_b_data.hex()),
                 }
