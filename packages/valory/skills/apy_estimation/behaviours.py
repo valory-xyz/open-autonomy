@@ -837,7 +837,7 @@ class TestBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 report = cast(TestReportType, completed_task.result)
                 self.context.logger.info(
-                    f"Testing has finished. Report follows:\n{json.dumps(report)}"
+                    f"Testing has finished. Report follows:\n{report}"
                 )
 
                 # Store the results.

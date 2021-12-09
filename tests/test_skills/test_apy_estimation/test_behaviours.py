@@ -1562,6 +1562,122 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
+    def test_os_error_handling(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+        test_task_result: TaskResult,
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(test_task_result),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+        monkeypatch.setattr(
+            BaseState, "send_a2a_transaction", lambda *_: iter([0, 1, 2])
+        )
+        monkeypatch.setattr(BaseState, "wait_until_round_end", lambda _: no_action)
+
+        # test act for `OSError` handling.
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'test' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Testing has finished. Report follows:\n{'test': 'test'}",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                "[test_agent_name] Path '' could not be found!",
+            ),
+        ]
+
+    def test_type_error_handling(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        tmp_path: PosixPath,
+        caplog: LogCaptureFixture,
+        test_task_result_non_serializable: TaskResult,
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(test_task_result_non_serializable),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+        monkeypatch.setattr(
+            BaseState, "send_a2a_transaction", lambda *_: iter([0, 1, 2])
+        )
+        monkeypatch.setattr(BaseState, "wait_until_round_end", lambda _: no_action)
+
+        # test act for `TypeError` handling.
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'test' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Testing has finished. Report follows:\nb'non-serializable'",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                "[test_agent_name] Report cannot be JSON serialized!",
+            ),
+        ]
+
     def test_test_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -1599,7 +1715,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
-        # act.
+        # test act.
         self.apy_estimation_behaviour.act_wrapper()
 
         self.mock_a2a_transaction()

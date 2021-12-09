@@ -286,6 +286,17 @@ def test_task_result() -> TaskResult:
 
 
 @pytest.fixture
+def test_task_result_non_serializable() -> TaskResult:
+    """Create a non-serializable result of the `TestTask`.
+
+    :return: a dummy `Task` Result.
+    """
+    result = b"non-serializable"
+
+    return TaskResult(result)
+
+
+@pytest.fixture
 def transformed_historical_data() -> pd.DataFrame:
     """Create dummy transformed historical data"""
     return pd.DataFrame(
