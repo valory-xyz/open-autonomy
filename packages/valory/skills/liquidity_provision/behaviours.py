@@ -775,28 +775,6 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     }
                 )
 
-            # Remove allowance for base token (always non-native)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["base"]["address"],
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="get_method_data",
-                method_name="approve",
-                spender=self.period_state.router_contract_address,
-                value=0,
-            )
-            allowance_base_data = cast(
-                bytes, contract_api_msg.raw_transaction.body["data"]
-            )
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": strategy["pair"]["token_a"]["address"],
-                    "value": 0,
-                    "data": HexBytes(allowance_base_data.hex()),
-                }
-            )
-
             # Remove allowance for token A (only if it is not native)
             if not strategy["pair"]["token_a"]["is_native"]:
                 contract_api_msg = yield from self.get_contract_api_response(
@@ -917,6 +895,28 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "to": self.period_state.router_contract_address,
                     "value": 0,
                     "data": HexBytes(swap_b_data.hex()),
+                }
+            )
+
+            # Remove allowance for base token (always non-native)
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["base"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=self.period_state.router_contract_address,
+                value=0,
+            )
+            allowance_base_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": strategy["pair"]["token_a"]["address"],
+                    "value": 0,
+                    "data": HexBytes(allowance_base_data.hex()),
                 }
             )
 
