@@ -616,7 +616,7 @@ class TestLiquidityProvisionHardhat(
 
     def test_exit_pool_tx_sign_behaviour(self) -> None:
         """test_exit_pool_tx_sign_behaviour"""
-        # first value taken from test_enter_pool_tx_hash_behaviour flow
+        # values taken from test_exit_pool_tx_hash_behaviour flow
         period_state = cast(
             PeriodState,
             self.default_period_state_exit.update(
@@ -652,7 +652,7 @@ class TestLiquidityProvisionHardhat(
             )
             for address, crypto in self.safe_owners.items()
         }
-        # values taken from test_enter_pool_tx_hash_behaviour flow
+        # values taken from test_exit_pool_tx_hash_behaviour flow
         period_state = cast(
             PeriodState,
             self.default_period_state_exit.update(
@@ -702,7 +702,7 @@ class TestLiquidityProvisionHardhat(
         # validate
         period_state = cast(
             PeriodState,
-            self.default_period_state_enter.update(
+            self.default_period_state_exit.update(
                 final_tx_hash=tx_digest,
                 most_voted_tx_hash=self.most_voted_tx_hash_exit,
                 most_voted_tx_data=self.multisend_data_exit,
