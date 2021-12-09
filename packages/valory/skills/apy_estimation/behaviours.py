@@ -125,7 +125,7 @@ class TendermintHealthcheckBehaviour(APYEstimationBaseState):
 
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
-        expired = False  # pragma: no cover
+        expired = False
 
         if self._check_started is not None and not self._is_healthy:
             expired = (
@@ -488,7 +488,7 @@ class TransformBehaviour(APYEstimationBaseState):
         """Do the action."""
         if self._async_result is not None:
 
-            if self._async_result.ready() is False:
+            if not self._async_result.ready():
                 self.context.logger.debug("The transform task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
