@@ -469,7 +469,7 @@ class TestLiquidityProvisionHardhat(
             expected_types,
         )
 
-    def test_enter_pool_tx_send_and_validate_behaviour(self) -> None:
+    def test_enter_and_exit_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
         # send
@@ -581,65 +581,9 @@ class TestLiquidityProvisionHardhat(
         # struct_log = trace['result']['structLogs']  # noqa: E800
         # decoded_trace = eth_event.decode_trace(struct_log, self.topic_map_gnosis, initial_address="0x5fc8d32690cc91d4c39d9d3abcbd16989f875707")  # noqa: E800
 
-    # Exit pool behaviours
-
-    def test_exit_pool_tx_hash_behaviour(self) -> None:
-        """test_exit_pool_tx_hash_behaviour"""
-        timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
-        assert self.strategy["deadline"] > timestamp, "Increase timestamp!"
-        cycles = 8
-        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
-            {
-                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
-            }
-        ] * cycles
-        expected_types: EXPECTED_TYPES = [
-            {
-                "raw_transaction": RawTransaction,
-            }
-        ] * cycles
-        _, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
-            ExitPoolTransactionHashBehaviour.state_id,
-            cycles,
-            self.default_period_state_exit,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
-        tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
-        assert tx_data == self.multisend_data_exit
-        assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
-        tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
-        assert tx_hash == self.most_voted_tx_hash_exit
-
-    def test_exit_pool_tx_sign_behaviour(self) -> None:
-        """test_exit_pool_tx_sign_behaviour"""
-        # values taken from test_exit_pool_tx_hash_behaviour flow
-        period_state = cast(
-            PeriodState,
-            self.default_period_state_exit.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_exit,
-            ),
-        )
-        cycles = 1
-        handlers: HANDLERS = [self.signing_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
-            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
-        ] * cycles
-        expected_types: EXPECTED_TYPES = [None] * cycles
-        self.process_n_messsages(
-            ExitPoolTransactionSignatureBehaviour.state_id,
-            cycles,
-            period_state,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-
-    def test_exit_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_exit_pool_tx_send_behaviour"""
+
+        self.strategy["safe_nonce"] = 8
 
         # send
         participant_to_signature = {
@@ -659,6 +603,7 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_hash=self.most_voted_tx_hash_exit,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
+                most_voted_strategy=self.strategy
             ),
         )
         handlers: HANDLERS = [
@@ -742,4 +687,61 @@ class TestLiquidityProvisionHardhat(
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
         assert not all(
             [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
+        )
+
+    # Exit pool behaviours
+
+    def test_exit_pool_tx_hash_behaviour(self) -> None:
+        """test_exit_pool_tx_hash_behaviour"""
+        timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
+        assert self.strategy["deadline"] > timestamp, "Increase timestamp!"
+        cycles = 8
+        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            }
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [
+            {
+                "raw_transaction": RawTransaction,
+            }
+        ] * cycles
+        _, _, _, _, _, _, msg_a, msg_b = self.process_n_messsages(
+            ExitPoolTransactionHashBehaviour.state_id,
+            cycles,
+            self.default_period_state_exit,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
+        tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
+        assert tx_data == self.multisend_data_exit
+        assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
+        tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
+        assert tx_hash == self.most_voted_tx_hash_exit
+
+    def test_exit_pool_tx_sign_behaviour(self) -> None:
+        """test_exit_pool_tx_sign_behaviour"""
+        # values taken from test_exit_pool_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_exit.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_exit,
+            ),
+        )
+        cycles = 1
+        handlers: HANDLERS = [self.signing_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [None] * cycles
+        self.process_n_messsages(
+            ExitPoolTransactionSignatureBehaviour.state_id,
+            cycles,
+            period_state,
+            handlers,
+            expected_content,
+            expected_types,
         )
