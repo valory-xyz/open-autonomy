@@ -21,6 +21,7 @@ import asyncio
 import binascii
 import os
 import tempfile
+from copy import deepcopy
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, cast
@@ -583,7 +584,8 @@ class TestLiquidityProvisionHardhat(
 
         """test_exit_pool_tx_send_behaviour"""
 
-        self.strategy["safe_nonce"] = 8
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 1
 
         # send
         participant_to_signature = {
@@ -603,7 +605,7 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_hash=self.most_voted_tx_hash_exit,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
-                most_voted_strategy=self.strategy
+                most_voted_strategy=strategy
             ),
         )
         handlers: HANDLERS = [
