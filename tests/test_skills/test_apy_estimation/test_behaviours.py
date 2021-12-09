@@ -74,6 +74,7 @@ from packages.valory.skills.apy_estimation.behaviours import (
     PreprocessBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
+    ResetBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.apy_estimation.behaviours import (
@@ -1517,7 +1518,30 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
-    def test_estimate_behaviour(self) -> None:
-        """Run test for `estimate_behaviour`."""
-        # TODO
-        assert True
+    behaviour_class = EstimateBehaviour
+    next_behaviour_class = ResetBehaviour
+
+    def test_estimate_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        """Run test for `EstimateBehaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(joblib, "load", lambda _: DummyPipeline())
+        # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
+        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: 0)
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
