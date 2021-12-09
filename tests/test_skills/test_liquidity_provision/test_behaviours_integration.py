@@ -24,6 +24,7 @@ import tempfile
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, cast
+import pytest
 
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea.crypto.wallet import Wallet
@@ -413,6 +414,7 @@ class TestLiquidityProvisionHardhat(
 
     # Enter pool behaviours
 
+    @pytest.mark.order(1)
     def test_enter_pool_tx_hash_behaviour(self) -> None:
         """test_enter_pool_tx_hash_behaviour"""
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
@@ -444,6 +446,7 @@ class TestLiquidityProvisionHardhat(
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash == self.most_voted_tx_hash_enter
 
+    @pytest.mark.order(2)
     def test_enter_pool_tx_sign_behaviour(self) -> None:
         """test_enter_pool_tx_sign_behaviour"""
         # value taken from test_enter_pool_tx_hash_behaviour flow
@@ -469,6 +472,7 @@ class TestLiquidityProvisionHardhat(
             expected_types,
         )
 
+    @pytest.mark.order(3)
     def test_enter_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
@@ -583,6 +587,7 @@ class TestLiquidityProvisionHardhat(
 
     # Exit pool behaviours
 
+    @pytest.mark.order(4)
     def test_exit_pool_tx_hash_behaviour(self) -> None:
         """test_exit_pool_tx_hash_behaviour"""
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
@@ -614,6 +619,7 @@ class TestLiquidityProvisionHardhat(
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash == self.most_voted_tx_hash_exit
 
+    @pytest.mark.order(5)
     def test_exit_pool_tx_sign_behaviour(self) -> None:
         """test_exit_pool_tx_sign_behaviour"""
         # values taken from test_exit_pool_tx_hash_behaviour flow
@@ -638,6 +644,7 @@ class TestLiquidityProvisionHardhat(
             expected_types,
         )
 
+    @pytest.mark.order(6)
     def test_exit_pool_tx_send_and_validate_behaviour(self) -> None:
         """test_exit_pool_tx_send_behaviour"""
 
