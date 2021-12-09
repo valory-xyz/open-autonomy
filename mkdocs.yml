@@ -21,6 +21,8 @@ nav:
     - POC FSM Diagram: 'poc-fsm.md'
     - FSM vs ABCI app: 'fsm_vs_abci_app.md'
     - Abstract Round ABCI: 'abstract_round_abci.md'
+  - Ethereum:
+    - Miscellaneous: 'ethereum_specifics.md'
   - API:
     - Connections:
       - ABCI:
