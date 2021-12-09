@@ -37,7 +37,9 @@ import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
+from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
+from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -70,6 +72,7 @@ from packages.valory.skills.apy_estimation.behaviours import (
     RandomnessBehaviour,
     RegistrationBehaviour,
     TendermintHealthcheckBehaviour,
+    TrainBehaviour,
     TransformBehaviour,
 )
 from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
@@ -1177,10 +1180,93 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test OptimizeBehaviour."""
 
-    def test_optimize_behaviour(self) -> None:
+    behaviour_class = OptimizeBehaviour
+    next_behaviour_class = TrainBehaviour
+
+    def test_setup(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test behaviour setup."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    def test_task_not_setup(self) -> None:
+        """Run test for behaviour when not set-up."""
+        self._test_task_not_setup()
+
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        self.apy_estimation_behaviour.act_wrapper()
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+    def test_optimize_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        optimize_task_result: TaskResult,
+    ) -> None:
         """Run test for `optimize_behaviour`."""
-        # TODO
-        assert True
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: DummyAsyncResult(optimize_task_result))
+
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        monkeypatch.setattr(pd.DataFrame, "to_csv", no_action)
+        monkeypatch.setattr(IPFSHashOnly, "get",
+                            lambda *_: "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11")
+
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
 
 
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):

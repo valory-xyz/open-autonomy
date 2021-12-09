@@ -24,9 +24,11 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Tuple, Union
 from unittest import mock
 
+import optuna
 import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
+from optuna.distributions import UniformDistribution
 
 from packages.valory.skills.apy_estimation.models import SharedState
 
@@ -226,6 +228,25 @@ def transform_task_result() -> TaskResult:
     result = pd.DataFrame()
 
     return TaskResult(result)
+
+
+@pytest.fixture
+def optimize_task_result() -> TaskResult:
+    """Create a result of the `OptimizeTask`.
+
+    :return: a dummy `Task` Result.
+    """
+    study = optuna.create_study()
+
+    trial = optuna.trial.create_trial(
+        params={"x": 2.0},
+        distributions={"x": UniformDistribution(0, 10)},
+        value=4.0,
+    )
+
+    study.add_trial(trial)
+
+    return TaskResult(study)
 
 
 @pytest.fixture
