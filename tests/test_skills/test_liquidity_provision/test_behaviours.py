@@ -1564,7 +1564,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
-                        liquidity=strategy["liquidity_to_remove"],
+                        liquidity=strategy["pair"]["token_a"][
+                            "amount_min_after_add_liq"
+                        ],
                         amount_a_min=int(
                             strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
                         ),

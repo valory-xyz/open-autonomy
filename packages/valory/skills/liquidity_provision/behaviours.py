@@ -792,7 +792,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["liquidity_to_remove"],
+                    liquidity=strategy["pair"]["token_a"][
+                        "amount_min_after_add_liq"
+                    ],  # TOFIX: get the correct value
                     amount_a_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
                     ),
