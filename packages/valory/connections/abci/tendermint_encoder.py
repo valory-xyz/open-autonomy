@@ -25,15 +25,23 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
     Event,
     Request,
     Response,
+    ResponseApplySnapshotChunk,
     ResponseBeginBlock,
     ResponseCheckTx,
     ResponseCommit,
     ResponseDeliverTx,
+    ResponseEcho,
     ResponseEndBlock,
+    ResponseException,
     ResponseFlush,
     ResponseInfo,
     ResponseInitChain,
+    ResponseListSnapshots,
+    ResponseLoadSnapshotChunk,
+    ResponseOfferSnapshot,
     ResponseQuery,
+    ResponseSetOption,
+    Snapshot,
     ValidatorUpdate,
 )
 from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import (  # type: ignore
@@ -45,6 +53,7 @@ from packages.valory.protocols.abci.custom_types import (
 )
 from packages.valory.protocols.abci.custom_types import Event as CustomEvent
 from packages.valory.protocols.abci.custom_types import ProofOps as CustomProofOps
+from packages.valory.protocols.abci.custom_types import Snapshot as CustomSnapshot
 from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdate as CustomValidatorUpdate,
 )
@@ -65,6 +74,47 @@ class _TendermintProtocolEncoder:
             cls, message.performative.value, cls.no_match
         )
         return handler(message)
+
+    @classmethod
+    def response_exception(cls, message: AbciMessage) -> Response:
+        """
+        Process the response exception.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        exception = ResponseException()
+        exception.error = message.error
+        response = Response(exception=exception)
+        return response
+
+    @classmethod
+    def response_echo(cls, message: AbciMessage) -> Response:
+        """
+        Process the response echo.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        echo = ResponseEcho()
+        echo.message = message.message
+        response = Response(echo=echo)
+        return response
+
+    @classmethod
+    def response_set_option(cls, message: AbciMessage) -> Response:
+        """
+        Process the response set_option.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        set_option = ResponseSetOption()
+        set_option.code = message.code
+        set_option.log = message.log
+        set_option.info = message.info
+        response = Response(set_option=set_option)
+        return response
 
     @classmethod
     def response_info(cls, message: AbciMessage) -> Response:
@@ -257,6 +307,61 @@ class _TendermintProtocolEncoder:
         return Response(commit=commit)
 
     @classmethod
+    def response_list_snapshots(cls, message: AbciMessage) -> Response:
+        """
+        Process the response list_snapshots.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        list_snapshots = ResponseListSnapshots()
+        snapshots_pb = [
+            cls._encode_snapshot(snapshot) for snapshot in message.snapshots.snapshots
+        ]
+        list_snapshots.snapshots.extend(snapshots_pb)
+        return Response(list_snapshots=list_snapshots)
+
+    @classmethod
+    def response_offer_snapshot(cls, message: AbciMessage) -> Response:
+        """
+        Process the response offer_snapshot.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        offer_snapshot = ResponseOfferSnapshot()
+        offer_snapshot.result = ResponseOfferSnapshot.Result(message.result.result_type)
+        return Response(offer_snapshot=offer_snapshot)
+
+    @classmethod
+    def response_load_snapshot_chunk(cls, message: AbciMessage) -> Response:
+        """
+        Process the response load_snapshot_chunk.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        load_snapshot_chunk = ResponseLoadSnapshotChunk()
+        load_snapshot_chunk.chunk = message.chunk
+        return Response(load_snapshot_chunk=load_snapshot_chunk)
+
+    @classmethod
+    def response_apply_snapshot_chunk(cls, message: AbciMessage) -> Response:
+        """
+        Process the response apply_snapshot_chunk.
+
+        :param message: the response.
+        :return: the ABCI protobuf object.
+        """
+        apply_snapshot_chunk = ResponseApplySnapshotChunk()
+        apply_snapshot_chunk.result = ResponseApplySnapshotChunk.Result(
+            message.result.result_type
+        )
+        apply_snapshot_chunk.refetch_chunks.extend(message.refetch_chunks)
+        apply_snapshot_chunk.reject_senders.extend(message.reject_senders)
+        return Response(apply_snapshot_chunk=apply_snapshot_chunk)
+
+    @classmethod
     def no_match(cls, _request: Request) -> None:  # pragma: nocover
         """No match."""
         return None
@@ -288,3 +393,9 @@ class _TendermintProtocolEncoder:
         proof_ops_pb = ProofOps()
         CustomProofOps.encode(proof_ops_pb, proof_ops)
         return proof_ops_pb
+
+    @classmethod
+    def _encode_snapshot(cls, snapshot: CustomSnapshot) -> Event:
+        snapshot_pb = Snapshot()
+        CustomSnapshot.encode(snapshot_pb, snapshot)
+        return snapshot_pb
