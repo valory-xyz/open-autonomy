@@ -93,6 +93,9 @@ from tests.test_skills.test_price_estimation_abci.test_rounds import (
 )
 
 
+LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede" # nosec
+
+
 def get_default_strategy(is_native: bool = True) -> Dict:
     """Returns default strategy."""
     return {
@@ -103,25 +106,28 @@ def get_default_strategy(is_native: bool = True) -> Dict:
         "deadline": 300,
         "base": {
             "address": "0xUSDT_ADDRESS",
-            "amount_in_a": 10 ** 4,
-            "amount_in_b": 10 ** 4,
+            "amount_in_a": int(1e4),
+            "amount_min_after_swap_back_a": int(1e2),
+            "amount_in_b": int(1e4),
+            "amount_min_after_swap_back_b": int(1e2),
         },
         "pair": {
+            "LP_token_address": LP_TOKEN_ADDRESS,
             "token_a": {
                 "ticker": "FTM",
                 "address": "0xFTM_ADDRESS",
-                "amount_desired": 10 ** 3,
-                "amount_out_min": 10 ** 3,
-                "amount_desired_min": 10 ** 2,
+                "amount_min_after_swap": int(1e3),
+                "amount_min_after_add_liq": int(0.5e3),
+                "amount_min_after_rem_liq": int(0.25e3),
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": is_native,
             },
             "token_b": {
                 "ticker": "BOO",
                 "address": "0xBOO_ADDRESS",
-                "amount_desired": 10 ** 3,
-                "amount_out_min": 10 ** 3,
-                "amount_desired_min": 10 ** 2,
+                "amount_min_after_swap": int(1e3),
+                "amount_min_after_add_liq": int(0.5e3),
+                "amount_min_after_rem_liq": int(0.25e3),
             },
         },
         "liquidity_to_remove": 1,
@@ -505,6 +511,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         )
         self.liquidity_provision_behaviour.act_wrapper()
 
+        # Add allowance for base token (always non-native)
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -531,6 +538,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Swap first token
         method_name = (
             "swap_exact_tokens_for_ETH"
             if strategy["pair"]["token_a"]["is_native"]
@@ -550,7 +558,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["base"]["amount_in_a"]),
                         amount_out_min=int(
-                            strategy["pair"]["token_a"]["amount_out_min"]
+                            strategy["pair"]["token_a"]["amount_min_after_swap"]
                         ),
                         path=[
                             strategy["base"]["address"],
@@ -571,6 +579,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Swap second token (always non-native)
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -584,7 +593,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["base"]["amount_in_b"]),
                         amount_out_min=int(
-                            strategy["pair"]["token_b"]["amount_out_min"]
+                            strategy["pair"]["token_b"]["amount_min_after_swap"]
                         ),
                         path=[
                             strategy["base"]["address"],
@@ -605,6 +614,8 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Add allowance for token B (always non-native)
+        # strategy is native
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -631,6 +642,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Add liquidity
         # strategy is native
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
@@ -645,13 +657,13 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
                         amount_token_desired=int(
-                            strategy["pair"]["token_b"]["amount_desired"]
+                            strategy["pair"]["token_b"]["amount_min_after_swap"]
                         ),
                         amount_token_min=int(
-                            strategy["pair"]["token_b"]["amount_desired_min"]
+                            strategy["pair"]["token_b"]["amount_min_after_add_liq"]
                         ),
                         amount_ETH_min=int(
-                            strategy["pair"]["token_a"]["amount_desired_min"]
+                            strategy["pair"]["token_a"]["amount_min_after_add_liq"]
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
@@ -668,6 +680,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Get the tx list data from multisend contract
         self.mock_contract_api_request(
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
@@ -684,6 +697,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Get the tx hash from Gnosis Safe contract
         self.mock_contract_api_request(
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
@@ -742,6 +756,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         )
         self.liquidity_provision_behaviour.act_wrapper()
 
+        # Add allowance for base token (always non-native)
         method_name = (
             "swap_exact_tokens_for_ETH"
             if strategy["pair"]["token_a"]["is_native"]
@@ -774,6 +789,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Swap first token
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -787,7 +803,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["base"]["amount_in_a"]),
                         amount_out_min=int(
-                            strategy["pair"]["token_a"]["amount_out_min"]
+                            strategy["pair"]["token_a"]["amount_min_after_swap"]
                         ),
                         path=[
                             strategy["base"]["address"],
@@ -808,6 +824,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Swap second token (always non-native)
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -821,7 +838,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(strategy["base"]["amount_in_b"]),
                         amount_out_min=int(
-                            strategy["pair"]["token_b"]["amount_out_min"]
+                            strategy["pair"]["token_b"]["amount_min_after_swap"]
                         ),
                         path=[
                             strategy["base"]["address"],
@@ -842,6 +859,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Add allowance for token A
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -868,6 +886,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Add allowance for token B (always non-native)
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -894,6 +913,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Add liquidity
         # strategy is native
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
@@ -909,16 +929,16 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
                         amount_a_desired=int(
-                            strategy["pair"]["token_a"]["amount_desired"]
+                            strategy["pair"]["token_a"]["amount_min_after_swap"]
                         ),
                         amount_b_desired=int(
-                            strategy["pair"]["token_b"]["amount_desired"]
+                            strategy["pair"]["token_b"]["amount_min_after_swap"]
                         ),
                         amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_desired_min"]
+                            strategy["pair"]["token_a"]["amount_min_after_add_liq"]
                         ),
                         amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_desired_min"]
+                            strategy["pair"]["token_b"]["amount_min_after_add_liq"]
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
@@ -935,6 +955,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Get the tx list data from multisend contract
         self.mock_contract_api_request(
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
@@ -951,6 +972,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
+        # Get the tx hash from Gnosis Safe contract
         self.mock_contract_api_request(
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
@@ -1276,6 +1298,34 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
         self.liquidity_provision_behaviour.act_wrapper()
 
+        # Add allowance for LP token to be spent by the router
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["LP_token_address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=MAX_ALLOWANCE,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove liquidity
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1290,10 +1340,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         token=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
                         amount_token_min=int(
-                            strategy["pair"]["token_b"]["amount_desired_min"]
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
                         ),
                         amount_ETH_min=int(
-                            strategy["pair"]["token_a"]["amount_desired_min"]
+                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
@@ -1310,6 +1360,78 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
+        # Swap first token back
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.router_contract_address,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="swap_exact_ETH_for_tokens",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_a"]
+                        ),
+                        path=[
+                            strategy["pair"]["token_a"]["address"],
+                            strategy["base"]["address"],
+                        ],
+                        to=period_state.safe_contract_address,
+                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Swap second token back
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.router_contract_address,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="swap_exact_tokens_for_tokens",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        amount_in=int(
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_b"]
+                        ),
+                        path=[
+                            strategy["pair"]["token_b"]["address"],
+                            strategy["base"]["address"],
+                        ],
+                        to=period_state.safe_contract_address,
+                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for base token (always non-native)
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -1336,97 +1458,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2ERC20Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_b"]["address"],
-                kwargs=Kwargs(
-                    dict(
-                        method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
-                        value=0,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
-                kwargs=Kwargs(
-                    dict(
-                        method_name="swap_exact_ETH_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_out_min=int(
-                            strategy["pair"]["token_a"]["amount_out_min"]
-                        ),
-                        path=[
-                            strategy["pair"]["token_a"]["address"],
-                            strategy["base"]["address"],
-                        ],
-                        to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
-                kwargs=Kwargs(
-                    dict(
-                        method_name="swap_exact_tokens_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(strategy["pair"]["token_b"]["amount_out_min"]),
-                        amount_out_min=int(strategy["base"]["amount_in_b"]),
-                        path=[
-                            strategy["pair"]["token_b"]["address"],
-                            strategy["base"]["address"],
-                        ],
-                        to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
+        # Get the tx list data from multisend contract
         self.mock_contract_api_request(
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
@@ -1443,6 +1475,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
+        # Get the tx hash from Gnosis Safe contract
         self.mock_contract_api_request(
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
@@ -1490,6 +1523,34 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
         self.liquidity_provision_behaviour.act_wrapper()
 
+        # Add allowance for LP token to be spent by the router
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["LP_token_address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=MAX_ALLOWANCE,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove liquidity
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1503,12 +1564,14 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
-                        liquidity=strategy["liquidity_to_remove"],
+                        liquidity=strategy["pair"]["token_a"][
+                            "amount_min_after_add_liq"
+                        ],
                         amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_desired_min"]
+                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
                         ),
                         amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_desired_min"]
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
@@ -1525,6 +1588,81 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
+        # Swap first token back
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.router_contract_address,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="swap_exact_tokens_for_tokens",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        amount_in=int(
+                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_a"]
+                        ),
+                        path=[
+                            strategy["pair"]["token_a"]["address"],
+                            strategy["base"]["address"],
+                        ],
+                        to=period_state.safe_contract_address,
+                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Swap second token back (always non-native)
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=period_state.router_contract_address,
+                kwargs=Kwargs(
+                    dict(
+                        method_name="swap_exact_tokens_for_tokens",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        amount_in=int(
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_b"]
+                        ),
+                        path=[
+                            strategy["pair"]["token_b"]["address"],
+                            strategy["base"]["address"],
+                        ],
+                        to=period_state.safe_contract_address,
+                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for base token (always non-native)
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -1551,122 +1689,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2ERC20Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_a"]["address"],
-                kwargs=Kwargs(
-                    dict(
-                        method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
-                        value=0,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2ERC20Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_b"]["address"],
-                kwargs=Kwargs(
-                    dict(
-                        method_name="approve",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        spender=period_state.router_contract_address,
-                        value=0,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
-                kwargs=Kwargs(
-                    dict(
-                        method_name="swap_exact_tokens_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(strategy["pair"]["token_a"]["amount_out_min"]),
-                        amount_out_min=int(strategy["base"]["amount_in_a"]),
-                        path=[
-                            strategy["pair"]["token_a"]["address"],
-                            strategy["base"]["address"],
-                        ],
-                        to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2Router02Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.router_contract_address,
-                kwargs=Kwargs(
-                    dict(
-                        method_name="swap_exact_tokens_for_tokens",
-                        # sender=period_state.safe_contract_address,  # noqa: E800
-                        # gas=TEMP_GAS,  # noqa: E800
-                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(strategy["pair"]["token_b"]["amount_out_min"]),
-                        amount_out_min=int(strategy["base"]["amount_in_b"]),
-                        path=[
-                            strategy["pair"]["token_b"]["address"],
-                            strategy["base"]["address"],
-                        ],
-                        to=period_state.safe_contract_address,
-                        deadline=CURRENT_BLOCK_TIMESTAMP + 300,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_method_data",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
+        # Get the tx list data from multisend contract
         self.mock_contract_api_request(
             contract_id=str(MultiSendContract.contract_id),
             request_kwargs=dict(
@@ -1683,6 +1706,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
+        # Get the tx hash from Gnosis Safe contract
         self.mock_contract_api_request(
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
