@@ -99,9 +99,7 @@ class FetchingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.FETCHING
 
-    def __init__(
-        self, sender: str, history: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, history: str, id_: Optional[str] = None) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -155,7 +153,7 @@ class PreprocessPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.PREPROCESS
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         sender: str,
         train_hash: str,
@@ -170,6 +168,7 @@ class PreprocessPayload(BaseAPYPayload):
         :param train_hash: the train data hash.
         :param test_hash: the test data hash.
         :param pair_name: the name of the pool for which the preprocessed data are for.
+        :param train_test: the train-test concatenated hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)

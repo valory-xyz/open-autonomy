@@ -298,9 +298,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
                 "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.process_payload(
-                FetchingPayload(sender="sender", history="x0")
-            )
+            test_round.process_payload(FetchingPayload(sender="sender", history="x0"))
 
         with pytest.raises(
             TransactionNotValidError,
@@ -308,9 +306,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
                 "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.check_payload(
-                FetchingPayload(sender="sender", history="x0")
-            )
+            test_round.check_payload(FetchingPayload(sender="sender", history="x0"))
 
         participant_to_fetching_payloads = get_participant_to_fetching(
             self.participants
@@ -341,9 +337,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
             match="sender agent_0 has already sent value for round: collect_history",
         ):
             test_round.check_payload(
-                FetchingPayload(
-                    sender=sorted(list(self.participants))[0], history="x0"
-                )
+                FetchingPayload(sender=sorted(list(self.participants))[0], history="x0")
             )
 
         for payload in participant_to_fetching_payloads.values():

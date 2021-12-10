@@ -62,9 +62,7 @@ class TestPayloads:
     @staticmethod
     def test_transformation_payload() -> None:
         """Test `TransformationPayload`"""
-        payload = TransformationPayload(
-            sender="sender", transformation="x0", id_="id"
-        )
+        payload = TransformationPayload(sender="sender", transformation="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
         assert payload.transformation == "x0"
