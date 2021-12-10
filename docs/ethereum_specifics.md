@@ -9,15 +9,35 @@ With EIP-1559 transaction pricing has changed. Previously, one simply had to set
 
 Transactions that include these new fields are known as Type 2, while legacy transactions that carry the original Gas Price field remain supported and known as Type 0.
 
-EIP-1559 does not bring changes to the Gas Limit, the maximum amount of gas the transaction is authorized to consume. 
+EIP-1559 does not bring changes to the Gas Limit, the maximum amount of gas the transaction is authorized to consume.
 
 Sources: https://www.blocknative.com/blog/eip-1559-fees
 
 
 ## Delegate call vs call
 
-Delegate call can be difficult to wrap your head around, but think of it this way: a delegate call means "load the code from this address and run it". This means that, when you create the Safe tx with operation=delegatecall, you are telling the Safe to get the code from the contract whose address is provided and execute it. 
+Delegate call can be difficult to wrap your head around, but think of it this way: a delegate call means "load the code from this address and run it". This means that, when you create the Safe tx with operation=delegatecall, you are telling the Safe to get the code from the contract whose address is provided and execute it.
 
 
 ## Debugging using Tenderly:
 
+[Tenderly](https://tenderly.co/) is a *"comprehensive Ethereum Developer Platform for real-time monitoring, alerting, debugging, and simulating Smart Contracts"*. When debugging transactions and contract calls, it can be useful to help us understand what's going on with our execution. [This guids](http://blog.tenderly.co/level-up-your-smart-contract-productivity-using-hardhat-and-tenderly/) contains a more exhaustive explanation on Tenderly, but for the basics:
+
+- Create a Tenderly account and project.
+
+- Set yout Tenderly username and project name at `tenderly.yaml` (`exports/ganache/project_slug`) and at your `hardhat.config.js` module exports:
+
+    ```
+    tenderly: {
+      username: "username",
+      project: "projectname"
+    }
+    ```
+
+- Run your Hardhat deployment and export your transactions with:
+    ```
+    tenderly export <transaction_hash>
+    ```
+- You'll see a link to your Tenderly dashboard where you can inspect the full transaction stack trace.
+- During testing, you will need to pause Hardhat's execution before it ends to export the transaction.
+- Optionally, there's the possibility of pushing your contract's source to verify and debug it. More on that [here](http://blog.tenderly.co/level-up-your-smart-contract-productivity-using-hardhat-and-tenderly/).
