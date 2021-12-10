@@ -21,7 +21,6 @@
 """Configurations for APY skill's tests."""
 
 import warnings
-from dataclasses import dataclass
 from typing import Any, Callable, Dict, Tuple, Union
 from unittest import mock
 
@@ -32,6 +31,7 @@ import pytest
 from aea.skills.base import SkillContext
 from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
+from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation.ml.forecasting import train_forecaster
 from packages.valory.skills.apy_estimation.models import SharedState
@@ -229,26 +229,17 @@ def no_action() -> Callable[[Any], None]:
     return lambda *_, **__: None
 
 
-@dataclass
-class TaskResult:
-    """A dummy Task Result."""
-
-    result: Any
-
-
 @pytest.fixture
-def transform_task_result() -> TaskResult:
+def transform_task_result() -> pd.DataFrame:
     """Create a result of the `TransformTask`.
 
     :return: a dummy `Task` Result.
     """
-    result = pd.DataFrame()
-
-    return TaskResult(result)
+    return pd.DataFrame()
 
 
 @pytest.fixture
-def optimize_task_result() -> TaskResult:
+def optimize_task_result() -> optuna.Study:
     """Create a result of the `OptimizeTask`.
 
     :return: a dummy `Task` Result.
@@ -265,7 +256,7 @@ def optimize_task_result() -> TaskResult:
 
     study.add_trial(trial)
 
-    return TaskResult(study)
+    return study
 
 
 @pytest.fixture
@@ -275,7 +266,7 @@ def observations() -> np.ndarray:
 
 
 @pytest.fixture
-def train_task_result(observations: np.ndarray) -> TaskResult:
+def train_task_result(observations: np.ndarray) -> Pipeline:
     """Create a result of the `TrainTask`.
 
     :param observations: the observations for the training.
@@ -284,29 +275,25 @@ def train_task_result(observations: np.ndarray) -> TaskResult:
     hyperparameters = 1, 1, 1, 3, 1
     forecaster = train_forecaster(observations, *hyperparameters)
 
-    return TaskResult(forecaster)
+    return forecaster
 
 
 @pytest.fixture
-def test_task_result() -> TaskResult:
+def test_task_result() -> Dict[str, str]:
     """Create a result of the `TestTask`.
 
     :return: a dummy `Task` Result.
     """
-    result = {"test": "test"}
-
-    return TaskResult(result)
+    return {"test": "test"}
 
 
 @pytest.fixture
-def test_task_result_non_serializable() -> TaskResult:
+def test_task_result_non_serializable() -> bytes:
     """Create a non-serializable result of the `TestTask`.
 
     :return: a dummy `Task` Result.
     """
-    result = b"non-serializable"
-
-    return TaskResult(result)
+    return b"non-serializable"
 
 
 @pytest.fixture

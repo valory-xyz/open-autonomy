@@ -495,7 +495,7 @@ class TransformBehaviour(APYEstimationBaseState):
             else:
                 # Get the transformed data from the task.
                 completed_task = self._async_result.get()
-                transformed_history = cast(pd.DataFrame, completed_task.result)
+                transformed_history = cast(pd.DataFrame, completed_task)
                 self.context.logger.info(
                     f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
                 )
@@ -679,7 +679,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             else:
                 # Run the optimizer and get the study's result.
                 completed_task = self._async_result.get()
-                study = cast(Study, completed_task.result)
+                study = cast(Study, completed_task)
                 study_results = study.trials_dataframe()
                 self.context.logger.info(
                     "Optimization has finished. Showing the results:\n"
@@ -757,7 +757,7 @@ class TrainBehaviour(APYEstimationBaseState):
             else:
                 # Train the estimator.
                 completed_task = self._async_result.get()
-                forecaster = cast(Pipeline, completed_task.result)
+                forecaster = cast(Pipeline, completed_task)
                 self.context.logger.info("Training has finished.")
 
                 # Store the results.
@@ -835,7 +835,7 @@ class TestBehaviour(APYEstimationBaseState):
             else:
                 # Train the estimator.
                 completed_task = self._async_result.get()
-                report = cast(TestReportType, completed_task.result)
+                report = cast(TestReportType, completed_task)
                 self.context.logger.info(
                     f"Testing has finished. Report follows:\n{report}"
                 )

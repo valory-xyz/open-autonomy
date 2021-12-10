@@ -35,6 +35,7 @@ from unittest.mock import patch
 
 import joblib
 import numpy as np
+import optuna
 import pandas as pd
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -44,6 +45,7 @@ from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
+from pmdarima.pipeline import Pipeline
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
@@ -92,7 +94,7 @@ from packages.valory.skills.apy_estimation.behaviours import (
 from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.test_apy_estimation.conftest import DummyPipeline, TaskResult
+from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
 
 
 class DummyAsyncResult(object):
@@ -100,7 +102,7 @@ class DummyAsyncResult(object):
 
     def __init__(
         self,
-        task_result: TaskResult,
+        task_result: Any,
         ready: bool = True,
     ) -> None:
         """Initialize class."""
@@ -116,7 +118,7 @@ class DummyAsyncResult(object):
 
     def get(
         self,
-    ) -> TaskResult:
+    ) -> Any:
         """Returns task result."""
         return self._task_result
 
@@ -1067,9 +1069,8 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_task_not_ready(
         self,
         monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
         caplog: LogCaptureFixture,
-        transform_task_result: TaskResult,
+        transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         self.fast_forward_to_state(
@@ -1079,7 +1080,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         cast(
             TransformBehaviour, self.apy_estimation_behaviour.current_state
-        )._async_result = cast(ApplyResult, DummyAsyncResult(TaskResult("test")))
+        )._async_result = cast(ApplyResult, DummyAsyncResult(transform_task_result))
         monkeypatch.setattr(DummyAsyncResult, "ready", lambda _: False)
 
         self.apy_estimation_behaviour.act_wrapper()
@@ -1100,7 +1101,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_transform_behaviour(
         self,
-        transform_task_result: TaskResult,
+        transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour`."""
 
@@ -1438,7 +1439,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
-        optimize_task_result: TaskResult,
+        optimize_task_result: optuna.Study,
     ) -> None:
         """Run test for `optimize_behaviour`."""
         self.fast_forward_to_state(
@@ -1546,7 +1547,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
         tmp_path: PosixPath,
-        train_task_result: TaskResult,
+        train_task_result: Pipeline,
     ) -> None:
         """Run test for `optimize_behaviour`."""
         self.fast_forward_to_state(
@@ -1659,7 +1660,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
         caplog: LogCaptureFixture,
-        test_task_result: TaskResult,
+        test_task_result: Dict[str, str],
     ) -> None:
         """Run test for `optimize_behaviour`."""
         self.fast_forward_to_state(
@@ -1714,7 +1715,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         no_action: Callable[[Any], None],
         tmp_path: PosixPath,
         caplog: LogCaptureFixture,
-        test_task_result_non_serializable: TaskResult,
+        test_task_result_non_serializable: bytes,
     ) -> None:
         """Run test for `optimize_behaviour`."""
         self.fast_forward_to_state(
@@ -1775,7 +1776,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
         tmp_path: PosixPath,
-        test_task_result: TaskResult,
+        test_task_result: Dict[str, str],
     ) -> None:
         """Run test for `optimize_behaviour`."""
         self.fast_forward_to_state(
