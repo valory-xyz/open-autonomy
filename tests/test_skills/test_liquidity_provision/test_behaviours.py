@@ -93,7 +93,7 @@ from tests.test_skills.test_price_estimation_abci.test_rounds import (
 )
 
 
-LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"
+LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede" # nosec
 
 
 def get_default_strategy(is_native: bool = True) -> Dict:
