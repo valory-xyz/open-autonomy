@@ -755,9 +755,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     amount_token_min=int(
                         strategy["pair"]["token_b"]["amount_remove"]
                     ),  # FIX, get actual amount
-                    amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_remove"]
-                    ),
+                    amount_ETH_min=int(strategy["pair"]["token_a"]["amount_remove"]),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )

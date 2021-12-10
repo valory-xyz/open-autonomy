@@ -1587,12 +1587,8 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
-                        amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_remove"]
-                        ),
-                        amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_remove"]
-                        ),
+                        amount_a_min=int(strategy["pair"]["token_a"]["amount_remove"]),
+                        amount_b_min=int(strategy["pair"]["token_b"]["amount_remove"]),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
