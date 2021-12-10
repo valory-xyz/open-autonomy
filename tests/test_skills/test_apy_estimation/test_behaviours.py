@@ -705,7 +705,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # top pairs' ids request.
         request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {"data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}}
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -779,10 +781,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         self._test_done_flag_set()
 
-    @pytest.mark.skip
     def test_fetch_value_none(
         self,
         monkeypatch: MonkeyPatch,
+        caplog: LogCaptureFixture,
         top_n_pairs_q: str,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
@@ -793,27 +795,90 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
         )
+        history_duration = cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.history_duration
+        monkeypatch.setattr(
+            time,
+            "time",
+            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
+        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
             url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
             headers="Content-Type: application/json\r\n",
             version="",
+            body=b"",
         )
         response_kwargs = dict(
             version="",
             status_code=200,
             status_text="",
             headers="",
+            body=b"",
         )
+
+        # top pairs' ids request with None response.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get top 100 pool ids (Showing first example) from spookyswap",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
 
         # top pairs' ids request.
         request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
+
+        # block request with None response.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        response_kwargs["body"] = b""
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get block from fantom",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        # top pairs' ids request.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
 
         # block request.
         request_kwargs[
@@ -822,15 +887,52 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
-            lambda _: 1618735147,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
+
+        # ETH price request with None response.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+        response_kwargs["body"] = b""
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get ETH price for block {'timestamp': '1', 'number': '3830367'} from spookyswap",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        # top pairs' ids request.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # block request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
         request_kwargs[
@@ -839,32 +941,26 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
-            eth_price_usd_q,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
 
-        # top pairs data.
+        # top pairs data with None response.
         request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
-        res = {
-            "data": {
-                "pairs": [
-                    {field: dummy_value for field in pool_fields}
-                    for dummy_value in ("dum1", "dum2")
-                ]
-            }
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.pairs_q",
-            pairs_q,
-        )
+        response_kwargs["body"] = b""
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get top 100 pool data for block {'timestamp': '1', 'number': '3830367'} (Showing first example) from spookyswap",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
 
     def test_clean_up(
         self,

@@ -84,23 +84,23 @@ def fantom_specs(_common_specs: SpecsType) -> SpecsType:
 def eth_price_usd_q() -> str:
     """Query string for fetching ethereum price in USD from SpookySwap."""
     return (
-            """
+        """
         {
             bundles(
                 first: 1,
                 block: {number: """
-            + str(3830367)
-            + """},
+        + str(3830367)
+        + """},
                 where: {
                     id: """
-            + str(1)
-            + """
+        + str(1)
+        + """
                 }
             )
             {ethPrice}
         }
         """
-        )
+    )
 
 
 @pytest.fixture
