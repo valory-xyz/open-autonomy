@@ -580,7 +580,9 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         "operation": MultiSendOperation.CALL,
                         "to": self.period_state.router_contract_address,
-                        "value": 0,
+                        "value": int(
+                            strategy["pair"]["token_a"]["amount_min_after_add_liq"]
+                        ),
                         "data": HexBytes(liquidity_data.hex()),
                     }
                 )
