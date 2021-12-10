@@ -1087,6 +1087,11 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert caplog.record_tuples == [
             (
                 "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                "[test_agent_name] Path 'data/historical_data.json' could not be found!",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
                 logging.INFO,
                 "[test_agent_name] Entered in the 'transform' behaviour state",
             ),
@@ -1398,10 +1403,6 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
 
-    def test_task_not_setup(self) -> None:
-        """Run test for behaviour when not set-up."""
-        self._test_task_not_setup()
-
     def test_task_not_ready(
         self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
     ) -> None:
@@ -1502,10 +1503,6 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
-
-    def test_task_not_setup(self) -> None:
-        """Run test for behaviour when not set-up."""
-        self._test_task_not_setup()
 
     def test_task_not_ready(
         self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
@@ -1614,10 +1611,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
-
-    def test_task_not_setup(self) -> None:
-        """Run test for behaviour when not set-up."""
-        self._test_task_not_setup()
 
     def test_task_not_ready(
         self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]

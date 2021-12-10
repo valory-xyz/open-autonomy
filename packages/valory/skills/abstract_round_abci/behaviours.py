@@ -197,10 +197,7 @@ class AbstractRoundBehaviour(
 
     def instantiate_state_cls(self, state_cls: StateType) -> BaseState:
         """Instantiate the state class."""
-        s = state_cls(name=state_cls.state_id, skill_context=self.context)
-        s.setup()
-
-        return s
+        return state_cls(name=state_cls.state_id, skill_context=self.context)
 
     def setup(self) -> None:
         """Set up the behaviour."""

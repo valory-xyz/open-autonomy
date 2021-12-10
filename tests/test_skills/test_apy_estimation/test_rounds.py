@@ -402,7 +402,7 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_preprocess_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="train_hashtest_hash",
+                most_voted_payload="test_hashpair_name",
                 exit_event=Event.DONE,
             )
         )
