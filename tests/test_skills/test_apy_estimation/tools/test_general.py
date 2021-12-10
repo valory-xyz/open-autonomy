@@ -153,6 +153,10 @@ class TestGeneral:
                 345678,
             ),
             (
+                "1234test567this89number10here",
+                123456789,
+            ),
+            (
                 "test_this_string",
                 None,
             ),

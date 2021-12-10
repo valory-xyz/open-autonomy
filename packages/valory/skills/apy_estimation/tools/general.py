@@ -90,5 +90,7 @@ def filter_out_numbers(string: str) -> Optional[int]:
         filtered_result = None
     else:
         filtered_result = int(numeric_string)
+        # Get only the first 9 digits, because the seed cannot be > 2**32 -1
+        filtered_result = int(str(filtered_result)[:9])
 
     return filtered_result
