@@ -222,7 +222,7 @@ class FetchBehaviour(APYEstimationBaseState):
     state_id = "fetch"
     matching_round = CollectHistoryRound
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._save_path = ""
