@@ -116,6 +116,7 @@ def get_default_strategy(is_native: bool = True) -> Dict:
                 "amount_desired": 10 ** 3,
                 "amount_out_min": 10 ** 3,
                 "amount_desired_min": 10 ** 2,
+                "amount_remove": 10 ** 1,
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": is_native,
             },
@@ -125,6 +126,7 @@ def get_default_strategy(is_native: bool = True) -> Dict:
                 "amount_desired": 10 ** 3,
                 "amount_out_min": 10 ** 3,
                 "amount_desired_min": 10 ** 2,
+                "amount_remove": 10 ** 1,
             },
         },
         "liquidity_to_remove": 1,
@@ -1319,10 +1321,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         token=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
                         amount_token_min=int(
-                            strategy["pair"]["token_b"]["amount_desired_min"]
+                            strategy["pair"]["token_b"]["amount_remove"]
                         ),
                         amount_ETH_min=int(
-                            strategy["pair"]["token_a"]["amount_desired_min"]
+                            strategy["pair"]["token_a"]["amount_remove"]
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
@@ -1586,10 +1588,10 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         token_b=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
                         amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_desired_min"]
+                            strategy["pair"]["token_a"]["amount_remove"]
                         ),
                         amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_desired_min"]
+                            strategy["pair"]["token_b"]["amount_remove"]
                         ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,

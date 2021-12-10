@@ -340,6 +340,7 @@ def get_strategy_update() -> dict:
                 "amount_desired": 10 ** 3,
                 "amount_out_min": 10 ** 3,
                 "amount_desired_min": 10 ** 2,
+                "amount_remove": 10 ** 1,
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
@@ -349,6 +350,7 @@ def get_strategy_update() -> dict:
                 "amount_desired": 10 ** 3,
                 "amount_out_min": 10 ** 3,
                 "amount_desired_min": 10 ** 2,
+                "amount_remove": 10 ** 1,
             },
         },
         "liquidity_to_remove": 1,  # TOFIX
@@ -751,10 +753,10 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     token=strategy["pair"]["token_b"]["address"],
                     liquidity=strategy["liquidity_to_remove"],
                     amount_token_min=int(
-                        strategy["pair"]["token_b"]["amount_desired_min"]
+                        strategy["pair"]["token_b"]["amount_remove"]
                     ),  # FIX, get actual amount
                     amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_desired_min"]
+                        strategy["pair"]["token_a"]["amount_remove"]
                     ),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
@@ -782,8 +784,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
                     liquidity=strategy["liquidity_to_remove"],
-                    amount_a_min=int(strategy["pair"]["token_a"]["amount_desired_min"]),
-                    amount_b_min=int(strategy["pair"]["token_b"]["amount_desired_min"]),
+                    amount_a_min=int(strategy["pair"]["token_a"]["amount_remove"]),
+                    amount_b_min=int(strategy["pair"]["token_b"]["amount_remove"]),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
