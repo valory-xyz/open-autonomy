@@ -81,7 +81,7 @@ def get_participant_to_fetching(
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
-        participant: FetchingPayload(sender=participant, history_hash="x0")
+        participant: FetchingPayload(sender=participant, history="x0")
         for participant in participants
     }
 
@@ -299,7 +299,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
             ),
         ):
             test_round.process_payload(
-                FetchingPayload(sender="sender", history_hash="x0")
+                FetchingPayload(sender="sender", history="x0")
             )
 
         with pytest.raises(
@@ -309,7 +309,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
             ),
         ):
             test_round.check_payload(
-                FetchingPayload(sender="sender", history_hash="x0")
+                FetchingPayload(sender="sender", history="x0")
             )
 
         participant_to_fetching_payloads = get_participant_to_fetching(
@@ -342,7 +342,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
         ):
             test_round.check_payload(
                 FetchingPayload(
-                    sender=sorted(list(self.participants))[0], history_hash="x0"
+                    sender=sorted(list(self.participants))[0], history="x0"
                 )
             )
 

@@ -100,16 +100,16 @@ class FetchingPayload(BaseAPYPayload):
     transaction_type = TransactionType.FETCHING
 
     def __init__(
-        self, sender: str, history_hash: str, id_: Optional[str] = None
+        self, sender: str, history: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param history_hash: the fetched history's hash.
+        :param history: the fetched history's hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._history = history_hash
+        self._history = history
 
     @property
     def history(self) -> str:
@@ -128,16 +128,16 @@ class TransformationPayload(BaseAPYPayload):
     transaction_type = TransactionType.TRANSFORMATION
 
     def __init__(
-        self, sender: str, transformation_hash: str, id_: Optional[str] = None
+        self, sender: str, transformation: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param transformation_hash: the transformation's hash.
+        :param transformation: the transformation's hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._transformation_hash = transformation_hash
+        self._transformation_hash = transformation
 
     @property
     def transformation(self) -> str:
@@ -161,6 +161,7 @@ class PreprocessPayload(BaseAPYPayload):
         train_hash: str,
         test_hash: str,
         pair_name: str,
+        train_test: Optional[str] = None,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'preprocess' transaction payload.
@@ -174,6 +175,7 @@ class PreprocessPayload(BaseAPYPayload):
         super().__init__(sender, id_)
         self._train_hash = train_hash
         self._test_hash = test_hash
+        self._train_test = train_test
         self._pair_name = pair_name
 
     @property

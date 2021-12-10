@@ -52,7 +52,7 @@ class TestPayloads:
     @staticmethod
     def test_fetching_payload() -> None:
         """Test `FetchingPayload`"""
-        payload = FetchingPayload(sender="sender", history_hash="x0", id_="id")
+        payload = FetchingPayload(sender="sender", history="x0", id_="id")
 
         assert payload.transaction_type == TransactionType.FETCHING
         assert payload.history == "x0"
@@ -63,7 +63,7 @@ class TestPayloads:
     def test_transformation_payload() -> None:
         """Test `TransformationPayload`"""
         payload = TransformationPayload(
-            sender="sender", transformation_hash="x0", id_="id"
+            sender="sender", transformation="x0", id_="id"
         )
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
