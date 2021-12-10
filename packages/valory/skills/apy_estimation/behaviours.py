@@ -661,7 +661,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         task_id = self.context.task_manager.enqueue_task(
             optimize_task,
             args=(
-                y,
+                y.values,
                 self.period_state.most_voted_randomness,
             ),
             kwargs=self.params.optimizer_params,
