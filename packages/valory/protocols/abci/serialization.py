@@ -48,7 +48,7 @@ class AbciSerializer(Serializer):
     """Serialization for the 'abci' protocol."""
 
     @staticmethod
-    def encode(msg: Message) -> bytes:
+    def encode(msg: Message) -> bytes:  # pylint: disable=too-many-branches
         """
         Encode a 'Abci' message into bytes.
 
@@ -84,6 +84,13 @@ class AbciSerializer(Serializer):
             p2p_version = msg.p2p_version
             performative.p2p_version = p2p_version
             abci_msg.request_info.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.REQUEST_SET_OPTION:
+            performative = abci_pb2.AbciMessage.Request_Set_Option_Performative()  # type: ignore
+            option_key = msg.option_key
+            performative.option_key = option_key
+            option_value = msg.option_value
+            performative.option_value = option_value
+            abci_msg.request_set_option.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.REQUEST_INIT_CHAIN:
             performative = abci_pb2.AbciMessage.Request_Init_Chain_Performative()  # type: ignore
             time = msg.time
@@ -173,6 +180,8 @@ class AbciSerializer(Serializer):
             abci_msg.request_apply_snapshot_chunk.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
             performative = abci_pb2.AbciMessage.Response_Exception_Performative()  # type: ignore
+            error = msg.error
+            performative.error = error
             abci_msg.response_exception.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
             performative = abci_pb2.AbciMessage.Response_Echo_Performative()  # type: ignore
@@ -195,6 +204,15 @@ class AbciSerializer(Serializer):
             last_block_app_hash = msg.last_block_app_hash
             performative.last_block_app_hash = last_block_app_hash
             abci_msg.response_info.CopyFrom(performative)
+        elif performative_id == AbciMessage.Performative.RESPONSE_SET_OPTION:
+            performative = abci_pb2.AbciMessage.Response_Set_Option_Performative()  # type: ignore
+            code = msg.code
+            performative.code = code
+            log = msg.log
+            performative.log = log
+            info = msg.info
+            performative.info = info
+            abci_msg.response_set_option.CopyFrom(performative)
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
             performative = abci_pb2.AbciMessage.Response_Init_Chain_Performative()  # type: ignore
             if msg.is_set("consensus_params"):
@@ -331,7 +349,7 @@ class AbciSerializer(Serializer):
         return message_bytes
 
     @staticmethod
-    def decode(obj: bytes) -> Message:
+    def decode(obj: bytes) -> Message:  # pylint: disable=too-many-branches
         """
         Decode bytes into a 'Abci' message.
 
@@ -364,6 +382,11 @@ class AbciSerializer(Serializer):
             performative_content["block_version"] = block_version
             p2p_version = abci_pb.request_info.p2p_version
             performative_content["p2p_version"] = p2p_version
+        elif performative_id == AbciMessage.Performative.REQUEST_SET_OPTION:
+            option_key = abci_pb.request_set_option.option_key
+            performative_content["option_key"] = option_key
+            option_value = abci_pb.request_set_option.option_value
+            performative_content["option_value"] = option_value
         elif performative_id == AbciMessage.Performative.REQUEST_INIT_CHAIN:
             pb2_time = abci_pb.request_init_chain.time
             time = Timestamp.decode(pb2_time)
@@ -439,7 +462,8 @@ class AbciSerializer(Serializer):
             chunk_sender = abci_pb.request_apply_snapshot_chunk.chunk_sender
             performative_content["chunk_sender"] = chunk_sender
         elif performative_id == AbciMessage.Performative.RESPONSE_EXCEPTION:
-            pass
+            error = abci_pb.response_exception.error
+            performative_content["error"] = error
         elif performative_id == AbciMessage.Performative.RESPONSE_ECHO:
             message = abci_pb.response_echo.message
             performative_content["message"] = message
@@ -456,6 +480,13 @@ class AbciSerializer(Serializer):
             performative_content["last_block_height"] = last_block_height
             last_block_app_hash = abci_pb.response_info.last_block_app_hash
             performative_content["last_block_app_hash"] = last_block_app_hash
+        elif performative_id == AbciMessage.Performative.RESPONSE_SET_OPTION:
+            code = abci_pb.response_set_option.code
+            performative_content["code"] = code
+            log = abci_pb.response_set_option.log
+            performative_content["log"] = log
+            info = abci_pb.response_set_option.info
+            performative_content["info"] = info
         elif performative_id == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
             if abci_pb.response_init_chain.consensus_params_is_set:
                 pb2_consensus_params = abci_pb.response_init_chain.consensus_params

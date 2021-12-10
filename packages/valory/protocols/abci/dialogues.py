@@ -25,7 +25,7 @@ This module contains the classes required for abci dialogue management.
 """
 
 from abc import ABC
-from typing import Callable, FrozenSet, Type, cast
+from typing import Callable, Dict, FrozenSet, Type, cast
 
 from aea.common import Address
 from aea.protocols.base import Message
@@ -37,7 +37,7 @@ from packages.valory.protocols.abci.message import AbciMessage
 class AbciDialogue(Dialogue):
     """The abci dialogue class maintains state of a dialogue and manages it."""
 
-    INITIAL_PERFORMATIVES = frozenset(
+    INITIAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
         {
             AbciMessage.Performative.REQUEST_ECHO,
             AbciMessage.Performative.REQUEST_FLUSH,
@@ -56,12 +56,13 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.DUMMY,
         }
     )
-    TERMINAL_PERFORMATIVES = frozenset(
+    TERMINAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
         {
             AbciMessage.Performative.RESPONSE_EXCEPTION,
             AbciMessage.Performative.RESPONSE_ECHO,
             AbciMessage.Performative.RESPONSE_FLUSH,
             AbciMessage.Performative.RESPONSE_INFO,
+            AbciMessage.Performative.RESPONSE_SET_OPTION,
             AbciMessage.Performative.RESPONSE_INIT_CHAIN,
             AbciMessage.Performative.RESPONSE_QUERY,
             AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
@@ -76,7 +77,7 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.DUMMY,
         }
     )
-    VALID_REPLIES = {
+    VALID_REPLIES: Dict[Message.Performative, FrozenSet[Message.Performative]] = {
         AbciMessage.Performative.DUMMY: frozenset(),
         AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK: frozenset(
             {
@@ -162,6 +163,12 @@ class AbciDialogue(Dialogue):
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),
+        AbciMessage.Performative.REQUEST_SET_OPTION: frozenset(
+            {
+                AbciMessage.Performative.RESPONSE_SET_OPTION,
+                AbciMessage.Performative.RESPONSE_EXCEPTION,
+            }
+        ),
         AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK: frozenset(),
         AbciMessage.Performative.RESPONSE_BEGIN_BLOCK: frozenset(),
         AbciMessage.Performative.RESPONSE_CHECK_TX: frozenset(),
@@ -177,6 +184,7 @@ class AbciDialogue(Dialogue):
         AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK: frozenset(),
         AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT: frozenset(),
         AbciMessage.Performative.RESPONSE_QUERY: frozenset(),
+        AbciMessage.Performative.RESPONSE_SET_OPTION: frozenset(),
     }
 
     class Role(Dialogue.Role):
@@ -203,7 +211,7 @@ class AbciDialogue(Dialogue):
         :param dialogue_label: the identifier of the dialogue
         :param self_address: the address of the entity for whom this dialogue is maintained
         :param role: the role of the agent this dialogue is maintained for
-        :param message_class: the message class
+        :param message_class: the message class used
         """
         Dialogue.__init__(
             self,
@@ -231,8 +239,8 @@ class AbciDialogues(Dialogues, ABC):
         Initialize dialogues.
 
         :param self_address: the address of the entity for whom dialogues are maintained
-        :param role_from_first_message: a callable that returns the role from first message.
-        :param dialogue_class: the class to instantiate the dialogue.
+        :param dialogue_class: the dialogue class used
+        :param role_from_first_message: the callable determining role from first message
         """
         Dialogues.__init__(
             self,
