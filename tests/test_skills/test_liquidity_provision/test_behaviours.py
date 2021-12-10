@@ -106,28 +106,28 @@ def get_default_strategy(is_native: bool = True) -> Dict:
         "deadline": 300,
         "base": {
             "address": "0xUSDT_ADDRESS",
-            "amount_in_a": 10 ** 4,
-            "amount_min_after_swap_back_a": 0.1 * (10 ** 3),
-            "amount_in_b": 10 ** 4,
-            "amount_min_after_swap_back_b": 0.1 * (10 ** 3),
+            "amount_in_a": int(1e4),
+            "amount_min_after_swap_back_a": int(1e2),
+            "amount_in_b": int(1e4),
+            "amount_min_after_swap_back_b": int(1e2),
         },
         "pair": {
             "LP_token_address": LP_TOKEN_ADDRESS,
             "token_a": {
                 "ticker": "FTM",
                 "address": "0xFTM_ADDRESS",
-                "amount_min_after_swap": 10 ** 3,
-                "amount_min_after_add_liq": 0.5 * (10 ** 3),
-                "amount_min_after_rem_liq": 0.25 * (10 ** 3),
+                "amount_min_after_swap": int(1e3),
+                "amount_min_after_add_liq": int(0.5e3),
+                "amount_min_after_rem_liq": int(0.25e3),
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": is_native,
             },
             "token_b": {
                 "ticker": "BOO",
                 "address": "0xBOO_ADDRESS",
-                "amount_min_after_swap": 10 ** 3,
-                "amount_min_after_add_liq": 0.5 * (10 ** 3),
-                "amount_min_after_rem_liq": 0.25 * (10 ** 3),
+                "amount_min_after_swap": int(1e3),
+                "amount_min_after_add_liq": int(0.5e3),
+                "amount_min_after_rem_liq": int(0.25e3),
             },
         },
         "liquidity_to_remove": 1,
@@ -697,7 +697,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
-         # Get the tx hash from Gnosis Safe contract
+        # Get the tx hash from Gnosis Safe contract
         self.mock_contract_api_request(
             contract_id=str(GnosisSafeContract.contract_id),
             request_kwargs=dict(
@@ -859,7 +859,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
-         # Add allowance for token A
+        # Add allowance for token A
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -1406,8 +1406,12 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(strategy["pair"]["token_b"]["amount_min_after_rem_liq"]),
-                        amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
+                        amount_in=int(
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_b"]
+                        ),
                         path=[
                             strategy["pair"]["token_b"]["address"],
                             strategy["base"]["address"],
@@ -1561,8 +1565,12 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
                         liquidity=strategy["liquidity_to_remove"],
-                        amount_a_min=int(strategy["pair"]["token_a"]["amount_min_after_rem_liq"]),
-                        amount_b_min=int(strategy["pair"]["token_b"]["amount_min_after_rem_liq"]),
+                        amount_a_min=int(
+                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_b_min=int(
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                        ),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -1590,8 +1598,12 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(strategy["pair"]["token_a"]["amount_min_after_rem_liq"]),
-                        amount_out_min=int(strategy["base"]["amount_min_after_swap_back_a"]),
+                        amount_in=int(
+                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_a"]
+                        ),
                         path=[
                             strategy["pair"]["token_a"]["address"],
                             strategy["base"]["address"],
@@ -1623,8 +1635,12 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(strategy["pair"]["token_b"]["amount_min_after_rem_liq"]),
-                        amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
+                        amount_in=int(
+                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                        ),
+                        amount_out_min=int(
+                            strategy["base"]["amount_min_after_swap_back_b"]
+                        ),
                         path=[
                             strategy["pair"]["token_b"]["address"],
                             strategy["base"]["address"],
