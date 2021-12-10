@@ -33,6 +33,7 @@ from tests.helpers.tendermint_utils import (
     TendermintLocalNetworkBuilder,
 )
 
+
 # check log messages of the happy path
 CHECK_STRINGS = [
     "Entered in the 'tendermint_healthcheck' behaviour state",

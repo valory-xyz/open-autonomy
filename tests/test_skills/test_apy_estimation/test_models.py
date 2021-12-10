@@ -47,6 +47,6 @@ class TestSharedState:
 class TestAPYParams:
     """Test `APYParams`"""
 
-    def test__validate_params(self):
+    def test__validate_params(self) -> None:
         """Test `__validate_params`."""
         pass

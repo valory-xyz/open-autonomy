@@ -50,7 +50,9 @@ def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
 class Objective:  # pylint: disable=too-few-public-methods
     """Class for the objective function that `optuna` will optimize."""
 
-    def __init__(self, y: np.ndarray, scoring: ScoringType, window_size: Optional[int] = None) -> None:
+    def __init__(
+        self, y: np.ndarray, scoring: ScoringType, window_size: Optional[int] = None
+    ) -> None:
         """Init function for the Objective.
 
         :param y: the timeseries data, based on which the Cross-Validated optimization will be performed.
@@ -103,7 +105,7 @@ def optimize(  # pylint: disable=too-many-arguments
     show_progress_bar: bool = True,
     scoring: ScoringType = "pinball",
     alpha: Optional[float] = None,
-    window_size: Optional[int] = None
+    window_size: Optional[int] = None,
 ) -> optuna.study.Study:
     """Run the optimizer.
 

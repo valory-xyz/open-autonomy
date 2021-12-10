@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the APY estimation app."""
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -179,8 +179,10 @@ class PreprocessPayload(BaseAPYPayload):
 
         if self._train_test is None:
             if all(var is None for var in (self._train_hash, self._test_hash)):
-                raise ValueError("Either `train_hash` and `test_hash` or `train_test` "
-                                 "should be given for the `PreprocessPayload`!")
+                raise ValueError(
+                    "Either `train_hash` and `test_hash` or `train_test` "
+                    "should be given for the `PreprocessPayload`!"
+                )
         else:
             self._train_hash = self._test_hash = None
 
@@ -188,9 +190,11 @@ class PreprocessPayload(BaseAPYPayload):
     def train_test_hash(self) -> str:
         """Get the training and testing hash concatenation."""
         if self._train_test is None:
-            return self._train_hash + self._test_hash
+            hash_ = cast(str, self._train_hash) + cast(str, self._test_hash)
         else:
-            return self._train_test
+            hash_ = self._train_test
+
+        return hash_
 
     @property
     def pair_name(self) -> str:
