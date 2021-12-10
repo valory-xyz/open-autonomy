@@ -156,9 +156,9 @@ class PreprocessPayload(BaseAPYPayload):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         sender: str,
-        train_hash: str,
-        test_hash: str,
         pair_name: str,
+        train_hash: Optional[str] = None,
+        test_hash: Optional[str] = None,
         train_test: Optional[str] = None,
         id_: Optional[str] = None,
     ) -> None:
@@ -172,15 +172,25 @@ class PreprocessPayload(BaseAPYPayload):
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
+        self._pair_name = pair_name
         self._train_hash = train_hash
         self._test_hash = test_hash
         self._train_test = train_test
-        self._pair_name = pair_name
+
+        if self._train_test is None:
+            if all(var is None for var in (self._train_hash, self._test_hash)):
+                raise ValueError("Either `train_hash` and `test_hash` or `train_test` "
+                                 "should be given for the `PreprocessPayload`!")
+        else:
+            self._train_hash = self._test_hash = None
 
     @property
     def train_test_hash(self) -> str:
         """Get the training and testing hash concatenation."""
-        return self._train_hash + self._test_hash
+        if self._train_test is None:
+            return self._train_hash + self._test_hash
+        else:
+            return self._train_test
 
     @property
     def pair_name(self) -> str:

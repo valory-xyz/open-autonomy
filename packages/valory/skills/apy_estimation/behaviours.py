@@ -560,7 +560,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
 
         # Pass the hash as a Payload.
         payload = PreprocessPayload(
-            self.context.agent_address, hashes[0], hashes[1], pair_name
+            self.context.agent_address, pair_name, hashes[0], hashes[1]
         )
 
         # Finish behaviour.
