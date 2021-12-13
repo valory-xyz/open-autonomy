@@ -1,4 +1,4 @@
-agent_name: price_estimation
+agent_name: apy_estimation
 author: valory
 version: 0.1.0
 license: Apache-2.0
