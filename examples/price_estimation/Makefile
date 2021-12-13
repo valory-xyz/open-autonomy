@@ -9,7 +9,7 @@ build-docker-aea:
 .PHONY: build-docker-aea
 
 localnet-start: localnet-stop build-docker-localnode build-docker-aea
-	docker run --rm -v $(CURDIR)/build:/tendermint:Z tendermint/localnode testnet --config /etc/tendermint/config-template.toml --o . --starting-ip-address 192.167.11.3 
+	docker run --rm -v $(CURDIR)/build:/tendermint:Z tendermint/localnode testnet --config /etc/tendermint/config-template.toml --o . --hostname=node0 --hostname=node0 --hostname=node0 --hostname=node0
 	docker-compose up --build --force-recreate
 .PHONY: localnet-start
 

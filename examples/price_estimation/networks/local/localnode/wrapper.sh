@@ -20,6 +20,8 @@ if [ -z "${BINARY_CHECK}" ]; then
 	exit 1
 fi
 
+python3 /app/config_loader.py &
+
 ##
 ## Run binary with all parameters
 ##
@@ -31,5 +33,7 @@ else
   "$BINARY" "$@"
 fi
 
+
 chmod 777 -R /tendermint
+chmod 777 -R /app
           
