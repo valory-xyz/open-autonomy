@@ -20,7 +20,7 @@
 """This module contains the transaction payloads for the APY estimation app."""
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, cast
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -99,17 +99,15 @@ class FetchingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.FETCHING
 
-    def __init__(
-        self, sender: str, history_hash: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, history: str, id_: Optional[str] = None) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param history_hash: the fetched history's hash.
+        :param history: the fetched history's hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._history = history_hash
+        self._history = history
 
     @property
     def history(self) -> str:
@@ -128,16 +126,16 @@ class TransformationPayload(BaseAPYPayload):
     transaction_type = TransactionType.TRANSFORMATION
 
     def __init__(
-        self, sender: str, transformation_hash: str, id_: Optional[str] = None
+        self, sender: str, transformation: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param transformation_hash: the transformation's hash.
+        :param transformation: the transformation's hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._transformation_hash = transformation_hash
+        self._transformation_hash = transformation
 
     @property
     def transformation(self) -> str:
@@ -155,12 +153,13 @@ class PreprocessPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.PREPROCESS
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         sender: str,
-        train_hash: str,
-        test_hash: str,
         pair_name: str,
+        train_hash: Optional[str] = None,
+        test_hash: Optional[str] = None,
+        train_test: Optional[str] = None,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'preprocess' transaction payload.
@@ -169,17 +168,33 @@ class PreprocessPayload(BaseAPYPayload):
         :param train_hash: the train data hash.
         :param test_hash: the test data hash.
         :param pair_name: the name of the pool for which the preprocessed data are for.
+        :param train_test: the train-test concatenated hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
+        self._pair_name = pair_name
         self._train_hash = train_hash
         self._test_hash = test_hash
-        self._pair_name = pair_name
+        self._train_test = train_test
+
+        if self._train_test is None:
+            if all(var is None for var in (self._train_hash, self._test_hash)):
+                raise ValueError(
+                    "Either `train_hash` and `test_hash` or `train_test` "
+                    "should be given for the `PreprocessPayload`!"
+                )
+        else:
+            self._train_hash = self._test_hash = None
 
     @property
     def train_test_hash(self) -> str:
         """Get the training and testing hash concatenation."""
-        return self._train_hash + self._test_hash
+        if self._train_test is None:
+            hash_ = cast(str, self._train_hash) + cast(str, self._test_hash)
+        else:
+            hash_ = self._train_test
+
+        return hash_
 
     @property
     def pair_name(self) -> str:
@@ -200,35 +215,27 @@ class OptimizationPayload(BaseAPYPayload):
     def __init__(
         self,
         sender: str,
-        study_hash: str,
-        best_params: Dict[str, Any],
+        best_params: str,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'optimization' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param study_hash: the optimization study's hash.
         :param best_params: the best params of the study.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._study_hash = study_hash
         self._best_params = best_params
 
     @property
-    def study_hash(self) -> str:
-        """Get the optimization study's hash."""
-        return self._study_hash
-
-    @property
-    def best_params(self) -> Dict[str, Any]:
+    def best_params(self) -> str:
         """Get the best params of the optimization's study."""
         return self._best_params
 
     @property
     def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
         """Get the data."""
-        return {"study_hash": self._study_hash, "best_params": self._best_params}
+        return {"best_params": self._best_params}
 
 
 class TrainingPayload(BaseAPYPayload):

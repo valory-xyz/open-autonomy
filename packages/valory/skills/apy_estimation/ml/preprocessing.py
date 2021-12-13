@@ -21,12 +21,11 @@
 
 from typing import Optional, Tuple, Union
 
-import numpy as np
 import pandas as pd
 import pmdarima as pm
 
 
-TrainTestSplitType = Tuple[np.ndarray, np.ndarray]
+TrainTestSplitType = Tuple[pd.DataFrame, pd.DataFrame]
 
 
 def prepare_pair_data(
