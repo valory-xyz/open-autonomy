@@ -215,35 +215,27 @@ class OptimizationPayload(BaseAPYPayload):
     def __init__(
         self,
         sender: str,
-        study_hash: str,
-        best_params: Dict[str, Any],
+        best_params: str,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'optimization' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param study_hash: the optimization study's hash.
         :param best_params: the best params of the study.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._study_hash = study_hash
         self._best_params = best_params
 
     @property
-    def study_hash(self) -> str:
-        """Get the optimization study's hash."""
-        return self._study_hash
-
-    @property
-    def best_params(self) -> Dict[str, Any]:
+    def best_params(self) -> str:
         """Get the best params of the optimization's study."""
         return self._best_params
 
     @property
     def data(self) -> Dict[str, Union[str, Dict[str, Any]]]:
         """Get the data."""
-        return {"study_hash": self._study_hash, "best_params": self._best_params}
+        return {"best_params": self._best_params}
 
 
 class TrainingPayload(BaseAPYPayload):

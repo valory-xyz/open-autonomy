@@ -330,14 +330,19 @@ class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     round_id = "optimize"
     allowed_tx_type = OptimizationPayload.transaction_type
-    payload_attribute = "study_hash"
+    payload_attribute = "best_params"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         state_event = None
 
         if self.threshold_reached:
-            state_event = self.period_state, Event.DONE
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(best_params=self.most_voted_payload),
+            )
+
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants

@@ -141,7 +141,7 @@ def get_participant_to_optimize_payload(
 ) -> Dict[str, OptimizationPayload]:
     """Get optimization payload."""
     return {
-        participant: OptimizationPayload(participant, "study_hash", None)  # type: ignore
+        participant: OptimizationPayload(participant, "best_params_hash", None)  # type: ignore
         for participant in participants
     }
 
@@ -474,7 +474,7 @@ class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_optimize_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="study_hash",
+                most_voted_payload="best_params_hash",
                 exit_event=Event.DONE,
             )
         )

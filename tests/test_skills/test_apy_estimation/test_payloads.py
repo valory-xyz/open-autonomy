@@ -102,19 +102,14 @@ class TestPayloads:
         """Test `OptimizationPayload`"""
         payload = OptimizationPayload(
             sender="sender",
-            study_hash="x0",
-            best_params={"test": 2.0421833357796},
+            best_params="x0",
             id_="id",
         )
 
         assert payload.transaction_type == TransactionType.OPTIMIZATION
-        assert payload.study_hash == "x0"
-        assert payload.best_params == {"test": 2.0421833357796}
+        assert payload.best_params == "x0"
         assert payload.id_ == "id"
-        assert payload.data == {
-            "study_hash": "x0",
-            "best_params": {"test": 2.0421833357796},
-        }
+        assert payload.data == {"best_params": "x0"}
 
     @staticmethod
     def test_training_payload() -> None:

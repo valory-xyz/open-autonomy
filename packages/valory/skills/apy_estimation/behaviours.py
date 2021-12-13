@@ -686,20 +686,18 @@ class OptimizeBehaviour(APYEstimationBaseState):
                     f"{study_results.to_string()}"
                 )
 
-                # Store the results.
+                # Store the best params from the results.
                 save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "study_results.csv"
+                    self.params.data_folder, self.params.pair_id, "best_params.json"
                 )
-                study_results.to_csv(save_path, index=False)
+                to_json_file(save_path, study.best_params)
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
-                study_hash = hasher.get(save_path)
+                best_params_hash = hasher.get(save_path)
 
-                # Pass the hash and the best trial as a Payload.
-                payload = OptimizationPayload(
-                    self.context.agent_address, study_hash, study.best_params
-                )
+                # Pass the best params hash as a Payload.
+                payload = OptimizationPayload(self.context.agent_address, best_params_hash)
 
                 # Finish behaviour.
                 with benchmark_tool.measure(self).consensus():
@@ -739,6 +737,12 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.params.data_folder, self.params.pair_id, "train.csv"
             )
             y = pd.read_csv(path).values
+
+        # # Load the best params from the optimization results.
+        # save_path = os.path.join(
+        #     self.params.data_folder, self.params.pair_id, "best_params.json"
+        # )
+        # best_params = read_json_file(save_path)
 
         train_task = TrainTask()
         task_id = self.context.task_manager.enqueue_task(
