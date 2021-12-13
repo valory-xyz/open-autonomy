@@ -470,6 +470,44 @@ class ExitPoolSelectKeeperRound(
     round_id = "exit_pool_select_keeper"
 
 
+class SwapBackTransactionHashRound(TransactionHashBaseRound):
+    """This class represents the SwapBack transaction hash round."""
+
+    round_id = "swap_back_tx_hash"
+
+
+class SwapBackTransactionSignatureRound(TransactionSignatureBaseRound):
+    """This class represents the SwapBack signature round."""
+
+    round_id = "swap_back_tx_signature"
+
+
+class SwapBackTransactionSendRound(TransactionSendBaseRound):
+    """This class represents the SwapBack send round."""
+
+    round_id = "swap_back_tx_send"
+
+
+class SwapBackTransactionValidationRound(TransactionValidationBaseRound):
+    """This class represents the SwapBack validation round."""
+
+    round_id = "swap_back_tx_validation"
+
+
+class SwapBackRandomnessRound(BaseRandomnessRound):
+    """Exit pool randomness round."""
+
+    round_id = "swap_back_randomness"
+
+
+class SwapBackSelectKeeperRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """This class represents the SwapBack select keeper round."""
+
+    round_id = "swap_back_select_keeper"
+
+
 class LiquidityProvisionAbciApp(AbciApp[Event]):
     """Liquidity Provision ABCI application."""
 
@@ -531,7 +569,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         ExitPoolTransactionValidationRound: {
-            Event.DONE: ResetAndPauseRound,
+            Event.DONE: SwapBackTransactionHashRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
@@ -543,6 +581,37 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         ExitPoolSelectKeeperRound: {
             Event.DONE: ExitPoolTransactionHashRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SwapBackTransactionHashRound: {
+            Event.DONE: SwapBackTransactionSignatureRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SwapBackTransactionSignatureRound: {
+            Event.DONE: SwapBackTransactionSendRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SwapBackTransactionSendRound: {
+            Event.DONE: SwapBackTransactionValidationRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SwapBackTransactionValidationRound: {
+            Event.DONE: ResetAndPauseRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: SwapBackRandomnessRound,
+        },
+        SwapBackRandomnessRound: {
+            Event.DONE: SwapBackSelectKeeperRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        SwapBackSelectKeeperRound: {
+            Event.DONE: SwapBackTransactionHashRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
