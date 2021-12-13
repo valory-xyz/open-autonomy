@@ -23,7 +23,7 @@ import json
 import os
 from abc import ABC
 from multiprocessing.pool import AsyncResult
-from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -125,7 +125,7 @@ class TendermintHealthcheckBehaviour(APYEstimationBaseState):
 
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
-        expired = False  # pragma: no cover
+        expired = False
 
         if self._check_started is not None and not self._is_healthy:
             expired = (
@@ -222,7 +222,7 @@ class FetchBehaviour(APYEstimationBaseState):
     state_id = "fetch"
     matching_round = CollectHistoryRound
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._save_path = ""
@@ -488,20 +488,22 @@ class TransformBehaviour(APYEstimationBaseState):
         """Do the action."""
         if self._async_result is not None:
 
-            if self._async_result.ready() is False:
+            if not self._async_result.ready():
                 self.context.logger.debug("The transform task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
             else:
                 # Get the transformed data from the task.
                 completed_task = self._async_result.get()
-                transformed_history = cast(pd.DataFrame, completed_task.result)
+                transformed_history = cast(pd.DataFrame, completed_task)
                 self.context.logger.info(
                     f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
                 )
 
                 # Store the transformed data.
-                transformed_history.to_csv(self._transformed_history_save_path)
+                transformed_history.to_csv(
+                    self._transformed_history_save_path, index=False
+                )
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
@@ -553,12 +555,12 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 self.params.data_folder, self.params.pair_id, f"{filename}.csv"
             )
             create_pathdirs(save_path)
-            np.savetxt(save_path, split, ",")
+            split.to_csv(save_path, index=False)
             hashes.append(hasher.get(save_path))
 
         # Pass the hash as a Payload.
         payload = PreprocessPayload(
-            self.context.agent_address, hashes[0], hashes[1], pair_name
+            self.context.agent_address, pair_name, hashes[0], hashes[1]
         )
 
         # Finish behaviour.
@@ -653,13 +655,13 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
-        y = np.loadtxt(path, delimiter=",")
+        y = pd.read_csv(path)
 
         optimize_task = OptimizeTask()
         task_id = self.context.task_manager.enqueue_task(
             optimize_task,
             args=(
-                y,
+                y.values,
                 self.period_state.most_voted_randomness,
             ),
             kwargs=self.params.optimizer_params,
@@ -677,26 +679,26 @@ class OptimizeBehaviour(APYEstimationBaseState):
             else:
                 # Run the optimizer and get the study's result.
                 completed_task = self._async_result.get()
-                study = cast(Study, completed_task.result)
+                study = cast(Study, completed_task)
                 study_results = study.trials_dataframe()
                 self.context.logger.info(
-                    "Optimization has finished. Showing the results:\n",
-                    study_results.to_string(),
+                    "Optimization has finished. Showing the results:\n"
+                    f"{study_results.to_string()}"
                 )
 
-                # Store the results.
+                # Store the best params from the results.
                 save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "study_results.csv"
+                    self.params.data_folder, self.params.pair_id, "best_params.json"
                 )
-                study_results.to_csv(save_path)
+                to_json_file(save_path, study.best_params)
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
-                study_hash = hasher.get(save_path)
+                best_params_hash = hasher.get(save_path)
 
-                # Pass the hash and the best trial as a Payload.
+                # Pass the best params hash as a Payload.
                 payload = OptimizationPayload(
-                    self.context.agent_address, study_hash, study.best_params
+                    self.context.agent_address, best_params_hash
                 )
 
                 # Finish behaviour.
@@ -725,18 +727,18 @@ class TrainBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         if self.period_state.full_training:
-            y = []
+            y: Union[np.ndarray, List[np.ndarray]] = []
             for split in ("train", "test"):
                 path = os.path.join(
                     self.params.data_folder, self.params.pair_id, f"{split}.csv"
                 )
-                y.append(np.loadtxt(path, delimiter=","))
+                cast(List[np.ndarray], y).append(pd.read_csv(path).values)
             y = np.concatenate(y)
         else:
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, "train.csv"
             )
-            y = np.loadtxt(path, delimiter=",")
+            y = pd.read_csv(path).values
 
         train_task = TrainTask()
         task_id = self.context.task_manager.enqueue_task(
@@ -755,7 +757,7 @@ class TrainBehaviour(APYEstimationBaseState):
             else:
                 # Train the estimator.
                 completed_task = self._async_result.get()
-                forecaster = cast(Pipeline, completed_task.result)
+                forecaster = cast(Pipeline, completed_task)
                 self.context.logger.info("Training has finished.")
 
                 # Store the results.
@@ -799,12 +801,12 @@ class TestBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load test data.
-        y = {"train": None, "y_test": None}
+        y: Dict[str, Optional[np.ndarray]] = {"train": None, "y_test": None}
         for split in ("train", "test"):
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, f"{split}.csv"
             )
-            y[split] = np.loadtxt(path, delimiter=",")
+            y[split] = pd.read_csv(path).values
 
         model_path = os.path.join(
             self.params.data_folder, self.params.pair_id, "forecaster.joblib"
@@ -833,9 +835,9 @@ class TestBehaviour(APYEstimationBaseState):
             else:
                 # Train the estimator.
                 completed_task = self._async_result.get()
-                report = cast(TestReportType, completed_task.result)
+                report = cast(TestReportType, completed_task)
                 self.context.logger.info(
-                    f"Testing has finished. Report follows:\n{json.dumps(report)}"
+                    f"Testing has finished. Report follows:\n{report}"
                 )
 
                 # Store the results.

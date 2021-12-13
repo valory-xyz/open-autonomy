@@ -39,27 +39,7 @@ from packages.valory.skills.apy_estimation.ml.forecasting import (
     walk_forward_test,
 )
 
-
-class DummyPipeline:
-    """A dummy pipeline."""
-
-    @staticmethod
-    def predict(steps_forward: int) -> np.ndarray:
-        """Predict `steps_forward` timesteps in the future.
-
-        :param steps_forward: how many timesteps the model will be predicting in the future.
-        :return: a `numpy` array with the dummy predictions.
-        """
-        return np.zeros(steps_forward)
-
-    @staticmethod
-    def update(_y: np.ndarray) -> None:
-        """Update the dummy pipeline.
-
-        :param _y: The time-series data to add to the endogenous samples on which the
-            `DummyPipeline` was previously fit.
-        """
-        pass
+from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
 
 
 class TestForecasting:
