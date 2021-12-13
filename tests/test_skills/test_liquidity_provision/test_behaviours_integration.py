@@ -59,6 +59,10 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     ExitPoolTransactionSendBehaviour,
     ExitPoolTransactionSignatureBehaviour,
     ExitPoolTransactionValidationBehaviour,
+    SwapBackTransactionHashBehaviour,
+    SwapBackTransactionSendBehaviour,
+    SwapBackTransactionSignatureBehaviour,
+    SwapBackTransactionValidationBehaviour,
     get_strategy_update,
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
@@ -224,12 +228,16 @@ class TestLiquidityProvisionHardhat(
         )
         cls.multisend_data_enter = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000005d600dc64a140aa3e981100a9beca4e685f962f0cf6c900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001048803dbee00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c90000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001048803dbee00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c90000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000001f400000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000"
         cls.multisend_data_exit = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001d20050cd56fb094f8f06063066a619d898475dd3eede00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4baa2abde0000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000000fa00000000000000000000000000000000000000000000000000000000000000fa00000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000"
+        cls.multisend_data_swap_back = "8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000034b00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed173900000000000000000000000000000000000000000000000000000000000000fa000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd82000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c900a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed173900000000000000000000000000000000000000000000000000000000000000fa000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000000000000000000000000000000000000000000000020000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c9000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
         cls.most_voted_tx_hash_enter = (
             "90774cef6d8e42767a30a6ab90a3333668b4986bae50ef2ad272e6bd57ca6ec7"
         )
         cls.most_voted_tx_hash_exit = (
             "68645602edac4b5f12ce78c8d18226e9b3556478e0b7f3a8a96dc172bc110d8f"
+        )
+        cls.most_voted_tx_hash_swap_back = (
+            "58d8c8e1376e3a2aaf937a9b17a9ac809ba91e79ca780324ea937ba9909571af"
         )
 
         # setup default objects
@@ -249,6 +257,16 @@ class TestLiquidityProvisionHardhat(
 
         cls.default_period_state_exit = PeriodState(
             most_voted_tx_hash=cls.most_voted_tx_hash_exit,
+            safe_contract_address=cls.safe_contract_address,
+            most_voted_keeper_address=cls.keeper_address,
+            most_voted_strategy=cls.strategy,
+            multisend_contract_address=cls.multisend_contract_address,
+            router_contract_address=cls.router_contract_address,
+            participants=frozenset(list(cls.safe_owners.keys())),
+        )
+
+        cls.default_period_state_swap_back = PeriodState(
+            most_voted_tx_hash=cls.most_voted_tx_hash_swap_back,
             safe_contract_address=cls.safe_contract_address,
             most_voted_keeper_address=cls.keeper_address,
             most_voted_strategy=cls.strategy,
@@ -470,7 +488,7 @@ class TestLiquidityProvisionHardhat(
             expected_types,
         )
 
-    def test_enter_and_exit_pool_tx_send_and_validate_behaviour(self) -> None:
+    def test_enter_exit_swap_back_send_and_validate_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
         # send
@@ -692,6 +710,117 @@ class TestLiquidityProvisionHardhat(
             [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
         )
 
+        """test_swap_back_tx_send_behaviour"""
+
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 2
+
+        # send
+        participant_to_signature = {
+            address: SignaturePayload(
+                sender=address,
+                signature=crypto.sign_message(
+                    binascii.unhexlify(self.most_voted_tx_hash_swap_back),
+                    is_deprecated_mode=True,
+                )[2:],
+            )
+            for address, crypto in self.safe_owners.items()
+        }
+        # values taken from test_swap_back_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_swap_back.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_swap_back,
+                most_voted_tx_data=self.multisend_data_swap_back,
+                participant_to_signature=participant_to_signature,
+                most_voted_strategy=strategy,
+            ),
+        )
+        handlers = [
+            self.contract_handler,
+            self.signing_handler,
+            self.ledger_handler,
+        ]
+        expected_content = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": SigningMessage.Performative.SIGNED_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": LedgerApiMessage.Performative.TRANSACTION_DIGEST  # type: ignore
+            },
+        ]
+        expected_types = [
+            {
+                "raw_transaction": RawTransaction,
+            },
+            {
+                "signed_transaction": SignedTransaction,
+            },
+            {
+                "transaction_digest": TransactionDigest,
+            },
+        ]
+        _, _, msg = self.process_n_messsages(
+            SwapBackTransactionSendBehaviour.state_id,
+            3,
+            period_state,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert msg is not None and isinstance(msg, LedgerApiMessage)
+        tx_digest = msg.transaction_digest.body
+
+        # validate
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_swap_back.update(
+                final_tx_hash=tx_digest,
+                most_voted_tx_hash=self.most_voted_tx_hash_swap_back,
+                most_voted_tx_data=self.multisend_data_swap_back,
+                participant_to_signature=participant_to_signature,
+            ),
+        )
+        handlers = [
+            self.ledger_handler,
+            self.contract_handler,
+        ]
+        expected_content = [
+            {
+                "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
+            },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
+        ]
+        expected_types = [
+            {
+                "transaction_receipt": TransactionReceipt,
+            },
+            {
+                "state": State,
+            },
+        ]
+        _, msg = self.process_n_messsages(
+            SwapBackTransactionValidationBehaviour.state_id,
+            2,
+            period_state,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert msg is not None and isinstance(msg, ContractApiMessage)
+        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        # eventually replace with https://pypi.org/project/eth-event/
+        receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
+        logs = self.get_decoded_logs(self.gnosis_instance, receipt)
+
+        assert all(
+            [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
+        )
+
+
     # Exit pool behaviours
 
     def test_exit_pool_tx_hash_behaviour(self) -> None:
@@ -755,6 +884,77 @@ class TestLiquidityProvisionHardhat(
         expected_types: EXPECTED_TYPES = [None] * cycles
         self.process_n_messsages(
             ExitPoolTransactionSignatureBehaviour.state_id,
+            cycles,
+            period_state,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+
+    # Swap back behaviours
+
+    def test_swap_back_tx_hash_behaviour(self) -> None:
+        """test_swap_back_tx_hash_behaviour"""
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 2
+
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_swap_back.update(most_voted_strategy=strategy),
+        )
+
+        timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
+        assert self.strategy["deadline"] > timestamp, "Increase timestamp!"
+        cycles = 5
+        handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            }
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [
+            {
+                "raw_transaction": RawTransaction,
+            }
+        ] * cycles
+        _, _, _, msg_a, msg_b = self.process_n_messsages(
+            SwapBackTransactionHashBehaviour.state_id,
+            cycles,
+            period_state,
+            handlers,
+            expected_content,
+            expected_types,
+        )
+        assert msg_a is not None and isinstance(msg_a, ContractApiMessage)
+        tx_data = cast(str, msg_a.raw_transaction.body["data"])[2:]
+        assert tx_data == self.multisend_data_swap_back
+        assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
+        tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
+        assert tx_hash == self.most_voted_tx_hash_swap_back
+
+
+    def test_swap_back_tx_sign_behaviour(self) -> None:
+        """test_swap_back_tx_sign_behaviour"""
+
+        strategy = deepcopy(self.strategy)
+        strategy["safe_nonce"] = 2
+
+        # values taken from test_swap_back_tx_hash_behaviour flow
+        period_state = cast(
+            PeriodState,
+            self.default_period_state_swap_back.update(
+                most_voted_tx_hash=self.most_voted_tx_hash_swap_back,
+                most_voted_strategy=strategy,
+            ),
+        )
+        cycles = 1
+        handlers: HANDLERS = [self.signing_handler] * cycles
+        expected_content: EXPECTED_CONTENT = [
+            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
+        ] * cycles
+        expected_types: EXPECTED_TYPES = [None] * cycles
+        self.process_n_messsages(
+            SwapBackTransactionSignatureBehaviour.state_id,
             cycles,
             period_state,
             handlers,
