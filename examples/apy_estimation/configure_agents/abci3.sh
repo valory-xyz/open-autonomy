@@ -14,7 +14,7 @@ aea config set vendor.valory.skills.apy_estimation_abci.models.fantom_subgraph.a
 aea config set vendor.valory.skills.apy_estimation_abci.models.fantom_subgraph.args.api_id fantom
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.consensus.max_participants 4 --type int
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.round_timeout_seconds 1000 --type int
-aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.tendermint_url "http://node0:26657"
+aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.tendermint_url "http://node3:26657"
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.observation_interval 86400 --type int
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.max_healthcheck 43200 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "http://hardhat:8545"
