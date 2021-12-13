@@ -347,19 +347,6 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             current_state.act_wrapper()
             assert current_state.is_done()
 
-    def _test_task_not_setup(self) -> None:
-        """Run test for behaviour when not set-up."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context,
-        )
-
-        assert behaviour.state_id == self.behaviour_class.state_id
-
-        behaviour.act_wrapper()
-        self.end_round()
-        assert behaviour.state_id == self.behaviour_class.state_id
-
     @classmethod
     def teardown(cls) -> None:
         """Teardown the test class."""
@@ -1061,10 +1048,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         self.apy_estimation_behaviour.context.task_manager.start()
         cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
-
-    def test_task_not_setup(self) -> None:
-        """Run test for `transform_behaviour` when not set-up."""
-        self._test_task_not_setup()
 
     def test_task_not_ready(
         self,
