@@ -66,6 +66,12 @@ from packages.valory.skills.liquidity_provision.rounds import (
     LiquidityProvisionAbciApp,
     PeriodState,
     StrategyEvaluationRound,
+    SwapBackRandomnessRound,
+    SwapBackSelectKeeperRound,
+    SwapBackTransactionHashRound,
+    SwapBackTransactionSendRound,
+    SwapBackTransactionSignatureRound,
+    SwapBackTransactionValidationRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
@@ -819,6 +825,112 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     }
                 )
 
+            # Get the tx list data from multisend contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(MultiSendContract.contract_id),
+                contract_callable="get_tx_data",
+                multi_send_txs=multi_send_txs,
+            )
+            multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"])
+            multisend_data = multisend_data[2:]
+            self.context.logger.info(f"Multisend data: {multisend_data}")
+            # Get the tx hash from Gnosis Safe contract
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_raw_safe_transaction_hash",
+                to_address=self.period_state.multisend_contract_address,
+                value=ETHER_VALUE,
+                data=bytes.fromhex(multisend_data),
+                operation=SafeOperation.DELEGATE_CALL.value,
+                safe_tx_gas=strategy["safe_tx_gas"],
+                safe_nonce=strategy["safe_nonce"],
+            )
+            safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
+            safe_tx_hash = safe_tx_hash[2:]
+            self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
+            payload = TransactionHashPayload(
+                sender=self.context.agent_address,
+                tx_hash=json.dumps(
+                    {"tx_hash": safe_tx_hash, "tx_data": multisend_data}
+                ),  # TOFIX
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
+class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_signature"
+    matching_round = ExitPoolTransactionSignatureRound
+
+
+class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_send"
+    matching_round = ExitPoolTransactionSendRound
+
+
+class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+    """Prepare the 'exit pool' multisend tx."""
+
+    state_id = "exit_pool_tx_validation"
+    matching_round = ExitPoolTransactionValidationRound
+
+
+class ExitPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+    """Get randomness."""
+
+    state_id = "exit_pool_randomness"
+    matching_round = ExitPoolRandomnessRound
+
+
+class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
+    """'exit pool' select keeper."""
+
+    state_id = "exit_pool_select_keeper"
+    matching_round = ExitPoolSelectKeeperRound
+
+
+class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
+    """Prepare the 'swap back' multisend tx."""
+
+    state_id = "swap_back_tx_hash"
+    matching_round = SwapBackTransactionHashRound
+
+    def async_act(self) -> Generator:  # pylint: disable=too-many-statements
+        """
+        Do the action.
+
+        Steps:
+        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Send the transaction hash as a transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+
+            strategy = self.period_state.most_voted_strategy
+
+            # Prepare a uniswap tx list. We should check what token balances we have at this point.
+            # It is possible that we don't need to swap. For now let's assume we have just USDT
+            # and always swap back to it.
+            multi_send_txs = []
+
             # Swap first token back (can be native or not)
             if strategy["pair"]["token_a"]["is_native"]:
                 contract_api_msg = yield from self.get_contract_api_response(
@@ -968,39 +1080,39 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
 
-class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+class SwapBackTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
+    """Prepare the 'swap' multisend tx."""
 
-    state_id = "exit_pool_tx_signature"
-    matching_round = ExitPoolTransactionSignatureRound
-
-
-class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
-
-    state_id = "exit_pool_tx_send"
-    matching_round = ExitPoolTransactionSendRound
+    state_id = "swap_back_tx_signature"
+    matching_round = SwapBackTransactionSignatureRound
 
 
-class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+class SwapBackTransactionSendBehaviour(TransactionSendBaseBehaviour):
+    """Prepare the 'swap back' multisend tx."""
 
-    state_id = "exit_pool_tx_validation"
-    matching_round = ExitPoolTransactionValidationRound
+    state_id = "swap_back_tx_send"
+    matching_round = SwapBackTransactionSendRound
 
 
-class ExitPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+class SwapBackTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+    """Prepare the 'swap back' multisend tx."""
+
+    state_id = "swap_back_tx_validation"
+    matching_round = SwapBackTransactionValidationRound
+
+
+class SwapBackRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
     """Get randomness."""
 
-    state_id = "exit_pool_randomness"
-    matching_round = ExitPoolRandomnessRound
+    state_id = "swap_back_randomness"
+    matching_round = SwapBackRandomnessRound
 
 
-class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
-    """'exit pool' select keeper."""
+class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
+    """'swap back' select keeper."""
 
-    state_id = "exit_pool_select_keeper"
-    matching_round = ExitPoolSelectKeeperRound
+    state_id = "swap_back_select_keeper"
+    matching_round = SwapBackSelectKeeperRound
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
@@ -1022,6 +1134,12 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         ExitPoolTransactionValidationBehaviour,  # type: ignore
         ExitPoolRandomnessBehaviour,  # type: ignore
         ExitPoolSelectKeeperBehaviour,  # type: ignore
+        SwapBackTransactionHashBehaviour,  # type: ignore
+        SwapBackTransactionSignatureBehaviour,  # type: ignore
+        SwapBackTransactionSendBehaviour,  # type: ignore
+        SwapBackTransactionValidationBehaviour,  # type: ignore
+        SwapBackRandomnessBehaviour,  # type: ignore
+        SwapBackSelectKeeperBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
