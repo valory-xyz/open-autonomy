@@ -684,7 +684,6 @@ def test_period() -> None:
     period_setup_params: Dict = {}
     most_voted_randomness = 1
     most_voted_estimate = 1.0
-    best_params: Dict = {}
     full_training = False
     pair_name = ""
     n_estimations = 1
@@ -695,7 +694,6 @@ def test_period() -> None:
         period_setup_params=period_setup_params,
         most_voted_randomness=most_voted_randomness,
         most_voted_estimate=most_voted_estimate,
-        best_params=best_params,
         full_training=full_training,
         pair_name=pair_name,
         n_estimations=n_estimations,
@@ -706,7 +704,6 @@ def test_period() -> None:
     assert period_state.period_setup_params == period_setup_params
     assert period_state.most_voted_randomness == most_voted_randomness
     assert period_state.most_voted_estimate == most_voted_estimate
-    assert period_state.best_params == best_params
     assert period_state.full_training == full_training
     assert period_state.pair_name == pair_name
     assert period_state.n_estimations == n_estimations

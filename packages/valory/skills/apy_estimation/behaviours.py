@@ -677,7 +677,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 yield from self.sleep(self.params.sleep_time)
 
             else:
-                # Run the optimizer and get the study's result.
+                # Get the study's result.
                 completed_task = self._async_result.get()
                 study = cast(Study, completed_task)
                 study_results = study.trials_dataframe()
@@ -725,6 +725,12 @@ class TrainBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
+        # Load the best params from the optimization results.
+        save_path = os.path.join(
+            self.params.data_folder, self.params.pair_id, "best_params.json"
+        )
+        best_params = read_json_file(save_path)
+
         # Load training data.
         if self.period_state.full_training:
             y: Union[np.ndarray, List[np.ndarray]] = []
@@ -742,7 +748,7 @@ class TrainBehaviour(APYEstimationBaseState):
 
         train_task = TrainTask()
         task_id = self.context.task_manager.enqueue_task(
-            train_task, args=(y,), kwargs=self.period_state.best_params
+            train_task, args=(y,), kwargs=best_params
         )
         self._async_result = self.context.task_manager.get_task_result(task_id)
 

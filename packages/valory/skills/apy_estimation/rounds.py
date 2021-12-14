@@ -77,7 +77,6 @@ class PeriodState(BasePeriodState):
         period_setup_params: Optional[Dict] = None,
         most_voted_randomness: Optional[int] = None,
         most_voted_estimate: Optional[float] = None,
-        best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
         pair_name: Optional[str] = None,
         n_estimations: int = 0,
@@ -86,7 +85,6 @@ class PeriodState(BasePeriodState):
         super().__init__(participants, period_count, period_setup_params)
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_estimate = most_voted_estimate
-        self._best_params = best_params
         self._full_training = full_training
         self._pair_name = pair_name
         self._n_estimations = n_estimations
@@ -113,15 +111,6 @@ class PeriodState(BasePeriodState):
     def is_most_voted_estimate_set(self) -> bool:
         """Check if most_voted_estimate is set."""
         return self._most_voted_estimate is not None
-
-    @property
-    def best_params(self) -> Dict[str, Any]:
-        """Get the best_params."""
-        enforce(
-            self._best_params is not None,
-            "'best_params' field is None",
-        )
-        return cast(Dict[str, Any], self._best_params)
 
     @property
     def full_training(self) -> bool:
@@ -337,12 +326,7 @@ class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         state_event = None
 
         if self.threshold_reached:
-            updated_state = cast(
-                PeriodState,
-                self.period_state.update(best_params=self.most_voted_payload),
-            )
-
-            state_event = updated_state, Event.DONE
+            state_event = self.period_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -480,7 +464,6 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             if self.round_id == "reset":
                 updated_state = updated_state.update(
-                    best_params=None,
                     full_training=False,
                     pair_name=None,
                 )
