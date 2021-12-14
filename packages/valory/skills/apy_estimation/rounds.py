@@ -20,7 +20,7 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import AbstractSet, Any, Dict, Optional, Tuple, Type, cast
+from typing import AbstractSet, Dict, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 
@@ -261,7 +261,9 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
             updated_state = cast(
                 PeriodState,
                 self.period_state.update(
-                    pair_name=cast(PreprocessPayload, list(self.collection.values())[0]).pair_name
+                    pair_name=cast(
+                        PreprocessPayload, list(self.collection.values())[0]
+                    ).pair_name
                 ),
             )
             state_event = updated_state, Event.DONE
@@ -429,7 +431,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         if self.threshold_reached:
             updated_state = self.period_state.update(
                 n_estimations=cast(PeriodState, self.period_state).n_estimations + 1,
-                most_voted_estimate=self.most_voted_payload
+                most_voted_estimate=self.most_voted_payload,
             )
 
             if (

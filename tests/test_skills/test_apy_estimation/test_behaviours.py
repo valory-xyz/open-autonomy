@@ -1491,11 +1491,15 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
-        best_params_filepath = os.path.join(cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder, cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id, "best_params.json")
+        best_params_filepath = os.path.join(
+            cast(
+                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.data_folder,
+            cast(
+                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.pair_id,
+            "best_params.json",
+        )
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
         with open(best_params_filepath, "w") as f:
@@ -1511,7 +1515,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).setup()
 
     def test_task_not_ready(
-        self, monkeypatch: MonkeyPatch, tmp_path: PosixPath, no_action: Callable[[Any], None]
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
     ) -> None:
         """Run test for behaviour when task result is not ready."""
         self.fast_forward_to_state(
@@ -1535,11 +1542,15 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
-        best_params_filepath = os.path.join(cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder, cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id, "best_params.json")
+        best_params_filepath = os.path.join(
+            cast(
+                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.data_folder,
+            cast(
+                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.pair_id,
+            "best_params.json",
+        )
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
         with open(best_params_filepath, "w") as f:
@@ -1581,11 +1592,15 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
-        best_params_filepath = os.path.join(cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder, cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id, "best_params.json")
+        best_params_filepath = os.path.join(
+            cast(
+                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.data_folder,
+            cast(
+                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.pair_id,
+            "best_params.json",
+        )
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
         with open(best_params_filepath, "w") as f:

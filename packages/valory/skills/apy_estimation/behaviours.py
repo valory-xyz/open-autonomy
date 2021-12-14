@@ -729,7 +729,7 @@ class TrainBehaviour(APYEstimationBaseState):
         save_path = os.path.join(
             self.params.data_folder, self.params.pair_id, "best_params.json"
         )
-        best_params = read_json_file(save_path)
+        best_params = cast(Dict[str, Any], read_json_file(save_path))
 
         # Load training data.
         if self.period_state.full_training:

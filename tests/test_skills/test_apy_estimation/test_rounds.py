@@ -130,7 +130,10 @@ def get_participant_to_preprocess_payload(
     """Get preprocess payload."""
     return {
         participant: PreprocessPayload(
-            participant, "pair_name", "train_hash", "test_hash",
+            participant,
+            "pair_name",
+            "train_hash",
+            "test_hash",
         )
         for participant in participants
     }

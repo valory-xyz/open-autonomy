@@ -22,7 +22,7 @@
 import json
 import os
 import time
-from typing import Iterator, Optional, Union, Dict, Any
+from typing import Any, Dict, Iterator, Optional, Union
 
 from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
