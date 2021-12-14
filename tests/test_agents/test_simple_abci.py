@@ -72,7 +72,6 @@ class BaseTestSimpleABCISkill(AEATestCaseMany, BaseTendermintTestClass):
         """Set up the test."""
         self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
         self.processes = []
-        self.create_agents(*self.agent_names, is_local=self.IS_LOCAL)
         self.tendermint_net_builder = TendermintLocalNetworkBuilder(
             self.NB_AGENTS, Path(self.t)
         )

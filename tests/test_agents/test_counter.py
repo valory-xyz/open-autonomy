@@ -95,6 +95,7 @@ class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
         self.set_agent_context(agent_name)
         self.generate_private_key("ethereum")
         self.add_private_key("ethereum", "ethereum_private_key.txt")
+        self.set_config("vendor.valory.connections.abci.config.use_tendermint", False)
 
         process = self.run_agent()
         is_running = self.is_running(process)
