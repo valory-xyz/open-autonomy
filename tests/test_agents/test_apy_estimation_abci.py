@@ -24,7 +24,6 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, cast
 
-import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
@@ -148,6 +147,8 @@ class BaseTestABCIAPYEstimationSkill(
     round_timeout = 1000
     history_duration: int = 1
     n_trials: int = 2
+    sleep_time: int = 5
+    observation_interval: int = 10
 
     def setup(self) -> None:
         """Set up the test."""
@@ -223,6 +224,14 @@ class BaseTestABCIAPYEstimationSkill(
                 "vendor.valory.skills.apy_estimation.models.params.args.optimizer.n_trials",
                 self.n_trials,
             )
+            self.set_config(
+                "vendor.valory.skills.apy_estimation.models.params.args.sleep_time",
+                self.sleep_time,
+            )
+            self.set_config(
+                "vendor.valory.skills.apy_estimation.models.params.args.observation_interval",
+                self.observation_interval,
+            )
 
         # run 'aea install' in only one AEA project, to save time
         self.set_agent_context(self.agent_names[0])
@@ -262,7 +271,6 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestABCIAPYEstimationSki
             ), "ABCI agent wasn't successfully terminated."
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,
@@ -273,7 +281,6 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,
@@ -284,7 +291,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,
