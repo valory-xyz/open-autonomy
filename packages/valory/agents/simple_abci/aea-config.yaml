@@ -50,4 +50,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/price_estimation_abci:0.1.0
+  target_skill_id: valory/simple_abci:0.1.0
