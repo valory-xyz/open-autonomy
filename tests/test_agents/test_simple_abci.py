@@ -48,6 +48,7 @@ class TestSimpleABCISingleAgent(
 
     NB_AGENTS = 1
     agent_package = "valory/simple_abci:0.1.0"
+    skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 40
     check_strings = CHECK_STRINGS
 
@@ -59,6 +60,7 @@ class TestSimpleABCITwoAgents(
 
     NB_AGENTS = 2
     agent_package = "valory/simple_abci:0.1.0"
+    skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 40
     check_strings = CHECK_STRINGS
 
@@ -70,5 +72,6 @@ class TestSimpleABCIFourAgents(
 
     NB_AGENTS = 4
     agent_package = "valory/simple_abci:0.1.0"
+    skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 40
     check_strings = CHECK_STRINGS

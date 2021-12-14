@@ -89,6 +89,7 @@ class TestABCIPriceEstimationSingleAgent(
 
     NB_AGENTS = 1
     agent_package = "valory/price_estimation:0.1.0"
+    skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
 
@@ -101,6 +102,7 @@ class TestABCIPriceEstimationTwoAgents(
 
     NB_AGENTS = 2
     agent_package = "valory/price_estimation:0.1.0"
+    skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
 
@@ -113,6 +115,7 @@ class TestABCIPriceEstimationFourAgents(
 
     NB_AGENTS = 4
     agent_package = "valory/price_estimation:0.1.0"
+    skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
 
@@ -122,5 +125,6 @@ class TestDelayedStart(BaseTestEnd2EndDelayedStart, UseGnosisSafeHardHatNet):
 
     NB_AGENTS = 4
     agent_package = "valory/price_estimation:0.1.0"
+    skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS

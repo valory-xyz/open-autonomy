@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import pytest
+from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
 from tests.helpers.base import tendermint_health_check
@@ -36,7 +37,7 @@ from tests.helpers.tendermint_utils import (
 
 class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     """
-    Base class for end-to-end tests of agents.
+    Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
 
     The setup test function of this class will configure a set of 'n'
     agents with the configured (agent_package) agent, and a Tendermint network
@@ -54,6 +55,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     cli_log_options = ["-v", "DEBUG"]
     processes: List
     agent_package: str
+    skill_package: str
     wait_to_finish: int
     check_strings: Tuple[str, ...]
 
@@ -95,15 +97,15 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 "list",
             )
             self.set_config(
-                "vendor.valory.skills.simple_abci.models.params.args.consensus.max_participants",
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
                 self.NB_AGENTS,
             )
             self.set_config(
-                "vendor.valory.skills.simple_abci.models.params.args.round_timeout_seconds",
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
                 self.KEEPER_TIMEOUT,
             )
             self.set_config(
-                "vendor.valory.skills.simple_abci.models.params.args.tendermint_url",
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
             )
 
