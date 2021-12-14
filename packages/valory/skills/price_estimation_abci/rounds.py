@@ -48,12 +48,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
+    DeployOraclePayload,
     DeploySafePayload,
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
@@ -67,9 +69,16 @@ class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
     DONE = "done"
-    EXIT = "exit"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
+    FAST_FORWARD = "fast_forward"
+    NEGATIVE = "negative"
+    NONE = "none"
+    VALIDATE_TIMEOUT = "validate_timeout"
+    DEPLOY_TIMEOUT = "deploy_timeout"
+    RESET_TIMEOUT = "reset_timeout"
+    RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
+    FAILED = "failed"
 
 
 def encode_float(value: float) -> bytes:
@@ -93,11 +102,13 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self,
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
         participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
         most_voted_randomness: Optional[str] = None,
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
+        oracle_contract_address: Optional[str] = None,
         participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
         participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
         participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
@@ -109,11 +120,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
-        super().__init__(participants=participants, period_count=period_count)
+        super().__init__(
+            participants=participants,
+            period_count=period_count,
+            period_setup_params=period_setup_params,
+        )
         self._participant_to_randomness = participant_to_randomness
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
+        self._oracle_contract_address = oracle_contract_address
         self._participant_to_selection = participant_to_selection
         self._participant_to_votes = participant_to_votes
         self._participant_to_observations = participant_to_observations
@@ -144,6 +160,19 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         :return: the sorted participants' addresses
         """
         return sorted(self.participants, key=str.lower)
+
+    @property
+    def are_contracts_set(self) -> bool:
+        """Check whether contracts are set."""
+        return (
+            self._safe_contract_address is not None
+            and self._oracle_contract_address is not None
+        )
+
+    @property
+    def is_keeper_set(self) -> bool:
+        """Check whether keeper is set."""
+        return self._most_voted_keeper_address is not None
 
     @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
@@ -180,6 +209,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'safe_contract_address' field is None",
         )
         return cast(str, self._safe_contract_address)
+
+    @property
+    def oracle_contract_address(self) -> str:
+        """Get the oracle contract address."""
+        enforce(
+            self._oracle_contract_address is not None,
+            "'oracle_contract_address' field is None",
+        )
+        return cast(str, self._oracle_contract_address)
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
@@ -236,6 +274,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self._final_tx_hash)
 
     @property
+    def is_final_tx_hash_set(self) -> bool:
+        """Check if final_tx_hash is set."""
+        return self._final_tx_hash is not None
+
+    @property
     def estimate(self) -> float:
         """Get the estimate."""
         enforce(self._estimate is not None, "'estimate' field is None")
@@ -250,6 +293,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(float, self._most_voted_estimate)
 
     @property
+    def is_most_voted_estimate_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self._most_voted_estimate is not None
+
+    @property
     def encoded_most_voted_estimate(self) -> bytes:
         """Get the encoded (most voted) estimate."""
         return encode_float(self.most_voted_estimate)
@@ -261,12 +309,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             self._most_voted_tx_hash is not None, "'most_voted_tx_hash' field is None"
         )
         return cast(str, self._most_voted_tx_hash)
-
-    def reset(self) -> "PeriodState":
-        """Return the initial period state."""
-        return PeriodState(
-            participants=self.participants, period_count=self.period_count
-        )
 
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -283,10 +325,12 @@ class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state.reset(), Event.NO_MAJORITY
+        return self.period_state, Event.NO_MAJORITY
 
 
-class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
+class RegistrationStartupRound(
+    CollectDifferentUntilAllRound, PriceEstimationAbstractRound
+):
     """
     This class represents the registration round.
 
@@ -296,17 +340,82 @@ class RegistrationRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRo
     It schedules the SelectKeeperARound.
     """
 
-    round_id = "registration"
+    round_id = "registration_at_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
+    required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
         if self.collection_threshold_reached:
+            self.block_confirmations += 1
+        if (  # fast forward at setup
+            self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
+            and self.period_state.period_setup_params != {}
+            and self.period_state.period_setup_params.get("safe_contract_address", None)
+            is not None
+            and self.period_state.period_setup_params.get(
+                "oracle_contract_address", None
+            )
+            is not None
+        ):
             state = PeriodState(
                 participants=self.collection,
                 period_count=self.period_state.period_count,
+                safe_contract_address=self.period_state.period_setup_params.get(
+                    "safe_contract_address"
+                ),
+                oracle_contract_address=self.period_state.period_setup_params.get(
+                    "oracle_contract_address"
+                ),
+            )
+            return state, Event.FAST_FORWARD
+        if (
+            self.collection_threshold_reached
+            and self.block_confirmations > self.required_block_confirmations
+        ):  # initial deployment round
+            state = PeriodState(
+                participants=self.collection,
+                period_count=self.period_state.period_count,
+            )
+            return state, Event.DONE
+        return None
+
+
+class RegistrationRound(
+    CollectDifferentUntilThresholdRound, PriceEstimationAbstractRound
+):
+    """
+    This class represents the registration round during operation.
+
+    Input: a period state with the contracts from previous rounds
+    Output: a period state with the set of participants.
+
+    It schedules the SelectKeeperARound.
+    """
+
+    round_id = "registration"
+    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_attribute = "sender"
+    required_block_confirmations = 10
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            self.block_confirmations += 1
+        if (  # contracts are set from previous rounds
+            self.collection_threshold_reached
+            and self.block_confirmations
+            > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
+            and hasattr(self.period_state, "are_contracts_set")
+            and self.period_state.are_contracts_set
+        ):
+            state = PeriodState(
+                participants=frozenset(list(self.collection.keys())),
+                period_count=self.period_state.period_count,
+                safe_contract_address=self.period_state.safe_contract_address,
+                oracle_contract_address=self.period_state.oracle_contract_address,
             )
             return state, Event.DONE
         return None
@@ -389,6 +498,31 @@ class DeploySafeRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
         return None
 
 
+class DeployOracleRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
+    """
+    This class represents the deploy Oracle round.
+
+    Input: a set of participants (addresses) and a keeper
+    Output: a period state with the set of participants, the keeper and the Oracle contract address.
+
+    It schedules the ValidateOracleRound.
+    """
+
+    round_id = "deploy_oracle"
+    allowed_tx_type = DeployOraclePayload.transaction_type
+    payload_attribute = "oracle_contract_address"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.has_keeper_sent_payload:
+            state = self.period_state.update(
+                oracle_contract_address=self.keeper_payload
+            )
+            return state, Event.DONE
+        return None
+
+
 class ValidateRound(VotingRound, PriceEstimationAbstractRound):
     """
     This class represents the validate round.
@@ -398,7 +532,8 @@ class ValidateRound(VotingRound, PriceEstimationAbstractRound):
     """
 
     allowed_tx_type = ValidatePayload.transaction_type
-    exit_event: Event
+    negative_event: Event
+    none_event: Event
     payload_attribute = "vote"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -411,7 +546,10 @@ class ValidateRound(VotingRound, PriceEstimationAbstractRound):
             return state, Event.DONE
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
-            return state, self.exit_event
+            return state, self.negative_event
+        if self.none_vote_threshold_reached:
+            state = self.period_state.update()
+            return state, self.none_event
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -499,12 +637,14 @@ class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        if self.threshold_reached:
+        if self.threshold_reached and self.most_voted_payload is not None:
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
+        if self.threshold_reached and self.most_voted_payload is None:
+            return self.period_state, Event.NONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -558,10 +698,11 @@ class FinalizationRound(OnlyKeeperSendsRound, PriceEstimationAbstractRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload:
+        if self.has_keeper_sent_payload and self.keeper_payload is not None:
             state = self.period_state.update(final_tx_hash=self.keeper_payload)
             return state, Event.DONE
+        if self.has_keeper_sent_payload and self.keeper_payload is None:
+            return self.period_state, Event.FAILED
         return None
 
 
@@ -577,10 +718,16 @@ class RandomnessRound(BaseRandomnessRound):
     round_id = "randomness"
 
 
-class SelectKeeperStartupRound(SelectKeeperRound):
-    """SelectKeeper round for startup."""
+class SelectKeeperAStartupRound(SelectKeeperRound):
+    """SelectKeeperA round for startup."""
 
-    round_id = "select_keeper_startup"
+    round_id = "select_keeper_a_startup"
+
+
+class SelectKeeperBStartupRound(SelectKeeperRound):
+    """SelectKeeperB round for startup."""
+
+    round_id = "select_keeper_b_startup"
 
 
 class SelectKeeperARound(SelectKeeperRound):
@@ -595,19 +742,17 @@ class SelectKeeperBRound(SelectKeeperRound):
     round_id = "select_keeper_b"
 
 
-class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
-    """This class represents the 'consensus-reached' round (the final round)."""
+class BaseResetRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
+    """This class represents the base reset round."""
 
-    round_id = "reset"
-    allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    allowed_tx_type = ResetPayload.transaction_type
+    payload_attribute = "period_count"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-
-        if self.collection_threshold_reached:
+        if self.threshold_reached:
             state = self.period_state.update(
-                period_count=self.period_state.period_count + 1,
+                period_count=self.most_voted_payload,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
                 participant_to_selection=None,
@@ -623,7 +768,23 @@ class ResetRound(CollectDifferentUntilAllRound, PriceEstimationAbstractRound):
                 final_tx_hash=None,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
         return None
+
+
+class ResetRound(BaseResetRound):
+    """This class represents the 'reset' round (if something goes wrong)."""
+
+    round_id = "reset"
+
+
+class ResetAndPauseRound(BaseResetRound):
+    """This class represents the 'consensus-reached' round (the final round)."""
+
+    round_id = "reset_and_pause"
 
 
 class ValidateSafeRound(ValidateRound):
@@ -637,7 +798,23 @@ class ValidateSafeRound(ValidateRound):
     """
 
     round_id = "validate_safe"
-    exit_event = Event.EXIT
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
+
+
+class ValidateOracleRound(ValidateRound):
+    """
+    This class represents the validate Oracle round.
+
+    Input: a period state with the prior round data
+    Output: a new period state with the prior round data and the validation of the contract address
+
+    It schedules the CollectObservationRound or SelectKeeperARound.
+    """
+
+    round_id = "validate_oracle"
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
 
 
 class ValidateTransactionRound(ValidateRound):
@@ -651,81 +828,120 @@ class ValidateTransactionRound(ValidateRound):
     """
 
     round_id = "validate_transaction"
-    exit_event = Event.EXIT
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
 
 
 class PriceEstimationAbciApp(AbciApp[Event]):
     """Price estimation ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessStartupRound},
-        RandomnessStartupRound: {
-            Event.DONE: SelectKeeperStartupRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RandomnessStartupRound,
+        RegistrationStartupRound: {
+            Event.DONE: RandomnessStartupRound,
+            Event.FAST_FORWARD: RandomnessRound,
         },
-        SelectKeeperStartupRound: {
+        RandomnessStartupRound: {
+            Event.DONE: SelectKeeperAStartupRound,
+            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationStartupRound,  # we can have some agents on either side of an epoch, so we retry
+        },
+        SelectKeeperAStartupRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.EXIT: SelectKeeperStartupRound,
+            Event.DEPLOY_TIMEOUT: SelectKeeperAStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateSafeRound: {
+            Event.DONE: DeployOracleRound,
+            Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
+        },
+        DeployOracleRound: {
+            Event.DONE: ValidateOracleRound,
+            Event.DEPLOY_TIMEOUT: SelectKeeperBStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+        },
+        SelectKeeperBStartupRound: {
+            Event.DONE: DeployOracleRound,
+            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
+        },
+        ValidateOracleRound: {
             Event.DONE: RandomnessRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperARound: {
             Event.DONE: CollectObservationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         TxHashRound: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.NONE: ResetRound,  # if the agents cannot produce the hash we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.EXIT: SelectKeeperBRound,
+            Event.ROUND_TIMEOUT: SelectKeeperBRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperBRound,  # the keeper was unsuccessful;
         },
         ValidateTransactionRound: {
-            Event.DONE: ResetRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.DONE: ResetAndPauseRound,
+            Event.NEGATIVE: ResetRound,  # if the round reaches a negative vote we continue; TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
+            Event.NONE: ResetRound,  # if the round reaches a none vote we continue; TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
+            Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
+            Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
         },
         SelectKeeperBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
-        ResetRound: {Event.DONE: RandomnessRound},
+        ResetRound: {
+            Event.DONE: RandomnessRound,
+            Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we see if we can assemble a new group of agents
+            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we see if we can assemble a new group of agents
+        },
+        ResetAndPauseRound: {
+            Event.DONE: RandomnessRound,
+            Event.RESET_AND_PAUSE_TIMEOUT: RegistrationRound,  # if the round times out we see if we can assemble a new group of agents
+            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we see if we can assemble a new group of agents
+        },
+        RegistrationRound: {
+            Event.DONE: RandomnessRound,
+        },
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.EXIT: 5.0,
         Event.ROUND_TIMEOUT: 30.0,
+        Event.VALIDATE_TIMEOUT: 30.0,
+        Event.DEPLOY_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
     }

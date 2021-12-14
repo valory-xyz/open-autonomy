@@ -56,13 +56,13 @@ def get_spec(currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.US
 
 Return API Specs for `currency_id`
 
-<a id="packages.valory.skills.price_estimation_abci.price_api.ApiSpecs.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.price_api.ApiSpecs.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
 @abstractmethod
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.
@@ -87,12 +87,12 @@ def get_spec(currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.US
 
 Return API Specs for `coinmarket`
 
-<a id="packages.valory.skills.price_estimation_abci.price_api.CoinMarketCapApiSpecs.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.price_api.CoinMarketCapApiSpecs.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.
@@ -127,12 +127,12 @@ def get_spec(currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.US
 
 Return API Specs for `coingecko`
 
-<a id="packages.valory.skills.price_estimation_abci.price_api.CoinGeckoApiSpecs.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.price_api.CoinGeckoApiSpecs.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.
@@ -157,12 +157,12 @@ def get_spec(currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.US
 
 Return API Specs for `binance`
 
-<a id="packages.valory.skills.price_estimation_abci.price_api.BinanceApiSpecs.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.price_api.BinanceApiSpecs.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.
@@ -187,12 +187,12 @@ def get_spec(currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.US
 
 Return API Specs for `coinbase`
 
-<a id="packages.valory.skills.price_estimation_abci.price_api.CoinbaseApiSpecs.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.price_api.CoinbaseApiSpecs.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.
@@ -258,12 +258,12 @@ def get_spec(currency_id: CurrencyOrStr, convert_id: CurrencyOrStr = Currency.US
 
 Get the spec of the API
 
-<a id="packages.valory.skills.price_estimation_abci.price_api.PriceApi.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.price_api.PriceApi.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.

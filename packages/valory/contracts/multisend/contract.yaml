@@ -1,0 +1,17 @@
+name: multisend
+author: valory
+version: 0.1.0
+type: contract
+description: MultiSend contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmViwynBxs2tY5riU9PqPwHybiCgDBUc39p8EVfsSH8RHL
+  __init__.py: QmXyEcDdisehvHiMnJ1vaJwcZTDZzLm4h7MDU5cHR8TET7
+  build/MultiSend.json: QmSg3P5wrqdjUwGShZxZi4pM4xtGtV98DiRZ8hSmYqhPmU
+  contract.py: QmbSDh9mL2gZWzKPEzQpecqomyG1xFK4uRqL1oa1XjYG5j
+fingerprint_ignore_patterns: []
+class_name: MultiSendContract
+contract_interface_paths:
+  ethereum: build/MultiSend.json
+dependencies: {}

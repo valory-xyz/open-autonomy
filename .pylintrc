@@ -4,7 +4,7 @@ ignore=
     packages/valory/connections/abci/gogoproto
 
 [MESSAGES CONTROL]
-disable=C0103,R0801,C0301,C0201,C0204,C0209,W1203,C0302,R1735, R1729
+disable=C0103,R0801,C0301,C0201,C0204,C0209,W1203,C0302,R1735,R1729,W0511
 
 # See here for more options: https://www.codeac.io/documentation/pylint-configuration.html
 R1735: use-dict-literal
@@ -19,7 +19,7 @@ C0302: http://pylint-messages.wikidot.com/messages:c0302 > Too many lines in mod
 R0801: similar lines
 
 [IMPORTS]
-ignored-modules=
+ignored-modules=pandas,pmdarima,numpy,optuna,joblib,sklearn
 
 [DESIGN]
 # min-public-methods=1

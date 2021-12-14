@@ -23,6 +23,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from aea.skills.base import SkillContext
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -30,12 +31,161 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
 )
 from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
     BaseParams,
+    NUMBER_OF_RETRIES,
     Requests,
     SharedState,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base import AbciAppTest
+
+
+class DummyMessage:
+    """Dummy api specs class."""
+
+    body: bytes
+
+    def __init__(self, body: bytes) -> None:
+        """Initializes DummyMessage"""
+        self.body = body
+
+
+class TestApiSpecsModel:
+    """Test ApiSpecsModel."""
+
+    api_specs: ApiSpecs
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+
+        self.api_specs = ApiSpecs(
+            name="price_api",
+            skill_context=SkillContext(),
+            url="http://localhost",
+            api_id="api_id",
+            method="GET",
+            headers=[["Dummy-Header", "dummy_value"]],
+            parameters=[["Dummy-Param", "dummy_param"]],
+            response_key="value",
+            response_type="float",
+            retries=NUMBER_OF_RETRIES,
+        )
+
+    def test_init(
+        self,
+    ) -> None:
+        """Test initialization."""
+
+        # test ensure method.
+        with pytest.raises(ValueError, match="Value for url is required by ApiSpecs"):
+            _ = ApiSpecs(
+                name="price_api",
+                skill_context=SkillContext(),
+            )
+
+        assert self.api_specs._retries == NUMBER_OF_RETRIES
+        assert self.api_specs._retries_attempted == 0
+
+        assert self.api_specs.url == "http://localhost"
+        assert self.api_specs.api_id == "api_id"
+        assert self.api_specs.method == "GET"
+        assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
+        assert self.api_specs.parameters == [["Dummy-Param", "dummy_param"]]
+        assert self.api_specs.response_key == "value"
+        assert self.api_specs.response_type == "float"
+
+    def test_retries(
+        self,
+    ) -> None:
+        """Tests for retries."""
+
+        self.api_specs.increment_retries()
+        assert self.api_specs._retries_attempted == 1
+        assert not self.api_specs.is_retries_exceeded()
+
+        for _ in range(NUMBER_OF_RETRIES):
+            self.api_specs.increment_retries()
+        assert self.api_specs.is_retries_exceeded()
+        self.api_specs.reset_retries()
+        assert self.api_specs._retries_attempted == 0
+
+    def test_get_spec(
+        self,
+    ) -> None:
+        """Test get_spec method."""
+
+        actual_specs = {
+            "url": "http://localhost",
+            "method": "GET",
+            "headers": [["Dummy-Header", "dummy_value"]],
+            "parameters": [["Dummy-Param", "dummy_param"]],
+        }
+
+        specs = self.api_specs.get_spec()
+        assert all([key in specs for key in actual_specs.keys()])
+        assert all([specs[key] == actual_specs[key] for key in actual_specs])
+
+    def test_process_response_with_depth_0(
+        self,
+    ) -> None:
+        """Test process_response method."""
+
+        value = self.api_specs.process_response(DummyMessage(b""))  # type: ignore
+        assert value is None
+
+        value = self.api_specs.process_response(
+            DummyMessage(b'{"value": "10.232"}')  # type: ignore
+        )
+        assert isinstance(value, float)
+
+    def test_process_response_with_depth_1(
+        self,
+    ) -> None:
+        """Test process_response method."""
+
+        api_specs = ApiSpecs(
+            name="price_api",
+            skill_context=SkillContext(),
+            url="http://localhost",
+            api_id="api_id",
+            method="GET",
+            headers="Dummy-Header:dummy_value",
+            parameters="Dummy-Param:dummy_param",
+            response_key="value_0:value_1",
+            response_type="float",
+            retries=NUMBER_OF_RETRIES,
+        )
+
+        value = api_specs.process_response(
+            DummyMessage(b'{"value_0": {"value_1": "10.232"}}')  # type: ignore
+        )
+        assert isinstance(value, float)
+
+    def test_process_response_with_key_none(
+        self,
+    ) -> None:
+        """Test process_response method."""
+
+        api_specs = ApiSpecs(
+            name="price_api",
+            skill_context=SkillContext(),
+            url="http://localhost",
+            api_id="api_id",
+            method="GET",
+            headers="Dummy-Header:dummy_value",
+            parameters="Dummy-Param:dummy_param",
+            response_key=None,
+            response_type=None,
+            retries=NUMBER_OF_RETRIES,
+        )
+
+        value = api_specs.process_response(
+            DummyMessage(b'{"value": "10.232"}')  # type: ignore
+        )
+        assert isinstance(value, dict)
 
 
 class ConcreteRound(AbstractRound):

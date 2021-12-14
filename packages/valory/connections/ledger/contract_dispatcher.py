@@ -27,7 +27,7 @@ from aea.common import JSONLike
 from aea.contracts import Contract, contract_registry
 from aea.crypto.base import LedgerApi
 from aea.crypto.registries import Registry
-from aea.exceptions import AEAException
+from aea.exceptions import AEAException, parse_exception
 from aea.helpers.transaction.base import RawMessage, RawTransaction, State
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
@@ -159,7 +159,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             response = self.get_error_message(exception, ledger_api, message, dialogue)
         except Exception as exception:  # pylint: disable=broad-except  # pragma: nocover
             self.logger.error(
-                f"An error occurred while processing the contract api request: '{str(exception)}'."
+                f"An error occurred while processing the contract api request: '{parse_exception(exception)}'."
             )
             response = self.get_error_message(exception, ledger_api, message, dialogue)
         return response
@@ -183,7 +183,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             data: Union[bytes, JSONLike], dialogue: ContractApiDialogue
         ) -> ContractApiMessage:
             if not isinstance(data, Mapping):
-                raise ValueError(
+                raise ValueError(  # pragma: nocover
                     f"Invalid state type, got={type(data)}, expected={JSONLike}."
                 )
             return cast(
@@ -215,7 +215,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             transaction: Union[bytes, JSONLike], dialogue: ContractApiDialogue
         ) -> ContractApiMessage:
             if not isinstance(transaction, Mapping):
-                raise ValueError(
+                raise ValueError(  # pragma: nocover
                     f"Invalid transaction type, got={type(transaction)}, expected={JSONLike}."
                 )
             return cast(
@@ -247,7 +247,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             transaction: Union[bytes, JSONLike], dialogue: ContractApiDialogue
         ) -> ContractApiMessage:
             if isinstance(transaction, bytes):
-                raise ValueError(
+                raise ValueError(  # pragma: nocover
                     f"Invalid transaction type, got={type(transaction)}, expected={JSONLike}."
                 )
             return cast(
@@ -279,7 +279,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             raw_message: Union[bytes, JSONLike], dialogue: ContractApiDialogue
         ) -> ContractApiMessage:
             if not isinstance(raw_message, bytes):
-                raise ValueError(
+                raise ValueError(  # pragma: nocover
                     f"Invalid message type, got={type(raw_message)}, expected=bytes."
                 )
             return cast(
@@ -366,7 +366,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             ContractApiMessage.Performative.GET_RAW_MESSAGE,
             ContractApiMessage.Performative.GET_RAW_TRANSACTION,
         ]:
-            if len(full_args_spec.args) < 2:
+            if len(full_args_spec.args) < 2:  # pragma: nocover
                 raise AEAException(
                     f"Expected two or more positional arguments, got {len(full_args_spec.args)}"
                 )
@@ -374,7 +374,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
         if message.performative in [
             ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
         ]:
-            if len(full_args_spec.args) < 1:
+            if len(full_args_spec.args) < 1:  # pragma: nocover
                 raise AEAException(
                     f"Expected one or more positional arguments, got {len(full_args_spec.args)}"
                 )

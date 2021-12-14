@@ -8,10 +8,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qma3Z9MpmS2rFyDw2YCfsYENvam4gnyHNZtKFMkaEPMBnJ
   __init__.py: QmdcyANC7j6fteqzBoFLBg9NfHBAxryY1ykfywzeSpp8iC
-  base.py: QmVcuoGr9y4xX8fqGzoJuQfr4crLmaacHyWuEQLF7yiZaJ
-  connection.py: QmPgFPbQa2kxPt5eRQAm8NuLbFQo3JSgsKK5uQaM6zUMCC
-  contract_dispatcher.py: QmNSaLayYjwgAn2AV3vy7F5CytFpXP766BUPeFJ7CUQBZB
-  ledger_dispatcher.py: QmXTSEdtbfsa1hPDMqKotER5HRvhAuiWJtC6bBqphCKPPT
+  base.py: QmZCAuMU5xb7jdvq8tDgyNyVTp4ao1zPEGhqCRh2ZeqjYU
+  connection.py: QmSY8uatfZ7ssKHqZMx4VBYbNU7W2ZcXQmxW3XZSbqunnd
+  contract_dispatcher.py: QmQR8dBKZB8gUuGWAfTZWB9srXGYxwyw97zje65G9mdw7u
+  ledger_dispatcher.py: Qmerw4o1Ef1WUqqUZwnTmjjACJRsWrt59PrPvnEAcxBhaU
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
@@ -23,6 +23,9 @@ config:
     ethereum:
       address: http://127.0.0.1:8545
       gas_price_api_key: null
+      chain_id: 1337
+  retry_attempts: 240
+  retry_timeout: 3
 excluded_protocols: []
 restricted_to_protocols:
 - valory/contract_api:1.0.0

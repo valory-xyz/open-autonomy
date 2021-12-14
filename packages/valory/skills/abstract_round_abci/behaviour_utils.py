@@ -25,7 +25,18 @@ import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    OrderedDict,
+    Tuple,
+    Type,
+    cast,
+)
 
 from aea.exceptions import enforce
 from aea.protocols.base import Message
@@ -196,6 +207,9 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.RUNNING
         return message
 
+    def setup(self) -> None:
+        """Setup behaviour."""
+
     def act(self) -> None:
         """Do the act."""
         if self.__state == self.AsyncState.READY:
@@ -219,6 +233,7 @@ class AsyncBehaviour(ABC):
         """Call the 'async_act' method for the first time."""
         self.__stopped = False
         self.__state = self.AsyncState.RUNNING
+        self.setup()
         try:
             self.__generator_act = self.async_act_wrapper()
             # if the method 'async_act' was not a generator function
@@ -331,6 +346,24 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             partial(self.check_round_height_has_changed, round_height), timeout=timeout
         )
 
+    def wait_from_last_timestamp(self, seconds: float) -> Any:
+        """
+        Delay execution for a given number of seconds from the last timestamp.
+
+        The argument may be a floating point number for subsecond precision.
+
+        :param seconds: the seconds
+        :yield: None
+        """
+        deadline = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp + datetime.timedelta(0, seconds)
+
+        def _wait_until() -> bool:
+            return datetime.datetime.now() > deadline
+
+        yield from self.wait_for_condition(_wait_until)
+
     def is_done(self) -> bool:
         """Check whether the state is done."""
         return self._is_done
@@ -397,25 +430,23 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :yield: the responses
         """
         while not stop_condition():
-            self._send_signing_request(payload.encode())
-            signature_response = yield from self.wait_for_message()
-            signature_response = cast(SigningMessage, signature_response)
-            if signature_response.performative == SigningMessage.Performative.ERROR:
-                self._handle_signing_failure()
-                raise RuntimeError("Failure during signing.")  # TOFIX: temporary
-            signature_bytes = signature_response.signed_message.body
+            signature_bytes = yield from self.get_signature(payload.encode())
             transaction = Transaction(payload, signature_bytes)
-
             response = yield from self._submit_tx(transaction.encode())
             response = cast(HttpMessage, response)
-            json_body = json.loads(response.body)
-            self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             if not self._check_http_return_code_200(response):
                 self.context.logger.info(
                     f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
                 )
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
+            try:
+                json_body = json.loads(response.body)
+            except json.JSONDecodeError as e:  # pragma: nocover
+                raise ValueError(
+                    f"Unable to decode response: {response} with body {str(response.body)}"
+                ) from e
+            self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             tx_hash = json_body["result"]["hash"]
             is_delivered = yield from self._wait_until_transaction_delivered(tx_hash)
             if is_delivered:
@@ -486,7 +517,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self.context.logger.info("sending transaction to ledger.")
 
     def _send_transaction_receipt_request(
-        self, ledger_api_msg_: LedgerApiMessage
+        self,
+        tx_digest: str,
+        retry_timeout: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
     ) -> None:
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -494,7 +528,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
-            transaction_digest=ledger_api_msg_.transaction_digest,
+            transaction_digest=LedgerApiMessage.TransactionDigest(
+                ledger_id=self.context.default_ledger_id, body=tx_digest
+            ),
+            retry_timeout=retry_timeout,
+            retry_attempts=retry_attempts,
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
@@ -502,7 +540,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             request_nonce
         ] = self.default_callback_request
         self.context.outbox.put_message(message=ledger_api_msg)
-        self.context.logger.info("sending transaction receipt request.")
+        self.context.logger.info(
+            f"sending transaction receipt request for tx_digest='{tx_digest}'."
+        )
 
     def _handle_signing_failure(self) -> None:
         """Handle signing failure."""
@@ -527,10 +567,28 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         result = yield from self._do_request(request_message, http_dialogue)
         return result
 
+    def _get_health(self) -> Generator[None, None, HttpMessage]:
+        """Get Tendermint node's health."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/health",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        return result
+
+    def _get_status(self) -> Generator[None, None, HttpMessage]:
+        """Get Tendermint node's status."""
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_url + "/status",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        return result
+
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
         if self.is_stopped:
-            self.context.logger.info(
+            self.context.logger.debug(
                 "dropping message as behaviour has stopped: %s", message
             )
         elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
@@ -539,6 +597,38 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             self.context.logger.warning(
                 "could not send message to FSMBehaviour: %s", message
             )
+
+    def get_http_response(
+        self,
+        method: str,
+        url: str,
+        content: Optional[bytes] = None,
+        headers: Optional[List[OrderedDict[str, str]]] = None,
+        parameters: Optional[List[Tuple[str, str]]] = None,
+    ) -> Generator[None, None, HttpMessage]:
+        """
+        Send an http request message from the skill context.
+
+        This method is skill-specific, and therefore
+        should not be used elsewhere.
+
+        :param method: the http request method (i.e. 'GET' or 'POST').
+        :param url: the url to send the message to.
+        :param content: the payload.
+        :param headers: headers to be included.
+        :param parameters: url query parameters.
+        :yield: wait the response message
+        :return: the http message and the http dialogue
+        """
+        http_message, http_dialogue = self._build_http_request_message(
+            method=method,
+            url=url,
+            content=content,
+            headers=headers,
+            parameters=parameters,
+        )
+        response = yield from self._do_request(http_message, http_dialogue)
+        return response
 
     def _do_request(
         self, request_message: HttpMessage, http_dialogue: HttpDialogue
@@ -563,9 +653,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
         method: str,
         url: str,
-        content: Dict = None,
-        headers: Dict = None,
-        parameters: Dict = None,
+        content: Optional[bytes] = None,
+        headers: Optional[List[OrderedDict[str, str]]] = None,
+        parameters: Optional[List[Tuple[str, str]]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -582,14 +672,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         if parameters:
             url = url + "?"
-            for key, val in parameters.items():
+            for key, val in parameters:
                 url += f"{key}={val}&"
             url = url[:-1]
 
         header_string = ""
         if headers:
-            for key, val in headers.items():
-                header_string += f"{key}: {val}\r\n"
+            for header in headers:
+                for key, val in header.items():
+                    header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
@@ -602,7 +693,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             url=url,
             headers=header_string,
             version="",
-            body=b"" if content is None else json.dumps(content).encode("utf-8"),
+            body=b"" if content is None else content,
         )
         request_http_message = cast(HttpMessage, request_http_message)
         http_dialogue = cast(HttpDialogue, http_dialogue)
@@ -623,7 +714,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             if response.status_code != 200:
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
-            json_body = json.loads(response.body)
+            try:
+                json_body = json.loads(response.body)
+            except json.JSONDecodeError as e:  # pragma: nocover
+                raise ValueError(
+                    f"Unable to decode response: {response} with body {str(response.body)}"
+                ) from e
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE
 
@@ -648,9 +744,22 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         )
         return terms
 
+    def get_signature(
+        self, message: bytes, is_deprecated_mode: bool = False
+    ) -> Generator[None, None, str]:
+        """Get signature for message."""
+        self._send_signing_request(message, is_deprecated_mode)
+        signature_response = yield from self.wait_for_message()
+        signature_response = cast(SigningMessage, signature_response)
+        if signature_response.performative == SigningMessage.Performative.ERROR:
+            self._handle_signing_failure()
+            raise RuntimeError("Internal error: failure during signing.")
+        signature_bytes = signature_response.signed_message.body
+        return signature_bytes
+
     def send_raw_transaction(
         self, transaction: RawTransaction
-    ) -> Generator[None, None, Tuple[str, Dict]]:
+    ) -> Generator[None, None, Optional[str]]:
         """Send raw transactions to the ledger for mining."""
         terms = Terms(
             self.context.default_ledger_id,
@@ -663,18 +772,34 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
-        enforce(
+        if (
             signature_response.performative
-            == SigningMessage.Performative.SIGNED_TRANSACTION,
-            "signing error",
-        )
+            != SigningMessage.Performative.SIGNED_TRANSACTION
+        ):
+            return None  # pragma: nocover
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
+        if (
+            transaction_digest_msg.performative
+            != LedgerApiMessage.Performative.TRANSACTION_DIGEST
+        ):
+            return None  # pragma: nocover
         tx_hash = transaction_digest_msg.transaction_digest.body
-        self._send_transaction_receipt_request(transaction_digest_msg)
+        return tx_hash
+
+    def get_transaction_receipt(
+        self,
+        tx_digest: str,
+        retry_timeout: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
+    ) -> Generator[None, None, Optional[Dict]]:
+        """Get transaction receipt."""
+        self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
+        if transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR:
+            return None  # pragma: nocover
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
-        return tx_hash, tx_receipt
+        return tx_receipt
 
     def get_contract_api_response(
         self,

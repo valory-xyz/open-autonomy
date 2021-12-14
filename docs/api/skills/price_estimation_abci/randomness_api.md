@@ -34,12 +34,12 @@ def get_spec() -> Dict
 
 Return API Specs for `coinmarket`
 
-<a id="packages.valory.skills.price_estimation_abci.randomness_api.RandomnessApiSpecs.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.randomness_api.RandomnessApiSpecs.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.
@@ -148,12 +148,12 @@ def get_spec() -> Dict
 
 Get the spec of the API
 
-<a id="packages.valory.skills.price_estimation_abci.randomness_api.RandomnessApi.post_request_process"></a>
+<a id="packages.valory.skills.price_estimation_abci.randomness_api.RandomnessApi.process_response"></a>
 
 #### post`_`request`_`process
 
 ```python
-def post_request_process(response: HttpMessage) -> Optional[float]
+def process_response(response: HttpMessage) -> Optional[float]
 ```
 
 Process the response and return observed price.

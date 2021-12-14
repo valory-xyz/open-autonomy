@@ -1,11 +1,11 @@
-FROM valory/open-aea-user:1.1.0
+FROM valory/open-aea-user
 
 WORKDIR /home/ubuntu
 ENV PATH=$PATH:/home/ubuntu/.local/bin
 RUN alias python='python3'
 
-RUN pip install "open-aea[all]>=1.0.0,<2.0.0"
-RUN pip install "open-aea-ledger-ethereum>=1.0.0,<2.0.0"
+RUN pip install "open-aea[all]>=1.2.0,<2.0.0"
+RUN pip install "open-aea-ledger-ethereum>=1.2.0,<2.0.0"
 
 COPY packages /home/ubuntu/packages
 

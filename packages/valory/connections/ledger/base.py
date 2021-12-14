@@ -39,13 +39,12 @@ CONNECTION_ID = PublicId.from_str("valory/ledger:0.1.0")
 class RequestDispatcher(ABC):
     """Base class for a request dispatcher."""
 
-    TIMEOUT = 3
-    MAX_ATTEMPTS = 120
-
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         logger: Logger,
         connection_state: AsyncState,
+        retry_attempts: int = 120,
+        retry_timeout: int = 3,
         loop: Optional[asyncio.AbstractEventLoop] = None,
         executor: Optional[Executor] = None,
         api_configs: Optional[Dict[str, Dict[str, str]]] = None,
@@ -53,6 +52,8 @@ class RequestDispatcher(ABC):
         """
         Initialize the request dispatcher.
 
+        :param retry_attempts: the retry attempts for any api used.
+        :param retry_timeout: the retry timeout of any api used.
         :param logger: the logger.
         :param connection_state: connection state.
         :param loop: the asyncio loop.
@@ -64,6 +65,8 @@ class RequestDispatcher(ABC):
         self.executor = executor
         self._api_configs = api_configs
         self.logger = logger
+        self.retry_attempts = retry_attempts
+        self.retry_timeout = retry_timeout
 
     def api_config(self, ledger_id: str) -> Dict[str, str]:
         """Get api config."""
@@ -93,7 +96,7 @@ class RequestDispatcher(ABC):
                 self.executor, func, api, message, dialogue
             )
             return response
-        except Exception as exception:  # pylint: disable=broad-except
+        except Exception as exception:  # pylint: disable=broad-except # pragma: nocover
             return self.get_error_message(exception, api, message, dialogue)
 
     def dispatch(self, envelope: Envelope) -> Task:
@@ -126,7 +129,7 @@ class RequestDispatcher(ABC):
         """
         handler = getattr(self, performative.value, None)
         if handler is None:
-            raise Exception("Performative not recognized.")
+            raise Exception("Performative not recognized.")  # pragma: nocover
         return handler
 
     @abstractmethod

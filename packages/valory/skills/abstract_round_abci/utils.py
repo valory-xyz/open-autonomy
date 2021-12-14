@@ -24,9 +24,13 @@ import json
 import logging
 import os
 import types
+from hashlib import sha256
 from importlib.machinery import ModuleSpec
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
+
+from eth_typing.bls import BLSPubkey, BLSSignature
+from py_ecc.bls import G2Basic as bls  # type: ignore
 
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
@@ -165,6 +169,7 @@ class BenchmarkTool:
     agent: Optional[str]
     agent_address: Optional[str]
     behaviours: List[str]
+    logger: logging.Logger
 
     def __init__(
         self,
@@ -174,6 +179,7 @@ class BenchmarkTool:
         self.agent_address = None
         self.benchmark_data = {}
         self.behaviours = []
+        self.logger = logging.getLogger()
 
     @property
     def data(
@@ -217,8 +223,8 @@ class BenchmarkTool:
     ) -> None:
         """Output log."""
 
-        logging.info(f"Agent : {self.agent}")
-        logging.info(f"Agent Address : {self.agent_address}")
+        self.logger.info(f"Agent : {self.agent}")
+        self.logger.info(f"Agent Address : {self.agent_address}")
 
     def save(
         self,
@@ -227,11 +233,13 @@ class BenchmarkTool:
 
         try:
             with open(
-                f"/logs/{self.agent_address}.json", "w+", encoding="utf-8"
+                os.path.join(os.getcwd(), "logs", f"{self.agent_address}.json"),
+                "w+",
+                encoding="utf-8",
             ) as outfile:
                 json.dump(self.data, outfile)
         except (PermissionError, FileNotFoundError):
-            logging.info("Error saving benchmark data.")
+            self.logger.info("Error saving benchmark data.")
 
     def measure(self, behaviour: BaseState) -> BenchmarkBehaviour:
         """Measure time to complete round."""
@@ -247,3 +255,70 @@ class BenchmarkTool:
             self.behaviours.append(behaviour.state_id)
 
         return self.benchmark_data[behaviour.state_id]
+
+
+class VerifyDrand:  # pylint: disable=too-few-public-methods
+    """
+    Tool to verify Randomeness retrived from various external APIs.
+
+    The ciphersuite used is BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_
+
+    https://drand.love/docs/specification/#cryptographic-specification
+    https://github.com/ethereum/py_ecc
+    """
+
+    @classmethod
+    def _int_to_bytes_big(cls, value: int) -> bytes:
+        """Convert int to bytes."""
+        return int.to_bytes(value, 8, byteorder="big", signed=False)
+
+    @classmethod
+    def _verify_randomness_hash(cls, randomness: bytes, signature: bytes) -> bool:
+        """Verify randomness hash."""
+        return sha256(signature).digest() == randomness
+
+    @classmethod
+    def _verify_signature(
+        cls,
+        pubkey: Union[BLSPubkey, bytes],
+        message: bytes,
+        signature: Union[BLSSignature, bytes],
+    ) -> bool:
+        """Veryfy randomness signature."""
+        return bls.Verify(
+            cast(BLSPubkey, pubkey), message, cast(BLSSignature, signature)
+        )
+
+    def verify(self, data: Dict, pubkey: str) -> Tuple[bool, Optional[str]]:
+        """
+        Verify drand value retrived from external APIs.
+
+        :param data: dictionary containing drand parameters.
+        :param pubkey: league of entropy public key ( https://drand.love/developer/http-api/#public-endpoints ).
+        :returns: bool, error message
+        """
+
+        encoded_pubkey = bytes.fromhex(pubkey)
+        try:
+            randomness = data["randomness"]
+            signature = data["signature"]
+            round_value = int(data["round"])
+        except KeyError as e:
+            return False, f"DRAND dict is missing value for {str(e)}"
+
+        previous_signature = data.pop("previous_signature", "")
+        encoded_randomness = bytes.fromhex(randomness)
+        encoded_signature = bytes.fromhex(signature)
+        int_encoded_round = self._int_to_bytes_big(round_value)
+        encoded_previous_signature = bytes.fromhex(previous_signature)
+
+        if not self._verify_randomness_hash(encoded_randomness, encoded_signature):
+            return False, "Failed randomness hash check."
+
+        msg_b = encoded_previous_signature + int_encoded_round
+        msg_hash_b = sha256(msg_b).digest()
+
+        if not self._verify_signature(encoded_pubkey, msg_hash_b, encoded_signature):
+            return False, "Failed bls.Verify check."
+
+        return True, None

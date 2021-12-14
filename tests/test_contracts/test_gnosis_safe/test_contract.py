@@ -41,7 +41,14 @@ from tests.conftest import (
     ROOT_DIR,
 )
 from tests.helpers.contracts import get_register_contract
-from tests.test_contracts.base import BaseGanacheContractTest, BaseHardhatContractTest
+from tests.test_contracts.base import (
+    BaseGanacheContractTest,
+    BaseHardhatGnosisContractTest,
+)
+
+
+DEFAULT_GAS = 1000000
+DEFAULT_GAS_PRICE = 1000000
 
 
 class BaseContractTest(BaseGanacheContractTest):
@@ -70,7 +77,12 @@ class BaseContractTest(BaseGanacheContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(owners=cls.owners(), threshold=int(cls.threshold()))
+        return dict(
+            owners=cls.owners(),
+            threshold=int(cls.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
 
     @classmethod
     def owners(cls) -> List[str]:
@@ -98,7 +110,7 @@ class BaseContractTest(BaseGanacheContractTest):
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
+class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
     """Base test case for GnosisSafeContract"""
 
     NB_OWNERS: int = 4
@@ -124,7 +136,12 @@ class BaseContractTestHardHatSafeNet(BaseHardhatContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(owners=cls.owners(), threshold=int(cls.threshold()))
+        return dict(
+            owners=cls.owners(),
+            threshold=int(cls.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
+        )
 
     @classmethod
     def owners(cls) -> List[str]:
@@ -172,6 +189,8 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             deployer_address=str(self.deployer_crypto.address),
             owners=self.owners(),
             threshold=int(self.threshold()),
+            gas=DEFAULT_GAS,
+            gas_price=DEFAULT_GAS_PRICE,
         )
         assert type(result) == dict
         assert len(result) == 9
@@ -262,15 +281,15 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         sender = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
         )
-        # note: sender.address == self.owners()[1]  # noqa:  E800
+        assert sender.address == self.owners()[1]
         receiver = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
         )
-        # note: receiver.address == self.owners()[2]  # noqa:  E800
+        assert receiver.address == self.owners()[2]
         fourth = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_3
         )
-        # note: fourth.address == self.owners()[3]  # noqa:  E800
+        assert fourth.address == self.owners()[3]
         cryptos = [self.deployer_crypto, sender, receiver, fourth]
         tx_hash = self.contract.get_raw_safe_transaction_hash(
             ledger_api=self.ledger_api,
@@ -324,8 +343,8 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                     self.deployer_crypto.address
                 ]
             },
-        )["verified"]
-        assert verified, "Not verified"
+        )
+        assert verified["verified"], f"Not verified: {verified}"
 
     def test_verify_negative(self) -> None:
         """Test verify negative."""

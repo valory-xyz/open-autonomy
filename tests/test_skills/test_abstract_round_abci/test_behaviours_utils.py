@@ -20,6 +20,7 @@
 """Test the behaviours_utils.py module of the skill."""
 import time
 from abc import ABC
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Generator, Optional, Tuple, Type
 from unittest import mock
@@ -521,7 +522,8 @@ class TestBaseState:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ):
-            self.behaviour._send_transaction_receipt_request(MagicMock())
+            self.behaviour.context.default_ledger_id = "default_ledger_id"  # type: ignore
+            self.behaviour._send_transaction_receipt_request("digest")
 
     def test_build_http_request_message(self, *_: Any) -> None:
         """Test '_build_http_request_message'."""
@@ -531,7 +533,10 @@ class TestBaseState:
             return_value=(MagicMock(), MagicMock()),
         ):
             self.behaviour._build_http_request_message(
-                "", "", parameters=dict(foo="bar"), headers=dict(foo="bar")
+                "",
+                "",
+                parameters=[("foo", "bar")],
+                headers=[OrderedDict({"foo": "foo_val", "bar": "bar_val"})],
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -606,7 +611,7 @@ class TestBaseState:
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as info_mock:
+        with mock.patch.object(self.behaviour.context.logger, "debug") as info_mock:
             self.behaviour.default_callback_request(message)
             info_mock.assert_called_with(
                 "dropping message as behaviour has stopped: %s", message

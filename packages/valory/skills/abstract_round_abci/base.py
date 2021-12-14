@@ -443,10 +443,14 @@ class BasePeriodState:
         self,
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
     ) -> None:
         """Initialize a period state."""
         self._participants = frozenset(participants) if participants else None
         self._period_count = period_count if period_count is not None else 0
+        self._period_setup_params = (
+            period_setup_params if period_setup_params is not None else {}
+        )
 
     @property
     def period_count(self) -> int:
@@ -459,6 +463,11 @@ class BasePeriodState:
         if self._participants is None:
             raise ValueError("'participants' field is None")
         return self._participants
+
+    @property
+    def period_setup_params(self) -> Dict:
+        """Get the period setup params."""
+        return self._period_setup_params
 
     @property
     def nb_participants(self) -> int:
@@ -500,6 +509,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """Initialize the round."""
         self._consensus_params = consensus_params
         self._state = state
+        self.block_confirmations = 0
 
         self._check_class_attributes()
 
@@ -833,6 +843,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
         super().__init__(*args, **kwargs)
+        self.keeper_sent_payload = False
         self.keeper_payload: Optional[Any] = None
 
     def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
@@ -847,10 +858,11 @@ class OnlyKeeperSendsRound(AbstractRound):
         if sender != self.period_state.most_voted_keeper_address:  # type: ignore
             raise ABCIAppInternalError(f"{sender} not elected as keeper.")
 
-        if self.keeper_payload is not None:
+        if self.keeper_sent_payload:
             raise ABCIAppInternalError("keeper already set the payload.")
 
         self.keeper_payload = getattr(payload, self.payload_attribute)
+        self.keeper_sent_payload = True
 
     def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
         """Check a deploy safe payload can be applied to the current state."""
@@ -865,7 +877,7 @@ class OnlyKeeperSendsRound(AbstractRound):
         if not sender_is_elected_sender:
             raise TransactionNotValidError(f"{sender} not elected as keeper.")
 
-        if self.keeper_payload is not None:
+        if self.keeper_sent_payload:
             raise TransactionNotValidError("keeper payload value already set.")
 
     @property
@@ -874,7 +886,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     ) -> bool:
         """Check if keeper has sent the payload."""
 
-        return self.keeper_payload is not None
+        return self.keeper_sent_payload
 
 
 class VotingRound(CollectionRound):
@@ -889,7 +901,7 @@ class VotingRound(CollectionRound):
     def positive_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
         true_votes = sum(
-            [payload.vote for payload in self.collection.values()]  # type: ignore
+            [payload.vote is True for payload in self.collection.values()]  # type: ignore
         )
         # check that "true" has at least the consensus # of votes
         return true_votes >= self._consensus_params.consensus_threshold
@@ -897,11 +909,20 @@ class VotingRound(CollectionRound):
     @property
     def negative_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        false_votes = len(self.collection) - sum(
-            [payload.vote for payload in self.collection.values()]  # type: ignore
+        false_votes = sum(
+            [payload.vote is False for payload in self.collection.values()]  # type: ignore
         )
         # check that "false" has at least the consensus # of votes
         return false_votes >= self._consensus_params.consensus_threshold
+
+    @property
+    def none_vote_threshold_reached(self) -> bool:
+        """Check that the vote threshold has been reached."""
+        none_votes = sum(
+            [payload.vote is None for payload in self.collection.values()]  # type: ignore
+        )
+        # check that "None" has at least the consensus # of votes
+        return none_votes >= self._consensus_params.consensus_threshold
 
 
 class CollectDifferentUntilThresholdRound(CollectionRound):
@@ -978,21 +999,18 @@ class Timeouts(Generic[EventType]):
             return
         entry = self._heap[0]
         while entry.cancelled:
-            self._entry_finder.pop(entry.entry_count)
-            heapq.heappop(self._heap)
-            if len(self._heap) == 0:
+            self.pop_timeout()
+            if self.size == 0:
                 break
             entry = self._heap[0]
 
     def get_earliest_timeout(self) -> Tuple[datetime.datetime, Any]:
         """Get the earliest timeout-event pair."""
-        self.pop_earliest_cancelled_timeouts()
         entry = self._heap[0]
         return entry.deadline, entry.event
 
     def pop_timeout(self) -> Tuple[datetime.datetime, Any]:
         """Remove and return the earliest timeout-event pair."""
-        self.pop_earliest_cancelled_timeouts()
         entry = heapq.heappop(self._heap)
         del self._entry_finder[entry.entry_count]
         return entry.deadline, entry.event
@@ -1164,6 +1182,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         :param round_cls: the class of the new round.
         """
+        self.logger.debug("scheduling new round: %s", round_cls)
         for entry_id in self._current_timeout_entries:
             self._timeouts.cancel_timeout(entry_id)
 
@@ -1174,8 +1193,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             if timeout is not None:
                 # last_timestamp is not None because we are not in the first round
                 # (see consistency check)
+                # last timestamp can be in the past relative to last seen block time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
+                self.logger.info(
+                    "scheduling timeout of %s seconds for event %s with deadline %s",
+                    timeout,
+                    event,
+                    deadline,
+                )
                 self._current_timeout_entries.append(entry_id)
 
         # self.state will point to last result, or if not available to the initial state
@@ -1263,7 +1289,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         if next_round_cls is not None:
             self._schedule_round(next_round_cls)
         else:
-            self.logger.info("AbciApp has reached a dead end.")
+            self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
             self._current_round = None
 
@@ -1273,12 +1299,15 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         :param timestamp: the latest block's timestamp.
         """
+        self.logger.info("arrived block with timestamp: %s", timestamp)
+        self.logger.info("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
         if self._timeouts.size == 0:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
+            self.logger.info("no pending timeout, move time forward")
             self._last_timestamp = timestamp
             return
 
@@ -1287,16 +1316,27 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
+            self.logger.warning(
+                "expired deadline %s with event %s at AbciApp time %s",
+                expired_deadline,
+                timeout_event,
+                timestamp,
+            )
 
             # the last timestamp now becomes the expired deadline
             # clearly, it is earlier than the current highest known
             # timestamp that comes from the consensus engine.
             # However, we need it to correctly simulate the timeouts
-            # of the next rounds.
-            self._last_timestamp = expired_deadline
+            # of the next rounds. (for now we set it to timestamp to explore
+            # the impact)
+            self._last_timestamp = timestamp
+            self.logger.info(
+                "current AbciApp time after expired deadline: %s", self.last_timestamp
+            )
 
             self.process_event(timeout_event)
 
+            self._timeouts.pop_earliest_cancelled_timeouts()
             if self._timeouts.size == 0:
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()
@@ -1305,6 +1345,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         # so it is safe to move forward the last known timestamp to the
         # new block's timestamp
         self._last_timestamp = timestamp
+        self.logger.debug("final AbciApp time: %s", self._last_timestamp)
 
 
 class Period:
@@ -1369,6 +1410,11 @@ class Period:
         return self._abci_app
 
     @property
+    def height(self) -> int:
+        """Get the height."""
+        return self._blockchain.height
+
+    @property
     def is_finished(self) -> bool:
         """Check if a period has finished."""
         return self.abci_app.is_finished
@@ -1399,13 +1445,16 @@ class Period:
         return self.abci_app.last_round_id
 
     @property
-    def last_timestamp(self) -> Optional[datetime.datetime]:
+    def last_timestamp(self) -> datetime.datetime:
         """Get the last timestamp."""
-        return (
+        last_timestamp = (
             self._blockchain.blocks[-1].timestamp
             if self._blockchain.length != 0
             else None
         )
+        if last_timestamp is None:
+            raise ABCIAppInternalError("last timestamp is None")
+        return last_timestamp
 
     @property
     def latest_result(self) -> Optional[Any]:

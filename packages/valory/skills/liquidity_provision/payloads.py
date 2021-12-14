@@ -36,6 +36,7 @@ class TransactionType(Enum):
     TRANSACTION_SIGNATURE = "tx_signature"
     TRANSACTION_SEND = "tx_send"
     TRANSACTION_VALIDATION = "tx_validation"
+    TX_HASH = "tx_hash"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -45,7 +46,7 @@ class TransactionType(Enum):
 class BaseLiquidityProvisionPayload(BaseTxPayload, ABC):
     """Base class for the liquidity provision skill."""
 
-    def __hash__(self) -> int:
+    def __hash__(self) -> int:  # pragma: nocover
         """Hash the payload."""
         return hash(tuple(sorted(self.data.items())))
 
@@ -56,7 +57,7 @@ class StrategyType(Enum):
     WAIT = "wait"
     GO = "go"
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: nocover
         """Get the string value of the strategy type."""
         return self.value
 
@@ -85,29 +86,3 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
-
-
-class AllowanceCheckPayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'allowance_check'."""
-
-    transaction_type = TransactionType.STRATEGY_EVALUATION
-
-    def __init__(self, sender: str, allowance: int, id_: Optional[str] = None) -> None:
-        """Initialize a 'allowance_check' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param allowance: the current allowance
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._allowance = allowance
-
-    @property
-    def allowance(self) -> int:
-        """Get the strategy."""
-        return self._allowance
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(strategy=self.allowance)

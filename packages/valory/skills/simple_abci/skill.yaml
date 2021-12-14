@@ -1,0 +1,96 @@
+name: simple_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for demonstation.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
+  __init__.py: QmQFTuPAiVxSZPmmQC6RnsWgztZRZfLPxs2u2vBojChjxV
+  behaviours.py: QmaCXxJag2y24zFv1gaQNepun8o7vTz2ipekoKEVRjSM4v
+  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
+  handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
+  models.py: Qmb1YYGkAa4dhKyYN3CHZU1KdXTZp3AdVyrnT3NBb2ux7L
+  payloads.py: QmXe2vVWq8UjkDQKisQY4qFU6nX5F5D2B1f3kbDkrFu2Da
+  rounds.py: QmfZEQND9sM7ZfaABMejWqSKH3xJZLuVtM5q9R5HQcjrEn
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: SimpleAbciConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: SimpleABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      max_healthcheck: 120
+      observation_interval: 10
+      period_setup: {}
+      round_timeout_seconds: 30
+      sleep_time: 1
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false

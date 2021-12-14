@@ -13,6 +13,7 @@ connections:
 contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
+- valory/offchain_aggregator:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
@@ -31,8 +32,21 @@ connection_private_key_paths: {}
 private_key_paths:
   ethereum: ethereum_private_key.txt
 logging_config:
-  disable_existing_loggers: false
   version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - console
+      propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}
 default_connection: null

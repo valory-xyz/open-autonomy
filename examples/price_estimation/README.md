@@ -14,7 +14,7 @@ Make sure you have installed on your machine:
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
-## Run
+## Run a local demo
 
 To set up the network:
 
@@ -187,8 +187,25 @@ Watch for changes and automatically build tag and deploy and changes within the 
 skaffold dev --profile minikube
 ```
 
-# tear down
+### tear down
 ```
 kind delete cluster
 ```
+
+
+## Deployment on Ropsten
+
+Ensure accurate configuration, in paricular, swap folder names of `configure_agents` and `configure_agents_ropsten` (`mv configure_agents configure_agents_old` and `mv configure_agents_ropsten configure_agents`). Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
+
+```bash
+count=0
+docker ps --format '{{.ID}}' --filter='ancestor=valory/price_estimation:0.1.0' | while read -r line ; do docker logs "$line" > node_${count}.txt; (( count++ )); done
+```
+
+To find exceptions in logs, e.g. `docker logs 1629f5bd397d | grep "Traceback (most recent call last):"`
+
+To save logs to file: `docker logs d425a72bada2 > node_4.txt`
+
+To copy files to local machine: `for i in {1..4}; do scp root@178.62.4.138:node_${i}.txt node_${i}.txt; done`
+
 

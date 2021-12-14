@@ -96,13 +96,17 @@ jobs:
         os: [ ubuntu-latest ] # TODO add [macos-latest, windows-latest]
         python-version: [ 3.7 ] # TODO add [3.6, 3.7, 3.8, 3.9]
 
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@master
-      - uses: textbook/git-checkout-submodule-action@2.1.1
+      - name: Checkout submodules
+        uses: srt32/git-actions@v0.0.3
+        with:
+          args: git submodule update --init --recursive
       - uses: actions/setup-python@master
         with:
+          submodules: recursive
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
@@ -131,9 +135,14 @@ jobs:
 
           # pull node image needed for the integration tests
           docker pull node:16.7.0
+          docker pull trufflesuite/ganache:beta
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
             sudo chown -R $(whoami) .husky &&\
+            yarn
+          # build hardhat node in third_party/contracts-amm
+          cd ../..
+          cd third_party/contracts-amm &&\
             yarn
       #    # set up environment depending on the platform in use
       #    - if: matrix.os == 'ubuntu-latest'

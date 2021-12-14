@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class DockerImage(ABC):
-    """A class to wrap interatction with a Docker image."""
+    """A class to wrap interaction with a Docker image."""
 
     MINIMUM_DOCKER_VERSION = (19, 0, 0)
 
@@ -142,7 +142,7 @@ class DockerBaseTest(ABC):
     """Base pytest class for setting up Docker images."""
 
     timeout: float = 3.0
-    max_attempts: int = 40
+    max_attempts: int = 60
     addr: str
     port: int
 

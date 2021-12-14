@@ -18,12 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
+import binascii
+import datetime
 import json
 import logging
 import time
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, Type, cast
+from typing import Any, Dict, Generator, Type, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -48,6 +50,9 @@ from packages.valory.connections.ledger.base import (
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
+from packages.valory.contracts.offchain_aggregator.contract import (
+    PUBLIC_ID as ORACLE_CONTRACT_ID,
+)
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
@@ -62,21 +67,28 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.price_estimation_abci.behaviours import (
+    DeployOracleBehaviour,
     DeploySafeBehaviour,
     EstimateBehaviour,
     FinalizeBehaviour,
     ObserveBehaviour,
+    PriceEstimationBaseState,
     PriceEstimationConsensusBehaviour,
     RandomnessAtStartupBehaviour,
     RandomnessInOperationBehaviour,
+    RegistrationBaseBehaviour,
     RegistrationBehaviour,
+    RegistrationStartupBehaviour,
+    ResetAndPauseBehaviour,
     ResetBehaviour,
+    SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
-    SelectKeeperAtStartupBehaviour,
+    SelectKeeperBAtStartupBehaviour,
     SelectKeeperBBehaviour,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,
     TransactionHashBehaviour,
+    ValidateOracleBehaviour,
     ValidateSafeBehaviour,
     ValidateTransactionBehaviour,
 )
@@ -87,8 +99,25 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event, PeriodState
+from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
 
 from tests.conftest import ROOT_DIR
+
+
+DRAND_VALUE = {
+    "round": 1416669,
+    "randomness": "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11",
+    "signature": (
+        "b44d00516f46da3a503f9559a634869b6dc2e5d839e46ec61a090e3032172954929a5"
+        "d9bd7197d7739fe55db770543c71182562bd0ad20922eb4fe6b8a1062ed21df3b68de"
+        "44694eb4f20b35262fa9d63aa80ad3f6172dd4d33a663f21179604"
+    ),
+    "previous_signature": (
+        "903c60a4b937a804001032499a855025573040cb86017c38e2b1c3725286756ce8f33"
+        "61188789c17336beaf3f9dbf84b0ad3c86add187987a9a0685bc5a303e37b008fba8c"
+        "44f02a416480dd117a3ff8b8075b1b7362c58af195573623187463"
+    ),
+}
 
 
 class DummyRoundId:
@@ -216,11 +245,12 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         self.price_estimation_behaviour.act_wrapper()
 
     def mock_contract_api_request(
-        self, request_kwargs: Dict, response_kwargs: Dict
+        self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
 
+        :param contract_id: contract id.
         :param request_kwargs: keyword arguments for request check.
         :param response_kwargs: keyword arguments for mock response.
         """
@@ -234,7 +264,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             to=str(LEDGER_CONNECTION_PUBLIC_ID),
             sender=str(self.skill.skill_context.skill_id),
             ledger_id="ethereum",
-            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            contract_id=contract_id,
             message_id=1,
             **request_kwargs,
         )
@@ -440,7 +470,8 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             )
         mock_logger.assert_any_call(
-            logging.ERROR, "Tendermint not running, trying again!"
+            logging.ERROR,
+            "Tendermint not running yet, trying again!",
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
@@ -454,13 +485,17 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == TendermintHealthcheckBehaviour.state_id
         )
-        self.skill.skill_context.params._count_healthcheck = (
-            self.skill.skill_context.params.max_healthcheck + 1
-        )
-        with pytest.raises(AEAActException, match="Tendermint node did not come live!"):
-            self.price_estimation_behaviour.act_wrapper()
+        with mock.patch.object(
+            self.price_estimation_behaviour.current_state,
+            "_is_timeout_expired",
+            return_value=True,
+        ):
+            with pytest.raises(
+                AEAActException, match="Tendermint node did not come live!"
+            ):
+                self.price_estimation_behaviour.act_wrapper()
 
-    def test_tendermint_healthcheck_live(self) -> None:
+    def test_tendermint_healthcheck_live_and_no_status(self) -> None:
         """Test the tendermint health check does finish if healthy."""
         assert (
             cast(
@@ -470,13 +505,79 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == TendermintHealthcheckBehaviour.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
         with patch.object(
             self.price_estimation_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_http_request(
                 request_kwargs=dict(
                     method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/health",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="", status_code=500, status_text="", headers="", body=b""
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.ERROR, "Tendermint not accepting transactions yet, trying again!"
+        )
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
+
+    def test_tendermint_healthcheck_live_and_status(self) -> None:
+        """Test the tendermint health check does finish if healthy."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/health",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps({"status": 1}).encode("utf-8"),
+            ),
+        )
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            current_height = self.price_estimation_behaviour.context.state.period.height
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
                     headers="",
                     version="",
                     body=b"",
@@ -486,23 +587,86 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     status_code=200,
                     status_text="",
                     headers="",
-                    body=json.dumps({}).encode("utf-8"),
+                    body=json.dumps(
+                        {
+                            "result": {
+                                "sync_info": {"latest_block_height": current_height}
+                            }
+                        }
+                    ).encode("utf-8"),
                 ),
             )
-
-        mock_logger.assert_any_call(logging.INFO, "Tendermint running.")
+        mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RegistrationBehaviour.state_id
+        assert state.state_id == RegistrationStartupBehaviour.state_id
+
+    def test_tendermint_healthcheck_height_differs(self) -> None:
+        """Test the tendermint health check does finish if local-height != remote-height."""
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == TendermintHealthcheckBehaviour.state_id
+        )
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.price_estimation_behaviour.current_state,
+        )._check_started = datetime.datetime.now()
+        cast(
+            TendermintHealthcheckBehaviour,
+            self.price_estimation_behaviour.current_state,
+        )._is_healthy = True
+        self.price_estimation_behaviour.act_wrapper()
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            current_height = self.price_estimation_behaviour.context.state.period.height
+            new_different_height = current_height + 1
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(
+                        {
+                            "result": {
+                                "sync_info": {
+                                    "latest_block_height": new_different_height
+                                }
+                            }
+                        }
+                    ).encode("utf-8"),
+                ),
+            )
+        mock_logger.assert_any_call(
+            logging.INFO, "local height != remote height; retrying..."
+        )
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        time.sleep(1)
+        self.price_estimation_behaviour.act_wrapper()
 
 
-class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test case to test RegistrationBehaviour."""
+class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Base test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBaseBehaviour
+    next_behaviour_class = BaseState
 
     def test_registration(self) -> None:
         """Test registration."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            RegistrationBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(),
         )
         assert (
@@ -510,30 +674,29 @@ class TestRegistrationBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == RegistrationBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-
-        # for sender in ["sender_a", "sender_b", "sender_c", "sender_d"]:  # noqa: E800
-        #     incoming_message = self.build_incoming_message(  # noqa: E800
-        #         message_type=AbciMessage,  # noqa: E800
-        #         dialogue_reference=("stub", ""),  # noqa: E800
-        #         performative=AbciMessage.Performative.REQUEST_DELIVER_TX,  # noqa: E800
-        #         target=0,  # noqa: E800
-        #         message_id=1,  # noqa: E800
-        #         to=str(self.skill.skill_context.skill_id),  # noqa: E800
-        #         sender=str(ABCI_SERVER_PUBLIC_ID),  # noqa: E800
-        #         tx=,  # noqa: E800
-        #     )  # noqa: E800
-        #     self.http_handler.handle(incoming_message)  # noqa: E800
-        # self.price_estimation_behaviour.act_wrapper()  # noqa: E800
-
         self._test_done_flag_set()
 
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessAtStartupBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationStartupBehaviour."""
+
+    behaviour_class = RegistrationStartupBehaviour
+    next_behaviour_class = RandomnessAtStartupBehaviour
+
+
+class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
+    """Test case to test RegistrationBehaviour."""
+
+    behaviour_class = RegistrationBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
 
 
 class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -573,12 +736,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps(
-                    {
-                        "round": 1283255,
-                        "randomness": "04d4866c26e03347d2431caa82ab2d7b7bdbec8b58bca9460c96f5265d878feb",
-                    }
-                ).encode("utf-8"),
+                body=json.dumps(DRAND_VALUE).encode("utf-8"),
             ),
         )
 
@@ -589,6 +747,43 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_invalid_drand_value(
+        self,
+    ) -> None:
+        """Test invalid drand values."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+
+        drand_value = DRAND_VALUE.copy()
+        drand_value["randomness"] = binascii.hexlify(b"randomness_hex").decode()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(drand_value).encode(),
+            ),
+        )
 
     def test_invalid_response(
         self,
@@ -650,12 +845,36 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
             assert state.state_id == self.randomness_behaviour_class.state_id
             self._test_done_flag_set()
 
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour,
+            self.randomness_behaviour_class.state_id,
+            PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.context.randomness_api._retries_attempted = 1
+        assert self.price_estimation_behaviour.current_state is not None
+        self.price_estimation_behaviour.current_state.clean_up()
+        assert (
+            self.price_estimation_behaviour.context.randomness_api._retries_attempted
+            == 0
+        )
+
 
 class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
 
     randomness_behaviour_class = RandomnessAtStartupBehaviour
-    next_behaviour_class = SelectKeeperAtStartupBehaviour
+    next_behaviour_class = SelectKeeperAAtStartupBehaviour
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
@@ -698,12 +917,48 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
+    def test_select_keeper_preexisting_keeper(
+        self,
+    ) -> None:
+        """Test select keeper agent."""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        preexisting_keeper = next(iter(participants))
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.select_keeper_behaviour_class.state_id,
+            period_state=PeriodState(
+                participants,
+                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                most_voted_keeper_address=preexisting_keeper,
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.select_keeper_behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
 
-class TestSelectKeeperStartupBehaviour(BaseSelectKeeperBehaviourTest):
+
+class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
     next_behaviour_class = DeploySafeBehaviour
+
+
+class TestSelectKeeperBStartupBehaviour(BaseSelectKeeperBehaviourTest):
+    """Test SelectKeeperBehaviour."""
+
+    select_keeper_behaviour_class = SelectKeeperBAtStartupBehaviour
+    next_behaviour_class = DeployOracleBehaviour
 
 
 class TestSelectKeeperABehaviour(BaseSelectKeeperBehaviourTest):
@@ -720,8 +975,13 @@ class TestSelectKeeperBBehaviour(BaseSelectKeeperBehaviourTest):
     next_behaviour_class = FinalizeBehaviour
 
 
-class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test DeploySafeBehaviour."""
+class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
+    """Base DeployBehaviourTest."""
+
+    behaviour_class: Type[BaseState]
+    next_behaviour_class: Type[BaseState]
+    period_state_kwargs: Dict
+    contract_id: str
 
     def test_deployer_act(
         self,
@@ -731,11 +991,11 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            DeploySafeBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address="safe_contract_address",
+                **self.period_state_kwargs,
             ),
         )
         assert (
@@ -743,7 +1003,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == DeploySafeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
 
@@ -751,6 +1011,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,
             ),
+            contract_id=self.contract_id,
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
@@ -786,11 +1047,16 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_ledger_api_request(
             request_kwargs=dict(
                 performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,
+                transaction_digest=TransactionDigest(
+                    ledger_id="ethereum", body="tx_hash"
+                ),
             ),
             response_kwargs=dict(
                 performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
                 transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={}, transaction={}
+                    ledger_id="ethereum",
+                    receipt={"contractAddress": "stub"},
+                    transaction={},
                 ),
             ),
         )
@@ -799,7 +1065,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ValidateSafeBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
     def test_not_deployer_act(
         self,
@@ -809,11 +1075,11 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         most_voted_keeper_address = "a_1"
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            DeploySafeBehaviour.state_id,
+            self.behaviour_class.state_id,
             PeriodState(
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
-                safe_contract_address="safe_contract_address",
+                **self.period_state_kwargs,
             ),
         )
         assert (
@@ -821,7 +1087,7 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == DeploySafeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self._test_done_flag_set()
@@ -829,31 +1095,58 @@ class TestDeploySafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ValidateSafeBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestDeploySafeBehaviour(BaseDeployBehaviourTest):
+    """Test DeploySafeBehaviour."""
+
+    behaviour_class = DeploySafeBehaviour
+    next_behaviour_class = ValidateSafeBehaviour
+    period_state_kwargs = dict(safe_contract_address="safe_contract_address")
+    contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
+
+
+class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
+    """Test DeployOracleBehaviour."""
+
+    behaviour_class = DeployOracleBehaviour
+    next_behaviour_class = ValidateOracleBehaviour
+    period_state_kwargs = dict(
+        safe_contract_address="safe_contract_address",
+        oracle_contract_address="oracle_contract_address",
+    )
+    contract_id = str(ORACLE_CONTRACT_ID)
+
+
+class BaseValidateBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
     """Test ValidateSafeBehaviour."""
 
-    def test_validate_safe_behaviour(self) -> None:
+    behaviour_class: Type[BaseState]
+    next_behaviour_class: Type[BaseState]
+    period_state_kwargs: Dict
+    contract_id: str
+
+    def test_validate_behaviour(self) -> None:
         """Run test."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
-            ValidateSafeBehaviour.state_id,
-            PeriodState(safe_contract_address="safe_contract_address"),
+            self.behaviour_class.state_id,
+            PeriodState(**self.period_state_kwargs),
         )
         assert (
             cast(
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == ValidateSafeBehaviour.state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.act_wrapper()
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
             ),
+            contract_id=self.contract_id,
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
                 callable="verify_contract",
@@ -865,7 +1158,28 @@ class TestValidateSafeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessInOperationBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
+    """Test ValidateSafeBehaviour."""
+
+    behaviour_class = ValidateSafeBehaviour
+    next_behaviour_class = DeployOracleBehaviour
+    period_state_kwargs = dict(safe_contract_address="safe_contract_address")
+    contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
+
+
+class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
+    """Test ValidateOracleBehaviour."""
+
+    behaviour_class = ValidateOracleBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
+    period_state_kwargs = dict(
+        safe_contract_address="safe_contract_address",
+        oracle_contract_address="oracle_contract_address",
+    )
+    contract_id = str(ORACLE_CONTRACT_ID)
 
 
 class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -891,7 +1205,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
@@ -901,7 +1215,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"bitcoin": {"usd": 54566}}).encode("utf-8"),
+                body=json.dumps({"data": {"amount": 54566}}).encode("utf-8"),
             ),
         )
         self.mock_a2a_transaction()
@@ -954,7 +1268,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
-                url="https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                url="https://api.coinbase.com/v2/prices/BTC-USD/buy",
                 headers="",
                 version="",
                 body=b"",
@@ -969,6 +1283,25 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
+
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test when `observed` value is none."""
+        self.fast_forward_to_state(
+            self.price_estimation_behaviour, ObserveBehaviour.state_id, PeriodState()
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == ObserveBehaviour.state_id
+        )
+        self.price_estimation_behaviour.context.price_api._retries_attempted = 1
+        assert self.price_estimation_behaviour.current_state is not None
+        self.price_estimation_behaviour.current_state.clean_up()
+        assert self.price_estimation_behaviour.context.price_api._retries_attempted == 0
 
 
 class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1013,6 +1346,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=PeriodState(
                 most_voted_estimate=1.0,
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 most_voted_keeper_address="most_voted_keeper_address",
             ),
         )
@@ -1028,11 +1362,41 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_latest_transmission_details",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"epoch_": 1, "round_": 1}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_transmit_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
+                    ledger_id="ethereum",
+                    body={
+                        "tx_hash": "0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                    },
                 ),
             ),
         )
@@ -1122,10 +1486,17 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=PeriodState(
                 most_voted_keeper_address=self.skill.skill_context.agent_address,
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 participants=participants,
                 estimate=1.0,
                 participant_to_signature={},
                 most_voted_estimate=1.0,
+                most_voted_tx_hash=payload_to_hex(
+                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                    1,
+                    1,
+                    1,
+                ),
             ),
         )
         assert (
@@ -1140,6 +1511,20 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
@@ -1168,17 +1553,6 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-                transaction_receipt=TransactionReceipt(
-                    ledger_id="ethereum", receipt={}, transaction={}
-                ),
-            ),
-        )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1189,10 +1563,8 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ValidateTransactionBehaviour."""
 
-    def test_validate_transaction_safe_behaviour(
-        self,
-    ) -> None:
-        """Test ValidateTransactionBehaviour."""
+    def _fast_forward(self) -> None:
+        """Fast-forward to relevant state."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_state(
@@ -1200,11 +1572,18 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=PeriodState(
                 safe_contract_address="safe_contract_address",
+                oracle_contract_address="oracle_contract_address",
                 final_tx_hash="final_tx_hash",
                 participants=participants,
                 most_voted_keeper_address=most_voted_keeper_address,
                 most_voted_estimate=1.0,
                 participant_to_signature={},
+                most_voted_tx_hash=payload_to_hex(
+                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                    1,
+                    1,
+                    1,
+                ),
             ),
         )
         assert (
@@ -1214,9 +1593,40 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ).state_id
             == ValidateTransactionBehaviour.state_id
         )
+
+    def test_validate_transaction_safe_behaviour(
+        self,
+    ) -> None:
+        """Test ValidateTransactionBehaviour."""
+        self._fast_forward()
         self.price_estimation_behaviour.act_wrapper()
+        self.mock_ledger_api_request(
+            request_kwargs=dict(
+                performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
+            ),
+            response_kwargs=dict(
+                performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+                transaction_receipt=TransactionReceipt(
+                    ledger_id="ethereum", receipt={"status": 1}, transaction={}
+                ),
+            ),
+        )
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(ORACLE_CONTRACT_ID),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_deploy_transaction",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum", body={"data": "data"}
+                ),
+            ),
+        )
         self.mock_contract_api_request(
             request_kwargs=dict(performative=ContractApiMessage.Performative.GET_STATE),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
                 callable="get_deploy_transaction",
@@ -1227,19 +1637,49 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == ResetBehaviour.state_id
+        assert state.state_id == ResetAndPauseBehaviour.state_id
 
-
-class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test ResetBehaviour."""
-
-    def test_end_behaviour(
+    def test_validate_transaction_safe_behaviour_no_tx_sent(
         self,
     ) -> None:
-        """Test end behaviour."""
+        """Test ValidateTransactionBehaviour when tx cannot be sent."""
+        self._fast_forward()
+
+        with mock.patch.object(
+            self.price_estimation_behaviour.context.logger, "info"
+        ) as mock_logger:
+
+            def _mock_generator() -> Generator[None, None, None]:
+                """Mock the 'get_transaction_receipt' method."""
+                yield None
+
+            with mock.patch.object(
+                self.price_estimation_behaviour.current_state,
+                "get_transaction_receipt",
+                return_value=_mock_generator(),
+            ):
+                self.price_estimation_behaviour.act_wrapper()
+                self.price_estimation_behaviour.act_wrapper()
+            state = cast(
+                PriceEstimationBaseState, self.price_estimation_behaviour.current_state
+            )
+            final_tx_hash = state.period_state.final_tx_hash
+            mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
+
+
+class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test ResetBehaviour."""
+
+    behaviour_class = ResetAndPauseBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
+
+    def test_reset_behaviour(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
-            state_id=ResetBehaviour.state_id,
+            state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
                 most_voted_estimate=0.1,
                 final_tx_hash="68656c6c6f776f726c64",
@@ -1250,7 +1690,84 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 BaseState,
                 cast(BaseState, self.price_estimation_behaviour.current_state),
             ).state_id
-            == ResetBehaviour.state_id
+            == self.behaviour_class.state_id
+        )
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            new_callable=mock.PropertyMock,
+        ) as pmock:
+            pmock.return_value = datetime.datetime.now()
+            self.price_estimation_behaviour.context.params.observation_interval = 0.1
+            self.price_estimation_behaviour.act_wrapper()
+            time.sleep(0.3)
+            self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_reset_behaviour_without_most_voted_estimate(
+        self,
+    ) -> None:
+        """Test reset behaviour without most voted estimate."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=None,
+                final_tx_hash="68656c6c6f776f726c64",
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+            new_callable=mock.PropertyMock,
+        ) as pmock:
+            pmock.return_value = datetime.datetime.now()
+            self.price_estimation_behaviour.context.params.observation_interval = 0.1
+
+            with patch.object(
+                self.price_estimation_behaviour.context.logger, "info"
+            ) as mock_logger:
+                self.price_estimation_behaviour.act_wrapper()
+                mock_logger.assert_any_call("Finalized estimate not available.")
+            time.sleep(0.3)
+            self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test the reset behaviour."""
+
+    behaviour_class = ResetBehaviour
+    next_behaviour_class = RandomnessInOperationBehaviour
+
+    def test_reset_behaviour(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
         )
         self.price_estimation_behaviour.context.params.observation_interval = 0.1
         self.price_estimation_behaviour.act_wrapper()
@@ -1260,4 +1777,4 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == RandomnessInOperationBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
