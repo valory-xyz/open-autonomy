@@ -428,7 +428,8 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
-                n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                n_estimations=cast(PeriodState, self.period_state).n_estimations + 1,
+                most_voted_estimate=self.most_voted_payload
             )
 
             if (
