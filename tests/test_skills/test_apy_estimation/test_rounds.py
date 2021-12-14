@@ -130,7 +130,7 @@ def get_participant_to_preprocess_payload(
     """Get preprocess payload."""
     return {
         participant: PreprocessPayload(
-            participant, "train_hash", "test_hash", "pair_name"
+            participant, "pair_name", "train_hash", "test_hash",
         )
         for participant in participants
     }
@@ -402,7 +402,7 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_preprocess_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="test_hashpair_name",
+                most_voted_payload="train_hashtest_hash",
                 exit_event=Event.DONE,
             )
         )
