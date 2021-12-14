@@ -31,18 +31,22 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-def chain(
+def chain(  # pylint: disable=too-many-locals
     abci_app_1: Type[AbciApp], abci_app_2: Type[AbciApp], *abci_apps: Type[AbciApp]
 ) -> Type[AbciApp]:
     """Concatenate multiple AbciApp types."""
+
+    # Get the apps rounds, events and initial rounds
     rounds_1 = abci_app_1.get_all_rounds()
     rounds_2 = abci_app_2.get_all_rounds()
+
     events_1 = abci_app_1.get_all_events()
     events_2 = abci_app_2.get_all_events()
 
     initial_1 = abci_app_1.initial_round_cls
     initial_2 = abci_app_2.initial_round_cls
 
+    # Ensure there are no common rounds or events
     common_round_classes = rounds_1.intersection(rounds_2)
     enforce(
         len(common_round_classes) == 0,
@@ -53,6 +57,7 @@ def chain(
         len(common_events) == 0, "events in common between operands are not allowed"
     )
 
+    # Build the new final states and events
     new_final_states = copy(abci_app_2.final_states)
     new_event_to_timeout = {
         **abci_app_1.event_to_timeout,
@@ -75,7 +80,10 @@ def chain(
         new_initial_state = initial_2
         new_transition_function = copy(abci_app_2.transition_function)
 
+    # Return the composed result
     class ComposedAbciApp(AbciApp[EventType]):
+        """Composed abci app class."""
+
         initial_round_cls: AppState = new_initial_state
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
