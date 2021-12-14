@@ -1,7 +1,7 @@
-agent_name: counter
+agent_name: abstract_abci
 author: valory
 version: 0.1.0
-description: The ABCI Counter example as an AEA
+description: The abstract ABCI AEA - for testing purposes only.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
@@ -14,7 +14,6 @@ protocols:
 - valory/abci:0.1.0
 skills:
 - valory/abstract_abci:0.1.0
-- valory/counter:0.1.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -26,10 +25,14 @@ logging_config:
   version: 1
 dependencies:
   open-aea-ledger-ethereum: {}
-default_connection: null
+default_connection: valory/abci:0.1.0
 ---
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/counter:0.1.0
+  target_skill_id: valory/abstract_abci:0.1.0
   use_tendermint: false
+---
+public_id: valory/abstract_abci:0.1.0
+type: skill
+is_abstract: false

@@ -113,7 +113,6 @@ class BaseTestABCIPriceEstimationSkill(
         """Set up the test."""
         self.agent_names = [f"agent_{i:05d}" for i in range(self.NB_AGENTS)]
         self.processes = []
-        self.create_agents(*self.agent_names, is_local=self.IS_LOCAL)
         self.tendermint_net_builder = TendermintLocalNetworkBuilder(
             self.NB_AGENTS, Path(self.t)
         )
@@ -121,27 +120,15 @@ class BaseTestABCIPriceEstimationSkill(
         for agent_id, agent_name in enumerate(self.agent_names):
             logging.debug(f"Processing agent {agent_name}...")
             node = self.tendermint_net_builder.nodes[agent_id]
+            self.fetch_agent(
+                "valory/price_estimation:0.1.0", agent_name, is_local=self.IS_LOCAL
+            )
             self.set_agent_context(agent_name)
             Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
                 self.key_pairs[agent_id][1]
             )
             self.add_private_key("ethereum", "ethereum_private_key.txt")
-            self.set_config("agent.default_ledger", "ethereum")
-            self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
-            self.add_item("skill", "valory/price_estimation_abci:0.1.0", local=False)
-            self.set_config(
-                "vendor.valory.connections.abci.config.target_skill_id",
-                "valory/price_estimation_abci:0.1.0",
-            )
             # each agent has its Tendermint node instance
-            self.set_config(
-                "vendor.valory.connections.abci.config.use_tendermint", True
-            )
-            self.set_config(
-                "vendor.valory.connections.abci.config.tendermint_config.consensus_create_empty_blocks",
-                True,
-            )
-
             self.set_config(
                 "vendor.valory.connections.abci.config.port",
                 node.abci_port,
