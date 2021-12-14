@@ -1472,6 +1472,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_setup(
         self,
         monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
         no_action: Callable[[Any], None],
         full_training: bool,
     ) -> None:
@@ -1479,10 +1480,27 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(full_training=full_training, best_params={}),
+            PeriodState(full_training=full_training),
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+
+        best_params_filepath = os.path.join(cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder, cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id, "best_params.json")
+
+        best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
+        with open(best_params_filepath, "w") as f:
+            json.dump(best_params, f)
+
         monkeypatch.setattr(
             pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
         )
@@ -1493,13 +1511,13 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).setup()
 
     def test_task_not_ready(
-        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+        self, monkeypatch: MonkeyPatch, tmp_path: PosixPath, no_action: Callable[[Any], None]
     ) -> None:
         """Run test for behaviour when task result is not ready."""
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(best_params={"p": 1, "q": 1, "d": 1, "m": 1}),
+            PeriodState(),
         )
 
         assert (
@@ -1509,14 +1527,28 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+
+        best_params_filepath = os.path.join(cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder, cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id, "best_params.json")
+
+        best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
+        with open(best_params_filepath, "w") as f:
+            json.dump(best_params, f)
+
         monkeypatch.setattr(
             pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
         )
         self.apy_estimation_behaviour.context.task_manager.start()
-        cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).setup()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
         self.apy_estimation_behaviour.act_wrapper()
@@ -1538,10 +1570,27 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(best_params={"p": 1, "q": 1, "d": 1, "m": 1}),
+            PeriodState(),
         )
         # patching for setup.
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+
+        best_params_filepath = os.path.join(cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder, cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id, "best_params.json")
+
+        best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
+        with open(best_params_filepath, "w") as f:
+            json.dump(best_params, f)
+
         monkeypatch.setattr(
             pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
         )
@@ -1551,8 +1600,6 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(train_task_result),
         )
-        # run setup.
-        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         # changes for act.
         cast(
