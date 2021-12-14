@@ -24,7 +24,7 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import chain
 from packages.valory.skills.abstract_round_abci.base import AbciApp
 
 
-def test_chain() -> None:
+def test_chain_two() -> None:
     """Test the AbciApp chain function."""
 
     round_1a = MagicMock()
@@ -59,16 +59,88 @@ def test_chain() -> None:
         final_states = {round_2b}
         event_to_timeout = {event_timeout2: timeout2}
 
-    AbciApp3 = chain(AbciApp1, AbciApp2)
+    ComposedAbciApp = chain(AbciApp1, AbciApp2)
 
-    assert AbciApp3.initial_round_cls == round_1a
-    assert AbciApp3.transition_function == {
+    assert ComposedAbciApp.initial_round_cls == round_1a
+    assert ComposedAbciApp.transition_function == {
         round_1a: {event_timeout1: round_1a, event_1b: round_2a},
         round_2a: {event_timeout2: round_2a, event_2b: round_2b},
         round_2b: {event_2a: round_2a},
     }
-    assert AbciApp3.final_states == {round_2b}
-    assert AbciApp3.event_to_timeout == {
+    assert ComposedAbciApp.final_states == {round_2b}
+    assert ComposedAbciApp.event_to_timeout == {
         event_timeout1: timeout1,
         event_timeout2: timeout2,
+    }
+
+
+def test_chain_three() -> None:
+    """Test the AbciApp chain function."""
+
+    round_1a = MagicMock()
+    round_1b = MagicMock()
+
+    round_2a = MagicMock()
+    round_2b = MagicMock()
+
+    round_3a = MagicMock()
+    round_3b = MagicMock()
+
+    event_1a = "1a"
+    event_1b = "1b"
+    event_timeout1 = "timeout_1"
+
+    event_2a = "2a"
+    event_2b = "2b"
+    event_timeout2 = "timeout_2"
+
+    event_3a = "3a"
+    event_3b = "3b"
+    event_timeout3 = "timeout_3"
+
+    timeout1 = 10.0
+    timeout2 = 10.0
+    timeout3 = 10.0
+
+    class AbciApp1(AbciApp):
+        initial_round_cls = round_1a
+        transition_function = {
+            round_1a: {event_timeout1: round_1a, event_1b: round_1b},
+            round_1b: {event_1a: round_1a},
+        }
+        final_states = {round_1b}
+        event_to_timeout = {event_timeout1: timeout1}
+
+    class AbciApp2(AbciApp):
+        initial_round_cls = round_2a
+        transition_function = {
+            round_2a: {event_timeout2: round_2a, event_2b: round_2b},
+            round_2b: {event_2a: round_2a},
+        }
+        final_states = {round_2b}
+        event_to_timeout = {event_timeout2: timeout2}
+
+    class AbciApp3(AbciApp):
+        initial_round_cls = round_3a
+        transition_function = {
+            round_3a: {event_timeout3: round_3a, event_3b: round_3b},
+            round_3b: {event_3a: round_3a},
+        }
+        final_states = {round_3b}
+        event_to_timeout = {event_timeout3: timeout3}
+
+    ComposedAbciApp = chain(AbciApp1, AbciApp2, AbciApp3)
+
+    assert ComposedAbciApp.initial_round_cls == round_1a
+    assert ComposedAbciApp.transition_function == {
+        round_1a: {event_timeout1: round_1a, event_1b: round_2a},
+        round_2a: {event_timeout2: round_2a, event_2b: round_3a},
+        round_3a: {event_timeout3: round_3a, event_3b: round_3b},
+        round_3b: {event_3a: round_3a},
+    }
+    assert ComposedAbciApp.final_states == {round_3b}
+    assert ComposedAbciApp.event_to_timeout == {
+        event_timeout1: timeout1,
+        event_timeout2: timeout2,
+        event_timeout3: timeout3,
     }

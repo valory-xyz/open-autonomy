@@ -90,5 +90,5 @@ def chain(  # pylint: disable=too-many-locals
         event_to_timeout: Dict[EventType, float] = new_event_to_timeout
 
     if len(abci_apps) > 0:
-        return chain(ComposedAbciApp, abci_apps[0], *abci_apps)
+        return chain(ComposedAbciApp, abci_apps[0], *abci_apps[1:])
     return ComposedAbciApp
