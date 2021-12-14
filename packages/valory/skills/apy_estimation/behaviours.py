@@ -661,7 +661,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         task_id = self.context.task_manager.enqueue_task(
             optimize_task,
             args=(
-                y.values,
+                y.values.ravel(),
                 self.period_state.most_voted_randomness,
             ),
             kwargs=self.params.optimizer_params,
@@ -738,13 +738,13 @@ class TrainBehaviour(APYEstimationBaseState):
                 path = os.path.join(
                     self.params.data_folder, self.params.pair_id, f"{split}.csv"
                 )
-                cast(List[np.ndarray], y).append(pd.read_csv(path).values)
+                cast(List[np.ndarray], y).append(pd.read_csv(path).values.ravel())
             y = np.concatenate(y)
         else:
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, "train.csv"
             )
-            y = pd.read_csv(path).values
+            y = pd.read_csv(path).values.ravel()
 
         train_task = TrainTask()
         task_id = self.context.task_manager.enqueue_task(
@@ -812,7 +812,7 @@ class TestBehaviour(APYEstimationBaseState):
             path = os.path.join(
                 self.params.data_folder, self.params.pair_id, f"{split}.csv"
             )
-            y[split] = pd.read_csv(path).values
+            y[split] = pd.read_csv(path).values.ravel()
 
         model_path = os.path.join(
             self.params.data_folder, self.params.pair_id, "forecaster.joblib"
