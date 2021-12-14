@@ -258,7 +258,13 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
         state_event = None
 
         if self.threshold_reached:
-            state_event = self.period_state, Event.DONE
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(
+                    pair_name=cast(PreprocessPayload, list(self.collection.values())[0]).pair_name
+                ),
+            )
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
