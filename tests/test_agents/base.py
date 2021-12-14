@@ -72,7 +72,12 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             node = self.tendermint_net_builder.nodes[agent_id]
             self.fetch_agent(self.agent_package, agent_name, is_local=self.IS_LOCAL)
             self.set_agent_context(agent_name)
-            self.generate_private_key("ethereum", "ethereum_private_key.txt")
+            if hasattr(self, "key_pairs"):
+                Path(self.current_agent_context, "ethereum_private_key.txt").write_text(
+                    self.key_pairs[agent_id][1]  # type: ignore
+                )
+            else:
+                self.generate_private_key("ethereum", "ethereum_private_key.txt")
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             # each agent has its Tendermint node instance
             self.set_config(
