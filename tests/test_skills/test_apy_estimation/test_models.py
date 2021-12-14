@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+import pytest
 
 from packages.valory.skills.apy_estimation.models import MARGIN, SharedState
 from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
@@ -40,3 +41,12 @@ class TestSharedState:
             APYEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT]
             == shared_state.context.params.observation_interval + MARGIN
         )
+
+
+@pytest.mark.skip
+class TestAPYParams:
+    """Test `APYParams`"""
+
+    def test__validate_params(self) -> None:
+        """Test `__validate_params`."""
+        pass

@@ -143,9 +143,11 @@ class BaseTestABCIAPYEstimationSkill(
     NB_AGENTS: int
     IS_LOCAL = True
     capture_log = True
-    KEEPER_TIMEOUT = 10
     cli_log_options = ["-v", "DEBUG"]
     processes: List
+    round_timeout = 1000
+    history_duration: int = 1
+    n_trials: int = 2
 
     def setup(self) -> None:
         """Set up the test."""
@@ -207,11 +209,19 @@ class BaseTestABCIAPYEstimationSkill(
             )
             self.set_config(
                 "vendor.valory.skills.apy_estimation.models.params.args.round_timeout_seconds",
-                self.KEEPER_TIMEOUT,
+                self.round_timeout,
             )
             self.set_config(
                 "vendor.valory.skills.apy_estimation.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
+            )
+            self.set_config(
+                "vendor.valory.skills.apy_estimation.models.params.args.history_duration",
+                self.history_duration,
+            )
+            self.set_config(
+                "vendor.valory.skills.apy_estimation.models.params.args.optimizer.n_trials",
+                self.n_trials,
             )
 
         # run 'aea install' in only one AEA project, to save time
@@ -258,7 +268,7 @@ class TestABCIAPYEstimationSingleAgent(
     BaseTendermintTestClass,
     UseGnosisSafeHardHatNet,
 ):
-    """Test that the ABCI apy_estimation skill with only one agent."""
+    """Test the ABCI apy_estimation skill with only one agent."""
 
     NB_AGENTS = 1
 
