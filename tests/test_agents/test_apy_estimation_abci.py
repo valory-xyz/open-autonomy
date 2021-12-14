@@ -44,7 +44,7 @@ states_checks_config = {
     "registration": {
         "state_name": "registration",
         "extra_logs": (),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "collect_history": {
         "state_name": "collect_history",
@@ -54,42 +54,42 @@ states_checks_config = {
             "Retrieved ETH price for block ",
             "Retrieved top ",
         ),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "transform": {
         "state_name": "transform",
         "extra_logs": ("Data have been transformed. Showing the first row:\n",),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "preprocess": {
         "state_name": "preprocess",
         "extra_logs": ("Data have been preprocessed.",),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "randomness": {
         "state_name": "randomness",
         "extra_logs": (),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "optimize": {
         "state_name": "optimize",
         "extra_logs": ("Optimization has finished. Showing the results:\n",),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "train": {
         "state_name": "train",
         "extra_logs": ("Training has finished.",),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "test": {
         "state_name": "test",
         "extra_logs": ("Testing has finished. Report follows:\n",),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "full_train": {
         "state_name": "train",
         "extra_logs": ("Training has finished.",),
-        "only_at_first_period": False,
+        "only_at_first_period": True,
     },
     "estimate": {
         "state_name": "estimate",
