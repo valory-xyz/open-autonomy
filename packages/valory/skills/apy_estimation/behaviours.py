@@ -488,39 +488,38 @@ class TransformBehaviour(APYEstimationBaseState):
         """Do the action."""
         if self._async_result is not None:
 
-            if not self._async_result.ready():
+            while not self._async_result.ready():
                 self.context.logger.debug("The transform task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
-            else:
-                # Get the transformed data from the task.
-                completed_task = self._async_result.get()
-                transformed_history = cast(pd.DataFrame, completed_task)
-                self.context.logger.info(
-                    f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
-                )
+            # Get the transformed data from the task.
+            completed_task = self._async_result.get()
+            transformed_history = cast(pd.DataFrame, completed_task)
+            self.context.logger.info(
+                f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
+            )
 
-                # Store the transformed data.
-                transformed_history.to_csv(
-                    self._transformed_history_save_path, index=False
-                )
+            # Store the transformed data.
+            transformed_history.to_csv(
+                self._transformed_history_save_path, index=False
+            )
 
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                hist_hash = hasher.get(self._transformed_history_save_path)
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            hist_hash = hasher.get(self._transformed_history_save_path)
 
-                # Pass the hash as a Payload.
-                payload = TransformationPayload(
-                    self.context.agent_address,
-                    hist_hash,
-                )
+            # Pass the hash as a Payload.
+            payload = TransformationPayload(
+                self.context.agent_address,
+                hist_hash,
+            )
 
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
 
-                self.set_done()
+            self.set_done()
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
@@ -672,41 +671,40 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Do the action."""
         if self._async_result is not None:
 
-            if self._async_result.ready() is False:
+            while not self._async_result.ready():
                 self.context.logger.debug("The optimization task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
-            else:
-                # Get the study's result.
-                completed_task = self._async_result.get()
-                study = cast(Study, completed_task)
-                study_results = study.trials_dataframe()
-                self.context.logger.info(
-                    "Optimization has finished. Showing the results:\n"
-                    f"{study_results.to_string()}"
-                )
+            # Get the study's result.
+            completed_task = self._async_result.get()
+            study = cast(Study, completed_task)
+            study_results = study.trials_dataframe()
+            self.context.logger.info(
+                "Optimization has finished. Showing the results:\n"
+                f"{study_results.to_string()}"
+            )
 
-                # Store the best params from the results.
-                save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "best_params.json"
-                )
-                to_json_file(save_path, study.best_params)
+            # Store the best params from the results.
+            save_path = os.path.join(
+                self.params.data_folder, self.params.pair_id, "best_params.json"
+            )
+            to_json_file(save_path, study.best_params)
 
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                best_params_hash = hasher.get(save_path)
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            best_params_hash = hasher.get(save_path)
 
-                # Pass the best params hash as a Payload.
-                payload = OptimizationPayload(
-                    self.context.agent_address, best_params_hash
-                )
+            # Pass the best params hash as a Payload.
+            payload = OptimizationPayload(
+                self.context.agent_address, best_params_hash
+            )
 
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
 
-                self.set_done()
+            self.set_done()
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
@@ -756,38 +754,37 @@ class TrainBehaviour(APYEstimationBaseState):
         """Do the action."""
         if self._async_result is not None:
 
-            if self._async_result.ready() is False:
+            while not self._async_result.ready():
                 self.context.logger.debug("The training task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
-            else:
-                # Train the estimator.
-                completed_task = self._async_result.get()
-                forecaster = cast(Pipeline, completed_task)
-                self.context.logger.info("Training has finished.")
+            # Train the estimator.
+            completed_task = self._async_result.get()
+            forecaster = cast(Pipeline, completed_task)
+            self.context.logger.info("Training has finished.")
 
-                # Store the results.
-                prefix = "fully_trained_" if self.period_state.full_training else ""
-                save_path = os.path.join(
-                    self.params.data_folder,
-                    self.params.pair_id,
-                    f"{prefix}forecaster.joblib",
-                )
-                save_forecaster(save_path, forecaster)
+            # Store the results.
+            prefix = "fully_trained_" if self.period_state.full_training else ""
+            save_path = os.path.join(
+                self.params.data_folder,
+                self.params.pair_id,
+                f"{prefix}forecaster.joblib",
+            )
+            save_forecaster(save_path, forecaster)
 
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                model_hash = hasher.get(save_path)
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            model_hash = hasher.get(save_path)
 
-                # Pass the hash and the best trial as a Payload.
-                payload = TrainingPayload(self.context.agent_address, model_hash)
+            # Pass the hash and the best trial as a Payload.
+            payload = TrainingPayload(self.context.agent_address, model_hash)
 
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
 
-                self.set_done()
+            self.set_done()
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
@@ -834,42 +831,41 @@ class TestBehaviour(APYEstimationBaseState):
         """Do the action."""
         if self._async_result is not None:
 
-            if self._async_result.ready() is False:
+            while not self._async_result.ready():
                 self.context.logger.debug("The testing task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
-            else:
-                # Train the estimator.
-                completed_task = self._async_result.get()
-                report = cast(TestReportType, completed_task)
-                self.context.logger.info(
-                    f"Testing has finished. Report follows:\n{report}"
-                )
+            # Train the estimator.
+            completed_task = self._async_result.get()
+            report = cast(TestReportType, completed_task)
+            self.context.logger.info(
+                f"Testing has finished. Report follows:\n{report}"
+            )
 
-                # Store the results.
-                save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "test_report.json"
-                )
-                try:
-                    to_json_file(save_path, report)
-                except OSError:
-                    self.context.logger.error(f"Path '{save_path}' could not be found!")
-                except TypeError:
-                    self.context.logger.error("Report cannot be JSON serialized!")
+            # Store the results.
+            save_path = os.path.join(
+                self.params.data_folder, self.params.pair_id, "test_report.json"
+            )
+            try:
+                to_json_file(save_path, report)
+            except OSError:
+                self.context.logger.error(f"Path '{save_path}' could not be found!")
+            except TypeError:
+                self.context.logger.error("Report cannot be JSON serialized!")
 
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                report_hash = hasher.get(save_path)
+            # Hash the file.
+            hasher = IPFSHashOnly()
+            report_hash = hasher.get(save_path)
 
-                # Pass the hash and the best trial as a Payload.
-                payload = TestingPayload(self.context.agent_address, report_hash)
+            # Pass the hash and the best trial as a Payload.
+            payload = TestingPayload(self.context.agent_address, report_hash)
 
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
+            # Finish behaviour.
+            with benchmark_tool.measure(self).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
 
-                self.set_done()
+            self.set_done()
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
