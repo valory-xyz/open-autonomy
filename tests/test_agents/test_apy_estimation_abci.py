@@ -144,7 +144,7 @@ class BaseTestABCIAPYEstimationSkill(
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
     processes: List
-    round_timeout = 1000
+    round_timeout = 100
     history_duration: int = 1
     n_trials: int = 2
     sleep_time: int = 5
