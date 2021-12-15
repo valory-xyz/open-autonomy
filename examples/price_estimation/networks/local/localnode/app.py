@@ -1,3 +1,4 @@
+import os
 from logging import log
 from flask import Flask
 from flask import Response
@@ -6,6 +7,7 @@ from tendermint import TendermintNode, TendermintParams
 
 app = Flask(__name__)
 
+
 @app.route("/gentle_reset")
 def gentle_reset():
     tendermint_node.stop()
@@ -13,6 +15,7 @@ def gentle_reset():
     return Response("Success",
                     status=200,
                     mimetype='application/json')
+
 
 @app.route("/hard_reset")
 def hard_reset():
@@ -32,6 +35,7 @@ def handle_notfound(e):
 
     return (404, 'we could not find the page')
 
+
 @app.errorhandler(500)
 def handle_server_error(e):
     return Response("Error Closing Node",
@@ -39,14 +43,12 @@ def handle_server_error(e):
                     mimetype='application/json')
 
 
-import os
-
 if __name__ == "__main__":
     id = f"{os.environ.get('ID', 1)}"
     home = f"/tendermint/node{id}"
 
     os.environ['TMHOME'] = home
-    
+
     tendermint_params = TendermintParams(
         proxy_app=f"tcp://abci{id}:26658",
         consensus_create_empty_blocks=True,

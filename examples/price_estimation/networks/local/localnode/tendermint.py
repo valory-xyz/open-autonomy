@@ -3,9 +3,6 @@ import logging
 import subprocess
 import signal
 from logging import Logger
-import time
-
-
 
 
 class TendermintParams:  # pylint: disable=too-few-public-methods
@@ -14,9 +11,9 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     def __init__(  # pylint: disable=too-many-arguments
         self,
         proxy_app: str,
-#        rpc_laddr: str,
-#        p2p_laddr: str,
-#        p2p_seeds: List[str],
+        #        rpc_laddr: str,
+        #        p2p_laddr: str,
+        #        p2p_seeds: List[str],
         consensus_create_empty_blocks: bool,
         home: Optional[str] = None,
     ):
@@ -35,7 +32,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
 #        self.p2p_seeds = p2p_seeds
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
-
 
 
 class TendermintNode:
@@ -68,9 +64,9 @@ class TendermintNode:
             "tendermint",
             "node",
             f"--proxy_app={self.params.proxy_app}",
-#            f"--rpc.laddr={self.params.rpc_laddr}",
-#            f"--p2p.laddr={self.params.p2p_laddr}",
-#            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
+            #            f"--rpc.laddr={self.params.rpc_laddr}",
+            #            f"--p2p.laddr={self.params.p2p_laddr}",
+            #            f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
         if self.params.home is not None:  # pragma: nocover
@@ -103,8 +99,6 @@ class TendermintNode:
             self._process.wait(2)
         self._process = None
 
-
     def prune_blocks(self) -> None:
         """prune blocks from the Tendermint state"""
         subprocess.call(["tendermint", "unsafe_reset_all"])
-        
