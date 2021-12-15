@@ -109,7 +109,7 @@ services:
       context: ../..
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
-      - ./build:/home/ubuntu/build
+      - ./:/home/ubuntu/build
     entrypoint: /bin/bash
     command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci0"]
     networks:
