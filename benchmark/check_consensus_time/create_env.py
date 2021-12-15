@@ -160,7 +160,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci{node_id}:26658
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci{node_id}:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
