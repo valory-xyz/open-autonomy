@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/bash
 
 if [ "$DEBUG" == "1" ];
 then
@@ -15,6 +15,6 @@ then
      python3 -m aea.cli -v INFO run
 else
     echo "configuring ${ID}"
-    ../configure_agents/abci"${ID}".sh &&\
+    bash ../configure_agents/abci"${ID}".sh &&\
      python3 -m aea.cli -v INFO run
 fi
