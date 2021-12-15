@@ -946,8 +946,6 @@ class BaseResetBehaviour(APYEstimationBaseState):
             self.context.logger.info("Period end.")
             benchmark_tool.save()
 
-            yield from self.wait_from_last_timestamp(self.params.observation_interval)
-
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
