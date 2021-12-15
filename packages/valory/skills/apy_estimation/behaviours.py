@@ -485,7 +485,9 @@ class TransformBehaviour(APYEstimationBaseState):
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
         else:
-            self.context.logger.error("Could not create the task! This will result in an error while running the round!")
+            self.context.logger.error(
+                "Could not create the task! This will result in an error while running the round!"
+            )
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -575,7 +577,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
             self.set_done()
 
         except FileNotFoundError:
-            self.context.logger.error(f"File {transformed_history_load_path} was not found!")
+            self.context.logger.error(
+                f"File {transformed_history_load_path} was not found!"
+            )
             yield from self.sleep(self.params.sleep_time)
 
 
@@ -662,7 +666,9 @@ class OptimizeBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
-        training_data_path = os.path.join(self.params.data_folder, self.params.pair_id, "y_train.csv")
+        training_data_path = os.path.join(
+            self.params.data_folder, self.params.pair_id, "y_train.csv"
+        )
 
         try:
             y = pd.read_csv(training_data_path)
@@ -681,7 +687,8 @@ class OptimizeBehaviour(APYEstimationBaseState):
         except FileNotFoundError:
             self.context.logger.error(f"File {training_data_path} was not found!")
             self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!")
+                "Could not create the task! This will result in an error while running the round!"
+            )
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -711,16 +718,20 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
             except ValueError:
                 # If no trial finished, set random params as best.
-                best_params = study.trials[0].params,
-                self.context.logger.warning("The optimization could not be done! "
-                                            "Please make sure that there is a sufficient number of data "
-                                            "for the optimization procedure. Setting best parameters randomly!")
+                best_params = (study.trials[0].params,)  # type: ignore
+                self.context.logger.warning(
+                    "The optimization could not be done! "
+                    "Please make sure that there is a sufficient number of data "
+                    "for the optimization procedure. Setting best parameters randomly!"
+                )
 
             try:
                 to_json_file(best_params_save_path, best_params)
 
             except OSError:
-                self.context.logger.error(f"Path '{best_params_save_path}' could not be found!")
+                self.context.logger.error(
+                    f"Path '{best_params_save_path}' could not be found!"
+                )
 
             except TypeError:
                 self.context.logger.error("Params cannot be JSON serialized!")
@@ -770,9 +781,7 @@ class TrainBehaviour(APYEstimationBaseState):
             best_params = cast(Dict[str, Any], read_json_file(best_params_path))
 
         except OSError:
-            self.context.logger.error(
-                f"Path '{best_params_path}' could not be found!"
-            )
+            self.context.logger.error(f"Path '{best_params_path}' could not be found!")
             should_create_task = False
 
         except json.JSONDecodeError:
@@ -823,7 +832,9 @@ class TrainBehaviour(APYEstimationBaseState):
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
         else:
-            self.context.logger.error("Could not create the task! This will result in an error while running the round!")
+            self.context.logger.error(
+                "Could not create the task! This will result in an error while running the round!"
+            )
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -833,23 +844,24 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.context.logger.debug("The training task is not finished yet.")
                 yield from self.sleep(self.params.sleep_time)
 
-            # Train the estimator.
+            # Get the trained estimator.
             completed_task = self._async_result.get()
             forecaster = cast(Pipeline, completed_task)
             self.context.logger.info("Training has finished.")
 
             # Store the results.
             prefix = "fully_trained_" if self.period_state.full_training else ""
-            save_path = os.path.join(
+            forecaster_save_path = os.path.join(
                 self.params.data_folder,
                 self.params.pair_id,
                 f"{prefix}forecaster.joblib",
             )
-            save_forecaster(save_path, forecaster)
+            create_pathdirs(forecaster_save_path)
+            save_forecaster(forecaster_save_path, forecaster)
 
             # Hash the file.
             hasher = IPFSHashOnly()
-            model_hash = hasher.get(save_path)
+            model_hash = hasher.get(forecaster_save_path)
 
             # Pass the hash and the best trial as a Payload.
             payload = TrainingPayload(self.context.agent_address, model_hash)
@@ -920,7 +932,9 @@ class TestBehaviour(APYEstimationBaseState):
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
         else:
-            self.context.logger.error("Could not create the task! This will result in an error while running the round!")
+            self.context.logger.error(
+                "Could not create the task! This will result in an error while running the round!"
+            )
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -945,7 +959,9 @@ class TestBehaviour(APYEstimationBaseState):
                 to_json_file(report_save_path, report)
 
             except OSError:
-                self.context.logger.error(f"Path '{report_save_path}' could not be found!")
+                self.context.logger.error(
+                    f"Path '{report_save_path}' could not be found!"
+                )
 
             except TypeError:
                 self.context.logger.error("Report cannot be JSON serialized!")
