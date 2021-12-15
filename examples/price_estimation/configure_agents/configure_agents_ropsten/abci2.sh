@@ -1,19 +1,18 @@
-#!/bin/bash
+#!/usr/bin/bash
 
-cp ../configure_agents/keys/ethereum_private_key_0.txt ethereum_private_key.txt
+cp ../configure_agents/keys/ethereum_private_key_2.txt ethereum_private_key.txt
 
 aea add-key ethereum
 aea config set vendor.valory.connections.abci.config.use_tendermint False
 
-aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.url https://api.coingecko.com/api/v3/simple/price
-aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.api_id coingecko
-aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.parameters '[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list
-aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.response_key 'bitcoin:usd'
-aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.url https://drand.cloudflare.com/public/latest
-aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.api_id cloudflare
+aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.url https://api.coinbase.com/v2/prices/BTC-USD/buy
+aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.api_id coinbase
+aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.response_key "data:amount"
+aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.url https://api2.drand.sh/public/latest
+aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.api_id protocollabs2
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 7 --type int
-aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node0:26657"
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node2:26657"
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 300 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 43200 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.safe_contract_address "0x7AbCC2424811c342BC9A9B52B1621385d7406676"
