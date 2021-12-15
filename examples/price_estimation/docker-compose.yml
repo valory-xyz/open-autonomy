@@ -18,6 +18,7 @@ services:
 
   node0:
     container_name: node0
+    hostname: node0
     image: "tendermint/localnode"
     cpus: 0.1
     ports:
@@ -39,6 +40,7 @@ services:
 
   node1:
     container_name: node1
+    hostname: node1
     image: "tendermint/localnode"
     cpus: 0.1
     ports:
@@ -59,6 +61,7 @@ services:
     restart: always
 
   node2:
+    hostname: node2
     container_name: node2
     image: "tendermint/localnode"
     cpus: 0.1
@@ -80,6 +83,7 @@ services:
     restart: always
 
   node3:
+    hostname: node3
     container_name: node3
     image: "tendermint/localnode"
     cpus: 0.1
