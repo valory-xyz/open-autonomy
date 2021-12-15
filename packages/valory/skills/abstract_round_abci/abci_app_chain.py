@@ -18,8 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from copy import copy
-from typing import Dict, Set, Type
+from typing import Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -31,54 +30,66 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
+AbciAppTransitionMapping = Dict[str, AppState]
+
+
 def chain(  # pylint: disable=too-many-locals
-    abci_app_1: Type[AbciApp], abci_app_2: Type[AbciApp], *abci_apps: Type[AbciApp]
+    abci_apps: Tuple[Type[AbciApp]], round_transition_mapping: AbciAppTransitionMapping
 ) -> Type[AbciApp]:
     """Concatenate multiple AbciApp types."""
 
     # Get the apps rounds, events and initial rounds
-    rounds_1 = abci_app_1.get_all_rounds()
-    rounds_2 = abci_app_2.get_all_rounds()
-
-    events_1 = abci_app_1.get_all_events()
-    events_2 = abci_app_2.get_all_events()
-
-    initial_1 = abci_app_1.initial_round_cls
-    initial_2 = abci_app_2.initial_round_cls
+    rounds = (app.get_all_rounds() for app in abci_apps)
+    events = (app.get_all_events() for app in abci_apps)
 
     # Ensure there are no common rounds or events
-    common_round_classes = rounds_1.intersection(rounds_2)
+    common_round_classes = set.intersection(*rounds)
     enforce(
         len(common_round_classes) == 0,
         "rounds in common between operands are not allowed",
     )
-    common_events = events_1.intersection(events_2)
+    common_events = set.intersection(*events)
     enforce(
         len(common_events) == 0, "events in common between operands are not allowed"
     )
 
     # Build the new final states and events
-    new_final_states = copy(abci_app_2.final_states)
-    new_event_to_timeout = {
-        **abci_app_1.event_to_timeout,
-        **abci_app_2.event_to_timeout,
+    new_initial_state = abci_apps[0].initial_round_cls
+    new_final_states = set.union(*(app.final_states for app in abci_apps))
+    new_events_to_timeout = {
+        e: t for app in abci_apps for e, t in app.event_to_timeout.items()
     }
-    if initial_1 not in abci_app_1.final_states:
-        new_initial_state = initial_1
-        new_transition_function: AbciAppTransitionFunction = copy(
-            abci_app_2.transition_function
-        )
-        for start_1, out_transitions_1 in abci_app_1.transition_function.items():
-            if start_1 in abci_app_1.final_states:
-                continue
-            new_transition_function[start_1] = {}
-            for event_1, end_1 in out_transitions_1.items():
-                if end_1 in abci_app_1.final_states:
-                    end_1 = initial_2
-                new_transition_function[start_1][event_1] = end_1
-    else:
-        new_initial_state = initial_2
-        new_transition_function = copy(abci_app_2.transition_function)
+    new_transition_function: AbciAppTransitionFunction = {
+        state: events
+        for app in abci_apps
+        for state, events in app.transition_function.items()
+    }
+
+    # Update transition function
+    for event, new_state in round_transition_mapping.items():  # type: ignore
+        for state, events in new_transition_function.items():  # type: ignore
+            if event in events.keys():  # type: ignore
+                new_transition_function[state][event] = new_state
+
+    # Remove no longer used states
+    used_states = set()
+    used_events = set()
+
+    for events in new_transition_function.values():  # type: ignore
+        used_states.update(events.values())  # type: ignore
+        used_events.update(events.keys())  # type: ignore
+
+    new_transition_function = {
+        state: events
+        for state, events in new_transition_function.items()
+        if state in used_states
+    }
+    new_final_states = used_states.intersection(new_final_states)
+    new_events_to_timeout = {
+        event: timeout
+        for event, timeout in new_events_to_timeout.items()
+        if event in used_events
+    }
 
     # Return the composed result
     class ComposedAbciApp(AbciApp[EventType]):
@@ -87,8 +98,6 @@ def chain(  # pylint: disable=too-many-locals
         initial_round_cls: AppState = new_initial_state
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
-        event_to_timeout: Dict[EventType, float] = new_event_to_timeout
+        event_to_timeout: Dict[EventType, float] = new_events_to_timeout
 
-    if len(abci_apps) > 0:
-        return chain(ComposedAbciApp, abci_apps[0], *abci_apps[1:])
     return ComposedAbciApp
