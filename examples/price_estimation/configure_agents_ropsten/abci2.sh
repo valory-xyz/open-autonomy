@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 cp ../configure_agents/keys/ethereum_private_key_2.txt ethereum_private_key.txt
 
