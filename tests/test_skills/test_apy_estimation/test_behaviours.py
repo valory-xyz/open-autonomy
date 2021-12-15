@@ -1608,15 +1608,6 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             lambda *_: DummyAsyncResult(train_task_result),
         )
 
-        # changes for act.
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder = tmp_path.parts[0]
-        importlib.reload(os.path)
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
-
         # act.
         self.apy_estimation_behaviour.act_wrapper()
 
