@@ -28,7 +28,6 @@ from copy import copy
 from datetime import datetime
 from multiprocessing.pool import ApplyResult, AsyncResult
 from pathlib import Path, PosixPath
-from tempfile import TemporaryDirectory
 from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import patch
@@ -1093,6 +1092,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_transform_behaviour(
         self,
+        tmp_path: PosixPath,
         transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour`."""
@@ -1113,32 +1113,36 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     "enqueue_task",
                     return_value=3,
                 ):
-                    with TemporaryDirectory() as temp_dir:
-                        self.apy_estimation_behaviour.current_state.params.data_folder = (  # type: ignore
-                            temp_dir
-                        )
-                        with open(
-                            os.path.join(temp_dir, "historical_data.json"), "w+"
-                        ) as fp:
-                            fp.write("{}")
-                        with open(
-                            os.path.join(temp_dir, "transformed_historical_data.csv"),
-                            "w+",
-                        ) as fp:
-                            fp.write("")
+                    self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path
+                    with open(
+                        os.path.join(
+                            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
+                            "historical_data.json",
+                        ),
+                        "w+",
+                    ) as fp:
+                        fp.write("{}")
+                    with open(
+                        os.path.join(
+                            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
+                            "transformed_historical_data.csv",
+                        ),
+                        "w+",
+                    ) as fp:
+                        fp.write("")
 
-                        self.fast_forward_to_state(
-                            self.apy_estimation_behaviour,
-                            self.behaviour_class.state_id,
-                            PeriodState(),
-                        )
+                    self.fast_forward_to_state(
+                        self.apy_estimation_behaviour,
+                        self.behaviour_class.state_id,
+                        PeriodState(),
+                    )
 
-                        self.apy_estimation_behaviour.current_state.setup()  # type: ignore
-                        self.apy_estimation_behaviour.act_wrapper()
+                    self.apy_estimation_behaviour.current_state.setup()  # type: ignore
+                    self.apy_estimation_behaviour.act_wrapper()
 
-                        self.mock_a2a_transaction()
-                        self._test_done_flag_set()
-                        self.end_round()
+                    self.mock_a2a_transaction()
+                    self._test_done_flag_set()
+                    self.end_round()
 
 
 @pytest.mark.skip
@@ -1483,18 +1487,14 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(full_training=full_training),
         )
 
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder = tmp_path.parts[0]
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
         best_params_filepath = os.path.join(
-            cast(
-                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.data_folder,
+            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
             ).params.pair_id,
@@ -1534,18 +1534,14 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder = tmp_path.parts[0]
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
         best_params_filepath = os.path.join(
-            cast(
-                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.data_folder,
+            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
             ).params.pair_id,
@@ -1584,18 +1580,14 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(),
         )
         # patching for setup.
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder = tmp_path.parts[0]
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_id = os.path.join(*tmp_path.parts[1:])
 
         best_params_filepath = os.path.join(
-            cast(
-                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.data_folder,
+            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
             ).params.pair_id,
@@ -1783,9 +1775,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         # run setup.
         cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder = tmp_path.parts[0]
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
@@ -1845,9 +1835,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         # changes for act.
-        cast(
-            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.data_folder = tmp_path.parts[0]
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state

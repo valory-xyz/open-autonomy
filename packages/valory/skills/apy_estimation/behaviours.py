@@ -229,7 +229,7 @@ class FetchBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Set the behaviour up."""
-        self._save_path = os.path.join(self.params.data_folder, "historical_data.json")
+        self._save_path = os.path.join(self.context._get_agent_context().data_dir, "historical_data.json")
         create_pathdirs(self._save_path)
 
     def _handle_response(
@@ -449,10 +449,10 @@ class TransformBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         self._history_save_path = os.path.join(
-            self.params.data_folder, "historical_data.json"
+            self.context._get_agent_context().data_dir, "historical_data.json"
         )
         self._transformed_history_save_path = os.path.join(
-            self.params.data_folder, "transformed_historical_data.csv"
+            self.context._get_agent_context().data_dir, "transformed_historical_data.csv"
         )
         create_pathdirs(self._transformed_history_save_path)
 
@@ -539,7 +539,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
 
         # Get the historical data and preprocess them.
         transformed_history_save_path = os.path.join(
-            self.params.data_folder, "transformed_historical_data.csv"
+            self.context._get_agent_context().data_dir, "transformed_historical_data.csv"
         )
         pairs_hist = load_hist(transformed_history_save_path)
         (y_train, y_test), pair_name = prepare_pair_data(
@@ -552,7 +552,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         hashes = []
         for filename, split in {"train": y_train, "test": y_test}.items():
             save_path = os.path.join(
-                self.params.data_folder, self.params.pair_id, f"{filename}.csv"
+                self.context._get_agent_context().data_dir, self.params.pair_id, f"{filename}.csv"
             )
             create_pathdirs(save_path)
             split.to_csv(save_path, index=False)
@@ -654,7 +654,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load training data.
-        path = os.path.join(self.params.data_folder, self.params.pair_id, "train.csv")
+        path = os.path.join(self.context._get_agent_context().data_dir, self.params.pair_id, "train.csv")
         y = pd.read_csv(path)
 
         optimize_task = OptimizeTask()
@@ -688,7 +688,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
                 # Store the best params from the results.
                 save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "best_params.json"
+                    self.context._get_agent_context().data_dir, self.params.pair_id, "best_params.json"
                 )
                 to_json_file(save_path, study.best_params)
 
@@ -727,7 +727,7 @@ class TrainBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load the best params from the optimization results.
         save_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "best_params.json"
+            self.context._get_agent_context().data_dir, self.params.pair_id, "best_params.json"
         )
         best_params = cast(Dict[str, Any], read_json_file(save_path))
 
@@ -736,13 +736,13 @@ class TrainBehaviour(APYEstimationBaseState):
             y: Union[np.ndarray, List[np.ndarray]] = []
             for split in ("train", "test"):
                 path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, f"{split}.csv"
+                    self.context._get_agent_context().data_dir, self.params.pair_id, f"{split}.csv"
                 )
                 cast(List[np.ndarray], y).append(pd.read_csv(path).values.ravel())
             y = np.concatenate(y)
         else:
             path = os.path.join(
-                self.params.data_folder, self.params.pair_id, "train.csv"
+                self.context._get_agent_context().data_dir, self.params.pair_id, "train.csv"
             )
             y = pd.read_csv(path).values.ravel()
 
@@ -769,7 +769,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 # Store the results.
                 prefix = "fully_trained_" if self.period_state.full_training else ""
                 save_path = os.path.join(
-                    self.params.data_folder,
+                    self.context._get_agent_context().data_dir,
                     self.params.pair_id,
                     f"{prefix}forecaster.joblib",
                 )
@@ -810,12 +810,12 @@ class TestBehaviour(APYEstimationBaseState):
         y: Dict[str, Optional[np.ndarray]] = {"train": None, "y_test": None}
         for split in ("train", "test"):
             path = os.path.join(
-                self.params.data_folder, self.params.pair_id, f"{split}.csv"
+                self.context._get_agent_context().data_dir, self.params.pair_id, f"{split}.csv"
             )
             y[split] = pd.read_csv(path).values.ravel()
 
         model_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "forecaster.joblib"
+            self.context._get_agent_context().data_dir, self.params.pair_id, "forecaster.joblib"
         )
         forecaster = load_forecaster(model_path)
 
@@ -848,7 +848,7 @@ class TestBehaviour(APYEstimationBaseState):
 
                 # Store the results.
                 save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "test_report.json"
+                    self.context._get_agent_context().data_dir, self.params.pair_id, "test_report.json"
                 )
                 try:
                     to_json_file(save_path, report)
@@ -893,7 +893,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         """
         with benchmark_tool.measure(self).local():
             model_path = os.path.join(
-                self.params.data_folder,
+                self.context._get_agent_context().data_dir,
                 self.params.pair_id,
                 "fully_trained_forecaster.joblib",
             )
