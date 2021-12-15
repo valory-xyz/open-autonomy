@@ -524,6 +524,7 @@ class TransformBehaviour(APYEstimationBaseState):
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
+            yield from self.sleep(self.params.sleep_time)
 
 
 class PreprocessBehaviour(APYEstimationBaseState):
@@ -740,6 +741,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
+            yield from self.sleep(self.params.sleep_time)
 
 
 class TrainBehaviour(APYEstimationBaseState):
@@ -861,6 +863,7 @@ class TrainBehaviour(APYEstimationBaseState):
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
+            yield from self.sleep(self.params.sleep_time)
 
 
 class TestBehaviour(APYEstimationBaseState):
@@ -963,6 +966,7 @@ class TestBehaviour(APYEstimationBaseState):
 
         else:
             self.context.logger.error("Undefined behaviour encountered with `Task`.")
+            yield from self.sleep(self.params.sleep_time)
 
 
 class EstimateBehaviour(APYEstimationBaseState):
