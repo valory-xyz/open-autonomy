@@ -32,6 +32,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.base import Blockchain
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -132,6 +133,7 @@ class TendermintHealthcheckBehaviour(PriceEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
+
         self.start()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
@@ -1113,6 +1115,10 @@ class BaseResetBehaviour(PriceEstimationBaseState):
         - Send the transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
+
+        TODO:
+            1. Add retry and timeout check
+            2. Add tendermint status check
         """
         if self.pause:
             if (
@@ -1126,17 +1132,37 @@ class BaseResetBehaviour(PriceEstimationBaseState):
                 self.context.logger.info("Finalized estimate not available.")
             self.context.logger.info("Period end.")
             benchmark_tool.save()
-
             yield from self.wait_from_last_timestamp(self.params.observation_interval)
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
+        if (
+            self.period_state.period_count % self.context.params.reset_tendermint_after
+            == 0
+        ):
+            self.context.logger.info("Resetting tendermint node.")
+            request_message, http_dialogue = self._build_http_request_message(
+                "GET",
+                self.context.params.tendermint_com_url + "/hard_reset",
+            )
+            result = yield from self._do_request(request_message, http_dialogue)
+            try:
+                response = json.loads(result.body.decode())
+                if not response.get("status"):
+                    self.context.logger.error(response.get("message"))
+                self.context.logger.info("Tendermint reset was successful.")
+            except json.JSONDecodeError:
+                self.context.logger.error(
+                    "Error communicating with tendermint com server."
+                )
+
+            self.context.state.period.reset_blockchain()
+
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
-
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
@@ -1156,40 +1182,6 @@ class ResetAndPauseBehaviour(BaseResetBehaviour):
     matching_round = ResetAndPauseRound
     state_id = "reset_and_pause"
     pause = True
-
-
-class ResetTendermintNode(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = None
-    state_id = "reset_tendermint"
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        TODO:
-            1. Add retry and timeout check similar to tendermint health check.
-        """
-
-        self.context.logger.info("Reseting tendermint node.")
-        request_message, http_dialogue = self._build_http_request_message(
-            "GET",
-            self.context.params.tendermint_com_url + "/gentle_reset",
-        )
-        result = yield from self._do_request(request_message, http_dialogue)
-
-        try:
-            response = json.loads(result.body.decode())
-            if not response.get("status"):
-                self.context.logger.error(response.get("message"))
-                return
-            self.context.logger.info("Tendermint reset was successful.")
-        except json.JSONDecodeError:
-            self.context.logger.error("Error communicating with tendermint com server.")
-            return
-
-        self.set_done()
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
