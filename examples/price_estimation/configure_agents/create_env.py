@@ -136,8 +136,9 @@ ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash
 echo -n $AEA_KEY >  ethereum_private_key.txt
 
 aea add-key ethereum
+aea config set agent.skill_exception_policy "just_log"
+aea config set agent.connection_exception_policy "just_log"
 aea config set vendor.valory.connections.abci.config.use_tendermint False
-
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657
