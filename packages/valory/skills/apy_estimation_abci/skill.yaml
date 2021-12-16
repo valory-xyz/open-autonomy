@@ -106,7 +106,7 @@ models:
       period_setup: {}
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 200
+      round_timeout_seconds: 120
       sleep_time: 5
       tendermint_url: http://localhost:26657
       testing:
