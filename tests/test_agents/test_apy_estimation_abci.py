@@ -24,6 +24,7 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, cast
 
+import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
@@ -291,6 +292,7 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     BaseTendermintTestClass,
