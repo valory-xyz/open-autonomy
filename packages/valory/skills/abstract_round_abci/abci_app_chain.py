@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from typing import Dict, Set, Tuple, Type
+from typing import Any, Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -30,7 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-AbciAppTransitionMapping = Dict[AppState, Dict[str, AppState]]
+AbciAppTransitionMapping = Dict[AppState, Dict[Any, AppState]]
 
 
 def chain(  # pylint: disable=too-many-locals
@@ -69,6 +69,7 @@ def chain(  # pylint: disable=too-many-locals
     # Update transition function
     for state, event_to_states in round_transition_mapping.items():
         for event, new_state in event_to_states.items():
+            # Overwrite the old state or create a new one if it does not exist
             new_transition_function[state][event] = new_state
 
     # Remove no longer used states
