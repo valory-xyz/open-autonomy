@@ -656,6 +656,15 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
 
 
+class TestTendermintResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test case to test TendermintResetBehaviour."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+
 class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Base test case to test RegistrationBehaviour."""
 
