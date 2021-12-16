@@ -1,8 +1,8 @@
-agent_name: apy_estimation
+agent_name: simple_abci
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: APY estimation agent.
+description: Simple ABCI example.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
@@ -20,7 +20,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
-- valory/apy_estimation_abci:0.1.0
+- valory/simple_abci:0.1.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -50,4 +50,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/apy_estimation_abci:0.1.0
+  target_skill_id: valory/simple_abci:0.1.0

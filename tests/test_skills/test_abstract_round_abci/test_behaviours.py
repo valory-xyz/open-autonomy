@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
-from typing import Dict, Generator, Optional, Tuple
+from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -84,6 +84,15 @@ class StateA(BaseState):
 
     state_id = STATE_A_ID
     matching_round = RoundA
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize state."""
+        super().__init__(*args, **kwargs)
+        self.count = 0
+
+    def setup(self) -> None:
+        """Setup state."""
+        self.count += 1
 
     def async_act(self) -> Generator:
         """Dummy act method."""
@@ -279,6 +288,26 @@ class TestAbstractRoundBehaviour:
         self.behaviour.current_state.set_done()
         self.behaviour.act()
         assert self.behaviour.current_state is None
+
+    def test_act_behaviour_setup(self) -> None:
+        """Test the 'act' method of the FSM behaviour triggers setup() of the state behaviour."""
+        self.period_mock.current_round = RoundA(MagicMock(), MagicMock())
+        self.period_mock.current_round_height = 0
+
+        # check that after setup(), current state is initial state
+        self.behaviour.setup()
+        assert isinstance(self.behaviour.current_state, StateA)
+
+        assert self.behaviour.current_state.count == 0
+
+        # check that after act() first time, a call to setup has been made
+        self.behaviour.act()
+        assert isinstance(self.behaviour.current_state, StateA)
+        assert self.behaviour.current_state.count == 1
+
+        # check that after act() second time, no further call to setup
+        self.behaviour.act()
+        assert self.behaviour.current_state.count == 1
 
     def test_act_with_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with round change."""
