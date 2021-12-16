@@ -26,11 +26,15 @@ services:
     environment:
       - ID=0
       - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci0:26658
+      - TMHOME=/tendermint/node0
+      - CREATE_EMPTY_BLOCKS=true
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- python3 /app/app.py
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
     networks:
       localnet:
         ipv4_address: 192.167.11.3
@@ -48,11 +52,15 @@ services:
     environment:
       - ID=1
       - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci1:26658
+      - TMHOME=/tendermint/node1
+      - CREATE_EMPTY_BLOCKS=true
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- python3 /app/app.py
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
     networks:
       localnet:
         ipv4_address: 192.167.11.4
@@ -68,13 +76,17 @@ services:
     environment:
       - ID=2
       - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci2:26658
+      - TMHOME=/tendermint/node2
+      - CREATE_EMPTY_BLOCKS=true
     ports:
       - "26676-26677:26656-26657"
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- python3 /app/app.py
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
     networks:
       localnet:
         ipv4_address: 192.167.11.5
@@ -90,13 +102,17 @@ services:
     environment:
       - ID=3
       - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci3:26658
+      - TMHOME=/tendermint/node3
+      - CREATE_EMPTY_BLOCKS=true
     ports:
       - "26686-26687:26656-26657"
     volumes:
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- python3 /app/app.py
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
     networks:
       localnet:
         ipv4_address: 192.167.11.6
