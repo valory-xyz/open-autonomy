@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/apy_estimation skill."""
+"""Tests for valory/apy_estimation_abci skill."""

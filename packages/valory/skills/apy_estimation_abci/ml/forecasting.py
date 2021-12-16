@@ -230,7 +230,7 @@ def test_forecaster(
     :return: a test report for each tested method/model.
     """
     # Get the current timestep, i.e., the last value of the training set.
-    t0 = y_train[-1][0]
+    t0 = y_train[-1]
 
     # Get baseline's and model's predictions.
     report: Dict[str, Union[str, np.ndarray]] = {

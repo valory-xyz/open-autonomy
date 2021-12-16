@@ -20,7 +20,7 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import AbstractSet, Any, Dict, Optional, Tuple, Type, cast
+from typing import AbstractSet, Dict, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 
@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     TransactionType,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -42,14 +42,14 @@ from packages.valory.skills.apy_estimation.payloads import (
     RegistrationPayload,
     ResetPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload as _TestingPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
-from packages.valory.skills.apy_estimation.tools.general import filter_out_numbers
+from packages.valory.skills.apy_estimation_abci.tools.general import filter_out_numbers
 
 
 N_ESTIMATIONS_BEFORE_RETRAIN = 60
@@ -77,7 +77,6 @@ class PeriodState(BasePeriodState):
         period_setup_params: Optional[Dict] = None,
         most_voted_randomness: Optional[int] = None,
         most_voted_estimate: Optional[float] = None,
-        best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
         pair_name: Optional[str] = None,
         n_estimations: int = 0,
@@ -86,7 +85,6 @@ class PeriodState(BasePeriodState):
         super().__init__(participants, period_count, period_setup_params)
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_estimate = most_voted_estimate
-        self._best_params = best_params
         self._full_training = full_training
         self._pair_name = pair_name
         self._n_estimations = n_estimations
@@ -113,15 +111,6 @@ class PeriodState(BasePeriodState):
     def is_most_voted_estimate_set(self) -> bool:
         """Check if most_voted_estimate is set."""
         return self._most_voted_estimate is not None
-
-    @property
-    def best_params(self) -> Dict[str, Any]:
-        """Get the best_params."""
-        enforce(
-            self._best_params is not None,
-            "'best_params' field is None",
-        )
-        return cast(Dict[str, Any], self._best_params)
 
     @property
     def full_training(self) -> bool:
@@ -269,7 +258,15 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
         state_event = None
 
         if self.threshold_reached:
-            state_event = self.period_state, Event.DONE
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(
+                    pair_name=cast(
+                        PreprocessPayload, list(self.collection.values())[0]
+                    ).pair_name
+                ),
+            )
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -337,12 +334,7 @@ class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         state_event = None
 
         if self.threshold_reached:
-            updated_state = cast(
-                PeriodState,
-                self.period_state.update(best_params=self.most_voted_payload),
-            )
-
-            state_event = updated_state, Event.DONE
+            state_event = self.period_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -438,7 +430,8 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
         if self.threshold_reached:
             updated_state = self.period_state.update(
-                n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                n_estimations=cast(PeriodState, self.period_state).n_estimations + 1,
+                most_voted_estimate=self.most_voted_payload,
             )
 
             if (
@@ -480,7 +473,6 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             if self.round_id == "reset":
                 updated_state = updated_state.update(
-                    best_params=None,
                     full_training=False,
                     pair_name=None,
                 )

@@ -25,16 +25,16 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.apy_estimation.ml.forecasting import (
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     baseline,
     calc_metrics,
     init_forecaster,
     report_metrics,
 )
-from packages.valory.skills.apy_estimation.ml.forecasting import (
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     test_forecaster as _test_forecaster,
 )
-from packages.valory.skills.apy_estimation.ml.forecasting import (
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     train_forecaster,
     walk_forward_test,
 )
@@ -105,7 +105,7 @@ class TestForecasting:
         )
         for metric_to_patch in metrics_to_patch:
             monkeypatch.setattr(
-                f"packages.valory.skills.apy_estimation.ml.forecasting.{metric_to_patch}",
+                f"packages.valory.skills.apy_estimation_abci.ml.forecasting.{metric_to_patch}",
                 lambda *_: 0,
             )
 
@@ -132,7 +132,7 @@ class TestForecasting:
             "MSE": 0,
         }
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.ml.forecasting.calc_metrics",
+            "packages.valory.skills.apy_estimation_abci.ml.forecasting.calc_metrics",
             lambda *_: metrics_res,
         )
         report = report_metrics(np.empty(0), np.empty(0), "test_name")
@@ -167,12 +167,12 @@ class TestForecasting:
         """Test `test_forecaster`."""
         for testing_method in ("baseline", "walk_forward_test"):
             monkeypatch.setattr(
-                f"packages.valory.skills.apy_estimation.ml.forecasting.{testing_method}",
+                f"packages.valory.skills.apy_estimation_abci.ml.forecasting.{testing_method}",
                 lambda *_: None,
             )
 
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.ml.forecasting.report_metrics",
+            "packages.valory.skills.apy_estimation_abci.ml.forecasting.report_metrics",
             lambda *_: "Report results.",
         )
 
