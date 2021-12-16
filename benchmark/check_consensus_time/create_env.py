@@ -70,18 +70,22 @@ RANDOMNESS_APIS: List[List[Tuple[str, str]]] = [
 ]
 
 PRICE_APIS: List[List[Tuple[str, str]]] = [
-
     [
         ("url", "https://api.coingecko.com/api/v3/simple/price"),
         ("api_id", "coingecko"),
-        ("parameters",
-         """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list"""),
+        (
+            "parameters",
+            """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list""",
+        ),
         ("response_key", "'bitcoin:usd'"),
     ],
     [
         ("url", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"),
         ("api_id", "coinmarketcap"),
-        ("headers", """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list"""),
+        (
+            "headers",
+            """'[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list""",
+        ),
         ("parameters", """'[["symbol","BTC"], ["convert","USD"]]'  --type list"""),
         ("response_key", "'data:BTC:quote:USD:price'"),
     ],
@@ -102,6 +106,10 @@ ABCI_CONFIG_SCRIPT: str = """
 #!/usr/bin/env sh
 
 cp ../configure_agents/keys/ethereum_private_key_{node_id}.txt ethereum_private_key.txt
+
+aea add-key ethereum
+
+aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://node{node_id}:26657
@@ -152,7 +160,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=false --proxy_app=tcp://abci{node_id}:26658
+    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci{node_id}:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
@@ -181,18 +189,27 @@ ABCI_NODE_TEMPLATE: str = """
 """
 
 
-def build_config_script(node_id: int, price_api: List[Tuple[str, str]], randomness_api: List[Tuple[str, str]], max_participants: int) -> str:
+def build_config_script(
+    node_id: int,
+    price_api: List[Tuple[str, str]],
+    randomness_api: List[Tuple[str, str]],
+    max_participants: int,
+) -> str:
     """Build `abci_n.sh` for runtime agent config."""
 
     extra_config = "\n".join(
-        [f"aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.{key} {value}" for key, value in price_api]
-        + [f"aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.{key} {value}" for key, value in randomness_api]
+        [
+            f"aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.{key} {value}"
+            for key, value in price_api
+        ]
+        + [
+            f"aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.args.{key} {value}"
+            for key, value in randomness_api
+        ]
     )
 
     return ABCI_CONFIG_SCRIPT.format(
-        extra_config=extra_config,
-        node_id=node_id,
-        max_participants=max_participants
+        extra_config=extra_config, node_id=node_id, max_participants=max_participants
     )
 
 
@@ -202,7 +219,7 @@ def build_tendermint_node_config(node_id: int) -> str:
     return TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
         localnet_address_postfix=node_id + 3,
-        localnet_port_range=node_id
+        localnet_port_range=node_id,
     )
 
 
@@ -210,8 +227,7 @@ def build_abci_node_config(node_id: int, max_participants: int) -> str:
     """Build tendermint node config for docker compose."""
 
     return ABCI_NODE_TEMPLATE.format(
-        node_id=node_id,
-        localnet_address_postfix=node_id + max_participants + 3
+        node_id=node_id, localnet_address_postfix=node_id + max_participants + 3
     )
 
 
@@ -226,8 +242,7 @@ def build_docker_compose_yml(max_participants: int) -> str:
         abci_nodes += build_abci_node_config(i, max_participants)
 
     return DOCKER_COMPOSE_TEMPLATE.format(
-        tendermint_nodes=tendermint_nodes,
-        abci_nodes=abci_nodes
+        tendermint_nodes=tendermint_nodes, abci_nodes=abci_nodes
     )
 
 
@@ -235,12 +250,20 @@ def build_agent_config(node_id: int, number_of_agents: int) -> None:
     """Build agent config."""
 
     config_script = build_config_script(
-        node_id, PRICE_APIS[node_id % len(PRICE_APIS)], RANDOMNESS_APIS[node_id % len(RANDOMNESS_APIS)], number_of_agents)
+        node_id,
+        PRICE_APIS[node_id % len(PRICE_APIS)],
+        RANDOMNESS_APIS[node_id % len(RANDOMNESS_APIS)],
+        number_of_agents,
+    )
 
     with open(CONFIG_DIRECTORY / f"abci{node_id}.sh", "w+", encoding="utf-8") as file:
         file.write(config_script)
 
-    with open(CONFIG_DIRECTORY / "keys" / f"ethereum_private_key_{node_id}.txt", "w+", encoding="utf-8") as file:
+    with open(
+        CONFIG_DIRECTORY / "keys" / f"ethereum_private_key_{node_id}.txt",
+        "w+",
+        encoding="utf-8",
+    ) as file:
         file.write(KEYS[node_id])
 
     with open("./docker-compose.yml", "w+", encoding="utf-8") as file:
