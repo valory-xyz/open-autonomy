@@ -718,7 +718,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
             except ValueError:
                 # If no trial finished, set random params as best.
-                best_params = (study.trials[0].params,)  # type: ignore
+                best_params = study.trials[0].params
                 self.context.logger.warning(
                     "The optimization could not be done! "
                     "Please make sure that there is a sufficient number of data "
