@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for apy_estimation skill's tools."""
+"""Tests for apy_estimation_abci skill's tools."""
