@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
+from copy import deepcopy
 from typing import Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
@@ -34,7 +35,8 @@ AbciAppTransitionMapping = Dict[str, AppState]
 
 
 def chain(  # pylint: disable=too-many-locals
-    abci_apps: Tuple[Type[AbciApp], ...], round_transition_mapping: AbciAppTransitionMapping
+    abci_apps: Tuple[Type[AbciApp], ...],
+    round_transition_mapping: AbciAppTransitionMapping,
 ) -> Type[AbciApp]:
     """Concatenate multiple AbciApp types."""
 
@@ -60,16 +62,19 @@ def chain(  # pylint: disable=too-many-locals
         e: t for app in abci_apps for e, t in app.event_to_timeout.items()
     }
     new_transition_function: AbciAppTransitionFunction = {
-        state: events
+        state: events_to_rounds
         for app in abci_apps
-        for state, events in app.transition_function.items()
+        for state, events_to_rounds in app.transition_function.items()
     }
 
     # Update transition function
-    for event, new_state in round_transition_mapping.items():  # type: ignore
+    new_transition_function_copy = deepcopy(new_transition_function)
+    for event, new_state in round_transition_mapping.items():
         for state, events in new_transition_function.items():  # type: ignore
             if event in events.keys():  # type: ignore
-                new_transition_function[state][event] = new_state
+                new_transition_function_copy[state][event] = new_state
+
+    new_transition_function = new_transition_function_copy
 
     # Remove no longer used states
     used_states = set()
