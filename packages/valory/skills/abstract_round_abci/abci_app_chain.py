@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from copy import deepcopy
 from typing import Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
@@ -31,7 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-AbciAppTransitionMapping = Dict[str, AppState]
+AbciAppTransitionMapping = Dict[AppState, Dict[str, AppState]]
 
 
 def chain(  # pylint: disable=too-many-locals
@@ -68,19 +67,15 @@ def chain(  # pylint: disable=too-many-locals
     }
 
     # Update transition function
-    new_transition_function_copy = deepcopy(new_transition_function)
-    for event, new_state in round_transition_mapping.items():
-        for state, events in new_transition_function.items():  # type: ignore
-            if event in events.keys():  # type: ignore
-                new_transition_function_copy[state][event] = new_state
-
-    new_transition_function = new_transition_function_copy
+    for state, event_to_states in round_transition_mapping.items():
+        for event, new_state in event_to_states.items():
+            new_transition_function[state][event] = new_state
 
     # Remove no longer used states
-    used_states = set()
+    used_states: Set[AppState] = set()
 
-    for events in new_transition_function.values():  # type: ignore
-        used_states.update(events.values())  # type: ignore
+    for event_to_states in new_transition_function.values():  # type: ignore
+        used_states.update(event_to_states.values())  # type: ignore
 
     new_transition_function = {
         state: events_to_rounds
@@ -92,7 +87,7 @@ def chain(  # pylint: disable=too-many-locals
     new_final_states = used_states.intersection(new_final_states)
 
     # Remove no longer used events
-    used_events = set()
+    used_events: Set[str] = set()
 
     for events in new_transition_function.values():  # type: ignore
         used_events.update(events.keys())  # type: ignore
