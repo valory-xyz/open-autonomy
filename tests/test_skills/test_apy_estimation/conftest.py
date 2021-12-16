@@ -33,8 +33,8 @@ from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.apy_estimation.ml.forecasting import train_forecaster
-from packages.valory.skills.apy_estimation.models import SharedState
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
+from packages.valory.skills.apy_estimation_abci.models import SharedState
 
 
 HeaderType = Dict[str, str]

@@ -24,8 +24,8 @@ import os
 import time
 from typing import Any, Dict, Iterator, Optional, Union
 
-from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation.tools.etl import ResponseItemType
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
 
 HyperParamsType = Dict[str, Any]

@@ -37,11 +37,16 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
-from packages.valory.skills.apy_estimation.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation.ml.io import load_forecaster, save_forecaster
-from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
-from packages.valory.skills.apy_estimation.models import APYParams, SharedState
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation_abci.ml.io import (
+    load_forecaster,
+    save_forecaster,
+)
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    prepare_pair_data,
+)
+from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
+from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -53,7 +58,7 @@ from packages.valory.skills.apy_estimation.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
-from packages.valory.skills.apy_estimation.rounds import (
+from packages.valory.skills.apy_estimation_abci.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
     CycleResetRound,
@@ -68,20 +73,20 @@ from packages.valory.skills.apy_estimation.rounds import (
     TrainRound,
     TransformRound,
 )
-from packages.valory.skills.apy_estimation.tasks import (
+from packages.valory.skills.apy_estimation_abci.tasks import (
     OptimizeTask,
     TestTask,
     TrainTask,
     TransformTask,
 )
-from packages.valory.skills.apy_estimation.tools.etl import load_hist
-from packages.valory.skills.apy_estimation.tools.general import (
+from packages.valory.skills.apy_estimation_abci.tools.etl import load_hist
+from packages.valory.skills.apy_estimation_abci.tools.general import (
     create_pathdirs,
     gen_unix_timestamps,
     read_json_file,
     to_json_file,
 )
-from packages.valory.skills.apy_estimation.tools.queries import (
+from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
     pairs_q,
@@ -317,7 +322,6 @@ class FetchBehaviour(APYEstimationBaseState):
 
                 pairs_hist = []
                 for timestamp in gen_unix_timestamps(self.params.history_duration):
-
                     # Fetch block.
                     fantom_api_specs = self.context.fantom_subgraph.get_spec()
                     res_raw = yield from self.get_http_response(

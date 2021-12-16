@@ -26,7 +26,7 @@ import optuna
 import pmdarima as pm
 from sklearn.metrics import mean_pinball_loss
 
-from packages.valory.skills.apy_estimation.ml.forecasting import init_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
 
 
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]

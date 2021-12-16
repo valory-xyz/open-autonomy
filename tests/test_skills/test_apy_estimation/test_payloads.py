@@ -19,7 +19,7 @@
 
 """Test the payloads.py module of the skill."""
 
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -27,10 +27,10 @@ from packages.valory.skills.apy_estimation.payloads import (
     RandomnessPayload,
     ResetPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload as _TestingPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransactionType,
     TransformationPayload,
