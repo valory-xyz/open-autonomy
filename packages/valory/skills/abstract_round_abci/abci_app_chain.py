@@ -41,17 +41,12 @@ def chain(  # pylint: disable=too-many-locals
 
     # Get the apps rounds, events and initial rounds
     rounds = (app.get_all_rounds() for app in abci_apps)
-    events = (app.get_all_events() for app in abci_apps)
 
-    # Ensure there are no common rounds or events
+    # Ensure there are no common rounds
     common_round_classes = set.intersection(*rounds)
     enforce(
         len(common_round_classes) == 0,
-        "rounds in common between operands are not allowed",
-    )
-    common_events = set.intersection(*events)
-    enforce(
-        len(common_events) == 0, "events in common between operands are not allowed"
+        f"rounds in common between operands are not allowed ({common_round_classes})",
     )
 
     # Build the new final states and events

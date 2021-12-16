@@ -1066,10 +1066,8 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
         states = set()
-        for start_state, transitions in cls.transition_function.items():
+        for start_state, _ in cls.transition_function.items():
             states.add(start_state)
-            for _event, end_state in transitions.items():
-                states.add(end_state)
         return states
 
     @classmethod

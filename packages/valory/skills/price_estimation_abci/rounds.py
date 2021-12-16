@@ -36,6 +36,10 @@ from typing import (
 
 from aea.exceptions import enforce
 
+from packages.valory.skills.abstract_round_abci.abci_app_chain import (
+    AbciAppTransitionMapping,
+    chain,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -832,7 +836,7 @@ class ValidateTransactionRound(ValidateRound):
     none_event = Event.NONE
 
 
-class PriceEstimationAbciApp(AbciApp[Event]):
+class SafeDeploymentAbciApp(AbciApp[Event]):
     """Price estimation ABCI application."""
 
     initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
@@ -856,12 +860,24 @@ class PriceEstimationAbciApp(AbciApp[Event]):
             Event.DEPLOY_TIMEOUT: SelectKeeperAStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateSafeRound: {
-            Event.DONE: DeployOracleRound,
             Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
             Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
             Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
             Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.VALIDATE_TIMEOUT: 30.0,
+        Event.DEPLOY_TIMEOUT: 30.0,
+    }
+
+
+class OracleDeploymentAbciApp(AbciApp[Event]):
+    """Price estimation ABCI application."""
+
+    initial_round_cls: Type[AbstractRound] = DeployOracleRound
+    transition_function: AbciAppTransitionFunction = {
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
             Event.DEPLOY_TIMEOUT: SelectKeeperBStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
@@ -945,3 +961,12 @@ class PriceEstimationAbciApp(AbciApp[Event]):
         Event.DEPLOY_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+
+
+round_transition_mapping: AbciAppTransitionMapping = {
+    ValidateSafeRound: {Event.DONE: DeployOracleRound}
+}
+
+PriceEstimationAbciApp = chain(
+    (SafeDeploymentAbciApp, OracleDeploymentAbciApp), round_transition_mapping
+)
