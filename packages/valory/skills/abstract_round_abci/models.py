@@ -43,6 +43,7 @@ class BaseParams(Model):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
+        self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
 
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         self.period_setup_params = kwargs.pop("period_setup", {})

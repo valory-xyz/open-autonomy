@@ -1158,6 +1158,40 @@ class ResetAndPauseBehaviour(BaseResetBehaviour):
     pause = True
 
 
+class ResetTendermintNode(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = None
+    state_id = "reset_tendermint"
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        TODO:
+            1. Add retry and timeout check similar to tendermint health check.
+        """
+
+        self.context.logger.info("Reseting tendermint node.")
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.context.params.tendermint_com_url + "/gentle_reset",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+
+        try:
+            response = json.loads(result.body.decode())
+            if not response.get("status"):
+                self.context.logger.error(response.get("message"))
+                return
+            self.context.logger.info("Tendermint reset was successful.")
+        except json.JSONDecodeError:
+            self.context.logger.error("Error communicating with tendermint com server.")
+            return
+
+        self.set_done()
+
+
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
