@@ -22,7 +22,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from packages.valory.skills.apy_estimation.ml.preprocessing import prepare_pair_data
+from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    prepare_pair_data,
+)
 
 
 class TestPreprocessing:

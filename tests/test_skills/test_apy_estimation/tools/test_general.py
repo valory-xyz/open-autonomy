@@ -26,7 +26,7 @@ from pathlib import PosixPath
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from packages.valory.skills.apy_estimation.tools.general import (
+from packages.valory.skills.apy_estimation_abci.tools.general import (
     create_pathdirs,
     filter_out_numbers,
     gen_unix_timestamps,
