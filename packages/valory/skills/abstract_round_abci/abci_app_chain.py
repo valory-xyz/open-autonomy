@@ -85,8 +85,8 @@ def chain(  # pylint: disable=too-many-locals
         used_events.update(events.keys())  # type: ignore
 
     new_transition_function = {
-        state: events
-        for state, events in new_transition_function.items()
+        state: events_to_rounds
+        for state, events_to_rounds in new_transition_function.items()
         if state in used_states
     }
     new_final_states = used_states.intersection(new_final_states)
