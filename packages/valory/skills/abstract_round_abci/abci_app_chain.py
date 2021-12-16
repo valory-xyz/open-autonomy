@@ -78,18 +78,25 @@ def chain(  # pylint: disable=too-many-locals
 
     # Remove no longer used states
     used_states = set()
-    used_events = set()
 
     for events in new_transition_function.values():  # type: ignore
         used_states.update(events.values())  # type: ignore
-        used_events.update(events.keys())  # type: ignore
 
     new_transition_function = {
         state: events_to_rounds
         for state, events_to_rounds in new_transition_function.items()
         if state in used_states
     }
+
+    # Remove no longer used final states
     new_final_states = used_states.intersection(new_final_states)
+
+    # Remove no longer used events
+    used_events = set()
+
+    for events in new_transition_function.values():  # type: ignore
+        used_events.update(events.keys())  # type: ignore
+
     new_events_to_timeout = {
         event: timeout
         for event, timeout in new_events_to_timeout.items()
