@@ -2,6 +2,10 @@
 
 cp ../configure_agents/keys/ethereum_private_key_0.txt ethereum_private_key.txt
 
+aea add-key ethereum
+aea config set agent.skill_exception_policy "just_log"
+aea config set agent.connection_exception_policy "just_log"
+aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.apy_estimation_abci.models.spooky_subgraph.args.url https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap
 aea config set vendor.valory.skills.apy_estimation_abci.models.spooky_subgraph.args.api_id spookyswap
 aea config set vendor.valory.skills.apy_estimation_abci.models.spooky_subgraph.args.response_key "data"
