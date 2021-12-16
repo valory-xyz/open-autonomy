@@ -68,7 +68,7 @@ class SharedState(BaseSharedState):
         )
 
 
-class Params(BaseParams):
+class Params(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
     observation_interval: float
