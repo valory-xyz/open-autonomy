@@ -81,7 +81,7 @@ def get_participant_to_fetching(
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
-        participant: FetchingPayload(sender=participant, history_hash="x0")
+        participant: FetchingPayload(sender=participant, history="x0")
         for participant in participants
     }
 
@@ -141,7 +141,7 @@ def get_participant_to_optimize_payload(
 ) -> Dict[str, OptimizationPayload]:
     """Get optimization payload."""
     return {
-        participant: OptimizationPayload(participant, "study_hash", None)  # type: ignore
+        participant: OptimizationPayload(participant, "best_params_hash", None)  # type: ignore
         for participant in participants
     }
 
@@ -298,9 +298,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
                 "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.process_payload(
-                FetchingPayload(sender="sender", history_hash="x0")
-            )
+            test_round.process_payload(FetchingPayload(sender="sender", history="x0"))
 
         with pytest.raises(
             TransactionNotValidError,
@@ -308,9 +306,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
                 "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.check_payload(
-                FetchingPayload(sender="sender", history_hash="x0")
-            )
+            test_round.check_payload(FetchingPayload(sender="sender", history="x0"))
 
         participant_to_fetching_payloads = get_participant_to_fetching(
             self.participants
@@ -341,9 +337,7 @@ class TestCollectHistoryRound(BaseRoundTestClass):
             match="sender agent_0 has already sent value for round: collect_history",
         ):
             test_round.check_payload(
-                FetchingPayload(
-                    sender=sorted(list(self.participants))[0], history_hash="x0"
-                )
+                FetchingPayload(sender=sorted(list(self.participants))[0], history="x0")
             )
 
         for payload in participant_to_fetching_payloads.values():
@@ -408,7 +402,7 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_preprocess_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="train_hashtest_hash",
+                most_voted_payload="test_hashpair_name",
                 exit_event=Event.DONE,
             )
         )
@@ -480,7 +474,7 @@ class TestOptimizeRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_optimize_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="study_hash",
+                most_voted_payload="best_params_hash",
                 exit_event=Event.DONE,
             )
         )
@@ -689,9 +683,7 @@ def test_period() -> None:
     period_count = 1
     period_setup_params: Dict = {}
     most_voted_randomness = 1
-    most_voted_estimate = [
-        1.0,
-    ]
+    most_voted_estimate = 1.0
     best_params: Dict = {}
     full_training = False
     pair_name = ""

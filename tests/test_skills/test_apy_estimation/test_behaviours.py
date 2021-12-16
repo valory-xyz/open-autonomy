@@ -19,27 +19,33 @@
 
 """Tests for valory/apy_estimation skill's behaviours."""
 import binascii
+import importlib
 import json
 import logging
 import os
 import time
 from copy import copy
 from datetime import datetime
-from multiprocessing.pool import AsyncResult
+from multiprocessing.pool import ApplyResult, AsyncResult
 from pathlib import Path, PosixPath
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
+import joblib
 import numpy as np
+import optuna
 import pandas as pd
 import pytest
+from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.exceptions import AEAActException
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
+from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
+from pmdarima.pipeline import Pipeline
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
@@ -48,6 +54,7 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
     AbstractRound,
     BasePeriodState,
     BaseTxPayload,
@@ -62,21 +69,32 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.apy_estimation.behaviours import (
     APYEstimationBaseState,
     APYEstimationConsensusBehaviour,
+    CycleResetBehaviour,
+    EstimateBehaviour,
     FetchBehaviour,
     OptimizeBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
+    ResetBehaviour,
     TendermintHealthcheckBehaviour,
+)
+from packages.valory.skills.apy_estimation.behaviours import (
+    TestBehaviour as _TestBehaviour,
+)
+from packages.valory.skills.apy_estimation.behaviours import (
+    TrainBehaviour,
     TransformBehaviour,
 )
 from packages.valory.skills.apy_estimation.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.test_apy_estimation.conftest import TaskResult
+from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
 
 
 class DummyAsyncResult(object):
@@ -84,7 +102,7 @@ class DummyAsyncResult(object):
 
     def __init__(
         self,
-        task_result: TaskResult,
+        task_result: Any,
         ready: bool = True,
     ) -> None:
         """Initialize class."""
@@ -100,7 +118,7 @@ class DummyAsyncResult(object):
 
     def get(
         self,
-    ) -> TaskResult:
+    ) -> Any:
         """Returns task result."""
         return self._task_result
 
@@ -305,7 +323,6 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         if current_state is None:
             return
-        current_state = cast(BaseState, current_state)
         if current_state.matching_round is None:
             return
         abci_app = current_state.context.state.period.abci_app
@@ -585,10 +602,64 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-@pytest.mark.skip
 class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test FetchBehaviour."""
 
+    behaviour_class = FetchBehaviour
+    next_behaviour_class = TransformBehaviour
+
+    def test_setup(self, monkeypatch: MonkeyPatch) -> None:
+        """Test behaviour setup."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    @pytest.mark.skip
+    def test_handle_response(self, caplog: LogCaptureFixture) -> None:
+        """Test `handle_response`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(),
+        )
+
+        # test with empty response.
+        specs = ApiSpecs(
+            url="test",
+            api_id="test",
+            method="GET",
+            name="test",
+            skill_context=self.apy_estimation_behaviour.context,
+        )
+
+        with pytest.raises(Exception):
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            )._handle_response(None, "test_context", ("", 0), specs)
+
+        assert specs._retries_attempted == 1
+
+        caplog.clear()
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        )._handle_response({"test": [4, 5]}, "test", ("test", 0), specs)
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Retrieved test: 4.",
+            )
+        ]
+        assert specs._retries_attempted == 0
+
+    @pytest.mark.skip
     def test_fetch_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -603,6 +674,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
             PeriodState(),
+        )
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
+            lambda *_: iter((1618735147,)),
         )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
@@ -620,7 +695,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # top pairs' ids request.
         request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -632,12 +709,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
-            lambda _: 1618735147,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
@@ -648,10 +721,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
-            eth_price_usd_q,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
@@ -702,9 +771,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         self._test_done_flag_set()
 
+    @pytest.mark.skip
     def test_fetch_value_none(
         self,
         monkeypatch: MonkeyPatch,
+        caplog: LogCaptureFixture,
         top_n_pairs_q: str,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
@@ -715,27 +786,90 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
         )
+        history_duration = cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.history_duration
+        monkeypatch.setattr(
+            time,
+            "time",
+            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
+        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
             url="https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
             headers="Content-Type: application/json\r\n",
             version="",
+            body=b"",
         )
         response_kwargs = dict(
             version="",
             status_code=200,
             status_text="",
             headers="",
+            body=b"",
         )
+
+        # top pairs' ids request with None response.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get top 100 pool ids (Showing first example) from spookyswap",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
 
         # top pairs' ids request.
         request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {"data": {"pairs": [{"id": "x0"}, {"id": "x2"}]}}
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
+
+        # block request with None response.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        response_kwargs["body"] = b""
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get block from fantom",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        # top pairs' ids request.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
 
         # block request.
         request_kwargs[
@@ -744,15 +878,52 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "1"}]}}
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.gen_unix_timestamps",
-            lambda _: 1618735147,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
+
+        # ETH price request with None response.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
+        request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
+        response_kwargs["body"] = b""
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get ETH price for block {'timestamp': '1', 'number': '3830367'} from spookyswap",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
+
+        # top pairs' ids request.
+        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
+        res = {
+            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
+        }
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # block request.
+        request_kwargs[
+            "url"
+        ] = "https://api.thegraph.com/subgraphs/name/matthewlilley/fantom-blocks"
+        request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
+            "utf-8"
+        )
+        res = {"data": {"blocks": [{"timestamp": "1", "number": "3830367"}]}}
+        response_kwargs["body"] = json.dumps(res).encode("utf-8")
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
 
         # ETH price request.
         request_kwargs[
@@ -761,32 +932,26 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": eth_price_usd_q}).encode("utf-8")
         res = {"data": {"bundles": [{"ethPrice": "0.8973548"}]}}
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.eth_price_usd_q",
-            eth_price_usd_q,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
 
-        # top pairs data.
+        # top pairs data with None response.
         request_kwargs["body"] = json.dumps({"query": pairs_q}).encode("utf-8")
-        res = {
-            "data": {
-                "pairs": [
-                    {field: dummy_value for field in pool_fields}
-                    for dummy_value in ("dum1", "dum2")
-                ]
-            }
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.pairs_q",
-            pairs_q,
-        )
+        response_kwargs["body"] = b""
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        time.sleep(1)
+        assert caplog.record_tuples[-1] == (
+            "aea.test_agent_name.packages.valory.skills.apy_estimation",
+            logging.ERROR,
+            "[test_agent_name] Could not get top 100 pool data for block {'timestamp': '1', 'number': '3830367'} (Showing first example) from spookyswap",
+        )
+        caplog.clear()
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+        self.apy_estimation_behaviour.act_wrapper()
 
     def test_clean_up(
         self,
@@ -816,84 +981,119 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = TransformBehaviour
     next_behaviour_class = PreprocessBehaviour
 
+    @pytest.mark.skip
     def test_setup(
-        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+        tmp_path: PosixPath,
     ) -> None:
         """Test behaviour setup."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context,
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        # Test `OSError` handling.
+        filepath = os.path.join(tmp_path, "test")
+        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
+        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                f"[test_agent_name] Path '{filepath}' could not be found!",
+            ),
+        ]
+        caplog.clear()
+
+        # Test `JSONDecodeError` handling.
+        with open(filepath, "wb") as f:
+            f.write(b"non-serializable")
+        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                f"[test_agent_name] File '{filepath}' has an invalid JSON encoding!",
+            ),
+        ]
+        caplog.clear()
+
+        # Test `ValueError` handling.
+        with open(filepath, "w", encoding="utf-16") as fb:
+            json.dump({"test": "τεστ"}, fb, ensure_ascii=True, indent=4)
+        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                f"[test_agent_name] There is an encoding error in the '{filepath}' file!",
+            ),
+        ]
+        caplog.clear()
+
+        # Test without error while reading the pairs' history.
+        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
             no_action,
         )
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.behaviours.read_json_file",
-            lambda _: {},
+            lambda _: {"test": "test"},
         )
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
             lambda _: pd.DataFrame(),
         )
-        behaviour.context.task_manager.start()
-        behaviour.setup()
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
-        assert isinstance(behaviour._async_result, AsyncResult)
-        assert behaviour._async_result is not None
-
-    def test_task_not_setup(
-        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
-    ) -> None:
-        """Run test for `transform_behaviour` when not set-up."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context,
-        )
-
-        assert behaviour.state_id == self.behaviour_class.state_id
-
-        behaviour.act_wrapper()
-        self.end_round()
-        assert behaviour.state_id == self.behaviour_class.state_id
-
+    @pytest.mark.skip
     def test_task_not_ready(
-        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+        self,
+        monkeypatch: MonkeyPatch,
+        caplog: LogCaptureFixture,
+        transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
-        behaviour = self.behaviour_class(
-            name=self.behaviour_class.state_id,
-            skill_context=self.apy_estimation_behaviour.context,
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(),
         )
+        cast(
+            TransformBehaviour, self.apy_estimation_behaviour.current_state
+        )._async_result = cast(ApplyResult, DummyAsyncResult(transform_task_result))
+        monkeypatch.setattr(DummyAsyncResult, "ready", lambda _: False)
 
-        assert behaviour.state_id == self.behaviour_class.state_id
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                "[test_agent_name] Path 'data/historical_data.json' could not be found!",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'transform' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.DEBUG,
+                "[test_agent_name] The transform task is not finished yet.",
+            ),
+        ]
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.create_pathdirs",
-            no_action,
-        )
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.behaviours.read_json_file",
-            lambda _: {},
-        )
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tasks.transform_hist_data",
-            lambda _: pd.DataFrame(),
-        )
-        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
-        behaviour.context.task_manager.start()
-        behaviour.setup()
-
-        behaviour.act_wrapper()
         self.end_round()
-        assert behaviour.state_id == self.behaviour_class.state_id
 
     def test_transform_behaviour(
         self,
-        transform_task_result: TaskResult,
+        transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour`."""
 
@@ -951,44 +1151,34 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_preprocess_behaviour(
         self,
         monkeypatch: MonkeyPatch,
+        transformed_historical_data: pd.DataFrame,
         tmp_path: PosixPath,
         no_action: Callable[[Any], None],
     ) -> None:
         """Run test for `preprocess_behaviour`."""
+        filepath = os.path.join(tmp_path, "test.csv")
+        # Increase the amount of dummy data for the train-test split.
+        transformed_historical_data = pd.DataFrame(
+            np.repeat(transformed_historical_data.values, 3, axis=0),
+            columns=transformed_historical_data.columns,
+        )
+        transformed_historical_data.to_csv(filepath, index=False)
+        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(np, "savetxt", no_action)
-        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
 
-        with mock.patch(
-            "packages.valory.skills.apy_estimation.tools.etl.load_hist",
-            new_callable=lambda *_: pd.DataFrame(),
-        ):
-            with mock.patch(
-                "packages.valory.skills.apy_estimation.ml.preprocessing.prepare_pair_data",
-                new_callable=lambda *_: (
-                    (np.asarray([0] * 20), np.asarray([0] * 10)),
-                    "",
-                ),
-            ):
-                with mock.patch(
-                    "packages.valory.skills.apy_estimation.tools.etl.load_hist",
-                    new_callable=lambda *_: pd.DataFrame(),
-                ):
-                    self.fast_forward_to_state(
-                        self.apy_estimation_behaviour,
-                        self.behaviour_class.state_id,
-                        PeriodState(),
-                    )
-                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-                    assert state.state_id == self.behaviour_class.state_id
-
-                    self.apy_estimation_behaviour.act_wrapper()
-                    self.mock_a2a_transaction()
-                    self._test_done_flag_set()
-                    self.end_round()
-                    state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-                    assert state.state_id == self.next_behaviour_class.state_id
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1179,34 +1369,599 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
 class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test OptimizeBehaviour."""
 
-    def test_optimize_behaviour(self) -> None:
+    behaviour_class = OptimizeBehaviour
+    next_behaviour_class = TrainBehaviour
+
+    def test_setup(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test behaviour setup."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        self.apy_estimation_behaviour.act_wrapper()
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+    @pytest.mark.skip
+    def test_optimize_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        optimize_task_result: optuna.Study,
+    ) -> None:
         """Run test for `optimize_behaviour`."""
-        # TODO
-        assert True
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(optimize_task_result),
+        )
+
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        monkeypatch.setattr(pd.DataFrame, "to_csv", no_action)
+        monkeypatch.setattr(
+            IPFSHashOnly,
+            "get",
+            lambda *_: "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11",
+        )
+
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
 
 
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TrainBehaviour."""
 
-    def test_train_behaviour(self) -> None:
-        """Run test for `train_behaviour`."""
-        # TODO
-        assert True
+    behaviour_class = TrainBehaviour
+    next_behaviour_class = _TestBehaviour
+
+    @pytest.mark.parametrize("full_training", (True, False))
+    def test_setup(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        full_training: bool,
+    ) -> None:
+        """Test behaviour setup."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(full_training=full_training, best_params={}),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(best_params={"p": 1, "q": 1, "d": 1, "m": 1}),
+        )
+
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        self.apy_estimation_behaviour.act_wrapper()
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+    def test_train_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        tmp_path: PosixPath,
+        train_task_result: Pipeline,
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(best_params={"p": 1, "q": 1, "d": 1, "m": 1}),
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(train_task_result),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        # changes for act.
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+
+        # act.
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
 
 
 class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TestBehaviour."""
 
-    def test_test_behaviour(self) -> None:
-        """Run test for `test_behaviour`."""
-        # TODO
-        assert True
+    behaviour_class = _TestBehaviour
+    next_behaviour_class = EstimateBehaviour
+
+    def test_setup(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Test behaviour setup."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    def test_task_not_ready(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Run test for behaviour when task result is not ready."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        self.apy_estimation_behaviour.context.task_manager.start()
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        self.apy_estimation_behaviour.act_wrapper()
+        assert (
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+    @pytest.mark.skip
+    def test_os_error_handling(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+        test_task_result: Dict[str, str],
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(test_task_result),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+        monkeypatch.setattr(
+            BaseState, "send_a2a_transaction", lambda *_: iter([0, 1, 2])
+        )
+        monkeypatch.setattr(BaseState, "wait_until_round_end", lambda _: no_action)
+
+        # test act for `OSError` handling.
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'test' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Testing has finished. Report follows:\n{'test': 'test'}",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                "[test_agent_name] Path '' could not be found!",
+            ),
+        ]
+
+    @pytest.mark.skip
+    def test_type_error_handling(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        tmp_path: PosixPath,
+        caplog: LogCaptureFixture,
+        test_task_result_non_serializable: bytes,
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(test_task_result_non_serializable),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
+        monkeypatch.setattr(
+            BaseState, "send_a2a_transaction", lambda *_: iter([0, 1, 2])
+        )
+        monkeypatch.setattr(BaseState, "wait_until_round_end", lambda _: no_action)
+
+        # test act for `TypeError` handling.
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'test' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Testing has finished. Report follows:\nb'non-serializable'",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.ERROR,
+                "[test_agent_name] Report cannot be JSON serialized!",
+            ),
+        ]
+
+    def test_test_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        tmp_path: PosixPath,
+        test_task_result: Dict[str, str],
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(test_task_result),
+        )
+        # run setup.
+        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+        # changes for act.
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.data_folder = tmp_path.parts[0]
+        importlib.reload(os.path)
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+
+        # test act.
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
 
 
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
-    def test_estimate_behaviour(self) -> None:
-        """Run test for `estimate_behaviour`."""
-        # TODO
-        assert True
+    behaviour_class = EstimateBehaviour
+    next_behaviour_class = ResetBehaviour
+
+    @pytest.mark.skip
+    def test_estimate_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+    ) -> None:
+        """Run test for `EstimateBehaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(pair_name="test"),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(joblib, "load", lambda _: DummyPipeline())
+        # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
+        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: 0)
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test CycleResetBehaviour."""
+
+    behaviour_class = CycleResetBehaviour
+    next_behaviour_class = EstimateBehaviour
+
+    def test_reset_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=8.1,
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
+        monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
+        cast(
+            CycleResetBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.observation_interval = 0.1
+        self.apy_estimation_behaviour.act_wrapper()
+        time.sleep(0.2)
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    @pytest.mark.skip
+    def test_reset_behaviour_without_most_voted_estimate(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Test reset behaviour without most voted estimate."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                most_voted_estimate=None,
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
+        monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
+
+        self.apy_estimation_behaviour.context.params.observation_interval = 0.1
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'cycle_reset' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Finalized estimate not available.",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Period end.",
+            ),
+        ]
+        time.sleep(0.2)
+        self.apy_estimation_behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test EstimateBehaviour."""
+
+    behaviour_class = ResetBehaviour
+    next_behaviour_class = FetchBehaviour
+
+    @pytest.mark.skip
+    def test_reset_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Run test for `ResetBehaviour`."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(
+                period_count=0,
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        self.apy_estimation_behaviour.act_wrapper()
+        assert caplog.record_tuples == [
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Entered in the 'reset' behaviour state",
+            ),
+            (
+                "aea.test_agent_name.packages.valory.skills.apy_estimation",
+                logging.INFO,
+                "[test_agent_name] Period 0 was not finished. Resetting!",
+            ),
+        ]
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id

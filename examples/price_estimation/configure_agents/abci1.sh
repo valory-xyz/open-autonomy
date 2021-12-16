@@ -1,7 +1,11 @@
-#!/usr/bin/env sh
+#!/usr/bin/bash
 
 cp ../configure_agents/keys/ethereum_private_key_1.txt ethereum_private_key.txt
 
+aea add-key ethereum
+aea config set agent.skill_exception_policy "just_log"
+aea config set agent.connection_exception_policy "just_log"
+aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.url https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.api_id coinmarketcap
 aea config set vendor.valory.skills.price_estimation_abci.models.price_api.args.headers '[{"Accepts": "application/json"}, {"X-CMC_PRO_API_KEY": "27d2cd0d-80c3-4ec3-9305-4f3d9ad34e41"}]'  --type list

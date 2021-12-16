@@ -20,7 +20,7 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import AbstractSet, Any, Dict, List, Optional, Tuple, Type, cast
+from typing import AbstractSet, Any, Dict, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 
@@ -76,7 +76,7 @@ class PeriodState(BasePeriodState):
         period_count: Optional[int] = None,
         period_setup_params: Optional[Dict] = None,
         most_voted_randomness: Optional[int] = None,
-        most_voted_estimate: Optional[List[float]] = None,
+        most_voted_estimate: Optional[float] = None,
         best_params: Optional[Dict[str, Any]] = None,
         full_training: bool = False,
         pair_name: Optional[str] = None,
@@ -101,7 +101,7 @@ class PeriodState(BasePeriodState):
         return cast(int, self._most_voted_randomness)
 
     @property
-    def most_voted_estimate(self) -> Optional[List[float]]:
+    def most_voted_estimate(self) -> Optional[float]:
         """Get the most_voted_estimate."""
         enforce(
             self._most_voted_estimate is not None,
@@ -330,14 +330,19 @@ class OptimizeRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
     round_id = "optimize"
     allowed_tx_type = OptimizationPayload.transaction_type
-    payload_attribute = "study_hash"
+    payload_attribute = "best_params"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         state_event = None
 
         if self.threshold_reached:
-            state_event = self.period_state, Event.DONE
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(best_params=self.most_voted_payload),
+            )
+
+            state_event = updated_state, Event.DONE
 
         elif not self.is_majority_possible(
             self.collection, self.period_state.nb_participants

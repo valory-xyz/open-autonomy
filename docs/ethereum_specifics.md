@@ -34,6 +34,11 @@ Delegate call can be difficult to wrap your head around, but think of it this wa
     }
     ```
 
+- Login to Tenderly using your username and password or an access token:
+    ```
+    tenderly login
+    ```
+
 - Run your Hardhat deployment and export your transactions with:
     ```
     tenderly export <transaction_hash>

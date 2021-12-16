@@ -207,6 +207,9 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.RUNNING
         return message
 
+    def setup(self) -> None:
+        """Setup behaviour."""
+
     def act(self) -> None:
         """Do the act."""
         if self.__state == self.AsyncState.READY:
@@ -230,6 +233,7 @@ class AsyncBehaviour(ABC):
         """Call the 'async_act' method for the first time."""
         self.__stopped = False
         self.__state = self.AsyncState.RUNNING
+        self.setup()
         try:
             self.__generator_act = self.async_act_wrapper()
             # if the method 'async_act' was not a generator function

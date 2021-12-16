@@ -50,7 +50,9 @@ def pinball_loss_scorer(alpha: float = 0.25) -> ScoringFuncType:
 class Objective:  # pylint: disable=too-few-public-methods
     """Class for the objective function that `optuna` will optimize."""
 
-    def __init__(self, y: np.ndarray, scoring: ScoringType) -> None:
+    def __init__(
+        self, y: np.ndarray, scoring: ScoringType, window_size: Optional[int] = None
+    ) -> None:
         """Init function for the Objective.
 
         :param y: the timeseries data, based on which the Cross-Validated optimization will be performed.
@@ -60,9 +62,12 @@ class Objective:  # pylint: disable=too-few-public-methods
                * ‘smape’
                * ‘mean_absolute_error’
                * ‘mean_squared_error’
+        :param window_size: The size of the rolling window to use.
+            If None, a rolling window of size n_samples // 5 will be used.
         """
         self.__y = y
         self.__scoring = scoring
+        self.__window_size = window_size
 
     def __call__(self, trial: optuna.trial.Trial) -> float:
         """Define the optimization objective function.
@@ -82,7 +87,7 @@ class Objective:  # pylint: disable=too-few-public-methods
         forecaster = init_forecaster(p, q, d, m, k)
 
         # Perform CV and get the average of the results.
-        cv = pm.model_selection.SlidingWindowForecastCV(window_size=120)
+        cv = pm.model_selection.SlidingWindowForecastCV(window_size=self.__window_size)
         scores = pm.model_selection.cross_val_score(
             forecaster, self.__y, scoring=self.__scoring, cv=cv
         )
@@ -100,10 +105,12 @@ def optimize(  # pylint: disable=too-many-arguments
     show_progress_bar: bool = True,
     scoring: ScoringType = "pinball",
     alpha: Optional[float] = None,
+    window_size: Optional[int] = None,
 ) -> optuna.study.Study:
     """Run the optimizer.
 
     :param y: the data with which the optimization will be done.
+    :param seed: Seed for random number generator.
     :param n_trials: the number of trials. If this argument is set to None,
         there is no limitation on the number of trials. If timeout is also set to None,
         the study continues to create trials until it receives a termination signal such as Ctrl+C or SIGTERM.
@@ -121,7 +128,8 @@ def optimize(  # pylint: disable=too-many-arguments
             * ‘mean_absolute_error’
             * ‘mean_squared_error’
     :param alpha: Parameter for the pinball scoring function. If another scoring fn is used, then it is ignored.
-    :param seed: Seed for random number generator.
+    :param window_size: The size of the rolling window to use.
+        If None, a rolling window of size n_samples // 5 will be used.
     :return: the `optuna` study.
     """
     if scoring == "pinball":
@@ -135,7 +143,7 @@ def optimize(  # pylint: disable=too-many-arguments
     # Create a study.
     study = optuna.create_study(sampler=sampler)
     # Create the Objective function.
-    objective_func = Objective(y, scoring)
+    objective_func = Objective(y, scoring, window_size)
 
     # Start the optimization of the study.
     study.optimize(
