@@ -22,4 +22,4 @@
 from aea.configurations.base import PublicId
 
 
-PUBLIC_ID = PublicId.from_str("valory/apy_estimation:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/apy_estimation_abci:0.1.0")

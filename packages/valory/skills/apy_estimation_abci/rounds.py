@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     TransactionType,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -42,14 +42,14 @@ from packages.valory.skills.apy_estimation.payloads import (
     RegistrationPayload,
     ResetPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload as _TestingPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
-from packages.valory.skills.apy_estimation.tools.general import filter_out_numbers
+from packages.valory.skills.apy_estimation_abci.tools.general import filter_out_numbers
 
 
 N_ESTIMATIONS_BEFORE_RETRAIN = 60
