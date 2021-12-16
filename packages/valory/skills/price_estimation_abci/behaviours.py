@@ -1139,9 +1139,8 @@ class BaseResetBehaviour(PriceEstimationBaseState):
             )
 
         if (
-            self.period_state.period_count % self.context.params.reset_tendermint_after
-            == 0
-        ):
+            self.period_state.period_count + 1
+        ) % self.context.params.reset_tendermint_after == 0:
             self.context.logger.info("Resetting tendermint node.")
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
@@ -1150,9 +1149,7 @@ class BaseResetBehaviour(PriceEstimationBaseState):
             result = yield from self._do_request(request_message, http_dialogue)
             try:
                 response = json.loads(result.body.decode())
-                if not response.get("status"):
-                    self.context.logger.error(response.get("message"))
-                self.context.logger.info("Tendermint reset was successful.")
+                self.context.logger.info(response.get("message"))
             except json.JSONDecodeError:
                 self.context.logger.error(
                     "Error communicating with tendermint com server."

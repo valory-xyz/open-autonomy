@@ -656,15 +656,6 @@ class TestTendermintHealthcheckBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
 
 
-class TestTendermintResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test case to test TendermintResetBehaviour."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-
 class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Base test case to test RegistrationBehaviour."""
 
@@ -1787,3 +1778,90 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def _tendermint_reset(self, body: bytes) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(period_count=-1),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_com_url + "/hard_reset",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=500,
+                status_text="",
+                headers="",
+                body=body,
+            ),
+        )
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_reset_behaviour_with_tendermint_reset(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self._tendermint_reset(
+                json.dumps(
+                    dict(message="Tendermint reset was successful.", status=True)
+                ).encode()
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Tendermint reset was successful.",
+            )
+
+    def test_reset_behaviour_with_tendermint_reset_error_message(
+        self,
+    ) -> None:
+        """Test reset behaviour with error message."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self._tendermint_reset(
+                json.dumps(
+                    dict(message="Error resetting tendermint.", status=False)
+                ).encode()
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Error resetting tendermint.",
+            )
+
+    def test_reset_behaviour_with_tendermint_reset_wrong_response(
+        self,
+    ) -> None:
+        """Test reset behaviour with wrong response."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self._tendermint_reset(b"")
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Error communicating with tendermint com server.",
+            )

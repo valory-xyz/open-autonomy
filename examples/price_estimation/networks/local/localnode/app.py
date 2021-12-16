@@ -41,7 +41,7 @@ def gentle_reset():
     try:
         tendermint_node.stop()
         tendermint_node.start()
-        return jsonify({"message": "Reset successful.", "status": True}), 200
+        return jsonify({"message": "Tendermint reset successful.", "status": True}), 200
     except Exception as e:
         return (
             jsonify(
