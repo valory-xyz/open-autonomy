@@ -83,6 +83,8 @@ class Params(BaseParams):
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.oracle_params = self._ensure("oracle", kwargs)
         self.drand_public_key = self._ensure("drand_public_key", kwargs)
+        self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
+        self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         super().__init__(*args, **kwargs)
 
 
