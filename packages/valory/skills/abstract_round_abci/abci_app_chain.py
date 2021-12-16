@@ -34,7 +34,7 @@ AbciAppTransitionMapping = Dict[str, AppState]
 
 
 def chain(  # pylint: disable=too-many-locals
-    abci_apps: Tuple[Type[AbciApp]], round_transition_mapping: AbciAppTransitionMapping
+    abci_apps: Tuple[Type[AbciApp], ...], round_transition_mapping: AbciAppTransitionMapping
 ) -> Type[AbciApp]:
     """Concatenate multiple AbciApp types."""
 
