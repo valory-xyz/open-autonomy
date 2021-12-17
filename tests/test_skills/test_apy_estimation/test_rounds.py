@@ -30,7 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     TransactionNotValidError,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -39,14 +39,14 @@ from packages.valory.skills.apy_estimation.payloads import (
     RegistrationPayload,
     ResetPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload as _TestingPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
-from packages.valory.skills.apy_estimation.rounds import (
+from packages.valory.skills.apy_estimation_abci.rounds import (
     CollectHistoryRound,
     CycleResetRound,
     EstimateRound,
@@ -58,8 +58,8 @@ from packages.valory.skills.apy_estimation.rounds import (
     RegistrationRound,
     ResetRound,
 )
-from packages.valory.skills.apy_estimation.rounds import TestRound as _TestRound
-from packages.valory.skills.apy_estimation.rounds import TrainRound, TransformRound
+from packages.valory.skills.apy_estimation_abci.rounds import TestRound as _TestRound
+from packages.valory.skills.apy_estimation_abci.rounds import TrainRound, TransformRound
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,

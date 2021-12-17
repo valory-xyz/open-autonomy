@@ -24,7 +24,7 @@ import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from packages.valory.skills.apy_estimation.tools.etl import (
+from packages.valory.skills.apy_estimation_abci.tools.etl import (
     HIST_DTYPES,
     TRANSFORMED_HIST_DTYPES,
     calc_apy,

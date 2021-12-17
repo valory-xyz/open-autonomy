@@ -26,7 +26,10 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
+from packages.valory.skills.apy_estimation_abci.rounds import (
+    APYEstimationAbciApp,
+    Event,
+)
 
 
 Requests = BaseRequests

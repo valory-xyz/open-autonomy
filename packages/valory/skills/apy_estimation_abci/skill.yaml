@@ -1,4 +1,4 @@
-name: apy_estimation
+name: apy_estimation_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -7,22 +7,22 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmYMv9a274LT6GAtDsJ4xg3My5cwjUQSCfjJkDj3dDoQMp
-  __init__.py: QmaCjC8M5r4UfeMesEYDRCSofpswiWkbf6WgC8Zc9sw1UK
-  behaviours.py: QmWzZ4NdsVmEeYr3iMxdQZkqr1wAQFkkHX2SmYGZEfuziS
+  __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
+  behaviours.py: QmdBzfbHQqkTtSuWga9hqRuG2GrhVtkSNqfAiFP1X81BpR
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmXuHV84WmZqLmgMzu5cDTskxVPquWfrPpGNdcFc3kB5qe
+  handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
   ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
   ml/forecasting.py: QmXCTBa4iAKvhAdsytRL3wHc6JmRqNntVWTBoUKniUShjE
   ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
-  ml/optimization.py: QmSfmDdR3wcQQcEgANhuczmaKjZc11jRUyEgnQtK8u3nKg
+  ml/optimization.py: Qmcz8d5F5pSJEad5dfFbYiRKVbWbcUaqAiz1sng4R9uCja
   ml/preprocessing.py: QmXkbxwhz8qTrRHzn7oBsKRo56JSGtE48dLu9gYmKYuL2C
-  models.py: QmSKs6e9c6GEjw3h1c7ZUEMN3aq7Btz4iKdUongEF7NbE8
+  models.py: QmRS4s6WsJsYh4RuhFUtPXT3HQ1buPg8bcieWsdbtAesHp
   payloads.py: QmZmowfFx6wNQfMjvCfuSuhcX8d4155EFXKyyfffFXxmMi
-  rounds.py: QmY72Dymn2FeaPvSnhhHVkz92kv9ha8MoitDWqD4zatufY
-  tasks.py: QmajDUQTTbPH1kZ88jy1v53oyuNx94k6KzCM6tDfTGPVY3
+  rounds.py: QmZaVmKm5BT6iwAB2XT7eGKDzido5JMkTrQyuEaQe5bo43
+  tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: QmXYfXtpRGMbAVpm6n8dqWjiAc8Z3ne9YPbmuxPnJ6HQ5W
-  tools/general.py: Qman2rbzcY6XnrF2vKU9tcSfwvNmtHEPFBnGBt82ubFRxP
+  tools/general.py: QmW5s7yRTy7wrwtzt5LhYLqZVrohFhFsWYsQjkYEQct6Yk
   tools/queries.py: Qmcgnd1HGGBhSLpnAAJi5QsKfiijvEVcHHHtytsVd6jopj
 fingerprint_ignore_patterns: []
 connections:
@@ -90,11 +90,11 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
-      history_duration: 6
+      history_duration: 1
       max_healthcheck: 120
       observation_interval: 10
       optimizer:
-        n_trials: 10
+        n_trials: 2
         timeout: None
         n_jobs: 1
         show_progress_bar: false
@@ -105,8 +105,8 @@ models:
       period_setup: {}
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
-      sleep_time: 1
+      round_timeout_seconds: 120
+      sleep_time: 5
       tendermint_url: http://localhost:26657
       testing:
         steps_forward: 1

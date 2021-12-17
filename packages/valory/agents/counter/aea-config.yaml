@@ -20,8 +20,7 @@ required_ledgers:
 - ethereum
 default_routing: {}
 connection_private_key_paths: {}
-private_key_paths:
-  ethereum: ethereum_private_key.txt
+private_key_paths: {}
 logging_config:
   disable_existing_loggers: false
   version: 1
@@ -33,4 +32,3 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/counter:0.1.0
-  use_tendermint: false
