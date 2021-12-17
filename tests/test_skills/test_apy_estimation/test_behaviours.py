@@ -1192,18 +1192,19 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                             self.apy_estimation_behaviour.act_wrapper()
 
                         # Simulate the result being eventually ready.
-                        with mock.patch.object(
-                            self._skill._skill_context._agent_context._task_manager,  # type: ignore
-                            "get_task_result",
-                            new_callable=lambda: (
-                                lambda *_: DummyAsyncResult(transform_task_result)
-                            ),
-                        ):
-                            self.apy_estimation_behaviour.act_wrapper()
+                        cast(
+                            DummyAsyncResult,
+                            cast(
+                                TransformBehaviour,
+                                self.apy_estimation_behaviour.current_state,
+                            )._async_result,
+                        )._ready = True
 
-                            self.mock_a2a_transaction()
-                            self._test_done_flag_set()
-                            self.end_round()
+                        self.apy_estimation_behaviour.act_wrapper()
+
+                        self.mock_a2a_transaction()
+                        self._test_done_flag_set()
+                        self.end_round()
 
     def test_transform_behaviour(
         self,
