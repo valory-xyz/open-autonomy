@@ -843,7 +843,6 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationStartupRound: {
             Event.DONE: RandomnessStartupRound,
-            Event.FAST_FORWARD: RandomnessRound,
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
@@ -884,15 +883,8 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
         },
         SelectKeeperBStartupRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
-        ValidateOracleRound: {
-            Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
-        },
+        ValidateOracleRound: {},
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -975,8 +967,19 @@ class PriceAggregationAbciApp(AbciApp[Event]):
 
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
+    RegistrationStartupRound: {Event.FAST_FORWARD: RandomnessRound},
     ValidateSafeRound: {Event.DONE: DeployOracleRound},
-    ValidateOracleRound: {Event.DONE: RandomnessRound},
+    SelectKeeperBStartupRound: {
+        Event.ROUND_TIMEOUT: RegistrationStartupRound,  # if the round times out we restart
+        Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
+    },
+    ValidateOracleRound: {
+        Event.DONE: RandomnessRound,
+        Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
+        Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
+        Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
+        Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
+    },
 }
 
 PriceEstimationAbciApp = chain(

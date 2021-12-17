@@ -65,7 +65,10 @@ def chain(  # pylint: disable=too-many-locals
     for state, event_to_states in abci_app_transition_mapping.items():
         for event, new_state in event_to_states.items():
             # Overwrite the old state or create a new one if it does not exist
-            new_transition_function[state][event] = new_state
+            if state not in new_transition_function:
+                new_transition_function[state] = {event: new_state}
+            else:
+                new_transition_function[state][event] = new_state
 
     # Remove no longer used states from transition function and final states
     destination_states: Set[AppState] = set()
