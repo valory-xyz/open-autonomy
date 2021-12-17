@@ -68,7 +68,7 @@ def chain(  # pylint: disable=too-many-locals
             new_transition_function[state][event] = new_state
 
     # Remove no longer used states
-    source_states: Set[AppState] = set(new_transition_function.keys())
+    # source_states: Set[AppState] = set(new_transition_function.keys()) # noqa: E800
     destination_states: Set[AppState] = set()
 
     for event_to_states in new_transition_function.values():  # type: ignore
@@ -81,11 +81,12 @@ def chain(  # pylint: disable=too-many-locals
     }
 
     # Remove no longer used final states
-    new_final_states = {
-        state
-        for state in new_final_states
-        if state not in source_states
-    }
+    new_final_states = destination_states.intersection(new_final_states)
+    # new_final_states = {               # noqa: E800
+    #     state                          # noqa: E800
+    #     for state in new_final_states  # noqa: E800
+    #     if state not in source_states  # noqa: E800
+    # }                                  # noqa: E800
 
     # Remove no longer used events
     used_events: Set[str] = set()
