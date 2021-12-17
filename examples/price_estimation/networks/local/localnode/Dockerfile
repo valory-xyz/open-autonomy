@@ -6,7 +6,7 @@ ENV TENDERMINT_VERSION=0.34.11
 RUN apk update && \
     apk upgrade && \
     apk --no-cache add curl jq file \
-    python3
+    python3 bash
 
 RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
     chmod u+x wait-for-it.sh &&\

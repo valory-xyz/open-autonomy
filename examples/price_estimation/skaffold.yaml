@@ -44,12 +44,27 @@ profiles:
         - kubernetes_configs/configuration/networking/ip_pools.yaml
         - kubernetes_configs/build/config_job.yaml
   - name: configure-localcluster
+    build:
+      artifacts:
+      - image: valory/hardhat
+        context: ./
+        docker:
+          dockerfile: DockerFiles/hardhat/Dockerfile
+      - image: valory/oracle-poc
+        context: ../..
+        docker:
+          dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+      - image: valory/localnode
+        context: ./networks/local/localnode/
+        docker:
+          dockerfile: Dockerfile
     deploy:
       kubectl:
         manifests:
         - kubernetes_configs/configuration/secret.yaml
         - kubernetes_configs/configuration/storage/localstorage.yaml
         - kubernetes_configs/configuration/networking/calico.yaml
+        - kubernetes_configs/build/config_job.yaml
   - name: dashboard
     deploy:
       kubectl:

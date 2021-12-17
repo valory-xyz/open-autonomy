@@ -1,8 +1,8 @@
-agent_name: price_estimation
+agent_name: apy_estimation
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: Price estimation agent.
+description: APY estimation agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint: {}
 fingerprint_ignore_patterns: []
@@ -10,10 +10,7 @@ connections:
 - valory/abci:0.1.0
 - valory/http_client:0.1.0
 - valory/ledger:0.1.0
-contracts:
-- valory/gnosis_safe:0.1.0
-- valory/gnosis_safe_proxy_factory:0.1.0
-- valory/offchain_aggregator:0.1.0
+contracts: []
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
@@ -23,7 +20,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
-- valory/price_estimation_abci:0.1.0
+- valory/apy_estimation_abci:0.1.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -53,4 +50,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/price_estimation_abci:0.1.0
+  target_skill_id: valory/apy_estimation_abci:0.1.0

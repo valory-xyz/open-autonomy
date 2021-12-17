@@ -1066,10 +1066,8 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
         states = set()
-        for start_state, transitions in cls.transition_function.items():
+        for start_state, _ in cls.transition_function.items():
             states.add(start_state)
-            for _event, end_state in transitions.items():
-                states.add(end_state)
         return states
 
     @classmethod
@@ -1469,7 +1467,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         ):
-            raise ABCIAppInternalError("cannot accept a 'begin_block' request.")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'begin_block' request. Current phase={self._block_construction_phase}"
+            )
 
         # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
         self._block_construction_phase = (
@@ -1492,7 +1492,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
-            raise ABCIAppInternalError("cannot accept a 'deliver_tx' request")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'deliver_tx' request. Current phase={self._block_construction_phase}"
+            )
 
         self.abci_app.check_transaction(transaction)
         self.abci_app.process_transaction(transaction)
@@ -1504,7 +1506,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
-            raise ABCIAppInternalError("cannot accept a 'end_block' request.")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'end_block' request. Current phase={self._block_construction_phase}"
+            )
         # The ABCI app waits for the commit
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_COMMIT
@@ -1516,7 +1520,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_COMMIT
         ):
-            raise ABCIAppInternalError("cannot accept a 'commit' request.")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'commit' request. Current phase={self._block_construction_phase}"
+            )
         block = self._block_builder.get_block()
         try:
             self._blockchain.add_block(block)

@@ -26,8 +26,11 @@ import numpy as np
 import pytest
 from aea.helpers.ipfs.base import IPFSHashOnly
 
-from packages.valory.skills.apy_estimation.ml.forecasting import init_forecaster
-from packages.valory.skills.apy_estimation.ml.io import load_forecaster, save_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.io import (
+    load_forecaster,
+    save_forecaster,
+)
 
 
 class TestIO:

@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 
-"""This module contains the handlers for the 'apy_estimation' skill."""
+"""This module contains the handlers for the 'apy_estimation_abci' skill."""
 
 from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
 from packages.valory.skills.abstract_round_abci.handlers import (

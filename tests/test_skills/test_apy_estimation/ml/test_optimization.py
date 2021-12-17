@@ -27,7 +27,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from sklearn.metrics import mean_pinball_loss
 
-from packages.valory.skills.apy_estimation.ml.optimization import (
+from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     Objective,
     optimize,
     pinball_loss_scorer,
