@@ -506,7 +506,9 @@ class TransformBehaviour(APYEstimationBaseState):
                 )
 
                 # Store the transformed data.
-                transformed_history.to_csv(self._transformed_history_save_path, index=False)
+                transformed_history.to_csv(
+                    self._transformed_history_save_path, index=False
+                )
 
                 # Hash the file.
                 hasher = IPFSHashOnly()
@@ -530,7 +532,9 @@ class TransformBehaviour(APYEstimationBaseState):
                 yield from self.sleep(self.params.sleep_time)
 
         else:
-            self.context.logger.error("Undefined behaviour encountered with `TransformTask`.")
+            self.context.logger.error(
+                "Undefined behaviour encountered with `TransformTask`."
+            )
             yield from self.sleep(self.params.sleep_time)
 
 
@@ -743,7 +747,9 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 best_params_hash = hasher.get(best_params_save_path)
 
                 # Pass the best params hash as a Payload.
-                payload = OptimizationPayload(self.context.agent_address, best_params_hash)
+                payload = OptimizationPayload(
+                    self.context.agent_address, best_params_hash
+                )
 
                 # Finish behaviour.
                 with benchmark_tool.measure(self).consensus():
@@ -757,7 +763,9 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 yield from self.sleep(self.params.sleep_time)
 
         else:
-            self.context.logger.error("Undefined behaviour encountered with `OptimizationTask`.")
+            self.context.logger.error(
+                "Undefined behaviour encountered with `OptimizationTask`."
+            )
             yield from self.sleep(self.params.sleep_time)
 
 
@@ -951,7 +959,9 @@ class TestBehaviour(APYEstimationBaseState):
                 # Get the test report.
                 completed_task = self._async_result.get()
                 report = cast(TestReportType, completed_task)
-                self.context.logger.info(f"Testing has finished. Report follows:\n{report}")
+                self.context.logger.info(
+                    f"Testing has finished. Report follows:\n{report}"
+                )
 
                 # Store the results.
                 report_save_path = os.path.join(
