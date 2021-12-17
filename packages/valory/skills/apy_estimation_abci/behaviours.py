@@ -234,7 +234,10 @@ class FetchBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Set the behaviour up."""
-        self._save_path = os.path.join(self.params.data_folder, "historical_data.json")
+        self._save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            "historical_data.json",
+        )
         create_pathdirs(self._save_path)
 
     def _handle_response(
@@ -453,10 +456,12 @@ class TransformBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         self._history_save_path = os.path.join(
-            self.params.data_folder, "historical_data.json"
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            "historical_data.json",
         )
         self._transformed_history_save_path = os.path.join(
-            self.params.data_folder, "transformed_historical_data.csv"
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            "transformed_historical_data.csv",
         )
         create_pathdirs(self._transformed_history_save_path)
 
@@ -551,7 +556,8 @@ class PreprocessBehaviour(APYEstimationBaseState):
 
         # Get the historical data and preprocess them.
         transformed_history_load_path = os.path.join(
-            self.params.data_folder, "transformed_historical_data.csv"
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            "transformed_historical_data.csv",
         )
 
         try:
@@ -567,7 +573,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
             hashes = []
             for filename, split in {"train": y_train, "test": y_test}.items():
                 save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, f"y_{filename}.csv"
+                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                    self.params.pair_id,
+                    f"y_{filename}.csv",
                 )
                 create_pathdirs(save_path)
                 split.to_csv(save_path, index=False)
@@ -676,7 +684,9 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         training_data_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "y_train.csv"
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_id,
+            "y_train.csv",
         )
 
         try:
@@ -715,7 +725,9 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
                 # Store the best params from the results.
                 best_params_save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "best_params.json"
+                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                    self.params.pair_id,
+                    "best_params.json",
                 )
                 create_pathdirs(best_params_save_path)
 
@@ -788,7 +800,9 @@ class TrainBehaviour(APYEstimationBaseState):
 
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "best_params.json"
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_id,
+            "best_params.json",
         )
 
         try:
@@ -814,7 +828,9 @@ class TrainBehaviour(APYEstimationBaseState):
         if self.period_state.full_training:
             for split in ("train", "test"):
                 path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, f"y_{split}.csv"
+                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                    self.params.pair_id,
+                    f"y_{split}.csv",
                 )
 
                 try:
@@ -828,7 +844,9 @@ class TrainBehaviour(APYEstimationBaseState):
 
         else:
             path = os.path.join(
-                self.params.data_folder, self.params.pair_id, "y_train.csv"
+                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.params.pair_id,
+                "y_train.csv",
             )
 
             try:
@@ -863,7 +881,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 # Store the results.
                 prefix = "fully_trained_" if self.period_state.full_training else ""
                 forecaster_save_path = os.path.join(
-                    self.params.data_folder,
+                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                     self.params.pair_id,
                     f"{prefix}forecaster.joblib",
                 )
@@ -913,7 +931,9 @@ class TestBehaviour(APYEstimationBaseState):
 
         for split in ("train", "test"):
             path = os.path.join(
-                self.params.data_folder, self.params.pair_id, f"y_{split}.csv"
+                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.params.pair_id,
+                f"y_{split}.csv",
             )
 
             try:
@@ -924,7 +944,9 @@ class TestBehaviour(APYEstimationBaseState):
                 should_create_task = False
 
         model_path = os.path.join(
-            self.params.data_folder, self.params.pair_id, "forecaster.joblib"
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_id,
+            "forecaster.joblib",
         )
 
         try:
@@ -965,7 +987,9 @@ class TestBehaviour(APYEstimationBaseState):
 
                 # Store the results.
                 report_save_path = os.path.join(
-                    self.params.data_folder, self.params.pair_id, "test_report.json"
+                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                    self.params.pair_id,
+                    "test_report.json",
                 )
                 create_pathdirs(report_save_path)
 
@@ -1020,7 +1044,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         model_path = os.path.join(
-            self.params.data_folder,
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_id,
             "fully_trained_forecaster.joblib",
         )

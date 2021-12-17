@@ -88,7 +88,6 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.drand_public_key = self._ensure("drand_public_key", kwargs)
         self.history_duration = self._ensure("history_duration", kwargs)
-        self.data_folder = self._ensure("data_folder", kwargs)
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
