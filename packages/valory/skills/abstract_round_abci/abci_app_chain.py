@@ -80,7 +80,11 @@ def chain(  # pylint: disable=too-many-locals
     }
 
     # Remove no longer used final states
-    new_final_states = used_states.intersection(new_final_states)
+    new_final_states = {
+        state
+        for state in new_final_states
+        if state not in new_transition_function.keys()
+    }
 
     # Remove no longer used events
     used_events: Set[str] = set()
