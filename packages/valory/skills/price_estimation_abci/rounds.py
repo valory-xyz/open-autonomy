@@ -888,12 +888,24 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
         ValidateOracleRound: {
-            Event.DONE: RandomnessRound,
             Event.NEGATIVE: RegistrationStartupRound,  # if the round does not reach a positive vote we restart
             Event.NONE: RegistrationStartupRound,  # NOTE: unreachable
             Event.VALIDATE_TIMEOUT: RegistrationStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
             Event.NO_MAJORITY: RegistrationStartupRound,  # if the round has no majority we restart
         },
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.VALIDATE_TIMEOUT: 30.0,
+        Event.DEPLOY_TIMEOUT: 30.0,
+    }
+
+
+class PriceAggregationAbciApp(AbciApp[Event]):
+    """Price estimation ABCI application."""
+
+    initial_round_cls: Type[AbstractRound] = DeployOracleRound
+    transition_function: AbciAppTransitionFunction = {
         RandomnessRound: {
             Event.DONE: SelectKeeperARound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
@@ -958,15 +970,16 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
-        Event.DEPLOY_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
 
 
 round_transition_mapping: AbciAppTransitionMapping = {
-    ValidateSafeRound: {Event.DONE: DeployOracleRound}
+    ValidateSafeRound: {Event.DONE: DeployOracleRound},
+    ValidateOracleRound: {Event.DONE: RandomnessRound},
 }
 
 PriceEstimationAbciApp = chain(
-    (SafeDeploymentAbciApp, OracleDeploymentAbciApp), round_transition_mapping
+    (SafeDeploymentAbciApp, OracleDeploymentAbciApp, PriceAggregationAbciApp),
+    round_transition_mapping,
 )
