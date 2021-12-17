@@ -974,12 +974,12 @@ class PriceAggregationAbciApp(AbciApp[Event]):
     }
 
 
-round_transition_mapping: AbciAppTransitionMapping = {
+abci_app_transition_mapping: AbciAppTransitionMapping = {
     ValidateSafeRound: {Event.DONE: DeployOracleRound},
     ValidateOracleRound: {Event.DONE: RandomnessRound},
 }
 
 PriceEstimationAbciApp = chain(
     (SafeDeploymentAbciApp, OracleDeploymentAbciApp, PriceAggregationAbciApp),
-    round_transition_mapping,
+    abci_app_transition_mapping,
 )

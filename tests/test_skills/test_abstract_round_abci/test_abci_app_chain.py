@@ -68,11 +68,11 @@ def test_chain_two() -> None:
         final_states = {round_2b}
         event_to_timeout = {event_timeout2: timeout2}
 
-    round_transition_mapping: AbciAppTransitionMapping = {
+    abci_app_transition_mapping: AbciAppTransitionMapping = {
         round_1a: {event_1b: round_2a}
     }
 
-    ComposedAbciApp = chain((AbciApp1, AbciApp2), round_transition_mapping)  # type: ignore
+    ComposedAbciApp = chain((AbciApp1, AbciApp2), abci_app_transition_mapping)  # type: ignore
 
     assert ComposedAbciApp.initial_round_cls == round_1a
     assert ComposedAbciApp.transition_function == {
@@ -142,12 +142,12 @@ def test_chain_three() -> None:
         final_states = {round_3b}
         event_to_timeout = {event_timeout3: timeout3}
 
-    round_transition_mapping: AbciAppTransitionMapping = {
+    abci_app_transition_mapping: AbciAppTransitionMapping = {
         round_1a: {event_1b: round_2a},
         round_2a: {event_2b: round_3a},
     }
 
-    ComposedAbciApp = chain((AbciApp1, AbciApp2, AbciApp3), round_transition_mapping)  # type: ignore
+    ComposedAbciApp = chain((AbciApp1, AbciApp2, AbciApp3), abci_app_transition_mapping)  # type: ignore
 
     assert ComposedAbciApp.initial_round_cls == round_1a
     assert ComposedAbciApp.transition_function == {

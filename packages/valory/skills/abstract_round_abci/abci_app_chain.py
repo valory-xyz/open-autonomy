@@ -35,7 +35,7 @@ AbciAppTransitionMapping = Dict[AppState, Dict[Any, AppState]]
 
 def chain(  # pylint: disable=too-many-locals
     abci_apps: Tuple[Type[AbciApp], ...],
-    round_transition_mapping: AbciAppTransitionMapping,
+    abci_app_transition_mapping: AbciAppTransitionMapping,
 ) -> Type[AbciApp]:
     """Concatenate multiple AbciApp types."""
 
@@ -62,7 +62,7 @@ def chain(  # pylint: disable=too-many-locals
     }
 
     # Update transition function
-    for state, event_to_states in round_transition_mapping.items():
+    for state, event_to_states in abci_app_transition_mapping.items():
         for event, new_state in event_to_states.items():
             # Overwrite the old state or create a new one if it does not exist
             new_transition_function[state][event] = new_state
