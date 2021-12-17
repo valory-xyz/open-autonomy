@@ -49,7 +49,7 @@ def chain(  # pylint: disable=too-many-locals
         f"rounds in common between operands are not allowed ({common_round_classes})",
     )
 
-    # Build the new final states and events
+    # Merge the transition functions, final states and events
     new_initial_state = abci_apps[0].initial_round_cls
     new_final_states = set.union(*(app.final_states for app in abci_apps))
     new_events_to_timeout = {
@@ -61,14 +61,13 @@ def chain(  # pylint: disable=too-many-locals
         for state, events_to_rounds in app.transition_function.items()
     }
 
-    # Update transition function
+    # Update transition function according to the transition mapping
     for state, event_to_states in abci_app_transition_mapping.items():
         for event, new_state in event_to_states.items():
             # Overwrite the old state or create a new one if it does not exist
             new_transition_function[state][event] = new_state
 
-    # Remove no longer used states
-    # source_states: Set[AppState] = set(new_transition_function.keys()) # noqa: E800
+    # Remove no longer used states from transition function and final states
     destination_states: Set[AppState] = set()
 
     for event_to_states in new_transition_function.values():  # type: ignore
@@ -77,16 +76,12 @@ def chain(  # pylint: disable=too-many-locals
     new_transition_function = {
         state: events_to_rounds
         for state, events_to_rounds in new_transition_function.items()
-        if state in destination_states
+        if state in destination_states or state is new_initial_state
     }
 
-    # Remove no longer used final states
-    new_final_states = destination_states.intersection(new_final_states)
-    # new_final_states = {               # noqa: E800
-    #     state                          # noqa: E800
-    #     for state in new_final_states  # noqa: E800
-    #     if state not in source_states  # noqa: E800
-    # }                                  # noqa: E800
+    new_final_states = {
+        state for state in new_final_states if state in destination_states
+    }
 
     # Remove no longer used events
     used_events: Set[str] = set()
