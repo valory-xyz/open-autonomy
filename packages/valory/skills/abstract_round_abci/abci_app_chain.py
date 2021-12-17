@@ -68,22 +68,23 @@ def chain(  # pylint: disable=too-many-locals
             new_transition_function[state][event] = new_state
 
     # Remove no longer used states
-    used_states: Set[AppState] = set()
+    source_states: Set[AppState] = set(new_transition_function.keys())
+    destination_states: Set[AppState] = set()
 
     for event_to_states in new_transition_function.values():  # type: ignore
-        used_states.update(event_to_states.values())  # type: ignore
+        destination_states.update(event_to_states.values())  # type: ignore
 
     new_transition_function = {
         state: events_to_rounds
         for state, events_to_rounds in new_transition_function.items()
-        if state in used_states
+        if state in destination_states
     }
 
     # Remove no longer used final states
     new_final_states = {
         state
         for state in new_final_states
-        if state not in new_transition_function.keys()
+        if state not in source_states
     }
 
     # Remove no longer used events
