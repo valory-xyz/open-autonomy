@@ -15,6 +15,8 @@ aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 7 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node0:26657"
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_com_url "http://node0:8080"
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after 3 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 300 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 43200 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.safe_contract_address "0x7AbCC2424811c342BC9A9B52B1621385d7406676"

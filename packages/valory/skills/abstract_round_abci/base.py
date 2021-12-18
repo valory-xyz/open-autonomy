@@ -1516,6 +1516,12 @@ class Period:
         except AddBlockError as exception:
             raise exception
 
+    def reset_blockchain(
+        self,
+    ) -> None:
+        """Reset blockchain after tendermint reset."""
+        self._blockchain = Blockchain()
+
     def _update_round(self) -> None:
         """
         Update a round.
