@@ -39,6 +39,7 @@ from aea.exceptions import enforce
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     abci_app_chain,
+    period_state_chain,
 )
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -95,7 +96,9 @@ def rotate_list(my_list: list, positions: int) -> List[str]:
     return my_list[positions:] + my_list[:positions]
 
 
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
+class SafeDeploymentPeriodState(
+    BasePeriodState
+):  # pylint: disable=too-many-instance-attributes
     """
     Class to represent a period state.
 
@@ -112,16 +115,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
         most_voted_keeper_address: Optional[str] = None,
         safe_contract_address: Optional[str] = None,
-        oracle_contract_address: Optional[str] = None,
-        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
-        participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
-        participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
-        estimate: Optional[float] = None,
-        most_voted_estimate: Optional[float] = None,
-        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
-        most_voted_tx_hash: Optional[str] = None,
-        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        final_tx_hash: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -129,21 +122,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             period_count=period_count,
             period_setup_params=period_setup_params,
         )
+
         self._participant_to_randomness = participant_to_randomness
         self._most_voted_randomness = most_voted_randomness
+        self._participant_to_selection = participant_to_selection
         self._most_voted_keeper_address = most_voted_keeper_address
         self._safe_contract_address = safe_contract_address
-        self._oracle_contract_address = oracle_contract_address
-        self._participant_to_selection = participant_to_selection
-        self._participant_to_votes = participant_to_votes
-        self._participant_to_observations = participant_to_observations
-        self._participant_to_estimate = participant_to_estimate
-        self._most_voted_estimate = most_voted_estimate
-        self._estimate = estimate
-        self._participant_to_tx_hash = participant_to_tx_hash
-        self._most_voted_tx_hash = most_voted_tx_hash
-        self._participant_to_signature = participant_to_signature
-        self._final_tx_hash = final_tx_hash
 
     @property
     def keeper_randomness(self) -> float:
@@ -166,14 +150,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return sorted(self.participants, key=str.lower)
 
     @property
-    def are_contracts_set(self) -> bool:
-        """Check whether contracts are set."""
-        return (
-            self._safe_contract_address is not None
-            and self._oracle_contract_address is not None
-        )
-
-    @property
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
         return self._most_voted_keeper_address is not None
@@ -186,6 +162,15 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'participant_to_randomness' field is None",
         )
         return cast(Mapping[str, RandomnessPayload], self._participant_to_randomness)
+
+    @property
+    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
+        """Get the participant_to_selection."""
+        enforce(
+            self._participant_to_selection is not None,
+            "'participant_to_selection' field is None",
+        )
+        return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
 
     @property
     def most_voted_randomness(self) -> str:
@@ -214,6 +199,25 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
         return cast(str, self._safe_contract_address)
 
+
+class OracleDeploymentPeriodState(
+    BasePeriodState
+):  # pylint: disable=too-many-instance-attributes
+    """
+    Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        oracle_contract_address: Optional[str] = None,
+    ) -> None:
+        """Initialize a period state."""
+        super().__init__()
+
+        self._oracle_contract_address = oracle_contract_address
+
     @property
     def oracle_contract_address(self) -> str:
         """Get the oracle contract address."""
@@ -223,14 +227,40 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
         return cast(str, self._oracle_contract_address)
 
-    @property
-    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
-        """Get the participant_to_selection."""
-        enforce(
-            self._participant_to_selection is not None,
-            "'participant_to_selection' field is None",
-        )
-        return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
+
+class PriceAggregationPeriodState(
+    BasePeriodState
+):  # pylint: disable=too-many-instance-attributes
+    """
+    Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
+        participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
+        participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
+        estimate: Optional[float] = None,
+        most_voted_estimate: Optional[float] = None,
+        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
+        most_voted_tx_hash: Optional[str] = None,
+        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
+        final_tx_hash: Optional[str] = None,
+    ) -> None:
+        """Initialize a period state."""
+        super().__init__()
+
+        self._participant_to_votes = participant_to_votes
+        self._participant_to_observations = participant_to_observations
+        self._participant_to_estimate = participant_to_estimate
+        self._most_voted_estimate = most_voted_estimate
+        self._estimate = estimate
+        self._participant_to_tx_hash = participant_to_tx_hash
+        self._most_voted_tx_hash = most_voted_tx_hash
+        self._participant_to_signature = participant_to_signature
+        self._final_tx_hash = final_tx_hash
 
     @property
     def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
@@ -313,6 +343,27 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             self._most_voted_tx_hash is not None, "'most_voted_tx_hash' field is None"
         )
         return cast(str, self._most_voted_tx_hash)
+
+
+PeriodState = period_state_chain(
+    (
+        SafeDeploymentPeriodState,
+        OracleDeploymentPeriodState,
+        PriceAggregationPeriodState,
+    )
+)
+
+
+@property
+def are_contracts_set(self) -> bool:
+    """Check whether contracts are set."""
+    return (
+        self._safe_contract_address is not None  # pylint: disable=protected-access
+        and self._oracle_contract_address is not None # pylint: disable=protected-access
+    )
+
+
+setattr(PeriodState, "are_contracts_set", are_contracts_set)  # noqa: B010
 
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):

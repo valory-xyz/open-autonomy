@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
+import inspect
+from itertools import chain
 from typing import Any, Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
@@ -116,11 +118,37 @@ def abci_app_chain(  # pylint: disable=too-many-locals
 
 
 def period_state_chain(
-    period_states: Tuple[Type[BasePeriodState], ...],
+    Base_Classes: Tuple[Type[BasePeriodState], ...]
 ) -> Type[BasePeriodState]:
-    """Concatenate multiple period states."""
+    """Concatenate multiple period states using a class factory."""
 
-    class ComposedPeriodState(*period_states):  # type: ignore # pylint: disable=too-few-public-methods
-        """Composed period class."""
+    # Class constructor
+    def __init__(self, **kwargs):
 
+        all_params = set(
+            chain.from_iterable(
+                tuple(inspect.signature(Base_Class.__init__).parameters.keys())
+                for Base_Class in Base_Classes
+            )
+        )
+
+        # Set attributes
+        for key, value in kwargs.items():
+            if key not in all_params:
+                message = f"period_state_chain: parameter {key}: {type(key)} = {value} does not belong to any of the base classes"
+                raise TypeError(message)
+            setattr(self, key, value)
+
+        # Call base constructors
+        for Base_Class in Base_Classes:
+            params = inspect.signature(Base_Class.__init__).parameters
+            init_params = {
+                key: value for key, value in kwargs.items() if key in params.keys()
+            }
+            Base_Class.__init__(self, *init_params)
+
+    # Create new class and return it
+    ComposedPeriodState = type(
+        "ComposedPeriodState", Base_Classes, {"__init__": __init__}
+    )
     return ComposedPeriodState
