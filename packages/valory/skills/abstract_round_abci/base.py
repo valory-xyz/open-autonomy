@@ -943,6 +943,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
 
 AppState = Type[AbstractRound]
 AbciAppTransitionFunction = Dict[AppState, Dict[EventType, AppState]]
+EventToTimeout = Dict[EventType, float]
 
 
 @dataclass(order=True)
@@ -1026,7 +1027,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     initial_round_cls: AppState
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
-    event_to_timeout: Dict[EventType, float] = {}
+    event_to_timeout: EventToTimeout = {}
 
     def __init__(
         self,
@@ -1094,7 +1095,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         cls,
         initial_round_cls: AppState,
         transition_function: AbciAppTransitionFunction,
-        event_to_timeout: Dict[EventType, float],
+        event_to_timeout: EventToTimeout,
     ) -> None:
         """
         Check that required class attributes values are consistent.
