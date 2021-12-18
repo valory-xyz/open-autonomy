@@ -38,7 +38,7 @@ from aea.exceptions import enforce
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
-    chain,
+    abci_app_chain,
 )
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -982,7 +982,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     },
 }
 
-PriceEstimationAbciApp = chain(
+PriceEstimationAbciApp = abci_app_chain(
     (SafeDeploymentAbciApp, OracleDeploymentAbciApp, PriceAggregationAbciApp),
     abci_app_transition_mapping,
 )

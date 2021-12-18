@@ -26,6 +26,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AppState,
+    BasePeriodState,
     EventToTimeout,
     EventType,
 )
@@ -34,7 +35,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 AbciAppTransitionMapping = Dict[AppState, Dict[Any, AppState]]
 
 
-def chain(  # pylint: disable=too-many-locals
+def abci_app_chain(  # pylint: disable=too-many-locals
     abci_apps: Tuple[Type[AbciApp], ...],
     abci_app_transition_mapping: AbciAppTransitionMapping,
 ) -> Type[AbciApp]:
@@ -112,3 +113,14 @@ def chain(  # pylint: disable=too-many-locals
         event_to_timeout: EventToTimeout = new_events_to_timeout
 
     return ComposedAbciApp
+
+
+def period_state_chain(
+    period_states: Tuple[Type[BasePeriodState], ...],
+) -> Type[BasePeriodState]:
+    """Concatenate multiple period states."""
+
+    class ComposedPeriodState(*period_states):  # type: ignore # pylint: disable=too-few-public-methods
+        """Composed period class."""
+
+    return ComposedPeriodState

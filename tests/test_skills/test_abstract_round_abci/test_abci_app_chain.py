@@ -18,15 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """Test the abci_app_chain.py module of the skill."""
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
-    chain,
+    abci_app_chain,
+    period_state_chain,
 )
-from packages.valory.skills.abstract_round_abci.base import AbciApp
+from packages.valory.skills.abstract_round_abci.base import AbciApp, BasePeriodState
 
 
 class TestAbciAppChaining:
@@ -122,7 +124,7 @@ class TestAbciAppChaining:
             self.round_1a: {self.event_1b: self.round_2a}
         }
 
-        ComposedAbciApp = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+        ComposedAbciApp = abci_app_chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
 
         assert ComposedAbciApp.initial_round_cls == self.round_1a
         assert ComposedAbciApp.transition_function == {
@@ -150,7 +152,7 @@ class TestAbciAppChaining:
             self.round_2a: {self.event_2b: self.round_3a},
         }
 
-        ComposedAbciApp = chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
+        ComposedAbciApp = abci_app_chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
 
         assert ComposedAbciApp.initial_round_cls == self.round_1a
         assert ComposedAbciApp.transition_function == {
@@ -185,4 +187,35 @@ class TestAbciAppChaining:
         with pytest.raises(
             ValueError, match="but it is already defined in a prior app with timeout"
         ):
-            _ = chain((self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping)  # type: ignore
+            _ = abci_app_chain((self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping)  # type: ignore
+
+
+def test_chain_period() -> None:
+    """Test the period state chain function."""
+
+    class period_state_A(BasePeriodState):
+        """Period state A class"""
+
+        def __init__(self, participants: List[str]):
+            self._participants_a = participants
+
+        @property
+        def participants_a(self) -> List[str]:
+            """Get the participants"""
+            return self._participants_a
+
+    class period_state_B(BasePeriodState):
+        """Period state B class"""
+
+        def __init__(self, participants: List[str]):
+            self._participants_b = participants
+
+        @property
+        def participants_b(self) -> List[str]:
+            """Get the participants"""
+            return self._participants_b
+
+    chained_period_state = period_state_chain((period_state_A, period_state_B))
+
+    assert hasattr(chained_period_state, "participants_a")
+    assert hasattr(chained_period_state, "participants_b")
