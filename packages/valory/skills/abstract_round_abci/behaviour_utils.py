@@ -773,8 +773,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             deadline = datetime.datetime.max
 
         while True:
-            request_timeout = (deadline - datetime.datetime.now()).total_seconds()
-            if request_timeout < 0:
+            request_timeout = (
+                (deadline - datetime.datetime.now()).total_seconds()
+                if timeout is not None
+                else None
+            )
+            if request_timeout is not None and request_timeout < 0:
                 raise TimeoutException()
 
             response = yield from self._get_tx_info(tx_hash, timeout=request_timeout)
