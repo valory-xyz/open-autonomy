@@ -79,10 +79,8 @@ def chain(  # pylint: disable=too-many-locals
             # Update transition function according to the transition mapping
             new_events_to_rounds = {}
             for event, round_ in events_to_rounds.items():
-                if round_ in abci_app_transition_mapping:
-                    new_events_to_rounds[event] = abci_app_transition_mapping[round_]
-                else:
-                    new_events_to_rounds[event] = round_
+                destination_round = abci_app_transition_mapping.get(round_, round_)
+                new_events_to_rounds[event] = destination_round
             potential_transition_function[state] = new_events_to_rounds
 
     # Remove no longer used states from transition function and final states
