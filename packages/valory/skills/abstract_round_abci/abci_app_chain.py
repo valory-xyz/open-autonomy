@@ -54,9 +54,9 @@ def chain(  # pylint: disable=too-many-locals
         f"rounds in common between operands are not allowed ({common_round_classes})",
     )
     # Ensure all states in app transition mapping are final states
-    states = {final_state for app in abci_apps for final_state in app.final_states}
+    all_final_states = {final_state for app in abci_apps for final_state in app.final_states}
     for key in abci_app_transition_mapping.keys():
-        if key not in states:
+        if key not in all_final_states:
             raise ValueError("found non-final state")
 
     # Merge the transition functions, final states and events
