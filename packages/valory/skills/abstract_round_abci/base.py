@@ -1025,6 +1025,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     """
 
     initial_round_cls: AppState
+    initial_states: Set[AppState] = set()
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
@@ -1051,7 +1052,10 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         self._check_class_attributes()
         self._check_class_attributes_consistency(
-            self.initial_round_cls, self.transition_function, self.event_to_timeout
+            self.initial_round_cls,
+            self.initial_states,
+            self.transition_function,
+            self.event_to_timeout,
         )
 
     @property
@@ -1094,6 +1098,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     def _check_class_attributes_consistency(
         cls,
         initial_round_cls: AppState,
+        initial_states: Set[AppState],
         transition_function: AbciAppTransitionFunction,
         event_to_timeout: EventToTimeout,
     ) -> None:
@@ -1108,6 +1113,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         - check that the set of final states is a proper subset of the set of states.
 
         :param initial_round_cls: the initial round class
+        :param initial_states: the set of initial states
         :param transition_function: the transition function
         :param event_to_timeout: mapping from events to its timeout in seconds.
         :raises:
@@ -1117,6 +1123,10 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         enforce(
             initial_round_cls in states,
             f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
+        )
+        enforce(
+            initial_states == set() or initial_round_cls in initial_states,
+            f"initial round class {initial_round_cls} is not in the set of initial states: {initial_states}",
         )
         enforce(
             initial_round_cls in transition_function,

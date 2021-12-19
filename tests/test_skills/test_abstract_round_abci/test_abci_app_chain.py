@@ -137,6 +137,24 @@ class TestAbciAppChaining:
 
         self.app2_class_faulty1 = AbciApp2Faulty1
 
+        class AbciApp2Faulty2(AbciApp):
+            initial_round_cls = self.round_2a
+            transition_function = {
+                self.round_2a: {
+                    self.event_timeout2: self.round_2a,
+                    self.event_2b: self.round_2b,
+                },
+                self.round_2b: {
+                    self.event_2a: self.round_2a,
+                    self.event_2c: self.round_2c,
+                },
+                self.round_2c: {self.event_2c: self.round_2c},
+            }
+            final_states = {self.round_2c}
+            event_to_timeout = {self.event_timeout1: self.timeout2}
+
+        self.app2_class_faulty2 = AbciApp2Faulty2
+
     def test_chain_two(self) -> None:
         """Test the AbciApp chain function."""
 
@@ -229,3 +247,36 @@ class TestAbciAppChaining:
             ValueError, match="but it is already defined in a prior app with timeout"
         ):
             _ = chain((self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping)  # type: ignore
+
+    def test_chain_two_negative_final_states(self) -> None:
+        """Test the AbciApp chain function."""
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        with pytest.raises(ValueError, match="Final state"):
+            _ = chain((self.app1_class, self.app2_class_faulty2), abci_app_transition_mapping)  # type: ignore
+
+    def test_chain_two_negative_mapping_initial_states(self) -> None:
+        """Test the AbciApp chain function."""
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2b,
+            self.round_2c: self.round_1a,
+        }
+
+        with pytest.raises(ValueError, match="Found non-initial state"):
+            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+
+    def test_chain_two_negative_mapping_final_states(self) -> None:
+        """Test the AbciApp chain function."""
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2b: self.round_1a,
+        }
+
+        with pytest.raises(ValueError, match="Found non-final state"):
+            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
