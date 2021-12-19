@@ -44,7 +44,7 @@ def chain(  # pylint: disable=too-many-locals
         f"there must be a minimum of two AbciApps to chain, found ({len(abci_apps)})",
     )
     enforce(
-        len({abci_app for abci_app in abci_apps}) == len(abci_apps),
+        len(set(abci_apps)) == len(abci_apps),
         "Found multiple occurences of same Abci App",
     )
 
@@ -70,7 +70,6 @@ def chain(  # pylint: disable=too-many-locals
                 f"Found non-final state {key} specified in abci_app_transition_mapping."
             )
         if value not in all_initial_states:
-            import pdb; pdb.set_trace()
             raise ValueError(
                 f"Found non-initial state {value} specified in abci_app_transition_mapping."
             )

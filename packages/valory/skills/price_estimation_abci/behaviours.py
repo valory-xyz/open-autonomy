@@ -62,6 +62,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState,
     PriceEstimationAbciApp,
     RandomnessAStartupRound,
+    RandomnessBStartupRound,
     RandomnessRound,
     RegistrationRound,
     RegistrationStartupRound,
@@ -279,11 +280,18 @@ class RandomnessBehaviour(PriceEstimationBaseState):
         self.context.randomness_api.reset_retries()
 
 
-class RandomnessAtStartupBehaviour(RandomnessBehaviour):
+class RandomnessAtStartupABehaviour(RandomnessBehaviour):
     """Retrive randomness at startup."""
 
-    state_id = "retrieve_randomness_at_startup"
+    state_id = "retrieve_randomness_at_startup_a"
     matching_round = RandomnessAStartupRound
+
+
+class RandomnessAtStartupBBehaviour(RandomnessBehaviour):
+    """Retrive randomness at startup."""
+
+    state_id = "retrieve_randomness_at_startup_b"
+    matching_round = RandomnessBStartupRound
 
 
 class RandomnessInOperationBehaviour(RandomnessBehaviour):
@@ -1167,7 +1175,8 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
-        RandomnessAtStartupBehaviour,  # type: ignore
+        RandomnessAtStartupABehaviour,  # type: ignore
+        RandomnessAtStartupBBehaviour,  # type: ignore
         SelectKeeperAAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore

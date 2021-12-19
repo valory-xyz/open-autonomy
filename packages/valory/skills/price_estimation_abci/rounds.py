@@ -1051,7 +1051,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperARound: {
-            Event.DONE: CollectObservationRound,
+            Event.DONE: CollectSignatureRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
