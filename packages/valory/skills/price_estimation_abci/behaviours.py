@@ -61,8 +61,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinalizationRound,
     PeriodState,
     PriceEstimationAbciApp,
+    RandomnessAStartupRound,
     RandomnessRound,
-    RandomnessStartupRound,
     RegistrationRound,
     RegistrationStartupRound,
     ResetAndPauseRound,
@@ -283,7 +283,7 @@ class RandomnessAtStartupBehaviour(RandomnessBehaviour):
     """Retrive randomness at startup."""
 
     state_id = "retrieve_randomness_at_startup"
-    matching_round = RandomnessStartupRound
+    matching_round = RandomnessAStartupRound
 
 
 class RandomnessInOperationBehaviour(RandomnessBehaviour):

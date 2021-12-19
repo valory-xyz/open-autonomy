@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from typing import Any, Dict, Set, Tuple, Type
+from typing import Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -31,7 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-AbciAppTransitionMapping = Dict[AppState, Dict[Any, AppState]]
+AbciAppTransitionMapping = Dict[AppState, AppState]
 
 
 def chain(  # pylint: disable=too-many-locals
@@ -53,6 +53,11 @@ def chain(  # pylint: disable=too-many-locals
         len(common_round_classes) == 0,
         f"rounds in common between operands are not allowed ({common_round_classes})",
     )
+    # Ensure all states in app transition mapping are final states
+    states = {final_state for app in abci_apps for final_state in app.final_states}
+    for key in abci_app_transition_mapping.keys():
+        if key not in states:
+            raise ValueError("found non-final state")
 
     # Merge the transition functions, final states and events
     new_initial_round_cls = abci_apps[0].initial_round_cls
@@ -68,16 +73,17 @@ def chain(  # pylint: disable=too-many-locals
     potential_transition_function: AbciAppTransitionFunction = {}
     for app in abci_apps:
         for state, events_to_rounds in app.transition_function.items():
-            potential_transition_function[state] = events_to_rounds
-
-    # Update transition function according to the transition mapping
-    for state, event_to_states in abci_app_transition_mapping.items():
-        for event, new_state in event_to_states.items():
-            # Overwrite the old state or create a new one if it does not exist
-            if state not in potential_transition_function:
-                potential_transition_function[state] = {event: new_state}
-            else:
-                potential_transition_function[state][event] = new_state
+            if state in abci_app_transition_mapping:
+                # we remove these final states
+                continue
+            # Update transition function according to the transition mapping
+            new_events_to_rounds = {}
+            for event, round_ in events_to_rounds.items():
+                if round_ in abci_app_transition_mapping:
+                    new_events_to_rounds[event] = abci_app_transition_mapping[round_]
+                else:
+                    new_events_to_rounds[event] = round_
+            potential_transition_function[state] = new_events_to_rounds
 
     # Remove no longer used states from transition function and final states
     destination_states: Set[AppState] = set()

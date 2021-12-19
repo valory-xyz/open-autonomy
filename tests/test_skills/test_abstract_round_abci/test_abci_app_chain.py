@@ -36,23 +36,29 @@ class TestAbciAppChaining:
         """Setup test."""
         self.round_1a = MagicMock()
         self.round_1b = MagicMock()
+        self.round_1c = MagicMock()
 
         self.round_2a = MagicMock()
         self.round_2b = MagicMock()
+        self.round_2c = MagicMock()
 
         self.round_3a = MagicMock()
         self.round_3b = MagicMock()
+        self.round_3c = MagicMock()
 
         self.event_1a = "event_1a"
         self.event_1b = "event_1b"
+        self.event_1c = "event_1c"
         self.event_timeout1 = "timeout_1"
 
         self.event_2a = "event_2a"
         self.event_2b = "event_2b"
+        self.event_2c = "event_2c"
         self.event_timeout2 = "timeout_2"
 
-        self.event_3a = "3a"
-        self.event_3b = "3b"
+        self.event_3a = "event_3a"
+        self.event_3b = "event_3b"
+        self.event_3c = "event_3c"
         self.event_timeout3 = "timeout_3"
 
         self.timeout1 = 10.0
@@ -66,9 +72,13 @@ class TestAbciAppChaining:
                     self.event_timeout1: self.round_1a,
                     self.event_1b: self.round_1b,
                 },
-                self.round_1b: {self.event_1a: self.round_1a},
+                self.round_1b: {
+                    self.event_1a: self.round_1a,
+                    self.event_1c: self.round_1c,
+                },
+                self.round_1c: {},
             }
-            final_states = {self.round_1b}
+            final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
 
         self.app1_class = AbciApp1
@@ -80,9 +90,13 @@ class TestAbciAppChaining:
                     self.event_timeout2: self.round_2a,
                     self.event_2b: self.round_2b,
                 },
-                self.round_2b: {self.event_2a: self.round_2a},
+                self.round_2b: {
+                    self.event_2a: self.round_2a,
+                    self.event_2c: self.round_2c,
+                },
+                self.round_2c: {},
             }
-            final_states = {self.round_2b}
+            final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
 
         self.app2_class = AbciApp2
@@ -94,9 +108,13 @@ class TestAbciAppChaining:
                     self.event_timeout3: self.round_3a,
                     self.event_3b: self.round_3b,
                 },
-                self.round_3b: {self.event_3a: self.round_3a},
+                self.round_3b: {
+                    self.event_3a: self.round_3a,
+                    self.event_3c: self.round_3c,
+                },
+                self.round_3c: {},
             }
-            final_states = {self.round_3b}
+            final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
 
         self.app3_class = AbciApp3
@@ -108,9 +126,13 @@ class TestAbciAppChaining:
                     self.event_timeout2: self.round_2a,
                     self.event_2b: self.round_2b,
                 },
-                self.round_2b: {self.event_2a: self.round_2a},
+                self.round_2b: {
+                    self.event_2a: self.round_2a,
+                    self.event_2c: self.round_2c,
+                },
+                self.round_2c: {},
             }
-            final_states = {self.round_2b}
+            final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout1: self.timeout2}
 
         self.app2_class_faulty1 = AbciApp2Faulty1
@@ -119,7 +141,8 @@ class TestAbciAppChaining:
         """Test the AbciApp chain function."""
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
-            self.round_1a: {self.event_1b: self.round_2a}
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
         }
 
         ComposedAbciApp = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
@@ -128,15 +151,22 @@ class TestAbciAppChaining:
         assert ComposedAbciApp.transition_function == {
             self.round_1a: {
                 self.event_timeout1: self.round_1a,
-                self.event_1b: self.round_2a,
+                self.event_1b: self.round_1b,
+            },
+            self.round_1b: {
+                self.event_1a: self.round_1a,
+                self.event_1c: self.round_2a,
             },
             self.round_2a: {
                 self.event_timeout2: self.round_2a,
                 self.event_2b: self.round_2b,
             },
-            self.round_2b: {self.event_2a: self.round_2a},
+            self.round_2b: {
+                self.event_2a: self.round_2a,
+                self.event_2c: self.round_1a,
+            },
         }
-        assert ComposedAbciApp.final_states == {self.round_2b}
+        assert ComposedAbciApp.final_states == set()
         assert ComposedAbciApp.event_to_timeout == {
             self.event_timeout1: self.timeout1,
             self.event_timeout2: self.timeout2,
@@ -146,8 +176,8 @@ class TestAbciAppChaining:
         """Test the AbciApp chain function."""
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
-            self.round_1a: {self.event_1b: self.round_2a},
-            self.round_2a: {self.event_2b: self.round_3a},
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_3a,
         }
 
         ComposedAbciApp = chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
@@ -156,19 +186,31 @@ class TestAbciAppChaining:
         assert ComposedAbciApp.transition_function == {
             self.round_1a: {
                 self.event_timeout1: self.round_1a,
-                self.event_1b: self.round_2a,
+                self.event_1b: self.round_1b,
+            },
+            self.round_1b: {
+                self.event_1a: self.round_1a,
+                self.event_1c: self.round_2a,
             },
             self.round_2a: {
                 self.event_timeout2: self.round_2a,
-                self.event_2b: self.round_3a,
+                self.event_2b: self.round_2b,
+            },
+            self.round_2b: {
+                self.event_2a: self.round_2a,
+                self.event_2c: self.round_3a,
             },
             self.round_3a: {
                 self.event_timeout3: self.round_3a,
                 self.event_3b: self.round_3b,
             },
-            self.round_3b: {self.event_3a: self.round_3a},
+            self.round_3b: {
+                self.event_3a: self.round_3a,
+                self.event_3c: self.round_3c,
+            },
+            self.round_3c: {},
         }
-        assert ComposedAbciApp.final_states == {self.round_3b}
+        assert ComposedAbciApp.final_states == {self.round_3c}
         assert ComposedAbciApp.event_to_timeout == {
             self.event_timeout1: self.timeout1,
             self.event_timeout2: self.timeout2,
@@ -179,7 +221,8 @@ class TestAbciAppChaining:
         """Test the AbciApp chain function."""
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
-            self.round_1a: {self.event_1b: self.round_2a}
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
         }
 
         with pytest.raises(
