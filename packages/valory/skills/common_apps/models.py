@@ -17,18 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the common apps ABCI application."""
+"""This module contains the models for common app ABCI application."""
+
 
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import BaseParams
-from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-
-
-MARGIN = 5
-MULTIPLIER = 2
-
-Requests = BaseRequests
 
 
 class Params(BaseParams):  # pylint: disable=too-many-instance-attributes

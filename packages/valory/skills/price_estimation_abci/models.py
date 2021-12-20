@@ -26,6 +26,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
+from packages.valory.skills.common_apps.models import Params as BaseParams
 from packages.valory.skills.price_estimation_abci.rounds import (
     Event,
     PriceEstimationAbciApp,
@@ -36,6 +37,8 @@ MARGIN = 5
 MULTIPLIER = 2
 
 Requests = BaseRequests
+
+Params = BaseParams
 
 
 class SharedState(BaseSharedState):

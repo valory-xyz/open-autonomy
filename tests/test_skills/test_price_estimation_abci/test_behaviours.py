@@ -81,6 +81,7 @@ from packages.valory.skills.common_apps.behaviours import (
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.common_apps.rounds import PeriodState
+from packages.valory.skills.common_apps.tools import payload_to_hex
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
     ValidateOracleBehaviour,
@@ -103,7 +104,6 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
-from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
     ValidateSafeBehaviour,

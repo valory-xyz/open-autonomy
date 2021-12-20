@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     ObservationPayload,
+    TransactionHashPayload,
 )
 from packages.valory.skills.common_apps.rounds import (
     AgentRegistrationAbciApp,
@@ -54,10 +55,9 @@ from packages.valory.skills.common_apps.rounds import (
     RandomnessRound,
     RegistrationRound,
     TransactionSubmissionAbciApp,
-    TxHashRound,
 )
+from packages.valory.skills.common_apps.tools import aggregate
 from packages.valory.skills.oracle_deployment_abci.rounds import OracleDeploymentAbciApp
-from packages.valory.skills.price_estimation_abci.tools import aggregate
 from packages.valory.skills.safe_deployment_abci.rounds import SafeDeploymentAbciApp
 
 
@@ -116,6 +116,37 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound, CommonAppsAbstractR
                 most_voted_estimate=self.most_voted_payload,
             )
             return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class TxHashRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
+    """
+    This class represents the 'tx-hash' round.
+
+    Input: a period state with the prior round data
+    Ouptut: a new period state with the prior round data and the votes for each tx hash
+
+    It schedules the CollectSignatureRound.
+    """
+
+    round_id = "tx_hash"
+    allowed_tx_type = TransactionHashPayload.transaction_type
+    payload_attribute = "tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached and self.most_voted_payload is not None:
+            state = self.period_state.update(
+                participant_to_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if self.threshold_reached and self.most_voted_payload is None:
+            return self.period_state, Event.NONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):

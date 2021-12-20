@@ -9,12 +9,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmZ3oUg2JK7so2mfm7u5BYqe9kzdfa5UfFtJ7qGQNdkgWm
+  behaviours.py: QmePZWjMqnHB1GezpbdwEp4733GEVErva9AbsY4QvTSLS2
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmXFYPUjS42Zxxbkt1dLDu6huMiiuziFzL3TLNvU63J9Rz
-  rounds.py: QmUSw5Mo5SmCRiK2dPtxTZJZfczPj3xjNKyeUt4fbN2YDT
-  tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
+  models.py: QmST9cQyjhxz7PammKWZ9EgABqDaP4so9Pru9opyiDqDxq
+  rounds.py: Qmf4nibWXLBxuRYy11kCiurDPbHfsGwx3mf5FTLkxf9GRF
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -32,6 +31,9 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/common_apps:0.1.0
+- valory/oracle_deployment_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
 behaviours:
   main:
     args: {}

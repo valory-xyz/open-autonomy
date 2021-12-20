@@ -31,4 +31,4 @@ behaviours: {}
 handlers: {}
 models: {}
 dependencies: {}
-is_abstract: false
+is_abstract: true

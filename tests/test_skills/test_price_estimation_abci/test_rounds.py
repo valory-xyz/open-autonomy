@@ -58,7 +58,6 @@ from packages.valory.skills.common_apps.rounds import (
     SelectKeeperBRound,
     SelectKeeperBStartupRound,
     SelectKeeperRound,
-    TxHashRound,
     ValidateRound,
     ValidateTransactionRound,
     encode_float,
@@ -72,6 +71,7 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
+    TxHashRound,
 )
 from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import (
