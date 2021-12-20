@@ -45,6 +45,10 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.common_apps.behaviours import (
+    RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
+)
+from packages.valory.skills.common_apps.behaviours import SelectKeeperBehaviour
 from packages.valory.skills.common_apps.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
@@ -80,12 +84,8 @@ from packages.valory.skills.liquidity_provision.rounds import (
     SwapBackTransactionValidationRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
-)
-from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetAndPauseBehaviour,
     ResetBehaviour,
-    SelectKeeperBehaviour,
 )
 
 

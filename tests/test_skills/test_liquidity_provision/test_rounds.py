@@ -24,6 +24,10 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
+from packages.valory.skills.common_apps.payloads import (
+    FinalizationTxPayload,
+    TransactionHashPayload,
+)
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
 )
@@ -35,10 +39,6 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     TransactionSendBaseRound,
     TransactionSignatureBaseRound,
     TransactionValidationBaseRound,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
-    FinalizationTxPayload,
-    TransactionHashPayload,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (

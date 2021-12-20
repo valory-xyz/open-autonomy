@@ -257,3 +257,57 @@ class ResetPayload(BaseCommonAppsPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(period_count=self.period_count)
+
+
+class ObservationPayload(BaseCommonAppsPayload):
+    """Represent a transaction payload of type 'observation'."""
+
+    transaction_type = TransactionType.OBSERVATION
+
+    def __init__(
+        self, sender: str, observation: float, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'observation' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param observation: the observation
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._observation = observation
+
+    @property
+    def observation(self) -> float:
+        """Get the observation."""
+        return self._observation
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(observation=self.observation)
+
+
+class EstimatePayload(BaseCommonAppsPayload):
+    """Represent a transaction payload of type 'estimate'."""
+
+    transaction_type = TransactionType.ESTIMATE
+
+    def __init__(self, sender: str, estimate: float, id_: Optional[str] = None) -> None:
+        """Initialize an 'estimate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param estimate: the estimate
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._estimate = estimate
+
+    @property
+    def estimate(self) -> float:
+        """Get the estimate."""
+        return self._estimate
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(estimate=self.estimate)

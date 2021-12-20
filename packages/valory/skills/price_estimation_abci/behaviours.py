@@ -22,7 +22,6 @@ import binascii
 import datetime
 import json
 import pprint
-from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
@@ -33,18 +32,25 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import (
     CommonAppsBaseState,
+    RandomnessAtStartupABehaviour,
+    RandomnessAtStartupBBehaviour,
+    RandomnessInOperationBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
+    SelectKeeperAAtStartupBehaviour,
+    SelectKeeperABehaviour,
+    SelectKeeperBAtStartupBehaviour,
+    SelectKeeperBBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.common_apps.payloads import (
+    EstimatePayload,
     FinalizationTxPayload,
-    RandomnessPayload,
+    ObservationPayload,
     ResetPayload,
-    SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
     ValidatePayload,
@@ -52,26 +58,14 @@ from packages.valory.skills.common_apps.payloads import (
 from packages.valory.skills.common_apps.rounds import (
     CollectSignatureRound,
     FinalizationRound,
-    RandomnessAStartupRound,
-    RandomnessBStartupRound,
-    RandomnessRound,
     ResetAndPauseRound,
     ResetRound,
-    SelectKeeperARound,
-    SelectKeeperAStartupRound,
-    SelectKeeperBRound,
-    SelectKeeperBStartupRound,
     TxHashRound,
     ValidateTransactionRound,
 )
-from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
-from packages.valory.skills.oracle_deployment_abci.rounds import (
-    DeployOracleRound,
-    ValidateOracleRound,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
-    EstimatePayload,
-    ObservationPayload,
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
+    DeployOracleBehaviour,
+    ValidateOracleBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
@@ -81,466 +75,19 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 from packages.valory.skills.price_estimation_abci.tools import (
     hex_to_payload,
     payload_to_hex,
-    random_selection,
     to_int,
 )
-from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
-from packages.valory.skills.safe_deployment_abci.rounds import (
-    DeploySafeRound,
-    ValidateSafeRound,
+from packages.valory.skills.safe_deployment_abci.behaviours import (
+    DeploySafeBehaviour,
+    ValidateSafeBehaviour,
 )
 
 
 benchmark_tool = BenchmarkTool()
-drand_check = VerifyDrand()
+
 
 SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
-
-
-class RandomnessBehaviour(CommonAppsBaseState):
-    """Check whether Tendermint nodes are running."""
-
-    def async_act(self) -> Generator:
-        """
-        Check whether tendermint is running or not.
-
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit.
-        - If healthcheck passes set done event.
-        """
-        if self.context.randomness_api.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            api_specs = self.context.randomness_api.get_spec()
-            response = yield from self.get_http_response(
-                method=api_specs["method"],
-                url=api_specs["url"],
-            )
-            observation = self.context.randomness_api.process_response(response)
-
-        if observation:
-            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            self.context.logger.info("Verifying DRAND values.")
-            check, error = drand_check.verify(observation, self.params.drand_public_key)
-            if check:
-                self.context.logger.info("DRAND check successful.")
-            else:
-                self.context.logger.info(f"DRAND check failed, {error}.")
-                observation["randomness"] = ""
-                observation["round"] = ""
-
-            payload = RandomnessPayload(
-                self.context.agent_address,
-                observation["round"],
-                observation["randomness"],
-            )
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-        else:
-            self.context.logger.error(
-                f"Could not get randomness from {self.context.randomness_api.api_id}"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            self.context.randomness_api.increment_retries()
-
-    def clean_up(self) -> None:
-        """
-        Clean up the resources due to a 'stop' event.
-
-        It can be optionally implemented by the concrete classes.
-        """
-        self.context.randomness_api.reset_retries()
-
-
-class RandomnessAtStartupABehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
-
-    state_id = "retrieve_randomness_at_startup_a"
-    matching_round = RandomnessAStartupRound
-
-
-class RandomnessAtStartupBBehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
-
-    state_id = "retrieve_randomness_at_startup_b"
-    matching_round = RandomnessBStartupRound
-
-
-class RandomnessInOperationBehaviour(RandomnessBehaviour):
-    """Retrive randomness during operation."""
-
-    state_id = "retrieve_randomness"
-    matching_round = RandomnessRound
-
-
-class SelectKeeperBehaviour(CommonAppsBaseState, ABC):
-    """Select the keeper agent."""
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Select a keeper randomly.
-        - Send the transaction with the keeper and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            if (
-                self.period_state.is_keeper_set
-                and len(self.period_state.participants) > 1
-            ):
-                # if a keeper is already set we remove it from the potential selection.
-                potential_keepers = list(self.period_state.participants)
-                potential_keepers.remove(self.period_state.most_voted_keeper_address)
-                relevant_set = sorted(potential_keepers)
-            else:
-                relevant_set = sorted(self.period_state.participants)
-            keeper_address = random_selection(
-                relevant_set,
-                self.period_state.keeper_randomness,
-            )
-
-            self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
-            payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
-class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent at startup."""
-
-    state_id = "select_keeper_a_at_startup"
-    matching_round = SelectKeeperAStartupRound
-
-
-class SelectKeeperBAtStartupBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent at startup."""
-
-    state_id = "select_keeper_b_at_startup"
-    matching_round = SelectKeeperBStartupRound
-
-
-class SelectKeeperABehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "select_keeper_a"
-    matching_round = SelectKeeperARound
-
-
-class SelectKeeperBBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "select_keeper_b"
-    matching_round = SelectKeeperBRound
-
-
-class DeploySafeBehaviour(CommonAppsBaseState):
-    """Deploy Safe."""
-
-    state_id = "deploy_safe"
-    matching_round = DeploySafeRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
-        - Otherwise, wait until the next round.
-        - If a timeout is hit, set exit A event, otherwise set done event.
-        """
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
-            yield from self._not_deployer_act()
-        else:
-            yield from self._deployer_act()
-
-    def _not_deployer_act(self) -> Generator:
-        """Do the non-deployer action."""
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.wait_until_round_end()
-            self.set_done()
-
-    def _deployer_act(self) -> Generator:
-        """Do the deployer action."""
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            self.context.logger.info(
-                "I am the designated sender, deploying the safe contract..."
-            )
-            contract_address = yield from self._send_deploy_transaction()
-            if contract_address is None:
-                raise RuntimeError("Safe deployment failed!")  # pragma: nocover
-            payload = DeploySafePayload(self.context.agent_address, contract_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            self.context.logger.info(f"Safe contract address: {contract_address}")
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-    def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
-        owners = self.period_state.sorted_participants
-        threshold = self.params.consensus_params.consensus_threshold
-        contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
-            contract_address=None,
-            contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="get_deploy_transaction",
-            owners=owners,
-            threshold=threshold,
-            deployer_address=self.context.agent_address,
-            gas=10 ** 7,
-            gas_price=10 ** 10,  # TOFIX
-        )
-        if (
-            contract_api_response.performative
-            != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
-            self.context.logger.warning("get_deploy_transaction unsuccessful!")
-            return None
-        contract_address = cast(
-            str, contract_api_response.raw_transaction.body.pop("contract_address")
-        )
-        tx_digest = yield from self.send_raw_transaction(
-            contract_api_response.raw_transaction
-        )
-        if tx_digest is None:  # pragma: nocover
-            self.context.logger.warning("send_raw_transaction unsuccessful!")
-            return None
-        tx_receipt = yield from self.get_transaction_receipt(
-            tx_digest,
-            self.params.retry_timeout,
-            self.params.retry_attempts,
-        )
-        if tx_receipt is None:  # pragma: nocover
-            self.context.logger.warning("get_transaction_receipt unsuccessful!")
-            return None
-        _ = EthereumApi.get_contract_address(
-            tx_receipt
-        )  # returns None as the contract is created via a proxy
-        self.context.logger.info(f"Deployment tx digest: {tx_digest}")
-        return contract_address
-
-
-class DeployOracleBehaviour(CommonAppsBaseState):
-    """Deploy Oracle."""
-
-    state_id = "deploy_oracle"
-    matching_round = DeployOracleRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
-        - Otherwise, wait until the next round.
-        - If a timeout is hit, set exit A event, otherwise set done event.
-        """
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
-            yield from self._not_deployer_act()
-        else:
-            yield from self._deployer_act()
-
-    def _not_deployer_act(self) -> Generator:
-        """Do the non-deployer action."""
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.wait_until_round_end()
-            self.set_done()
-
-    def _deployer_act(self) -> Generator:
-        """Do the deployer action."""
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            self.context.logger.info(
-                "I am the designated sender, deploying the oracle contract..."
-            )
-            contract_address = yield from self._send_deploy_transaction()
-            if contract_address is None:
-                raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
-            payload = DeployOraclePayload(self.context.agent_address, contract_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            self.context.logger.info(f"Oracle contract address: {contract_address}")
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-    def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
-        min_answer = self.params.oracle_params["min_answer"]
-        max_answer = self.params.oracle_params["max_answer"]
-        decimals = self.params.oracle_params["decimals"]
-        description = self.params.oracle_params["description"]
-        contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
-            contract_address=None,
-            contract_id=str(OffchainAggregatorContract.contract_id),
-            contract_callable="get_deploy_transaction",
-            deployer_address=self.context.agent_address,
-            _minAnswer=min_answer,
-            _maxAnswer=max_answer,
-            _decimals=decimals,
-            _description=description,
-            _transmitters=[self.period_state.safe_contract_address],
-            gas=10 ** 7,
-            gas_price=10 ** 10,  # TOFIX
-        )
-        if (
-            contract_api_response.performative
-            != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
-            self.context.logger.warning("get_deploy_transaction unsuccessful!")
-            return None
-        tx_digest = yield from self.send_raw_transaction(
-            contract_api_response.raw_transaction
-        )
-        if tx_digest is None:  # pragma: nocover
-            self.context.logger.warning("send_raw_transaction unsuccessful!")
-            return None
-        tx_receipt = yield from self.get_transaction_receipt(tx_digest)
-        if tx_receipt is None:  # pragma: nocover
-            self.context.logger.warning("get_transaction_receipt unsuccessful!")
-            return None
-        contract_address = EthereumApi.get_contract_address(tx_receipt)
-        self.context.logger.info(f"Deployment tx digest: {tx_digest}")
-        return contract_address
-
-
-class ValidateSafeBehaviour(CommonAppsBaseState):
-    """ValidateSafe."""
-
-    state_id = "validate_safe"
-    matching_round = ValidateSafeRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            is_correct = yield from self.has_correct_contract_been_deployed()
-            payload = ValidatePayload(self.context.agent_address, is_correct)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-    def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
-        """Contract deployment verification."""
-        contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
-            contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="verify_contract",
-        )
-        if (
-            contract_api_response.performative != ContractApiMessage.Performative.STATE
-        ):  # pragma: nocover
-            self.context.logger.warning("verify_contract unsuccessful!")
-            return False
-        verified = cast(bool, contract_api_response.state.body["verified"])
-        return verified
-
-
-class ValidateOracleBehaviour(CommonAppsBaseState):
-    """ValidateOracle."""
-
-    state_id = "validate_oracle"
-    matching_round = ValidateOracleRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            is_correct = yield from self.has_correct_contract_been_deployed()
-            payload = ValidatePayload(self.context.agent_address, is_correct)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-    def has_correct_contract_been_deployed(self) -> Generator[None, None, bool]:
-        """Contract deployment verification."""
-        contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
-            contract_id=str(OffchainAggregatorContract.contract_id),
-            contract_callable="verify_contract",
-        )
-        if (
-            contract_api_response.performative != ContractApiMessage.Performative.STATE
-        ):  # pragma: nocover
-            self.context.logger.warning("verify_contract unsuccessful!")
-            return False
-        verified = cast(bool, contract_api_response.state.body["verified"])
-        return verified
 
 
 class ObserveBehaviour(CommonAppsBaseState):

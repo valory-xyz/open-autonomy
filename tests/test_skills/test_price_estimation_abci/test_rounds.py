@@ -28,12 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     ConsensusParams,
 )
-from packages.valory.skills.agent_registration_abci.rounds import (
-    RegistrationStartupRound,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
-    DeployOraclePayload,
-    DeploySafePayload,
+from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
@@ -45,34 +40,43 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    CollectObservationRound,
+from packages.valory.skills.common_apps.rounds import (
     CollectSignatureRound,
-    DeployOracleRound,
-    DeploySafeRound,
-    EstimateConsensusRound,
     Event,
     FinalizationRound,
     PeriodState,
     RandomnessRound,
     RegistrationRound,
+    RegistrationStartupRound,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
+from packages.valory.skills.common_apps.rounds import (
     ResetRound as ConsensusReachedRound,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
+from packages.valory.skills.common_apps.rounds import (
     SelectKeeperARound,
     SelectKeeperAStartupRound,
     SelectKeeperBRound,
     SelectKeeperBStartupRound,
     SelectKeeperRound,
     TxHashRound,
-    ValidateOracleRound,
     ValidateRound,
-    ValidateSafeRound,
     ValidateTransactionRound,
     encode_float,
     rotate_list,
+)
+from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    DeployOracleRound,
+    ValidateOracleRound,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
+    CollectObservationRound,
+    EstimateConsensusRound,
+)
+from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    DeploySafeRound,
+    ValidateSafeRound,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
