@@ -90,7 +90,6 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
     pairs_q,
-    top_n_pairs_q,
 )
 
 
@@ -295,7 +294,6 @@ class FetchBehaviour(APYEstimationBaseState):
             with benchmark_tool.measure(
                 self,
             ).local():
-                # Fetch top n pool ids.
                 spooky_api_specs = self.context.spooky_subgraph.get_spec()
                 available_specs = set(spooky_api_specs.keys())
                 needed_specs = {"method", "url", "headers"}
@@ -303,25 +301,6 @@ class FetchBehaviour(APYEstimationBaseState):
 
                 for unwanted in unwanted_specs:
                     spooky_api_specs.pop(unwanted)
-
-                res_raw = yield from self.get_http_response(
-                    content=top_n_pairs_q(self.context.spooky_subgraph.top_n_pools),
-                    **spooky_api_specs,
-                )
-                res = self.context.spooky_subgraph.process_response(res_raw)
-
-                try:
-                    self._handle_response(
-                        res,
-                        res_context=f"top {self.context.spooky_subgraph.top_n_pools} pool ids (Showing first example)",
-                        keys=("pairs", 0, "id"),
-                        subgraph=self.context.spooky_subgraph,
-                    )
-                except EmptyResponseError:
-                    yield from self.sleep(self.params.sleep_time)
-                    return
-
-                pair_ids = [pair["id"] for pair in res["pairs"]]
 
                 pairs_hist = []
                 for timestamp in gen_unix_timestamps(self.params.history_duration):
@@ -371,9 +350,9 @@ class FetchBehaviour(APYEstimationBaseState):
 
                     eth_price = float(res["bundles"][0]["ethPrice"])
 
-                    # Fetch top n pool data for block.
+                    # Fetch pool data for block.
                     res_raw = yield from self.get_http_response(
-                        content=pairs_q(fetched_block["number"], pair_ids),
+                        content=pairs_q(fetched_block["number"], self.params.pair_ids),
                         **spooky_api_specs,
                     )
                     res = self.context.spooky_subgraph.process_response(res_raw)
@@ -381,8 +360,7 @@ class FetchBehaviour(APYEstimationBaseState):
                     try:
                         self._handle_response(
                             res,
-                            res_context=f"top {self.context.spooky_subgraph.top_n_pools} "
-                            f"pool data for block {fetched_block} (Showing first example)",
+                            res_context=f"pool data for block {fetched_block} (Showing first example)",
                             keys=("pairs", 0),
                             subgraph=self.context.spooky_subgraph,
                         )
@@ -507,7 +485,7 @@ class TransformBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 transformed_history = cast(pd.DataFrame, completed_task)
                 self.context.logger.info(
-                    f"Data have been transformed. Showing the first row:\n{transformed_history.head(1)}"
+                    f"Data have been transformed. Showing the first row:\n{transformed_history.to_string()}"
                 )
 
                 # Store the transformed data.
@@ -564,7 +542,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             pairs_hist = load_hist(transformed_history_load_path)
 
             (y_train, y_test), pair_name = prepare_pair_data(
-                pairs_hist, self.params.pair_id
+                pairs_hist, self.params.pair_ids[0]
             )
             self.context.logger.info("Data have been preprocessed.")
 
@@ -574,7 +552,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             for filename, split in {"train": y_train, "test": y_test}.items():
                 save_path = os.path.join(
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_id,
+                    self.params.pair_ids[0],
                     f"y_{filename}.csv",
                 )
                 create_pathdirs(save_path)
@@ -685,7 +663,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         # Load training data.
         training_data_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            self.params.pair_id,
+            self.params.pair_ids[0],
             "y_train.csv",
         )
 
@@ -726,7 +704,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 # Store the best params from the results.
                 best_params_save_path = os.path.join(
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_id,
+                    self.params.pair_ids[0],
                     "best_params.json",
                 )
                 create_pathdirs(best_params_save_path)
@@ -801,7 +779,7 @@ class TrainBehaviour(APYEstimationBaseState):
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            self.params.pair_id,
+            self.params.pair_ids[0],
             "best_params.json",
         )
 
@@ -829,7 +807,7 @@ class TrainBehaviour(APYEstimationBaseState):
             for split in ("train", "test"):
                 path = os.path.join(
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_id,
+                    self.params.pair_ids[0],
                     f"y_{split}.csv",
                 )
 
@@ -845,7 +823,7 @@ class TrainBehaviour(APYEstimationBaseState):
         else:
             path = os.path.join(
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                self.params.pair_id,
+                self.params.pair_ids[0],
                 "y_train.csv",
             )
 
@@ -882,7 +860,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 prefix = "fully_trained_" if self.period_state.full_training else ""
                 forecaster_save_path = os.path.join(
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_id,
+                    self.params.pair_ids[0],
                     f"{prefix}forecaster.joblib",
                 )
                 create_pathdirs(forecaster_save_path)
@@ -932,7 +910,7 @@ class TestBehaviour(APYEstimationBaseState):
         for split in ("train", "test"):
             path = os.path.join(
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                self.params.pair_id,
+                self.params.pair_ids[0],
                 f"y_{split}.csv",
             )
 
@@ -945,7 +923,7 @@ class TestBehaviour(APYEstimationBaseState):
 
         model_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            self.params.pair_id,
+            self.params.pair_ids[0],
             "forecaster.joblib",
         )
 
@@ -988,7 +966,7 @@ class TestBehaviour(APYEstimationBaseState):
                 # Store the results.
                 report_save_path = os.path.join(
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_id,
+                    self.params.pair_ids[0],
                     "test_report.json",
                 )
                 create_pathdirs(report_save_path)
@@ -1045,7 +1023,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         """
         model_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            self.params.pair_id,
+            self.params.pair_ids[0],
             "fully_trained_forecaster.joblib",
         )
 
