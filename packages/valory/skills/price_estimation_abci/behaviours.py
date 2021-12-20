@@ -40,14 +40,18 @@ from packages.valory.skills.common_apps.behaviours import (
     RegistrationStartupBehaviour,
     TendermintHealthcheckBehaviour,
 )
+from packages.valory.skills.common_apps.payloads import (
+    FinalizationTxPayload,
+    RandomnessPayload,
+    ResetPayload,
+    SelectKeeperPayload,
+    SignaturePayload,
+    TransactionHashPayload,
+    ValidatePayload,
+)
 from packages.valory.skills.common_apps.rounds import (
-    CollectObservationRound,
     CollectSignatureRound,
-    DeployOracleRound,
-    DeploySafeRound,
-    EstimateConsensusRound,
     FinalizationRound,
-    PriceEstimationAbciApp,
     RandomnessAStartupRound,
     RandomnessBStartupRound,
     RandomnessRound,
@@ -60,19 +64,19 @@ from packages.valory.skills.common_apps.rounds import (
     TxHashRound,
     ValidateTransactionRound,
 )
-from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
+from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    DeployOracleRound,
+    ValidateOracleRound,
+)
 from packages.valory.skills.price_estimation_abci.payloads import (
-    DeployOraclePayload,
-    DeploySafePayload,
     EstimatePayload,
-    FinalizationTxPayload,
     ObservationPayload,
-    RandomnessPayload,
-    ResetPayload,
-    SelectKeeperPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    ValidatePayload,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
+    CollectObservationRound,
+    EstimateConsensusRound,
+    PriceEstimationAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.tools import (
     hex_to_payload,
@@ -80,7 +84,11 @@ from packages.valory.skills.price_estimation_abci.tools import (
     random_selection,
     to_int,
 )
-from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
+from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    DeploySafeRound,
+    ValidateSafeRound,
+)
 
 
 benchmark_tool = BenchmarkTool()

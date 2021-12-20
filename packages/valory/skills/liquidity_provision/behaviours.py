@@ -45,6 +45,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.common_apps.payloads import (
+    FinalizationTxPayload,
+    SignaturePayload,
+    TransactionHashPayload,
+    ValidatePayload,
+)
 from packages.valory.skills.liquidity_provision.models import Params, SharedState
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
@@ -80,12 +86,6 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperBehaviour,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
-    FinalizationTxPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    ValidatePayload,
 )
 
 
