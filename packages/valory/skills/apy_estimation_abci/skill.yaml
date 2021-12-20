@@ -101,7 +101,8 @@ models:
         scoring: pinball
         alpha: 0.25
         window_size: None
-      pair_id: '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      pair_ids:
+      - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       period_setup: {}
       retry_attempts: 400
       retry_timeout: 3
@@ -139,7 +140,6 @@ models:
       response_key: data
       response_type: dict
       retries: 5
-      top_n_pools: 100
       url: https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap
     class_name: SpookySwapSubgraph
   state:
