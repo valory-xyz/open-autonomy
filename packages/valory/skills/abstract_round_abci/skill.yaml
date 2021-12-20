@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmck1xczdkW76AgQh7rJ5NKA6gcA4gQHbw7KP4bs5qso5S
   __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
-  abci_app_chain.py: QmP6qFYkT6vMbSKYt1Pdy7mGBY68d8QRimvS9wC24b6ALS
-  base.py: QmccBHbLcRBPh26hsgrZd9ze1dc6Di51w2BGaZhYKLeVuW
+  abci_app_chain.py: QmT9eK6FDRWtUbnuZpzcVXLLGEHtHfkLWdGf9znkhygaMw
+  base.py: QmfBTn2D237rWWX4E5dZqaANQXck7oqR1dQWpEqTQHQkdK
   behaviour_utils.py: QmWeNdj5i1A7zsH5QUetzDEKCdJ6YriSWzw3zrByrD2eKh
   behaviours.py: QmPcrdPCqeo3j8LWLX3wU8GvgXaDfMqvieUX6eHaL9Gc3M
   dialogues.py: QmYfj3fqnexykT5WgaEXfprK3BWC1Y2eE9LDzkVyPnyr6o

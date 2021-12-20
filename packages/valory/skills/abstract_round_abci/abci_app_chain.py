@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from typing import Any, Dict, Set, Tuple, Type
+from typing import Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -31,7 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-AbciAppTransitionMapping = Dict[AppState, Dict[Any, AppState]]
+AbciAppTransitionMapping = Dict[AppState, AppState]
 
 
 def chain(  # pylint: disable=too-many-locals
@@ -43,6 +43,10 @@ def chain(  # pylint: disable=too-many-locals
         len(abci_apps) > 1,
         f"there must be a minimum of two AbciApps to chain, found ({len(abci_apps)})",
     )
+    enforce(
+        len(set(abci_apps)) == len(abci_apps),
+        "Found multiple occurences of same Abci App",
+    )
 
     # Get the apps rounds
     rounds = (app.get_all_rounds() for app in abci_apps)
@@ -51,8 +55,30 @@ def chain(  # pylint: disable=too-many-locals
     common_round_classes = set.intersection(*rounds)
     enforce(
         len(common_round_classes) == 0,
-        f"rounds in common between operands are not allowed ({common_round_classes})",
+        f"rounds in common between abci apps are not allowed ({common_round_classes})",
     )
+    # Ensure all states in app transition mapping (keys and values) are final states or initial states, respectively.
+    all_final_states = {
+        final_state for app in abci_apps for final_state in app.final_states
+    }
+    all_initial_states = {
+        initial_state for app in abci_apps for initial_state in app.initial_states
+    }.union({app.initial_round_cls for app in abci_apps})
+    for key, value in abci_app_transition_mapping.items():
+        if key not in all_final_states:
+            raise ValueError(
+                f"Found non-final state {key} specified in abci_app_transition_mapping."
+            )
+        if value not in all_initial_states:
+            raise ValueError(
+                f"Found non-initial state {value} specified in abci_app_transition_mapping."
+            )
+
+    # Ensure final states do not specify any events
+    for app in abci_apps:
+        for final_state in app.final_states:
+            if app.transition_function[final_state] != {}:
+                raise ValueError(f"Final state {final_state} specifies transitions.")
 
     # Merge the transition functions, final states and events
     new_initial_round_cls = abci_apps[0].initial_round_cls
@@ -68,16 +94,15 @@ def chain(  # pylint: disable=too-many-locals
     potential_transition_function: AbciAppTransitionFunction = {}
     for app in abci_apps:
         for state, events_to_rounds in app.transition_function.items():
-            potential_transition_function[state] = events_to_rounds
-
-    # Update transition function according to the transition mapping
-    for state, event_to_states in abci_app_transition_mapping.items():
-        for event, new_state in event_to_states.items():
-            # Overwrite the old state or create a new one if it does not exist
-            if state not in potential_transition_function:
-                potential_transition_function[state] = {event: new_state}
-            else:
-                potential_transition_function[state][event] = new_state
+            if state in abci_app_transition_mapping:
+                # we remove these final states
+                continue
+            # Update transition function according to the transition mapping
+            new_events_to_rounds = {}
+            for event, round_ in events_to_rounds.items():
+                destination_round = abci_app_transition_mapping.get(round_, round_)
+                new_events_to_rounds[event] = destination_round
+            potential_transition_function[state] = new_events_to_rounds
 
     # Remove no longer used states from transition function and final states
     destination_states: Set[AppState] = set()
