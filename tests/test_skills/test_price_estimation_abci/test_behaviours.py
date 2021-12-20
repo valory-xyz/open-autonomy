@@ -74,7 +74,8 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     ObserveBehaviour,
     PriceEstimationBaseState,
     PriceEstimationConsensusBehaviour,
-    RandomnessAtStartupBehaviour,
+    RandomnessAtStartupABehaviour,
+    RandomnessAtStartupBBehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
@@ -689,14 +690,14 @@ class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = RandomnessAtStartupBehaviour
+    next_behaviour_class = RandomnessAtStartupABehaviour
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = ObserveBehaviour
 
 
 class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -873,7 +874,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
 
-    randomness_behaviour_class = RandomnessAtStartupBehaviour
+    randomness_behaviour_class = RandomnessAtStartupABehaviour
     next_behaviour_class = SelectKeeperAAtStartupBehaviour
 
 
@@ -965,7 +966,7 @@ class TestSelectKeeperABehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
     select_keeper_behaviour_class = SelectKeeperABehaviour
-    next_behaviour_class = ObserveBehaviour
+    next_behaviour_class = SignatureBehaviour
 
 
 class TestSelectKeeperBBehaviour(BaseSelectKeeperBehaviourTest):
@@ -1165,7 +1166,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = DeployOracleBehaviour
+    next_behaviour_class = RandomnessAtStartupBBehaviour
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
 
@@ -1174,7 +1175,7 @@ class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
     """Test ValidateOracleBehaviour."""
 
     behaviour_class = ValidateOracleBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = ObserveBehaviour
     period_state_kwargs = dict(
         safe_contract_address="safe_contract_address",
         oracle_contract_address="oracle_contract_address",
@@ -1404,7 +1405,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == SignatureBehaviour.state_id
+        assert state.state_id == RandomnessInOperationBehaviour.state_id
 
 
 class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1671,7 +1672,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = ObserveBehaviour
 
     def test_reset_behaviour(
         self,

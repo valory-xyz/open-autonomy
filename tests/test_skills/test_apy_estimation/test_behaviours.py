@@ -678,6 +678,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             FetchBehaviour.state_id,
             PeriodState(),
         )
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
         monkeypatch.setattr(
             "packages.valory.skills.apy_estimation_abci.behaviours.gen_unix_timestamps",
             lambda *_: iter((1618735147,)),
@@ -695,15 +698,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             status_text="",
             headers="",
         )
-
-        # top pairs' ids request.
-        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {
-            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
 
         # block request.
         request_kwargs[
@@ -738,10 +732,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             }
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.behaviours.pairs_q",
-            pairs_q,
-        )
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
@@ -792,6 +782,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
         monkeypatch.setattr(
             time,
             "time",
@@ -812,32 +805,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             headers="",
             body=b"",
         )
-
-        # top pairs' ids request with None response.
-        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
-        assert caplog.record_tuples[-1] == (
-            "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-            logging.ERROR,
-            "[test_agent_name] Could not get top 100 pool ids (Showing first example) from spookyswap",
-        )
-        caplog.clear()
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
-        self.apy_estimation_behaviour.act_wrapper()
-
-        # top pairs' ids request.
-        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {
-            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
 
         # block request with None response.
         request_kwargs[
@@ -861,18 +828,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).params.sleep_time
         )
         self.apy_estimation_behaviour.act_wrapper()
-
-        # top pairs' ids request.
-        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        request_kwargs[
-            "url"
-        ] = "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap"
-        res = {
-            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
 
         # block request.
         request_kwargs[
@@ -907,15 +862,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         self.apy_estimation_behaviour.act_wrapper()
 
-        # top pairs' ids request.
-        request_kwargs["body"] = json.dumps({"query": top_n_pairs_q}).encode("utf-8")
-        res = {
-            "data": {"pairs": [{"id": "0xec454eda10accdd66209c57af8c12924556f3abd"}]}
-        }
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
-
         # block request.
         request_kwargs[
             "url"
@@ -946,7 +892,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert caplog.record_tuples[-1] == (
             "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
             logging.ERROR,
-            "[test_agent_name] Could not get top 100 pool data for block {'timestamp': '1', 'number': '3830367'} (Showing first example) from spookyswap",
+            "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '3830367'} "
+            "(Showing first example) from spookyswap",
         )
         caplog.clear()
         time.sleep(
@@ -1610,13 +1557,13 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params_filepath = os.path.join(
             self.apy_estimation_behaviour.context._get_agent_context().data_dir,
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.pair_id,
+            ).params.pair_ids[0],
             "best_params.json",
         )
 
@@ -1657,13 +1604,13 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params_filepath = os.path.join(
             self.apy_estimation_behaviour.context._get_agent_context().data_dir,
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.pair_id,
+            ).params.pair_ids[0],
             "best_params.json",
         )
 
@@ -1703,13 +1650,13 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params_filepath = os.path.join(
             self.apy_estimation_behaviour.context._get_agent_context().data_dir,
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.pair_id,
+            ).params.pair_ids[0],
             "best_params.json",
         )
 
@@ -1889,7 +1836,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
         monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
         monkeypatch.setattr(
             BaseState, "send_a2a_transaction", lambda *_: iter([0, 1, 2])
@@ -1949,7 +1896,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         importlib.reload(os.path)
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.pair_id = os.path.join(*tmp_path.parts[1:])
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         # test act.
         self.apy_estimation_behaviour.act_wrapper()
