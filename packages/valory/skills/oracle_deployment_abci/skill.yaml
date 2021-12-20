@@ -1,0 +1,26 @@
+name: oracle_deployment_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for oracle deployments.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmbGAaFs9CYmk3o4ZgzUdkoVMkCAtSBeoAybvHZT14Fprb
+  behaviours.py: QmXo5ffF63j427TRSxXjZQYFBSxPJrFzdP3RY9y7MLSPUM
+  payloads.py: QmPb4R5C56JFXapiPJb8RTVfuZS7xNWCVa7UgDK3cYoMAP
+  rounds.py: QmVPTjpL2UxtNNeTtkuc7aWAE3YJq6VRbBQ3B884wZXi4p
+fingerprint_ignore_patterns: []
+connections: []
+contracts:
+- valory/offchain_aggregator:0.1.0
+protocols:
+- valory/contract_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+- valory/common_apps:0.1.0
+behaviours: {}
+handlers: {}
+models: {}
+dependencies: {}
+is_abstract: false
