@@ -13,21 +13,14 @@ fingerprint:
   rounds.py: QmUWosGiCwUty3udNw3VRE9JPcUABL388UYB2MPkkzs7Jn
   tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
 fingerprint_ignore_patterns: []
-connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
+connections: []
 contracts: []
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
 - valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
 behaviours: {}
 handlers: {}
 models: {}
 dependencies: {}
-is_abstract: true
+is_abstract: false

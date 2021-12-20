@@ -11,24 +11,16 @@ fingerprint:
   payloads.py: QmPb4R5C56JFXapiPJb8RTVfuZS7xNWCVa7UgDK3cYoMAP
   rounds.py: QmVPTjpL2UxtNNeTtkuc7aWAE3YJq6VRbBQ3B884wZXi4p
 fingerprint_ignore_patterns: []
-connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
+connections: []
 contracts:
-- valory/gnosis_safe:0.1.0
-- valory/gnosis_safe_proxy_factory:0.1.0
 - valory/offchain_aggregator:0.1.0
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
 - valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/common_apps:0.1.0
 behaviours: {}
 handlers: {}
 models: {}
 dependencies: {}
-is_abstract: true
+is_abstract: false
