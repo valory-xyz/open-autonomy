@@ -25,26 +25,8 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-behaviours:
-  main:
-    args: {}
-    class_name: PriceEstimationConsensusBehaviour
-handlers:
-  abci:
-    args: {}
-    class_name: ABCIPriceEstimationHandler
-  contract_api:
-    args: {}
-    class_name: ContractApiHandler
-  http:
-    args: {}
-    class_name: HttpHandler
-  ledger_api:
-    args: {}
-    class_name: LedgerApiHandler
-  signing:
-    args: {}
-    class_name: SigningHandler
+behaviours: {}
+handlers: {}
 models:
   abci_dialogues:
     args: {}
