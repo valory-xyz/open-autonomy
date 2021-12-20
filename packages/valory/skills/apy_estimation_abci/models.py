@@ -26,7 +26,10 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.apy_estimation.rounds import APYEstimationAbciApp, Event
+from packages.valory.skills.apy_estimation_abci.rounds import (
+    APYEstimationAbciApp,
+    Event,
+)
 
 
 Requests = BaseRequests
@@ -68,7 +71,6 @@ class SpookySwapSubgraph(ApiSpecs):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize SpookySwapSubgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
-        self.top_n_pools: int = self.ensure("top_n_pools", kwargs)
         super().__init__(*args, **kwargs)
 
 
@@ -85,11 +87,10 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.drand_public_key = self._ensure("drand_public_key", kwargs)
         self.history_duration = self._ensure("history_duration", kwargs)
-        self.data_folder = self._ensure("data_folder", kwargs)
         self.optimizer_params = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
-        self.pair_id = self._ensure("pair_id", kwargs)
+        self.pair_ids = self._ensure("pair_ids", kwargs)
         super().__init__(*args, **kwargs)
 
         self.__validate_params()

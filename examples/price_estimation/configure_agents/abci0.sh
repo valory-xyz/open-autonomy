@@ -15,7 +15,9 @@ aea config set vendor.valory.skills.price_estimation_abci.models.randomness_api.
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants 4 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 7 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url "http://node0:26657"
-aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_com_url "http://node0:8080"
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after 3 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 300 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 1200 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "http://hardhat:8545"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id 31337 --type int

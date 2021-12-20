@@ -26,13 +26,13 @@ from aea.skills.tasks import Task
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.apy_estimation.ml.forecasting import (
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     TestReportType,
     test_forecaster,
     train_forecaster,
 )
-from packages.valory.skills.apy_estimation.ml.optimization import optimize
-from packages.valory.skills.apy_estimation.tools.etl import transform_hist_data
+from packages.valory.skills.apy_estimation_abci.ml.optimization import optimize
+from packages.valory.skills.apy_estimation_abci.tools.etl import transform_hist_data
 
 
 class TransformTask(Task):

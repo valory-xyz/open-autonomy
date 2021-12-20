@@ -24,7 +24,7 @@ from typing import Any, Dict, Optional, Union
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from packages.valory.skills.apy_estimation.tools.queries import (
+from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
     finalize_q,
@@ -100,7 +100,8 @@ class TestQueries:
     ) -> None:
         """Test `eth_price_usd_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
         )
         actual = eth_price_usd_q(bundle_id, block)
         assert actual.split() == expected.split()
@@ -109,7 +110,8 @@ class TestQueries:
     def test_block_from_timestamp_q(monkeypatch: MonkeyPatch) -> None:
         """Test `block_from_timestamp_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
         )
         actual = block_from_timestamp_q(100)
         expected = """
@@ -133,7 +135,8 @@ class TestQueries:
     def test_top_n_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `top_n_pairs_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
         )
         actual = top_n_pairs_q(0)
         expected = """
@@ -151,7 +154,8 @@ class TestQueries:
     def test_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `pairs_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tools.queries.finalize_q", identity
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
         )
         actual = pairs_q(0, ["x0", "x1", "x2"])
         expected = """

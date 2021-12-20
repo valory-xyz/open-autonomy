@@ -26,7 +26,7 @@ import optuna
 import pmdarima as pm
 from sklearn.metrics import mean_pinball_loss
 
-from packages.valory.skills.apy_estimation.ml.forecasting import init_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
 
 
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]
@@ -81,7 +81,8 @@ class Objective:  # pylint: disable=too-few-public-methods
         d = trial.suggest_int("d", 1, 2)
 
         m = trial.suggest_int("m", 8, 20)
-        k = trial.suggest_int("k", 1, 6)
+        # k must be a positive integer not greater than m//2.
+        k = trial.suggest_int("k", 1, m // 2)
 
         # Generate the forecaster with the suggestions.
         forecaster = init_forecaster(p, q, d, m, k)

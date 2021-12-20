@@ -24,7 +24,7 @@ from typing import Dict, List, Tuple
 
 import requests
 
-from packages.valory.skills.apy_estimation.models import (
+from packages.valory.skills.apy_estimation_abci.models import (
     FantomSubgraph,
     SpookySwapSubgraph,
 )

@@ -22,9 +22,9 @@ from typing import Any, Callable
 
 from _pytest.monkeypatch import MonkeyPatch
 
-from packages.valory.skills.apy_estimation.tasks import OptimizeTask
-from packages.valory.skills.apy_estimation.tasks import TestTask as _TestTask
-from packages.valory.skills.apy_estimation.tasks import TrainTask, TransformTask
+from packages.valory.skills.apy_estimation_abci.tasks import OptimizeTask
+from packages.valory.skills.apy_estimation_abci.tasks import TestTask as _TestTask
+from packages.valory.skills.apy_estimation_abci.tasks import TrainTask, TransformTask
 
 
 class TestTransformTask:
@@ -36,7 +36,8 @@ class TestTransformTask:
     ) -> None:
         """Test the execute method."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tasks.transform_hist_data", no_action
+            "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
+            no_action,
         )
         TransformTask().execute()
 
@@ -50,7 +51,7 @@ class TestOptimizeTask:
     ) -> None:
         """Test the execute method."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tasks.optimize", no_action
+            "packages.valory.skills.apy_estimation_abci.tasks.optimize", no_action
         )
         OptimizeTask().execute()
 
@@ -64,7 +65,8 @@ class TestTrainTask:
     ) -> None:
         """Test the execute method."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tasks.train_forecaster", no_action
+            "packages.valory.skills.apy_estimation_abci.tasks.train_forecaster",
+            no_action,
         )
         TrainTask().execute()
 
@@ -78,6 +80,7 @@ class TestTestTask:
     ) -> None:
         """Test the execute method."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation.tasks.test_forecaster", no_action
+            "packages.valory.skills.apy_estimation_abci.tasks.test_forecaster",
+            no_action,
         )
         _TestTask().execute()
