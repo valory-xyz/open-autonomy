@@ -1779,3 +1779,202 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def _tendermint_reset(
+        self, reset_response: bytes, status_response: bytes
+    ) -> Generator:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(period_count=-1),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_com_url + "/hard_reset",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=500,
+                status_text="",
+                headers="",
+                body=reset_response,
+            ),
+        )
+        yield
+
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                url=self.skill.skill_context.params.tendermint_url + "/status",
+                headers="",
+                version="",
+                body=b"",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=status_response,
+            ),
+        )
+        yield
+
+        time.sleep(0.3)
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+        yield
+
+    def test_reset_behaviour_with_tendermint_reset(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            test_runner = self._tendermint_reset(
+                json.dumps(
+                    {"message": "Tendermint reset was successful.", "status": True}
+                ).encode(),
+                json.dumps(
+                    {
+                        "result": {
+                            "sync_info": {
+                                "latest_block_height": self.price_estimation_behaviour.context.state.period.height
+                            }
+                        }
+                    }
+                ).encode(),
+            )
+            for _ in range(3):
+                next(test_runner)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Tendermint reset was successful.",
+            )
+
+    def test_reset_behaviour_with_tendermint_reset_error_message(
+        self,
+    ) -> None:
+        """Test reset behaviour with error message."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            test_runner = self._tendermint_reset(
+                json.dumps(
+                    {"message": "Error resetting tendermint.", "status": False}
+                ).encode(),
+                json.dumps(
+                    {
+                        "result": {
+                            "sync_info": {
+                                "latest_block_height": self.price_estimation_behaviour.context.state.period.height
+                            }
+                        }
+                    }
+                ).encode(),
+            )
+            for _ in range(2):
+                next(test_runner)
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Error resetting tendermint.",
+            )
+
+    def test_reset_behaviour_with_tendermint_reset_wrong_response(
+        self,
+    ) -> None:
+        """Test reset behaviour with wrong response."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            test_runner = self._tendermint_reset(
+                b"",
+                b"",
+            )
+            for _ in range(1):
+                next(test_runner)
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Error communicating with tendermint com server.",
+            )
+
+    def test_timeout_expired(
+        self,
+    ) -> None:
+        """Test reset behaviour with wrong response."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(period_count=-1),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        with mock.patch.object(
+            self.price_estimation_behaviour.current_state,
+            "_is_timeout_expired",
+            return_value=True,
+        ):
+            with pytest.raises(AEAActException):
+                self.price_estimation_behaviour.act_wrapper()
+
+    def test_reset_behaviour_with_tendermint_transaction_error(
+        self,
+    ) -> None:
+        """Test reset behaviour with error message."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            test_runner = self._tendermint_reset(
+                json.dumps({"message": "Reset Successful.", "status": True}).encode(),
+                b"",
+            )
+            for _ in range(2):
+                next(test_runner)
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Tendermint not accepting transactions yet, trying again!",
+            )
+
+    def test_reset_behaviour_with_block_height_dont_match(
+        self,
+    ) -> None:
+        """Test reset behaviour with error message."""
+        with patch.object(
+            self.price_estimation_behaviour.context.logger, "log"
+        ) as mock_logger:
+            test_runner = self._tendermint_reset(
+                json.dumps({"message": "Reset Successful.", "status": True}).encode(),
+                json.dumps(
+                    {"result": {"sync_info": {"latest_block_height": -1}}}
+                ).encode(),
+            )
+            for _ in range(2):
+                next(test_runner)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "local height != remote height; retrying...",
+            )

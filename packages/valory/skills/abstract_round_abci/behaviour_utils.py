@@ -231,9 +231,11 @@ class AsyncBehaviour(ABC):
 
     def __call_act_first_time(self) -> None:
         """Call the 'async_act' method for the first time."""
+        if self.is_stopped:
+            self.setup()
+
         self.__stopped = False
         self.__state = self.AsyncState.RUNNING
-        self.setup()
         try:
             self.__generator_act = self.async_act_wrapper()
             # if the method 'async_act' was not a generator function
