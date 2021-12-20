@@ -114,20 +114,6 @@ class TendermintHealthcheckBehaviour(CommonAppsBaseState):
         self.set_done()
 
 
-class CommonAppsBaseState(BaseState, ABC):
-    """Base state behaviour for the price estimation skill."""
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
-
-    @property
-    def params(self) -> Params:
-        """Return the params."""
-        return cast(Params, self.context.params)
-
-
 class RegistrationBaseBehaviour(CommonAppsBaseState):
     """Register to the next periods."""
 
