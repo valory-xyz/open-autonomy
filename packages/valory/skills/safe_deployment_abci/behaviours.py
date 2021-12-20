@@ -27,10 +27,8 @@ from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import CommonAppsBaseState
-from packages.valory.skills.price_estimation_abci.payloads import (
-    DeploySafePayload,
-    ValidatePayload,
-)
+from packages.valory.skills.common_apps.payloads import ValidatePayload
+from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
     ValidateSafeRound,

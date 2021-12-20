@@ -31,7 +31,7 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import CommonAppsBaseState
 from packages.valory.skills.common_apps.payloads import ValidatePayload
 from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
-from packages.valory.skills.price_estimation_abci.rounds import (
+from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
     ValidateOracleRound,
 )

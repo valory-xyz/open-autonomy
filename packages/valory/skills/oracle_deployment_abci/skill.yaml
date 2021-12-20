@@ -1,20 +1,15 @@
-name: liquidity_provision
+name: oracle_deployment_abci
 author: valory
 version: 0.1.0
 type: skill
-description: This skill implements liquidity provision capacities to move into and
-  out of Uniswap-V2-based liquidity pools.
+description: ABCI application for oracle deployments.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmUghyvR1WTBy4uvQMXDeAKyrPrvUNrPCBGK7VM3BogGEe
-  __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmaGkVgCTCQNz8XCkzLnjSzbdfq8msqeyH5VT9dsFz1nLD
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
-  models.py: QmYwE5CY3s8vRsoRTDZS34gCLYswjt1C7RQNbTNVh6gMET
-  payloads.py: QmT8J8jELpeZaqMoDTtya5RaRym53KWAsbT6LviHt9NLbz
-  rounds.py: QmUoo91N9BJmjDvCZ7Dv5tfV97DDPtgay4JoYGowaGdDp9
+  __init__.py: QmbGAaFs9CYmk3o4ZgzUdkoVMkCAtSBeoAybvHZT14Fprb
+  behaviours.py: QmXo5ffF63j427TRSxXjZQYFBSxPJrFzdP3RY9y7MLSPUM
+  payloads.py: QmPb4R5C56JFXapiPJb8RTVfuZS7xNWCVa7UgDK3cYoMAP
+  rounds.py: QmVPTjpL2UxtNNeTtkuc7aWAE3YJq6VRbBQ3B884wZXi4p
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -23,8 +18,7 @@ connections:
 contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
-- valory/uniswap_v2_erc20:0.1.0
-- valory/uniswap_v2_router_02:0.1.0
+- valory/offchain_aggregator:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
@@ -33,15 +27,14 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-- valory/price_estimation_abci:0.1.0
 behaviours:
   main:
     args: {}
-    class_name: LiquidityProvisionConsensusBehaviour
+    class_name: PriceEstimationConsensusBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ABCILiquidityProvision
+    class_name: ABCIPriceEstimationHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -71,13 +64,49 @@ models:
     args:
       consensus:
         max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       max_healthcheck: 120
+      observation_interval: 10
+      oracle:
+        min_answer: 1000000000000000000
+        max_answer: 1000000000000000000000000
+        decimals: 18
+        description: BTC
+      period_setup:
+        safe_contract_address: null
+        oracle_contract_address: null
+      reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
       sleep_time: 1
+      tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
     class_name: Params
+  price_api:
+    args:
+      api_id: coinbase
+      convert_id: USD
+      currency_id: BTC
+      headers: []
+      method: GET
+      parameters: []
+      response_key: data:amount
+      response_type: float
+      retries: 5
+      url: https://api.coinbase.com/v2/prices/BTC-USD/buy
+    class_name: PriceApi
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

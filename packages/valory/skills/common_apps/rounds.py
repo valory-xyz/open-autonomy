@@ -37,9 +37,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 from packages.valory.skills.common_apps.payloads import (
-    RegistrationPayload,
     FinalizationTxPayload,
     RandomnessPayload,
+    RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,

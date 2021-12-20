@@ -25,7 +25,6 @@ from typing import Generator, Optional, cast
 
 from packages.valory.skills.abstract_round_abci.behaviours import BaseState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.models import Params, SharedState
 from packages.valory.skills.common_apps.payloads import RegistrationPayload
 from packages.valory.skills.common_apps.rounds import (
     PeriodState,
