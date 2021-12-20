@@ -75,6 +75,8 @@ from packages.valory.skills.abstract_round_abci.models import Requests, SharedSt
 
 
 _REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_REQUEST_TIMEOUT = 10.0
+_DEFAULT_TX_TIMEOUT = 10.0
 
 
 class SendException(Exception):
@@ -188,7 +190,11 @@ class AsyncBehaviour(ABC):
 
         yield from self.wait_for_condition(_wait_until)
 
-    def wait_for_message(self, condition: Callable = lambda message: True) -> Any:
+    def wait_for_message(
+        self,
+        condition: Callable = lambda message: True,
+        timeout: Optional[float] = None,
+    ) -> Any:
         """
         Wait for message.
 
@@ -196,16 +202,26 @@ class AsyncBehaviour(ABC):
         Use directly after a request is being sent.
 
         :param condition: a callable
+        :param timeout: max time to wait (in seconds)
         :return: a message
         :yield: None
         """
+        if timeout is not None:
+            deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+        else:
+            deadline = datetime.datetime.max
+
         self.__state = self.AsyncState.WAITING_MESSAGE
-        message = yield
-        while message is None or not condition(message):
-            message = yield
-        message = cast(Message, message)
-        self.__state = self.AsyncState.RUNNING
-        return message
+        try:
+            message = None
+            while message is None or not condition(message):
+                message = yield
+                if timeout is not None and datetime.datetime.now() > deadline:
+                    raise TimeoutException()
+            message = cast(Message, message)
+            return message
+        finally:
+            self.__state = self.AsyncState.RUNNING
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -434,7 +450,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         while not stop_condition():
             signature_bytes = yield from self.get_signature(payload.encode())
             transaction = Transaction(payload, signature_bytes)
-            response = yield from self._submit_tx(transaction.encode())
+            try:
+                response = yield from self._submit_tx(
+                    transaction.encode(), timeout=_DEFAULT_REQUEST_TIMEOUT
+                )
+            except TimeoutException:
+                self.context.logger.info(
+                    f"Timeout expired for submit tx. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                )
+                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                continue
             response = cast(HttpMessage, response)
             if not self._check_http_return_code_200(response):
                 self.context.logger.info(
@@ -450,7 +475,18 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 ) from e
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             tx_hash = json_body["result"]["hash"]
-            is_delivered = yield from self._wait_until_transaction_delivered(tx_hash)
+
+            try:
+                is_delivered = yield from self._wait_until_transaction_delivered(
+                    tx_hash, timeout=_DEFAULT_TX_TIMEOUT
+                )
+            except TimeoutException:
+                self.context.logger.info(
+                    f"Timeout expired for wait until transaction delivered. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                )
+                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                continue
+
             if is_delivered:
                 self.context.logger.info("A2A transaction delivered!")
                 break
@@ -550,23 +586,31 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Handle signing failure."""
         self.context.logger.error("the transaction could not be signed.")
 
-    def _submit_tx(self, tx_bytes: bytes) -> Generator[None, None, HttpMessage]:
+    def _submit_tx(
+        self, tx_bytes: bytes, timeout: Optional[float] = None
+    ) -> Generator[None, None, HttpMessage]:
         """Send a broadcast_tx_sync request."""
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url
             + f"/broadcast_tx_sync?tx=0x{tx_bytes.hex()}",
         )
-        result = yield from self._do_request(request_message, http_dialogue)
+        result = yield from self._do_request(
+            request_message, http_dialogue, timeout=timeout
+        )
         return result
 
-    def _get_tx_info(self, tx_hash: str) -> Generator[None, None, HttpMessage]:
+    def _get_tx_info(
+        self, tx_hash: str, timeout: Optional[float] = None
+    ) -> Generator[None, None, HttpMessage]:
         """Get transaction info from tx hash."""
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + f"/tx?hash=0x{tx_hash}",
         )
-        result = yield from self._do_request(request_message, http_dialogue)
+        result = yield from self._do_request(
+            request_message, http_dialogue, timeout=timeout
+        )
         return result
 
     def _get_health(self) -> Generator[None, None, HttpMessage]:
@@ -633,13 +677,17 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return response
 
     def _do_request(
-        self, request_message: HttpMessage, http_dialogue: HttpDialogue
+        self,
+        request_message: HttpMessage,
+        http_dialogue: HttpDialogue,
+        timeout: Optional[float] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Do a request and wait the response, asynchronously.
 
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
+        :param timeout: seconds to wait for the reply.
         :yield: wait the response message
         :return: the response message
         """
@@ -648,8 +696,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         cast(Requests, self.context.requests).request_id_to_callback[
             request_nonce
         ] = self.default_callback_request
-        response = yield from self.wait_for_message()
-        return response
+        try:
+            response = yield from self.wait_for_message(timeout=timeout)
+            return response
+        finally:
+            # remove request id in case already timed out,
+            # but notify caller by propagating exception.
+            cast(Requests, self.context.requests).request_id_to_callback.pop(
+                request_nonce, None
+            )
 
     def _build_http_request_message(
         self,
@@ -702,17 +757,31 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return request_http_message, http_dialogue
 
     def _wait_until_transaction_delivered(
-        self, tx_hash: str
+        self, tx_hash: str, timeout: Optional[float] = None
     ) -> Generator[None, None, bool]:
         """
         Wait until transaction is delivered.
 
         :param tx_hash: the transaction hash to check.
+        :param timeout: timeout
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """
+        if timeout is not None:
+            deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
+        else:
+            deadline = datetime.datetime.max
+
         while True:
-            response = yield from self._get_tx_info(tx_hash)
+            request_timeout = (
+                (deadline - datetime.datetime.now()).total_seconds()
+                if timeout is not None
+                else None
+            )
+            if request_timeout is not None and request_timeout < 0:
+                raise TimeoutException()
+
+            response = yield from self._get_tx_info(tx_hash, timeout=request_timeout)
             if response.status_code != 200:
                 yield from self.sleep(_REQUEST_RETRY_DELAY)
                 continue
