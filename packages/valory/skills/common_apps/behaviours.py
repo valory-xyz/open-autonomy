@@ -21,17 +21,15 @@
 import datetime
 import json
 from abc import ABC
-from typing import Generator, Optional, Set, Type, cast
+from typing import Generator, Optional, cast
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.agent_registration_abci.models import Params, SharedState
 from packages.valory.skills.agent_registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.agent_registration_abci.rounds import (
-    AgentRegistrationAbciApp,
     PeriodState,
     RegistrationRound,
     RegistrationStartupRound,
@@ -39,20 +37,6 @@ from packages.valory.skills.agent_registration_abci.rounds import (
 
 
 benchmark_tool = BenchmarkTool()
-
-
-class AgentRegistrationBaseState(BaseState, ABC):
-    """Base state behaviour for the price estimation skill."""
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
-
-    @property
-    def params(self) -> Params:
-        """Return the params."""
-        return cast(Params, self.context.params)
 
 
 class TendermintHealthcheckBehaviour(AgentRegistrationBaseState):
@@ -119,6 +103,20 @@ class TendermintHealthcheckBehaviour(AgentRegistrationBaseState):
         self.set_done()
 
 
+class AgentRegistrationBaseState(BaseState, ABC):
+    """Base state behaviour for the price estimation skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the params."""
+        return cast(Params, self.context.params)
+
+
 class RegistrationBaseBehaviour(AgentRegistrationBaseState):
     """Register to the next periods."""
 
@@ -159,20 +157,3 @@ class RegistrationBehaviour(RegistrationBaseBehaviour):
 
     state_id = "register"
     matching_round = RegistrationRound
-
-
-class AgentRegistrationConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
-
-    initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = AgentRegistrationAbciApp  # type: ignore
-    behaviour_states: Set[Type[AgentRegistrationBaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        RegistrationStartupBehaviour,  # type: ignore
-    }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

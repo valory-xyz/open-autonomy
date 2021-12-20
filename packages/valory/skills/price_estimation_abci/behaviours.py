@@ -37,7 +37,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
-from packages.valory.skills.agent_registration_abci.behaviours import (
+from packages.valory.skills.common_apps.behaviours import (
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
     TendermintHealthcheckBehaviour,
