@@ -295,7 +295,6 @@ class FetchBehaviour(APYEstimationBaseState):
             with benchmark_tool.measure(
                 self,
             ).local():
-                # Fetch top n pool ids.
                 spooky_api_specs = self.context.spooky_subgraph.get_spec()
                 available_specs = set(spooky_api_specs.keys())
                 needed_specs = {"method", "url", "headers"}
@@ -303,25 +302,6 @@ class FetchBehaviour(APYEstimationBaseState):
 
                 for unwanted in unwanted_specs:
                     spooky_api_specs.pop(unwanted)
-
-                res_raw = yield from self.get_http_response(
-                    content=top_n_pairs_q(self.context.spooky_subgraph.top_n_pools),
-                    **spooky_api_specs,
-                )
-                res = self.context.spooky_subgraph.process_response(res_raw)
-
-                try:
-                    self._handle_response(
-                        res,
-                        res_context=f"top {self.context.spooky_subgraph.top_n_pools} pool ids (Showing first example)",
-                        keys=("pairs", 0, "id"),
-                        subgraph=self.context.spooky_subgraph,
-                    )
-                except EmptyResponseError:
-                    yield from self.sleep(self.params.sleep_time)
-                    return
-
-                pair_ids = [pair["id"] for pair in res["pairs"]]
 
                 pairs_hist = []
                 for timestamp in gen_unix_timestamps(self.params.history_duration):
@@ -371,9 +351,9 @@ class FetchBehaviour(APYEstimationBaseState):
 
                     eth_price = float(res["bundles"][0]["ethPrice"])
 
-                    # Fetch top n pool data for block.
+                    # Fetch pool data for block.
                     res_raw = yield from self.get_http_response(
-                        content=pairs_q(fetched_block["number"], pair_ids),
+                        content=pairs_q(fetched_block["number"], self.params.pair_ids),
                         **spooky_api_specs,
                     )
                     res = self.context.spooky_subgraph.process_response(res_raw)
@@ -381,8 +361,7 @@ class FetchBehaviour(APYEstimationBaseState):
                     try:
                         self._handle_response(
                             res,
-                            res_context=f"top {self.context.spooky_subgraph.top_n_pools} "
-                            f"pool data for block {fetched_block} (Showing first example)",
+                            res_context=f"pool data for block {fetched_block} (Showing first example)",
                             keys=("pairs", 0),
                             subgraph=self.context.spooky_subgraph,
                         )
