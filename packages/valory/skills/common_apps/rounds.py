@@ -36,8 +36,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
     VotingRound,
 )
-from packages.valory.skills.common_apps.payloads import RegistrationPayload
-from packages.valory.skills.price_estimation_abci.payloads import (
+from packages.valory.skills.common_apps.payloads import (
+    RegistrationPayload,
     FinalizationTxPayload,
     RandomnessPayload,
     ResetPayload,
@@ -234,41 +234,6 @@ class RegistrationRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractR
             )
             return state, Event.DONE
         return None
-
-
-class CommonAppsAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the price estimation skill."""
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, self._state)
-
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
-        """
-        Trigger the NO_MAJORITY event.
-
-        :return: a new period state and a NO_MAJORITY event
-        """
-        return self.period_state, Event.NO_MAJORITY
-
-
-class FinishedRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractRound):
-    """
-    This class represents the finished round during operation.
-
-    Input: a period state with the contracts from previous rounds
-    Output: a period state with the set of participants.
-
-    It is a sink round.
-    """
-
-    round_id = "finished"
-    allowed_tx_type = None
-    payload_attribute = ""
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """End block."""
 
 
 class FinishedARound(FinishedRound):
