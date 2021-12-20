@@ -32,17 +32,35 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    BaseState,
-)
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.common_apps.behaviours import (
+    CommonAppsBaseState,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
     TendermintHealthcheckBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.models import Params, SharedState
+from packages.valory.skills.common_apps.rounds import (
+    CollectObservationRound,
+    CollectSignatureRound,
+    DeployOracleRound,
+    DeploySafeRound,
+    EstimateConsensusRound,
+    FinalizationRound,
+    PriceEstimationAbciApp,
+    RandomnessAStartupRound,
+    RandomnessBStartupRound,
+    RandomnessRound,
+    ResetAndPauseRound,
+    ResetRound,
+    SelectKeeperARound,
+    SelectKeeperAStartupRound,
+    SelectKeeperBRound,
+    SelectKeeperBStartupRound,
+    TxHashRound,
+    ValidateTransactionRound,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeployOraclePayload,
     DeploySafePayload,
@@ -56,35 +74,13 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    CollectObservationRound,
-    CollectSignatureRound,
-    DeployOracleRound,
-    DeploySafeRound,
-    EstimateConsensusRound,
-    FinalizationRound,
-    PeriodState,
-    PriceEstimationAbciApp,
-    RandomnessAStartupRound,
-    RandomnessBStartupRound,
-    RandomnessRound,
-    ResetAndPauseRound,
-    ResetRound,
-    SelectKeeperARound,
-    SelectKeeperAStartupRound,
-    SelectKeeperBRound,
-    SelectKeeperBStartupRound,
-    TxHashRound,
-    ValidateOracleRound,
-    ValidateSafeRound,
-    ValidateTransactionRound,
-)
 from packages.valory.skills.price_estimation_abci.tools import (
     hex_to_payload,
     payload_to_hex,
     random_selection,
     to_int,
 )
+from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
 
 
 benchmark_tool = BenchmarkTool()
@@ -94,21 +90,7 @@ SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 
 
-class PriceEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the price estimation skill."""
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
-
-    @property
-    def params(self) -> Params:
-        """Return the params."""
-        return cast(Params, self.context.params)
-
-
-class RandomnessBehaviour(PriceEstimationBaseState):
+class RandomnessBehaviour(CommonAppsBaseState):
     """Check whether Tendermint nodes are running."""
 
     def async_act(self) -> Generator:
@@ -199,7 +181,7 @@ class RandomnessInOperationBehaviour(RandomnessBehaviour):
     matching_round = RandomnessRound
 
 
-class SelectKeeperBehaviour(PriceEstimationBaseState, ABC):
+class SelectKeeperBehaviour(CommonAppsBaseState, ABC):
     """Select the keeper agent."""
 
     def async_act(self) -> Generator:
@@ -271,7 +253,7 @@ class SelectKeeperBBehaviour(SelectKeeperBehaviour):
     matching_round = SelectKeeperBRound
 
 
-class DeploySafeBehaviour(PriceEstimationBaseState):
+class DeploySafeBehaviour(CommonAppsBaseState):
     """Deploy Safe."""
 
     state_id = "deploy_safe"
@@ -366,7 +348,7 @@ class DeploySafeBehaviour(PriceEstimationBaseState):
         return contract_address
 
 
-class DeployOracleBehaviour(PriceEstimationBaseState):
+class DeployOracleBehaviour(CommonAppsBaseState):
     """Deploy Oracle."""
 
     state_id = "deploy_oracle"
@@ -457,7 +439,7 @@ class DeployOracleBehaviour(PriceEstimationBaseState):
         return contract_address
 
 
-class ValidateSafeBehaviour(PriceEstimationBaseState):
+class ValidateSafeBehaviour(CommonAppsBaseState):
     """ValidateSafe."""
 
     state_id = "validate_safe"
@@ -505,7 +487,7 @@ class ValidateSafeBehaviour(PriceEstimationBaseState):
         return verified
 
 
-class ValidateOracleBehaviour(PriceEstimationBaseState):
+class ValidateOracleBehaviour(CommonAppsBaseState):
     """ValidateOracle."""
 
     state_id = "validate_oracle"
@@ -553,7 +535,7 @@ class ValidateOracleBehaviour(PriceEstimationBaseState):
         return verified
 
 
-class ObserveBehaviour(PriceEstimationBaseState):
+class ObserveBehaviour(CommonAppsBaseState):
     """Observe price estimate."""
 
     state_id = "observe"
@@ -620,7 +602,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         self.context.price_api.reset_retries()
 
 
-class EstimateBehaviour(PriceEstimationBaseState):
+class EstimateBehaviour(CommonAppsBaseState):
     """Estimate price."""
 
     state_id = "estimate"
@@ -659,7 +641,7 @@ class EstimateBehaviour(PriceEstimationBaseState):
         self.set_done()
 
 
-class TransactionHashBehaviour(PriceEstimationBaseState):
+class TransactionHashBehaviour(CommonAppsBaseState):
     """Share the transaction hash for the signature round."""
 
     state_id = "tx_hash"
@@ -749,7 +731,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         return payload_string
 
 
-class SignatureBehaviour(PriceEstimationBaseState):
+class SignatureBehaviour(CommonAppsBaseState):
     """Signature state."""
 
     state_id = "sign"
@@ -798,7 +780,7 @@ class SignatureBehaviour(PriceEstimationBaseState):
         return signature_hex
 
 
-class FinalizeBehaviour(PriceEstimationBaseState):
+class FinalizeBehaviour(CommonAppsBaseState):
     """Finalize state."""
 
     state_id = "finalize"
@@ -904,7 +886,7 @@ class FinalizeBehaviour(PriceEstimationBaseState):
         return tx_digest
 
 
-class ValidateTransactionBehaviour(PriceEstimationBaseState):
+class ValidateTransactionBehaviour(CommonAppsBaseState):
     """ValidateTransaction."""
 
     state_id = "validate_transaction"
@@ -1003,7 +985,7 @@ class ValidateTransactionBehaviour(PriceEstimationBaseState):
         return verified
 
 
-class BaseResetBehaviour(PriceEstimationBaseState):
+class BaseResetBehaviour(CommonAppsBaseState):
     """Reset state."""
 
     pause = True
@@ -1145,7 +1127,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[PriceEstimationBaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[CommonAppsBaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore

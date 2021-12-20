@@ -22,48 +22,23 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import (
-    AbstractSet,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    cast,
-)
+from typing import AbstractSet, Dict, List, Optional, Sequence, Set, Tuple, Type, cast
 
-from aea.exceptions import enforce
-
-from packages.valory.skills.abstract_round_abci.abci_app_chain import (
-    AbciAppTransitionMapping,
-    chain,
-)
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
     BasePeriodState,
+    CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     OnlyKeeperSendsRound,
     VotingRound,
 )
-from packages.valory.skills.agent_registration_abci.rounds import (
-    AgentRegistrationAbciApp,
-    FinishedERound,
-    FinishedFRound,
-    RegistrationRound,
-)
+from packages.valory.skills.common_apps.payloads import RegistrationPayload
 from packages.valory.skills.price_estimation_abci.payloads import (
-    DeployOraclePayload,
-    DeploySafePayload,
-    EstimatePayload,
     FinalizationTxPayload,
-    ObservationPayload,
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -72,7 +47,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionType,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.tools import aggregate
+
 
 class Event(Enum):
     """Event enumeration for the price estimation demo."""
@@ -135,7 +110,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return sorted(self.participants, key=str.lower)
 
 
-class AgentRegistrationAbstractRound(AbstractRound[Event, TransactionType], ABC):
+class CommonAppsAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the agent registration skill."""
 
     @property
@@ -152,9 +127,7 @@ class AgentRegistrationAbstractRound(AbstractRound[Event, TransactionType], ABC)
         return self.period_state, Event.NO_MAJORITY
 
 
-class FinishedRound(
-    CollectDifferentUntilThresholdRound, AgentRegistrationAbstractRound
-):
+class FinishedRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractRound):
     """
     This class represents the finished round during operation.
 
@@ -184,9 +157,7 @@ class FinishedFRound(FinishedRound):
     round_id = "finished_f"
 
 
-class RegistrationStartupRound(
-    CollectDifferentUntilAllRound, AgentRegistrationAbstractRound
-):
+class RegistrationStartupRound(CollectDifferentUntilAllRound, CommonAppsAbstractRound):
     """
     This class represents the registration round.
 
@@ -233,9 +204,7 @@ class RegistrationStartupRound(
         return None
 
 
-class RegistrationRound(
-    CollectDifferentUntilThresholdRound, AgentRegistrationAbstractRound
-):
+class RegistrationRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractRound):
     """
     This class represents the registration round during operation.
 
@@ -265,7 +234,6 @@ class RegistrationRound(
             )
             return state, Event.DONE
         return None
-
 
 
 class CommonAppsAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -384,54 +352,6 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound)
             self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
-        return None
-
-
-class DeploySafeRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
-    """
-    This class represents the deploy Safe round.
-
-    Input: a set of participants (addresses) and a keeper
-    Output: a period state with the set of participants, the keeper and the Safe contract address.
-
-    It schedules the ValidateSafeRound.
-    """
-
-    round_id = "deploy_safe"
-    allowed_tx_type = DeploySafePayload.transaction_type
-    payload_attribute = "safe_contract_address"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload:
-            state = self.period_state.update(safe_contract_address=self.keeper_payload)
-            return state, Event.DONE
-        return None
-
-
-class DeployOracleRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
-    """
-    This class represents the deploy Oracle round.
-
-    Input: a set of participants (addresses) and a keeper
-    Output: a period state with the set of participants, the keeper and the Oracle contract address.
-
-    It schedules the ValidateOracleRound.
-    """
-
-    round_id = "deploy_oracle"
-    allowed_tx_type = DeployOraclePayload.transaction_type
-    payload_attribute = "oracle_contract_address"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload:
-            state = self.period_state.update(
-                oracle_contract_address=self.keeper_payload
-            )
-            return state, Event.DONE
         return None
 
 
@@ -653,36 +573,6 @@ class ResetAndPauseRound(BaseResetRound):
     round_id = "reset_and_pause"
 
 
-class ValidateSafeRound(ValidateRound):
-    """
-    This class represents the validate Safe round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the validation of the contract address
-
-    It schedules the CollectObservationRound or SelectKeeperARound.
-    """
-
-    round_id = "validate_safe"
-    negative_event = Event.NEGATIVE
-    none_event = Event.NONE
-
-
-class ValidateOracleRound(ValidateRound):
-    """
-    This class represents the validate Oracle round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the validation of the contract address
-
-    It schedules the CollectObservationRound or SelectKeeperARound.
-    """
-
-    round_id = "validate_oracle"
-    negative_event = Event.NEGATIVE
-    none_event = Event.NONE
-
-
 class ValidateTransactionRound(ValidateRound):
     """
     This class represents the validate transaction round.
@@ -718,6 +608,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
+
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """Transaction submission ABCI application."""

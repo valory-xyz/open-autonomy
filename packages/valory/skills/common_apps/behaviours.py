@@ -23,13 +23,11 @@ import json
 from abc import ABC
 from typing import Generator, Optional, cast
 
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    BaseState,
-)
+from packages.valory.skills.abstract_round_abci.behaviours import BaseState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.agent_registration_abci.models import Params, SharedState
-from packages.valory.skills.agent_registration_abci.payloads import RegistrationPayload
-from packages.valory.skills.agent_registration_abci.rounds import (
+from packages.valory.skills.common_apps.models import Params, SharedState
+from packages.valory.skills.common_apps.payloads import RegistrationPayload
+from packages.valory.skills.common_apps.rounds import (
     PeriodState,
     RegistrationRound,
     RegistrationStartupRound,
@@ -39,7 +37,21 @@ from packages.valory.skills.agent_registration_abci.rounds import (
 benchmark_tool = BenchmarkTool()
 
 
-class TendermintHealthcheckBehaviour(AgentRegistrationBaseState):
+class CommonAppsBaseState(BaseState, ABC):
+    """Base state behaviour for the common apps skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the params."""
+        return cast(Params, self.context.params)
+
+
+class TendermintHealthcheckBehaviour(CommonAppsBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -103,7 +115,7 @@ class TendermintHealthcheckBehaviour(AgentRegistrationBaseState):
         self.set_done()
 
 
-class AgentRegistrationBaseState(BaseState, ABC):
+class CommonAppsBaseState(BaseState, ABC):
     """Base state behaviour for the price estimation skill."""
 
     @property
@@ -117,7 +129,7 @@ class AgentRegistrationBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class RegistrationBaseBehaviour(AgentRegistrationBaseState):
+class RegistrationBaseBehaviour(CommonAppsBaseState):
     """Register to the next periods."""
 
     def async_act(self) -> Generator:

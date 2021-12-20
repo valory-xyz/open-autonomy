@@ -19,8 +19,6 @@
 
 """This module contains the data classes for the price estimation ABCI application."""
 import struct
-from abc import ABC
-from enum import Enum
 from types import MappingProxyType
 from typing import (
     AbstractSet,
@@ -49,46 +47,39 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
-    OnlyKeeperSendsRound,
-    VotingRound,
 )
-from packages.valory.skills.common_apps.rounds import (
-    AgentRegistrationAbciApp,
-    FinishedERound,
-    FinishedFRound,
-    RegistrationRound,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
-    DeployOraclePayload,
-    DeploySafePayload,
-    EstimatePayload,
-    FinalizationTxPayload,
-    ObservationPayload,
+from packages.valory.skills.common_apps.payloads import (
     RandomnessPayload,
-    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     TransactionHashPayload,
-    TransactionType,
     ValidatePayload,
 )
+from packages.valory.skills.common_apps.rounds import (
+    AgentRegistrationAbciApp,
+    CommonAppsAbstractRound,
+    Event,
+    FailedRound,
+    FinishedARound,
+    FinishedBRound,
+    FinishedCRound,
+    FinishedDRound,
+    FinishedERound,
+    FinishedFRound,
+    RandomnessAStartupRound,
+    RandomnessBStartupRound,
+    RandomnessRound,
+    RegistrationRound,
+    TransactionSubmissionAbciApp,
+    TxHashRound,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import OracleDeploymentAbciApp
+from packages.valory.skills.price_estimation_abci.payloads import (
+    EstimatePayload,
+    ObservationPayload,
+)
 from packages.valory.skills.price_estimation_abci.tools import aggregate
-
-
-class Event(Enum):
-    """Event enumeration for the price estimation demo."""
-
-    DONE = "done"
-    ROUND_TIMEOUT = "round_timeout"
-    NO_MAJORITY = "no_majority"
-    FAST_FORWARD = "fast_forward"
-    NEGATIVE = "negative"
-    NONE = "none"
-    VALIDATE_TIMEOUT = "validate_timeout"
-    DEPLOY_TIMEOUT = "deploy_timeout"
-    RESET_TIMEOUT = "reset_timeout"
-    RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
-    FAILED = "failed"
+from packages.valory.skills.safe_deployment_abci.rounds import SafeDeploymentAbciApp
 
 
 def encode_float(value: float) -> bytes:
@@ -354,9 +345,7 @@ class CollectObservationRound(
         return None
 
 
-class EstimateConsensusRound(
-    CollectSameUntilThresholdRound, CommonAppsAbstractRound
-):
+class EstimateConsensusRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
     """
     This class represents the 'estimate_consensus' round.
 
@@ -383,78 +372,6 @@ class EstimateConsensusRound(
         ):
             return self._return_no_majority_event()
         return None
-
-
-class SafeDeploymentAbciApp(AbciApp[Event]):
-    """Safe deployment ABCI application."""
-
-    initial_round_cls: Type[AbstractRound] = RandomnessAStartupRound
-    transition_function: AbciAppTransitionFunction = {
-        RandomnessAStartupRound: {
-            Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessAStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessAStartupRound,  # we can have some agents on either side of an epoch, so we retry
-        },
-        SelectKeeperAStartupRound: {
-            Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RandomnessAStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessAStartupRound,  # if the round has no majority we restart
-        },
-        DeploySafeRound: {
-            Event.DONE: ValidateSafeRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperAStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-        },
-        ValidateSafeRound: {
-            Event.DONE: FinishedARound,
-            Event.NEGATIVE: RandomnessAStartupRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RandomnessAStartupRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessAStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessAStartupRound,  # if the round has no majority we restart
-        },
-        FinishedARound: {},
-    }
-    final_states: Set[AppState] = {FinishedARound}
-    event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
-        Event.VALIDATE_TIMEOUT: 30.0,
-        Event.DEPLOY_TIMEOUT: 30.0,
-    }
-
-
-class OracleDeploymentAbciApp(AbciApp[Event]):
-    """Oracle deployment ABCI application."""
-
-    initial_round_cls: Type[AbstractRound] = RandomnessBStartupRound
-    transition_function: AbciAppTransitionFunction = {
-        RandomnessBStartupRound: {
-            Event.DONE: SelectKeeperBStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessBStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessBStartupRound,  # we can have some agents on either side of an epoch, so we retry
-        },
-        SelectKeeperBStartupRound: {
-            Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RandomnessBStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessBStartupRound,  # if the round has no majority we restart
-        },
-        DeployOracleRound: {
-            Event.DONE: ValidateOracleRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperBStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-        },
-        ValidateOracleRound: {
-            Event.DONE: FinishedBRound,
-            Event.NEGATIVE: RandomnessBStartupRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RandomnessBStartupRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessBStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessBStartupRound,  # if the round has no majority we restart
-        },
-        FinishedBRound: {},
-    }
-    final_states: Set[AppState] = {FinishedBRound}
-    event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
-        Event.VALIDATE_TIMEOUT: 30.0,
-        Event.DEPLOY_TIMEOUT: 30.0,
-    }
 
 
 class PriceAggregationAbciApp(AbciApp[Event]):
