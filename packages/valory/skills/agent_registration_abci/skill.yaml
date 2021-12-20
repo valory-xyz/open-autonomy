@@ -1,0 +1,83 @@
+name: agent_registration_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for agent registration.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmUeuLwoANXtVc7eQQYdf71AzDNksTBPZi7CFrCKoZczfF
+  __init__.py: Qmed2nyWuTYWAkZH9wdDq6g8E9J9iwQ6db7pRJJjVd7pG6
+  behaviours.py: QmRd1FWxnPf77puPhhEXXp94h8GiCvCxqC8jaSmfRXon97
+  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
+  handlers.py: QmQ62ZEDZCTHXmfb7WNgcFdALG3yJ6tBRhKYjzwTuanmap
+  models.py: QmXM7JAsFFXzxi7PH5j6XDsCsc3egiR1Zph9gNGgtTgvuJ
+  payloads.py: QmPkkcpJUpVBQJjnUgHYVGtrcshmQTEVxZa73ma3KvMECh
+  rounds.py: QmdEXwjQNSMKzgMs6Wo54CishnmQKaN7EtvPHZo7yMHEKG
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+contracts: []
+protocols:
+- open_aea/signing:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: AgentRegistrationConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIAgentRegistrationHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      consensus:
+        max_participants: 1
+      max_healthcheck: 120
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30
+      sleep_time: 1
+      tendermint_com_url: http://localhost:8080
+      tendermint_url: http://localhost:26657
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false

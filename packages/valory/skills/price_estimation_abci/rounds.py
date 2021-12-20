@@ -47,11 +47,16 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BasePeriodState,
-    CollectDifferentUntilAllRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     OnlyKeeperSendsRound,
     VotingRound,
+)
+from packages.valory.skills.agent_registration_abci.rounds import (
+    AgentRegistrationAbciApp,
+    FinishedERound,
+    FinishedFRound,
+    RegistrationRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeployOraclePayload,
@@ -60,7 +65,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     FinalizationTxPayload,
     ObservationPayload,
     RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
@@ -376,115 +380,10 @@ class FinishedDRound(FinishedRound):
     round_id = "finished_d"
 
 
-class FinishedERound(FinishedRound):
-    """This class represents the finished round during operation."""
-
-    round_id = "finished_e"
-
-
-class FinishedFRound(FinishedRound):
-    """This class represents the finished round during operation."""
-
-    round_id = "finished_f"
-
-
 class FailedRound(FinishedRound):
     """This class represents the failed round during operation."""
 
     round_id = "failed"
-
-
-class RegistrationStartupRound(
-    CollectDifferentUntilAllRound, PriceEstimationAbstractRound
-):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
-
-    round_id = "registration_at_startup"
-    allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
-    required_block_confirmations = 1
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.collection_threshold_reached:
-            self.block_confirmations += 1
-        if (  # fast forward at setup
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-            and self.period_state.period_setup_params != {}
-            and self.period_state.period_setup_params.get("safe_contract_address", None)
-            is not None
-            and self.period_state.period_setup_params.get(
-                "oracle_contract_address", None
-            )
-            is not None
-        ):
-            state = PeriodState(
-                participants=self.collection,
-                period_count=self.period_state.period_count,
-                safe_contract_address=self.period_state.period_setup_params.get(
-                    "safe_contract_address"
-                ),
-                oracle_contract_address=self.period_state.period_setup_params.get(
-                    "oracle_contract_address"
-                ),
-            )
-            return state, Event.FAST_FORWARD
-        if (
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-        ):  # initial deployment round
-            state = PeriodState(
-                participants=self.collection,
-                period_count=self.period_state.period_count,
-            )
-            return state, Event.DONE
-        return None
-
-
-class RegistrationRound(
-    CollectDifferentUntilThresholdRound, PriceEstimationAbstractRound
-):
-    """
-    This class represents the registration round during operation.
-
-    Input: a period state with the contracts from previous rounds
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
-
-    round_id = "registration"
-    allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
-    required_block_confirmations = 10
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.collection_threshold_reached:
-            self.block_confirmations += 1
-        if (  # contracts are set from previous rounds
-            self.collection_threshold_reached
-            and self.block_confirmations
-            > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
-            and hasattr(self.period_state, "are_contracts_set")
-            and self.period_state.are_contracts_set
-        ):
-            state = PeriodState(
-                participants=frozenset(list(self.collection.keys())),
-                period_count=self.period_state.period_count,
-                safe_contract_address=self.period_state.safe_contract_address,
-                oracle_contract_address=self.period_state.oracle_contract_address,
-            )
-            return state, Event.DONE
-        return None
 
 
 class BaseRandomnessRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
@@ -916,28 +815,6 @@ class ValidateTransactionRound(ValidateRound):
     none_event = Event.NONE
 
 
-class RegistrationAbciApp(AbciApp[Event]):
-    """Registration ABCI application."""
-
-    initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
-    initial_states: Set[AppState] = {RegistrationStartupRound, RegistrationRound}
-    transition_function: AbciAppTransitionFunction = {
-        RegistrationStartupRound: {
-            Event.DONE: FinishedERound,
-            Event.FAST_FORWARD: FinishedFRound,
-        },
-        RegistrationRound: {
-            Event.DONE: FinishedFRound,
-        },
-        FinishedERound: {},
-        FinishedFRound: {},
-    }
-    final_states: Set[AppState] = {FinishedERound, FinishedFRound}
-    event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
-    }
-
-
 class SafeDeploymentAbciApp(AbciApp[Event]):
     """Safe deployment ABCI application."""
 
@@ -1110,7 +987,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
 
 PriceEstimationAbciApp = chain(
     (
-        RegistrationAbciApp,
+        AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
         OracleDeploymentAbciApp,
         PriceAggregationAbciApp,

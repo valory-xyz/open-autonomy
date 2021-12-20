@@ -66,6 +66,11 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.agent_registration_abci.behaviours import (
+    RegistrationBaseBehaviour,
+    RegistrationBehaviour,
+    RegistrationStartupBehaviour,
+)
 from packages.valory.skills.price_estimation_abci.behaviours import (
     DeployOracleBehaviour,
     DeploySafeBehaviour,
@@ -77,9 +82,6 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     RandomnessAtStartupABehaviour,
     RandomnessAtStartupBBehaviour,
     RandomnessInOperationBehaviour,
-    RegistrationBaseBehaviour,
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperAAtStartupBehaviour,

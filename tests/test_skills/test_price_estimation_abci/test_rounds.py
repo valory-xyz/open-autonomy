@@ -28,6 +28,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     ConsensusParams,
 )
+from packages.valory.skills.agent_registration_abci.rounds import (
+    RegistrationStartupRound,
+)
 from packages.valory.skills.price_estimation_abci.payloads import (
     DeployOraclePayload,
     DeploySafePayload,
@@ -53,7 +56,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState,
     RandomnessRound,
     RegistrationRound,
-    RegistrationStartupRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     ResetRound as ConsensusReachedRound,
