@@ -442,12 +442,6 @@ class FinishedARound(FinishedRound):
     round_id = "finished_a"
 
 
-class FinishedBRound(FinishedRound):
-    """This class represents the finished round during operation."""
-
-    round_id = "finished_b"
-
-
 class FinishedCRound(FinishedRound):
     """This class represents the finished round during operation."""
 
@@ -614,12 +608,6 @@ class RandomnessAStartupRound(BaseRandomnessRound):
     round_id = "randomness_a_startup"
 
 
-class RandomnessBStartupRound(BaseRandomnessRound):
-    """Randomness round for startup."""
-
-    round_id = "randomness_b_startup"
-
-
 class RandomnessRound(BaseRandomnessRound):
     """Randomness round for operations."""
 
@@ -630,12 +618,6 @@ class SelectKeeperAStartupRound(SelectKeeperRound):
     """SelectKeeperA round for startup."""
 
     round_id = "select_keeper_a_startup"
-
-
-class SelectKeeperBStartupRound(SelectKeeperRound):
-    """SelectKeeperB round for startup."""
-
-    round_id = "select_keeper_b_startup"
 
 
 class SelectKeeperARound(SelectKeeperRound):

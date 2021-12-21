@@ -51,14 +51,12 @@ from packages.valory.skills.common_apps.rounds import (
     FinalizationRound,
     PeriodState,
     RandomnessAStartupRound,
-    RandomnessBStartupRound,
     RandomnessRound,
     RegistrationRound,
     RegistrationStartupRound,
     SelectKeeperARound,
     SelectKeeperAStartupRound,
     SelectKeeperBRound,
-    SelectKeeperBStartupRound,
     ValidateTransactionRound,
 )
 from packages.valory.skills.common_apps.tools import hex_to_payload, random_selection
@@ -268,13 +266,6 @@ class RandomnessAtStartupABehaviour(RandomnessBehaviour):
     matching_round = RandomnessAStartupRound
 
 
-class RandomnessAtStartupBBehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
-
-    state_id = "retrieve_randomness_at_startup_b"
-    matching_round = RandomnessBStartupRound
-
-
 class RandomnessInOperationBehaviour(RandomnessBehaviour):
     """Retrive randomness during operation."""
 
@@ -331,13 +322,6 @@ class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
 
     state_id = "select_keeper_a_at_startup"
     matching_round = SelectKeeperAStartupRound
-
-
-class SelectKeeperBAtStartupBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent at startup."""
-
-    state_id = "select_keeper_b_at_startup"
-    matching_round = SelectKeeperBStartupRound
 
 
 class SelectKeeperABehaviour(SelectKeeperBehaviour):

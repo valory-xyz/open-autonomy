@@ -28,11 +28,17 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.behaviours import CommonAppsBaseState
+from packages.valory.skills.common_apps.behaviours import (
+    CommonAppsBaseState,
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
+)
 from packages.valory.skills.common_apps.payloads import ValidatePayload
 from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
+    RandomnessOracleRound,
+    SelectKeeperOracleRound,
     ValidateOracleRound,
 )
 
@@ -40,8 +46,22 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 benchmark_tool = BenchmarkTool()
 
 
+class RandomnessOracleBehaviour(RandomnessBehaviour):
+    """Retrive randomness for oracle deployment."""
+
+    state_id = "retrieve_randomness_oracle"
+    matching_round = RandomnessOracleRound
+
+
+class SelectKeeperOracleBehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent."""
+
+    state_id = "select_keeper_oracle"
+    matching_round = SelectKeeperOracleRound
+
+
 class DeployOracleBehaviour(CommonAppsBaseState):
-    """Deploy Oracle."""
+    """Deploy oracle."""
 
     state_id = "deploy_oracle"
     matching_round = DeployOracleRound
@@ -132,7 +152,7 @@ class DeployOracleBehaviour(CommonAppsBaseState):
 
 
 class ValidateOracleBehaviour(CommonAppsBaseState):
-    """ValidateOracle."""
+    """Validate oracle."""
 
     state_id = "validate_oracle"
     matching_round = ValidateOracleRound
