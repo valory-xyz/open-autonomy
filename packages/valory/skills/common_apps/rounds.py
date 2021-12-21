@@ -390,6 +390,12 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound, CommonAppsAbstract
             state = PeriodState(
                 participants=self.collection,
                 period_count=self.period_state.period_count,
+                safe_contract_address=self.period_state.period_setup_params.get(
+                    "safe_contract_address"
+                ),
+                oracle_contract_address=self.period_state.period_setup_params.get(
+                    "oracle_contract_address"
+                ),
             )
             return state, Event.FAST_FORWARD
         if (
