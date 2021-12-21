@@ -50,13 +50,11 @@ from packages.valory.skills.common_apps.rounds import (
     CollectSignatureRound,
     FinalizationRound,
     PeriodState,
-    RandomnessAStartupRound,
-    RandomnessRound,
+    RandomnessTransactionSubmissionRound,
     RegistrationRound,
     RegistrationStartupRound,
-    SelectKeeperARound,
-    SelectKeeperAStartupRound,
-    SelectKeeperBRound,
+    SelectKeeperTransactionSubmissionRoundA,
+    SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
 )
 from packages.valory.skills.common_apps.tools import hex_to_payload, random_selection
@@ -178,14 +176,14 @@ class RegistrationBaseBehaviour(CommonAppsBaseState):
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""
 
-    state_id = "register_startup"
+    state_id = "registration_startup"
     matching_round = RegistrationStartupRound
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""
 
-    state_id = "register"
+    state_id = "registration"
     matching_round = RegistrationRound
 
 
@@ -259,18 +257,11 @@ class RandomnessBehaviour(CommonAppsBaseState):
         self.context.randomness_api.reset_retries()
 
 
-class RandomnessAtStartupABehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
+class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
+    """Retrieve randomness."""
 
-    state_id = "retrieve_randomness_at_startup_a"
-    matching_round = RandomnessAStartupRound
-
-
-class RandomnessInOperationBehaviour(RandomnessBehaviour):
-    """Retrive randomness during operation."""
-
-    state_id = "retrieve_randomness"
-    matching_round = RandomnessRound
+    state_id = "randomness_transaction_submission"
+    matching_round = RandomnessTransactionSubmissionRound
 
 
 class SelectKeeperBehaviour(CommonAppsBaseState, ABC):
@@ -317,25 +308,18 @@ class SelectKeeperBehaviour(CommonAppsBaseState, ABC):
         self.set_done()
 
 
-class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent at startup."""
-
-    state_id = "select_keeper_a_at_startup"
-    matching_round = SelectKeeperAStartupRound
-
-
-class SelectKeeperABehaviour(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_a"
-    matching_round = SelectKeeperARound
+    state_id = "select_keeper_transaction_submission_a"
+    matching_round = SelectKeeperTransactionSubmissionRoundA
 
 
-class SelectKeeperBBehaviour(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    state_id = "select_keeper_b"
-    matching_round = SelectKeeperBRound
+    state_id = "select_keeper_transaction_submission_b"
+    matching_round = SelectKeeperTransactionSubmissionRoundB
 
 
 class ValidateTransactionBehaviour(CommonAppsBaseState):

@@ -26,16 +26,36 @@ from aea_ledger_ethereum import EthereumApi
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.behaviours import CommonAppsBaseState
+from packages.valory.skills.common_apps.behaviours import (
+    CommonAppsBaseState,
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
+)
 from packages.valory.skills.common_apps.payloads import ValidatePayload
 from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
+    RandomnessSafeRound,
+    SelectKeeperSafeRound,
     ValidateSafeRound,
 )
 
 
 benchmark_tool = BenchmarkTool()
+
+
+class RandomnessSafeBehaviour(RandomnessBehaviour):
+    """Retrive randomness for oracle deployment."""
+
+    state_id = "retrieve_randomness_safe"
+    matching_round = RandomnessSafeRound
+
+
+class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
+    """Select the keeper agent."""
+
+    state_id = "select_keeper_safe"
+    matching_round = SelectKeeperSafeRound
 
 
 class DeploySafeBehaviour(CommonAppsBaseState):

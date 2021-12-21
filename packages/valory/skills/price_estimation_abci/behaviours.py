@@ -33,13 +33,11 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import (
     CommonAppsBaseState,
     FinalizeBehaviour,
-    RandomnessAtStartupABehaviour,
-    RandomnessInOperationBehaviour,
+    RandomnessTransactionSubmissionBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    SelectKeeperAAtStartupBehaviour,
-    SelectKeeperABehaviour,
-    SelectKeeperBBehaviour,
+    SelectKeeperTransactionSubmissionBehaviourA,
+    SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,
     ValidateTransactionBehaviour,
@@ -66,6 +64,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
+    RandomnessSafeBehaviour,
+    SelectKeeperSafeBehaviour,
     ValidateSafeBehaviour,
 )
 
@@ -419,23 +419,23 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
-        RandomnessAtStartupABehaviour,  # type: ignore
+        RandomnessSafeBehaviour,  # type: ignore
         RandomnessOracleBehaviour,  # type: ignore
-        SelectKeeperAAtStartupBehaviour,  # type: ignore
+        SelectKeeperSafeBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
         SelectKeeperOracleBehaviour,  # type: ignore
         DeployOracleBehaviour,  # type: ignore
         ValidateOracleBehaviour,  # type: ignore
-        RandomnessInOperationBehaviour,  # type: ignore
-        SelectKeeperABehaviour,  # type: ignore
+        RandomnessTransactionSubmissionBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
-        SelectKeeperBBehaviour,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

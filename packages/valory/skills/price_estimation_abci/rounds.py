@@ -44,13 +44,11 @@ from packages.valory.skills.common_apps.rounds import (
     CommonAppsAbstractRound,
     Event,
     FailedRound,
-    FinishedARound,
-    FinishedCRound,
-    FinishedDRound,
-    FinishedERound,
-    FinishedFRound,
-    RandomnessAStartupRound,
-    RandomnessRound,
+    FinishedRegistrationFFWRound,
+    FinishedRegistrationRound,
+    FinishedRound,
+    FinishedTransactionSubmissionRound,
+    RandomnessTransactionSubmissionRound,
     RegistrationRound,
     TransactionSubmissionAbciApp,
 )
@@ -60,7 +58,11 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
     OracleDeploymentAbciApp,
     RandomnessOracleRound,
 )
-from packages.valory.skills.safe_deployment_abci.rounds import SafeDeploymentAbciApp
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    FinishedSafeRound,
+    RandomnessSafeRound,
+    SafeDeploymentAbciApp,
+)
 
 
 class CollectObservationRound(
@@ -156,6 +158,12 @@ class TxHashRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
         return None
 
 
+class FinishedPriceAggregationRound(FinishedRound):
+    """This class represents the finished round of the price aggreagation."""
+
+    round_id = "finished_price_aggregation"
+
+
 class PriceAggregationAbciApp(AbciApp[Event]):
     """Price estimation ABCI application."""
 
@@ -171,14 +179,14 @@ class PriceAggregationAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
         },
         TxHashRound: {
-            Event.DONE: FinishedCRound,
+            Event.DONE: FinishedPriceAggregationRound,
             Event.NONE: CollectObservationRound,  # if the agents cannot produce the hash we reset the period
             Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
         },
-        FinishedCRound: {},
+        FinishedPriceAggregationRound: {},
     }
-    final_states: Set[AppState] = {FinishedCRound}
+    final_states: Set[AppState] = {FinishedPriceAggregationRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
@@ -187,12 +195,12 @@ class PriceAggregationAbciApp(AbciApp[Event]):
 
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
-    FinishedERound: RandomnessAStartupRound,
+    FinishedRegistrationRound: RandomnessSafeRound,
+    FinishedRegistrationFFWRound: CollectObservationRound,
+    FinishedSafeRound: RandomnessOracleRound,
     FinishedOracleRound: CollectObservationRound,
-    FinishedARound: RandomnessOracleRound,
-    FinishedFRound: CollectObservationRound,
-    FinishedCRound: RandomnessRound,
-    FinishedDRound: CollectObservationRound,
+    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
+    FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,
 }
 

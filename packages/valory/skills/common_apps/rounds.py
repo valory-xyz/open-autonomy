@@ -345,16 +345,16 @@ class FinishedRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractRound
         """End block."""
 
 
-class FinishedERound(FinishedRound):
+class FinishedRegistrationRound(FinishedRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_e"
+    round_id = "finished_registration"
 
 
-class FinishedFRound(FinishedRound):
+class FinishedRegistrationFFWRound(FinishedRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_f"
+    round_id = "finished_registration_ffw"
 
 
 class RegistrationStartupRound(CollectDifferentUntilAllRound, CommonAppsAbstractRound):
@@ -364,10 +364,10 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound, CommonAppsAbstract
     Input: None
     Output: a period state with the set of participants.
 
-    It schedules the SelectKeeperARound.
+    It schedules the SelectKeeperTransactionSubmissionRoundA.
     """
 
-    round_id = "registration_at_startup"
+    round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
     required_block_confirmations = 1
@@ -411,7 +411,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractR
     Input: a period state with the contracts from previous rounds
     Output: a period state with the set of participants.
 
-    It schedules the SelectKeeperARound.
+    It schedules the SelectKeeperTransactionSubmissionRoundA.
     """
 
     round_id = "registration"
@@ -436,22 +436,10 @@ class RegistrationRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractR
         return None
 
 
-class FinishedARound(FinishedRound):
+class FinishedTransactionSubmissionRound(FinishedRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_a"
-
-
-class FinishedCRound(FinishedRound):
-    """This class represents the finished round during operation."""
-
-    round_id = "finished_c"
-
-
-class FinishedDRound(FinishedRound):
-    """This class represents the finished round during operation."""
-
-    round_id = "finished_d"
+    round_id = "finished_transaction_submission"
 
 
 class FailedRound(FinishedRound):
@@ -467,7 +455,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, CommonAppsAbstractRoun
     Input: a set of participants (addresses)
     Output: a set of participants (addresses) and randomness
 
-    It schedules the SelectKeeperARound.
+    It schedules the SelectKeeperTransactionSubmissionRoundA.
     """
 
     allowed_tx_type = RandomnessPayload.transaction_type
@@ -602,46 +590,22 @@ class FinalizationRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
         return None
 
 
-class RandomnessAStartupRound(BaseRandomnessRound):
-    """Randomness round for startup."""
-
-    round_id = "randomness_a_startup"
-
-
-class RandomnessRound(BaseRandomnessRound):
+class RandomnessTransactionSubmissionRound(BaseRandomnessRound):
     """Randomness round for operations."""
 
-    round_id = "randomness"
+    round_id = "randomness_transaction_submission"
 
 
-class SelectKeeperAStartupRound(SelectKeeperRound):
-    """SelectKeeperA round for startup."""
-
-    round_id = "select_keeper_a_startup"
-
-
-class SelectKeeperARound(SelectKeeperRound):
+class SelectKeeperTransactionSubmissionRoundA(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
-    round_id = "select_keeper_a"
+    round_id = "select_keeper_transaction_submission_a"
 
 
-class SelectKeeperBRound(SelectKeeperRound):
+class SelectKeeperTransactionSubmissionRoundB(SelectKeeperRound):
     """This class represents the select keeper B round."""
 
-    round_id = "select_keeper_b"
-
-
-class SelectKeeperCRound(SelectKeeperRound):
-    """This class represents the select keeper C round."""
-
-    round_id = "select_keeper_c"
-
-
-class SelectKeeperDRound(SelectKeeperRound):
-    """This class represents the select keeper D round."""
-
-    round_id = "select_keeper_d"
+    round_id = "select_keeper_transaction_submission_b"
 
 
 class BaseResetRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
@@ -696,7 +660,7 @@ class ValidateTransactionRound(ValidateRound):
     Input: a period state with the prior round data
     Output: a new period state with the prior round data and the validation of the transaction
 
-    It schedules the ResetRound or SelectKeeperARound.
+    It schedules the ResetRound or SelectKeeperTransactionSubmissionRoundA.
     """
 
     round_id = "validate_transaction"
@@ -711,16 +675,19 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     initial_states: Set[AppState] = {RegistrationStartupRound, RegistrationRound}
     transition_function: AbciAppTransitionFunction = {
         RegistrationStartupRound: {
-            Event.DONE: FinishedERound,
-            Event.FAST_FORWARD: FinishedFRound,
+            Event.DONE: FinishedRegistrationRound,
+            Event.FAST_FORWARD: FinishedRegistrationFFWRound,
         },
         RegistrationRound: {
-            Event.DONE: FinishedFRound,
+            Event.DONE: FinishedRegistrationFFWRound,
         },
-        FinishedERound: {},
-        FinishedFRound: {},
+        FinishedRegistrationRound: {},
+        FinishedRegistrationFFWRound: {},
     }
-    final_states: Set[AppState] = {FinishedERound, FinishedFRound}
+    final_states: Set[AppState] = {
+        FinishedRegistrationRound,
+        FinishedRegistrationFFWRound,
+    }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
@@ -729,14 +696,14 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """Transaction submission ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RandomnessRound
+    initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
     transition_function: AbciAppTransitionFunction = {
-        RandomnessRound: {
-            Event.DONE: SelectKeeperARound,
+        RandomnessTransactionSubmissionRound: {
+            Event.DONE: SelectKeeperTransactionSubmissionRoundA,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,  # we can have some agents on either side of an epoch, so we retry
         },
-        SelectKeeperARound: {
+        SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
@@ -748,8 +715,8 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperBRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-            Event.FAILED: SelectKeeperBRound,  # the keeper was unsuccessful;
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperTransactionSubmissionRoundB,  # the keeper was unsuccessful;
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
@@ -758,25 +725,25 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
             Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
         },
-        SelectKeeperBRound: {
+        SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: RandomnessTransactionSubmissionRound,
             Event.RESET_TIMEOUT: FailedRound,  # if the round times out we see if we can assemble a new group of agents
             Event.NO_MAJORITY: FailedRound,  # if we cannot agree we see if we can assemble a new group of agents
         },
         ResetAndPauseRound: {
-            Event.DONE: FinishedDRound,
+            Event.DONE: FinishedTransactionSubmissionRound,
             Event.RESET_AND_PAUSE_TIMEOUT: FailedRound,  # if the round times out we see if we can assemble a new group of agents
             Event.NO_MAJORITY: FailedRound,  # if we cannot agree we see if we can assemble a new group of agents
         },
-        FinishedDRound: {},
+        FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
-    final_states: Set[AppState] = {FinishedDRound, FailedRound}
+    final_states: Set[AppState] = {FinishedTransactionSubmissionRound, FailedRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
