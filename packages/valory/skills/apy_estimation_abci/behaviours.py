@@ -826,7 +826,8 @@ class TrainBehaviour(APYEstimationBaseState):
                     self.context.logger.error(f"File {path} was not found!")
                     should_create_task = False
 
-            y = np.concatenate(y)
+            if should_create_task:
+                y = np.concatenate(y)
 
         else:
             path = os.path.join(
