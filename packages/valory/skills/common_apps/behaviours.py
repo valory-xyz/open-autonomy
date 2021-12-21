@@ -176,14 +176,14 @@ class RegistrationBaseBehaviour(CommonAppsBaseState):
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""
 
-    state_id = "register_startup"
+    state_id = "registration_startup"
     matching_round = RegistrationStartupRound
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
     """Register to the next periods."""
 
-    state_id = "register"
+    state_id = "registration"
     matching_round = RegistrationRound
 
 

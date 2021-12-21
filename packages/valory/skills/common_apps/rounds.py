@@ -367,7 +367,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound, CommonAppsAbstract
     It schedules the SelectKeeperTransactionSubmissionRoundA.
     """
 
-    round_id = "registration_at_startup"
+    round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = "sender"
     required_block_confirmations = 1
