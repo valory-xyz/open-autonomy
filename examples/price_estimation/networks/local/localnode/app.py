@@ -19,12 +19,27 @@
 
 """HTTP server to control the tendermint execution environment."""
 import os
+from pathlib import Path
 
 from flask import Flask, Response, jsonify
 from tendermint import TendermintNode, TendermintParams
 from werkzeug.exceptions import InternalServerError, NotFound
 
 
+def update_sync_method() -> None:
+    """Update sync method."""
+
+    config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
+    with open(config_path, "r") as fp:
+        config = fp.read()
+
+    config = config.replace("fast_sync = true", "fast_sync = false")
+
+    with open(config_path, "w+") as fp:
+        fp.write(config)
+
+
+update_sync_method()
 tendermint_params = TendermintParams(
     proxy_app=os.environ["PROXY_APP"],
     consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
