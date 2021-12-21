@@ -50,7 +50,7 @@ states_checks_config = {
     },
     "transform": {
         "state_name": "transform",
-        "extra_logs": ("Data have been transformed. Showing the first row:\n",),
+        "extra_logs": ("Data have been transformed:\n",),
         "only_at_first_period": True,
     },
     "preprocess": {
