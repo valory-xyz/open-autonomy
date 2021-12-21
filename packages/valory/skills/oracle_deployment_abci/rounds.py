@@ -30,14 +30,26 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
 )
 from packages.valory.skills.common_apps.rounds import (
+    BaseRandomnessRound,
     CommonAppsAbstractRound,
     Event,
-    FinishedBRound,
-    RandomnessBStartupRound,
-    SelectKeeperBStartupRound,
+    FinishedRound,
+    SelectKeeperRound,
     ValidateRound,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+
+
+class RandomnessOracleRound(BaseRandomnessRound):
+    """Randomness round for startup."""
+
+    round_id = "randomness_oracle"
+
+
+class SelectKeeperOracleRound(SelectKeeperRound):
+    """SelectKeeperB round for startup."""
+
+    round_id = "select_keeper_oracle"
 
 
 class DeployOracleRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
@@ -80,35 +92,41 @@ class ValidateOracleRound(ValidateRound):
     none_event = Event.NONE
 
 
+class FinishedOracleRound(FinishedRound):
+    """This class represents the finished round of the oracle deployment."""
+
+    round_id = "finished_oracle"
+
+
 class OracleDeploymentAbciApp(AbciApp[Event]):
     """Oracle deployment ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RandomnessBStartupRound
+    initial_round_cls: Type[AbstractRound] = RandomnessOracleRound
     transition_function: AbciAppTransitionFunction = {
-        RandomnessBStartupRound: {
-            Event.DONE: SelectKeeperBStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessBStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessBStartupRound,  # we can have some agents on either side of an epoch, so we retry
+        RandomnessOracleRound: {
+            Event.DONE: SelectKeeperOracleRound,
+            Event.ROUND_TIMEOUT: RandomnessOracleRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessOracleRound,  # we can have some agents on either side of an epoch, so we retry
         },
-        SelectKeeperBStartupRound: {
+        SelectKeeperOracleRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RandomnessBStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessBStartupRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RandomnessOracleRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessOracleRound,  # if the round has no majority we restart
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperBStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.DEPLOY_TIMEOUT: SelectKeeperOracleRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateOracleRound: {
-            Event.DONE: FinishedBRound,
-            Event.NEGATIVE: RandomnessBStartupRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RandomnessBStartupRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessBStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessBStartupRound,  # if the round has no majority we restart
+            Event.DONE: FinishedOracleRound,
+            Event.NEGATIVE: RandomnessOracleRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RandomnessOracleRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RandomnessOracleRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RandomnessOracleRound,  # if the round has no majority we restart
         },
-        FinishedBRound: {},
+        FinishedOracleRound: {},
     }
-    final_states: Set[AppState] = {FinishedBRound}
+    final_states: Set[AppState] = {FinishedOracleRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,

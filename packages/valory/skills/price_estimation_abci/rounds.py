@@ -45,19 +45,21 @@ from packages.valory.skills.common_apps.rounds import (
     Event,
     FailedRound,
     FinishedARound,
-    FinishedBRound,
     FinishedCRound,
     FinishedDRound,
     FinishedERound,
     FinishedFRound,
     RandomnessAStartupRound,
-    RandomnessBStartupRound,
     RandomnessRound,
     RegistrationRound,
     TransactionSubmissionAbciApp,
 )
 from packages.valory.skills.common_apps.tools import aggregate
-from packages.valory.skills.oracle_deployment_abci.rounds import OracleDeploymentAbciApp
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    FinishedOracleRound,
+    OracleDeploymentAbciApp,
+    RandomnessOracleRound,
+)
 from packages.valory.skills.safe_deployment_abci.rounds import SafeDeploymentAbciApp
 
 
@@ -186,9 +188,9 @@ class PriceAggregationAbciApp(AbciApp[Event]):
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedERound: RandomnessAStartupRound,
+    FinishedOracleRound: CollectObservationRound,
+    FinishedARound: RandomnessOracleRound,
     FinishedFRound: CollectObservationRound,
-    FinishedARound: RandomnessBStartupRound,
-    FinishedBRound: CollectObservationRound,
     FinishedCRound: RandomnessRound,
     FinishedDRound: CollectObservationRound,
     FailedRound: RegistrationRound,

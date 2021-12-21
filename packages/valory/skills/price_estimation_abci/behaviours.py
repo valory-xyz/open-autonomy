@@ -34,13 +34,11 @@ from packages.valory.skills.common_apps.behaviours import (
     CommonAppsBaseState,
     FinalizeBehaviour,
     RandomnessAtStartupABehaviour,
-    RandomnessAtStartupBBehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
     SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
-    SelectKeeperBAtStartupBehaviour,
     SelectKeeperBBehaviour,
     SignatureBehaviour,
     TendermintHealthcheckBehaviour,
@@ -56,6 +54,8 @@ from packages.valory.skills.common_apps.rounds import ResetAndPauseRound, ResetR
 from packages.valory.skills.common_apps.tools import payload_to_hex, to_int
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
+    RandomnessOracleBehaviour,
+    SelectKeeperOracleBehaviour,
     ValidateOracleBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
@@ -420,11 +420,11 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
         RandomnessAtStartupABehaviour,  # type: ignore
-        RandomnessAtStartupBBehaviour,  # type: ignore
+        RandomnessOracleBehaviour,  # type: ignore
         SelectKeeperAAtStartupBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
-        SelectKeeperBAtStartupBehaviour,  # type: ignore
+        SelectKeeperOracleBehaviour,  # type: ignore
         DeployOracleBehaviour,  # type: ignore
         ValidateOracleBehaviour,  # type: ignore
         RandomnessInOperationBehaviour,  # type: ignore

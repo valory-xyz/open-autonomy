@@ -56,7 +56,6 @@ from packages.valory.skills.common_apps.rounds import (
     SelectKeeperARound,
     SelectKeeperAStartupRound,
     SelectKeeperBRound,
-    SelectKeeperBStartupRound,
     SelectKeeperRound,
     ValidateRound,
     ValidateTransactionRound,
@@ -66,6 +65,7 @@ from packages.valory.skills.common_apps.rounds import (
 from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
+    SelectKeeperOracleRound,
     ValidateOracleRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
@@ -801,10 +801,10 @@ class TestSelectKeeperAStartupRound(BaseSelectKeeperRoundTest):
     test_payload = SelectKeeperPayload
 
 
-class TestSelectKeeperBStartupRound(BaseSelectKeeperRoundTest):
+class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
     """Test SelectKeeperBRound."""
 
-    test_class = SelectKeeperBStartupRound
+    test_class = SelectKeeperOracleRound
     test_payload = SelectKeeperPayload
 
 

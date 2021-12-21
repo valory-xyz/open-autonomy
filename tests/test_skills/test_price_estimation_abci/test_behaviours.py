@@ -69,14 +69,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.common_apps.behaviours import (
     CommonAppsBaseState,
     RandomnessAtStartupABehaviour,
-    RandomnessAtStartupBBehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
     SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
-    SelectKeeperBAtStartupBehaviour,
     SelectKeeperBBehaviour,
     TendermintHealthcheckBehaviour,
 )
@@ -84,6 +82,8 @@ from packages.valory.skills.common_apps.rounds import PeriodState
 from packages.valory.skills.common_apps.tools import payload_to_hex
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
+    RandomnessOracleBehaviour,
+    SelectKeeperOracleBehaviour,
     ValidateOracleBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
@@ -965,7 +965,7 @@ class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
 class TestSelectKeeperBStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperBAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperOracleBehaviour
     next_behaviour_class = DeployOracleBehaviour
 
 
@@ -1173,7 +1173,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = RandomnessAtStartupBBehaviour
+    next_behaviour_class = RandomnessOracleBehaviour
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
 
