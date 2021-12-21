@@ -66,31 +66,35 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    DeployOracleBehaviour,
-    DeploySafeBehaviour,
-    EstimateBehaviour,
-    FinalizeBehaviour,
-    ObserveBehaviour,
-    PriceEstimationBaseState,
-    PriceEstimationConsensusBehaviour,
+from packages.valory.skills.common_apps.behaviours import (
+    CommonAppsBaseState,
     RandomnessAtStartupABehaviour,
-    RandomnessAtStartupBBehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
     SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
-    SelectKeeperBAtStartupBehaviour,
     SelectKeeperBBehaviour,
-    SignatureBehaviour,
     TendermintHealthcheckBehaviour,
-    TransactionHashBehaviour,
+)
+from packages.valory.skills.common_apps.rounds import PeriodState
+from packages.valory.skills.common_apps.tools import payload_to_hex
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
+    DeployOracleBehaviour,
+    RandomnessOracleBehaviour,
+    SelectKeeperOracleBehaviour,
     ValidateOracleBehaviour,
-    ValidateSafeBehaviour,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
+    EstimateBehaviour,
+    FinalizeBehaviour,
+    ObserveBehaviour,
+    PriceEstimationConsensusBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
+    SignatureBehaviour,
+    TransactionHashBehaviour,
     ValidateTransactionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -99,8 +103,11 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.price_estimation_abci.rounds import Event, PeriodState
-from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
+from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.safe_deployment_abci.behaviours import (
+    DeploySafeBehaviour,
+    ValidateSafeBehaviour,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -958,7 +965,7 @@ class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
 class TestSelectKeeperBStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperBAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperOracleBehaviour
     next_behaviour_class = DeployOracleBehaviour
 
 
@@ -1166,7 +1173,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = RandomnessAtStartupBBehaviour
+    next_behaviour_class = RandomnessOracleBehaviour
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
 
@@ -1662,7 +1669,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 self.price_estimation_behaviour.act_wrapper()
                 self.price_estimation_behaviour.act_wrapper()
             state = cast(
-                PriceEstimationBaseState, self.price_estimation_behaviour.current_state
+                CommonAppsBaseState, self.price_estimation_behaviour.current_state
             )
             final_tx_hash = state.period_state.final_tx_hash
             mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")

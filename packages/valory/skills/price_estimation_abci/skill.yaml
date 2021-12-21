@@ -9,30 +9,24 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmdtvMnuK4qnq2ekBht7FB55WUfVWm4mCsPfxQxBYB3BNq
+  behaviours.py: QmU8SRrSH83B7JfsvKQyr4hftmQE26okSTF6AU4gjHMEeC
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmVRJDh4KYtAp4WmxC2THcUWegoHmCP12SrCyL6wxL2Agq
-  payloads.py: QmUoPRpUXYhYf4dUaPnaSuoKo8ssJD6Xor1ctF3HRZYjBW
-  rounds.py: QmdoevNe4dUKDUogCJLd85Y17o4Zfdn982x7FqfCe8vP91
-  tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
+  models.py: QmST9cQyjhxz7PammKWZ9EgABqDaP4so9Pru9opyiDqDxq
+  rounds.py: QmcCGD3m4B7GyYAz5xAfRimLa3pY1jxm6uVkVR2R86NJu4
 fingerprint_ignore_patterns: []
-connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
+connections: []
 contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
 - valory/offchain_aggregator:0.1.0
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
 - valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/common_apps:0.1.0
+- valory/oracle_deployment_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
 behaviours:
   main:
     args: {}

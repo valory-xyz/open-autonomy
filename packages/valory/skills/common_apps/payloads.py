@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the transaction payloads for the price_estimation app."""
+"""This module contains the transaction payloads for common apps."""
 from abc import ABC
 from enum import Enum
 from typing import Dict, Optional
@@ -46,7 +46,7 @@ class TransactionType(Enum):
         return self.value
 
 
-class BasePriceEstimationPayload(BaseTxPayload, ABC):
+class BaseCommonAppsPayload(BaseTxPayload, ABC):
     """Base class for the price estimation demo."""
 
     def __hash__(self) -> int:
@@ -54,13 +54,41 @@ class BasePriceEstimationPayload(BaseTxPayload, ABC):
         return hash(tuple(sorted(self.data.items())))
 
 
-class RegistrationPayload(BasePriceEstimationPayload):
+class RegistrationPayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
 
 
-class RandomnessPayload(BasePriceEstimationPayload):
+class ValidatePayload(BaseCommonAppsPayload):
+    """Represent a transaction payload of type 'validate'."""
+
+    transaction_type = TransactionType.VALIDATE
+
+    def __init__(
+        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'validate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param vote: the vote
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._vote = vote
+
+    @property
+    def vote(self) -> Optional[bool]:
+        """Get the vote."""
+        return self._vote
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(vote=self.vote) if self.vote is not None else {}
+
+
+class RandomnessPayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     transaction_type = TransactionType.RANDOMNESS
@@ -95,7 +123,7 @@ class RandomnessPayload(BasePriceEstimationPayload):
         return dict(round_id=self._round_id, randomness=self._randomness)
 
 
-class SelectKeeperPayload(BasePriceEstimationPayload):
+class SelectKeeperPayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     transaction_type = TransactionType.SELECT_KEEPER
@@ -121,145 +149,7 @@ class SelectKeeperPayload(BasePriceEstimationPayload):
         return dict(keeper=self.keeper)
 
 
-class DeploySafePayload(BasePriceEstimationPayload):
-    """Represent a transaction payload of type 'deploy_safe'."""
-
-    transaction_type = TransactionType.DEPLOY_SAFE
-
-    def __init__(
-        self, sender: str, safe_contract_address: str, id_: Optional[str] = None
-    ) -> None:
-        """Initialize a 'deploy_safe' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param safe_contract_address: the Safe contract address
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._safe_contract_address = safe_contract_address
-
-    @property
-    def safe_contract_address(self) -> str:
-        """Get the Safe contract address."""
-        return self._safe_contract_address
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(safe_contract_address=self.safe_contract_address)
-
-
-class DeployOraclePayload(BasePriceEstimationPayload):
-    """Represent a transaction payload of type 'deploy_oracle'."""
-
-    transaction_type = TransactionType.DEPLOY_ORACLE
-
-    def __init__(
-        self, sender: str, oracle_contract_address: str, id_: Optional[str] = None
-    ) -> None:
-        """Initialize a 'deploy_safe' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param oracle_contract_address: the Safe contract address
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._oracle_contract_address = oracle_contract_address
-
-    @property
-    def oracle_contract_address(self) -> str:
-        """Get the Oracle contract address."""
-        return self._oracle_contract_address
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(oracle_contract_address=self.oracle_contract_address)
-
-
-class ValidatePayload(BasePriceEstimationPayload):
-    """Represent a transaction payload of type 'validate'."""
-
-    transaction_type = TransactionType.VALIDATE
-
-    def __init__(
-        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
-    ) -> None:
-        """Initialize an 'validate' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param vote: the vote
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._vote = vote
-
-    @property
-    def vote(self) -> Optional[bool]:
-        """Get the vote."""
-        return self._vote
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(vote=self.vote) if self.vote is not None else {}
-
-
-class ObservationPayload(BasePriceEstimationPayload):
-    """Represent a transaction payload of type 'observation'."""
-
-    transaction_type = TransactionType.OBSERVATION
-
-    def __init__(
-        self, sender: str, observation: float, id_: Optional[str] = None
-    ) -> None:
-        """Initialize an 'observation' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param observation: the observation
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._observation = observation
-
-    @property
-    def observation(self) -> float:
-        """Get the observation."""
-        return self._observation
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(observation=self.observation)
-
-
-class EstimatePayload(BasePriceEstimationPayload):
-    """Represent a transaction payload of type 'estimate'."""
-
-    transaction_type = TransactionType.ESTIMATE
-
-    def __init__(self, sender: str, estimate: float, id_: Optional[str] = None) -> None:
-        """Initialize an 'estimate' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param estimate: the estimate
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._estimate = estimate
-
-    @property
-    def estimate(self) -> float:
-        """Get the estimate."""
-        return self._estimate
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(estimate=self.estimate)
-
-
-class SignaturePayload(BasePriceEstimationPayload):
+class SignaturePayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'signature'."""
 
     transaction_type = TransactionType.SIGNATURE
@@ -285,7 +175,7 @@ class SignaturePayload(BasePriceEstimationPayload):
         return dict(signature=self.signature)
 
 
-class TransactionHashPayload(BasePriceEstimationPayload):
+class TransactionHashPayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'tx_hash'."""
 
     transaction_type = TransactionType.TX_HASH
@@ -313,7 +203,7 @@ class TransactionHashPayload(BasePriceEstimationPayload):
         return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
 
 
-class FinalizationTxPayload(BasePriceEstimationPayload):
+class FinalizationTxPayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'finalization'."""
 
     transaction_type = TransactionType.FINALIZATION
@@ -341,7 +231,7 @@ class FinalizationTxPayload(BasePriceEstimationPayload):
         return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
 
 
-class ResetPayload(BasePriceEstimationPayload):
+class ResetPayload(BaseCommonAppsPayload):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESET
@@ -367,3 +257,57 @@ class ResetPayload(BasePriceEstimationPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(period_count=self.period_count)
+
+
+class ObservationPayload(BaseCommonAppsPayload):
+    """Represent a transaction payload of type 'observation'."""
+
+    transaction_type = TransactionType.OBSERVATION
+
+    def __init__(
+        self, sender: str, observation: float, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'observation' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param observation: the observation
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._observation = observation
+
+    @property
+    def observation(self) -> float:
+        """Get the observation."""
+        return self._observation
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(observation=self.observation)
+
+
+class EstimatePayload(BaseCommonAppsPayload):
+    """Represent a transaction payload of type 'estimate'."""
+
+    transaction_type = TransactionType.ESTIMATE
+
+    def __init__(self, sender: str, estimate: float, id_: Optional[str] = None) -> None:
+        """Initialize an 'estimate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param estimate: the estimate
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._estimate = estimate
+
+    @property
+    def estimate(self) -> float:
+        """Get the estimate."""
+        return self._estimate
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(estimate=self.estimate)
