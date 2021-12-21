@@ -21,8 +21,6 @@
 
 from typing import Tuple, cast
 
-import pytest
-
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
@@ -148,7 +146,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
