@@ -590,28 +590,22 @@ class FinalizationRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
         return None
 
 
-class RandomnessRound(BaseRandomnessRound):
+class RandomnessTransactionSubmissionRound(BaseRandomnessRound):
     """Randomness round for operations."""
 
-    round_id = "randomness"
-
-
-class SelectKeeperAStartupRound(SelectKeeperRound):
-    """SelectKeeperAStartupRound round for startup."""
-
-    round_id = "select_keeper_a_startup"
+    round_id = "randomness_transaction_submission"
 
 
 class SelectKeeperTransactionSubmissionRoundA(SelectKeeperRound):
     """This class represents the select keeper A round."""
 
-    round_id = "select_keeper_transaction_submission"
+    round_id = "select_keeper_transaction_submission_a"
 
 
 class SelectKeeperTransactionSubmissionRoundB(SelectKeeperRound):
     """This class represents the select keeper B round."""
 
-    round_id = "select_keeper_b"
+    round_id = "select_keeper_transaction_submission_b"
 
 
 class BaseResetRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
@@ -702,12 +696,12 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """Transaction submission ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RandomnessRound
+    initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
     transition_function: AbciAppTransitionFunction = {
-        RandomnessRound: {
+        RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: RandomnessRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
@@ -737,7 +731,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
-            Event.DONE: RandomnessRound,
+            Event.DONE: RandomnessTransactionSubmissionRound,
             Event.RESET_TIMEOUT: FailedRound,  # if the round times out we see if we can assemble a new group of agents
             Event.NO_MAJORITY: FailedRound,  # if we cannot agree we see if we can assemble a new group of agents
         },

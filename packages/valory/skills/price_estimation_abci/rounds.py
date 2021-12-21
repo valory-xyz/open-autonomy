@@ -48,7 +48,7 @@ from packages.valory.skills.common_apps.rounds import (
     FinishedRegistrationRound,
     FinishedRound,
     FinishedTransactionSubmissionRound,
-    RandomnessRound,
+    RandomnessTransactionSubmissionRound,
     RegistrationRound,
     TransactionSubmissionAbciApp,
 )
@@ -199,7 +199,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedSafeRound: RandomnessOracleRound,
     FinishedOracleRound: CollectObservationRound,
-    FinishedPriceAggregationRound: RandomnessRound,
+    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
     FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,
 }

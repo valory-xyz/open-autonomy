@@ -45,7 +45,7 @@ from packages.valory.skills.common_apps.rounds import (
     Event,
     FinalizationRound,
     PeriodState,
-    RandomnessRound,
+    RandomnessTransactionSubmissionRound,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -390,8 +390,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             next(test_runner)
 
 
-class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test RandomnessRound."""
+class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test RandomnessTransactionSubmissionRound."""
 
     _period_state_class = PeriodState
     _event_class = Event
@@ -401,7 +401,9 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
 
-        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        test_round = RandomnessTransactionSubmissionRound(
+            self.period_state, self.consensus_params
+        )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
