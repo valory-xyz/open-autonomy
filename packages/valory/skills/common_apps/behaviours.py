@@ -53,9 +53,9 @@ from packages.valory.skills.common_apps.rounds import (
     RandomnessRound,
     RegistrationRound,
     RegistrationStartupRound,
-    SelectKeeperARound,
     SelectKeeperAStartupRound,
-    SelectKeeperBRound,
+    SelectKeeperTransactionSubmissionRoundA,
+    SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
 )
 from packages.valory.skills.common_apps.tools import hex_to_payload, random_selection
@@ -320,14 +320,14 @@ class SelectKeeperABehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
     state_id = "select_keeper_a"
-    matching_round = SelectKeeperARound
+    matching_round = SelectKeeperTransactionSubmissionRoundA
 
 
 class SelectKeeperBBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
     state_id = "select_keeper_b"
-    matching_round = SelectKeeperBRound
+    matching_round = SelectKeeperTransactionSubmissionRoundB
 
 
 class ValidateTransactionBehaviour(CommonAppsBaseState):

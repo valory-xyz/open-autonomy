@@ -13,7 +13,7 @@ fingerprint:
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmST9cQyjhxz7PammKWZ9EgABqDaP4so9Pru9opyiDqDxq
-  rounds.py: QmYgRMRR6Touow5Z7e9UGZHVQ7YPY3GQE4xyYMbqhYJPRV
+  rounds.py: Qmc1gfTnjDTsFbLAEbLV7mayQA9Dhno9GS7DejRoUXrYfy
 fingerprint_ignore_patterns: []
 connections: []
 contracts:

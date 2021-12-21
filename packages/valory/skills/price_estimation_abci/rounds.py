@@ -44,10 +44,10 @@ from packages.valory.skills.common_apps.rounds import (
     CommonAppsAbstractRound,
     Event,
     FailedRound,
-    FinishedCRound,
-    FinishedDRound,
     FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
+    FinishedRound,
+    FinishedTransactionSubmissionRound,
     RandomnessRound,
     RegistrationRound,
     TransactionSubmissionAbciApp,
@@ -158,6 +158,12 @@ class TxHashRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
         return None
 
 
+class FinishedPriceAggregationRound(FinishedRound):
+    """This class represents the finished round of the price aggreagation."""
+
+    round_id = "finished_price_aggregation"
+
+
 class PriceAggregationAbciApp(AbciApp[Event]):
     """Price estimation ABCI application."""
 
@@ -173,14 +179,14 @@ class PriceAggregationAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
         },
         TxHashRound: {
-            Event.DONE: FinishedCRound,
+            Event.DONE: FinishedPriceAggregationRound,
             Event.NONE: CollectObservationRound,  # if the agents cannot produce the hash we reset the period
             Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
         },
-        FinishedCRound: {},
+        FinishedPriceAggregationRound: {},
     }
-    final_states: Set[AppState] = {FinishedCRound}
+    final_states: Set[AppState] = {FinishedPriceAggregationRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
@@ -193,8 +199,8 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedSafeRound: RandomnessOracleRound,
     FinishedOracleRound: CollectObservationRound,
-    FinishedCRound: RandomnessRound,
-    FinishedDRound: CollectObservationRound,
+    FinishedPriceAggregationRound: RandomnessRound,
+    FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,
 }
 

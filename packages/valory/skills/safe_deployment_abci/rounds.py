@@ -47,7 +47,7 @@ class RandomnessSafeRound(BaseRandomnessRound):
 
 
 class SelectKeeperSafeRound(SelectKeeperRound):
-    """SelectKeeperB round for startup."""
+    """SelectKeeperSafeRound round for startup."""
 
     round_id = "select_keeper_safe"
 
