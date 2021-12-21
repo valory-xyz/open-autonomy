@@ -144,6 +144,10 @@ jobs:
           cd ../..
           cd third_party/contracts-amm &&\
             yarn
+
+          # make the APY e2e tests reproducible.
+          export PYTHONHASHSEED=0
+
       #    # set up environment depending on the platform in use
       #    - if: matrix.os == 'ubuntu-latest'
       #      name: Install dependencies (ubuntu-latest)

@@ -11,6 +11,7 @@ RUN sudo apt-get install wait-for-it -y
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install "open-aea[all]>=1.2.0,<2.0.0"
+ENV PYTHONHASHSEED 0
 
 WORKDIR /home/ubuntu
 

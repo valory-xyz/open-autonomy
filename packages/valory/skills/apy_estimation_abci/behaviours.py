@@ -21,7 +21,6 @@
 import datetime
 import json
 import os
-import sys
 from abc import ABC
 from multiprocessing.pool import AsyncResult
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
@@ -93,11 +92,6 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     pairs_q,
 )
 
-
-hashseed = os.getenv("PYTHONHASHSEED")
-if not hashseed:
-    os.environ["PYTHONHASHSEED"] = "0"
-    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 benchmark_tool = BenchmarkTool()
 
