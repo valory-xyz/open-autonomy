@@ -485,7 +485,7 @@ class TransformBehaviour(APYEstimationBaseState):
                 completed_task = self._async_result.get()
                 transformed_history = cast(pd.DataFrame, completed_task)
                 self.context.logger.info(
-                    f"Data have been transformed. Showing the first row:\n{transformed_history.to_string()}"
+                    f"Data have been transformed:\n{transformed_history.to_string()}"
                 )
 
                 # Store the transformed data.
@@ -545,6 +545,8 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 pairs_hist, self.params.pair_ids[0]
             )
             self.context.logger.info("Data have been preprocessed.")
+            self.context.logger.info(f"y_train: {y_train.to_string()}")
+            self.context.logger.info(f"y_test: {y_test.to_string()}")
 
             # Store and hash the preprocessed data.
             hasher = IPFSHashOnly()
@@ -871,6 +873,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 model_hash = hasher.get(forecaster_save_path)
 
                 # Pass the hash and the best trial as a Payload.
+                self.context.logger.info(f"The {forecaster_save_path} model's hash is: '{model_hash}'")
                 payload = TrainingPayload(self.context.agent_address, model_hash)
 
                 # Finish behaviour.
