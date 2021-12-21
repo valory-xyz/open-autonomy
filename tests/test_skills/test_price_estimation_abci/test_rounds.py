@@ -45,7 +45,7 @@ from packages.valory.skills.common_apps.rounds import (
     Event,
     FinalizationRound,
     PeriodState,
-    RandomnessRound,
+    RandomnessTransactionSubmissionRound,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -53,9 +53,9 @@ from packages.valory.skills.common_apps.rounds import (
     ResetRound as ConsensusReachedRound,
 )
 from packages.valory.skills.common_apps.rounds import (
-    SelectKeeperARound,
-    SelectKeeperBRound,
     SelectKeeperRound,
+    SelectKeeperTransactionSubmissionRoundA,
+    SelectKeeperTransactionSubmissionRoundB,
     ValidateRound,
     ValidateTransactionRound,
     encode_float,
@@ -390,8 +390,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             next(test_runner)
 
 
-class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test RandomnessRound."""
+class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test RandomnessTransactionSubmissionRound."""
 
     _period_state_class = PeriodState
     _event_class = Event
@@ -401,7 +401,9 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
 
-        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        test_round = RandomnessTransactionSubmissionRound(
+            self.period_state, self.consensus_params
+        )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
@@ -747,7 +749,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
 
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
-    """Test SelectKeeperARound"""
+    """Test SelectKeeperTransactionSubmissionRoundA"""
 
     test_class: Type[SelectKeeperRound]
     test_payload: Type[SelectKeeperPayload]
@@ -780,29 +782,29 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
-class TestSelectKeeperARound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperARound"""
+class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundA"""
 
-    test_class = SelectKeeperARound
+    test_class = SelectKeeperTransactionSubmissionRoundA
     test_payload = SelectKeeperPayload
 
 
-class TestSelectKeeperBRound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperBRound."""
+class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundB."""
 
-    test_class = SelectKeeperBRound
+    test_class = SelectKeeperTransactionSubmissionRoundB
     test_payload = SelectKeeperPayload
 
 
 class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperBRound."""
+    """Test SelectKeeperTransactionSubmissionRoundB."""
 
     test_class = SelectKeeperSafeRound
     test_payload = SelectKeeperPayload
 
 
 class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperBRound."""
+    """Test SelectKeeperTransactionSubmissionRoundB."""
 
     test_class = SelectKeeperOracleRound
     test_payload = SelectKeeperPayload
