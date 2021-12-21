@@ -1,0 +1,26 @@
+name: common_apps
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for common apps.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmaJ85KUbXc3YMwJu1G8CBQKpyMxDwekdZiZF9gu4ab3zy
+  behaviours.py: QmcWJ2CXgNJoxQLJVvtRZg5EcnBiVB1U9xNZbvZNB2CEKr
+  models.py: QmeT2aqGaJTm7prT4jjmczSgjjJRLnt4ne1NcEHPbKBU4K
+  payloads.py: QmSA5em7jQynHwbxM9F1nxz6mDrQK9Y93KRYQ2KQ2qzjCU
+  rounds.py: QmVTq7YSWL5PEi14fv9MUQ6g1qfctsZfrz2odutRQSGrAs
+  tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols:
+- valory/contract_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours: {}
+handlers: {}
+models: {}
+dependencies: {}
+is_abstract: false

@@ -260,7 +260,7 @@ class RandomnessStartupRound(BaseRandomnessRound):
 
 
 class SelectKeeperAStartupRound(SelectKeeperRound):
-    """SelectKeeperA round for startup."""
+    """SelectKeeperAStartupRound round for startup."""
 
     round_id = "select_keeper_a_startup"
 

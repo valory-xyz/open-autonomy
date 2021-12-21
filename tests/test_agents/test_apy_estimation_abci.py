@@ -42,10 +42,9 @@ states_checks_config = {
     "collect_history": {
         "state_name": "collect_history",
         "extra_logs": (
-            "Retrieved top ",
             "Retrieved block: ",
             "Retrieved ETH price for block ",
-            "Retrieved top ",
+            "Retrieved pool data for block ",
         ),
         "only_at_first_period": True,
     },

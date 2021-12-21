@@ -941,9 +941,9 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         return len(self.collection) >= self._consensus_params.consensus_threshold
 
 
-AbciAppTransitionFunction = Dict[
-    Type[AbstractRound], Dict[EventType, Type[AbstractRound]]
-]
+AppState = Type[AbstractRound]
+AbciAppTransitionFunction = Dict[AppState, Dict[EventType, AppState]]
+EventToTimeout = Dict[EventType, float]
 
 
 @dataclass(order=True)
@@ -1022,12 +1022,13 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     Base class for ABCI apps.
 
     Concrete classes of this class implement the ABCI App.
-    It requires to set
     """
 
-    initial_round_cls: Type[AbstractRound]
+    initial_round_cls: AppState
+    initial_states: Set[AppState] = set()
     transition_function: AbciAppTransitionFunction
-    event_to_timeout: Dict[EventType, float] = {}
+    final_states: Set[AppState] = set()
+    event_to_timeout: EventToTimeout = {}
 
     def __init__(
         self,
@@ -1040,7 +1041,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self.consensus_params = consensus_params
         self.logger = logger
 
-        self._current_round_cls: Optional[Type[AbstractRound]] = None
+        self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
@@ -1051,7 +1052,10 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         self._check_class_attributes()
         self._check_class_attributes_consistency(
-            self.initial_round_cls, self.transition_function, self.event_to_timeout
+            self.initial_round_cls,
+            self.initial_states,
+            self.transition_function,
+            self.event_to_timeout,
         )
 
     @property
@@ -1062,6 +1066,22 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             if len(self._round_results) > 0
             else self._initial_state
         )
+
+    @classmethod
+    def get_all_rounds(cls) -> Set[AppState]:
+        """Get all the round states."""
+        states = set()
+        for start_state, _ in cls.transition_function.items():
+            states.add(start_state)
+        return states
+
+    @classmethod
+    def get_all_events(cls) -> Set[EventType]:
+        """Get all the events."""
+        events: Set[EventType] = set()
+        for _start_state, transitions in cls.transition_function.items():
+            events.update(transitions.keys())
+        return events
 
     def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
@@ -1077,9 +1097,10 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     @classmethod
     def _check_class_attributes_consistency(
         cls,
-        initial_round_cls: Type[AbstractRound],
+        initial_round_cls: AppState,
+        initial_states: Set[AppState],
         transition_function: AbciAppTransitionFunction,
-        event_to_timeout: Dict[EventType, float],
+        event_to_timeout: EventToTimeout,
     ) -> None:
         """
         Check that required class attributes values are consistent.
@@ -1089,21 +1110,23 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         - check that the initial state has outgoing transitions
         - check that the initial state does not trigger timeout events. This is because we need at
           least one block/timestamp to start timeouts.
+        - check that the set of final states is a proper subset of the set of states.
 
         :param initial_round_cls: the initial round class
+        :param initial_states: the set of initial states
         :param transition_function: the transition function
         :param event_to_timeout: mapping from events to its timeout in seconds.
         :raises:
             ValueError if the initial round class is not in the set of rounds.
         """
-        states = set()
-        for start_state, transitions in transition_function.items():
-            states.add(start_state)
-            for _event, end_state in transitions.items():
-                states.add(end_state)
+        states = cls.get_all_rounds()
         enforce(
             initial_round_cls in states,
             f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
+        )
+        enforce(
+            initial_states == set() or initial_round_cls in initial_states,
+            f"initial round class {initial_round_cls} is not in the set of initial states: {initial_states}",
         )
         enforce(
             initial_round_cls in transition_function,
@@ -1118,10 +1141,16 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
         )
 
+        unknown_final_states = set.difference(cls.final_states, states)
+        enforce(
+            len(unknown_final_states) == 0,
+            f"the following final states are not in the set of states: {unknown_final_states}",
+        )
+
     @classmethod
-    def get_all_round_classes(cls) -> Set[Type[AbstractRound]]:
+    def get_all_round_classes(cls) -> Set[AppState]:
         """Get all round classes."""
-        result: Set[Type[AbstractRound]] = set()
+        result: Set[AppState] = set()
         for start, out_transitions in cls.transition_function.items():
             result.add(start)
             for _event, end in out_transitions.items():
@@ -1151,7 +1180,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             f"'{self.current_round.round_id}' round is done with event: {event}"
         )
 
-    def _schedule_round(self, round_cls: Type[AbstractRound]) -> None:
+    def _schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 

@@ -66,30 +66,33 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.price_estimation_abci.behaviours import (
-    DeployOracleBehaviour,
-    DeploySafeBehaviour,
-    EstimateBehaviour,
-    FinalizeBehaviour,
-    ObserveBehaviour,
-    PriceEstimationBaseState,
-    PriceEstimationConsensusBehaviour,
-    RandomnessAtStartupBehaviour,
-    RandomnessInOperationBehaviour,
+from packages.valory.skills.common_apps.behaviours import (
+    CommonAppsBaseState,
+    RandomnessTransactionSubmissionBehaviour,
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
+    SelectKeeperTransactionSubmissionBehaviourA,
+    SelectKeeperTransactionSubmissionBehaviourB,
+    TendermintHealthcheckBehaviour,
+)
+from packages.valory.skills.common_apps.rounds import PeriodState
+from packages.valory.skills.common_apps.tools import payload_to_hex
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
+    DeployOracleBehaviour,
+    RandomnessOracleBehaviour,
+    SelectKeeperOracleBehaviour,
+    ValidateOracleBehaviour,
+)
+from packages.valory.skills.price_estimation_abci.behaviours import (
+    EstimateBehaviour,
+    FinalizeBehaviour,
+    ObserveBehaviour,
+    PriceEstimationConsensusBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
-    SelectKeeperAAtStartupBehaviour,
-    SelectKeeperABehaviour,
-    SelectKeeperBAtStartupBehaviour,
-    SelectKeeperBBehaviour,
     SignatureBehaviour,
-    TendermintHealthcheckBehaviour,
     TransactionHashBehaviour,
-    ValidateOracleBehaviour,
-    ValidateSafeBehaviour,
     ValidateTransactionBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
@@ -98,8 +101,13 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.price_estimation_abci.rounds import Event, PeriodState
-from packages.valory.skills.price_estimation_abci.tools import payload_to_hex
+from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.safe_deployment_abci.behaviours import (
+    DeploySafeBehaviour,
+    RandomnessSafeBehaviour,
+    SelectKeeperSafeBehaviour,
+    ValidateSafeBehaviour,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -689,14 +697,14 @@ class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = RandomnessAtStartupBehaviour
+    next_behaviour_class = RandomnessSafeBehaviour
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = ObserveBehaviour
 
 
 class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -870,18 +878,18 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         )
 
 
-class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
-    """Test randomness at startup."""
+class TestRandomnessSafe(BaseRandomnessBehaviourTest):
+    """Test randomness safe."""
 
-    randomness_behaviour_class = RandomnessAtStartupBehaviour
-    next_behaviour_class = SelectKeeperAAtStartupBehaviour
+    randomness_behaviour_class = RandomnessSafeBehaviour
+    next_behaviour_class = SelectKeeperSafeBehaviour
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
     """Test randomness in operation."""
 
-    randomness_behaviour_class = RandomnessInOperationBehaviour
-    next_behaviour_class = SelectKeeperABehaviour
+    randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
 
 
 class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -947,31 +955,31 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperSafeBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperSafeBehaviour
     next_behaviour_class = DeploySafeBehaviour
 
 
-class TestSelectKeeperBStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperBAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperOracleBehaviour
     next_behaviour_class = DeployOracleBehaviour
 
 
-class TestSelectKeeperABehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperABehaviour
-    next_behaviour_class = ObserveBehaviour
+    select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+    next_behaviour_class = SignatureBehaviour
 
 
-class TestSelectKeeperBBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperBBehaviour
+    select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourB
     next_behaviour_class = FinalizeBehaviour
 
 
@@ -1165,7 +1173,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = DeployOracleBehaviour
+    next_behaviour_class = RandomnessOracleBehaviour
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
 
@@ -1174,7 +1182,7 @@ class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
     """Test ValidateOracleBehaviour."""
 
     behaviour_class = ValidateOracleBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = ObserveBehaviour
     period_state_kwargs = dict(
         safe_contract_address="safe_contract_address",
         oracle_contract_address="oracle_contract_address",
@@ -1404,7 +1412,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == SignatureBehaviour.state_id
+        assert state.state_id == RandomnessTransactionSubmissionBehaviour.state_id
 
 
 class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1661,7 +1669,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 self.price_estimation_behaviour.act_wrapper()
                 self.price_estimation_behaviour.act_wrapper()
             state = cast(
-                PriceEstimationBaseState, self.price_estimation_behaviour.current_state
+                CommonAppsBaseState, self.price_estimation_behaviour.current_state
             )
             final_tx_hash = state.period_state.final_tx_hash
             mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
@@ -1671,7 +1679,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = ObserveBehaviour
 
     def test_reset_behaviour(
         self,
@@ -1751,7 +1759,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test the reset behaviour."""
 
     behaviour_class = ResetBehaviour
-    next_behaviour_class = RandomnessInOperationBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
 
     def test_reset_behaviour(
         self,

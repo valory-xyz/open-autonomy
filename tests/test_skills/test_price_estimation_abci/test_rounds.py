@@ -28,9 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     ConsensusParams,
 )
-from packages.valory.skills.price_estimation_abci.payloads import (
-    DeployOraclePayload,
-    DeploySafePayload,
+from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
@@ -42,35 +40,43 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    CollectObservationRound,
+from packages.valory.skills.common_apps.rounds import (
     CollectSignatureRound,
-    DeployOracleRound,
-    DeploySafeRound,
-    EstimateConsensusRound,
     Event,
     FinalizationRound,
     PeriodState,
-    RandomnessRound,
+    RandomnessTransactionSubmissionRound,
     RegistrationRound,
     RegistrationStartupRound,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
+from packages.valory.skills.common_apps.rounds import (
     ResetRound as ConsensusReachedRound,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
-    SelectKeeperARound,
-    SelectKeeperAStartupRound,
-    SelectKeeperBRound,
-    SelectKeeperBStartupRound,
+from packages.valory.skills.common_apps.rounds import (
     SelectKeeperRound,
-    TxHashRound,
-    ValidateOracleRound,
+    SelectKeeperTransactionSubmissionRoundA,
+    SelectKeeperTransactionSubmissionRoundB,
     ValidateRound,
-    ValidateSafeRound,
     ValidateTransactionRound,
     encode_float,
     rotate_list,
+)
+from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    DeployOracleRound,
+    SelectKeeperOracleRound,
+    ValidateOracleRound,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
+    CollectObservationRound,
+    EstimateConsensusRound,
+    TxHashRound,
+)
+from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    DeploySafeRound,
+    SelectKeeperSafeRound,
+    ValidateSafeRound,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -384,8 +390,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
             next(test_runner)
 
 
-class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test RandomnessRound."""
+class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test RandomnessTransactionSubmissionRound."""
 
     _period_state_class = PeriodState
     _event_class = Event
@@ -395,7 +401,9 @@ class TestRandomnessRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
 
-        test_round = RandomnessRound(self.period_state, self.consensus_params)
+        test_round = RandomnessTransactionSubmissionRound(
+            self.period_state, self.consensus_params
+        )
         self._complete_run(
             self._test_round(
                 test_round=test_round,
@@ -741,7 +749,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
 
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
-    """Test SelectKeeperARound"""
+    """Test SelectKeeperTransactionSubmissionRoundA"""
 
     test_class: Type[SelectKeeperRound]
     test_payload: Type[SelectKeeperPayload]
@@ -774,31 +782,31 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
-class TestSelectKeeperARound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperARound"""
+class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundA"""
 
-    test_class = SelectKeeperARound
+    test_class = SelectKeeperTransactionSubmissionRoundA
     test_payload = SelectKeeperPayload
 
 
-class TestSelectKeeperBRound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperBRound."""
+class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundB."""
 
-    test_class = SelectKeeperBRound
+    test_class = SelectKeeperTransactionSubmissionRoundB
     test_payload = SelectKeeperPayload
 
 
-class TestSelectKeeperAStartupRound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperBRound."""
+class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundB."""
 
-    test_class = SelectKeeperAStartupRound
+    test_class = SelectKeeperSafeRound
     test_payload = SelectKeeperPayload
 
 
-class TestSelectKeeperBStartupRound(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperBRound."""
+class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundB."""
 
-    test_class = SelectKeeperBStartupRound
+    test_class = SelectKeeperOracleRound
     test_payload = SelectKeeperPayload
 
 

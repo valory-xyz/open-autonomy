@@ -34,23 +34,23 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
     VotingRound,
 )
-from packages.valory.skills.liquidity_provision.payloads import (
-    StrategyEvaluationPayload,
-    StrategyType,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
+from packages.valory.skills.common_apps.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
     TransactionHashPayload,
     TransactionType,
     ValidatePayload,
 )
-from packages.valory.skills.price_estimation_abci.rounds import (
+from packages.valory.skills.common_apps.rounds import (
     BaseRandomnessRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     ResetAndPauseRound,
     ResetRound,
+)
+from packages.valory.skills.liquidity_provision.payloads import (
+    StrategyEvaluationPayload,
+    StrategyType,
 )
 
 
