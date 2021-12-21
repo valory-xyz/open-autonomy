@@ -23,7 +23,19 @@ import json
 import os
 from abc import ABC
 from multiprocessing.pool import AsyncResult
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import numpy as np
 import pandas as pd
@@ -79,7 +91,10 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     TrainTask,
     TransformTask,
 )
-from packages.valory.skills.apy_estimation_abci.tools.etl import load_hist
+from packages.valory.skills.apy_estimation_abci.tools.etl import (
+    ResponseItemType,
+    load_hist,
+)
 from packages.valory.skills.apy_estimation_abci.tools.general import (
     create_pathdirs,
     gen_unix_timestamps,
@@ -230,6 +245,11 @@ class FetchBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._save_path = ""
+        self._spooky_api_specs: Dict[str, Any] = dict()
+        self._timestamps_iterator: Optional[Iterator[int]] = None
+        self._current_timestamp: Optional[int] = None
+        self._call_failed = False
+        self._pairs_hist: ResponseItemType = []
 
     def setup(self) -> None:
         """Set the behaviour up."""
@@ -238,6 +258,16 @@ class FetchBehaviour(APYEstimationBaseState):
             "historical_data.json",
         )
         create_pathdirs(self._save_path)
+
+        self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
+        available_specs = set(self._spooky_api_specs.keys())
+        needed_specs = {"method", "url", "headers"}
+        unwanted_specs = available_specs - (available_specs & needed_specs)
+
+        for unwanted in unwanted_specs:
+            self._spooky_api_specs.pop(unwanted)
+
+        self._timestamps_iterator = gen_unix_timestamps(self.params.history_duration)
 
     def _handle_response(
         self,
@@ -258,6 +288,7 @@ class FetchBehaviour(APYEstimationBaseState):
                 f"Could not get {res_context} from {subgraph.api_id}"
             )
 
+            self._call_failed = True
             subgraph.increment_retries()
             raise EmptyResponseError()
 
@@ -294,120 +325,123 @@ class FetchBehaviour(APYEstimationBaseState):
             with benchmark_tool.measure(
                 self,
             ).local():
-                spooky_api_specs = self.context.spooky_subgraph.get_spec()
-                available_specs = set(spooky_api_specs.keys())
-                needed_specs = {"method", "url", "headers"}
-                unwanted_specs = available_specs - (available_specs & needed_specs)
-
-                for unwanted in unwanted_specs:
-                    spooky_api_specs.pop(unwanted)
-
-                pairs_hist = []
-                for timestamp in gen_unix_timestamps(self.params.history_duration):
-                    # Fetch block.
-                    fantom_api_specs = self.context.fantom_subgraph.get_spec()
-                    res_raw = yield from self.get_http_response(
-                        method=fantom_api_specs["method"],
-                        url=fantom_api_specs["url"],
-                        headers=fantom_api_specs["headers"],
-                        content=block_from_timestamp_q(timestamp),
-                    )
-                    res = self.context.fantom_subgraph.process_response(res_raw)
-
+                if not self._call_failed:
                     try:
-                        self._handle_response(
-                            res,
-                            res_context="block",
-                            keys=("blocks", 0),
-                            subgraph=self.context.fantom_subgraph,
+                        self._current_timestamp = next(
+                            cast(Iterator[int], self._timestamps_iterator)
                         )
-                    except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
-                        return
 
-                    fetched_block = res["blocks"][0]
+                    except StopIteration:
 
-                    # Fetch ETH price for block.
-                    res_raw = yield from self.get_http_response(
-                        content=eth_price_usd_q(
-                            self.context.spooky_subgraph.bundle_id,
-                            fetched_block["number"],
-                        ),
-                        **spooky_api_specs,
-                    )
-                    res = self.context.spooky_subgraph.process_response(res_raw)
+                        if len(self._pairs_hist) > 0:
+                            # Store historical data to a json file.
+                            try:
+                                to_json_file(self._save_path, self._pairs_hist)
+                            except OSError:
+                                self.context.logger.error(
+                                    f"Path '{self._save_path}' could not be found!"
+                                )
+                            except TypeError:
+                                self.context.logger.error(
+                                    "Historical data cannot be JSON serialized!"
+                                )
 
-                    try:
-                        self._handle_response(
-                            res,
-                            res_context=f"ETH price for block {fetched_block}",
-                            keys=("bundles", 0, "ethPrice"),
-                            subgraph=self.context.spooky_subgraph,
-                        )
-                    except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
-                        return
+                            # Hash the file.
+                            hasher = IPFSHashOnly()
+                            hist_hash = hasher.get(self._save_path)
 
-                    eth_price = float(res["bundles"][0]["ethPrice"])
+                            # Pass the hash as a Payload.
+                            payload = FetchingPayload(
+                                self.context.agent_address,
+                                hist_hash,
+                            )
 
-                    # Fetch pool data for block.
-                    res_raw = yield from self.get_http_response(
-                        content=pairs_q(fetched_block["number"], self.params.pair_ids),
-                        **spooky_api_specs,
-                    )
-                    res = self.context.spooky_subgraph.process_response(res_raw)
+                            # Finish behaviour.
+                            with benchmark_tool.measure(
+                                self,
+                            ).consensus():
+                                yield from self.send_a2a_transaction(payload)
+                                yield from self.wait_until_round_end()
 
-                    try:
-                        self._handle_response(
-                            res,
-                            res_context=f"pool data for block {fetched_block} (Showing first example)",
-                            keys=("pairs", 0),
-                            subgraph=self.context.spooky_subgraph,
-                        )
-                    except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
-                        return
+                            self.set_done()
 
-                    # Add extra fields to the pairs.
-                    for i in range(len(res["pairs"])):
-                        res["pairs"][i]["for_timestamp"] = timestamp
-                        res["pairs"][i]["block_number"] = fetched_block["number"]
-                        res["pairs"][i]["block_timestamp"] = fetched_block["timestamp"]
-                        res["pairs"][i]["eth_price"] = eth_price
+                        else:
+                            self.context.logger.error(
+                                "Could not download any historical data!"
+                            )
 
-                    pairs_hist.extend(res["pairs"])
-
-            if len(pairs_hist) > 0:
-                # Store historical data to a json file.
-                try:
-                    to_json_file(self._save_path, pairs_hist)
-                except OSError:
-                    self.context.logger.error(
-                        f"Path '{self._save_path}' could not be found!"
-                    )
-                except TypeError:
-                    self.context.logger.error(
-                        "Historical data cannot be JSON serialized!"
-                    )
-
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                hist_hash = hasher.get(self._save_path)
-
-                # Pass the hash as a Payload.
-                payload = FetchingPayload(
-                    self.context.agent_address,
-                    hist_hash,
+                # Fetch block.
+                fantom_api_specs = self.context.fantom_subgraph.get_spec()
+                res_raw = yield from self.get_http_response(
+                    method=fantom_api_specs["method"],
+                    url=fantom_api_specs["url"],
+                    headers=fantom_api_specs["headers"],
+                    content=block_from_timestamp_q(cast(int, self._current_timestamp)),
                 )
+                res = self.context.fantom_subgraph.process_response(res_raw)
 
-                # Finish behaviour.
-                with benchmark_tool.measure(
-                    self,
-                ).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
+                try:
+                    self._handle_response(
+                        res,
+                        res_context="block",
+                        keys=("blocks", 0),
+                        subgraph=self.context.fantom_subgraph,
+                    )
+                except EmptyResponseError:
+                    yield from self.sleep(self.params.sleep_time)
+                    return
 
-                self.set_done()
+                fetched_block = res["blocks"][0]
+
+                # Fetch ETH price for block.
+                res_raw = yield from self.get_http_response(
+                    content=eth_price_usd_q(
+                        self.context.spooky_subgraph.bundle_id,
+                        fetched_block["number"],
+                    ),
+                    **self._spooky_api_specs,
+                )
+                res = self.context.spooky_subgraph.process_response(res_raw)
+
+                try:
+                    self._handle_response(
+                        res,
+                        res_context=f"ETH price for block {fetched_block}",
+                        keys=("bundles", 0, "ethPrice"),
+                        subgraph=self.context.spooky_subgraph,
+                    )
+                except EmptyResponseError:
+                    yield from self.sleep(self.params.sleep_time)
+                    return
+
+                eth_price = float(res["bundles"][0]["ethPrice"])
+
+                # Fetch pool data for block.
+                res_raw = yield from self.get_http_response(
+                    content=pairs_q(fetched_block["number"], self.params.pair_ids),
+                    **self._spooky_api_specs,
+                )
+                res = self.context.spooky_subgraph.process_response(res_raw)
+
+                try:
+                    self._handle_response(
+                        res,
+                        res_context=f"pool data for block {fetched_block} (Showing first example)",
+                        keys=("pairs", 0),
+                        subgraph=self.context.spooky_subgraph,
+                    )
+                except EmptyResponseError:
+                    yield from self.sleep(self.params.sleep_time)
+                    return
+
+                # Add extra fields to the pairs.
+                for i in range(len(res["pairs"])):
+                    res["pairs"][i]["for_timestamp"] = self._current_timestamp
+                    res["pairs"][i]["block_number"] = fetched_block["number"]
+                    res["pairs"][i]["block_timestamp"] = fetched_block["timestamp"]
+                    res["pairs"][i]["eth_price"] = eth_price
+
+                self._pairs_hist.extend(res["pairs"])
 
     def clean_up(self) -> None:
         """
