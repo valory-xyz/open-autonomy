@@ -33,11 +33,9 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import (
     CommonAppsBaseState,
     FinalizeBehaviour,
-    RandomnessAtStartupABehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
     SelectKeeperBBehaviour,
     SignatureBehaviour,
@@ -66,6 +64,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
+    RandomnessSafeBehaviour,
+    SelectKeeperSafeBehaviour,
     ValidateSafeBehaviour,
 )
 
@@ -419,9 +419,9 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
-        RandomnessAtStartupABehaviour,  # type: ignore
+        RandomnessSafeBehaviour,  # type: ignore
         RandomnessOracleBehaviour,  # type: ignore
-        SelectKeeperAAtStartupBehaviour,  # type: ignore
+        SelectKeeperSafeBehaviour,  # type: ignore
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
         SelectKeeperOracleBehaviour,  # type: ignore

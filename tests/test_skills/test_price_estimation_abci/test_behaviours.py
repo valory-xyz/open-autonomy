@@ -68,12 +68,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.common_apps.behaviours import (
     CommonAppsBaseState,
-    RandomnessAtStartupABehaviour,
     RandomnessInOperationBehaviour,
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    SelectKeeperAAtStartupBehaviour,
     SelectKeeperABehaviour,
     SelectKeeperBBehaviour,
     TendermintHealthcheckBehaviour,
@@ -106,6 +104,8 @@ from packages.valory.skills.price_estimation_abci.handlers import (
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
+    RandomnessSafeBehaviour,
+    SelectKeeperSafeBehaviour,
     ValidateSafeBehaviour,
 )
 
@@ -697,7 +697,7 @@ class TestRegistrationStartupBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = RandomnessAtStartupABehaviour
+    next_behaviour_class = RandomnessSafeBehaviour
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
@@ -878,11 +878,11 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         )
 
 
-class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
-    """Test randomness at startup."""
+class TestRandomnessSafe(BaseRandomnessBehaviourTest):
+    """Test randomness safe."""
 
-    randomness_behaviour_class = RandomnessAtStartupABehaviour
-    next_behaviour_class = SelectKeeperAAtStartupBehaviour
+    randomness_behaviour_class = RandomnessSafeBehaviour
+    next_behaviour_class = SelectKeeperSafeBehaviour
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
@@ -955,14 +955,14 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestSelectKeeperAStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperSafeBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperSafeBehaviour
     next_behaviour_class = DeploySafeBehaviour
 
 
-class TestSelectKeeperBStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
     select_keeper_behaviour_class = SelectKeeperOracleBehaviour

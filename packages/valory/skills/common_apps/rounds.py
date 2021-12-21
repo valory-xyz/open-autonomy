@@ -345,13 +345,13 @@ class FinishedRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractRound
         """End block."""
 
 
-class FinishedERound(FinishedRound):
+class FinishedRegistrationRound(FinishedRound):
     """This class represents the finished round during operation."""
 
     round_id = "finished_e"
 
 
-class FinishedFRound(FinishedRound):
+class FinishedRegistrationFFWRound(FinishedRound):
     """This class represents the finished round during operation."""
 
     round_id = "finished_f"
@@ -711,16 +711,19 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     initial_states: Set[AppState] = {RegistrationStartupRound, RegistrationRound}
     transition_function: AbciAppTransitionFunction = {
         RegistrationStartupRound: {
-            Event.DONE: FinishedERound,
-            Event.FAST_FORWARD: FinishedFRound,
+            Event.DONE: FinishedRegistrationRound,
+            Event.FAST_FORWARD: FinishedRegistrationFFWRound,
         },
         RegistrationRound: {
-            Event.DONE: FinishedFRound,
+            Event.DONE: FinishedRegistrationFFWRound,
         },
-        FinishedERound: {},
-        FinishedFRound: {},
+        FinishedRegistrationRound: {},
+        FinishedRegistrationFFWRound: {},
     }
-    final_states: Set[AppState] = {FinishedERound, FinishedFRound}
+    final_states: Set[AppState] = {
+        FinishedRegistrationRound,
+        FinishedRegistrationFFWRound,
+    }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }

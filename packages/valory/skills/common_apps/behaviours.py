@@ -50,7 +50,6 @@ from packages.valory.skills.common_apps.rounds import (
     CollectSignatureRound,
     FinalizationRound,
     PeriodState,
-    RandomnessAStartupRound,
     RandomnessRound,
     RegistrationRound,
     RegistrationStartupRound,
@@ -257,13 +256,6 @@ class RandomnessBehaviour(CommonAppsBaseState):
         It can be optionally implemented by the concrete classes.
         """
         self.context.randomness_api.reset_retries()
-
-
-class RandomnessAtStartupABehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
-
-    state_id = "retrieve_randomness_at_startup_a"
-    matching_round = RandomnessAStartupRound
 
 
 class RandomnessInOperationBehaviour(RandomnessBehaviour):

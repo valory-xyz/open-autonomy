@@ -54,7 +54,6 @@ from packages.valory.skills.common_apps.rounds import (
 )
 from packages.valory.skills.common_apps.rounds import (
     SelectKeeperARound,
-    SelectKeeperAStartupRound,
     SelectKeeperBRound,
     SelectKeeperRound,
     ValidateRound,
@@ -76,6 +75,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
+    SelectKeeperSafeRound,
     ValidateSafeRound,
 )
 
@@ -794,10 +794,10 @@ class TestSelectKeeperBRound(BaseSelectKeeperRoundTest):
     test_payload = SelectKeeperPayload
 
 
-class TestSelectKeeperAStartupRound(BaseSelectKeeperRoundTest):
+class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
     """Test SelectKeeperBRound."""
 
-    test_class = SelectKeeperAStartupRound
+    test_class = SelectKeeperSafeRound
     test_payload = SelectKeeperPayload
 
 
