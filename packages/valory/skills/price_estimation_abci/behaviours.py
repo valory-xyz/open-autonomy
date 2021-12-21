@@ -1193,6 +1193,10 @@ class BaseResetBehaviour(PriceEstimationBaseState):
                 yield from self.sleep(self.params.sleep_time)
                 return  # pragma: nocover
 
+            self.context.logger.info(
+                "local height == remote height; continuing execution..."
+            )
+
         if self.pause:
             if (
                 self.period_state.is_most_voted_estimate_set
