@@ -18,15 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the APY estimation skill."""
-import os
-import sys
-hashseed = os.getenv('PYTHONHASHSEED')
-if not hashseed:
-    os.environ['PYTHONHASHSEED'] = '0'
-    os.execv(sys.executable, [sys.executable] + sys.argv)
 import datetime
 import json
 import os
+import sys
 from abc import ABC
 from multiprocessing.pool import AsyncResult
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
@@ -98,6 +93,11 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     pairs_q,
 )
 
+
+hashseed = os.getenv("PYTHONHASHSEED")
+if not hashseed:
+    os.environ["PYTHONHASHSEED"] = "0"
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 benchmark_tool = BenchmarkTool()
 
@@ -879,7 +879,9 @@ class TrainBehaviour(APYEstimationBaseState):
                 model_hash = hasher.get(forecaster_save_path)
 
                 # Pass the hash and the best trial as a Payload.
-                self.context.logger.info(f"The {forecaster_save_path} model's hash is: '{model_hash}'")
+                self.context.logger.info(
+                    f"The {forecaster_save_path} model's hash is: '{model_hash}'"
+                )
                 payload = TrainingPayload(self.context.agent_address, model_hash)
 
                 # Finish behaviour.

@@ -26,7 +26,10 @@ import numpy as np
 import pytest
 from aea.helpers.ipfs.base import IPFSHashOnly
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster, train_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    init_forecaster,
+    train_forecaster,
+)
 from packages.valory.skills.apy_estimation_abci.ml.io import (
     load_forecaster,
     save_forecaster,
@@ -64,7 +67,7 @@ class TestIO:
         n_hashes_to_compare = 5
         hashes = []
         dummy_training_data = np.asarray([i for i in range(30)])
-        filepath = os.path.join(tmp_path, 'forecaster.joblib')
+        filepath = os.path.join(tmp_path, "forecaster.joblib")
 
         for _ in range(n_hashes_to_compare):
             # Train & save the forecaster.
