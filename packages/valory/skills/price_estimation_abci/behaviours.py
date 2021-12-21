@@ -21,6 +21,7 @@
 
 import datetime
 import json
+from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -28,10 +29,15 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import (
-    CommonAppsBaseState,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     RegistrationBehaviour,
@@ -56,10 +62,14 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
     SelectKeeperOracleBehaviour,
     ValidateOracleBehaviour,
 )
+from packages.valory.skills.price_estimation_abci.composition import (
+    PriceEstimationAbciApp,
+)
+from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
-    PriceEstimationAbciApp,
+    PeriodState,
     TxHashRound,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
@@ -77,7 +87,21 @@ SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 
 
-class ObserveBehaviour(CommonAppsBaseState):
+class PriceEstimationBaseState(BaseState, ABC):
+    """Base state behaviour for the common apps skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, cast(BaseSharedState, self.context.state).period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the params."""
+        return cast(Params, self.context.params)
+
+
+class ObserveBehaviour(PriceEstimationBaseState):
     """Observe price estimate."""
 
     state_id = "observe"
@@ -144,7 +168,7 @@ class ObserveBehaviour(CommonAppsBaseState):
         self.context.price_api.reset_retries()
 
 
-class EstimateBehaviour(CommonAppsBaseState):
+class EstimateBehaviour(PriceEstimationBaseState):
     """Estimate price."""
 
     state_id = "estimate"
@@ -183,7 +207,7 @@ class EstimateBehaviour(CommonAppsBaseState):
         self.set_done()
 
 
-class TransactionHashBehaviour(CommonAppsBaseState):
+class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
     state_id = "tx_hash"
@@ -273,7 +297,7 @@ class TransactionHashBehaviour(CommonAppsBaseState):
         return payload_string
 
 
-class BaseResetBehaviour(CommonAppsBaseState):
+class BaseResetBehaviour(PriceEstimationBaseState):
     """Reset state."""
 
     pause = True
@@ -419,7 +443,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[CommonAppsBaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore

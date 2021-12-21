@@ -18,13 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the price estimation ABCI application."""
+import struct
+from abc import ABC
 from types import MappingProxyType
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import AbstractSet, Dict, Mapping, Optional, Set, Tuple, Type, cast
 
-from packages.valory.skills.abstract_round_abci.abci_app_chain import (
-    AbciAppTransitionMapping,
-    chain,
-)
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -37,36 +35,136 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     ObservationPayload,
+    SignaturePayload,
     TransactionHashPayload,
+    TransactionType,
 )
-from packages.valory.skills.common_apps.rounds import (
-    AgentRegistrationAbciApp,
-    CommonAppsAbstractRound,
-    Event,
-    FailedRound,
-    FinishedRegistrationFFWRound,
-    FinishedRegistrationRound,
-    FinishedRound,
-    FinishedTransactionSubmissionRound,
-    RandomnessTransactionSubmissionRound,
-    RegistrationRound,
-    TransactionSubmissionAbciApp,
-)
+from packages.valory.skills.common_apps.rounds import Event, FinishedRound
 from packages.valory.skills.common_apps.tools import aggregate
-from packages.valory.skills.oracle_deployment_abci.rounds import (
-    FinishedOracleRound,
-    OracleDeploymentAbciApp,
-    RandomnessOracleRound,
-)
-from packages.valory.skills.safe_deployment_abci.rounds import (
-    FinishedSafeRound,
-    RandomnessSafeRound,
-    SafeDeploymentAbciApp,
-)
+
+
+def encode_float(value: float) -> bytes:
+    """Encode a float value."""
+    return struct.pack("d", value)
+
+
+class PeriodState(BasePeriodState):
+    """
+    Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
+        safe_contract_address: Optional[str] = None,
+        oracle_contract_address: Optional[str] = None,
+        participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
+        participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
+        estimate: Optional[float] = None,
+        most_voted_estimate: Optional[float] = None,
+        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
+        most_voted_tx_hash: Optional[str] = None,
+        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
+        final_tx_hash: Optional[str] = None,
+    ) -> None:
+        """Initialize a period state."""
+        super().__init__(
+            participants=participants,
+            period_count=period_count,
+            period_setup_params=period_setup_params,
+            safe_contract_address=safe_contract_address,
+            oracle_contract_address=oracle_contract_address,
+            participant_to_observations=participant_to_observations,
+            participant_to_estimate=participant_to_estimate,
+            estimate=estimate,
+            most_voted_estimate=most_voted_estimate,
+            participant_to_tx_hash=participant_to_tx_hash,
+            most_voted_tx_hash=most_voted_tx_hash,
+            participant_to_signature=participant_to_signature,
+            final_tx_hash=final_tx_hash,
+        )
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        return cast(str, self.get("safe_contract_address"))
+
+    @property
+    def oracle_contract_address(self) -> str:
+        """Get the oracle contract address."""
+        return cast(str, self.get("oracle_contract_address"))
+
+    @property
+    def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
+        """Get the participant_to_observations."""
+        return cast(
+            Mapping[str, ObservationPayload], self.get("participant_to_observations")
+        )
+
+    @property
+    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
+        """Get the participant_to_estimate."""
+        return cast(Mapping[str, EstimatePayload], self.get("participant_to_estimate"))
+
+    @property
+    def final_tx_hash(self) -> str:
+        """Get the final_tx_hash."""
+        return cast(str, self.get("final_tx_hash"))
+
+    @property
+    def is_final_tx_hash_set(self) -> bool:
+        """Check if final_tx_hash is set."""
+        return self.get("final_tx_hash", None) is not None
+
+    @property
+    def estimate(self) -> float:
+        """Get the estimate."""
+        return cast(float, self.get("estimate"))
+
+    @property
+    def most_voted_estimate(self) -> float:
+        """Get the most_voted_estimate."""
+        return cast(float, self.get("most_voted_estimate"))
+
+    @property
+    def is_most_voted_estimate_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self.get("most_voted_estimate", None) is not None
+
+    @property
+    def encoded_most_voted_estimate(self) -> bytes:
+        """Get the encoded (most voted) estimate."""
+        return encode_float(self.most_voted_estimate)
+
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get the most_voted_tx_hash."""
+        return cast(str, self.get("most_voted_tx_hash"))
+
+
+class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
+    """Abstract round for the agent registration skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self._state)
+
+    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+        """
+        Trigger the NO_MAJORITY event.
+
+        :return: a new period state and a NO_MAJORITY event
+        """
+        return self.period_state, Event.NO_MAJORITY
 
 
 class CollectObservationRound(
-    CollectDifferentUntilThresholdRound, CommonAppsAbstractRound
+    CollectDifferentUntilThresholdRound, PriceEstimationAbstractRound
 ):
     """
     This class represents the 'collect-observation' round.
@@ -98,7 +196,9 @@ class CollectObservationRound(
         return None
 
 
-class EstimateConsensusRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
+class EstimateConsensusRound(
+    CollectSameUntilThresholdRound, PriceEstimationAbstractRound
+):
     """
     This class represents the 'estimate_consensus' round.
 
@@ -127,7 +227,7 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound, CommonAppsAbstractR
         return None
 
 
-class TxHashRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
+class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
     """
     This class represents the 'tx-hash' round.
 
@@ -192,25 +292,3 @@ class PriceAggregationAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-
-
-abci_app_transition_mapping: AbciAppTransitionMapping = {
-    FinishedRegistrationRound: RandomnessSafeRound,
-    FinishedRegistrationFFWRound: CollectObservationRound,
-    FinishedSafeRound: RandomnessOracleRound,
-    FinishedOracleRound: CollectObservationRound,
-    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FinishedTransactionSubmissionRound: CollectObservationRound,
-    FailedRound: RegistrationRound,
-}
-
-PriceEstimationAbciApp = chain(
-    (
-        AgentRegistrationAbciApp,
-        SafeDeploymentAbciApp,
-        OracleDeploymentAbciApp,
-        PriceAggregationAbciApp,
-        TransactionSubmissionAbciApp,
-    ),
-    abci_app_transition_mapping,
-)

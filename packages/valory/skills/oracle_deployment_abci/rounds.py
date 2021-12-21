@@ -19,7 +19,8 @@
 
 """This module contains the data classes for the oracle deployment ABCI application."""
 
-from typing import Dict, Optional, Set, Tuple, Type
+from abc import ABC
+from typing import AbstractSet, Dict, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -31,13 +32,72 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.common_apps.rounds import (
     BaseRandomnessRound,
-    CommonAppsAbstractRound,
     Event,
     FinishedRound,
     SelectKeeperRound,
+    TransactionType,
     ValidateRound,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+
+
+class PeriodState(BasePeriodState):
+    """
+    Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
+        most_voted_keeper_address: Optional[str] = None,
+        safe_contract_address: Optional[str] = None,
+        oracle_contract_address: Optional[str] = None,
+    ) -> None:
+        """Initialize a period state."""
+        super().__init__(
+            participants=participants,
+            period_count=period_count,
+            period_setup_params=period_setup_params,
+            most_voted_keeper_address=most_voted_keeper_address,
+            safe_contract_address=safe_contract_address,
+            oracle_contract_address=oracle_contract_address,
+        )
+
+    @property
+    def most_voted_keeper_address(self) -> str:
+        """Get the most_voted_keeper_address."""
+        return cast(str, self.get("most_voted_keeper_address"))
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        return cast(str, self.get("safe_contract_address"))
+
+    @property
+    def oracle_contract_address(self) -> str:
+        """Get the oracle contract address."""
+        return cast(str, self.get("oracle_contract_address"))
+
+
+class OracleDeploymentAbstractRound(AbstractRound[Event, TransactionType], ABC):
+    """Abstract round for the agent registration skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self._state)
+
+    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+        """
+        Trigger the NO_MAJORITY event.
+
+        :return: a new period state and a NO_MAJORITY event
+        """
+        return self.period_state, Event.NO_MAJORITY
 
 
 class RandomnessOracleRound(BaseRandomnessRound):
@@ -52,7 +112,7 @@ class SelectKeeperOracleRound(SelectKeeperRound):
     round_id = "select_keeper_oracle"
 
 
-class DeployOracleRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
+class DeployOracleRound(OnlyKeeperSendsRound, OracleDeploymentAbstractRound):
     """
     This class represents the deploy Oracle round.
 
