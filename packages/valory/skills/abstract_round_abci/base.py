@@ -471,6 +471,12 @@ class BasePeriodState:
                 f"'{key}' field is not set for period state."
             ) from exception
 
+    def get_strict(self, key: str) -> Any:
+        value = self.get(key)
+        if value is None:
+            raise ValueError("Value of key={key} is None")
+        return value
+
     @property
     def period_count(self) -> int:
         """Get the period count."""
