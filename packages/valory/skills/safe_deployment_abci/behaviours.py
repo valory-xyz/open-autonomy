@@ -47,7 +47,7 @@ benchmark_tool = BenchmarkTool()
 class RandomnessSafeBehaviour(RandomnessBehaviour):
     """Retrive randomness for oracle deployment."""
 
-    state_id = "retrieve_randomness_safe"
+    state_id = "randomness_safe"
     matching_round = RandomnessSafeRound
 
 

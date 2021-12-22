@@ -466,8 +466,10 @@ class BasePeriodState:
             return self._data.get(key, default)
         try:
             return self._data.get(key)
-        except KeyError:  # pylint: disable=raise-missing-from
-            raise ValueError(f"'{key}' field is not set for period state.")
+        except KeyError as exception:  # pylint: disable=raise-missing-from
+            raise ValueError(
+                f"'{key}' field is not set for period state."
+            ) from exception
 
     @property
     def period_count(self) -> int:
@@ -477,7 +479,11 @@ class BasePeriodState:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        return cast(FrozenSet[str], self.get("participants"))
+        participants = self.get("participants")
+        if participants is None:
+            raise ValueError("'participants' field is None")
+
+        return cast(FrozenSet[str], participants)
 
     @property
     def sorted_participants(self) -> Sequence[str]:
