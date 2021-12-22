@@ -25,7 +25,7 @@ import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
@@ -472,6 +472,7 @@ class BasePeriodState:
             ) from exception
 
     def get_strict(self, key: str) -> Any:
+        """Get a value from the data dictionary and raise if it is None."""
         value = self.get(key)
         if value is None:
             raise ValueError("Value of key={key} is None")
@@ -517,8 +518,7 @@ class BasePeriodState:
 
     def update(self, **kwargs: Any) -> "BasePeriodState":
         """Copy and update the state."""
-        # remove leading underscore from keys
-        data = deepcopy(self._data)
+        data = dict(self._data.items())
         data.update(kwargs)
         return type(self)(**data)
 

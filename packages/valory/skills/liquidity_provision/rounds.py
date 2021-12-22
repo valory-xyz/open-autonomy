@@ -24,8 +24,6 @@ from enum import Enum
 from types import MappingProxyType
 from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast
 
-from aea.exceptions import enforce
-
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -123,20 +121,24 @@ class PeriodState(
     @property
     def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
         """Get the participant_to_votes."""
-        return cast(Mapping[str, ValidatePayload], self.get_strict("participant_to_votes"))
+        return cast(
+            Mapping[str, ValidatePayload], self.get_strict("participant_to_votes")
+        )
 
     @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
         """Get the participant_to_votes."""
         return cast(
-            Mapping[str, StrategyEvaluationPayload], self.get_strict("participant_to_strategy")
+            Mapping[str, StrategyEvaluationPayload],
+            self.get_strict("participant_to_strategy"),
         )
 
     @property
     def participant_to_tx_hash(self) -> Mapping[str, TransactionHashPayload]:
         """Get the participant_to_tx_hash."""
         return cast(
-            Mapping[str, TransactionHashPayload], self.get_strict("participant_to_tx_hash")
+            Mapping[str, TransactionHashPayload],
+            self.get_strict("participant_to_tx_hash"),
         )
 
     @property
