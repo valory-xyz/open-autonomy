@@ -47,7 +47,7 @@ class RandomnessOracleRound(BaseRandomnessRound):
 
 
 class SelectKeeperOracleRound(SelectKeeperRound):
-    """SelectKeeperB round for startup."""
+    """SelectKeeperOracleRound round for startup."""
 
     round_id = "select_keeper_oracle"
 

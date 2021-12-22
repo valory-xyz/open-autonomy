@@ -1,8 +1,9 @@
-from typing import List, Optional
 import logging
-import subprocess
+import os
 import signal
+import subprocess
 from logging import Logger
+from typing import List, Optional
 
 
 class TendermintParams:  # pylint: disable=too-few-public-methods
@@ -82,21 +83,16 @@ class TendermintNode:
             return
         cmd = self._build_node_command()
         self._process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with
-            cmd
+            cmd, preexec_fn=os.setsid
         )
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
-        if self._process is None:  # pragma: nocover
+        if self._process is None:
             return
-        self._process.send_signal(signal.SIGTERM)
-        self._process.wait(timeout=30)
-        poll = self._process.poll()
-        if poll is None:  # pragma: nocover
-            self._process.terminate()
-            self._process.wait(2)
+        os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
         self._process = None
 
     def prune_blocks(self) -> None:
         """prune blocks from the Tendermint state"""
-        subprocess.call(["tendermint", "unsafe_reset_all"])
+        subprocess.call(["tendermint", "--home", self.params.home, "unsafe-reset-all"])

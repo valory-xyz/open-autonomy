@@ -30,14 +30,26 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
 )
 from packages.valory.skills.common_apps.rounds import (
+    BaseRandomnessRound,
     CommonAppsAbstractRound,
     Event,
-    FinishedARound,
-    RandomnessAStartupRound,
-    SelectKeeperAStartupRound,
+    FinishedRound,
+    SelectKeeperRound,
     ValidateRound,
 )
 from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
+
+
+class RandomnessSafeRound(BaseRandomnessRound):
+    """Randomness round for startup."""
+
+    round_id = "randomness_safe"
+
+
+class SelectKeeperSafeRound(SelectKeeperRound):
+    """SelectKeeperSafeRound round for startup."""
+
+    round_id = "select_keeper_safe"
 
 
 class DeploySafeRound(OnlyKeeperSendsRound, CommonAppsAbstractRound):
@@ -78,35 +90,41 @@ class ValidateSafeRound(ValidateRound):
     none_event = Event.NONE
 
 
+class FinishedSafeRound(FinishedRound):
+    """This class represents the finished round of the safe deployment."""
+
+    round_id = "finished_safe"
+
+
 class SafeDeploymentAbciApp(AbciApp[Event]):
     """Safe deployment ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RandomnessAStartupRound
+    initial_round_cls: Type[AbstractRound] = RandomnessSafeRound
     transition_function: AbciAppTransitionFunction = {
-        RandomnessAStartupRound: {
-            Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessAStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessAStartupRound,  # we can have some agents on either side of an epoch, so we retry
+        RandomnessSafeRound: {
+            Event.DONE: SelectKeeperSafeRound,
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessSafeRound,  # we can have some agents on either side of an epoch, so we retry
         },
-        SelectKeeperAStartupRound: {
+        SelectKeeperSafeRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RandomnessAStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessAStartupRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperAStartupRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
         },
         ValidateSafeRound: {
-            Event.DONE: FinishedARound,
-            Event.NEGATIVE: RandomnessAStartupRound,  # if the round does not reach a positive vote we restart
-            Event.NONE: RandomnessAStartupRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessAStartupRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessAStartupRound,  # if the round has no majority we restart
+            Event.DONE: FinishedSafeRound,
+            Event.NEGATIVE: RandomnessSafeRound,  # if the round does not reach a positive vote we restart
+            Event.NONE: RandomnessSafeRound,  # NOTE: unreachable
+            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
         },
-        FinishedARound: {},
+        FinishedSafeRound: {},
     }
-    final_states: Set[AppState] = {FinishedARound}
+    final_states: Set[AppState] = {FinishedSafeRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
