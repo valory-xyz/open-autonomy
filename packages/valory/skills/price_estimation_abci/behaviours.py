@@ -104,7 +104,7 @@ class PriceEstimationBaseState(BaseState, ABC):
 class ObserveBehaviour(PriceEstimationBaseState):
     """Observe price estimate."""
 
-    state_id = "observe"
+    state_id = "collect_observation"
     matching_round = CollectObservationRound
 
     def async_act(self) -> Generator:
