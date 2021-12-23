@@ -21,7 +21,18 @@
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import AbstractSet, Dict, List, Mapping, Optional, Set, Tuple, Type, cast
+from typing import (
+    AbstractSet,
+    Any,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    cast,
+)
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -90,6 +101,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
         most_voted_tx_hash: Optional[str] = None,
         final_tx_hash: Optional[str] = None,
+        estimate: Optional[float] = None,
+        most_voted_estimate: Optional[float] = None,
+        **kwargs: Any,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -106,6 +120,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             participant_to_signature=participant_to_signature,
             most_voted_tx_hash=most_voted_tx_hash,
             final_tx_hash=final_tx_hash,
+            estimate=estimate,
+            most_voted_estimate=most_voted_estimate,
+            **kwargs,
         )
 
     @property
@@ -174,6 +191,26 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
         return cast(str, self.get("most_voted_tx_hash"))
+
+    @property
+    def is_final_tx_hash_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self.get("final_tx_hash", None) is not None
+
+    @property
+    def estimate(self) -> float:
+        """Get the estimate."""
+        return cast(float, self.get("estimate"))
+
+    @property
+    def most_voted_estimate(self) -> float:
+        """Get the most_voted_estimate."""
+        return cast(float, self.get("most_voted_estimate"))
+
+    @property
+    def is_most_voted_estimate_set(self) -> bool:
+        """Check if most_voted_estimate is set."""
+        return self.get("most_voted_estimate", None) is not None
 
 
 class CommonAppsAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -332,6 +369,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, CommonAppsAbstractRoun
 
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
+    period_state_class: Type[BasePeriodState] = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -339,6 +377,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, CommonAppsAbstractRoun
             state = self.period_state.update(
                 participant_to_randomness=MappingProxyType(self.collection),
                 most_voted_randomness=self.most_voted_payload,
+                period_state_class=self.period_state_class,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -466,6 +505,7 @@ class RandomnessTransactionSubmissionRound(BaseRandomnessRound):
     """Randomness round for operations."""
 
     round_id = "randomness_transaction_submission"
+    period_state_class = PeriodState
 
 
 class SelectKeeperTransactionSubmissionRoundA(SelectKeeperRound):

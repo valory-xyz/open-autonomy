@@ -1695,7 +1695,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PriceEstimationPeriodState(
+            period_state=CommonAppsPeriodState(
                 most_voted_estimate=0.1,
                 final_tx_hash="68656c6c6f776f726c64",
             ),
@@ -1729,7 +1729,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PriceEstimationPeriodState(
+            period_state=CommonAppsPeriodState(
                 most_voted_estimate=None,
                 final_tx_hash="68656c6c6f776f726c64",
             ),

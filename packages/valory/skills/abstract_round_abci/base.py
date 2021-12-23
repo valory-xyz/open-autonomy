@@ -466,7 +466,7 @@ class BasePeriodState:
             return self._data.get(key, default)
         try:
             return self._data.get(key)
-        except KeyError as exception:  # pylint: disable=raise-missing-from
+        except KeyError as exception:
             raise ValueError(
                 f"'{key}' field is not set for period state."
             ) from exception
@@ -475,7 +475,7 @@ class BasePeriodState:
         """Get a value from the data dictionary and raise if it is None."""
         value = self.get(key)
         if value is None:
-            raise ValueError("Value of key={key} is None")
+            raise ValueError(f"Value of key={key} is None")
         return value
 
     @property
@@ -486,10 +486,7 @@ class BasePeriodState:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        participants = self.get("participants")
-        if participants is None:
-            raise ValueError("'participants' field is None")
-
+        participants = self.get_strict("participants")
         return cast(FrozenSet[str], participants)
 
     @property
@@ -516,11 +513,15 @@ class BasePeriodState:
         """Get the number of participants."""
         return len(self.participants)
 
-    def update(self, **kwargs: Any) -> "BasePeriodState":
+    def update(
+        self, period_state_class: Optional[Type] = None, **kwargs: Any
+    ) -> "BasePeriodState":
         """Copy and update the state."""
-        data = dict(self._data.items())
+        data = copy(self._data)
         data.update(kwargs)
-        return type(self)(**data)
+        class_ = type(self) if period_state_class is None else period_state_class
+        _logger.info(f"HERE: {class_}")
+        return class_(**data)
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
