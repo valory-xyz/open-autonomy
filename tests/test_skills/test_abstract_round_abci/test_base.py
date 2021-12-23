@@ -427,7 +427,7 @@ class TestBasePeriodState:
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
         base_period_state = BasePeriodState()
-        with pytest.raises(ValueError, match="'participants' field is None"):
+        with pytest.raises(ValueError, match="Value of key=participants is None"):
             base_period_state.participants
 
     def test_update(self) -> None:

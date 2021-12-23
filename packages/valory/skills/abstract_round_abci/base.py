@@ -520,7 +520,6 @@ class BasePeriodState:
         data = copy(self._data)
         data.update(kwargs)
         class_ = type(self) if period_state_class is None else period_state_class
-        _logger.info(f"HERE: {class_}")
         return class_(**data)
 
     def __repr__(self) -> str:
