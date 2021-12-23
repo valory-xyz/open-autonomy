@@ -25,7 +25,7 @@ import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
@@ -466,8 +466,17 @@ class BasePeriodState:
             return self._data.get(key, default)
         try:
             return self._data.get(key)
-        except KeyError:  # pylint: disable=raise-missing-from
-            raise ValueError(f"'{key}' field is not set for period state.")
+        except KeyError as exception:
+            raise ValueError(
+                f"'{key}' field is not set for period state."
+            ) from exception
+
+    def get_strict(self, key: str) -> Any:
+        """Get a value from the data dictionary and raise if it is None."""
+        value = self.get(key)
+        if value is None:
+            raise ValueError(f"Value of key={key} is None")
+        return value
 
     @property
     def period_count(self) -> int:
@@ -477,7 +486,8 @@ class BasePeriodState:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        return cast(FrozenSet[str], self.get("participants"))
+        participants = self.get_strict("participants")
+        return cast(FrozenSet[str], participants)
 
     @property
     def sorted_participants(self) -> Sequence[str]:
@@ -503,12 +513,14 @@ class BasePeriodState:
         """Get the number of participants."""
         return len(self.participants)
 
-    def update(self, **kwargs: Any) -> "BasePeriodState":
+    def update(
+        self, period_state_class: Optional[Type] = None, **kwargs: Any
+    ) -> "BasePeriodState":
         """Copy and update the state."""
-        # remove leading underscore from keys
-        data = deepcopy(self._data)
+        data = copy(self._data)
         data.update(kwargs)
-        return type(self)(**data)
+        class_ = type(self) if period_state_class is None else period_state_class
+        return class_(**data)
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""

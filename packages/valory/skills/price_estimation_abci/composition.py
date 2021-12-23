@@ -52,9 +52,9 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: RandomnessSafeRound,
-    FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedSafeRound: RandomnessOracleRound,
     FinishedOracleRound: CollectObservationRound,
+    FinishedRegistrationFFWRound: CollectObservationRound,
     FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
     FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,

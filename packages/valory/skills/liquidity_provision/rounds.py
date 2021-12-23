@@ -24,8 +24,6 @@ from enum import Enum
 from types import MappingProxyType
 from typing import AbstractSet, Dict, Mapping, Optional, Tuple, Type, cast
 
-from aea.exceptions import enforce
-
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -95,109 +93,80 @@ class PeriodState(
         ] = None,
     ) -> None:
         """Initialize a period state."""
-        super().__init__(participants=participants)
-        self._period_count = period_count if period_count is not None else 0
-        self._period_setup_params = (
-            period_setup_params if period_setup_params is not None else {}
+        super().__init__(
+            participants=participants,
+            period_count=period_count if period_count is not None else 0,
+            period_setup_params=(
+                period_setup_params if period_setup_params is not None else {}
+            ),
+            most_voted_keeper_address=most_voted_keeper_address,
+            safe_contract_address=safe_contract_address,
+            multisend_contract_address=multisend_contract_address,
+            router_contract_address=router_contract_address,
+            participant_to_signature=participant_to_signature,
+            most_voted_strategy=most_voted_strategy,
+            most_voted_tx_hash=most_voted_tx_hash,
+            most_voted_tx_data=most_voted_tx_data,
+            final_tx_hash=final_tx_hash,
+            participant_to_votes=participant_to_votes,
+            participant_to_tx_hash=participant_to_tx_hash,
+            participant_to_strategy=participant_to_strategy,
         )
-
-        self._most_voted_keeper_address = most_voted_keeper_address
-        self._safe_contract_address = safe_contract_address
-        self._multisend_contract_address = multisend_contract_address
-        self._router_contract_address = router_contract_address
-        self._participant_to_signature = participant_to_signature
-        self._most_voted_strategy = most_voted_strategy
-        self._most_voted_tx_hash = most_voted_tx_hash
-        self._most_voted_tx_data = most_voted_tx_data
-        self._final_tx_hash = final_tx_hash
-        self._participant_to_votes = participant_to_votes
-        self._participant_to_tx_hash = participant_to_tx_hash
-        self._participant_to_strategy = participant_to_strategy
 
     @property
     def most_voted_strategy(self) -> dict:
         """Get the most_voted_strategy."""
-        enforce(
-            self._most_voted_strategy is not None,
-            "'most_voted_strategy' field is None",
-        )
-        return cast(dict, self._most_voted_strategy)
+        return cast(dict, self.get_strict("most_voted_strategy"))
 
     @property
     def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
         """Get the participant_to_votes."""
-        enforce(
-            self._participant_to_votes is not None,
-            "'participant_to_votes' field is None",
+        return cast(
+            Mapping[str, ValidatePayload], self.get_strict("participant_to_votes")
         )
-        return cast(Mapping[str, ValidatePayload], self._participant_to_votes)
 
     @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
         """Get the participant_to_votes."""
-        enforce(
-            self._participant_to_strategy is not None,
-            "'participant_to_strategy' field is None",
-        )
         return cast(
-            Mapping[str, StrategyEvaluationPayload], self._participant_to_strategy
+            Mapping[str, StrategyEvaluationPayload],
+            self.get_strict("participant_to_strategy"),
         )
 
     @property
     def participant_to_tx_hash(self) -> Mapping[str, TransactionHashPayload]:
         """Get the participant_to_tx_hash."""
-        enforce(
-            self._participant_to_tx_hash is not None,
-            "'most_voted_keeper_address' field is None",
+        return cast(
+            Mapping[str, TransactionHashPayload],
+            self.get_strict("participant_to_tx_hash"),
         )
-        return cast(Mapping[str, TransactionHashPayload], self._participant_to_tx_hash)
 
     @property
     def most_voted_keeper_address(self) -> str:
         """Get the most_voted_keeper_address."""
-        enforce(
-            self._most_voted_keeper_address is not None,
-            "'most_voted_keeper_address' field is None",
-        )
-        return cast(str, self._most_voted_keeper_address)
+        return cast(str, self.get_strict("most_voted_keeper_address"))
 
     @property
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
-        enforce(
-            self._safe_contract_address is not None,
-            "'safe_contract_address' field is None",
-        )
-        return cast(str, self._safe_contract_address)
+        return cast(str, self.get_strict("safe_contract_address"))
 
     @property
     def multisend_contract_address(self) -> str:
         """Get the multisend contract address."""
-        enforce(
-            self._multisend_contract_address is not None,
-            "'multisend_contract_address' field is None",
-        )
-        return cast(str, self._multisend_contract_address)
+        return cast(str, self.get_strict("multisend_contract_address"))
 
     @property
     def router_contract_address(self) -> str:
         """Get the router02 contract address."""
-        enforce(
-            self._router_contract_address is not None,
-            "'router_contract_address' field is None",
-        )
-        return cast(str, self._router_contract_address)
+        return cast(str, self.get_strict("router_contract_address"))
 
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
-        enforce(
-            self._participant_to_signature is not None,
-            "'participant_to_signature' field is None",
-        )
         return cast(
             Mapping[str, SignaturePayload],
-            self._participant_to_signature,
+            self.get_strict("participant_to_signature"),
         )
 
     def reset(self) -> "PeriodState":
@@ -207,29 +176,17 @@ class PeriodState(
     @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_enter_pool_tx_hash."""
-        enforce(
-            self._most_voted_tx_hash is not None,
-            "'most_voted_enter_pool_tx_hash' field is None",
-        )
-        return cast(str, self._most_voted_tx_hash)
+        return cast(str, self.get_strict("most_voted_tx_hash"))
 
     @property
     def most_voted_tx_data(self) -> str:
         """Get the most_voted_enter_pool_tx_data."""
-        enforce(
-            self._most_voted_tx_data is not None,
-            "'most_voted_tx_data' field is None",
-        )
-        return cast(str, self._most_voted_tx_data)
+        return cast(str, self.get_strict("most_voted_tx_data"))
 
     @property
     def final_tx_hash(self) -> str:
         """Get the final_enter_pool_tx_hash."""
-        enforce(
-            self._final_tx_hash is not None,
-            "'final_enter_pool_tx_hash' field is None",
-        )
-        return cast(str, self._final_tx_hash)
+        return cast(str, self.get_strict("final_tx_hash"))
 
 
 class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):

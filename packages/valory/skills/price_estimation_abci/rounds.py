@@ -21,7 +21,7 @@
 import struct
 from abc import ABC
 from types import MappingProxyType
-from typing import AbstractSet, Dict, Mapping, Optional, Set, Tuple, Type, cast
+from typing import AbstractSet, Any, Dict, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -70,6 +70,7 @@ class PeriodState(BasePeriodState):
         most_voted_tx_hash: Optional[str] = None,
         participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
         final_tx_hash: Optional[str] = None,
+        **kwargs: Any
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -86,6 +87,7 @@ class PeriodState(BasePeriodState):
             most_voted_tx_hash=most_voted_tx_hash,
             participant_to_signature=participant_to_signature,
             final_tx_hash=final_tx_hash,
+            **kwargs,
         )
 
     @property
@@ -129,11 +131,6 @@ class PeriodState(BasePeriodState):
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
         return cast(float, self.get("most_voted_estimate"))
-
-    @property
-    def is_most_voted_estimate_set(self) -> bool:
-        """Check if most_voted_estimate is set."""
-        return self.get("most_voted_estimate", None) is not None
 
     @property
     def encoded_most_voted_estimate(self) -> bytes:
@@ -191,6 +188,7 @@ class CollectObservationRound(
             state = self.period_state.update(
                 participant_to_observations=MappingProxyType(self.collection),
                 estimate=estimate,
+                period_state_class=PeriodState,
             )
             return state, Event.DONE
         return None
