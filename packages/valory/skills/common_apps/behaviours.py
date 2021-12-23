@@ -42,6 +42,7 @@ from packages.valory.skills.common_apps.payloads import (
     FinalizationTxPayload,
     RandomnessPayload,
     RegistrationPayload,
+    ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     ValidatePayload,
@@ -53,6 +54,8 @@ from packages.valory.skills.common_apps.rounds import (
     RandomnessTransactionSubmissionRound,
     RegistrationRound,
     RegistrationStartupRound,
+    ResetAndPauseRound,
+    ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
@@ -574,3 +577,144 @@ class FinalizeBehaviour(CommonAppsBaseState):
             contract_api_msg.raw_transaction
         )
         return tx_digest
+
+
+class BaseResetBehaviour(CommonAppsBaseState):
+    """Reset state."""
+
+    pause = True
+
+    _check_started: Optional[datetime.datetime] = None
+    _timeout: float
+    _is_healthy: bool = False
+
+    def start_reset(self) -> None:
+        """Start tendermint reset."""
+        if self._check_started is None and not self._is_healthy:
+            self._check_started = datetime.datetime.now()
+            self._timeout = self.params.max_healthcheck
+            self._is_healthy = False
+
+    def end_reset(
+        self,
+    ) -> None:
+        """End tendermint reset."""
+        self._check_started = None
+        self._timeout = -1.0
+        self._is_healthy = True
+
+    def _is_timeout_expired(self) -> bool:
+        """Check if the timeout expired."""
+        if self._check_started is None or self._is_healthy:
+            return False  # pragma: no cover
+        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+            0, self._timeout
+        )
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        if (
+            self.period_state.period_count + 1
+        ) % self.context.params.reset_tendermint_after == 0:
+            self.start_reset()
+            if self._is_timeout_expired():
+                raise RuntimeError("Error resetting tendermint node.")
+
+            if not self._is_healthy:
+                self.context.logger.info("Resetting tendermint node.")
+                request_message, http_dialogue = self._build_http_request_message(
+                    "GET",
+                    self.context.params.tendermint_com_url + "/hard_reset",
+                )
+                result = yield from self._do_request(request_message, http_dialogue)
+                try:
+                    response = json.loads(result.body.decode())
+                    if response.get("status"):
+                        self.context.logger.info(response.get("message"))
+                        self.context.state.period.reset_blockchain()
+                        self.end_reset()
+                    else:
+                        self.context.logger.error(response.get("message"))
+                except json.JSONDecodeError:
+                    self.context.logger.error(
+                        "Error communicating with tendermint com server."
+                    )
+                    yield from self.sleep(self.params.sleep_time)
+                    return
+
+            status = yield from self._get_status()
+            try:
+                json_body = json.loads(status.body.decode())
+            except json.JSONDecodeError:
+                self.context.logger.error(
+                    "Tendermint not accepting transactions yet, trying again!"
+                )
+                yield from self.sleep(self.params.sleep_time)
+                return  # pragma: nocover
+
+            remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+            local_height = self.context.state.period.height
+            self.context.logger.info(
+                "local-height = %s, remote-height=%s", local_height, remote_height
+            )
+            if local_height != remote_height:
+                self.context.logger.info("local height != remote height; retrying...")
+                yield from self.sleep(self.params.sleep_time)
+                return  # pragma: nocover
+
+            self.context.logger.info(
+                "local height == remote height; continuing execution..."
+            )
+
+        if self.pause:
+            if (
+                self.period_state.is_most_voted_estimate_set
+                and self.period_state.is_final_tx_hash_set
+            ):
+                self.context.logger.info(
+                    f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+                )
+            else:
+                self.context.logger.info("Finalized estimate not available.")
+            self.context.logger.info("Period end.")
+            benchmark_tool.save()
+            yield from self.wait_from_last_timestamp(self.params.observation_interval)
+        else:
+            self.context.logger.info(
+                f"Period {self.period_state.period_count} was not finished. Resetting!"
+            )
+
+        self.end_reset()
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
+class ResetBehaviour(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = ResetRound
+    state_id = "reset"
+    pause = False
+
+
+class ResetAndPauseBehaviour(BaseResetBehaviour):
+    """Reset state."""
+
+    matching_round = ResetAndPauseRound
+    state_id = "reset_and_pause"
+    pause = True
