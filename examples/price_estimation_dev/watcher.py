@@ -1,3 +1,24 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Watcher script and wrapper container for agent."""
+
 import os
 import signal
 import subprocess
@@ -27,7 +48,10 @@ def write(line: str) -> None:
 
 
 def base_setup() -> None:
-    """Base setup."""
+    """
+    This script will be called only once at the startup. This can be configured
+    in `env_script_templates.py` using `BASE_SETUP`.
+    """
     subprocess.call(["/bin/bash", BASE_SETUP_FILE])
 
 
@@ -104,7 +128,10 @@ class RestartAEA(FileSystemEventHandler):
         self.aea.start()
 
     def on_any_event(self, event: FileSystemEvent):
-        """Event handler."""
+        """
+        This method reloads the agent when a change is detected in `hashes.csv`
+        file.
+        """
         if not event.is_directory and event.event_type == EVENT_TYPE_CLOSED:
             write("Change detected.")
             write("Stopping Agent.")
