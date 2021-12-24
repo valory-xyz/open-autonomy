@@ -20,7 +20,7 @@
 """End2end tests base class."""
 import json
 import logging
-import subprocess
+import subprocess  # nosec
 import time
 from pathlib import Path
 from typing import List, Tuple
