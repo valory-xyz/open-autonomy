@@ -42,6 +42,7 @@ class AbciDialogue(Dialogue):
             AbciMessage.Performative.REQUEST_ECHO,
             AbciMessage.Performative.REQUEST_FLUSH,
             AbciMessage.Performative.REQUEST_INFO,
+            AbciMessage.Performative.REQUEST_SET_OPTION,
             AbciMessage.Performative.REQUEST_INIT_CHAIN,
             AbciMessage.Performative.REQUEST_QUERY,
             AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
