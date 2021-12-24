@@ -444,46 +444,87 @@ class BasePeriodState:
         participants: Optional[AbstractSet[str]] = None,
         period_count: Optional[int] = None,
         period_setup_params: Optional[Dict] = None,
+        **kwargs: Any,
     ) -> None:
         """Initialize a period state."""
-        self._participants = frozenset(participants) if participants else None
-        self._period_count = period_count if period_count is not None else 0
-        self._period_setup_params = (
+        period_setup_params_ = (
             period_setup_params if period_setup_params is not None else {}
         )
+        period_count_ = period_count if period_count is not None else 0
+        participants_ = frozenset(participants) if participants else None
+        data: Dict[str, Any] = {
+            "participants": participants_,
+            "period_count": period_count_,
+            "period_setup_params": period_setup_params_,
+            **kwargs,
+        }
+        self._data = data
+
+    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
+        """Get a value from the data dictionary."""
+        if default != "NOT_PROVIDED":
+            return self._data.get(key, default)
+        try:
+            return self._data.get(key)
+        except KeyError as exception:
+            raise ValueError(
+                f"'{key}' field is not set for period state."
+            ) from exception
+
+    def get_strict(self, key: str) -> Any:
+        """Get a value from the data dictionary and raise if it is None."""
+        value = self.get(key)
+        if value is None:
+            raise ValueError(f"Value of key={key} is None")
+        return value
 
     @property
     def period_count(self) -> int:
         """Get the period count."""
-        return self._period_count
+        return cast(int, self.get("period_count"))
 
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        if self._participants is None:
-            raise ValueError("'participants' field is None")
-        return self._participants
+        participants = self.get_strict("participants")
+        return cast(FrozenSet[str], participants)
+
+    @property
+    def sorted_participants(self) -> Sequence[str]:
+        """
+        Get the sorted participants' addresses.
+
+        The addresses are sorted according to their hexadecimal value;
+        this is the reason we use key=str.lower as comparator.
+
+        This property is useful when interacting with the Safe contract.
+
+        :return: the sorted participants' addresses
+        """
+        return sorted(self.participants, key=str.lower)
 
     @property
     def period_setup_params(self) -> Dict:
         """Get the period setup params."""
-        return self._period_setup_params
+        return cast(Dict, self.get("period_setup_params"))
 
     @property
     def nb_participants(self) -> int:
         """Get the number of participants."""
         return len(self.participants)
 
-    def update(self, **kwargs: Any) -> "BasePeriodState":
+    def update(
+        self, period_state_class: Optional[Type] = None, **kwargs: Any
+    ) -> "BasePeriodState":
         """Copy and update the state."""
-        # remove leading underscore from keys
-        data = {key[1:]: value for key, value in self.__dict__.items()}
+        data = copy(self._data)
         data.update(kwargs)
-        return type(self)(**data)
+        class_ = type(self) if period_state_class is None else period_state_class
+        return class_(**data)
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
-        return f"BasePeriodState({self.__dict__})"
+        return f"BasePeriodState({self._data})"
 
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):

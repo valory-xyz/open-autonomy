@@ -19,8 +19,7 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 
-import datetime
-import json
+from abc import ABC
 from typing import Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -28,14 +27,21 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.common_apps.behaviours import (
-    CommonAppsBaseState,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
@@ -45,10 +51,8 @@ from packages.valory.skills.common_apps.behaviours import (
 from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     ObservationPayload,
-    ResetPayload,
     TransactionHashPayload,
 )
-from packages.valory.skills.common_apps.rounds import ResetAndPauseRound, ResetRound
 from packages.valory.skills.common_apps.tools import payload_to_hex, to_int
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
@@ -56,10 +60,14 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
     SelectKeeperOracleBehaviour,
     ValidateOracleBehaviour,
 )
+from packages.valory.skills.price_estimation_abci.composition import (
+    PriceEstimationAbciApp,
+)
+from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
-    PriceEstimationAbciApp,
+    PeriodState,
     TxHashRound,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
@@ -77,10 +85,24 @@ SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 
 
-class ObserveBehaviour(CommonAppsBaseState):
+class PriceEstimationBaseState(BaseState, ABC):
+    """Base state behaviour for the common apps skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, cast(BaseSharedState, self.context.state).period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the params."""
+        return cast(Params, self.context.params)
+
+
+class ObserveBehaviour(PriceEstimationBaseState):
     """Observe price estimate."""
 
-    state_id = "observe"
+    state_id = "collect_observation"
     matching_round = CollectObservationRound
 
     def async_act(self) -> Generator:
@@ -144,7 +166,7 @@ class ObserveBehaviour(CommonAppsBaseState):
         self.context.price_api.reset_retries()
 
 
-class EstimateBehaviour(CommonAppsBaseState):
+class EstimateBehaviour(PriceEstimationBaseState):
     """Estimate price."""
 
     state_id = "estimate"
@@ -183,7 +205,7 @@ class EstimateBehaviour(CommonAppsBaseState):
         self.set_done()
 
 
-class TransactionHashBehaviour(CommonAppsBaseState):
+class TransactionHashBehaviour(PriceEstimationBaseState):
     """Share the transaction hash for the signature round."""
 
     state_id = "tx_hash"
@@ -273,153 +295,12 @@ class TransactionHashBehaviour(CommonAppsBaseState):
         return payload_string
 
 
-class BaseResetBehaviour(CommonAppsBaseState):
-    """Reset state."""
-
-    pause = True
-
-    _check_started: Optional[datetime.datetime] = None
-    _timeout: float
-    _is_healthy: bool = False
-
-    def start_reset(self) -> None:
-        """Start tendermint reset."""
-        if self._check_started is None and not self._is_healthy:
-            self._check_started = datetime.datetime.now()
-            self._timeout = self.params.max_healthcheck
-            self._is_healthy = False
-
-    def end_reset(
-        self,
-    ) -> None:
-        """End tendermint reset."""
-        self._check_started = None
-        self._timeout = -1.0
-        self._is_healthy = True
-
-    def _is_timeout_expired(self) -> bool:
-        """Check if the timeout expired."""
-        if self._check_started is None or self._is_healthy:
-            return False  # pragma: no cover
-        return datetime.datetime.now() > self._check_started + datetime.timedelta(
-            0, self._timeout
-        )
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Trivially log the state.
-        - Sleep for configured interval.
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        if (
-            self.period_state.period_count + 1
-        ) % self.context.params.reset_tendermint_after == 0:
-            self.start_reset()
-            if self._is_timeout_expired():
-                raise RuntimeError("Error resetting tendermint node.")
-
-            if not self._is_healthy:
-                self.context.logger.info("Resetting tendermint node.")
-                request_message, http_dialogue = self._build_http_request_message(
-                    "GET",
-                    self.context.params.tendermint_com_url + "/hard_reset",
-                )
-                result = yield from self._do_request(request_message, http_dialogue)
-                try:
-                    response = json.loads(result.body.decode())
-                    if response.get("status"):
-                        self.context.logger.info(response.get("message"))
-                        self.context.state.period.reset_blockchain()
-                        self.end_reset()
-                    else:
-                        self.context.logger.error(response.get("message"))
-                except json.JSONDecodeError:
-                    self.context.logger.error(
-                        "Error communicating with tendermint com server."
-                    )
-                    yield from self.sleep(self.params.sleep_time)
-                    return
-
-            status = yield from self._get_status()
-            try:
-                json_body = json.loads(status.body.decode())
-            except json.JSONDecodeError:
-                self.context.logger.error(
-                    "Tendermint not accepting transactions yet, trying again!"
-                )
-                yield from self.sleep(self.params.sleep_time)
-                return  # pragma: nocover
-
-            remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-            local_height = self.context.state.period.height
-            self.context.logger.info(
-                "local-height = %s, remote-height=%s", local_height, remote_height
-            )
-            if local_height != remote_height:
-                self.context.logger.info("local height != remote height; retrying...")
-                yield from self.sleep(self.params.sleep_time)
-                return  # pragma: nocover
-
-            self.context.logger.info(
-                "local height == remote height; continuing execution..."
-            )
-
-        if self.pause:
-            if (
-                self.period_state.is_most_voted_estimate_set
-                and self.period_state.is_final_tx_hash_set
-            ):
-                self.context.logger.info(
-                    f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
-                )
-            else:
-                self.context.logger.info("Finalized estimate not available.")
-            self.context.logger.info("Period end.")
-            benchmark_tool.save()
-            yield from self.wait_from_last_timestamp(self.params.observation_interval)
-        else:
-            self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
-            )
-
-        self.end_reset()
-        payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
-        )
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()
-
-
-class ResetBehaviour(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = ResetRound
-    state_id = "reset"
-    pause = False
-
-
-class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
-    pause = True
-
-
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[CommonAppsBaseState]] = {  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore

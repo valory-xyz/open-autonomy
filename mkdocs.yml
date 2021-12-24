@@ -67,6 +67,7 @@ nav:
         - Rounds: 'api/skills/price_estimation_abci/rounds.md'
         - Tools: 'api/skills/price_estimation_abci/tools.md'
     - Exceptions: exceptions.md
+  - Deployment: deployment_description.md
 
 
 plugins:

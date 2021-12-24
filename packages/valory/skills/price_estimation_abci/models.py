@@ -27,10 +27,10 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.common_apps.models import Params as BaseParams
-from packages.valory.skills.price_estimation_abci.rounds import (
-    Event,
+from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
 )
+from packages.valory.skills.price_estimation_abci.rounds import Event
 
 
 MARGIN = 5
