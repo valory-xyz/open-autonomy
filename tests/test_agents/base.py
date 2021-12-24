@@ -22,7 +22,6 @@ import json
 import logging
 import time
 from pathlib import Path
-from subprocess import Popen  # nosec
 from typing import List, Tuple
 
 import pytest
@@ -54,7 +53,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
     cli_log_options = ["-v", "DEBUG"]
-    processes: List[Popen]
+    processes: List
     agent_package: str
     skill_package: str
     wait_to_finish: int
@@ -152,7 +151,9 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
-            assert self.is_successfully_terminated(process), self.stdout[process.pid]
+            assert self.is_successfully_terminated(
+                process
+            ), "ABCI agent wasn't successfully terminated."
 
 
 class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
