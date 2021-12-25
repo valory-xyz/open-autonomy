@@ -846,15 +846,19 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.error("Error when requesting transaction signature.")
+            return None
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.error(
+                f"Error when requesting transaction digest: {transaction_digest_msg.message}"
+            )
+            return None
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash
 
@@ -867,8 +871,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Get transaction receipt."""
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
-        if transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR:
-            return None  # pragma: nocover
+        if (
+            transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR
+        ):  # pragma: nocover
+            self.context.logger.error(
+                f"Error when requesting transaction receipt: {transaction_receipt_msg.message}"
+            )
+            return None
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_receipt
 

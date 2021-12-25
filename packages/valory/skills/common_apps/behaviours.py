@@ -364,7 +364,7 @@ class ValidateTransactionBehaviour(CommonAppsBaseState):
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
-            self.context.logger.info(
+            self.context.logger.error(
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
@@ -390,7 +390,9 @@ class ValidateTransactionBehaviour(CommonAppsBaseState):
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
-            self.context.logger.warning("get_transmit_data unsuccessful!")
+            self.context.logger.error(
+                f"get_transmit_data unsuccessful! Received: {contract_api_msg}"
+            )
             return False
         data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
@@ -412,7 +414,9 @@ class ValidateTransactionBehaviour(CommonAppsBaseState):
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
-            self.context.logger.warning("get_transmit_data unsuccessful!")
+            self.context.logger.error(
+                f"get_transmit_data unsuccessful! Received: {contract_api_msg}"
+            )
             return False
         verified = cast(bool, contract_api_msg.state.body["verified"])
         verified_log = (
@@ -512,7 +516,7 @@ class FinalizeBehaviour(CommonAppsBaseState):
             )
             tx_digest = yield from self._send_safe_transaction()
             if tx_digest is None:
-                self.context.logger.info(  # pragma: nocover
+                self.context.logger.error(  # pragma: nocover
                     "Did not succeed with finalising the transaction!"
                 )
             else:
@@ -588,12 +592,17 @@ class BaseResetBehaviour(CommonAppsBaseState):
     _timeout: float
     _is_healthy: bool = False
 
-    def start_reset(self) -> None:
+    def start_reset(self) -> Generator:
         """Start tendermint reset."""
         if self._check_started is None and not self._is_healthy:
+            # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
+            yield from self.wait_from_last_timestamp(
+                self.params.observation_interval / 2
+            )
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
+        yield
 
     def end_reset(
         self,
@@ -623,79 +632,91 @@ class BaseResetBehaviour(CommonAppsBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-
         if (
-            self.period_state.period_count + 1
-        ) % self.context.params.reset_tendermint_after == 0:
-            self.start_reset()
-            if self._is_timeout_expired():
-                raise RuntimeError("Error resetting tendermint node.")
+            self.pause
+            and self.period_state.is_most_voted_estimate_set
+            and self.period_state.is_final_tx_hash_set
+        ):
+            if (
+                self.period_state.period_count != 0
+                and self.period_state.period_count
+                % self.context.params.reset_tendermint_after
+                == 0
+            ):
+                yield from self.start_reset()
+                if self._is_timeout_expired():
+                    raise RuntimeError("Error resetting tendermint node.")
 
-            if not self._is_healthy:
-                self.context.logger.info("Resetting tendermint node.")
-                request_message, http_dialogue = self._build_http_request_message(
-                    "GET",
-                    self.context.params.tendermint_com_url + "/hard_reset",
-                )
-                result = yield from self._do_request(request_message, http_dialogue)
+                if not self._is_healthy:
+                    self.context.logger.info(
+                        f"Resetting tendermint node at end of period={self.period_state.period_count}."
+                    )
+                    request_message, http_dialogue = self._build_http_request_message(
+                        "GET",
+                        self.context.params.tendermint_com_url + "/hard_reset",
+                    )
+                    result = yield from self._do_request(request_message, http_dialogue)
+                    try:
+                        response = json.loads(result.body.decode())
+                        if response.get("status"):
+                            self.context.logger.info(response.get("message"))
+                            self.context.logger.info(
+                                "Resetting tendermint node successful! Resetting local blockchain."
+                            )
+                            self.context.state.period.reset_blockchain()
+                            self.end_reset()
+                        else:
+                            msg = response.get("message")
+                            self.context.logger.error(f"Error resetting: {msg}")
+                            yield from self.sleep(self.params.sleep_time)
+                            return
+                    except json.JSONDecodeError:
+                        self.context.logger.error(
+                            "Error communicating with tendermint com server."
+                        )
+                        yield from self.sleep(self.params.sleep_time)
+                        return
+
+                status = yield from self._get_status()
                 try:
-                    response = json.loads(result.body.decode())
-                    if response.get("status"):
-                        self.context.logger.info(response.get("message"))
-                        self.context.state.period.reset_blockchain()
-                        self.end_reset()
-                    else:
-                        self.context.logger.error(response.get("message"))
+                    json_body = json.loads(status.body.decode())
                 except json.JSONDecodeError:
                     self.context.logger.error(
-                        "Error communicating with tendermint com server."
+                        "Tendermint not accepting transactions yet, trying again!"
                     )
                     yield from self.sleep(self.params.sleep_time)
-                    return
+                    return  # pragma: nocover
 
-            status = yield from self._get_status()
-            try:
-                json_body = json.loads(status.body.decode())
-            except json.JSONDecodeError:
-                self.context.logger.error(
-                    "Tendermint not accepting transactions yet, trying again!"
+                remote_height = int(
+                    json_body["result"]["sync_info"]["latest_block_height"]
                 )
-                yield from self.sleep(self.params.sleep_time)
-                return  # pragma: nocover
-
-            remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-            local_height = self.context.state.period.height
-            self.context.logger.info(
-                "local-height = %s, remote-height=%s", local_height, remote_height
-            )
-            if local_height != remote_height:
-                self.context.logger.info("local height != remote height; retrying...")
-                yield from self.sleep(self.params.sleep_time)
-                return  # pragma: nocover
-
-            self.context.logger.info(
-                "local height == remote height; continuing execution..."
-            )
-
-        if self.pause:
-            if (
-                self.period_state.is_most_voted_estimate_set
-                and self.period_state.is_final_tx_hash_set
-            ):
+                local_height = self.context.state.period.height
                 self.context.logger.info(
-                    f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+                    "local-height = %s, remote-height=%s", local_height, remote_height
                 )
-            else:
-                self.context.logger.info("Finalized estimate not available.")
+                if local_height != remote_height:
+                    self.context.logger.info(
+                        "local height != remote height; retrying..."
+                    )
+                    yield from self.sleep(self.params.sleep_time)
+                    return  # pragma: nocover
+
+                self.context.logger.info(
+                    "local height == remote height; continuing execution..."
+                )
+            yield from self.wait_from_last_timestamp(
+                self.params.observation_interval / 2
+            )
+            self.context.logger.info(
+                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+            )
             self.context.logger.info("Period end.")
             benchmark_tool.save()
-            yield from self.wait_from_last_timestamp(self.params.observation_interval)
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
-        self.end_reset()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )

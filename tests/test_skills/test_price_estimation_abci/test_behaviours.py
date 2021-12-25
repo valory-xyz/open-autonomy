@@ -1661,7 +1661,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._fast_forward()
 
         with mock.patch.object(
-            self.price_estimation_behaviour.context.logger, "info"
+            self.price_estimation_behaviour.context.logger, "error"
         ) as mock_logger:
 
             def _mock_generator() -> Generator[None, None, None]:
@@ -1722,16 +1722,17 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
-    def test_reset_behaviour_without_most_voted_estimate(
-        self,
-    ) -> None:
-        """Test reset behaviour without most voted estimate."""
+    def _tendermint_reset(
+        self, reset_response: bytes, status_response: bytes
+    ) -> Generator:
+        """Test reset behaviour."""
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_estimate=None,
+                most_voted_estimate=0.1,
                 final_tx_hash="68656c6c6f776f726c64",
+                period_count=2,
             ),
         )
         assert (
@@ -1747,109 +1748,49 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         ) as pmock:
             pmock.return_value = datetime.datetime.now()
             self.price_estimation_behaviour.context.params.observation_interval = 0.1
-
-            with patch.object(
-                self.price_estimation_behaviour.context.logger, "info"
-            ) as mock_logger:
-                self.price_estimation_behaviour.act_wrapper()
-                mock_logger.assert_any_call("Finalized estimate not available.")
+            self.price_estimation_behaviour.act_wrapper()
             time.sleep(0.3)
             self.price_estimation_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
+            self.price_estimation_behaviour.act_wrapper()
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_com_url
+                    + "/hard_reset",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=500,
+                    status_text="",
+                    headers="",
+                    body=reset_response,
+                ),
+            )
+            yield
 
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="GET",
+                    url=self.skill.skill_context.params.tendermint_url + "/status",
+                    headers="",
+                    version="",
+                    body=b"",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=status_response,
+                ),
+            )
+            yield
 
-class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
-    """Test the reset behaviour."""
-
-    behaviour_class = ResetBehaviour
-    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
-
-    def test_reset_behaviour(
-        self,
-    ) -> None:
-        """Test reset behaviour."""
-        self.fast_forward_to_state(
-            behaviour=self.price_estimation_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.price_estimation_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.price_estimation_behaviour.context.params.observation_interval = 0.1
-        self.price_estimation_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.price_estimation_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.price_estimation_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-    def _tendermint_reset(
-        self, reset_response: bytes, status_response: bytes
-    ) -> Generator:
-        """Test reset behaviour."""
-        self.fast_forward_to_state(
-            behaviour=self.price_estimation_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(period_count=-1),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.price_estimation_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.price_estimation_behaviour.context.params.observation_interval = 0.1
-        self.price_estimation_behaviour.act_wrapper()
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                url=self.skill.skill_context.params.tendermint_com_url + "/hard_reset",
-                headers="",
-                version="",
-                body=b"",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=500,
-                status_text="",
-                headers="",
-                body=reset_response,
-            ),
-        )
-        yield
-
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                url=self.skill.skill_context.params.tendermint_url + "/status",
-                headers="",
-                version="",
-                body=b"",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=200,
-                status_text="",
-                headers="",
-                body=status_response,
-            ),
-        )
-        yield
-
-        time.sleep(0.3)
-        self.price_estimation_behaviour.act_wrapper()
+            time.sleep(0.3)
+            self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
@@ -1906,11 +1847,11 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     }
                 ).encode(),
             )
-            for _ in range(2):
+            for _ in range(1):
                 next(test_runner)
             mock_logger.assert_any_call(
                 logging.ERROR,
-                "Error resetting tendermint.",
+                "Error resetting: Error resetting tendermint.",
             )
 
     def test_reset_behaviour_with_tendermint_reset_wrong_response(
@@ -1938,7 +1879,11 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(period_count=-1),
+            period_state=CommonAppsPeriodState(
+                most_voted_estimate=0.1,
+                final_tx_hash="68656c6c6f776f726c64",
+                period_count=2,
+            ),
         )
         assert (
             cast(
@@ -1992,3 +1937,36 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 logging.INFO,
                 "local height != remote height; retrying...",
             )
+
+
+class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test the reset behaviour."""
+
+    behaviour_class = ResetBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+
+    def test_reset_behaviour(
+        self,
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_state(
+            behaviour=self.price_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=CommonAppsPeriodState(),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.price_estimation_behaviour.current_state),
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        self.price_estimation_behaviour.context.params.observation_interval = 0.1
+        self.price_estimation_behaviour.act_wrapper()
+        time.sleep(0.3)
+        self.price_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.price_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
