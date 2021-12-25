@@ -1152,18 +1152,18 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = APYEstimationAbciApp
     behaviour_states: Set[Type[APYEstimationBaseState]] = {
-        TendermintHealthcheckBehaviour,
-        RegistrationBehaviour,
+        TendermintHealthcheckBehaviour,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
         FetchBehaviour,
         TransformBehaviour,
-        PreprocessBehaviour,
-        RandomnessBehaviour,
+        PreprocessBehaviour,  # type: ignore
+        RandomnessBehaviour,  # type: ignore
         OptimizeBehaviour,
         TrainBehaviour,
         TestBehaviour,
-        EstimateBehaviour,
-        ResetBehaviour,
-        CycleResetBehaviour,
+        EstimateBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
+        CycleResetBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:
