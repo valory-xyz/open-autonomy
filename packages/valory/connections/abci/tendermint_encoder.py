@@ -330,7 +330,7 @@ class _TendermintProtocolEncoder:
         :return: the ABCI protobuf object.
         """
         offer_snapshot = ResponseOfferSnapshot()
-        offer_snapshot.result = ResponseOfferSnapshot.Result(message.result.result_type)
+        offer_snapshot.result = message.result.result_type.value
         return Response(offer_snapshot=offer_snapshot)
 
     @classmethod
@@ -354,9 +354,7 @@ class _TendermintProtocolEncoder:
         :return: the ABCI protobuf object.
         """
         apply_snapshot_chunk = ResponseApplySnapshotChunk()
-        apply_snapshot_chunk.result = ResponseApplySnapshotChunk.Result(
-            message.result.result_type
-        )
+        apply_snapshot_chunk.result = message.result.result_type.value
         apply_snapshot_chunk.refetch_chunks.extend(message.refetch_chunks)
         apply_snapshot_chunk.reject_senders.extend(message.reject_senders)
         return Response(apply_snapshot_chunk=apply_snapshot_chunk)
