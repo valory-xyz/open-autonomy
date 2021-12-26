@@ -22,19 +22,7 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import (
-    AbstractSet,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    cast,
-)
-
-from aea.exceptions import enforce
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -79,27 +67,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     This state is replicated by the tendermint application.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
-    ) -> None:
-        """Initialize a period state."""
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-        )
-        self._participant_to_randomness = participant_to_randomness
-        self._most_voted_randomness = most_voted_randomness
-        self._most_voted_keeper_address = most_voted_keeper_address
-        self._participant_to_selection = participant_to_selection
-
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
@@ -123,38 +90,28 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
-        enforce(
-            self._participant_to_randomness is not None,
-            "'participant_to_randomness' field is None",
+        return cast(
+            Mapping[str, RandomnessPayload],
+            self.db.get_strict("participant_to_randomness"),
         )
-        return cast(Mapping[str, RandomnessPayload], self._participant_to_randomness)
 
     @property
     def most_voted_randomness(self) -> str:
         """Get the most_voted_randomness."""
-        enforce(
-            self._most_voted_randomness is not None,
-            "'most_voted_randomness' field is None",
-        )
-        return cast(str, self._most_voted_randomness)
+        return cast(str, self.db.get_strict("most_voted_randomness"))
 
     @property
     def most_voted_keeper_address(self) -> str:
         """Get the most_voted_keeper_address."""
-        enforce(
-            self._most_voted_keeper_address is not None,
-            "'most_voted_keeper_address' field is None",
-        )
-        return cast(str, self._most_voted_keeper_address)
+        return cast(str, self.db.get_strict("most_voted_keeper_address"))
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
         """Get the participant_to_selection."""
-        enforce(
-            self._participant_to_selection is not None,
-            "'participant_to_selection' field is None",
+        return cast(
+            Mapping[str, SelectKeeperPayload],
+            self.db.get_strict("participant_to_selection"),
         )
-        return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
 
 
 class SimpleABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -191,9 +148,9 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
-            state = PeriodState(
+            state = self.period_state.update(
                 participants=self.collection,
-                period_count=self.period_state.period_count,
+                period_state_class=PeriodState,
             )
             return state, Event.DONE
         return None

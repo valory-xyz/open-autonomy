@@ -60,6 +60,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
+    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -148,6 +149,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    period_state: PeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -187,6 +189,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.liquidity_provision_behaviour.current_state).state_id
             == cls.liquidity_provision_behaviour.initial_state_cls.state_id
         )
+        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -455,12 +458,17 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         strategy = get_default_strategy()
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -491,12 +499,17 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
 
         strategy = get_default_strategy()
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -736,12 +749,17 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
 
         strategy = get_default_strategy(is_native=False)
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1015,12 +1033,17 @@ class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBase
 
         strategy = get_default_strategy()
         period_state = PeriodState(
-            most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1062,12 +1085,17 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
 
         strategy = get_default_strategy()
         period_state = PeriodState(
-            most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1093,15 +1121,20 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy()
         participants = get_participants()
         period_state = PeriodState(
-            participants=participants,
-            most_voted_tx_hash=b"dummy_tx".hex(),
-            most_voted_tx_data=b"some_data".hex(),
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address=self.skill.skill_context.agent_address,
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            participant_to_signature=get_participant_to_signature(participants),
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    participants=participants,
+                    most_voted_tx_hash=b"dummy_tx".hex(),
+                    most_voted_tx_data=b"some_data".hex(),
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address=self.skill.skill_context.agent_address,
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    participant_to_signature=get_participant_to_signature(participants),
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1189,16 +1222,21 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
         strategy = get_default_strategy()
         participants = get_participants()
         period_state = PeriodState(
-            participants=participants,
-            most_voted_tx_hash="0x",
-            most_voted_tx_data=b"data".hex(),
-            most_voted_strategy=strategy,
-            final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
-            multisend_contract_address="multisend_contract_address",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            participant_to_signature=get_participant_to_signature(participants),
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    participants=participants,
+                    most_voted_tx_hash="0x",
+                    most_voted_tx_data=b"data".hex(),
+                    most_voted_strategy=strategy,
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                    multisend_contract_address="multisend_contract_address",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    participant_to_signature=get_participant_to_signature(participants),
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1278,12 +1316,17 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         strategy = get_default_strategy()
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1405,12 +1448,17 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         strategy = get_default_strategy(is_native=False)
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1540,12 +1588,17 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         strategy = get_default_strategy()
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
@@ -1704,12 +1757,17 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         strategy = get_default_strategy(is_native=False)
         period_state = PeriodState(
-            most_voted_tx_hash="0x",
-            safe_contract_address="safe_contract_address",
-            most_voted_keeper_address="most_voted_keeper_address",
-            most_voted_strategy=strategy,
-            multisend_contract_address="multisend_contract_address",
-            router_contract_address="router_contract_address",
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
         )
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,

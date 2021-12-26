@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     ConsensusParams,
+    StateDB,
 )
 from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
@@ -240,7 +241,9 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = CommonAppsPeriodState(participants=cls.participants)
+        cls.period_state = CommonAppsPeriodState(
+            StateDB(initial_period=0, initial_data=dict(participants=cls.participants))
+        )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
@@ -266,10 +269,8 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         self.period_state = cast(
             CommonAppsPeriodState,
             self.period_state.update(
-                period_setup_params={
-                    "safe_contract_address": "stub_safe_contract_address",
-                    "oracle_contract_address": "stub_oracle_contract_address",
-                }
+                safe_contract_address="stub_safe_contract_address",
+                oracle_contract_address="stub_oracle_contract_address",
             ),
         )
 
@@ -313,7 +314,10 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
                 for participant in self.participants
             ],
             state_update_fn=lambda *x: CommonAppsPeriodState(
-                participants=test_round.collection
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(participants=test_round.collection),
+                )
             ),
             state_attr_checks=[lambda state: state.participants],
             exit_event=expected_event,
@@ -386,7 +390,12 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 ]
             ),
             state_update_fn=(
-                lambda *x: CommonAppsPeriodState(participants=self.participants)
+                lambda *x: CommonAppsPeriodState(
+                    StateDB(
+                        initial_period=0,
+                        initial_data=dict(participants=self.participants),
+                    )
+                )
             ),
             state_attr_checks=[lambda state: state.participants],
             exit_event=expected_event,
@@ -838,18 +847,18 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
         test_round = ConsensusReachedRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        next_period_count = 2
+        next_period_count = 1
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                state_update_fn=lambda *_: BasePeriodState(
+                state_update_fn=lambda _period_state, _: _period_state.update(
+                    period_count=next_period_count,
                     participants=self.participants,
-                    period_count=test_round.most_voted_payload,
                 ),
-                state_attr_checks=[lambda state: state.participants],
+                state_attr_checks=[],  # [lambda state: state.participants],
                 most_voted_payload=next_period_count,
                 exit_event=Event.DONE,
             )
@@ -979,17 +988,22 @@ def test_price_estimation_period_state() -> None:
     final_tx_hash = get_final_tx_hash()
 
     period_state = PriceEstimationPeriodState(
-        participants=participants,
-        safe_contract_address=safe_contract_address,
-        oracle_contract_address=oracle_contract_address,
-        participant_to_observations=participant_to_observations,
-        participant_to_estimate=participant_to_estimate,
-        estimate=estimate,
-        most_voted_estimate=most_voted_estimate,
-        participant_to_tx_hash=participant_to_tx_hash,
-        most_voted_tx_hash=most_voted_tx_hash,
-        participant_to_signature=participant_to_signature,
-        final_tx_hash=final_tx_hash,
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                safe_contract_address=safe_contract_address,
+                oracle_contract_address=oracle_contract_address,
+                participant_to_observations=participant_to_observations,
+                participant_to_estimate=participant_to_estimate,
+                estimate=estimate,
+                most_voted_estimate=most_voted_estimate,
+                participant_to_tx_hash=participant_to_tx_hash,
+                most_voted_tx_hash=most_voted_tx_hash,
+                participant_to_signature=participant_to_signature,
+                final_tx_hash=final_tx_hash,
+            ),
+        )
     )
 
     assert period_state.safe_contract_address == safe_contract_address
@@ -1021,17 +1035,22 @@ def test_common_apps_period_state() -> None:
     final_tx_hash = get_final_tx_hash()
 
     period_state = CommonAppsPeriodState(
-        participants=participants,
-        participant_to_randomness=participant_to_randomness,
-        most_voted_randomness=most_voted_randomness,
-        participant_to_selection=participant_to_selection,
-        most_voted_keeper_address=most_voted_keeper_address,
-        safe_contract_address=safe_contract_address,
-        oracle_contract_address=oracle_contract_address,
-        participant_to_votes=participant_to_votes,
-        most_voted_tx_hash=most_voted_tx_hash,
-        participant_to_signature=participant_to_signature,
-        final_tx_hash=final_tx_hash,
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address=safe_contract_address,
+                oracle_contract_address=oracle_contract_address,
+                participant_to_votes=participant_to_votes,
+                most_voted_tx_hash=most_voted_tx_hash,
+                participant_to_signature=participant_to_signature,
+                final_tx_hash=final_tx_hash,
+            ),
+        )
     )
 
     actual_keeper_randomness = float(

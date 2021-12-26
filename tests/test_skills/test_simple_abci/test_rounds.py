@@ -26,6 +26,7 @@ from unittest import mock
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
+    StateDB,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
@@ -101,7 +102,9 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(participants=cls.participants)
+        cls.period_state = PeriodState(
+            StateDB(initial_period=0, initial_data=dict(participants=cls.participants))
+        )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
@@ -136,7 +139,11 @@ class TestRegistrationRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = PeriodState(participants=test_round.collection)
+        actual_next_state = PeriodState(
+            StateDB(
+                initial_period=0, initial_data=dict(participants=test_round.collection)
+            )
+        )
 
         res = test_round.end_block()
         assert res is not None
@@ -308,18 +315,21 @@ def test_period_state() -> None:  # pylint:too-many-locals
     most_voted_keeper_address = "keeper"
 
     period_state = PeriodState(
-        participants=participants,
-        period_count=period_count,
-        period_setup_params=period_setup_params,
-        participant_to_randomness=participant_to_randomness,
-        most_voted_randomness=most_voted_randomness,
-        participant_to_selection=participant_to_selection,
-        most_voted_keeper_address=most_voted_keeper_address,
+        StateDB(
+            initial_period=period_count,
+            initial_data=dict(
+                participants=participants,
+                period_setup_params=period_setup_params,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+            ),
+        )
     )
 
     assert period_state.participants == participants
     assert period_state.period_count == period_count
-    assert period_state.period_setup_params == period_setup_params
     assert period_state.participant_to_randomness == participant_to_randomness
     assert period_state.most_voted_randomness == most_voted_randomness
     assert period_state.participant_to_selection == participant_to_selection

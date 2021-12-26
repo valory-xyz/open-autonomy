@@ -62,6 +62,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
+    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -680,7 +681,7 @@ class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -726,7 +727,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -768,7 +769,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -805,7 +806,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -839,7 +840,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -865,7 +866,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -912,8 +913,13 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=CommonAppsPeriodState(
-                participants,
-                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participants=participants,
+                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                    ),
+                )
             ),
         )
         assert (
@@ -940,9 +946,14 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=CommonAppsPeriodState(
-                participants,
-                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                most_voted_keeper_address=preexisting_keeper,
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participants=participants,
+                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                        most_voted_keeper_address=preexisting_keeper,
+                    ),
+                )
             ),
         )
         assert (
@@ -1006,9 +1017,14 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
             CommonAppsPeriodState(
-                participants=participants,
-                most_voted_keeper_address=most_voted_keeper_address,
-                **self.period_state_kwargs,
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participants=participants,
+                        most_voted_keeper_address=most_voted_keeper_address,
+                        **self.period_state_kwargs,
+                    ),
+                )
             ),
         )
         assert (
@@ -1090,9 +1106,14 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
             CommonAppsPeriodState(
-                participants=participants,
-                most_voted_keeper_address=most_voted_keeper_address,
-                **self.period_state_kwargs,
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participants=participants,
+                        most_voted_keeper_address=most_voted_keeper_address,
+                        **self.period_state_kwargs,
+                    ),
+                )
             ),
         )
         assert (
@@ -1145,7 +1166,9 @@ class BaseValidateBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
-            CommonAppsPeriodState(**self.period_state_kwargs),
+            CommonAppsPeriodState(
+                StateDB(initial_period=0, initial_data=self.period_state_kwargs),
+            ),
         )
         assert (
             cast(
@@ -1205,7 +1228,9 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationPeriodState(estimate=1.0),
+            PriceEstimationPeriodState(
+                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+            ),
         )
         assert (
             cast(
@@ -1244,7 +1269,9 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             ObserveBehaviour.state_id,
-            PriceEstimationPeriodState(estimate=1.0),
+            PriceEstimationPeriodState(
+                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+            ),
         )
         assert (
             cast(
@@ -1270,7 +1297,9 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             ObserveBehaviour.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(
+                StateDB(initial_period=0, initial_data=dict()),
+            ),
         )
         assert (
             cast(
@@ -1306,7 +1335,9 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             ObserveBehaviour.state_id,
-            CommonAppsPeriodState(),
+            CommonAppsPeriodState(
+                StateDB(initial_period=0, initial_data=dict()),
+            ),
         )
         assert (
             cast(
@@ -1332,7 +1363,9 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=EstimateBehaviour.state_id,
-            period_state=PriceEstimationPeriodState(estimate=1.0),
+            period_state=PriceEstimationPeriodState(
+                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+            ),
         )
         assert (
             cast(
@@ -1361,9 +1394,14 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=TransactionHashBehaviour.state_id,
             period_state=PriceEstimationPeriodState(
-                most_voted_estimate=1.0,
-                safe_contract_address="safe_contract_address",
-                oracle_contract_address="oracle_contract_address",
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_estimate=1.0,
+                        safe_contract_address="safe_contract_address",
+                        oracle_contract_address="oracle_contract_address",
+                    ),
+                )
             ),
         )
         assert (
@@ -1435,7 +1473,10 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=SignatureBehaviour.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_tx_hash="68656c6c6f776f726c64"
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_tx_hash="68656c6c6f776f726c64"),
+                )
             ),
         )
         assert (
@@ -1476,8 +1517,13 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=FinalizeBehaviour.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_keeper_address="most_voted_keeper_address",
-                participants=participants,
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        participants=participants,
+                    ),
+                )
             ),
         )
         assert (
@@ -1502,17 +1548,22 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=FinalizeBehaviour.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_keeper_address=self.skill.skill_context.agent_address,
-                safe_contract_address="safe_contract_address",
-                oracle_contract_address="oracle_contract_address",
-                participants=participants,
-                participant_to_signature={},
-                most_voted_tx_hash=payload_to_hex(
-                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                    1,
-                    1,
-                    1,
-                ),
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_keeper_address=self.skill.skill_context.agent_address,
+                        safe_contract_address="safe_contract_address",
+                        oracle_contract_address="oracle_contract_address",
+                        participants=participants,
+                        participant_to_signature={},
+                        most_voted_tx_hash=payload_to_hex(
+                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            1,
+                            1,
+                            1,
+                        ),
+                    ),
+                )
             ),
         )
         assert (
@@ -1587,18 +1638,23 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
             period_state=CommonAppsPeriodState(
-                safe_contract_address="safe_contract_address",
-                oracle_contract_address="oracle_contract_address",
-                final_tx_hash="final_tx_hash",
-                participants=participants,
-                most_voted_keeper_address=most_voted_keeper_address,
-                participant_to_signature={},
-                most_voted_tx_hash=payload_to_hex(
-                    "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                    1,
-                    1,
-                    1,
-                ),
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        safe_contract_address="safe_contract_address",
+                        oracle_contract_address="oracle_contract_address",
+                        final_tx_hash="final_tx_hash",
+                        participants=participants,
+                        most_voted_keeper_address=most_voted_keeper_address,
+                        participant_to_signature={},
+                        most_voted_tx_hash=payload_to_hex(
+                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            1,
+                            1,
+                            1,
+                        ),
+                    ),
+                )
             ),
         )
         assert (
@@ -1696,8 +1752,13 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_estimate=0.1,
-                final_tx_hash="68656c6c6f776f726c64",
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_estimate=0.1,
+                        final_tx_hash="68656c6c6f776f726c64",
+                    ),
+                )
             ),
         )
         assert (
@@ -1730,9 +1791,13 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_estimate=0.1,
-                final_tx_hash="68656c6c6f776f726c64",
-                period_count=2,
+                StateDB(
+                    initial_period=2,
+                    initial_data=dict(
+                        most_voted_estimate=0.1,
+                        final_tx_hash="68656c6c6f776f726c64",
+                    ),
+                )
             ),
         )
         assert (
@@ -1880,9 +1945,13 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=CommonAppsPeriodState(
-                most_voted_estimate=0.1,
-                final_tx_hash="68656c6c6f776f726c64",
-                period_count=2,
+                StateDB(
+                    initial_period=2,
+                    initial_data=dict(
+                        most_voted_estimate=0.1,
+                        final_tx_hash="68656c6c6f776f726c64",
+                    ),
+                )
             ),
         )
         assert (
@@ -1952,7 +2021,9 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(),
+            period_state=CommonAppsPeriodState(
+                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+            ),
         )
         assert (
             cast(

@@ -59,6 +59,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
+    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -140,6 +141,7 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     participants: FrozenSet[str] = frozenset()
     behaviour_class: Type[APYEstimationBaseState]
     next_behaviour_class: Type[APYEstimationBaseState]
+    period_state: PeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -179,6 +181,7 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.apy_estimation_behaviour.current_state).state_id
             == cls.apy_estimation_behaviour.initial_state_cls.state_id
         )
+        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
 
     def create_enough_participants(self) -> None:
         """Create enough participants."""
@@ -587,7 +590,7 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -616,7 +619,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -630,7 +633,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
 
         # test with empty response.
@@ -676,7 +679,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
-            PeriodState(),
+            self.period_state,
         )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
@@ -746,7 +749,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
-            PeriodState(),
+            self.period_state,
         )
 
         subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
@@ -777,7 +780,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test when fetched value is none."""
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
@@ -908,7 +911,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Test clean-up."""
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour, FetchBehaviour.state_id, PeriodState()
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         self.apy_estimation_behaviour.context.spooky_subgraph._retries_attempted = 1
@@ -943,7 +946,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_randomness=0),
+            PeriodState(
+                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+            ),
         )
 
         # Test `OSError` handling.
@@ -1013,7 +1018,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         cast(
             TransformBehaviour, self.apy_estimation_behaviour.current_state
@@ -1088,7 +1093,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         self.fast_forward_to_state(
                             self.apy_estimation_behaviour,
                             self.behaviour_class.state_id,
-                            PeriodState(),
+                            self.period_state,
                         )
 
                         # Decrease the sleep time for faster testing.
@@ -1200,7 +1205,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     self.fast_forward_to_state(
                         self.apy_estimation_behaviour,
                         self.behaviour_class.state_id,
-                        PeriodState(),
+                        self.period_state,
                     )
 
                     self.apy_estimation_behaviour.current_state.setup()  # type: ignore
@@ -1238,7 +1243,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
@@ -1280,7 +1285,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -1322,7 +1327,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -1359,7 +1364,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -1393,7 +1398,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -1419,7 +1424,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -1449,7 +1454,9 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_randomness=0),
+            PeriodState(
+                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+            ),
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -1467,7 +1474,9 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_randomness=0),
+            PeriodState(
+                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+            ),
         )
 
         assert (
@@ -1504,7 +1513,12 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_randomness=0),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0),
+                )
+            ),
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -1550,7 +1564,11 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(full_training=full_training),
+            PeriodState(
+                StateDB(
+                    initial_period=0, initial_data=dict(full_training=full_training)
+                )
+            ),
         )
 
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
@@ -1590,7 +1608,9 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(
+                StateDB(initial_period=0, initial_data=dict(full_training=False))
+            ),
         )
 
         assert (
@@ -1643,7 +1663,9 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(
+                StateDB(initial_period=0, initial_data=dict(full_training=False))
+            ),
         )
         # patching for setup.
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
@@ -1697,7 +1719,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(pair_name="test"),
+            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -1718,7 +1740,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(pair_name="test"),
+            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
         )
 
         assert (
@@ -1759,7 +1781,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(pair_name="test"),
+            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
         )
         # patching for setup.
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -1815,7 +1837,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(pair_name="test"),
+            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
         )
         # patching for setup.
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -1874,7 +1896,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(pair_name="test"),
+            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
         )
         # patching for setup.
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -1921,7 +1943,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(pair_name="test"),
+            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
@@ -1955,7 +1977,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour=self.apy_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
-                most_voted_estimate=8.1,
+                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=8.1))
             ),
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
@@ -1989,7 +2011,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour=self.apy_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
-                most_voted_estimate=None,
+                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=8.1))
             ),
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
@@ -2045,9 +2067,7 @@ class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.apy_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(
-                period_count=0,
-            ),
+            period_state=PeriodState(StateDB(initial_period=0, initial_data={})),
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
