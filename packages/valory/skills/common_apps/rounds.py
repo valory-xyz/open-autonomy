@@ -476,24 +476,17 @@ class BaseResetRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
+
+class ResetRound(BaseResetRound):
+    """This class represents the 'reset' round (if something goes wrong)."""
+
+    round_id = "reset"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                period_count=self.most_voted_payload,
-                participant_to_randomness=None,
-                most_voted_randomness=None,
-                participant_to_selection=None,
-                most_voted_keeper_address=None,
-                participant_to_votes=None,
-                participant_to_observations=None,
-                participant_to_estimate=None,
-                estimate=None,
-                most_voted_estimate=None,
-                participant_to_tx_hash=None,
-                most_voted_tx_hash=None,
-                participant_to_signature=None,
-                final_tx_hash=None,
+                period_count=self.most_voted_payload, **self.period_state.db.get_all()
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -503,16 +496,26 @@ class BaseResetRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
         return None
 
 
-class ResetRound(BaseResetRound):
-    """This class represents the 'reset' round (if something goes wrong)."""
-
-    round_id = "reset"
-
-
 class ResetAndPauseRound(BaseResetRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "reset_and_pause"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_count=self.most_voted_payload,
+                participants=self.period_state.participants,
+                oracle_contract_address=self.period_state.oracle_contract_address,
+                safe_contract_address=self.period_state.safe_contract_address,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class ValidateTransactionRound(ValidateRound):

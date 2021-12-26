@@ -455,7 +455,7 @@ class StateDB:
             return self._data.get(self._current_period_count, {}).get(key, default)
         try:
             return self._data.get(self._current_period_count, {}).get(key)
-        except KeyError as exception:
+        except KeyError as exception:  # pragma: no cover
             raise ValueError(
                 f"'{key}' field is not set for period state."
             ) from exception
@@ -481,6 +481,10 @@ class StateDB:
         #     )  # pragma: no cover
         self._current_period_count = new_period
         self._data[self._current_period_count] = kwargs
+
+    def get_all(self) -> Dict[str, Any]:
+        """Get all key-value pairs from the data dictionary for the current period."""
+        return self._data[self._current_period_count]
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
