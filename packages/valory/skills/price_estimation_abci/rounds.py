@@ -21,7 +21,7 @@
 import struct
 from abc import ABC
 from types import MappingProxyType
-from typing import AbstractSet, Any, Dict, Mapping, Optional, Set, Tuple, Type, cast
+from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -35,7 +35,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     ObservationPayload,
-    SignaturePayload,
     TransactionHashPayload,
     TransactionType,
 )
@@ -55,82 +54,50 @@ class PeriodState(BasePeriodState):
     This state is replicated by the tendermint application.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        safe_contract_address: Optional[str] = None,
-        oracle_contract_address: Optional[str] = None,
-        participant_to_observations: Optional[Mapping[str, ObservationPayload]] = None,
-        participant_to_estimate: Optional[Mapping[str, EstimatePayload]] = None,
-        estimate: Optional[float] = None,
-        most_voted_estimate: Optional[float] = None,
-        participant_to_tx_hash: Optional[Mapping[str, TransactionHashPayload]] = None,
-        most_voted_tx_hash: Optional[str] = None,
-        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        final_tx_hash: Optional[str] = None,
-        **kwargs: Any
-    ) -> None:
-        """Initialize a period state."""
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-            safe_contract_address=safe_contract_address,
-            oracle_contract_address=oracle_contract_address,
-            participant_to_observations=participant_to_observations,
-            participant_to_estimate=participant_to_estimate,
-            estimate=estimate,
-            most_voted_estimate=most_voted_estimate,
-            participant_to_tx_hash=participant_to_tx_hash,
-            most_voted_tx_hash=most_voted_tx_hash,
-            participant_to_signature=participant_to_signature,
-            final_tx_hash=final_tx_hash,
-            **kwargs,
-        )
-
     @property
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
-        return cast(str, self.get("safe_contract_address"))
+        return cast(str, self.db.get_strict("safe_contract_address"))
 
     @property
     def oracle_contract_address(self) -> str:
         """Get the oracle contract address."""
-        return cast(str, self.get("oracle_contract_address"))
+        return cast(str, self.db.get_strict("oracle_contract_address"))
 
     @property
     def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
         """Get the participant_to_observations."""
         return cast(
-            Mapping[str, ObservationPayload], self.get("participant_to_observations")
+            Mapping[str, ObservationPayload],
+            self.db.get_strict("participant_to_observations"),
         )
 
     @property
     def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
         """Get the participant_to_estimate."""
-        return cast(Mapping[str, EstimatePayload], self.get("participant_to_estimate"))
+        return cast(
+            Mapping[str, EstimatePayload], self.db.get_strict("participant_to_estimate")
+        )
 
     @property
     def final_tx_hash(self) -> str:
         """Get the final_tx_hash."""
-        return cast(str, self.get("final_tx_hash"))
+        return cast(str, self.db.get_strict("final_tx_hash"))
 
     @property
     def is_final_tx_hash_set(self) -> bool:
         """Check if final_tx_hash is set."""
-        return self.get("final_tx_hash", None) is not None
+        return self.db.get("final_tx_hash", None) is not None
 
     @property
     def estimate(self) -> float:
         """Get the estimate."""
-        return cast(float, self.get("estimate"))
+        return cast(float, self.db.get_strict("estimate"))
 
     @property
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
-        return cast(float, self.get("most_voted_estimate"))
+        return cast(float, self.db.get_strict("most_voted_estimate"))
 
     @property
     def encoded_most_voted_estimate(self) -> bytes:
@@ -140,7 +107,7 @@ class PeriodState(BasePeriodState):
     @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
-        return cast(str, self.get("most_voted_tx_hash"))
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
 
 class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):

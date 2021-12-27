@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
 from operator import itemgetter
-from typing import AbstractSet, Any
+from typing import Any
 from typing import Counter as CounterType
 from typing import (
     Dict,
@@ -432,6 +432,65 @@ class ConsensusParams:
         )
 
 
+class StateDB:
+    """Class to represent all state replicated across periods."""
+
+    def __init__(
+        self,
+        initial_period: int,
+        initial_data: Dict[str, Any],
+    ) -> None:
+        """Initialize a period state."""
+        self._current_period_count = initial_period
+        self._data = {self._current_period_count: initial_data}
+
+    @property
+    def current_period_count(self) -> int:
+        """Get the current period count."""
+        return self._current_period_count
+
+    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
+        """Get a value from the data dictionary."""
+        if default != "NOT_PROVIDED":
+            return self._data.get(self._current_period_count, {}).get(key, default)
+        try:
+            return self._data.get(self._current_period_count, {}).get(key)
+        except KeyError as exception:  # pragma: no cover
+            raise ValueError(
+                f"'{key}' field is not set for period state."
+            ) from exception
+
+    def get_strict(self, key: str) -> Any:
+        """Get a value from the data dictionary and raise if it is None."""
+        value = self.get(key)
+        if value is None:
+            raise ValueError(
+                f"Value of key={key} is None for current_period_count={self.current_period_count}"
+            )
+        return value
+
+    def update_current_period(self, **kwargs: Any) -> None:
+        """Update the current period's state."""
+        self._data[self._current_period_count].update(kwargs)
+
+    def add_new_period(self, new_period: int, **kwargs: Any) -> None:
+        """Update the current period's state."""
+        # if new_period in self._data:
+        #     raise ValueError(
+        #         "Incorrect period count incrementation, period already exists"
+        #     )  # pragma: no cover
+        self._current_period_count = new_period
+        self._data[self._current_period_count] = kwargs
+
+    def get_all(self) -> Dict[str, Any]:
+        """Get all key-value pairs from the data dictionary for the current period."""
+        return self._data[self._current_period_count]
+
+    def __repr__(self) -> str:
+        """Return a string representation of the state."""
+        return f"StateDB({self._data})"
+
+
 class BasePeriodState:
     """
     Class to represent a period state.
@@ -441,52 +500,25 @@ class BasePeriodState:
 
     def __init__(
         self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        **kwargs: Any,
+        db: StateDB,
     ) -> None:
         """Initialize a period state."""
-        period_setup_params_ = (
-            period_setup_params if period_setup_params is not None else {}
-        )
-        period_count_ = period_count if period_count is not None else 0
-        participants_ = frozenset(participants) if participants else None
-        data: Dict[str, Any] = {
-            "participants": participants_,
-            "period_count": period_count_,
-            "period_setup_params": period_setup_params_,
-            **kwargs,
-        }
-        self._data = data
+        self._db = db
 
-    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
-        """Get a value from the data dictionary."""
-        if default != "NOT_PROVIDED":
-            return self._data.get(key, default)
-        try:
-            return self._data.get(key)
-        except KeyError as exception:
-            raise ValueError(
-                f"'{key}' field is not set for period state."
-            ) from exception
-
-    def get_strict(self, key: str) -> Any:
-        """Get a value from the data dictionary and raise if it is None."""
-        value = self.get(key)
-        if value is None:
-            raise ValueError(f"Value of key={key} is None")
-        return value
+    @property
+    def db(self) -> StateDB:
+        """Get DB."""
+        return self._db
 
     @property
     def period_count(self) -> int:
         """Get the period count."""
-        return cast(int, self.get("period_count"))
+        return self.db.current_period_count
 
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        participants = self.get_strict("participants")
+        participants = self.db.get_strict("participants")
         return cast(FrozenSet[str], participants)
 
     @property
@@ -504,27 +536,27 @@ class BasePeriodState:
         return sorted(self.participants, key=str.lower)
 
     @property
-    def period_setup_params(self) -> Dict:
-        """Get the period setup params."""
-        return cast(Dict, self.get("period_setup_params"))
-
-    @property
     def nb_participants(self) -> int:
         """Get the number of participants."""
         return len(self.participants)
 
     def update(
-        self, period_state_class: Optional[Type] = None, **kwargs: Any
+        self,
+        period_state_class: Optional[Type] = None,
+        period_count: Optional[int] = None,
+        **kwargs: Any,
     ) -> "BasePeriodState":
         """Copy and update the state."""
-        data = copy(self._data)
-        data.update(kwargs)
+        if period_count is None:
+            self.db.update_current_period(**kwargs)
+        else:
+            self.db.add_new_period(new_period=period_count, **kwargs)
         class_ = type(self) if period_state_class is None else period_state_class
-        return class_(**data)
+        return class_(db=self.db)
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
-        return f"BasePeriodState({self._data})"
+        return f"BasePeriodState(db={self._db})"
 
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):

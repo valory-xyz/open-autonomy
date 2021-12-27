@@ -20,7 +20,7 @@
 """This module contains the data classes for the safe deployment ABCI application."""
 
 from abc import ABC
-from typing import AbstractSet, Any, Dict, Mapping, Optional, Set, Tuple, Type, cast
+from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -52,31 +52,6 @@ class PeriodState(BasePeriodState):
     This state is replicated by the tendermint application.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
-        safe_contract_address: Optional[str] = None,
-        **kwargs: Any,
-    ) -> None:
-        """Initialize a period state."""
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-            participant_to_randomness=participant_to_randomness,
-            most_voted_randomness=most_voted_randomness,
-            participant_to_selection=participant_to_selection,
-            most_voted_keeper_address=most_voted_keeper_address,
-            safe_contract_address=safe_contract_address,
-            **kwargs,
-        )
-
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
@@ -88,36 +63,36 @@ class PeriodState(BasePeriodState):
         """Get the participant_to_randomness."""
         return cast(
             Mapping[str, RandomnessPayload],
-            self.get_strict("participant_to_randomness"),
+            self.db.get_strict("participant_to_randomness"),
         )
 
     @property
     def most_voted_randomness(self) -> str:
         """Get the most_voted_randomness."""
-        return cast(str, self.get_strict("most_voted_randomness"))
+        return cast(str, self.db.get_strict("most_voted_randomness"))
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
         """Get the participant_to_selection."""
         return cast(
             Mapping[str, SelectKeeperPayload],
-            self.get_strict("participant_to_selection"),
+            self.db.get_strict("participant_to_selection"),
         )
 
     @property
     def most_voted_keeper_address(self) -> str:
         """Get the most_voted_keeper_address."""
-        return cast(str, self.get_strict("most_voted_keeper_address"))
+        return cast(str, self.db.get_strict("most_voted_keeper_address"))
 
     @property
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
-        return self.get("most_voted_keeper_address", None) is not None
+        return self.db.get("most_voted_keeper_address", None) is not None
 
     @property
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
-        return cast(str, self.get_strict("safe_contract_address"))
+        return cast(str, self.db.get_strict("safe_contract_address"))
 
 
 class SafeDeploymentAbstractRound(AbstractRound[Event, TransactionType], ABC):

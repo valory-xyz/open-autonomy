@@ -230,7 +230,6 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=strategy["safe_tx_gas"],
-            safe_nonce=strategy["safe_nonce"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -307,7 +306,6 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=strategy["safe_tx_gas"],
-            safe_nonce=strategy["safe_nonce"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()

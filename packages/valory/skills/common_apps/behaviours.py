@@ -645,7 +645,9 @@ class BaseResetBehaviour(CommonAppsBaseState):
             ):
                 yield from self.start_reset()
                 if self._is_timeout_expired():
-                    raise RuntimeError("Error resetting tendermint node.")
+                    raise RuntimeError(  # pragma: no cover
+                        "Error resetting tendermint node."
+                    )
 
                 if not self._is_healthy:
                     self.context.logger.info(

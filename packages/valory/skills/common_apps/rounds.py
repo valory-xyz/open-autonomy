@@ -21,18 +21,7 @@
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import (
-    AbstractSet,
-    Any,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    cast,
-)
+from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -86,45 +75,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     This state is replicated by the tendermint application.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
-        safe_contract_address: Optional[str] = None,
-        oracle_contract_address: Optional[str] = None,
-        participant_to_votes: Optional[Mapping[str, ValidatePayload]] = None,
-        participant_to_signature: Optional[Mapping[str, SignaturePayload]] = None,
-        most_voted_tx_hash: Optional[str] = None,
-        final_tx_hash: Optional[str] = None,
-        estimate: Optional[float] = None,
-        most_voted_estimate: Optional[float] = None,
-        **kwargs: Any,
-    ) -> None:
-        """Initialize a period state."""
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-            participant_to_randomness=participant_to_randomness,
-            most_voted_randomness=most_voted_randomness,
-            participant_to_selection=participant_to_selection,
-            most_voted_keeper_address=most_voted_keeper_address,
-            safe_contract_address=safe_contract_address,
-            oracle_contract_address=oracle_contract_address,
-            participant_to_votes=participant_to_votes,
-            participant_to_signature=participant_to_signature,
-            most_voted_tx_hash=most_voted_tx_hash,
-            final_tx_hash=final_tx_hash,
-            estimate=estimate,
-            most_voted_estimate=most_voted_estimate,
-            **kwargs,
-        )
-
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
@@ -134,83 +84,88 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
-        return self.get("most_voted_keeper_address", None) is not None
+        return self.db.get("most_voted_keeper_address", None) is not None
 
     @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
         return cast(
-            Mapping[str, RandomnessPayload], self.get("participant_to_randomness")
+            Mapping[str, RandomnessPayload],
+            self.db.get_strict("participant_to_randomness"),
         )
 
     @property
     def most_voted_randomness(self) -> str:
         """Get the most_voted_randomness."""
-        return cast(str, self.get("most_voted_randomness"))
+        return cast(str, self.db.get_strict("most_voted_randomness"))
 
     @property
     def most_voted_keeper_address(self) -> str:
         """Get the most_voted_keeper_address."""
-        return cast(str, self.get("most_voted_keeper_address"))
+        return cast(str, self.db.get_strict("most_voted_keeper_address"))
 
     @property
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
-        return cast(str, self.get("safe_contract_address"))
+        return cast(str, self.db.get_strict("safe_contract_address"))
 
     @property
     def oracle_contract_address(self) -> str:
         """Get the oracle contract address."""
-        return cast(str, self.get("oracle_contract_address"))
+        return cast(str, self.db.get_strict("oracle_contract_address"))
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
         """Get the participant_to_selection."""
         return cast(
-            Mapping[str, SelectKeeperPayload], self.get("participant_to_selection")
+            Mapping[str, SelectKeeperPayload],
+            self.db.get_strict("participant_to_selection"),
         )
 
     @property
     def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
         """Get the participant_to_votes."""
-        return cast(Mapping[str, ValidatePayload], self.get("participant_to_votes"))
+        return cast(
+            Mapping[str, ValidatePayload], self.db.get_strict("participant_to_votes")
+        )
 
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
         return cast(
-            Mapping[str, SignaturePayload], self.get("participant_to_signature")
+            Mapping[str, SignaturePayload],
+            self.db.get_strict("participant_to_signature"),
         )
 
     @property
     def final_tx_hash(self) -> str:
         """Get the final_tx_hash."""
-        return cast(str, self.get("final_tx_hash"))
+        return cast(str, self.db.get_strict("final_tx_hash"))
 
     @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
-        return cast(str, self.get("most_voted_tx_hash"))
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self.get("final_tx_hash", None) is not None
+        return self.db.get("final_tx_hash", None) is not None
 
     @property
     def estimate(self) -> float:
         """Get the estimate."""
-        return cast(float, self.get("estimate"))
+        return cast(float, self.db.get_strict("estimate"))
 
     @property
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
-        return cast(float, self.get("most_voted_estimate"))
+        return cast(float, self.db.get_strict("most_voted_estimate"))
 
     @property
     def is_most_voted_estimate_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self.get("most_voted_estimate", None) is not None
+        return self.db.get("most_voted_estimate", None) is not None
 
 
 class CommonAppsAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -282,32 +237,27 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound, CommonAppsAbstract
         if (  # fast forward at setup
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            and self.period_state.period_setup_params != {}
-            and self.period_state.period_setup_params.get("safe_contract_address", None)
-            is not None
-            and self.period_state.period_setup_params.get(
-                "oracle_contract_address", None
-            )
-            is not None
+            and self.period_state.db.get("safe_contract_address", None) is not None
+            and self.period_state.db.get("oracle_contract_address", None) is not None
         ):
-            state = PeriodState(
+            state = self.period_state.update(
                 participants=self.collection,
-                period_count=self.period_state.period_count,
-                safe_contract_address=self.period_state.period_setup_params.get(
+                safe_contract_address=self.period_state.db.get_strict(
                     "safe_contract_address"
                 ),
-                oracle_contract_address=self.period_state.period_setup_params.get(
+                oracle_contract_address=self.period_state.db.get_strict(
                     "oracle_contract_address"
                 ),
+                period_state_class=PeriodState,
             )
             return state, Event.FAST_FORWARD
         if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
         ):  # initial deployment round
-            state = PeriodState(
+            state = self.period_state.update(
                 participants=self.collection,
-                period_count=self.period_state.period_count,
+                period_state_class=PeriodState,
             )
             return state, Event.DONE
         return None
@@ -337,9 +287,9 @@ class RegistrationRound(CollectDifferentUntilThresholdRound, CommonAppsAbstractR
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            state = PeriodState(
+            state = self.period_state.update(
                 participants=frozenset(list(self.collection.keys())),
-                period_count=self.period_state.period_count,
+                period_state_class=PeriodState,
             )
             return state, Event.DONE
         return None
@@ -526,24 +476,17 @@ class BaseResetRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
+
+class ResetRound(BaseResetRound):
+    """This class represents the 'reset' round (if something goes wrong)."""
+
+    round_id = "reset"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                period_count=self.most_voted_payload,
-                participant_to_randomness=None,
-                most_voted_randomness=None,
-                participant_to_selection=None,
-                most_voted_keeper_address=None,
-                participant_to_votes=None,
-                participant_to_observations=None,
-                participant_to_estimate=None,
-                estimate=None,
-                most_voted_estimate=None,
-                participant_to_tx_hash=None,
-                most_voted_tx_hash=None,
-                participant_to_signature=None,
-                final_tx_hash=None,
+                period_count=self.most_voted_payload, **self.period_state.db.get_all()
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -553,16 +496,26 @@ class BaseResetRound(CollectSameUntilThresholdRound, CommonAppsAbstractRound):
         return None
 
 
-class ResetRound(BaseResetRound):
-    """This class represents the 'reset' round (if something goes wrong)."""
-
-    round_id = "reset"
-
-
 class ResetAndPauseRound(BaseResetRound):
     """This class represents the 'consensus-reached' round (the final round)."""
 
     round_id = "reset_and_pause"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_count=self.most_voted_payload,
+                participants=self.period_state.participants,
+                oracle_contract_address=self.period_state.oracle_contract_address,
+                safe_contract_address=self.period_state.safe_contract_address,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class ValidateTransactionRound(ValidateRound):
