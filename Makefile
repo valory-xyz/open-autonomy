@@ -153,6 +153,10 @@ new_env: clean
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
 	fi;\
+	
+	echo "Installing pre_commit"
+	cp scripts/pre-commit .git/hooks/pre-commit
+
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
