@@ -11,13 +11,17 @@ This approach leads to a number of key benefits for node operators & infrastruct
 3. Easily portable cross cloud providers.
 
 We have 3 deployment options available for external operators.
-- docker-compose - This approach is advised for beginners less experienced users.
+
 - Kubernetes Cluster - We provide full deployments for kubernetes
-    - Single Node - This deployment approach is recommened for individual applications.
-    - Multi Node - This deployment approach is recommened for more advanced users looking to run multiple agent nodes or applications.
+    - Single Node - This deployment approach is recommended for individual applications.
+    - Multi Node - This deployment approach is recommended for more advanced users looking to run multiple agent nodes or applications.
+
+- docker-compose - This approach is advised for beginners or less experienced users.
 
 Infrastructure deployment is handled by terraform to ensure replicatability across multiple providers whilst allowing external operators to configure the deployments to match their specific deployment requirements
 
+
+# Kubernetes Cluster
 # Pre-requisites
 
 We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both kubernetes based deployments, however the docker-compose deployment is able to skip this step.
@@ -64,9 +68,19 @@ terraform apply # deploy resources and approve when prompted.
 This will generate a kubeconfig which can be used to interact with the newly deployed resources. NOTE. This provides root access to the cluser so ensure that it is protected.
 
 ## AWS
-### 
-2. Login to AWS console.
-
+1. Login to AWS console.
+2. Create a Hosted Zone.
+3. Use the Hosted Zones generated Nameservers to update the registrar with the correct Nameservers
+4. Create a service account
+5. Give the Service account the Dev-Ops Security group role
+6. create an access key and token and then save this file to;
+```infra/aws_token```
+7. Once these steps are completed, the infrastructure can be deployed with;
+```bash
+cd infra/aws
+terraform init # download required terraform packages
+terraform apply # deploy resources and approve when prompted.
+```
 
 # Post Cluster Deployment Setup
 
