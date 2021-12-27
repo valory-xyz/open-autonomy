@@ -645,12 +645,21 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             cast(
                 FetchBehaviour, self.apy_estimation_behaviour.current_state
             )._handle_response(None, "test_context", ("", 0), specs)
+            with caplog.at_level(
+                logging.ERROR,
+                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+            ):
+                assert (
+                    "[test_agent_name] Could not get test_context from test"
+                    in caplog.text
+                )
 
         assert specs._retries_attempted == 1
 
         caplog.clear()
         with caplog.at_level(
-                logging.INFO, logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci"
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
             cast(
                 FetchBehaviour, self.apy_estimation_behaviour.current_state
