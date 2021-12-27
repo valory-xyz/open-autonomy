@@ -649,17 +649,14 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert specs._retries_attempted == 1
 
         caplog.clear()
-        cast(
-            FetchBehaviour, self.apy_estimation_behaviour.current_state
-        )._handle_response({"test": [4, 5]}, "test", ("test", 0), specs)
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Retrieved test: 4.",
-            )
-        ]
-        assert specs._retries_attempted == 0
+        with caplog.at_level(
+                logging.INFO, logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci"
+        ):
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            )._handle_response({"test": [4, 5]}, "test", ("test", 0), specs)
+            assert "[test_agent_name] Retrieved test: 4." in caplog.text
+            assert specs._retries_attempted == 0
 
     @pytest.mark.skip
     def test_fetch_behaviour(
