@@ -624,7 +624,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
 
-    @pytest.mark.skip
     def test_handle_response(self, caplog: LogCaptureFixture) -> None:
         """Test `handle_response`."""
         self.fast_forward_to_state(
