@@ -23,6 +23,7 @@ import importlib
 import json
 import logging
 import os
+import re
 import time
 from copy import copy
 from datetime import datetime
@@ -624,7 +625,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
 
-    @pytest.mark.skip
     def test_handle_response(self, caplog: LogCaptureFixture) -> None:
         """Test `handle_response`."""
         self.fast_forward_to_state(
@@ -646,21 +646,27 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             cast(
                 FetchBehaviour, self.apy_estimation_behaviour.current_state
             )._handle_response(None, "test_context", ("", 0), specs)
+            with caplog.at_level(
+                logging.ERROR,
+                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+            ):
+                assert (
+                    "[test_agent_name] Could not get test_context from test"
+                    in caplog.text
+                )
 
         assert specs._retries_attempted == 1
 
         caplog.clear()
-        cast(
-            FetchBehaviour, self.apy_estimation_behaviour.current_state
-        )._handle_response({"test": [4, 5]}, "test", ("test", 0), specs)
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Retrieved test: 4.",
-            )
-        ]
-        assert specs._retries_attempted == 0
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            )._handle_response({"test": [4, 5]}, "test", ("test", 0), specs)
+            assert "[test_agent_name] Retrieved test: 4." in caplog.text
+            assert specs._retries_attempted == 0
 
     @pytest.mark.skip
     def test_fetch_behaviour(
@@ -764,7 +770,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         self._test_done_flag_set()
 
-    @pytest.mark.skip
     def test_fetch_value_none(
         self,
         monkeypatch: MonkeyPatch,
@@ -816,11 +821,13 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         response_kwargs["body"] = b""
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        assert caplog.record_tuples[-1] == (
-            "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+
+        with caplog.at_level(
             logging.ERROR,
-            "[test_agent_name] Could not get block from fantom",
-        )
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert "[test_agent_name] Could not get block from fantom" in caplog.text
+
         caplog.clear()
         time.sleep(
             cast(
@@ -849,11 +856,16 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         response_kwargs["body"] = b""
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        assert caplog.record_tuples[-1] == (
-            "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+
+        with caplog.at_level(
             logging.ERROR,
-            "[test_agent_name] Could not get ETH price for block {'timestamp': '1', 'number': '3830367'} from spookyswap",
-        )
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] Could not get ETH price for block "
+                "{'timestamp': '1', 'number': '3830367'} from spookyswap" in caplog.text
+            )
+
         caplog.clear()
         time.sleep(
             cast(
@@ -889,12 +901,16 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         response_kwargs["body"] = b""
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
-        assert caplog.record_tuples[-1] == (
-            "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+
+        with caplog.at_level(
             logging.ERROR,
-            "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '3830367'} "
-            "(Showing first example) from spookyswap",
-        )
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] Could not get pool data for block {'timestamp': '1', 'number': '3830367'} "
+                "(Showing first example) from spookyswap" in caplog.text
+            )
+
         caplog.clear()
         time.sleep(
             cast(
@@ -931,12 +947,10 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = TransformBehaviour
     next_behaviour_class = PreprocessBehaviour
 
-    @pytest.mark.skip
     def test_setup(
         self,
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
-        caplog: LogCaptureFixture,
         tmp_path: PosixPath,
     ) -> None:
         """Test behaviour setup."""
@@ -949,64 +963,49 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         # Test `OSError` handling.
         filepath = os.path.join(tmp_path, "test")
         monkeypatch.setattr(os.path, "join", lambda *_: filepath)
-        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.ERROR,
-                f"[test_agent_name] Path '{filepath}' could not be found!",
-            ),
-        ]
-        caplog.clear()
+        with pytest.raises(
+            OSError,
+            match=re.escape(f"[Errno 2] No such file or directory: '{filepath}'"),
+        ):
+            cast(
+                TransformBehaviour, self.apy_estimation_behaviour.current_state
+            ).setup()
 
         # Test `JSONDecodeError` handling.
-        with open(filepath, "wb") as f:
-            f.write(b"non-serializable")
-        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.ERROR,
-                f"[test_agent_name] File '{filepath}' has an invalid JSON encoding!",
-            ),
-        ]
-        caplog.clear()
+        with open(filepath, "wb") as fb:
+            fb.write(b"non-serializable")
+        with pytest.raises(
+            json.JSONDecodeError,
+            match=re.escape("Expecting value: line 1 column 1 (char 0)"),
+        ):
+            cast(
+                TransformBehaviour, self.apy_estimation_behaviour.current_state
+            ).setup()
 
         # Test `ValueError` handling.
-        with open(filepath, "w", encoding="utf-16") as fb:
-            json.dump({"test": "τεστ"}, fb, ensure_ascii=True, indent=4)
-        cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.ERROR,
-                f"[test_agent_name] There is an encoding error in the '{filepath}' file!",
+        with open(filepath, "w", encoding="utf-16") as f:
+            json.dump({"test": "τεστ"}, f, ensure_ascii=True, indent=4)
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"
             ),
-        ]
-        caplog.clear()
+        ):
+            cast(
+                TransformBehaviour, self.apy_estimation_behaviour.current_state
+            ).setup()
 
         # Test without error while reading the pairs' history.
-        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.behaviours.create_pathdirs",
-            no_action,
-        )
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.behaviours.read_json_file",
-            lambda _: {"test": "test"},
-        )
-        monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
-            lambda _: pd.DataFrame(),
-        )
+        with open(filepath, "w") as f:
+            json.dump({"test": "test"}, f, ensure_ascii=False, indent=4)
         self.apy_estimation_behaviour.context.task_manager.start()
         cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
-    @pytest.mark.skip
     def test_task_not_ready(
         self,
         monkeypatch: MonkeyPatch,
         caplog: LogCaptureFixture,
+        tmp_path: PosixPath,
         transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
@@ -1018,26 +1017,31 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             TransformBehaviour, self.apy_estimation_behaviour.current_state
         )._async_result = cast(ApplyResult, DummyAsyncResult(transform_task_result))
-        monkeypatch.setattr(DummyAsyncResult, "ready", lambda _: False)
+        filepath = os.path.join(tmp_path, "test")
+        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
+        with open(filepath, "w") as f:
+            json.dump({"test": "test"}, f, ensure_ascii=False, indent=4)
 
+        self.apy_estimation_behaviour.context.task_manager.start()
         self.apy_estimation_behaviour.act_wrapper()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.ERROR,
-                "[test_agent_name] Path 'data/historical_data.json' could not be found!",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Entered in the 'transform' behaviour state",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.DEBUG,
-                "[test_agent_name] The transform task is not finished yet.",
-            ),
-        ]
+
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] Entered in the 'transform' behaviour state"
+                in caplog.text
+            )
+
+        with caplog.at_level(
+            logging.DEBUG,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] The transform task is not finished yet."
+                in caplog.text
+            )
 
         self.end_round()
 
@@ -1747,12 +1751,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-    @pytest.mark.skip
     def test_os_error_handling(
         self,
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
-        caplog: LogCaptureFixture,
         test_task_result: Dict[str, str],
     ) -> None:
         """Run test for `optimize_behaviour`."""
@@ -1783,32 +1785,16 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(BaseState, "wait_until_round_end", lambda _: no_action)
 
         # test act for `OSError` handling.
-        self.apy_estimation_behaviour.act_wrapper()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Entered in the 'test' behaviour state",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Testing has finished. Report follows:\n{'test': 'test'}",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.ERROR,
-                "[test_agent_name] Path '' could not be found!",
-            ),
-        ]
+        with pytest.raises(
+            AEAActException, match=re.escape("[Errno 2] No such file or directory: ''")
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
 
-    @pytest.mark.skip
     def test_type_error_handling(
         self,
         monkeypatch: MonkeyPatch,
         no_action: Callable[[Any], None],
         tmp_path: PosixPath,
-        caplog: LogCaptureFixture,
         test_task_result_non_serializable: bytes,
     ) -> None:
         """Run test for `optimize_behaviour`."""
@@ -1844,24 +1830,11 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(BaseState, "wait_until_round_end", lambda _: no_action)
 
         # test act for `TypeError` handling.
-        self.apy_estimation_behaviour.act_wrapper()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Entered in the 'test' behaviour state",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Testing has finished. Report follows:\nb'non-serializable'",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.ERROR,
-                "[test_agent_name] Report cannot be JSON serialized!",
-            ),
-        ]
+        with pytest.raises(
+            AEAActException,
+            match=re.escape("Object of type bytes is not JSON serializable"),
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
 
     def test_test_behaviour(
         self,
@@ -1977,7 +1950,6 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
-    @pytest.mark.skip
     def test_reset_behaviour_without_most_voted_estimate(
         self,
         monkeypatch: MonkeyPatch,
@@ -2000,23 +1972,20 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         self.apy_estimation_behaviour.context.params.observation_interval = 0.1
         self.apy_estimation_behaviour.act_wrapper()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Entered in the 'cycle_reset' behaviour state",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Finalized estimate not available.",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Period end.",
-            ),
-        ]
+
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] Entered in the 'cycle_reset' behaviour state"
+                in caplog.text
+            )
+            assert (
+                "[test_agent_name] Finalized estimate not available. Resetting!"
+                in caplog.text
+            )
+
         time.sleep(0.2)
         self.apy_estimation_behaviour.act_wrapper()
 
@@ -2034,7 +2003,6 @@ class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = ResetBehaviour
     next_behaviour_class = FetchBehaviour
 
-    @pytest.mark.skip
     def test_reset_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -2053,18 +2021,18 @@ class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.behaviour_class.state_id
 
         self.apy_estimation_behaviour.act_wrapper()
-        assert caplog.record_tuples == [
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Entered in the 'reset' behaviour state",
-            ),
-            (
-                "aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-                logging.INFO,
-                "[test_agent_name] Period 0 was not finished. Resetting!",
-            ),
-        ]
+
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            assert (
+                "[test_agent_name] Entered in the 'reset' behaviour state"
+                in caplog.text
+            )
+            assert (
+                "[test_agent_name] Period 0 was not finished. Resetting!" in caplog.text
+            )
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
