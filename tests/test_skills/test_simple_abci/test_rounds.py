@@ -249,7 +249,6 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-
         test_round = ResetAndPauseRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
@@ -270,10 +269,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
 
         actual_next_state = self.period_state.update(
             period_count=test_round.most_voted_payload,
-            participant_to_randomness=None,
-            most_voted_randomness=None,
-            participant_to_selection=None,
-            most_voted_keeper_address=None,
+            participants=self.period_state.participants,
         )
 
         res = test_round.end_block()
