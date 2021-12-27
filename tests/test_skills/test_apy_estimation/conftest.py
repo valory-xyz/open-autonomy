@@ -62,7 +62,6 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
         **{
             "api_id": "spookyswap",
             "bundle_id": 1,
-            "top_n_pools": 100,
             "url": "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
         },
     }
