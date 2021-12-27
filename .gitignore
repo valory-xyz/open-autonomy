@@ -1,5 +1,4 @@
 kubeconfig
-do_token
 # Local .terraform directories
 aws_creds
 do_creds
