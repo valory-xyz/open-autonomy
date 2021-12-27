@@ -1,0 +1,27 @@
+name: safe_deployment_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for safe deployments.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmbQpaLfkreTY7i2qQaVHcqPrajfcvFQnvho19L7GiTTSC
+  behaviours.py: QmQrmtJQ7qbUa9ECufqrJ9zZQ5L2QEtN6PoyAewnrnq5VW
+  payloads.py: QmNrSEUoXknvcuEEW9wKMCvK6SqD9zVryHLTWJT7MsGrxV
+  rounds.py: QmVJPxsBLnkXFuZnJbhQsSRVsWDbMmBdTY1wXtnLQv9fku
+fingerprint_ignore_patterns: []
+connections: []
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
+protocols:
+- valory/contract_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+- valory/common_apps:0.1.0
+behaviours: {}
+handlers: {}
+models: {}
+dependencies: {}
+is_abstract: false

@@ -23,14 +23,16 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
+- valory/common_apps:0.1.0
+- valory/oracle_deployment_abci:0.1.0
 - valory/price_estimation_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
 default_routing: {}
 connection_private_key_paths: {}
-private_key_paths:
-  ethereum: ethereum_private_key.txt
+private_key_paths: {}
 logging_config:
   version: 1
   disable_existing_loggers: false
@@ -55,4 +57,3 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/price_estimation_abci:0.1.0
-  use_tendermint: false

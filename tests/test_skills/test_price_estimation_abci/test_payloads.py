@@ -19,8 +19,7 @@
 
 """Test the payloads.py module of the skill."""
 
-from packages.valory.skills.price_estimation_abci.payloads import (
-    DeploySafePayload,
+from packages.valory.skills.common_apps.payloads import (
     EstimatePayload,
     FinalizationTxPayload,
     ObservationPayload,
@@ -30,6 +29,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionHashPayload,
     TransactionType,
 )
+from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 
 
 def test_select_keeper_payload() -> None:

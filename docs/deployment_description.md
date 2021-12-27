@@ -1,30 +1,28 @@
 # Cloud Deployment Introduction 
 
-We have provided a number of ways to run the valory stack across multiple different cloud providers.
+We have provided a number of ways to run the Valory stack across multiple different cloud providers.
 
-The deployment has been implemented using a minimal distribution of kubernetes to run as close to the bare metal as allowable. 
+The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable. 
 
 This approach leads to a number of key benefits for node operators & infrastructure providers.
 
 1. No reliance upon an individual provider. We currently provide coverage for both Digital Ocean and for AWS.
 2. Lower costs compared to using a managed alternative.
-3. Easily portable cross cloud providers.
+3. Easily portable across cloud providers.
 
 We have 3 deployment options available for external operators.
-
-- Kubernetes Cluster - We provide full deployments for kubernetes
+- docker-compose - This approach is advised for beginners/less experienced users.
+- Kubernetes Cluster - We provide full deployments for Kubernetes:
     - Single Node - This deployment approach is recommended for individual applications.
-    - Multi Node - This deployment approach is recommended for more advanced users looking to run multiple agent nodes or applications.
+    - Multi Node - This deployment approach is recommended for more advanced users looking to running multiple agent nodes or applications.
 
-- docker-compose - This approach is advised for beginners or less experienced users.
-
-Infrastructure deployment is handled by terraform to ensure replicatability across multiple providers whilst allowing external operators to configure the deployments to match their specific deployment requirements
+Infrastructure deployment is handled by Terraform to ensure replicability across multiple providers whilst allowing external operators to configure the deployments to match their specific deployment requirements.
 
 
 # Kubernetes Cluster
 # Pre-requisites
 
-We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both kubernetes based deployments, however the docker-compose deployment is able to skip this step.
+We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both Kubernetes based deployments, however the docker-compose deployment is able to skip this step.
 
 The domain can be aquired from a domain registrar such as [goDaddy](https://www.godaddy.com), or [Freenon](https://www.freenom.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars NameServer (NS) records easily.
 
@@ -50,7 +48,6 @@ git clone git@github.com:valory-xyz/external-node-operators.git
 ## Digital Ocean
 1. We need to first create an authentication file to be used by terraform to create cloud resources. This can be done from the [API Settings](https://cloud.digitalocean.com/account/api/tokens). Save this file within the root directory as ```infra/do_token```
 2. Now we have our authentication token, we need to setup the domain we registered earlier. This is again done from the [Network & Domains](https://cloud.digitalocean.com/networking/domains) section of Digital Ocean.
-
 3. Create a new domain by entering your domain 
 ![Image title](images/networking_page.png){ align=center }
 
@@ -109,5 +106,3 @@ make cluster-deploy
 make cluster-dashboard-start
 ```
 This will print a URL along with a passsword to allow access to the kubernetes dahboard where you will be able to see the status of the running containers along with their logs.
-
-

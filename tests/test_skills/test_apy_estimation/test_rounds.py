@@ -28,9 +28,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
     ConsensusParams,
+    StateDB,
     TransactionNotValidError,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -39,14 +40,14 @@ from packages.valory.skills.apy_estimation.payloads import (
     RegistrationPayload,
     ResetPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload as _TestingPayload,
 )
-from packages.valory.skills.apy_estimation.payloads import (
+from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
-from packages.valory.skills.apy_estimation.rounds import (
+from packages.valory.skills.apy_estimation_abci.rounds import (
     CollectHistoryRound,
     CycleResetRound,
     EstimateRound,
@@ -58,8 +59,8 @@ from packages.valory.skills.apy_estimation.rounds import (
     RegistrationRound,
     ResetRound,
 )
-from packages.valory.skills.apy_estimation.rounds import TestRound as _TestRound
-from packages.valory.skills.apy_estimation.rounds import TrainRound, TransformRound
+from packages.valory.skills.apy_estimation_abci.rounds import TestRound as _TestRound
+from packages.valory.skills.apy_estimation_abci.rounds import TrainRound, TransformRound
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
@@ -130,7 +131,10 @@ def get_participant_to_preprocess_payload(
     """Get preprocess payload."""
     return {
         participant: PreprocessPayload(
-            participant, "train_hash", "test_hash", "pair_name"
+            participant,
+            "pair_name",
+            "train_hash",
+            "test_hash",
         )
         for participant in participants
     }
@@ -199,7 +203,11 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(participants=cls.participants)
+        cls.period_state = PeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=cls.participants)
+            )
+        )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     @staticmethod
@@ -264,7 +272,11 @@ class TestRegistrationRound(BaseRoundTestClass):
         if confirmations is not None:
             test_round.block_confirmations = confirmations
 
-        actual_next_state = PeriodState(participants=test_round.collection)
+        actual_next_state = PeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=test_round.collection)
+            )
+        )
 
         res = test_round.end_block()
 
@@ -402,7 +414,7 @@ class TestPreprocessRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_preprocess_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="test_hashpair_name",
+                most_voted_payload="train_hashtest_hash",
                 exit_event=Event.DONE,
             )
         )
@@ -577,7 +589,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                    n_estimations=0,
                 ),
                 state_attr_checks=[lambda state: state.n_estimations],
                 most_voted_payload=10.0,
@@ -588,15 +600,13 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     def test_restart_cycle_run(self) -> None:
         """Runs test."""
 
-        test_round = EstimateRound(
-            self.period_state.update(n_estimations=59), self.consensus_params
-        )
+        test_round = EstimateRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                    n_estimations=59
                 ),
                 state_attr_checks=[lambda state: 60],
                 most_voted_payload=10.0,
@@ -684,29 +694,29 @@ def test_period() -> None:
     period_setup_params: Dict = {}
     most_voted_randomness = 1
     most_voted_estimate = 1.0
-    best_params: Dict = {}
     full_training = False
     pair_name = ""
     n_estimations = 1
 
     period_state = PeriodState(
-        participants=participants,
-        period_count=period_count,
-        period_setup_params=period_setup_params,
-        most_voted_randomness=most_voted_randomness,
-        most_voted_estimate=most_voted_estimate,
-        best_params=best_params,
-        full_training=full_training,
-        pair_name=pair_name,
-        n_estimations=n_estimations,
+        db=StateDB(
+            initial_period=period_count,
+            initial_data=dict(
+                participants=participants,
+                period_setup_params=period_setup_params,
+                most_voted_randomness=most_voted_randomness,
+                most_voted_estimate=most_voted_estimate,
+                full_training=full_training,
+                pair_name=pair_name,
+                n_estimations=n_estimations,
+            ),
+        )
     )
 
     assert period_state.participants == participants
     assert period_state.period_count == period_count
-    assert period_state.period_setup_params == period_setup_params
     assert period_state.most_voted_randomness == most_voted_randomness
     assert period_state.most_voted_estimate == most_voted_estimate
-    assert period_state.best_params == best_params
     assert period_state.full_training == full_training
     assert period_state.pair_name == pair_name
     assert period_state.n_estimations == n_estimations

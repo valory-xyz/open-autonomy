@@ -6,7 +6,7 @@ ENV TENDERMINT_VERSION=0.34.11
 RUN apk update && \
     apk upgrade && \
     apk --no-cache add curl jq file \
-    python3
+    python3 bash py3-pip
 
 RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
     chmod u+x wait-for-it.sh &&\
@@ -18,6 +18,13 @@ RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDER
     mv tendermint /usr/bin &&\
     rm -fr tendermint.tar.gz
 
+RUN mkdir -p /app
+COPY app.py /app/
+COPY requirements.txt /app/
+COPY tendermint.py /app/
+WORKDIR /app
+RUN pip3 install -r requirements.txt 
+
 VOLUME /tendermint
 WORKDIR /tendermint
 EXPOSE 26656 26657
@@ -28,6 +35,5 @@ STOPSIGNAL SIGTERM
 COPY wrapper.sh /usr/bin/wrapper.sh
 COPY config-template.toml /etc/tendermint/config-template.toml
 
-RUN mkdir -p /app
-COPY config_loader.py /app/config_loader.py
-
+RUN chmod 777 -R /app
+RUN chmod 777 -R /tendermint

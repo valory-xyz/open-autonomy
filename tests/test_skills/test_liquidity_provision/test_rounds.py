@@ -24,6 +24,11 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
+from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.common_apps.payloads import (
+    FinalizationTxPayload,
+    TransactionHashPayload,
+)
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
 )
@@ -35,10 +40,6 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     TransactionSendBaseRound,
     TransactionSignatureBaseRound,
     TransactionValidationBaseRound,
-)
-from packages.valory.skills.price_estimation_abci.payloads import (
-    FinalizationTxPayload,
-    TransactionHashPayload,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -298,24 +299,27 @@ def test_period_state() -> None:
     participant_to_strategy = get_participant_to_strategy(participants)
 
     period_state = PeriodState(
-        participants=participants,
-        period_count=period_count,
-        period_setup_params=period_setup_params,
-        most_voted_strategy=most_voted_strategy,
-        most_voted_keeper_address=most_voted_keeper_address,
-        safe_contract_address=safe_contract_address,
-        multisend_contract_address=multisend_contract_address,
-        most_voted_tx_hash=most_voted_tx_hash,
-        final_tx_hash=final_tx_hash,
-        participant_to_votes=participant_to_votes,
-        participant_to_tx_hash=participant_to_tx_hash,
-        participant_to_signature=participant_to_signature,
-        participant_to_strategy=participant_to_strategy,
+        StateDB(
+            initial_period=period_count,
+            initial_data=dict(
+                participants=participants,
+                period_setup_params=period_setup_params,
+                most_voted_strategy=most_voted_strategy,
+                most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address=safe_contract_address,
+                multisend_contract_address=multisend_contract_address,
+                most_voted_tx_hash=most_voted_tx_hash,
+                final_tx_hash=final_tx_hash,
+                participant_to_votes=participant_to_votes,
+                participant_to_tx_hash=participant_to_tx_hash,
+                participant_to_signature=participant_to_signature,
+                participant_to_strategy=participant_to_strategy,
+            ),
+        )
     )
 
     assert period_state.participants == participants
     assert period_state.period_count == period_count
-    assert period_state.period_setup_params == period_setup_params
     assert period_state.most_voted_strategy == most_voted_strategy
     assert period_state.most_voted_keeper_address == most_voted_keeper_address
     assert period_state.safe_contract_address == safe_contract_address
@@ -326,6 +330,3 @@ def test_period_state() -> None:
     assert period_state.participant_to_tx_hash == participant_to_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.participant_to_strategy == participant_to_strategy
-
-    period_state = period_state.reset()
-    assert period_state.participants == period_state.participants

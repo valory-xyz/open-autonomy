@@ -131,15 +131,21 @@ DEPLOYED_CONTRACTS = {
     }
 }
 
-ABCI_CONFIG_SCRIPT: str = """
-#!/usr/bin/env sh
+ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash
 
 echo -n $AEA_KEY >  ethereum_private_key.txt
 
+aea add-key ethereum
+aea config set agent.skill_exception_policy "just_log"
+aea config set agent.connection_exception_policy "just_log"
+aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_com_url "http://localhost:8080"
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after 100 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 1200 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "{network_endpoint}"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id {chain_id} --type int
 {extra_config}

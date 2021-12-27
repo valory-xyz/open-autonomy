@@ -19,7 +19,7 @@
 
 """Test the tools.py module of the skill."""
 
-from packages.valory.skills.price_estimation_abci.tools import (
+from packages.valory.skills.common_apps.tools import (
     aggregate,
     hex_to_payload,
     payload_to_hex,

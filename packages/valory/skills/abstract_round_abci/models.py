@@ -31,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     ConsensusParams,
     Period,
+    StateDB,
 )
 
 
@@ -72,7 +73,9 @@ class SharedState(Model):
         consensus_params = cast(BaseParams, self.context.params).consensus_params
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
         self.period.setup(
-            BasePeriodState(period_setup_params=period_setup_params),
+            BasePeriodState(
+                StateDB(initial_period=0, initial_data=period_setup_params)
+            ),
             consensus_params,
             self.context.logger,
         )

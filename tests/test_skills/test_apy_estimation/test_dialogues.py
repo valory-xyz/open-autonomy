@@ -19,7 +19,7 @@
 
 """Test the dialogues.py module of the skill."""
 
-import packages.valory.skills.apy_estimation.dialogues  # noqa
+import packages.valory.skills.apy_estimation_abci.dialogues  # noqa
 
 
 def test_import() -> None:

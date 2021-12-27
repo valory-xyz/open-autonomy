@@ -21,10 +21,8 @@
 
 import re
 from typing import (
-    AbstractSet,
     Any,
     Callable,
-    Dict,
     FrozenSet,
     Generator,
     List,
@@ -48,6 +46,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     ConsensusParams,
     OnlyKeeperSendsRound,
+    StateDB,
     TransactionNotValidError,
     VotingRound,
 )
@@ -89,28 +88,12 @@ class DummyTxPayload(BaseTxPayload):
 class DummyPeriodState(BasePeriodState):
     """Dummy Period state for tests."""
 
-    def __init__(
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        most_voted_keeper_address: Optional[str] = None,
-    ) -> None:
-        """Initialize DummyPeriodState."""
-
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-        )
-        self._most_voted_keeper_address = most_voted_keeper_address
-
     @property
     def most_voted_keeper_address(
         self,
     ) -> Optional[str]:
         """Returns value for _most_voted_keeper_address."""
-        return self._most_voted_keeper_address
+        return self.db.get("most_voted_keeper_address", None)
 
 
 def get_dummy_tx_payloads(
@@ -185,7 +168,9 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = cls._period_state_class(
-            participants=cls.participants
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=cls.participants)
+            )
         )  # type: ignore
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
