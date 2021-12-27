@@ -136,7 +136,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, APYEstimationAbstractRoun
 
         if self.collection_threshold_reached:
             updated_state = self.period_state.update(
-                participants=self.collection, period_State_class=PeriodState
+                participants=self.collection, period_state_class=PeriodState
             )
             state_event = updated_state, Event.DONE
 

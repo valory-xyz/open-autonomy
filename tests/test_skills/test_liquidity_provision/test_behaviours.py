@@ -1168,7 +1168,6 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
                         },
-                        safe_nonce=strategy["safe_nonce"],
                     )
                 ),
             ),
@@ -1287,7 +1286,6 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
                         },
-                        safe_nonce=strategy["safe_nonce"],
                     )
                 ),
             ),

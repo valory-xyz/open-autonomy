@@ -233,10 +233,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
         if self.threshold_reached:
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
-                participant_to_randomness=None,
-                most_voted_randomness=None,
-                participant_to_selection=None,
-                most_voted_keeper_address=None,
+                participants=self.period_state.participants,
             )
             return state, Event.DONE
         if not self.is_majority_possible(

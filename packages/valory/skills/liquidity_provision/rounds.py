@@ -128,13 +128,6 @@ class PeriodState(
             self.db.get_strict("participant_to_signature"),
         )
 
-    def reset(self) -> "PeriodState":
-        """Return the initial period state."""
-        return self.update(  # type: ignore
-            period_count=self.period_count + 1,
-            participants=self.participants,
-        )
-
     @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_enter_pool_tx_hash."""
@@ -165,7 +158,7 @@ class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state.reset(), Event.NO_MAJORITY
+        return self.period_state, Event.NO_MAJORITY
 
 
 class TransactionHashBaseRound(

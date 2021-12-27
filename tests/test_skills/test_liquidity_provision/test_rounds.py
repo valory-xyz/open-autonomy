@@ -330,6 +330,3 @@ def test_period_state() -> None:
     assert period_state.participant_to_tx_hash == participant_to_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.participant_to_strategy == participant_to_strategy
-
-    period_state = period_state.reset()
-    assert period_state.participants == period_state.participants
