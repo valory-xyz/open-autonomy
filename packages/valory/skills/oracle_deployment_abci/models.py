@@ -17,29 +17,19 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the models for common app ABCI application."""
-
+"""This module contains the shared state for the price estimation app ABCI application."""
 
 from typing import Any
 
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 
 
-class Params(BaseParams):  # pylint: disable=too-many-instance-attributes
+class Params(BaseParams):
     """Parameters."""
 
     observation_interval: float
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
-        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
-        self.sleep_time = self._ensure("sleep_time", kwargs)
-        self.retry_timeout = self._ensure("retry_timeout", kwargs)
-        self.retry_attempts = self._ensure("retry_attempts", kwargs)
-        self.observation_interval = self._ensure("observation_interval", kwargs)
         self.oracle_params = self._ensure("oracle", kwargs)
-        self.drand_public_key = self._ensure("drand_public_key", kwargs)
-        self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
-        self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         super().__init__(*args, **kwargs)

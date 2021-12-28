@@ -19,15 +19,115 @@
 
 """This module contains the transaction payloads for the oracle deployment app."""
 
+from enum import Enum
 from typing import Dict, Optional
 
-from packages.valory.skills.common_apps.payloads import (
-    BaseCommonAppsPayload,
-    TransactionType,
-)
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
-class DeployOraclePayload(BaseCommonAppsPayload):
+class TransactionType(Enum):
+    """Enumeration of transaction types."""
+
+    DEPLOY_ORACLE = "deploy_oracle"
+    VALIDATE = "validate_oracle"
+    RANDOMNESS = "randomness_oracle"
+    SELECT_KEEPER = "select_keeper_oracle"
+
+    def __str__(self) -> str:
+        """Get the string value of the transaction type."""
+        return self.value
+
+
+class RandomnessPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'randomness'."""
+
+    transaction_type = TransactionType.RANDOMNESS
+
+    def __init__(
+        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param round_id: the round id
+        :param randomness: the randomness
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._round_id = round_id
+        self._randomness = randomness
+
+    @property
+    def round_id(self) -> int:
+        """Get the round id."""
+        return self._round_id
+
+    @property
+    def randomness(self) -> str:
+        """Get the randomness."""
+        return self._randomness
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(round_id=self._round_id, randomness=self._randomness)
+
+
+class SelectKeeperPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'select_keeper'."""
+
+    transaction_type = TransactionType.SELECT_KEEPER
+
+    def __init__(self, sender: str, keeper: str, id_: Optional[str] = None) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param keeper: the keeper selection
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._keeper = keeper
+
+    @property
+    def keeper(self) -> str:
+        """Get the keeper."""
+        return self._keeper
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(keeper=self.keeper)
+
+
+class ValidateOraclePayload(BaseTxPayload):
+    """Represent a transaction payload of type 'validate'."""
+
+    transaction_type = TransactionType.VALIDATE
+
+    def __init__(
+        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'validate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param vote: the vote
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._vote = vote
+
+    @property
+    def vote(self) -> Optional[bool]:
+        """Get the vote."""
+        return self._vote
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(vote=self.vote) if self.vote is not None else {}
+
+
+class DeployOraclePayload(BaseTxPayload):
     """Represent a transaction payload of type 'deploy_oracle'."""
 
     transaction_type = TransactionType.DEPLOY_ORACLE

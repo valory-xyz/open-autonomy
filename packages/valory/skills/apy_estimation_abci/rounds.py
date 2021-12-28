@@ -20,9 +20,7 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import AbstractSet, Dict, Optional, Tuple, Type, cast
-
-from aea.exceptions import enforce
+from typing import Dict, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -70,70 +68,30 @@ class Event(Enum):
 class PeriodState(BasePeriodState):
     """Class to represent a period state. This state is replicated by the tendermint application."""
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        most_voted_randomness: Optional[int] = None,
-        most_voted_estimate: Optional[float] = None,
-        full_training: bool = False,
-        pair_name: Optional[str] = None,
-        n_estimations: int = 0,
-    ) -> None:
-        """Initialize the state."""
-        super().__init__(participants, period_count, period_setup_params)
-        self._most_voted_randomness = most_voted_randomness
-        self._most_voted_estimate = most_voted_estimate
-        self._full_training = full_training
-        self._pair_name = pair_name
-        self._n_estimations = n_estimations
-
     @property
-    def most_voted_randomness(self) -> int:
-        """Get the most_voted_randomness."""
-        enforce(
-            self._most_voted_randomness is not None,
-            "'most_voted_randomness' field is None",
-        )
-        return cast(int, self._most_voted_randomness)
-
-    @property
-    def most_voted_estimate(self) -> Optional[float]:
+    def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
-        enforce(
-            self._most_voted_estimate is not None,
-            "'most_voted_estimate' field is None",
-        )
-        return self._most_voted_estimate
+        return cast(float, self.db.get_strict("most_voted_estimate"))
 
     @property
     def is_most_voted_estimate_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self._most_voted_estimate is not None
+        return self.db.get("most_voted_estimate", None) is not None
 
     @property
     def full_training(self) -> bool:
         """Get the full_training flag."""
-        return self._full_training
+        return cast(bool, self.db.get_strict("full_training"))
 
     @property
     def pair_name(self) -> str:
         """Get the pair_name."""
-        enforce(
-            self._pair_name is not None,
-            "'pair_name' field is None",
-        )
-        return cast(str, self._pair_name)
+        return cast(str, self.db.get_strict("pair_name"))
 
     @property
     def n_estimations(self) -> int:
         """Get the n_estimations."""
-        enforce(
-            self._n_estimations is not None,
-            "'n_estimations' field is None",
-        )
-        return cast(int, self._n_estimations)
+        return cast(int, self.db.get_strict("n_estimations"))
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -172,9 +130,8 @@ class RegistrationRound(CollectDifferentUntilAllRound, APYEstimationAbstractRoun
         state_event = None
 
         if self.collection_threshold_reached:
-            updated_state = PeriodState(
-                participants=self.collection,
-                period_count=self.period_state.period_count,
+            updated_state = self.period_state.update(
+                participants=self.collection, period_state_class=PeriodState
             )
             state_event = updated_state, Event.DONE
 

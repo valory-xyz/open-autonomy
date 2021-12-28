@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
     ConsensusParams,
+    StateDB,
     TransactionNotValidError,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -202,7 +203,11 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(participants=cls.participants)
+        cls.period_state = PeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=cls.participants)
+            )
+        )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     @staticmethod
@@ -267,7 +272,11 @@ class TestRegistrationRound(BaseRoundTestClass):
         if confirmations is not None:
             test_round.block_confirmations = confirmations
 
-        actual_next_state = PeriodState(participants=test_round.collection)
+        actual_next_state = PeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=test_round.collection)
+            )
+        )
 
         res = test_round.end_block()
 
@@ -580,7 +589,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                    n_estimations=0,
                 ),
                 state_attr_checks=[lambda state: state.n_estimations],
                 most_voted_payload=10.0,
@@ -591,15 +600,13 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     def test_restart_cycle_run(self) -> None:
         """Runs test."""
 
-        test_round = EstimateRound(
-            self.period_state.update(n_estimations=59), self.consensus_params
-        )
+        test_round = EstimateRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                    n_estimations=59
                 ),
                 state_attr_checks=[lambda state: 60],
                 most_voted_payload=10.0,
@@ -692,19 +699,22 @@ def test_period() -> None:
     n_estimations = 1
 
     period_state = PeriodState(
-        participants=participants,
-        period_count=period_count,
-        period_setup_params=period_setup_params,
-        most_voted_randomness=most_voted_randomness,
-        most_voted_estimate=most_voted_estimate,
-        full_training=full_training,
-        pair_name=pair_name,
-        n_estimations=n_estimations,
+        db=StateDB(
+            initial_period=period_count,
+            initial_data=dict(
+                participants=participants,
+                period_setup_params=period_setup_params,
+                most_voted_randomness=most_voted_randomness,
+                most_voted_estimate=most_voted_estimate,
+                full_training=full_training,
+                pair_name=pair_name,
+                n_estimations=n_estimations,
+            ),
+        )
     )
 
     assert period_state.participants == participants
     assert period_state.period_count == period_count
-    assert period_state.period_setup_params == period_setup_params
     assert period_state.most_voted_randomness == most_voted_randomness
     assert period_state.most_voted_estimate == most_voted_estimate
     assert period_state.full_training == full_training

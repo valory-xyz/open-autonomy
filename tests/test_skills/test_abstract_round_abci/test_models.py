@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+from enum import Enum
 from typing import Any, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
@@ -191,7 +192,7 @@ class TestApiSpecsModel:
 class ConcreteRound(AbstractRound):
     """A ConcreteRoundA for testing purposes."""
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle the end of the block."""
 
 
@@ -267,6 +268,16 @@ def test_base_params_model_initialization() -> None:
     BaseParams(
         name="",
         skill_context=MagicMock(),
-        tendermint_url="",
+        period_setup={},
         consensus=dict(max_participants=1),
+        tendermint_url="",
+        max_healthcheck=1,
+        round_timeout_seconds=1,
+        sleep_time=1,
+        retry_timeout=1,
+        retry_attempts=1,
+        observation_interval=1,
+        drand_public_key="",
+        tendermint_com_url="",
+        reset_tendermint_after=1,
     )

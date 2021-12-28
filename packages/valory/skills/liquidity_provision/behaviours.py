@@ -44,18 +44,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
+from packages.valory.skills.abstract_round_abci.common import (
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.behaviours import (
-    RandomnessBehaviour as RandomnessBehaviourPriceEstimation,
-)
-from packages.valory.skills.common_apps.behaviours import SelectKeeperBehaviour
-from packages.valory.skills.common_apps.payloads import (
-    FinalizationTxPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    ValidatePayload,
-)
-from packages.valory.skills.liquidity_provision.models import Params, SharedState
+from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
@@ -87,6 +81,12 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetAndPauseBehaviour,
     ResetBehaviour,
 )
+from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    FinalizationTxPayload,
+    SignaturePayload,
+    ValidatePayload,
+)
 
 
 ETHER_VALUE = 0  # TOFIX
@@ -107,12 +107,12 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(PeriodState, super().period_state)
 
     @property
     def params(self) -> Params:
         """Return the params."""
-        return cast(Params, self.context.params)
+        return cast(Params, super().params)
 
 
 class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
@@ -230,7 +230,6 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=strategy["safe_tx_gas"],
-            safe_nonce=strategy["safe_nonce"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -307,7 +306,6 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=strategy["safe_tx_gas"],
-            safe_nonce=strategy["safe_nonce"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -694,7 +692,7 @@ class EnterPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour
     matching_round = EnterPoolTransactionValidationRound
 
 
-class EnterPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+class EnterPoolRandomnessBehaviour(RandomnessBehaviour):
     """Get randomness."""
 
     state_id = "enter_pool_randomness"
@@ -889,7 +887,7 @@ class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour)
     matching_round = ExitPoolTransactionValidationRound
 
 
-class ExitPoolRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+class ExitPoolRandomnessBehaviour(RandomnessBehaviour):
     """Get randomness."""
 
     state_id = "exit_pool_randomness"
@@ -1101,7 +1099,7 @@ class SwapBackTransactionValidationBehaviour(TransactionValidationBaseBehaviour)
     matching_round = SwapBackTransactionValidationRound
 
 
-class SwapBackRandomnessBehaviour(RandomnessBehaviourPriceEstimation):
+class SwapBackRandomnessBehaviour(RandomnessBehaviour):
     """Get randomness."""
 
     state_id = "swap_back_randomness"

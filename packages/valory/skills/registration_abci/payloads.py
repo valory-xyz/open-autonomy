@@ -17,9 +17,23 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'common apps' skill for an AEA."""
+"""This module contains the transaction payloads for common apps."""
+from enum import Enum
 
-from aea.configurations.base import PublicId
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
-PUBLIC_ID = PublicId.from_str("valory/common_apps:0.1.0")
+class TransactionType(Enum):
+    """Enumeration of transaction types."""
+
+    REGISTRATION = "registration"
+
+    def __str__(self) -> str:
+        """Get the string value of the transaction type."""
+        return self.value
+
+
+class RegistrationPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'registration'."""
+
+    transaction_type = TransactionType.REGISTRATION

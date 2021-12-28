@@ -48,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
     Period,
     SignatureNotValidError,
+    StateDB,
     Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
@@ -64,6 +65,16 @@ class PayloadEnum(Enum):
     A = "A"
     B = "B"
     C = "C"
+
+    def __str__(self) -> str:
+        """Get the string representation."""
+        return self.value
+
+
+class PayloadEnumB(Enum):
+    """Payload enumeration type."""
+
+    A = "AA"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -90,6 +101,12 @@ class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnum.C
+
+
+class PayloadD(BasePayload):
+    """Payload class for payload type 'C'."""
+
+    transaction_type = PayloadEnumB.A
 
 
 class ConcreteRoundA(AbstractRound):
@@ -178,6 +195,10 @@ class TestTransactions:
         expected_payload__ = PayloadC(sender=sender)
         actual_payload__ = PayloadC.decode(expected_payload__.encode())
         assert expected_payload__ == actual_payload__
+
+        expected_payload___ = PayloadD(sender=sender)
+        actual_payload___ = PayloadD.decode(expected_payload___.encode())
+        assert expected_payload___ == actual_payload___
 
     def test_encode_decode_transaction(self) -> None:
         """Test encode/decode of a transaction."""
@@ -414,7 +435,11 @@ class TestBasePeriodState:
     def setup(self) -> None:
         """Set up the tests."""
         self.participants = {"a", "b"}
-        self.base_period_state = BasePeriodState(self.participants)
+        self.base_period_state = BasePeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=self.participants)
+            )
+        )
 
     def test_participants_getter_positive(self) -> None:
         """Test 'participants' property getter."""
@@ -426,21 +451,25 @@ class TestBasePeriodState:
 
     def test_participants_getter_negative(self) -> None:
         """Test 'participants' property getter, negative case."""
-        base_period_state = BasePeriodState()
+        base_period_state = BasePeriodState(
+            db=StateDB(initial_period=0, initial_data={})
+        )
         with pytest.raises(ValueError, match="Value of key=participants is None"):
             base_period_state.participants
 
     def test_update(self) -> None:
         """Test the 'update' method."""
         participants = {"a"}
-        expected = BasePeriodState(participants=participants)
+        expected = BasePeriodState(
+            db=StateDB(initial_period=0, initial_data=dict(participants=participants))
+        )
         actual = self.base_period_state.update(participants=participants)
         assert expected.participants == actual.participants
 
     def test_repr(self) -> None:
         """Test the '__repr__' magic method."""
         actual_repr = repr(self.base_period_state)
-        expected_repr_regex = r"BasePeriodState\({(.*)}\)"
+        expected_repr_regex = r"BasePeriodState\(db=StateDB\({(.*)}\)\)"
         assert re.match(expected_repr_regex, actual_repr) is not None
 
 
@@ -451,7 +480,11 @@ class TestAbstractRound:
         """Set up the tests."""
         self.known_payload_type = ConcreteRoundA.allowed_tx_type
         self.participants = {"a", "b"}
-        self.base_period_state = BasePeriodState(participants=self.participants)
+        self.base_period_state = BasePeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=self.participants)
+            )
+        )
         self.params = ConsensusParams(
             max_participants=len(self.participants),
         )

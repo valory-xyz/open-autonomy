@@ -57,6 +57,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
+    BasePeriodState,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
@@ -71,7 +72,11 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+    Requests,
+    SharedState,
+)
 
 
 _REQUEST_RETRY_DELAY = 1.0
@@ -311,6 +316,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")
+
+    @property
+    def params(self) -> BaseParams:
+        """Return the params."""
+        return cast(BaseParams, self.context.params)
+
+    @property
+    def period_state(self) -> BasePeriodState:
+        """Return the period state."""
+        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
@@ -846,15 +861,19 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.error("Error when requesting transaction signature.")
+            return None
         self._send_transaction_request(signature_response)
         transaction_digest_msg = yield from self.wait_for_message()
         if (
             transaction_digest_msg.performative
             != LedgerApiMessage.Performative.TRANSACTION_DIGEST
-        ):
-            return None  # pragma: nocover
+        ):  # pragma: nocover
+            self.context.logger.error(
+                f"Error when requesting transaction digest: {transaction_digest_msg.message}"
+            )
+            return None
         tx_hash = transaction_digest_msg.transaction_digest.body
         return tx_hash
 
@@ -867,8 +886,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Get transaction receipt."""
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
-        if transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR:
-            return None  # pragma: nocover
+        if (
+            transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR
+        ):  # pragma: nocover
+            self.context.logger.error(
+                f"Error when requesting transaction receipt: {transaction_receipt_msg.message}"
+            )
+            return None
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_receipt
 

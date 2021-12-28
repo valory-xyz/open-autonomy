@@ -31,29 +31,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.behaviours import (
-    FinalizeBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
-    SelectKeeperTransactionSubmissionBehaviourB,
-    SignatureBehaviour,
-    TendermintHealthcheckBehaviour,
-    ValidateTransactionBehaviour,
-)
-from packages.valory.skills.common_apps.payloads import (
-    EstimatePayload,
-    ObservationPayload,
-    TransactionHashPayload,
-)
-from packages.valory.skills.common_apps.tools import payload_to_hex, to_int
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
     RandomnessOracleBehaviour,
@@ -64,17 +42,37 @@ from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.models import Params
+from packages.valory.skills.price_estimation_abci.payloads import (
+    EstimatePayload,
+    ObservationPayload,
+    TransactionHashPayload,
+)
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
     PeriodState,
     TxHashRound,
 )
+from packages.valory.skills.registration_abci.behaviours import (
+    RegistrationBehaviour,
+    RegistrationStartupBehaviour,
+    TendermintHealthcheckBehaviour,
+)
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
     RandomnessSafeBehaviour,
     SelectKeeperSafeBehaviour,
     ValidateSafeBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    FinalizeBehaviour,
+    RandomnessTransactionSubmissionBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
+    SelectKeeperTransactionSubmissionBehaviourA,
+    SelectKeeperTransactionSubmissionBehaviourB,
+    SignatureBehaviour,
+    ValidateTransactionBehaviour,
 )
 
 
@@ -85,18 +83,40 @@ SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 
 
+def to_int(most_voted_estimate: float, decimals: int) -> int:
+    """Convert to int."""
+    most_voted_estimate_ = str(most_voted_estimate)
+    decimal_places = most_voted_estimate_[::-1].find(".")
+    if decimal_places > decimals:
+        most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
+    most_voted_estimate = float(most_voted_estimate_)
+    int_value = int(most_voted_estimate * (10 ** decimals))
+    return int_value
+
+
+def payload_to_hex(tx_hash: str, epoch_: int, round_: int, amount_: int) -> str:
+    """Serialise to a hex string."""
+    if len(tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+    epoch_hex = epoch_.to_bytes(4, "big").hex()
+    round_hex = round_.to_bytes(1, "big").hex()
+    amount_hex = amount_.to_bytes(16, "big").hex()
+    concatenated = tx_hash + epoch_hex + round_hex + amount_hex
+    return concatenated
+
+
 class PriceEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the common apps skill."""
 
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, cast(BaseSharedState, self.context.state).period_state)
+        return cast(PeriodState, super().period_state)
 
     @property
     def params(self) -> Params:
         """Return the params."""
-        return cast(Params, self.context.params)
+        return cast(Params, super().params)
 
 
 class ObserveBehaviour(PriceEstimationBaseState):
