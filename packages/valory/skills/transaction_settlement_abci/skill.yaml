@@ -1,0 +1,27 @@
+name: transaction_settlement_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for transaction settlement.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmfGX3S3MjbMxYanFsbaNSvYrSdKuGqET3KYorDyaF9hMa
+  behaviours.py: QmbAKT8c8Wvg6CFcFnPGxsmZuyJhGddz1U6nH3zWjiNefu
+  payloads.py: QmRjY29dn8Ep8FESsMobuHZTdj4GmbbVDGoHwoP7H4WQyX
+  rounds.py: QmNXPRoQ3MWWV9YjTevGywJneDgwzfNJYHSkkV2NXtZmbj
+fingerprint_ignore_patterns: []
+connections: []
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
+- valory/offchain_aggregator:0.1.0
+protocols:
+- valory/contract_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours: {}
+handlers: {}
+models: {}
+dependencies: {}
+is_abstract: false

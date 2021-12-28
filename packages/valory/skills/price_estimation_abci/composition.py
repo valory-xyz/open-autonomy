@@ -23,16 +23,6 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.common_apps.rounds import (
-    AgentRegistrationAbciApp,
-    FailedRound,
-    FinishedRegistrationFFWRound,
-    FinishedRegistrationRound,
-    FinishedTransactionSubmissionRound,
-    RandomnessTransactionSubmissionRound,
-    RegistrationRound,
-    TransactionSubmissionAbciApp,
-)
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     FinishedOracleRound,
     OracleDeploymentAbciApp,
@@ -43,10 +33,22 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     FinishedPriceAggregationRound,
     PriceAggregationAbciApp,
 )
+from packages.valory.skills.registration_abci.rounds import (
+    AgentRegistrationAbciApp,
+    FinishedRegistrationFFWRound,
+    FinishedRegistrationRound,
+    RegistrationRound,
+)
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
     RandomnessSafeRound,
     SafeDeploymentAbciApp,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FailedRound,
+    FinishedTransactionSubmissionRound,
+    RandomnessTransactionSubmissionRound,
+    TransactionSubmissionAbciApp,
 )
 
 
