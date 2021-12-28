@@ -38,13 +38,21 @@ from packages.valory.skills.abstract_round_abci.base import (
 NUMBER_OF_RETRIES: int = 5
 
 
-class BaseParams(Model):
+class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
-
+        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
+        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
+        self.sleep_time = self._ensure("sleep_time", kwargs)
+        self.retry_timeout = self._ensure("retry_timeout", kwargs)
+        self.retry_attempts = self._ensure("retry_attempts", kwargs)
+        self.observation_interval = self._ensure("observation_interval", kwargs)
+        self.drand_public_key = self._ensure("drand_public_key", kwargs)
+        self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
+        self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         self.period_setup_params = kwargs.pop("period_setup", {})
         super().__init__(*args, **kwargs)

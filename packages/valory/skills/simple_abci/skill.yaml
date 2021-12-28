@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: QmaCXxJag2y24zFv1gaQNepun8o7vTz2ipekoKEVRjSM4v
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
-  models.py: Qmb1YYGkAa4dhKyYN3CHZU1KdXTZp3AdVyrnT3NBb2ux7L
+  models.py: QmNV5fGgCswbE7zUBxW5xcRwBGjxCjNYEyFtafBGAE1Uh7
   payloads.py: QmXe2vVWq8UjkDQKisQY4qFU6nX5F5D2B1f3kbDkrFu2Da
   rounds.py: QmcqzJLPuQYfHr5FwajaJCYBPtRKtnTiQRDtkAsUXtB41r
 fingerprint_ignore_patterns: []
@@ -65,11 +65,16 @@ models:
     args:
       consensus:
         max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
       round_timeout_seconds: 30
       sleep_time: 1
+      tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
     class_name: Params
   randomness_api:

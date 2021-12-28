@@ -21,73 +21,97 @@
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional, Type, cast
-from unittest import mock
 
+from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    BasePeriodState,
+    BasePeriodState as PeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
-    ConsensusParams,
+    CollectSameUntilThresholdRound,
     StateDB,
+    VotingRound,
 )
-from packages.valory.skills.common_apps.payloads import (
-    EstimatePayload,
-    FinalizationTxPayload,
-    ObservationPayload,
+from packages.valory.skills.oracle_deployment_abci.payloads import (
+    DeployOraclePayload,
     RandomnessPayload,
-    RegistrationPayload,
-    ResetPayload,
     SelectKeeperPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    ValidatePayload,
 )
-from packages.valory.skills.common_apps.rounds import (
-    CollectSignatureRound,
-    Event,
-    FinalizationRound,
-)
-from packages.valory.skills.common_apps.rounds import (
-    PeriodState as CommonAppsPeriodState,
-)
-from packages.valory.skills.common_apps.rounds import (
-    RandomnessTransactionSubmissionRound,
-    RegistrationRound,
-    RegistrationStartupRound,
-)
-from packages.valory.skills.common_apps.rounds import (
-    ResetRound as ConsensusReachedRound,
-)
-from packages.valory.skills.common_apps.rounds import (
-    SelectKeeperRound,
-    SelectKeeperTransactionSubmissionRoundA,
-    SelectKeeperTransactionSubmissionRoundB,
-    ValidateRound,
-    ValidateTransactionRound,
-    rotate_list,
-)
-from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+from packages.valory.skills.oracle_deployment_abci.rounds import DeployOracleRound
 from packages.valory.skills.oracle_deployment_abci.rounds import (
-    DeployOracleRound,
+    Event as OracleDeploymentEvent,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    PeriodState as OracleDeploymentPeriodState,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import (
     SelectKeeperOracleRound,
     ValidateOracleRound,
+)
+from packages.valory.skills.price_estimation_abci.payloads import (
+    EstimatePayload,
+    ObservationPayload,
+    TransactionHashPayload,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    PeriodState as PriceEstimationPeriodState,
+    Event as PriceEstimationEvent,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
-    TxHashRound,
-    encode_float,
+    PeriodState as PriceEstimationPeriodState,
+)
+from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
+from packages.valory.skills.registration_abci.payloads import RegistrationPayload
+from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
+from packages.valory.skills.registration_abci.rounds import (
+    PeriodState as RegistrationPeriodState,
+)
+from packages.valory.skills.registration_abci.rounds import (
+    RegistrationRound,
+    RegistrationStartupRound,
 )
 from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
+from packages.valory.skills.safe_deployment_abci.rounds import DeploySafeRound
 from packages.valory.skills.safe_deployment_abci.rounds import (
-    DeploySafeRound,
+    Event as SafeDeploymentEvent,
+)
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    PeriodState as SafeDeploymentPeriodState,
+)
+from packages.valory.skills.safe_deployment_abci.rounds import (
     SelectKeeperSafeRound,
     ValidateSafeRound,
+)
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    FinalizationTxPayload,
+    ResetPayload,
+    SignaturePayload,
+    ValidatePayload,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    CollectSignatureRound,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    Event as TransactionSettlementEvent,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    PeriodState as TransactionSettlementPeriodState,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    RandomnessTransactionSubmissionRound,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    ResetRound as ConsensusReachedRound,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    SelectKeeperTransactionSubmissionRoundA,
+    SelectKeeperTransactionSubmissionRoundB,
+    ValidateTransactionRound,
+    rotate_list,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -227,39 +251,11 @@ def get_final_tx_hash() -> str:
     return "tx_hash"
 
 
-class BaseRoundTestClass:
-    """Base test class for Rounds."""
-
-    period_state: CommonAppsPeriodState
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.period_state = CommonAppsPeriodState(
-            StateDB(initial_period=0, initial_data=dict(participants=cls.participants))
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            state, event = result
-            assert event == Event.NO_MAJORITY
-
-
 class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     """Test RegistrationStartupRound."""
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
+    _period_state_class = PeriodState
+    _event_class = RegistrationEvent
 
     def test_run_fastforward(
         self,
@@ -267,7 +263,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         """Run test."""
 
         self.period_state = cast(
-            CommonAppsPeriodState,
+            PeriodState,
             self.period_state.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
@@ -277,7 +273,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         test_round = RegistrationStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round, Event.FAST_FORWARD, 1)
+        self._run_with_round(test_round, RegistrationEvent.FAST_FORWARD, 1)
 
     def test_run_default(
         self,
@@ -287,7 +283,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         test_round = RegistrationStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round, Event.DONE, 1)
+        self._run_with_round(test_round, RegistrationEvent.DONE, 1)
 
     def test_run_default_not_finished(
         self,
@@ -302,7 +298,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
     def _run_with_round(
         self,
         test_round: RegistrationStartupRound,
-        expected_event: Optional[Event] = None,
+        expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
     ) -> None:
         """Run with given round."""
@@ -313,7 +309,7 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
                 RegistrationPayload(sender=participant)
                 for participant in self.participants
             ],
-            state_update_fn=lambda *x: CommonAppsPeriodState(
+            state_update_fn=lambda *x: PeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(participants=test_round.collection),
@@ -337,15 +333,15 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
 class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test RegistrationRound."""
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
+    _period_state_class = PeriodState
+    _event_class = RegistrationEvent
 
     def test_run_default(
         self,
     ) -> None:
         """Run test."""
         self.period_state = cast(
-            CommonAppsPeriodState,
+            PeriodState,
             self.period_state.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
@@ -354,14 +350,14 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
         test_round = RegistrationRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round, Event.DONE, 10)
+        self._run_with_round(test_round, RegistrationEvent.DONE, 10)
 
     def test_run_default_not_finished(
         self,
     ) -> None:
         """Run test."""
         self.period_state = cast(
-            CommonAppsPeriodState,
+            PeriodState,
             self.period_state.update(
                 safe_contract_address="stub_safe_contract_address",
                 oracle_contract_address="stub_oracle_contract_address",
@@ -375,7 +371,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
     def _run_with_round(
         self,
         test_round: RegistrationRound,
-        expected_event: Optional[Event] = None,
+        expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
         finished: bool = True,
     ) -> None:
@@ -390,7 +386,7 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 ]
             ),
             state_update_fn=(
-                lambda *x: CommonAppsPeriodState(
+                lambda *x: PeriodState(
                     StateDB(
                         initial_period=0,
                         initial_data=dict(participants=self.participants),
@@ -416,8 +412,8 @@ class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
 class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
     """Test RandomnessTransactionSubmissionRound."""
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
 
     def test_run(
         self,
@@ -440,47 +436,7 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
                     lambda state: state.participant_to_randomness.keys()
                 ],
                 most_voted_payload=RANDOMNESS,
-                exit_event=Event.DONE,
-            )
-        )
-
-
-class TestSelectKeeperRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test SelectKeeperRound"""
-
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
-
-    @classmethod
-    def setup(cls) -> None:
-        """Set up the test."""
-        super().setup()
-        SelectKeeperRound.round_id = "round_id"
-
-    def teardown(self) -> None:
-        """Tear down the test."""
-        delattr(SelectKeeperRound, "round_id")
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        test_round = SelectKeeperRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                round_payloads=get_participant_to_selection(self.participants),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    participant_to_selection=MappingProxyType(
-                        dict(get_participant_to_selection(self.participants))
-                    ),
-                ),
-                state_attr_checks=[lambda state: state.participant_to_selection.keys()],
-                most_voted_payload="keeper",
-                exit_event=Event.DONE,
+                exit_event=TransactionSettlementEvent.DONE,
             )
         )
 
@@ -492,9 +448,6 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
     payload_class: Type[BaseTxPayload]
     update_keyword: str
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
-
     def test_run(
         self,
     ) -> None:
@@ -502,7 +455,7 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
 
         keeper = sorted(list(self.participants))[0]
         self.period_state = cast(
-            CommonAppsPeriodState,
+            PeriodState,
             self.period_state.update(most_voted_keeper_address=keeper),
         )
 
@@ -518,7 +471,7 @@ class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
                     **{self.update_keyword: get_safe_contract_address()}
                 ),
                 state_attr_checks=[lambda state: getattr(state, self.update_keyword)],
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -529,6 +482,8 @@ class TestDeploySafeRound(BaseDeployTestClass):
     round_class = DeploySafeRound
     payload_class = DeploySafePayload
     update_keyword = "safe_contract_address"
+    _event_class = SafeDeploymentEvent
+    _period_state_class = SafeDeploymentPeriodState
 
 
 class TestDeployOracleRound(BaseDeployTestClass):
@@ -537,13 +492,15 @@ class TestDeployOracleRound(BaseDeployTestClass):
     round_class = DeployOracleRound
     payload_class = DeployOraclePayload
     update_keyword = "oracle_contract_address"
+    _event_class = OracleDeploymentEvent
+    _period_state_class = OracleDeploymentPeriodState
 
 
 class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectObservationRound."""
 
     _period_state_class = PriceEstimationPeriodState
-    _event_class = Event
+    _event_class = PriceEstimationEvent
 
     def test_run_a(
         self,
@@ -565,7 +522,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 state_attr_checks=[
                     lambda state: state.participant_to_observations.keys()
                 ],
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -592,7 +549,7 @@ class TestCollectObservationRound(BaseCollectDifferentUntilThresholdRoundTest):
                 state_attr_checks=[
                     lambda state: state.participant_to_observations.keys()
                 ],
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -601,7 +558,7 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
     """Test EstimateConsensusRound."""
 
     _period_state_class = PriceEstimationPeriodState
-    _event_class = Event
+    _event_class = PriceEstimationEvent
 
     def test_run(
         self,
@@ -623,7 +580,7 @@ class TestEstimateConsensusRound(BaseCollectSameUntilThresholdRoundTest):
                 ),
                 state_attr_checks=[lambda state: state.participant_to_estimate.keys()],
                 most_voted_payload=1.0,
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -632,7 +589,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TxHashRound."""
 
     _period_state_class = PriceEstimationPeriodState
-    _event_class = Event
+    _event_class = PriceEstimationEvent
 
     def test_run(
         self,
@@ -651,7 +608,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _test_round: _period_state,
                 state_attr_checks=[],
                 most_voted_payload=hash_,
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -672,7 +629,7 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _test_round: _period_state,
                 state_attr_checks=[],
                 most_voted_payload=hash_,
-                exit_event=Event.NONE,
+                exit_event=self._event_class.NONE,
             )
         )
 
@@ -680,8 +637,8 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectSignatureRound."""
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
 
     def test_run(
         self,
@@ -698,7 +655,7 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
                 round_payloads=get_participant_to_signature(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -711,8 +668,8 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
 class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     """Test FinalizationRound."""
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
 
     def test_run_success(
         self,
@@ -721,7 +678,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
         keeper = sorted(list(self.participants))[0]
         self.period_state = cast(
-            CommonAppsPeriodState,
+            PeriodState,
             self.period_state.update(most_voted_keeper_address=keeper),
         )
 
@@ -738,7 +695,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     final_tx_hash=get_final_tx_hash()
                 ),
                 state_attr_checks=[lambda state: state.final_tx_hash],
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -749,7 +706,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
         keeper = sorted(list(self.participants))[0]
         self.period_state = cast(
-            CommonAppsPeriodState,
+            PeriodState,
             self.period_state.update(most_voted_keeper_address=keeper),
         )
 
@@ -766,7 +723,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     final_tx_hash=get_final_tx_hash()
                 ),
                 state_attr_checks=[],
-                exit_event=Event.FAILED,
+                exit_event=self._event_class.FAILED,
             )
         )
 
@@ -774,11 +731,10 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
     """Test SelectKeeperTransactionSubmissionRoundA"""
 
-    test_class: Type[SelectKeeperRound]
+    test_class: Type[CollectSameUntilThresholdRound]
     test_payload: Type[SelectKeeperPayload]
 
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
+    _period_state_class = PeriodState
 
     def test_run(
         self,
@@ -800,7 +756,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 ),
                 state_attr_checks=[lambda state: state.participant_to_selection.keys()],
                 most_voted_payload="keeper",
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -810,6 +766,7 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperTransactionSubmissionRoundA
     test_payload = SelectKeeperPayload
+    _event_class = TransactionSettlementEvent
 
 
 class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
@@ -817,6 +774,7 @@ class TestSelectKeeperTransactionSubmissionRoundB(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperTransactionSubmissionRoundB
     test_payload = SelectKeeperPayload
+    _event_class = TransactionSettlementEvent
 
 
 class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
@@ -824,6 +782,7 @@ class TestSelectKeeperSafeRound(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperSafeRound
     test_payload = SelectKeeperPayload
+    _event_class = SafeDeploymentEvent
 
 
 class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
@@ -831,13 +790,14 @@ class TestSelectKeeperOracleRound(BaseSelectKeeperRoundTest):
 
     test_class = SelectKeeperOracleRound
     test_payload = SelectKeeperPayload
+    _event_class = OracleDeploymentEvent
 
 
 class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
     """Test ConsensusReachedRound."""
 
-    _period_state_class = BasePeriodState
-    _event_class = Event
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
 
     def test_runs(
         self,
@@ -860,7 +820,7 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],
                 most_voted_payload=next_period_count,
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -868,11 +828,8 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
 class BaseValidateRoundTest(BaseVotingRoundTest):
     """Test BaseValidateRound."""
 
-    test_class: Type[ValidateRound]
+    test_class: Type[VotingRound]
     test_payload: Type[ValidatePayload]
-
-    _period_state_class = CommonAppsPeriodState
-    _event_class = Event
 
     def test_positive_votes(
         self,
@@ -893,7 +850,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                     )
                 ),
                 state_attr_checks=[lambda state: state.participant_to_votes.keys()],
-                exit_event=Event.DONE,
+                exit_event=self._event_class.DONE,
             )
         )
 
@@ -916,7 +873,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                     )
                 ),
                 state_attr_checks=[],
-                exit_event=Event.NEGATIVE,
+                exit_event=self._event_class.NEGATIVE,
             )
         )
 
@@ -939,7 +896,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                     )
                 ),
                 state_attr_checks=[],
-                exit_event=Event.NONE,
+                exit_event=self._event_class.NONE,
             )
         )
 
@@ -949,6 +906,8 @@ class TestValidateSafeRound(BaseValidateRoundTest):
 
     test_class = ValidateSafeRound
     test_payload = ValidatePayload
+    _event_class = SafeDeploymentEvent
+    _period_state_class = SafeDeploymentPeriodState
 
 
 class TestValidateOracleRound(BaseValidateRoundTest):
@@ -956,6 +915,8 @@ class TestValidateOracleRound(BaseValidateRoundTest):
 
     test_class = ValidateOracleRound
     test_payload = ValidatePayload
+    _event_class = OracleDeploymentEvent
+    _period_state_class = OracleDeploymentPeriodState
 
 
 class TestValidateTransactionRound(BaseValidateRoundTest):
@@ -963,6 +924,8 @@ class TestValidateTransactionRound(BaseValidateRoundTest):
 
     test_class = ValidateTransactionRound
     test_payload = ValidatePayload
+    _event_class = TransactionSettlementEvent
+    _period_state_class = TransactionSettlementPeriodState
 
 
 def test_rotate_list_method() -> None:
@@ -972,55 +935,8 @@ def test_rotate_list_method() -> None:
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
-def test_price_estimation_period_state() -> None:
-    """Test CommonAppsPeriodState."""
-
-    participants = get_participants()
-    safe_contract_address = get_safe_contract_address()
-    oracle_contract_address = get_safe_contract_address()
-    participant_to_observations = get_participant_to_observations(participants)
-    participant_to_estimate = get_participant_to_estimate(participants)
-    estimate = get_estimate()
-    most_voted_estimate = get_most_voted_estimate()
-    participant_to_tx_hash = get_participant_to_tx_hash(participants)
-    most_voted_tx_hash = get_most_voted_tx_hash()
-    participant_to_signature = get_participant_to_signature(participants)
-    final_tx_hash = get_final_tx_hash()
-
-    period_state = PriceEstimationPeriodState(
-        StateDB(
-            initial_period=0,
-            initial_data=dict(
-                participants=participants,
-                safe_contract_address=safe_contract_address,
-                oracle_contract_address=oracle_contract_address,
-                participant_to_observations=participant_to_observations,
-                participant_to_estimate=participant_to_estimate,
-                estimate=estimate,
-                most_voted_estimate=most_voted_estimate,
-                participant_to_tx_hash=participant_to_tx_hash,
-                most_voted_tx_hash=most_voted_tx_hash,
-                participant_to_signature=participant_to_signature,
-                final_tx_hash=final_tx_hash,
-            ),
-        )
-    )
-
-    assert period_state.safe_contract_address == safe_contract_address
-    assert period_state.oracle_contract_address == oracle_contract_address
-    assert period_state.participant_to_observations == participant_to_observations
-    assert period_state.participant_to_estimate == participant_to_estimate
-    assert period_state.estimate == estimate
-    assert period_state.most_voted_estimate == most_voted_estimate
-    assert period_state.most_voted_tx_hash == most_voted_tx_hash
-    assert period_state.final_tx_hash == final_tx_hash
-    assert period_state.is_final_tx_hash_set is True
-
-    assert period_state.encoded_most_voted_estimate == encode_float(most_voted_estimate)
-
-
-def test_common_apps_period_state() -> None:
-    """Test CommonAppsPeriodState."""
+def test_period_states() -> None:
+    """Test PeriodState."""
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
@@ -1033,8 +949,51 @@ def test_common_apps_period_state() -> None:
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
     final_tx_hash = get_final_tx_hash()
+    participant_to_observations = get_participant_to_observations(participants)
+    estimate = get_estimate()
+    most_voted_estimate = get_most_voted_estimate()
 
-    period_state = CommonAppsPeriodState(
+    period_state = PeriodState(
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+                participant_to_votes=participant_to_votes,
+            ),
+        )
+    )
+
+    actual_keeper_randomness = float(
+        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
+    )
+    assert period_state.keeper_randomness == actual_keeper_randomness
+    assert period_state.most_voted_randomness == most_voted_randomness
+    assert period_state.most_voted_keeper_address == most_voted_keeper_address
+    assert period_state.participant_to_votes == participant_to_votes
+
+    period_state_ = SafeDeploymentPeriodState(
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address=safe_contract_address,
+            ),
+        )
+    )
+    assert period_state_.keeper_randomness == actual_keeper_randomness
+    assert period_state_.most_voted_randomness == most_voted_randomness
+    assert period_state_.most_voted_keeper_address == most_voted_keeper_address
+    assert period_state_.safe_contract_address == safe_contract_address
+
+    period_state__ = OracleDeploymentPeriodState(
         StateDB(
             initial_period=0,
             initial_data=dict(
@@ -1045,25 +1004,80 @@ def test_common_apps_period_state() -> None:
                 most_voted_keeper_address=most_voted_keeper_address,
                 safe_contract_address=safe_contract_address,
                 oracle_contract_address=oracle_contract_address,
-                participant_to_votes=participant_to_votes,
+            ),
+        )
+    )
+    assert period_state__.keeper_randomness == actual_keeper_randomness
+    assert period_state__.most_voted_randomness == most_voted_randomness
+    assert period_state__.most_voted_keeper_address == most_voted_keeper_address
+    assert period_state__.safe_contract_address == safe_contract_address
+    assert period_state__.oracle_contract_address == oracle_contract_address
+
+    period_state____ = RegistrationPeriodState(
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+            ),
+        )
+    )
+    assert period_state____.keeper_randomness == actual_keeper_randomness
+    assert period_state____.most_voted_randomness == most_voted_randomness
+    assert period_state____.most_voted_keeper_address == most_voted_keeper_address
+
+    period_state_____ = TransactionSettlementPeriodState(
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address=safe_contract_address,
+                oracle_contract_address=oracle_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
                 final_tx_hash=final_tx_hash,
             ),
         )
     )
+    assert period_state_____.keeper_randomness == actual_keeper_randomness
+    assert period_state_____.most_voted_randomness == most_voted_randomness
+    assert period_state_____.most_voted_keeper_address == most_voted_keeper_address
+    assert period_state_____.safe_contract_address == safe_contract_address
+    assert period_state_____.oracle_contract_address == oracle_contract_address
+    assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
+    assert period_state_____.participant_to_signature == participant_to_signature
+    assert period_state_____.final_tx_hash == final_tx_hash
 
-    actual_keeper_randomness = float(
-        (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
+    period_state______ = PriceEstimationPeriodState(
+        StateDB(
+            initial_period=0,
+            initial_data=dict(
+                participants=participants,
+                participant_to_randomness=participant_to_randomness,
+                most_voted_randomness=most_voted_randomness,
+                participant_to_selection=participant_to_selection,
+                most_voted_keeper_address=most_voted_keeper_address,
+                safe_contract_address=safe_contract_address,
+                oracle_contract_address=oracle_contract_address,
+                most_voted_tx_hash=most_voted_tx_hash,
+                most_voted_estimate=most_voted_estimate,
+                participant_to_observations=participant_to_observations,
+            ),
+        )
     )
-    assert period_state.keeper_randomness == actual_keeper_randomness
-    assert period_state.participant_to_randomness == participant_to_randomness
-    assert period_state.most_voted_randomness == most_voted_randomness
-    assert period_state.participant_to_selection == participant_to_selection
-    assert period_state.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state.safe_contract_address == safe_contract_address
-    assert period_state.oracle_contract_address == oracle_contract_address
-    assert period_state.participant_to_votes == participant_to_votes
-    assert period_state.most_voted_tx_hash == most_voted_tx_hash
-    assert period_state.participant_to_signature == participant_to_signature
-    assert period_state.final_tx_hash == final_tx_hash
+    assert period_state______.keeper_randomness == actual_keeper_randomness
+    assert period_state______.most_voted_randomness == most_voted_randomness
+    assert period_state______.most_voted_keeper_address == most_voted_keeper_address
+    assert period_state______.safe_contract_address == safe_contract_address
+    assert period_state______.oracle_contract_address == oracle_contract_address
+    assert period_state______.most_voted_tx_hash == most_voted_tx_hash
+    assert period_state______.most_voted_estimate == most_voted_estimate
+    assert period_state______.participant_to_observations == participant_to_observations
+    assert period_state______.estimate == estimate

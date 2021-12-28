@@ -53,18 +53,7 @@ class SharedState(BaseSharedState):
         )
 
 
-class Params(BaseParams):
-    """Parameters."""
-
-    observation_interval: float
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object."""
-        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
-        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
-        self.sleep_time = self._ensure("sleep_time", kwargs)
-        self.observation_interval = self._ensure("observation_interval", kwargs)
-        super().__init__(*args, **kwargs)
+Params = BaseParams
 
 
 class RandomnessApi(ApiSpecs):

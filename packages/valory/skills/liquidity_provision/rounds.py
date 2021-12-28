@@ -29,26 +29,28 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    OnlyKeeperSendsRound,
-    VotingRound,
-)
-from packages.valory.skills.common_apps.payloads import (
-    FinalizationTxPayload,
-    SignaturePayload,
-    TransactionHashPayload,
-    TransactionType,
-    ValidatePayload,
-)
-from packages.valory.skills.common_apps.rounds import (
-    BaseRandomnessRound,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
-    ResetAndPauseRound,
-    ResetRound,
+    OnlyKeeperSendsRound,
+    VotingRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    RandomnessOracleRound as RandomnessRound,
+)
+from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    FinalizationTxPayload,
+    SignaturePayload,
+    TransactionType,
+    ValidatePayload,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    ResetAndPauseRound,
+    ResetRound,
 )
 
 
@@ -330,7 +332,7 @@ class EnterPoolTransactionValidationRound(TransactionValidationBaseRound):
     round_id = "enter_pool_tx_validation"
 
 
-class EnterPoolRandomnessRound(BaseRandomnessRound):
+class EnterPoolRandomnessRound(RandomnessRound):
     """Enter pool randomness round."""
 
     round_id = "enter_pool_randomness"
@@ -368,7 +370,7 @@ class ExitPoolTransactionValidationRound(TransactionValidationBaseRound):
     round_id = "exit_pool_tx_validation"
 
 
-class ExitPoolRandomnessRound(BaseRandomnessRound):
+class ExitPoolRandomnessRound(RandomnessRound):
     """Exit pool randomness round."""
 
     round_id = "exit_pool_randomness"
@@ -406,7 +408,7 @@ class SwapBackTransactionValidationRound(TransactionValidationBaseRound):
     round_id = "swap_back_tx_validation"
 
 
-class SwapBackRandomnessRound(BaseRandomnessRound):
+class SwapBackRandomnessRound(RandomnessRound):
     """Exit pool randomness round."""
 
     round_id = "swap_back_randomness"

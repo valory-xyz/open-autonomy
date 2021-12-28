@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+from enum import Enum
 from typing import Optional, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -43,7 +44,7 @@ class DummyContext:
 class ConcreteRound(AbstractRound):
     """A ConcreteRoundA for testing purposes."""
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle the end of the block."""
 
 

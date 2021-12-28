@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Optional, cast
+from typing import Generator, Optional, Tuple, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -33,34 +33,30 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import BaseState
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
+from packages.valory.skills.abstract_round_abci.common import (
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
-from packages.valory.skills.common_apps.models import Params
-from packages.valory.skills.common_apps.payloads import (
+from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
     ValidatePayload,
 )
-from packages.valory.skills.common_apps.rounds import (
+from packages.valory.skills.transaction_settlement_abci.rounds import (
     CollectSignatureRound,
     FinalizationRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
-    RegistrationRound,
-    RegistrationStartupRound,
     ResetAndPauseRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
 )
-from packages.valory.skills.common_apps.tools import hex_to_payload, random_selection
 
 
 SAFE_TX_GAS = 4000000  # TOFIX
@@ -70,194 +66,24 @@ benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
 
-class CommonAppsBaseState(BaseState, ABC):
+def hex_to_payload(payload: str) -> Tuple[str, int, int, int]:
+    """Decode payload."""
+    if len(payload) != 106:
+        raise ValueError("cannot encode provided payload")  # pragma: nocover
+    tx_hash = payload[:64]
+    epoch_ = int.from_bytes(bytes.fromhex(payload[64:72]), "big")
+    round_ = int.from_bytes(bytes.fromhex(payload[72:74]), "big")
+    amount_ = int.from_bytes(bytes.fromhex(payload[74:]), "big")
+    return (tx_hash, epoch_, round_, amount_)
+
+
+class TransactionSettlementBaseState(BaseState, ABC):
     """Base state behaviour for the common apps skill."""
 
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, cast(BaseSharedState, self.context.state).period_state)
-
-    @property
-    def params(self) -> Params:
-        """Return the params."""
-        return cast(Params, self.context.params)
-
-
-class TendermintHealthcheckBehaviour(CommonAppsBaseState):
-    """Check whether Tendermint nodes are running."""
-
-    state_id = "tendermint_healthcheck"
-    matching_round = None
-
-    _check_started: Optional[datetime.datetime] = None
-    _timeout: float
-    _is_healthy: bool
-
-    def start(self) -> None:
-        """Set up the behaviour."""
-        if self._check_started is None:
-            self._check_started = datetime.datetime.now()
-            self._timeout = self.params.max_healthcheck
-            self._is_healthy = False
-
-    def _is_timeout_expired(self) -> bool:
-        """Check if the timeout expired."""
-        if self._check_started is None or self._is_healthy:
-            return False  # pragma: no cover
-        return datetime.datetime.now() > self._check_started + datetime.timedelta(
-            0, self._timeout
-        )
-
-    def async_act(self) -> Generator:
-        """Do the action."""
-
-        self.start()
-        if self._is_timeout_expired():
-            # if the Tendermint node cannot update the app then the app cannot work
-            raise RuntimeError("Tendermint node did not come live!")
-        if not self._is_healthy:
-            health = yield from self._get_health()
-            try:
-                json_body = json.loads(health.body.decode())
-            except json.JSONDecodeError:
-                self.context.logger.error("Tendermint not running yet, trying again!")
-                yield from self.sleep(self.params.sleep_time)
-                return
-            self._is_healthy = True
-        status = yield from self._get_status()
-        try:
-            json_body = json.loads(status.body.decode())
-        except json.JSONDecodeError:
-            self.context.logger.error(
-                "Tendermint not accepting transactions yet, trying again!"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            return
-
-        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = self.context.state.period.height
-        self.context.logger.info(
-            "local-height = %s, remote-height=%s", local_height, remote_height
-        )
-        if local_height != remote_height:
-            self.context.logger.info("local height != remote height; retrying...")
-            yield from self.sleep(self.params.sleep_time)
-            return
-        self.context.logger.info("local height == remote height; done")
-        self.set_done()
-
-
-class RegistrationBaseBehaviour(CommonAppsBaseState):
-    """Register to the next periods."""
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            payload = RegistrationPayload(self.context.agent_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
-class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
-
-    state_id = "registration_startup"
-    matching_round = RegistrationStartupRound
-
-
-class RegistrationBehaviour(RegistrationBaseBehaviour):
-    """Register to the next periods."""
-
-    state_id = "registration"
-    matching_round = RegistrationRound
-
-
-class RandomnessBehaviour(CommonAppsBaseState):
-    """Check whether Tendermint nodes are running."""
-
-    def async_act(self) -> Generator:
-        """
-        Check whether tendermint is running or not.
-
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit.
-        - If healthcheck passes set done event.
-        """
-        if self.context.randomness_api.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            api_specs = self.context.randomness_api.get_spec()
-            response = yield from self.get_http_response(
-                method=api_specs["method"],
-                url=api_specs["url"],
-            )
-            observation = self.context.randomness_api.process_response(response)
-
-        if observation:
-            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            self.context.logger.info("Verifying DRAND values.")
-            check, error = drand_check.verify(observation, self.params.drand_public_key)
-            if check:
-                self.context.logger.info("DRAND check successful.")
-            else:
-                self.context.logger.info(f"DRAND check failed, {error}.")
-                observation["randomness"] = ""
-                observation["round"] = ""
-
-            payload = RandomnessPayload(
-                self.context.agent_address,
-                observation["round"],
-                observation["randomness"],
-            )
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-        else:
-            self.context.logger.error(
-                f"Could not get randomness from {self.context.randomness_api.api_id}"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            self.context.randomness_api.increment_retries()
-
-    def clean_up(self) -> None:
-        """
-        Clean up the resources due to a 'stop' event.
-
-        It can be optionally implemented by the concrete classes.
-        """
-        self.context.randomness_api.reset_retries()
+        return cast(PeriodState, super().period_state)
 
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
@@ -265,50 +91,7 @@ class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
 
     state_id = "randomness_transaction_submission"
     matching_round = RandomnessTransactionSubmissionRound
-
-
-class SelectKeeperBehaviour(CommonAppsBaseState, ABC):
-    """Select the keeper agent."""
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Select a keeper randomly.
-        - Send the transaction with the keeper and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            if (
-                self.period_state.is_keeper_set
-                and len(self.period_state.participants) > 1
-            ):
-                # if a keeper is already set we remove it from the potential selection.
-                potential_keepers = list(self.period_state.participants)
-                potential_keepers.remove(self.period_state.most_voted_keeper_address)
-                relevant_set = sorted(potential_keepers)
-            else:
-                relevant_set = sorted(self.period_state.participants)
-            keeper_address = random_selection(
-                relevant_set,
-                self.period_state.keeper_randomness,
-            )
-
-            self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
-            payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
+    payload_class = RandomnessPayload
 
 
 class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
@@ -316,6 +99,7 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
 
     state_id = "select_keeper_transaction_submission_a"
     matching_round = SelectKeeperTransactionSubmissionRoundA
+    payload_class = SelectKeeperPayload
 
 
 class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
@@ -323,9 +107,10 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
+    payload_class = SelectKeeperPayload
 
 
-class ValidateTransactionBehaviour(CommonAppsBaseState):
+class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     """ValidateTransaction."""
 
     state_id = "validate_transaction"
@@ -428,7 +213,7 @@ class ValidateTransactionBehaviour(CommonAppsBaseState):
         return verified
 
 
-class SignatureBehaviour(CommonAppsBaseState):
+class SignatureBehaviour(TransactionSettlementBaseState):
     """Signature state."""
 
     state_id = "sign"
@@ -477,7 +262,7 @@ class SignatureBehaviour(CommonAppsBaseState):
         return signature_hex
 
 
-class FinalizeBehaviour(CommonAppsBaseState):
+class FinalizeBehaviour(TransactionSettlementBaseState):
     """Finalize state."""
 
     state_id = "finalize"
@@ -583,7 +368,7 @@ class FinalizeBehaviour(CommonAppsBaseState):
         return tx_digest
 
 
-class BaseResetBehaviour(CommonAppsBaseState):
+class BaseResetBehaviour(TransactionSettlementBaseState):
     """Reset state."""
 
     pause = True

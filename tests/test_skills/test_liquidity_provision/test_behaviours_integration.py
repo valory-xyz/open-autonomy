@@ -51,7 +51,6 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.common_apps.payloads import SignaturePayload
 from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
     EnterPoolTransactionSendBehaviour,
@@ -69,6 +68,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
