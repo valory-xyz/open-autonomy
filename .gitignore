@@ -1,5 +1,7 @@
 kubeconfig
 # Local .terraform directories
+aws_creds
+do_creds
 **/.terraform/*
 
 # .tfstate files
