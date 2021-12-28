@@ -668,7 +668,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             assert "[test_agent_name] Retrieved test: 4." in caplog.text
             assert specs._retries_attempted == 0
 
-    @pytest.mark.skip
     def test_fetch_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -684,12 +683,16 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             FetchBehaviour.state_id,
             PeriodState(),
         )
+        history_duration = cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.history_duration
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.behaviours.gen_unix_timestamps",
-            lambda *_: iter((1618735147,)),
+            time,
+            "time",
+            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
         )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
@@ -741,8 +744,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
@@ -918,6 +919,85 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).params.sleep_time
         )
         self.apy_estimation_behaviour.act_wrapper()
+
+    @pytest.mark.skip
+    def test_fetch_behaviour_stop_iteration(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
+        # fast-forward to fetch behaviour.
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            PeriodState(),
+        )
+        # set history duration to a negative value in order to raise a `StopIteration`.
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.history_duration = -1
+
+        # test empty retrieved history.
+        with pytest.raises(AEAActException, match="Cannot continue FetchBehaviour."):
+            self.apy_estimation_behaviour.act_wrapper()
+
+        # fast-forward to fetch behaviour.
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            PeriodState(),
+        )
+
+        # test with retrieved history and non-existing save path.
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        )._pairs_hist = [{"": ""}]
+        save_path = os.path.join("non", "existing")
+        monkeypatch.setattr(os.path, "join", lambda *_: save_path)
+        monkeypatch.setattr(os, "makedirs", lambda *_, **__: no_action)
+        with pytest.raises(AEAActException):
+            self.apy_estimation_behaviour.act_wrapper()
+
+        # fast-forward to fetch behaviour.
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            PeriodState(),
+        )
+
+        # test with retrieved history and valid save path.
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        )._pairs_hist = [{"test": "test"}]
+        importlib.reload(os.path)
+        save_path = os.path.join(tmp_path, "test")
+        monkeypatch.setattr(os.path, "join", lambda *_: save_path)
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == TransformBehaviour.state_id
+
+        # fast-forward to fetch behaviour.
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            PeriodState(),
+        )
+
+        # test with non-serializable retrieved history and valid save path.
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        )._pairs_hist = [
+            b"non-serializable"  # type: ignore
+        ]
+        with pytest.raises(
+            AEAActException, match="Historical data cannot be JSON serialized!"
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
 
     def test_clean_up(
         self,

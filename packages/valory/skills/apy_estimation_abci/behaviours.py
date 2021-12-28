@@ -320,7 +320,7 @@ class FetchBehaviour(APYEstimationBaseState):
                         cast(Iterator[int], self._timestamps_iterator)
                     )
 
-                except StopIteration:
+                except StopIteration as e:
 
                     if len(self._pairs_hist) > 0:
                         # Store historical data to a json file.
@@ -358,6 +358,8 @@ class FetchBehaviour(APYEstimationBaseState):
                         self.context.logger.error(
                             "Could not download any historical data!"
                         )
+                        # Fix: exit round via fail event and move to right round
+                        raise RuntimeError("Cannot continue FetchBehaviour.") from e
 
             # Fetch block.
             fantom_api_specs = self.context.fantom_subgraph.get_spec()
