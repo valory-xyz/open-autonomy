@@ -31,6 +31,7 @@ import pytest
 from aea.skills.base import SkillContext
 from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
+from optuna.trial import TrialState
 from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
@@ -250,6 +251,49 @@ def optimize_task_result() -> optuna.Study:
     trial = optuna.trial.create_trial(
         params={"x": 2.0},
         distributions={"x": UniformDistribution(0, 10)},
+        value=4.0,
+    )
+
+    study.add_trial(trial)
+
+    return study
+
+
+@pytest.fixture
+def optimize_task_result_empty() -> optuna.Study:
+    """Create an empty result of the `OptimizeTask`.
+
+    :return: a dummy `Task` Result.
+    """
+    study = optuna.create_study()
+
+    warnings.filterwarnings("ignore", category=ExperimentalWarning)
+
+    trial = optuna.trial.create_trial(
+        state=TrialState.WAITING,
+        params={"x": 2.0},
+        distributions={"x": UniformDistribution(0, 10)},
+        value=4.0,
+    )
+
+    study.add_trial(trial)
+
+    return study
+
+
+@pytest.fixture
+def optimize_task_result_non_serializable() -> optuna.Study:
+    """Create a non-serializable result of the `OptimizeTask`.
+
+    :return: a dummy `Task` Result.
+    """
+    study = optuna.create_study()
+
+    warnings.filterwarnings("ignore", category=ExperimentalWarning)
+
+    trial = optuna.trial.create_trial(
+        params={b"x": 2.0},  # type: ignore
+        distributions={b"x": UniformDistribution(0, 10)},  # type: ignore
         value=4.0,
     )
 
