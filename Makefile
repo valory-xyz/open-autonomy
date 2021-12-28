@@ -153,9 +153,6 @@ new_env: clean
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
 	fi;\
-	
-	echo "Installing pre_commit"
-	cp scripts/pre-commit .git/hooks/pre-commit
 
 	if [ -z "$v" ];\
 	then\
@@ -167,3 +164,8 @@ new_env: clean
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
+
+.PHONY: install_pre_commit
+install_pre_commit:
+	echo "Installing pre_commit"
+	cp scripts/pre-commit .git/hooks/pre-commit
