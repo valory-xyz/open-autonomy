@@ -929,7 +929,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
-    @pytest.mark.skip
     def test_fetch_behaviour_stop_iteration(
         self,
         monkeypatch: MonkeyPatch,
@@ -977,12 +976,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # test with retrieved history and valid save path.
+        importlib.reload(os.path)
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         )._pairs_hist = [{"test": "test"}]
-        importlib.reload(os.path)
-        save_path = os.path.join(tmp_path, "test")
-        monkeypatch.setattr(os.path, "join", lambda *_: save_path)
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -1004,7 +1002,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             b"non-serializable"  # type: ignore
         ]
         with pytest.raises(
-            AEAActException, match="Historical data cannot be JSON serialized!"
+            AEAActException,
+            match="TypeError: Object of type bytes is not JSON serializable",
         ):
             self.apy_estimation_behaviour.act_wrapper()
 
