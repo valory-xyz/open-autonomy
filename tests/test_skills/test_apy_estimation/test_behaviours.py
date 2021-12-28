@@ -98,6 +98,9 @@ from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
 
 
+SLEEP_TIME_TWEAK = 0.01
+
+
 class DummyAsyncResult(object):
     """Dummy class for AsyncResult."""
 
@@ -369,6 +372,11 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).state_id
             == TendermintHealthcheckBehaviour.state_id
         )
+
+        cast(
+            TendermintHealthcheckBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+
         self.apy_estimation_behaviour.act_wrapper()
 
         with patch.object(
@@ -394,11 +402,7 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
             logging.ERROR,
             "Tendermint not running yet, trying again!",
         )
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_not_live_raises(self) -> None:
@@ -429,6 +433,11 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).state_id
             == TendermintHealthcheckBehaviour.state_id
         )
+
+        cast(
+            TendermintHealthcheckBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(
             request_kwargs=dict(
@@ -466,11 +475,7 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TendermintHealthcheckBehaviour.state_id
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_live_and_status(self) -> None:
@@ -546,6 +551,11 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
             TendermintHealthcheckBehaviour,
             self.apy_estimation_behaviour.current_state,
         )._is_healthy = True
+
+        cast(
+            TendermintHealthcheckBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+
         self.apy_estimation_behaviour.act_wrapper()
         with patch.object(
             self.apy_estimation_behaviour.context.logger, "log"
@@ -581,11 +591,7 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TendermintHealthcheckBehaviour.state_id
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
 
@@ -808,6 +814,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "time",
             lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
         )
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -842,11 +851,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             assert "[test_agent_name] Could not get block from fantom" in caplog.text
 
         caplog.clear()
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
         # block request.
@@ -880,11 +885,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             )
 
         caplog.clear()
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
         # block request.
@@ -925,11 +926,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             )
 
         caplog.clear()
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
     @pytest.mark.skip
@@ -1191,7 +1188,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         cast(
                             TransformBehaviour,
                             self.apy_estimation_behaviour.current_state,
-                        ).params.sleep_time = 0.1
+                        ).params.sleep_time = SLEEP_TIME_TWEAK
 
                         # Run the Behaviour for the first time, with a non-ready `DummyAsyncResult`.
                         self.apy_estimation_behaviour.act_wrapper()
@@ -1204,12 +1201,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                             )._async_result,
                         ).id
                         # Sleep to wait for the behaviour that is also sleeping.
-                        time.sleep(
-                            cast(
-                                TransformBehaviour,
-                                self.apy_estimation_behaviour.current_state,
-                            ).params.sleep_time
-                        )
+                        time.sleep(SLEEP_TIME_TWEAK + 0.01)
                         # Continue the `async_act` after the sleep of the Behaviour.
                         self.apy_estimation_behaviour.act_wrapper()
 
@@ -1229,12 +1221,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                                     )._async_result,
                                 ).id
                             )
-                            time.sleep(
-                                cast(
-                                    TransformBehaviour,
-                                    self.apy_estimation_behaviour.current_state,
-                                ).params.sleep_time
-                            )
+                            time.sleep(SLEEP_TIME_TWEAK + 0.01)
                             self.apy_estimation_behaviour.act_wrapper()
 
                         # Simulate the result being eventually ready.
@@ -1478,12 +1465,11 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
                 version="", status_code=200, status_text="", headers="", body=b""
             ),
         )
+        cast(
+            RandomnessBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
-        time.sleep(
-            cast(
-                FetchBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.sleep_time
-        )
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
     def test_max_retries_reached(
@@ -1724,7 +1710,13 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.context.task_manager.start()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        cast(
+            TrainBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.apy_estimation_behaviour.act_wrapper()
+
         assert (
             cast(
                 APYEstimationBaseState, self.apy_estimation_behaviour.current_state
@@ -1839,7 +1831,13 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).setup()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+        cast(
+            _TestBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        self.apy_estimation_behaviour.act_wrapper()
+
         assert (
             cast(
                 APYEstimationBaseState, self.apy_estimation_behaviour.current_state
@@ -2035,8 +2033,11 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             CycleResetBehaviour, self.apy_estimation_behaviour.current_state
         ).params.observation_interval = 0.1
+        cast(
+            CycleResetBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
-        time.sleep(0.2)
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
         self.mock_a2a_transaction()
@@ -2082,7 +2083,10 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
                 in caplog.text
             )
 
-        time.sleep(0.2)
+        cast(
+            CycleResetBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
         self.mock_a2a_transaction()
