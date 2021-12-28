@@ -49,6 +49,7 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
     NEGATIVE = "negative"
     NONE = "none"
+    FAILED = "failed"
     DEPLOY_TIMEOUT = "deploy_timeout"
     VALIDATE_TIMEOUT = "validate_timeout"
 
@@ -110,8 +111,10 @@ class DeployOracleRound(OnlyKeeperSendsRound):
     round_id = "deploy_oracle"
     allowed_tx_type = DeployOraclePayload.transaction_type
     payload_attribute = "oracle_contract_address"
-    payload_key = "oracle_contract_address"
+    period_state_class = PeriodState
     done_event = Event.DONE
+    fail_event = Event.FAILED
+    payload_key = "oracle_contract_address"
 
 
 class ValidateOracleRound(VotingRound):
@@ -126,11 +129,13 @@ class ValidateOracleRound(VotingRound):
 
     round_id = "validate_oracle"
     allowed_tx_type = ValidateOraclePayload.transaction_type
-    state_key = "participant_to_votes"
+    payload_attribute = "vote"
+    period_state_class = PeriodState
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_votes"
 
 
 class FinishedOracleRound(DegenerateRound):
@@ -157,6 +162,7 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
             Event.DEPLOY_TIMEOUT: SelectKeeperOracleRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperOracleRound,  # the keeper was unsuccessful;
         },
         ValidateOracleRound: {
             Event.DONE: FinishedOracleRound,

@@ -150,6 +150,7 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     round_id = "collect_signature"
     allowed_tx_type = SignaturePayload.transaction_type
     payload_attribute = "signature"
+    period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     selection_key = "participant"
@@ -169,9 +170,10 @@ class FinalizationRound(OnlyKeeperSendsRound):
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_hash"
-    payload_key = "final_tx_hash"
+    period_state_class = PeriodState
     done_event = Event.DONE
     fail_event = Event.FAILED
+    payload_key = "final_tx_hash"
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
@@ -275,11 +277,12 @@ class ValidateTransactionRound(VotingRound):
     round_id = "validate_transaction"
     allowed_tx_type = ValidatePayload.transaction_type
     payload_attribute = "vote"
-    state_key = "participant_to_votes"
+    period_state_class = PeriodState
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_votes"
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
@@ -337,4 +340,5 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
+        Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }

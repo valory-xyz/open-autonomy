@@ -32,6 +32,7 @@ from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
 from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
 
 
@@ -57,14 +58,35 @@ class SharedState(BaseSharedState):
         PriceEstimationAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+        PriceEstimationAbciApp.event_to_timeout[
+            SafeEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[
+            OracleEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[
+            TSEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
             self.context.params.round_timeout_seconds * MULTIPLIER
         )
-        PriceEstimationAbciApp.event_to_timeout[Event.VALIDATE_TIMEOUT] = (
+        PriceEstimationAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        PriceEstimationAbciApp.event_to_timeout[OracleEvent.VALIDATE_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        PriceEstimationAbciApp.event_to_timeout[TSEvent.VALIDATE_TIMEOUT] = (
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )
         PriceEstimationAbciApp.event_to_timeout[OracleEvent.DEPLOY_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        PriceEstimationAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
             self.context.params.retry_timeout * self.context.params.retry_attempts
             + MARGIN
         )

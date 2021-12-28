@@ -1009,6 +1009,7 @@ class OnlyKeeperSendsRound(AbstractRound):
     done_event: Any
     fail_event: Any
     payload_key: str
+    period_state_class = BasePeriodState
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
@@ -1062,7 +1063,10 @@ class OnlyKeeperSendsRound(AbstractRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.has_keeper_sent_payload and self.keeper_payload is not None:
-            state = self.period_state.update(**{self.payload_key: self.keeper_payload})
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                **{self.payload_key: self.keeper_payload},
+            )
             return state, self.done_event
         if self.has_keeper_sent_payload and self.keeper_payload is None:
             return self.period_state, self.fail_event
@@ -1081,7 +1085,8 @@ class VotingRound(CollectionRound):
     negative_event: Any
     none_event: Any
     no_majority_event: Any
-    state_key: str
+    collection_key: str
+    period_state_class = BasePeriodState
 
     @property
     def positive_vote_threshold_reached(self) -> bool:
@@ -1114,7 +1119,7 @@ class VotingRound(CollectionRound):
         """Process the end of the block."""
         # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
-            state = self.period_state.update(**{self.state_key: self.collection})  # type: ignore
+            state = self.period_state.update(period_state_class=self.period_state_class, **{self.collection_key: self.collection})  # type: ignore
             return state, self.done_event
         if self.negative_vote_threshold_reached:
             return self.period_state, self.negative_event

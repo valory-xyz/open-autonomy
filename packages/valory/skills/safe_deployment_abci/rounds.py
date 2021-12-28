@@ -49,6 +49,7 @@ class Event(Enum):
     NO_MAJORITY = "no_majority"
     NEGATIVE = "negative"
     NONE = "none"
+    FAILED = "failed"
     DEPLOY_TIMEOUT = "deploy_timeout"
     VALIDATE_TIMEOUT = "validate_timeout"
 
@@ -105,8 +106,10 @@ class DeploySafeRound(OnlyKeeperSendsRound):
     round_id = "deploy_safe"
     allowed_tx_type = DeploySafePayload.transaction_type
     payload_attribute = "safe_contract_address"
-    payload_key = "safe_contract_address"
+    period_state_class = PeriodState
     done_event = Event.DONE
+    fail_event = Event.FAILED
+    payload_key = "safe_contract_address"
 
 
 class ValidateSafeRound(VotingRound):
@@ -122,11 +125,11 @@ class ValidateSafeRound(VotingRound):
     round_id = "validate_safe"
     allowed_tx_type = ValidatePayload.transaction_type
     payload_attribute = "vote"
-    state_key = "participant_to_votes"
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_votes"
 
 
 class FinishedSafeRound(DegenerateRound):
@@ -153,6 +156,7 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
             Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperSafeRound,  # the keeper was unsuccessful;
         },
         ValidateSafeRound: {
             Event.DONE: FinishedSafeRound,

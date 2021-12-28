@@ -52,8 +52,6 @@ class Event(Enum):
     NONE = "none"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
-    VALIDATE_TIMEOUT = "validate_timeout"
-    RESET_TIMEOUT = "reset_timeout"
 
 
 def encode_float(value: float) -> bytes:
@@ -120,11 +118,11 @@ class CollectObservationRound(CollectDifferentUntilThresholdRound):
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
     payload_attribute = "observation"
+    period_state_class = PeriodState
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     selection_key = "participant"
     collection_key = "participant_to_observations"
-    period_state_class = PeriodState
 
 
 class EstimateConsensusRound(CollectSameUntilThresholdRound):
@@ -200,6 +198,4 @@ class PriceAggregationAbciApp(AbciApp[Event]):
     final_states: Set[AppState] = {FinishedPriceAggregationRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
-        Event.VALIDATE_TIMEOUT: 30.0,
-        Event.RESET_TIMEOUT: 30.0,
     }
