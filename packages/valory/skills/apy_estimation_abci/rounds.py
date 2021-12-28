@@ -69,11 +69,6 @@ class PeriodState(BasePeriodState):
     """Class to represent a period state. This state is replicated by the tendermint application."""
 
     @property
-    def most_voted_randomness(self) -> int:
-        """Get the most_voted_randomness."""
-        return cast(int, self.db.get_strict("most_voted_randomness"))
-
-    @property
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
         return cast(float, self.db.get_strict("most_voted_estimate"))

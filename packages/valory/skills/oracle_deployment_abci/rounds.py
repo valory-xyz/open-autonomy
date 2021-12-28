@@ -19,8 +19,8 @@
 
 """This module contains the data classes for the oracle deployment ABCI application."""
 
-from abc import ABC
-from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
+from enum import Enum
+from typing import Dict, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -28,21 +28,29 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BasePeriodState,
+    CollectSameUntilThresholdRound,
+    DegenerateRound,
     OnlyKeeperSendsRound,
+    VotingRound,
 )
-from packages.valory.skills.common_apps.payloads import (
+from packages.valory.skills.oracle_deployment_abci.payloads import (
+    DeployOraclePayload,
     RandomnessPayload,
     SelectKeeperPayload,
+    ValidateOraclePayload,
 )
-from packages.valory.skills.common_apps.rounds import (
-    BaseRandomnessRound,
-    Event,
-    FinishedRound,
-    SelectKeeperRound,
-    TransactionType,
-    ValidateRound,
-)
-from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+
+
+class Event(Enum):
+    """Event enumeration for the price estimation demo."""
+
+    DONE = "done"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
+    NEGATIVE = "negative"
+    NONE = "none"
+    DEPLOY_TIMEOUT = "deploy_timeout"
+    VALIDATE_TIMEOUT = "validate_timeout"
 
 
 class PeriodState(BasePeriodState):
@@ -51,43 +59,6 @@ class PeriodState(BasePeriodState):
 
     This state is replicated by the tendermint application.
     """
-
-    @property
-    def keeper_randomness(self) -> float:
-        """Get the keeper's random number [0-1]."""
-        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
-        return cast(float, res / 10)
-
-    @property
-    def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
-        """Get the participant_to_randomness."""
-        return cast(
-            Mapping[str, RandomnessPayload],
-            self.db.get_strict("participant_to_randomness"),
-        )
-
-    @property
-    def most_voted_randomness(self) -> str:
-        """Get the most_voted_randomness."""
-        return cast(str, self.db.get_strict("most_voted_randomness"))
-
-    @property
-    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
-        """Get the participant_to_selection."""
-        return cast(
-            Mapping[str, SelectKeeperPayload],
-            self.db.get_strict("participant_to_selection"),
-        )
-
-    @property
-    def most_voted_keeper_address(self) -> str:
-        """Get the most_voted_keeper_address."""
-        return cast(str, self.db.get_strict("most_voted_keeper_address"))
-
-    @property
-    def is_keeper_set(self) -> bool:
-        """Check whether keeper is set."""
-        return self.db.get("most_voted_keeper_address", None) is not None
 
     @property
     def safe_contract_address(self) -> str:
@@ -100,37 +71,33 @@ class PeriodState(BasePeriodState):
         return cast(str, self.db.get("oracle_contract_address"))
 
 
-class OracleDeploymentAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the agent registration skill."""
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, self._state)
-
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
-        """
-        Trigger the NO_MAJORITY event.
-
-        :return: a new period state and a NO_MAJORITY event
-        """
-        return self.period_state, Event.NO_MAJORITY
-
-
-class RandomnessOracleRound(BaseRandomnessRound):
-    """Randomness round for startup."""
+class RandomnessOracleRound(CollectSameUntilThresholdRound):
+    """RandomnessOracleRound round for startup."""
 
     round_id = "randomness_oracle"
+    allowed_tx_type = RandomnessPayload.transaction_type
+    payload_attribute = "randomness"
     period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_randomness"
+    selection_key = "most_voted_randomness"
 
 
-class SelectKeeperOracleRound(SelectKeeperRound):
+class SelectKeeperOracleRound(CollectSameUntilThresholdRound):
     """SelectKeeperOracleRound round for startup."""
 
     round_id = "select_keeper_oracle"
+    allowed_tx_type = SelectKeeperPayload.transaction_type
+    payload_attribute = "keeper"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_selection"
+    selection_key = "most_voted_keeper_address"
 
 
-class DeployOracleRound(OnlyKeeperSendsRound, OracleDeploymentAbstractRound):
+class DeployOracleRound(OnlyKeeperSendsRound):
     """
     This class represents the deploy Oracle round.
 
@@ -143,19 +110,11 @@ class DeployOracleRound(OnlyKeeperSendsRound, OracleDeploymentAbstractRound):
     round_id = "deploy_oracle"
     allowed_tx_type = DeployOraclePayload.transaction_type
     payload_attribute = "oracle_contract_address"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload:
-            state = self.period_state.update(
-                oracle_contract_address=self.keeper_payload
-            )
-            return state, Event.DONE
-        return None
+    payload_key = "oracle_contract_address"
+    done_event = Event.DONE
 
 
-class ValidateOracleRound(ValidateRound):
+class ValidateOracleRound(VotingRound):
     """
     This class represents the validate Oracle round.
 
@@ -166,11 +125,15 @@ class ValidateOracleRound(ValidateRound):
     """
 
     round_id = "validate_oracle"
+    allowed_tx_type = ValidateOraclePayload.transaction_type
+    state_key = "participant_to_votes"
+    done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
+    no_majority_event = Event.NO_MAJORITY
 
 
-class FinishedOracleRound(FinishedRound):
+class FinishedOracleRound(DegenerateRound):
     """This class represents the finished round of the oracle deployment."""
 
     round_id = "finished_oracle"

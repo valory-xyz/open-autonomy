@@ -71,6 +71,16 @@ class PayloadEnum(Enum):
         return self.value
 
 
+class PayloadEnumB(Enum):
+    """Payload enumeration type."""
+
+    A = "AA"
+
+    def __str__(self) -> str:
+        """Get the string representation."""
+        return self.value
+
+
 class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing.."""
 
@@ -91,6 +101,12 @@ class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnum.C
+
+
+class PayloadD(BasePayload):
+    """Payload class for payload type 'C'."""
+
+    transaction_type = PayloadEnumB.A
 
 
 class ConcreteRoundA(AbstractRound):
@@ -179,6 +195,10 @@ class TestTransactions:
         expected_payload__ = PayloadC(sender=sender)
         actual_payload__ = PayloadC.decode(expected_payload__.encode())
         assert expected_payload__ == actual_payload__
+
+        expected_payload___ = PayloadD(sender=sender)
+        actual_payload___ = PayloadD.decode(expected_payload___.encode())
+        assert expected_payload___ == actual_payload___
 
     def test_encode_decode_transaction(self) -> None:
         """Test encode/decode of a transaction."""

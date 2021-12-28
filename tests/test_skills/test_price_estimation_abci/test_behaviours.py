@@ -67,25 +67,19 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.common_apps.behaviours import (
-    CommonAppsBaseState,
-    RandomnessTransactionSubmissionBehaviour,
-    RegistrationBaseBehaviour,
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
-    SelectKeeperTransactionSubmissionBehaviourB,
-    TendermintHealthcheckBehaviour,
-)
-from packages.valory.skills.common_apps.rounds import (
-    PeriodState as CommonAppsPeriodState,
-)
-from packages.valory.skills.common_apps.tools import payload_to_hex
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
+)
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
+    PeriodState as OracleDeploymentPeriodState,
+)
+from packages.valory.skills.oracle_deployment_abci.behaviours import (
     RandomnessOracleBehaviour,
     SelectKeeperOracleBehaviour,
     ValidateOracleBehaviour,
+)
+from packages.valory.skills.oracle_deployment_abci.rounds import (
+    Event as OracleDeploymentEvent,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
@@ -97,6 +91,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     SignatureBehaviour,
     TransactionHashBehaviour,
     ValidateTransactionBehaviour,
+    payload_to_hex,
 )
 from packages.valory.skills.price_estimation_abci.handlers import (
     ContractApiHandler,
@@ -104,15 +99,41 @@ from packages.valory.skills.price_estimation_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
+from packages.valory.skills.price_estimation_abci.payloads import ObservationPayload
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
+)
+from packages.valory.skills.registration_abci.behaviours import (
+    RegistrationBaseBehaviour,
+    RegistrationBehaviour,
+    RegistrationStartupBehaviour,
+    TendermintHealthcheckBehaviour,
+)
+from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
+from packages.valory.skills.registration_abci.rounds import (
+    PeriodState as RegistrationPeriodState,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
     RandomnessSafeBehaviour,
     SelectKeeperSafeBehaviour,
     ValidateSafeBehaviour,
+)
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    Event as SafeDeploymentEvent,
+)
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    RandomnessTransactionSubmissionBehaviour,
+    SelectKeeperTransactionSubmissionBehaviourA,
+    SelectKeeperTransactionSubmissionBehaviourB,
+    TransactionSettlementBaseState,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    Event as TransactionSettlementEvent,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    PeriodState as TransactionSettlementPeriodState,
 )
 
 from tests.conftest import ROOT_DIR
@@ -412,9 +433,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             ),
         )
 
-    def end_round(
-        self,
-    ) -> None:
+    def end_round(self, done_event: Any = Event.DONE) -> None:
         """Ends round early to cover `wait_for_end` generator."""
         current_state = cast(BaseState, self.price_estimation_behaviour.current_state)
         if current_state is None:
@@ -427,7 +446,7 @@ class PriceEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_state.matching_round
-        ][Event.DONE](abci_app.state, abci_app.consensus_params)
+        ][done_event](abci_app.state, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
         self.price_estimation_behaviour._process_current_round()
 
@@ -681,7 +700,7 @@ class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
-            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
+            RegistrationPeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -694,7 +713,7 @@ class BaseRegistrationTestBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
 
-        self.end_round()
+        self.end_round(RegistrationEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
@@ -718,6 +737,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
     randomness_behaviour_class: Type[BaseState]
     next_behaviour_class: Type[BaseState]
+    done_event: Any
 
     def test_randomness_behaviour(
         self,
@@ -727,7 +747,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -757,7 +777,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(self.done_event)
 
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -769,7 +789,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -806,7 +826,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -840,7 +860,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -866,7 +886,7 @@ class BaseRandomnessBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.randomness_behaviour_class.state_id,
-            CommonAppsPeriodState(StateDB(initial_period=0, initial_data={})),
+            BasePeriodState(StateDB(initial_period=0, initial_data={})),
         )
         assert (
             cast(
@@ -889,6 +909,7 @@ class TestRandomnessSafe(BaseRandomnessBehaviourTest):
 
     randomness_behaviour_class = RandomnessSafeBehaviour
     next_behaviour_class = SelectKeeperSafeBehaviour
+    done_event = SafeDeploymentEvent.DONE
 
 
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
@@ -896,6 +917,7 @@ class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
 
     randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
     next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+    done_event = TransactionSettlementEvent.DONE
 
 
 class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -903,6 +925,7 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
     select_keeper_behaviour_class: Type[BaseState]
     next_behaviour_class: Type[BaseState]
+    done_event: Any
 
     def test_select_keeper(
         self,
@@ -912,7 +935,7 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=BasePeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -932,7 +955,7 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(self.done_event)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
@@ -945,7 +968,7 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=BasePeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -966,7 +989,7 @@ class BaseSelectKeeperBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(self.done_event)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
@@ -976,6 +999,7 @@ class TestSelectKeeperSafeBehaviour(BaseSelectKeeperBehaviourTest):
 
     select_keeper_behaviour_class = SelectKeeperSafeBehaviour
     next_behaviour_class = DeploySafeBehaviour
+    done_event = SafeDeploymentEvent.DONE
 
 
 class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
@@ -983,6 +1007,7 @@ class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
 
     select_keeper_behaviour_class = SelectKeeperOracleBehaviour
     next_behaviour_class = DeployOracleBehaviour
+    done_event = OracleDeploymentEvent.DONE
 
 
 class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourTest):
@@ -990,6 +1015,7 @@ class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourT
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour
+    done_event = TransactionSettlementEvent.DONE
 
 
 class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourTest):
@@ -997,6 +1023,7 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(BaseSelectKeeperBehaviourT
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourB
     next_behaviour_class = FinalizeBehaviour
+    done_event = TransactionSettlementEvent.DONE
 
 
 class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -1006,6 +1033,7 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
     next_behaviour_class: Type[BaseState]
     period_state_kwargs: Dict
     contract_id: str
+    done_event: Any
 
     def test_deployer_act(
         self,
@@ -1016,7 +1044,7 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
-            CommonAppsPeriodState(
+            OracleDeploymentPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1092,7 +1120,7 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(self.done_event)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
@@ -1105,7 +1133,7 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
-            CommonAppsPeriodState(
+            OracleDeploymentPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1125,7 +1153,7 @@ class BaseDeployBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.act_wrapper()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(self.done_event)
         time.sleep(1)
         self.price_estimation_behaviour.act_wrapper()
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
@@ -1139,6 +1167,7 @@ class TestDeploySafeBehaviour(BaseDeployBehaviourTest):
     next_behaviour_class = ValidateSafeBehaviour
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
+    done_event = SafeDeploymentEvent.DONE
 
 
 class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
@@ -1151,6 +1180,7 @@ class TestDeployOracleBehaviour(BaseDeployBehaviourTest):
         oracle_contract_address="oracle_contract_address",
     )
     contract_id = str(ORACLE_CONTRACT_ID)
+    done_event = OracleDeploymentEvent.DONE
 
 
 class BaseValidateBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
@@ -1160,13 +1190,14 @@ class BaseValidateBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
     next_behaviour_class: Type[BaseState]
     period_state_kwargs: Dict
     contract_id: str
+    done_event: Any
 
     def test_validate_behaviour(self) -> None:
         """Run test."""
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             self.behaviour_class.state_id,
-            CommonAppsPeriodState(
+            OracleDeploymentPeriodState(
                 StateDB(initial_period=0, initial_data=self.period_state_kwargs),
             ),
         )
@@ -1192,7 +1223,7 @@ class BaseValidateBehaviourTest(PriceEstimationFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(self.done_event)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
@@ -1204,6 +1235,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest):
     next_behaviour_class = RandomnessOracleBehaviour
     period_state_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
+    done_event = SafeDeploymentEvent.DONE
 
 
 class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
@@ -1216,6 +1248,7 @@ class TestValidateOracleBehaviour(BaseValidateBehaviourTest):
         oracle_contract_address="oracle_contract_address",
     )
     contract_id = str(ORACLE_CONTRACT_ID)
+    done_event = OracleDeploymentEvent.DONE
 
 
 class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -1297,7 +1330,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             ObserveBehaviour.state_id,
-            CommonAppsPeriodState(
+            OracleDeploymentPeriodState(
                 StateDB(initial_period=0, initial_data=dict()),
             ),
         )
@@ -1335,7 +1368,7 @@ class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.price_estimation_behaviour,
             ObserveBehaviour.state_id,
-            CommonAppsPeriodState(
+            OracleDeploymentPeriodState(
                 StateDB(initial_period=0, initial_data=dict()),
             ),
         )
@@ -1364,7 +1397,14 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
             behaviour=self.price_estimation_behaviour,
             state_id=EstimateBehaviour.state_id,
             period_state=PriceEstimationPeriodState(
-                StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participant_to_observations={
+                            "a": ObservationPayload(sender="a", observation=1.0)
+                        }
+                    ),
+                ),
             ),
         )
         assert (
@@ -1472,7 +1512,7 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=SignatureBehaviour.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(most_voted_tx_hash="68656c6c6f776f726c64"),
@@ -1500,7 +1540,7 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == FinalizeBehaviour.state_id
 
@@ -1516,7 +1556,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=FinalizeBehaviour.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1535,7 +1575,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.price_estimation_behaviour.act_wrapper()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
@@ -1547,7 +1587,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=FinalizeBehaviour.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1622,7 +1662,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
@@ -1637,7 +1677,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=ValidateTransactionBehaviour.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1706,7 +1746,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == ResetAndPauseBehaviour.state_id
 
@@ -1732,7 +1772,8 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 self.price_estimation_behaviour.act_wrapper()
                 self.price_estimation_behaviour.act_wrapper()
             state = cast(
-                CommonAppsBaseState, self.price_estimation_behaviour.current_state
+                TransactionSettlementBaseState,
+                self.price_estimation_behaviour.current_state,
             )
             final_tx_hash = state.period_state.final_tx_hash
             mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
@@ -1751,7 +1792,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
@@ -1779,7 +1820,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
@@ -1790,7 +1831,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=2,
                     initial_data=dict(
@@ -1858,7 +1899,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
             self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
         yield
@@ -1944,7 +1985,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=2,
                     initial_data=dict(
@@ -2021,7 +2062,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.price_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=CommonAppsPeriodState(
+            period_state=TransactionSettlementPeriodState(
                 StateDB(initial_period=0, initial_data=dict(estimate=1.0)),
             ),
         )
@@ -2038,6 +2079,6 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self.price_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round()
+        self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.price_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id

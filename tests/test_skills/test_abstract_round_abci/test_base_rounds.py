@@ -20,6 +20,7 @@
 """Test the base round classes."""
 
 import re
+from enum import Enum
 from typing import (
     Any,
     Callable,
@@ -28,6 +29,7 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Tuple,
     Type,
     cast,
 )
@@ -91,9 +93,9 @@ class DummyPeriodState(BasePeriodState):
     @property
     def most_voted_keeper_address(
         self,
-    ) -> Optional[str]:
+    ) -> str:
         """Returns value for _most_voted_keeper_address."""
-        return self.db.get("most_voted_keeper_address", None)
+        return self.db.get_strict("most_voted_keeper_address")
 
 
 def get_dummy_tx_payloads(
@@ -120,7 +122,7 @@ class DummyRound(AbstractRound):
     allowed_tx_type = DummyTxPayload.transaction_type
     payload_attribute = "value"
 
-    def end_block(self) -> None:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """end_block method."""
 
 

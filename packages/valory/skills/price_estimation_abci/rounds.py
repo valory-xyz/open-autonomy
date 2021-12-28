@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the price estimation ABCI application."""
+import statistics
 import struct
-from abc import ABC
-from types import MappingProxyType
-from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
+from enum import Enum
+from typing import Dict, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -31,15 +31,29 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
+    DegenerateRound,
 )
-from packages.valory.skills.common_apps.payloads import (
+from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     ObservationPayload,
     TransactionHashPayload,
-    TransactionType,
 )
-from packages.valory.skills.common_apps.rounds import Event, FinishedRound
-from packages.valory.skills.common_apps.tools import aggregate
+
+
+def aggregate(*observations: float) -> float:
+    """Aggregate a list of observations."""
+    return statistics.mean(observations)
+
+
+class Event(Enum):
+    """Event enumeration for the price estimation demo."""
+
+    DONE = "done"
+    NONE = "none"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
+    VALIDATE_TIMEOUT = "validate_timeout"
+    RESET_TIMEOUT = "reset_timeout"
 
 
 def encode_float(value: float) -> bytes:
@@ -65,34 +79,12 @@ class PeriodState(BasePeriodState):
         return cast(str, self.db.get_strict("oracle_contract_address"))
 
     @property
-    def participant_to_observations(self) -> Mapping[str, ObservationPayload]:
-        """Get the participant_to_observations."""
-        return cast(
-            Mapping[str, ObservationPayload],
-            self.db.get_strict("participant_to_observations"),
-        )
-
-    @property
-    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
-        """Get the participant_to_estimate."""
-        return cast(
-            Mapping[str, EstimatePayload], self.db.get_strict("participant_to_estimate")
-        )
-
-    @property
-    def final_tx_hash(self) -> str:
-        """Get the final_tx_hash."""
-        return cast(str, self.db.get_strict("final_tx_hash"))
-
-    @property
-    def is_final_tx_hash_set(self) -> bool:
-        """Check if final_tx_hash is set."""
-        return self.db.get("final_tx_hash", None) is not None
-
-    @property
     def estimate(self) -> float:
         """Get the estimate."""
-        return cast(float, self.db.get_strict("estimate"))
+        observations = [
+            value.observation for value in self.participant_to_observations.values()
+        ]
+        return aggregate(*observations)
 
     @property
     def most_voted_estimate(self) -> float:
@@ -100,36 +92,22 @@ class PeriodState(BasePeriodState):
         return cast(float, self.db.get_strict("most_voted_estimate"))
 
     @property
-    def encoded_most_voted_estimate(self) -> bytes:
-        """Get the encoded (most voted) estimate."""
-        return encode_float(self.most_voted_estimate)
-
-    @property
-    def most_voted_tx_hash(self) -> str:
+    def most_voted_tx_hash(self) -> float:
         """Get the most_voted_tx_hash."""
-        return cast(str, self.db.get_strict("most_voted_tx_hash"))
-
-
-class PriceEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the agent registration skill."""
+        return cast(float, self.db.get_strict("most_voted_tx_hash"))
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, self._state)
+    def participant_to_observations(self) -> Dict:
+        """Get the participant_to_observations."""
+        return cast(Dict, self.db.get_strict("participant_to_observations"))
 
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
-        """
-        Trigger the NO_MAJORITY event.
-
-        :return: a new period state and a NO_MAJORITY event
-        """
-        return self.period_state, Event.NO_MAJORITY
+    @property
+    def participant_to_estimate(self) -> Dict:
+        """Get the participant_to_estimate."""
+        return cast(Dict, self.db.get_strict("participant_to_estimate"))
 
 
-class CollectObservationRound(
-    CollectDifferentUntilThresholdRound, PriceEstimationAbstractRound
-):
+class CollectObservationRound(CollectDifferentUntilThresholdRound):
     """
     This class represents the 'collect-observation' round.
 
@@ -142,28 +120,14 @@ class CollectObservationRound(
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
     payload_attribute = "observation"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        # if reached observation threshold, set the result
-        if self.collection_threshold_reached:
-            observations = [
-                getattr(payload, self.payload_attribute)
-                for payload in self.collection.values()
-            ]
-            estimate = aggregate(*observations)
-            state = self.period_state.update(
-                participant_to_observations=MappingProxyType(self.collection),
-                estimate=estimate,
-                period_state_class=PeriodState,
-            )
-            return state, Event.DONE
-        return None
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    selection_key = "participant"
+    collection_key = "participant_to_observations"
+    period_state_class = PeriodState
 
 
-class EstimateConsensusRound(
-    CollectSameUntilThresholdRound, PriceEstimationAbstractRound
-):
+class EstimateConsensusRound(CollectSameUntilThresholdRound):
     """
     This class represents the 'estimate_consensus' round.
 
@@ -176,23 +140,15 @@ class EstimateConsensusRound(
     round_id = "estimate_consensus"
     allowed_tx_type = EstimatePayload.transaction_type
     payload_attribute = "estimate"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.period_state.update(
-                participant_to_estimate=MappingProxyType(self.collection),
-                most_voted_estimate=self.most_voted_payload,
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    none_event = Event.NONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_estimate"
+    selection_key = "most_voted_estimate"
 
 
-class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
+class TxHashRound(CollectSameUntilThresholdRound):
     """
     This class represents the 'tx-hash' round.
 
@@ -205,25 +161,15 @@ class TxHashRound(CollectSameUntilThresholdRound, PriceEstimationAbstractRound):
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
     payload_attribute = "tx_hash"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached and self.most_voted_payload is not None:
-            state = self.period_state.update(
-                participant_to_tx_hash=MappingProxyType(self.collection),
-                most_voted_tx_hash=self.most_voted_payload,
-            )
-            return state, Event.DONE
-        if self.threshold_reached and self.most_voted_payload is None:
-            return self.period_state, Event.NONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    none_event = Event.NONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_tx_hash"
+    selection_key = "most_voted_tx_hash"
 
 
-class FinishedPriceAggregationRound(FinishedRound):
+class FinishedPriceAggregationRound(DegenerateRound):
     """This class represents the finished round of the price aggreagation."""
 
     round_id = "finished_price_aggregation"

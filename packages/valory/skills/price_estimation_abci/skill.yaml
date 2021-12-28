@@ -9,12 +9,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmdcWJAMaHxN5WHZsbxDAMYRRpx1ic5eh5aPGr5YEjMSFL
-  composition.py: QmWEMjgyjWwbbmV5Qd9YubH41961a1woVx1Lsg9t25qSjH
+  behaviours.py: QmesBC8gZmUULkDHejarm36MnKHH116jN8YHhVNTJ1Uf7q
+  composition.py: QmWjN6vbo3z6kjq6NJkBxwDhgWf7DeQ6vxowsTZPVqMYQy
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmPe3RbYZBm4jGawPrGXqyvd8x9qDp7bhCx1zoWjdox8tt
-  rounds.py: QmTPCayLViMMezuy1v6MxDLeN5rEuW44yBC3KcrneEDBU4
+  models.py: QmWt3KdE9EKWDsmzrEdexK6Wv8C728o1rDas7UVvQoSKKP
+  payloads.py: QmdiwjgQpLKKFWA9sypsgFYAoiPRQqtxCiETekxFmi5tHM
+  rounds.py: QmcTXUPxTLYeAA2d6KBfrfcQvTnWfK7UZe3ep4CkE6Lv73
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -25,9 +26,10 @@ protocols:
 - valory/contract_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-- valory/common_apps:0.1.0
 - valory/oracle_deployment_abci:0.1.0
+- valory/registration_abci:0.1.0
 - valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:
     args: {}

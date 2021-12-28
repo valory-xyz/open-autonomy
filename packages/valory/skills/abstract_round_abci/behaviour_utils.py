@@ -57,6 +57,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
+    BasePeriodState,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
@@ -71,7 +72,11 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+    Requests,
+    SharedState,
+)
 
 
 _REQUEST_RETRY_DELAY = 1.0
@@ -311,6 +316,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")
+
+    @property
+    def params(self) -> BaseParams:
+        """Return the params."""
+        return cast(BaseParams, self.context.params)
+
+    @property
+    def period_state(self) -> BasePeriodState:
+        """Return the period state."""
+        return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered in a specific round."""
