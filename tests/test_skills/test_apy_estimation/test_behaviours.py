@@ -668,7 +668,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             assert "[test_agent_name] Retrieved test: 4." in caplog.text
             assert specs._retries_attempted == 0
 
-    @pytest.mark.skip
     def test_fetch_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -684,12 +683,16 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             FetchBehaviour.state_id,
             PeriodState(),
         )
+        history_duration = cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.history_duration
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.behaviours.gen_unix_timestamps",
-            lambda *_: iter((1618735147,)),
+            time,
+            "time",
+            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
         )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
@@ -741,8 +744,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TransformBehaviour.state_id
