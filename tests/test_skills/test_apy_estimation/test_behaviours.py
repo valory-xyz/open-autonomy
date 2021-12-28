@@ -1207,7 +1207,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         PeriodState(),
                     )
 
-                    self.apy_estimation_behaviour.current_state.setup()  # type: ignore
                     self.apy_estimation_behaviour.act_wrapper()
 
                     self.mock_a2a_transaction()
@@ -1484,9 +1483,6 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
         self.apy_estimation_behaviour.context.task_manager.start()
-        cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).setup()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
         self.apy_estimation_behaviour.act_wrapper()
@@ -1519,8 +1515,6 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(optimize_task_result),
         )
-
-        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         monkeypatch.setattr(pd.DataFrame, "to_csv", no_action)
         monkeypatch.setattr(
@@ -1738,9 +1732,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
         self.apy_estimation_behaviour.context.task_manager.start()
-        cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).setup()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
         self.apy_estimation_behaviour.act_wrapper()
@@ -1775,8 +1766,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(test_task_result),
         )
-        # run setup.
-        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         monkeypatch.setattr(IPFSHashOnly, "get", lambda *_: "x0")
         monkeypatch.setattr(
@@ -1815,8 +1804,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(test_task_result_non_serializable),
         )
-        # run setup.
-        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
@@ -1861,8 +1848,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(test_task_result),
         )
-        # run setup.
-        cast(OptimizeBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         # changes for act.
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
