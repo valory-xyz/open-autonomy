@@ -394,7 +394,11 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
             logging.ERROR,
             "Tendermint not running yet, trying again!",
         )
-        time.sleep(1)
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
         self.apy_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_not_live_raises(self) -> None:
@@ -462,7 +466,11 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TendermintHealthcheckBehaviour.state_id
-        time.sleep(1)
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
         self.apy_estimation_behaviour.act_wrapper()
 
     def test_tendermint_healthcheck_live_and_status(self) -> None:
@@ -573,7 +581,11 @@ class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == TendermintHealthcheckBehaviour.state_id
-        time.sleep(1)
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
         self.apy_estimation_behaviour.act_wrapper()
 
 
@@ -1467,7 +1479,11 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
         self.apy_estimation_behaviour.act_wrapper()
-        time.sleep(1)
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
         self.apy_estimation_behaviour.act_wrapper()
 
     def test_max_retries_reached(
