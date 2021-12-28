@@ -1531,6 +1531,23 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = OptimizeBehaviour
     next_behaviour_class = TrainBehaviour
 
+    def test_setup_file_not_found(
+        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test behaviour setup when file not found error is raised."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+
+        with pytest.raises(RuntimeError, match="Cannot continue OptimizeBehaviour."):
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).setup()
+
     def test_setup(
         self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
     ) -> None:
@@ -1571,7 +1588,17 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.context.task_manager.start()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
+
         self.apy_estimation_behaviour.act_wrapper()
+
+        time.sleep(
+            cast(
+                FetchBehaviour, self.apy_estimation_behaviour.current_state
+            ).params.sleep_time
+        )
+
+        self.apy_estimation_behaviour.act_wrapper()
+
         assert (
             cast(
                 APYEstimationBaseState, self.apy_estimation_behaviour.current_state
@@ -1579,14 +1606,92 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-    @pytest.mark.skip
-    def test_optimize_behaviour(
+    def test_optimize_behaviour_result_none(
+        self, monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
+    ) -> None:
+        """Run test for `optimize_behaviour` when `_async_result` is `None`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
+
+        with caplog.at_level(
+            logging.ERROR,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
+            time.sleep(
+                cast(
+                    FetchBehaviour, self.apy_estimation_behaviour.current_state
+                ).params.sleep_time
+            )
+            self.apy_estimation_behaviour.act_wrapper()
+
+        assert "Undefined behaviour encountered with `OptimizationTask`." in caplog.text
+
+    def test_optimize_behaviour_value_error(
         self,
         monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
+        optimize_task_result_empty: optuna.Study,
+    ) -> None:
+        """Run test for `optimize_behaviour` when `ValueError` is raised."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(optimize_task_result_empty),
+        )
+
+        # test ValueError handling.
+        with pytest.raises(AEAActException):
+            self.apy_estimation_behaviour.act_wrapper()
+
+    def test_optimize_behaviour_type_error(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        optimize_task_result_non_serializable: optuna.Study,
+    ) -> None:
+        """Run test for `optimize_behaviour` when `TypeError` is raised."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        save_path = os.path.join(tmp_path, "test")
+        monkeypatch.setattr(os.path, "join", lambda *_: save_path)
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(optimize_task_result_non_serializable),
+        )
+
+        # test TypeError handling.
+        with pytest.raises(AEAActException):
+            self.apy_estimation_behaviour.act_wrapper()
+
+    def test_optimize_behaviour_os_error(
+        self,
+        monkeypatch: MonkeyPatch,
         optimize_task_result: optuna.Study,
     ) -> None:
-        """Run test for `optimize_behaviour`."""
+        """Run test for `optimize_behaviour` when `OSError` is raised."""
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
@@ -1602,7 +1707,34 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             lambda *_: DummyAsyncResult(optimize_task_result),
         )
 
-        monkeypatch.setattr(pd.DataFrame, "to_csv", no_action)
+        # test OSError handling.
+        with pytest.raises(AEAActException):
+            self.apy_estimation_behaviour.act_wrapper()
+
+    def test_optimize_behaviour(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        optimize_task_result: optuna.Study,
+    ) -> None:
+        """Run test for `optimize_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(most_voted_randomness=0),
+        )
+
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
+        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
+        monkeypatch.setattr(
+            TaskManager,
+            "get_task_result",
+            lambda *_: DummyAsyncResult(optimize_task_result),
+        )
         monkeypatch.setattr(
             IPFSHashOnly,
             "get",
@@ -1614,6 +1746,9 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
