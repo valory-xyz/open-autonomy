@@ -604,7 +604,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
 
             self.set_done()
 
-        except FileNotFoundError as e:
+        except FileNotFoundError as e:  # pragma: nocover
             self.context.logger.error(
                 f"File {transformed_history_load_path} was not found!"
             )
@@ -825,17 +825,17 @@ class TrainBehaviour(APYEstimationBaseState):
         try:
             best_params = cast(Dict[str, Any], read_json_file(best_params_path))
 
-        except OSError:
+        except OSError:  # pragma: nocover
             self.context.logger.error(f"Path '{best_params_path}' could not be found!")
             should_create_task = False
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError:  # pragma: nocover
             self.context.logger.error(
                 f"File '{best_params_path}' has an invalid JSON encoding!"
             )
             should_create_task = False
 
-        except ValueError:
+        except ValueError:  # pragma: nocover
             self.context.logger.error(
                 f"There is an encoding error in the '{best_params_path}' file!"
             )
@@ -853,7 +853,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 try:
                     cast(List[np.ndarray], y).append(pd.read_csv(path).values.ravel())
 
-                except FileNotFoundError:
+                except FileNotFoundError:  # pragma: nocover
                     self.context.logger.error(f"File {path} was not found!")
                     should_create_task = False
 
@@ -870,7 +870,7 @@ class TrainBehaviour(APYEstimationBaseState):
             try:
                 y = pd.read_csv(path).values.ravel()
 
-            except FileNotFoundError:
+            except FileNotFoundError:  # pragma: nocover
                 self.context.logger.error(f"File {path} was not found!")
                 should_create_task = False
 
@@ -961,7 +961,7 @@ class TestBehaviour(APYEstimationBaseState):
             try:
                 y[f"y_{split}"] = pd.read_csv(path).values.ravel()
 
-            except FileNotFoundError:
+            except FileNotFoundError:  # pragma: nocover
                 self.context.logger.error(f"File {path} was not found!")
                 should_create_task = False
 
@@ -974,7 +974,7 @@ class TestBehaviour(APYEstimationBaseState):
         try:
             forecaster = load_forecaster(model_path)
 
-        except (NotADirectoryError, FileNotFoundError):
+        except (NotADirectoryError, FileNotFoundError):  # pragma: nocover
             self.context.logger.error(f"Could not detect {model_path}!")
             should_create_task = False
 
@@ -1073,7 +1073,7 @@ class EstimateBehaviour(APYEstimationBaseState):
 
         try:
             forecaster = load_forecaster(model_path)
-        except (NotADirectoryError, FileNotFoundError) as e:
+        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
             self.context.logger.error(f"Could not detect {model_path}!")
             # Fix: exit round via fail event and move to right round
             raise e
