@@ -729,8 +729,8 @@ class OptimizeBehaviour(APYEstimationBaseState):
             self.context.logger.error(
                 "Undefined behaviour encountered with `OptimizationTask`."
             )
-            yield from self.sleep(self.params.sleep_time)
-            return
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue OptimizationTask.")
 
         if not self._async_result.ready():
             self.context.logger.debug("The optimization task is not finished yet.")
@@ -891,9 +891,11 @@ class TrainBehaviour(APYEstimationBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
         if self._async_result is None:
-            self.context.logger.error("Undefined behaviour encountered with `Task`.")
-            yield from self.sleep(self.params.sleep_time)
-            return
+            self.context.logger.error(
+                "Undefined behaviour encountered with `TrainTask`."
+            )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TrainTask.")
 
         if not self._async_result.ready():
             self.context.logger.debug("The training task is not finished yet.")
@@ -1000,9 +1002,11 @@ class TestBehaviour(APYEstimationBaseState):
     def async_act(self) -> Generator:
         """Do the action."""
         if self._async_result is None:
-            self.context.logger.error("Undefined behaviour encountered with `Task`.")
-            yield from self.sleep(self.params.sleep_time)
-            return
+            self.context.logger.error(
+                "Undefined behaviour encountered with `TestTask`."
+            )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TestTask.")
 
         if not self._async_result.ready():
             self.context.logger.debug("The testing task is not finished yet.")

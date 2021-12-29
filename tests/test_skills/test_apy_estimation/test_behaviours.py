@@ -1686,18 +1686,13 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
 
-        with caplog.at_level(
-            logging.ERROR,
-            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-        ):
+        with pytest.raises(AEAActException, match="Cannot continue OptimizationTask"):
             cast(
                 OptimizeBehaviour, self.apy_estimation_behaviour.current_state
             ).params.sleep_time = SLEEP_TIME_TWEAK
             self.apy_estimation_behaviour.act_wrapper()
             time.sleep(SLEEP_TIME_TWEAK + 0.01)
             self.apy_estimation_behaviour.act_wrapper()
-
-        assert "Undefined behaviour encountered with `OptimizationTask`." in caplog.text
 
     def test_optimize_behaviour_value_error(
         self,
