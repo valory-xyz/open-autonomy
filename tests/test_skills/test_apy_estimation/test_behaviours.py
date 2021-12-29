@@ -2140,7 +2140,6 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = EstimateBehaviour
     next_behaviour_class = ResetBehaviour
 
-    @pytest.mark.skip
     def test_estimate_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -2154,7 +2153,6 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(joblib, "load", lambda _: DummyPipeline())
         # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
         monkeypatch.setattr(DummyPipeline, "predict", lambda *_: [0])
