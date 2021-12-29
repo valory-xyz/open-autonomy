@@ -1102,6 +1102,14 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.context.task_manager.start()
         cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
+        # Test with `None` pairs' history.
+        monkeypatch.setattr(json, "load", lambda _: None)
+        self.apy_estimation_behaviour.context.task_manager.start()
+        with pytest.raises(RuntimeError, match="Cannot continue TransformBehaviour."):
+            cast(
+                TransformBehaviour, self.apy_estimation_behaviour.current_state
+            ).setup()
+
     def test_task_not_ready(
         self,
         monkeypatch: MonkeyPatch,
