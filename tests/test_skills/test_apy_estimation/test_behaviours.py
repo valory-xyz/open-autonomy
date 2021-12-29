@@ -2221,7 +2221,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             behaviour=self.apy_estimation_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=8.1))
+                StateDB(initial_period=0, initial_data=dict(most_voted_estimate=None))
             ),
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
