@@ -291,7 +291,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         return state_event
 
 
-class TestRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+class TestRound(CollectSameUntilThresholdRound):
     """
     This class represents the 'Test' round.
 
