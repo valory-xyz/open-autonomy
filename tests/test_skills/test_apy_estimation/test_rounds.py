@@ -596,8 +596,8 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
-                    period_setup_params=None,
-                    most_voted_estimate=None,
+                    participants=get_participants(),
+                    full_training=False,
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,
@@ -629,8 +629,10 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
-                    period_setup_params=None,
-                    most_voted_estimate=None,
+                    pair_name="",
+                    full_training=False,
+                    n_estimations=1,
+                    participants=get_participants(),
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,

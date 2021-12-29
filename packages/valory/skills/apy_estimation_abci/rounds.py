@@ -384,24 +384,15 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            updated_state = self.period_state.update(
+            kwargs = dict(
                 period_count=self.most_voted_payload,
-                period_setup_params=None,
-                most_voted_estimate=None,
+                participants=self.period_state.participants,
+                full_training=False,
             )
-
-            if self.round_id == "reset":
-                updated_state = updated_state.update(
-                    pair_name=None,
-                    most_voted_split=None,
-                    most_voted_randomness=None,
-                    most_voted_model=None,
-                    participant_to_preprocessing=None,
-                    participants_to_randomness=None,
-                    participants_to_training=None,
-                    participants_to_estimate=None,
-                )
-
+            if self.round_id == "cycle_reset":
+                kwargs["pair_name"] = self.period_state.pair_name
+                kwargs["n_estimations"] = self.period_state.n_estimations
+            updated_state = self.period_state.update(**kwargs)
             return updated_state, Event.DONE
 
         if not self.is_majority_possible(

@@ -90,7 +90,7 @@ states_checks_config = {
     },
     "cycle_reset": {
         "state_name": "cycle_reset",
-        "extra_logs": ("Finalized estimate: ", "Period end."),
+        "extra_logs": ("Finalized estimate: ",),
         "only_at_first_period": False,
     },
 }
@@ -130,7 +130,6 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     wait_to_finish = 240
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
