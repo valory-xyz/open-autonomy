@@ -516,8 +516,8 @@ class TransformBehaviour(APYEstimationBaseState):
             self.context.logger.error(
                 "Undefined behaviour encountered with `TransformTask`."
             )
-            yield from self.sleep(self.params.sleep_time)
-            return
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TransformBehaviour.")
 
         if not self._async_result.ready():
             self.context.logger.debug("The transform task is not finished yet.")
