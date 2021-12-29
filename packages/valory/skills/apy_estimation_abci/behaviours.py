@@ -881,7 +881,7 @@ class TrainBehaviour(APYEstimationBaseState):
             )
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        else:
+        else:  # pragma: nocover
             self.context.logger.error(
                 "Could not create the task! This will result in an error while running the round!"
             )
@@ -990,7 +990,7 @@ class TestBehaviour(APYEstimationBaseState):
             task_id = self.context.task_manager.enqueue_task(test_task, task_args)
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        else:
+        else:  # pragma: nocover
             self.context.logger.error(
                 "Could not create the task! This will result in an error while running the round!"
             )
