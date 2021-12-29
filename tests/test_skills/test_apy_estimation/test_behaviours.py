@@ -1266,6 +1266,43 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         self._test_done_flag_set()
                         self.end_round()
 
+    def test_async_result_none(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        transform_task_result: pd.DataFrame,
+    ) -> None:
+        """Run test for `transform_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            self.period_state,
+        )
+
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
+            lambda _: transform_task_result,
+        )
+        monkeypatch.setattr(self._skill._skill_context._agent_context._task_manager, "get_task_result", lambda *_: None)  # type: ignore
+        monkeypatch.setattr(self._skill._skill_context._agent_context._task_manager, "enqueue_task", lambda *_, **__: 3)  # type: ignore
+
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+
+        with open(
+            os.path.join(
+                self.apy_estimation_behaviour.context._get_agent_context().data_dir,
+                "historical_data.json",
+            ),
+            "w+",
+        ) as fp:
+            fp.write("{}")
+
+        with pytest.raises(
+            AEAActException, match="Cannot continue TransformBehaviour."
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
+        self.end_round()
+
     def test_transform_behaviour(
         self,
         tmp_path: PosixPath,
