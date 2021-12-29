@@ -2157,7 +2157,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(joblib, "load", lambda _: DummyPipeline())
         # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
-        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: 0)
+        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: [0])
 
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
