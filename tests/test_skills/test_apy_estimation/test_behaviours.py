@@ -932,7 +932,6 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
 
-    @pytest.mark.skip
     def test_fetch_behaviour_stop_iteration(
         self,
         monkeypatch: MonkeyPatch,
@@ -986,12 +985,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # test with retrieved history and valid save path.
+        importlib.reload(os.path)
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         )._pairs_hist = [{"test": "test"}]
-        importlib.reload(os.path)
-        save_path = os.path.join(tmp_path, "test")
-        monkeypatch.setattr(os.path, "join", lambda *_: save_path)
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -1015,7 +1013,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             b"non-serializable"  # type: ignore
         ]
         with pytest.raises(
-            AEAActException, match="Historical data cannot be JSON serialized!"
+            AEAActException,
+            match="TypeError: Object of type bytes is not JSON serializable",
         ):
             self.apy_estimation_behaviour.act_wrapper()
 
@@ -1313,7 +1312,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     self.end_round()
 
 
-@pytest.mark.skip
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 
@@ -1328,14 +1326,14 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         no_action: Callable[[Any], None],
     ) -> None:
         """Run test for `preprocess_behaviour`."""
-        filepath = os.path.join(tmp_path, "test.csv")
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+        filepath = os.path.join(tmp_path, "transformed_historical_data.csv")
         # Increase the amount of dummy data for the train-test split.
         transformed_historical_data = pd.DataFrame(
             np.repeat(transformed_historical_data.values, 3, axis=0),
             columns=transformed_historical_data.columns,
         )
         transformed_historical_data.to_csv(filepath, index=False)
-        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
 
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
@@ -2142,7 +2140,6 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = EstimateBehaviour
     next_behaviour_class = ResetBehaviour
 
-    @pytest.mark.skip
     def test_estimate_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -2156,10 +2153,9 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(joblib, "load", lambda _: DummyPipeline())
         # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
-        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: 0)
+        monkeypatch.setattr(DummyPipeline, "predict", lambda *_: [0])
 
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()

@@ -326,14 +326,17 @@ class FetchBehaviour(APYEstimationBaseState):
                         # Store historical data to a json file.
                         try:
                             to_json_file(self._save_path, self._pairs_hist)
-                        except OSError:
+                        except OSError as exc:
                             self.context.logger.error(
                                 f"Path '{self._save_path}' could not be found!"
                             )
-                        except TypeError:
+                            raise exc
+
+                        except TypeError as exc:
                             self.context.logger.error(
                                 "Historical data cannot be JSON serialized!"
                             )
+                            raise exc
 
                         # Hash the file.
                         hasher = IPFSHashOnly()
@@ -353,13 +356,11 @@ class FetchBehaviour(APYEstimationBaseState):
                             yield from self.wait_until_round_end()
 
                         self.set_done()
+                        return
 
-                    else:
-                        self.context.logger.error(
-                            "Could not download any historical data!"
-                        )
-                        # Fix: exit round via fail event and move to right round
-                        raise RuntimeError("Cannot continue FetchBehaviour.") from e
+                    self.context.logger.error("Could not download any historical data!")
+                    # Fix: exit round via fail event and move to right round
+                    raise RuntimeError("Cannot continue FetchBehaviour.") from e
 
             # Fetch block.
             fantom_api_specs = self.context.fantom_subgraph.get_spec()
