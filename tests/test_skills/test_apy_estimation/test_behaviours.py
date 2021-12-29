@@ -1312,7 +1312,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     self.end_round()
 
 
-@pytest.mark.skip
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test PreprocessBehaviour."""
 
@@ -1327,14 +1326,14 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         no_action: Callable[[Any], None],
     ) -> None:
         """Run test for `preprocess_behaviour`."""
-        filepath = os.path.join(tmp_path, "test.csv")
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+        filepath = os.path.join(tmp_path, "transformed_historical_data.csv")
         # Increase the amount of dummy data for the train-test split.
         transformed_historical_data = pd.DataFrame(
             np.repeat(transformed_historical_data.values, 3, axis=0),
             columns=transformed_historical_data.columns,
         )
         transformed_historical_data.to_csv(filepath, index=False)
-        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
 
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
