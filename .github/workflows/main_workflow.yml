@@ -144,6 +144,7 @@ jobs:
           cd ../..
           cd third_party/contracts-amm &&\
             yarn
+
       #    # set up environment depending on the platform in use
       #    - if: matrix.os == 'ubuntu-latest'
       #      name: Install dependencies (ubuntu-latest)

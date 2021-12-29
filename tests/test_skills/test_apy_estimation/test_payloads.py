@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads.py module of the skill."""
+import pytest
 
 from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
@@ -72,10 +73,24 @@ class TestPayloads:
     @staticmethod
     def test_preprocess_payload() -> None:
         """Test `PreprocessPayload`"""
+        with pytest.raises(
+            ValueError,
+            match="Either `train_hash` and `test_hash` or `train_test` should be given for the `PreprocessPayload`!",
+        ):
+            PreprocessPayload(sender="sender", pair_name="test")
+
+        payload = PreprocessPayload(
+            sender="sender", pair_name="test", train_test="x0", id_="id"
+        )
+        assert payload.transaction_type == TransactionType.PREPROCESS
+        assert payload.pair_name == "test"
+        assert payload.train_test_hash == "x0"
+        assert payload.id_ == "id"
+        assert payload.data == {"train_test": "x0", "pair_name": "test"}
+
         payload = PreprocessPayload(
             sender="sender", train_hash="x0", test_hash="x1", pair_name="test", id_="id"
         )
-
         assert payload.transaction_type == TransactionType.PREPROCESS
         assert payload.train_test_hash == "x0x1"
         assert payload.pair_name == "test"

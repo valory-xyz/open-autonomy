@@ -561,7 +561,7 @@ class BasePeriodState:
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
-        return f"BasePeriodState(db={self._db})"
+        return f"{self.__class__.__name__}(db={self._db})"
 
     @property
     def keeper_randomness(self) -> float:
