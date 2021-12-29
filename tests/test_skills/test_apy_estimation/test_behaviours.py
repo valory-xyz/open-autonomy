@@ -185,7 +185,12 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.apy_estimation_behaviour.current_state).state_id
             == cls.apy_estimation_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
+        cls.period_state = PeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data={"full_training": False, "pair_name": "test"},
+            )
+        )
 
     def create_enough_participants(self) -> None:
         """Create enough participants."""
@@ -1283,8 +1288,16 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
             lambda _: transform_task_result,
         )
-        monkeypatch.setattr(self._skill._skill_context._agent_context._task_manager, "get_task_result", lambda *_: None)  # type: ignore
-        monkeypatch.setattr(self._skill._skill_context._agent_context._task_manager, "enqueue_task", lambda *_, **__: 3)  # type: ignore
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "get_task_result",
+            lambda *_: None,
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "enqueue_task",
+            lambda *_, **__: 3,
+        )
 
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
@@ -1933,6 +1946,49 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
+    def test_async_result_none(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        train_task_result: Pipeline,
+    ) -> None:
+        """Run test for `TrainBehaviour` with `None` `_async_result`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            self.period_state,
+        )
+
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.train_forecaster",
+            lambda _: train_task_result,
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "get_task_result",
+            lambda *_: None,
+        )
+        monkeypatch.setattr(
+            self._skill._skill_context._agent_context._task_manager,  # type: ignore
+            "enqueue_task",
+            lambda *_, **__: 3,
+        )
+
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
+        cast(
+            TrainBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
+
+        with open(os.path.join(tmp_path, "best_params.json"), "w") as f:
+            f.write("{}")
+
+        dummy_y_train = pd.DataFrame([i for i in range(5)])
+        dummy_y_train.to_csv(os.path.join(tmp_path, "y_train.csv"))
+
+        with pytest.raises(AEAActException, match="Cannot continue TrainTask."):
+            self.apy_estimation_behaviour.act_wrapper()
+        self.end_round()
+
     def test_train_behaviour(
         self,
         monkeypatch: MonkeyPatch,
@@ -2133,6 +2189,31 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             match=re.escape("Object of type bytes is not JSON serializable"),
         ):
             self.apy_estimation_behaviour.act_wrapper()
+
+    def test_async_result_none(
+        self,
+        monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        test_task_result: Dict[str, str],
+    ) -> None:
+        """Run test for `TestBehaviour` with `None` `_async_result`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            self.period_state,
+        )
+        # patching for setup.
+        monkeypatch.setattr(os.path, "join", lambda *_: "")
+        monkeypatch.setattr(
+            pd, "read_csv", lambda _: pd.DataFrame({"y": [i for i in range(5)]})
+        )
+        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
+        monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
+
+        with pytest.raises(AEAActException, match="Cannot continue TestTask."):
+            self.apy_estimation_behaviour.act_wrapper()
+        self.end_round()
 
     def test_test_behaviour(
         self,

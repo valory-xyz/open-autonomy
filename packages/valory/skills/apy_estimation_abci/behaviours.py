@@ -886,7 +886,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 "Could not create the task! This will result in an error while running the round!"
             )
             # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TestBehaviour.")
+            raise RuntimeError("Cannot continue TrainBehaviour.")
 
     def async_act(self) -> Generator:
         """Do the action."""
