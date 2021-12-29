@@ -50,7 +50,7 @@ states_checks_config = {
     },
     "transform": {
         "state_name": "transform",
-        "extra_logs": ("Data have been transformed. Showing the first row:\n",),
+        "extra_logs": ("Data have been transformed:\n",),
         "only_at_first_period": True,
     },
     "preprocess": {
@@ -127,6 +127,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     skill_package = "valory/apy_estimation_abci:0.1.0"
     check_strings = CHECK_STRINGS
     KEEPER_TIMEOUT = 120
+    wait_to_finish = 240
 
 
 @pytest.mark.skip
@@ -137,7 +138,6 @@ class TestABCIAPYEstimationSingleAgent(
     """Test the ABCI apy_estimation_abci skill with only one agent."""
 
     NB_AGENTS = 1
-    wait_to_finish = 240
 
 
 @pytest.mark.skip
@@ -148,7 +148,6 @@ class TestABCIAPYEstimationTwoAgents(
     """Test that the ABCI apy_estimation_abci skill with two agents."""
 
     NB_AGENTS = 2
-    wait_to_finish = 300
 
 
 @pytest.mark.skip
@@ -159,4 +158,3 @@ class TestABCIAPYEstimationFourAgents(
     """Test that the ABCI apy_estimation_abci skill with four agents."""
 
     NB_AGENTS = 4
-    wait_to_finish = 360
