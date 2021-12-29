@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-import re
 from typing import Dict, FrozenSet, Optional, cast
 from unittest import mock
 
@@ -111,6 +110,16 @@ def get_participant_to_invalid_randomness(
             round_id=round_id,
             randomness=INVALID_RANDOMNESS,
         )
+        for participant in participants
+    }
+
+
+def get_participant_to_fetching_payload(
+    participants: FrozenSet[str],
+) -> Dict[str, FetchingPayload]:
+    """Get participant_to_fetching payloads."""
+    return {
+        participant: FetchingPayload(participant, "historical_data_hash")
         for participant in participants
     }
 
@@ -292,78 +301,27 @@ class TestRegistrationRound(BaseRoundTestClass):
             assert event == expected_event
 
 
-class TestCollectHistoryRound(BaseRoundTestClass):
+class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `CollectHistoryRound`."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
     ) -> None:
         """Runs test."""
-
-        test_round = CollectHistoryRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.process_payload(FetchingPayload(sender="sender", history="x0"))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(FetchingPayload(sender="sender", history="x0"))
-
-        participant_to_fetching_payloads = get_participant_to_fetching(
-            self.participants
-        )
-
-        first_payload = participant_to_fetching_payloads.pop(
-            sorted(list(participant_to_fetching_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-        assert not test_round.threshold_reached
-
-        with pytest.raises(
-            ABCIAppInternalError, match="internal error: not enough votes"
-        ):
-            _ = test_round.most_voted_payload
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: collect_history",
-        ):
-            test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: collect_history",
-        ):
-            test_round.check_payload(
-                FetchingPayload(sender=sorted(list(self.participants))[0], history="x0")
+        test_round = CollectHistoryRound(self.period_state, self.consensus_params)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_fetching_payload(self.participants),
+                state_update_fn=lambda _period_state, _: _period_state,
+                state_attr_checks=[],
+                most_voted_payload="historical_data_hash",
+                exit_event=Event.DONE,
             )
-
-        for payload in participant_to_fetching_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "x0"
-
-        actual_next_state = self.period_state
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert state == actual_next_state
-        assert event == Event.DONE
+        )
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
