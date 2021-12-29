@@ -1513,6 +1513,10 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.randomness_behaviour_class.state_id
         )
+        cast(
+            RandomnessBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.sleep_time = SLEEP_TIME_TWEAK
+
         self.apy_estimation_behaviour.act_wrapper()
 
         self.mock_http_request(
@@ -1527,9 +1531,6 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
                 version="", status_code=200, status_text="", headers="", body=b""
             ),
         )
-        cast(
-            RandomnessBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
