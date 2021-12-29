@@ -129,7 +129,10 @@ class RegistrationRound(CollectDifferentUntilAllRound):
         """Process the end of the block."""
         if self.collection_threshold_reached:
             updated_state = self.period_state.update(
-                participants=self.collection, period_state_class=PeriodState
+                participants=self.collection,
+                period_state_class=PeriodState,
+                full_training=False,
+                n_estimations=0,
             )
             return updated_state, Event.DONE
 
@@ -176,7 +179,7 @@ class TransformRound(CollectSameUntilThresholdRound):
     selection_key = "most_voted_transform"
 
 
-class PreprocessRound(CollectSameUntilThresholdRound):
+class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
     This class represents the 'Preprocess' round.
 
@@ -189,11 +192,28 @@ class PreprocessRound(CollectSameUntilThresholdRound):
     round_id = "preprocess"
     allowed_tx_type = PreprocessPayload.transaction_type
     payload_attribute = "train_test_hash"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_pair_name"
-    selection_key = "most_voted_pair_name"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(
+                    participant_to_preprocessing=self.collection,
+                    most_voted_split=self.most_voted_payload,
+                    pair_name=cast(
+                        PreprocessPayload, list(self.collection.values())[0]
+                    ).pair_name,
+                ),
+            )
+            return updated_state, Event.DONE
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+
+        return None
 
 
 class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -220,7 +240,10 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             updated_state = cast(
                 PeriodState,
-                self.period_state.update(most_voted_randomness=filtered_randomness),
+                self.period_state.update(
+                    participants_to_randomness=self.collection,
+                    most_voted_randomness=filtered_randomness,
+                ),
             )
             return updated_state, Event.DONE
 
@@ -270,9 +293,18 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             if self.period_state.full_training:
-                return self.period_state, Event.FULLY_TRAINED
+                updated_state = self.period_state.update(
+                    participants_to_training=self.collection,
+                    full_training=True,
+                    most_voted_model=self.most_voted_payload,
+                )
+                return updated_state, Event.FULLY_TRAINED
 
-            return self.period_state, Event.DONE
+            updated_state = self.period_state.update(
+                participants_to_training=self.collection,
+                most_voted_model=self.most_voted_payload,
+            )
+            return updated_state, Event.DONE
 
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -320,6 +352,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             updated_state = self.period_state.update(
+                participants_to_estimate=self.collection,
                 n_estimations=cast(PeriodState, self.period_state).n_estimations + 1,
                 most_voted_estimate=self.most_voted_payload,
             )
@@ -359,8 +392,14 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             if self.round_id == "reset":
                 updated_state = updated_state.update(
-                    full_training=False,
                     pair_name=None,
+                    most_voted_split=None,
+                    most_voted_randomness=None,
+                    most_voted_model=None,
+                    participant_to_preprocessing=None,
+                    participants_to_randomness=None,
+                    participants_to_training=None,
+                    participants_to_estimate=None,
                 )
 
             return updated_state, Event.DONE
