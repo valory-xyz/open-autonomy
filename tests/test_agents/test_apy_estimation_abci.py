@@ -139,7 +139,6 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -149,7 +148,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,

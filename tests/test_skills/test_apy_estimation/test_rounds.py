@@ -598,6 +598,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                     period_count=_test_round.most_voted_payload,
                     participants=get_participants(),
                     full_training=False,
+                    n_estimations=1,
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,

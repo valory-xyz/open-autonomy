@@ -388,10 +388,10 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
                 full_training=False,
+                n_estimations=self.period_state.n_estimations,
             )
             if self.round_id == "cycle_reset":
                 kwargs["pair_name"] = self.period_state.pair_name
-                kwargs["n_estimations"] = self.period_state.n_estimations
             updated_state = self.period_state.update(**kwargs)
             return updated_state, Event.DONE
 
