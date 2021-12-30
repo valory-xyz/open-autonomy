@@ -64,14 +64,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
 from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
-from packages.valory.skills.registration_abci.payloads import RegistrationPayload
-from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
-    PeriodState as RegistrationPeriodState,
-)
-from packages.valory.skills.registration_abci.rounds import (
-    RegistrationRound,
-    RegistrationStartupRound,
+    BasePeriodState as RegistrationPeriodState,
 )
 from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import DeploySafeRound
@@ -115,7 +109,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectDifferentUntilAllRoundTest,
     BaseCollectDifferentUntilThresholdRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
@@ -249,164 +242,6 @@ def get_participant_to_signature(
 def get_final_tx_hash() -> str:
     """final_tx_hash"""
     return "tx_hash"
-
-
-class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
-    """Test RegistrationStartupRound."""
-
-    _period_state_class = PeriodState
-    _event_class = RegistrationEvent
-
-    def test_run_fastforward(
-        self,
-    ) -> None:
-        """Run test."""
-
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
-                safe_contract_address="stub_safe_contract_address",
-                oracle_contract_address="stub_oracle_contract_address",
-            ),
-        )
-
-        test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round, RegistrationEvent.FAST_FORWARD, 1)
-
-    def test_run_default(
-        self,
-    ) -> None:
-        """Run test."""
-
-        test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round, RegistrationEvent.DONE, 1)
-
-    def test_run_default_not_finished(
-        self,
-    ) -> None:
-        """Run test."""
-
-        test_round = RegistrationStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round)
-
-    def _run_with_round(
-        self,
-        test_round: RegistrationStartupRound,
-        expected_event: Optional[RegistrationEvent] = None,
-        confirmations: Optional[int] = None,
-    ) -> None:
-        """Run with given round."""
-
-        test_runner = self._test_round(
-            test_round=test_round,
-            round_payloads=[
-                RegistrationPayload(sender=participant)
-                for participant in self.participants
-            ],
-            state_update_fn=lambda *x: PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(participants=test_round.collection),
-                )
-            ),
-            state_attr_checks=[lambda state: state.participants],
-            exit_event=expected_event,
-        )
-
-        next(test_runner)
-        test_round = next(test_runner)
-        if confirmations is not None:
-            test_round.block_confirmations = confirmations
-        prior_confirmations = test_round.block_confirmations
-
-        next(test_runner)
-        assert test_round.block_confirmations == prior_confirmations + 1
-        next(test_runner)
-
-
-class TestRegistrationRound(BaseCollectDifferentUntilThresholdRoundTest):
-    """Test RegistrationRound."""
-
-    _period_state_class = PeriodState
-    _event_class = RegistrationEvent
-
-    def test_run_default(
-        self,
-    ) -> None:
-        """Run test."""
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
-                safe_contract_address="stub_safe_contract_address",
-                oracle_contract_address="stub_oracle_contract_address",
-            ),
-        )
-        test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round, RegistrationEvent.DONE, 10)
-
-    def test_run_default_not_finished(
-        self,
-    ) -> None:
-        """Run test."""
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(
-                safe_contract_address="stub_safe_contract_address",
-                oracle_contract_address="stub_oracle_contract_address",
-            ),
-        )
-        test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round, finished=False)
-
-    def _run_with_round(
-        self,
-        test_round: RegistrationRound,
-        expected_event: Optional[RegistrationEvent] = None,
-        confirmations: Optional[int] = None,
-        finished: bool = True,
-    ) -> None:
-        """Run with given round."""
-
-        test_runner = self._test_round(
-            test_round=test_round,
-            round_payloads=dict(
-                [
-                    (participant, RegistrationPayload(sender=participant))
-                    for participant in self.participants
-                ]
-            ),
-            state_update_fn=(
-                lambda *x: PeriodState(
-                    StateDB(
-                        initial_period=0,
-                        initial_data=dict(participants=self.participants),
-                    )
-                )
-            ),
-            state_attr_checks=[lambda state: state.participants],
-            exit_event=expected_event,
-        )
-
-        next(test_runner)
-        test_round = next(test_runner)
-        if confirmations is not None:
-            test_round.block_confirmations = confirmations
-        prior_confirmations = test_round.block_confirmations
-
-        next(test_runner)
-        assert test_round.block_confirmations == prior_confirmations + 1
-        if finished:
-            next(test_runner)
 
 
 class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
