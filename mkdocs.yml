@@ -21,6 +21,8 @@ nav:
     - POC FSM Diagram: 'poc-fsm.md'
     - FSM vs ABCI app: 'fsm_vs_abci_app.md'
     - Abstract Round ABCI: 'abstract_round_abci.md'
+  - Ethereum:
+    - Miscellaneous: 'ethereum_specifics.md'
   - API:
     - Connections:
       - ABCI:
@@ -65,6 +67,7 @@ nav:
         - Rounds: 'api/skills/price_estimation_abci/rounds.md'
         - Tools: 'api/skills/price_estimation_abci/tools.md'
     - Exceptions: exceptions.md
+  - Deployment: deployment_description.md
 
 
 plugins:
@@ -77,6 +80,8 @@ markdown_extensions:
   - markdown_include.include:
       base_path: docs
   - pymdownx.arithmatex
+  - attr_list
+  - md_in_html
 
 #extra_css:
 #    - css/my-styles.css

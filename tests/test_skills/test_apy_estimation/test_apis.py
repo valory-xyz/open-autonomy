@@ -24,7 +24,7 @@ from typing import Dict, List, Tuple
 
 import requests
 
-from packages.valory.skills.apy_estimation.models import (
+from packages.valory.skills.apy_estimation_abci.models import (
     FantomSubgraph,
     SpookySwapSubgraph,
 )
@@ -114,8 +114,10 @@ class TestSubgraphs:
         """Test SpookySwap's top n pairs request from subgraph."""
         spooky_specs["response_key"] += ":pairs"  # type: ignore
         api = SpookySwapSubgraph(**spooky_specs)
+        api_specs = api.get_spec()
+        api_specs["top_n_pools"] = 100
 
-        res = make_request(api.get_spec(), top_n_pairs_q)
+        res = make_request(api_specs, top_n_pairs_q)
         pair_ids = [pair["id"] for pair in api.process_response(DummyMessage(res.content))]  # type: ignore
 
         assert is_list_of_strings(pair_ids)

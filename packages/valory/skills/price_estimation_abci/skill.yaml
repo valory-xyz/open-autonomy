@@ -9,30 +9,27 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmWU1eJBh2dxvNEsBj2i7LT7zCeXcEsELbJrCcagfWqcWz
+  behaviours.py: QmesBC8gZmUULkDHejarm36MnKHH116jN8YHhVNTJ1Uf7q
+  composition.py: QmWjN6vbo3z6kjq6NJkBxwDhgWf7DeQ6vxowsTZPVqMYQy
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmbnB3ChLEk8tTwmf5M8ZYyNDCaNYngkvkcvmzNM89DhqF
-  payloads.py: QmUoPRpUXYhYf4dUaPnaSuoKo8ssJD6Xor1ctF3HRZYjBW
-  rounds.py: QmUCpozQhsb8JmpmFoJLTCtdvV1dtFzXL89WN3ppbb8rEQ
-  tools.py: QmcgE1LBa75fUKTnqU9ahs5TCBA4PY7bR87zF7bL2Pw8K9
+  models.py: QmYUEkFQqSx3UBgqFutVh8qrADyF8GkVkq6mGgFpegoj9W
+  payloads.py: QmdiwjgQpLKKFWA9sypsgFYAoiPRQqtxCiETekxFmi5tHM
+  rounds.py: QmQR59cK9adgYLjcRCq2ee11QiKhEYBZyghCTqj9bUXMju
 fingerprint_ignore_patterns: []
-connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
+connections: []
 contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
 - valory/offchain_aggregator:0.1.0
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
 - valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/oracle_deployment_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:
     args: {}
@@ -81,10 +78,12 @@ models:
       period_setup:
         safe_contract_address: null
         oracle_contract_address: null
+      reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
       sleep_time: 1
+      tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
     class_name: Params
   price_api:

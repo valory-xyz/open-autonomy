@@ -19,13 +19,13 @@
 
 """Test the tools.py module of the skill."""
 
-from packages.valory.skills.price_estimation_abci.tools import (
-    aggregate,
-    hex_to_payload,
+from packages.valory.skills.abstract_round_abci.common import random_selection
+from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
-    random_selection,
     to_int,
 )
+from packages.valory.skills.price_estimation_abci.rounds import aggregate
+from packages.valory.skills.transaction_settlement_abci.behaviours import hex_to_payload
 
 
 def test_aggregate_function() -> None:

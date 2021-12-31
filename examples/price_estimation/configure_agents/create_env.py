@@ -131,15 +131,21 @@ DEPLOYED_CONTRACTS = {
     }
 }
 
-ABCI_CONFIG_SCRIPT: str = """
-#!/usr/bin/env sh
+ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash
 
 echo -n $AEA_KEY >  ethereum_private_key.txt
 
+aea add-key ethereum
+aea config set agent.skill_exception_policy "just_log"
+aea config set agent.connection_exception_policy "just_log"
+aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url http://localhost:26657
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_com_url "http://localhost:8080"
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after 100 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 1200 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "{network_endpoint}"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id {chain_id} --type int
 {extra_config}
@@ -147,7 +153,24 @@ aea build
 """
 
 
-AGENT_NODE_TEMPLATE: str = """apiVersion: apps/v1
+AGENT_NODE_TEMPLATE: str = """apiVersion: v1
+kind: Service
+metadata:
+  name: agent-node-{validator_ix}-service
+  labels:
+    run: agent-node-{validator_ix}-service
+spec:
+  ports:
+  - port: 26656
+    protocol: TCP
+    name: tcp1
+  - port: 26657
+    protocol: TCP
+    name: tcp2
+  selector:
+    app: agent-node-{validator_ix}
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agent-node-{validator_ix}
@@ -160,8 +183,6 @@ spec:
     metadata:
       labels:
         app: agent-node-{validator_ix}
-      annotations:
-        cni.projectcalico.org/ipAddrs: "[\\\"{ip_address}\\\"]"
     spec:
       imagePullSecrets:
       - name: regcred
@@ -202,105 +223,52 @@ spec:
         volumeMounts:
           - mountPath: /build
             name: build   
-      initContainers:
-      - name: config-nodes
-        image: valory/localnode
-        args: ["testnet",
-         "--config",
-         "/etc/tendermint/config-template.toml",
-         "--o",  ".", "--starting-ip-address",
-         "{starting_ip_address}",
-         "--v", "{number_of_validators}"
-         ]
-        volumeMounts:
-          - mountPath: /tendermint
-            name: build
-      - name: aea-init
-        image: valory/oracle-poc
-        command:
-          - /usr/bin/python
-        env: 
-          - name: NUMBER_OF_NODES
-            value: "{number_of_validators}"
-        args: {config_command}
-        volumeMounts:
-          - mountPath: /build
-            name: build
-    
       volumes:
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol'
 """
 
-# CLUSTER_CONFIGURATION_TEMPLATE: str = """ # note this is commented out as the config has been moved to the init containers. It should be added back in
-# apiVersion: v1
-# kind: PersistentVolume
-# metadata:
-#   name: task-pv-volume
-#   labels:
-#     type: local
-# spec:
-#   storageClassName: build-vol
-#   capacity:
-#     storage: 10Gi
-#   accessModes:
-#     - ReadWriteMany
-#   hostPath:
-#     path: "/mnt/data"
-# ---
-# kind: PersistentVolumeClaim
-# apiVersion: v1
-# metadata:
-#     name: build-vol
-# spec:
-#     accessModes:
-#       - ReadWriteMany
-#     storageClassName: build-vol
-#     resources:
-#         requests:
-#             storage: 1Gi
-# ---
-# apiVersion: batch/v1
-# kind: Job
-# metadata:
-#   name: config-nodes
-# spec:
-#   template:
-#     spec:
-#       imagePullSecrets:
-#       - name: regcred
-#       containers:
-#       - name: config-nodes
-#         image: valory/localnode
-#         args: ["testnet",
-#          "--config",
-#          "/etc/tendermint/config-template.toml",
-#          "--o",  ".", "--starting-ip-address",
-#          "{starting_ip_address}",
-#          "--v", "{number_of_validators}"
-#          ]
-#         volumeMounts:
-#           - mountPath: /tendermint
-#             name: build
-#       - name: aea
-#         image: valory/oracle-poc
-#         command:
-#           - /usr/bin/python
-#         env:
-#           - name: NUMBER_OF_NODES
-#             value: "{number_of_validators}"
-#         args: {config_command}
-#         volumeMounts:
-#           - mountPath: /build
-#             name: build
-#       volumes:
-#         - name: build
-#           persistentVolumeClaim:
-#             claimName: 'build-vol'
-#       restartPolicy: Never
-#   backoffLimit: 4
-# """
+CLUSTER_CONFIGURATION_TEMPLATE: str = """ 
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: config-nodes
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: config-nodes
+        image: valory/localnode
+        args: ["testnet",
+         "--config",
+         "/etc/tendermint/config-template.toml",
+         "--o",  ".", {host_names},
+         "--v", "{number_of_validators}"
+         ]
+        volumeMounts:
+          - mountPath: /tendermint
+            name: build
+      - name: aea
+        image: valory/oracle-poc
+        command:
+          - /usr/bin/python
+        env:
+          - name: NUMBER_OF_NODES
+            value: "{number_of_validators}"
+        args: {config_command}
+        volumeMounts:
+          - mountPath: /build
+            name: build
+      volumes:
+        - name: build
+          persistentVolumeClaim:
+            claimName: 'build-vol'
+      restartPolicy: Never
+  backoffLimit: 4
+"""
 
 
 def build_config_script(
@@ -341,26 +309,30 @@ def build_config_script(
     )
 
 
-# def build_configuration_job(number_of_agents: int) -> None:
-#     """Build configuration job."""
-#
-#     config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
-#     config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
-#         number_of_validators=number_of_agents,
-#         starting_ip_address=STARTING_IP_ADDRESS,
-#         config_command = config_command
-#     )
-#     with open(CONFIG_DIRECTORY / "config_job.yaml", "w+", encoding="utf-8") as file:
-#         file.write(config_job_yaml)
+def build_configuration_job(number_of_agents: int) -> None:
+    """Build configuration job."""
+    host_names = ", ".join([f"\"--hostname=agent-node-{i}-service\"" for i in range(number_of_agents)])
+
+    config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
+    config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
+        number_of_validators=number_of_agents,
+        host_names=host_names,
+        config_command = config_command
+    )
+    with open(CONFIG_DIRECTORY / "config_job.yaml", "w+", encoding="utf-8") as file:
+        file.write(config_job_yaml)
 
 
 def build_agent_deployment(agent_ix: int, ip_address: IPv4Address, number_of_agents: int) -> None:
+
+    
+    host_names = ", ".join([f"\"--hostname=agent-node-{i}-service\"" for i in range(number_of_agents)])
 
     config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
     agent_deployment_yaml = AGENT_NODE_TEMPLATE.format(
         validator_ix=agent_ix, ip_address=str(ip_address), aea_key=KEYS[agent_ix],
         number_of_validators=number_of_agents,
-        starting_ip_address=STARTING_IP_ADDRESS,
+        host_names=host_names,
         config_command=config_command
     )
     with open(
@@ -430,6 +402,8 @@ def main() -> None:
         shutil.copytree(
             str(BASE_DIRECTORY / args.network), str(CONFIG_DIRECTORY / args.network)
         )
+
+    build_configuration_job(number_of_agents)
 
     for i in range(number_of_agents):
         ip_address = STARTING_IP_ADDRESS + i

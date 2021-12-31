@@ -18,9 +18,69 @@
 # ------------------------------------------------------------------------------
 
 """Test tasks for the skill."""
+from typing import Any, Callable
 
-import packages.valory.skills.apy_estimation.tasks  # noqa
+from _pytest.monkeypatch import MonkeyPatch
+
+from packages.valory.skills.apy_estimation_abci.tasks import OptimizeTask
+from packages.valory.skills.apy_estimation_abci.tasks import TestTask as _TestTask
+from packages.valory.skills.apy_estimation_abci.tasks import TrainTask, TransformTask
 
 
-def test_import() -> None:
-    """Test that the 'tasks.py' Python module can be imported."""
+class TestTransformTask:
+    """Tests for the `TransformTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
+            no_action,
+        )
+        TransformTask().execute()
+
+
+class TestOptimizeTask:
+    """Tests for the `OptimizeTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.optimize", no_action
+        )
+        OptimizeTask().execute()
+
+
+class TestTrainTask:
+    """Tests for the `TrainTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.train_forecaster",
+            no_action,
+        )
+        TrainTask().execute()
+
+
+class TestTestTask:
+    """Tests for the `TestTask`."""
+
+    @staticmethod
+    def test_execute(
+        monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
+    ) -> None:
+        """Test the execute method."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tasks.test_forecaster",
+            no_action,
+        )
+        _TestTask().execute()

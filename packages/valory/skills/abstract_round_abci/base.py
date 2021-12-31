@@ -30,13 +30,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
 from operator import itemgetter
-from typing import AbstractSet, Any
+from typing import Any
 from typing import Counter as CounterType
 from typing import (
     Dict,
     FrozenSet,
     Generic,
     List,
+    Mapping,
     Optional,
     Sequence,
     Set,
@@ -233,6 +234,10 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
             and self.sender == other.sender
             and self.data == other.data
         )
+
+    def __hash__(self) -> int:
+        """Hash the payload."""
+        return hash(tuple(sorted(self.data.items())))
 
 
 class Transaction(ABC):
@@ -432,6 +437,65 @@ class ConsensusParams:
         )
 
 
+class StateDB:
+    """Class to represent all state replicated across periods."""
+
+    def __init__(
+        self,
+        initial_period: int,
+        initial_data: Dict[str, Any],
+    ) -> None:
+        """Initialize a period state."""
+        self._current_period_count = initial_period
+        self._data = {self._current_period_count: initial_data}
+
+    @property
+    def current_period_count(self) -> int:
+        """Get the current period count."""
+        return self._current_period_count
+
+    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
+        """Get a value from the data dictionary."""
+        if default != "NOT_PROVIDED":
+            return self._data.get(self._current_period_count, {}).get(key, default)
+        try:
+            return self._data.get(self._current_period_count, {}).get(key)
+        except KeyError as exception:  # pragma: no cover
+            raise ValueError(
+                f"'{key}' field is not set for period state."
+            ) from exception
+
+    def get_strict(self, key: str) -> Any:
+        """Get a value from the data dictionary and raise if it is None."""
+        value = self.get(key)
+        if value is None:
+            raise ValueError(
+                f"Value of key={key} is None for current_period_count={self.current_period_count}"
+            )
+        return value
+
+    def update_current_period(self, **kwargs: Any) -> None:
+        """Update the current period's state."""
+        self._data[self._current_period_count].update(kwargs)
+
+    def add_new_period(self, new_period: int, **kwargs: Any) -> None:
+        """Update the current period's state."""
+        # if new_period in self._data:
+        #     raise ValueError(
+        #         "Incorrect period count incrementation, period already exists"
+        #     )  # pragma: no cover
+        self._current_period_count = new_period
+        self._data[self._current_period_count] = kwargs
+
+    def get_all(self) -> Dict[str, Any]:
+        """Get all key-value pairs from the data dictionary for the current period."""
+        return self._data[self._current_period_count]
+
+    def __repr__(self) -> str:
+        """Return a string representation of the state."""
+        return f"StateDB({self._data})"
+
+
 class BasePeriodState:
     """
     Class to represent a period state.
@@ -441,49 +505,99 @@ class BasePeriodState:
 
     def __init__(
         self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
+        db: StateDB,
     ) -> None:
         """Initialize a period state."""
-        self._participants = frozenset(participants) if participants else None
-        self._period_count = period_count if period_count is not None else 0
-        self._period_setup_params = (
-            period_setup_params if period_setup_params is not None else {}
-        )
+        self._db = db
+
+    @property
+    def db(self) -> StateDB:
+        """Get DB."""
+        return self._db
 
     @property
     def period_count(self) -> int:
         """Get the period count."""
-        return self._period_count
+        return self.db.current_period_count
 
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
-        if self._participants is None:
-            raise ValueError("'participants' field is None")
-        return self._participants
+        participants = self.db.get_strict("participants")
+        return cast(FrozenSet[str], participants)
 
     @property
-    def period_setup_params(self) -> Dict:
-        """Get the period setup params."""
-        return self._period_setup_params
+    def sorted_participants(self) -> Sequence[str]:
+        """
+        Get the sorted participants' addresses.
+
+        The addresses are sorted according to their hexadecimal value;
+        this is the reason we use key=str.lower as comparator.
+
+        This property is useful when interacting with the Safe contract.
+
+        :return: the sorted participants' addresses
+        """
+        return sorted(self.participants, key=str.lower)
 
     @property
     def nb_participants(self) -> int:
         """Get the number of participants."""
         return len(self.participants)
 
-    def update(self, **kwargs: Any) -> "BasePeriodState":
+    def update(
+        self,
+        period_state_class: Optional[Type] = None,
+        period_count: Optional[int] = None,
+        **kwargs: Any,
+    ) -> "BasePeriodState":
         """Copy and update the state."""
-        # remove leading underscore from keys
-        data = {key[1:]: value for key, value in self.__dict__.items()}
-        data.update(kwargs)
-        return type(self)(**data)
+        if period_count is None:
+            self.db.update_current_period(**kwargs)
+        else:
+            self.db.add_new_period(new_period=period_count, **kwargs)
+        class_ = type(self) if period_state_class is None else period_state_class
+        return class_(db=self.db)
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""
-        return f"BasePeriodState({self.__dict__})"
+        return f"{self.__class__.__name__}(db={self._db})"
+
+    @property
+    def keeper_randomness(self) -> float:
+        """Get the keeper's random number [0-1]."""
+        res = int(self.most_voted_randomness, base=16) // 10 ** 0 % 10
+        return cast(float, res / 10)
+
+    @property
+    def most_voted_randomness(self) -> str:
+        """Get the most_voted_randomness."""
+        return cast(str, self.db.get_strict("most_voted_randomness"))
+
+    @property
+    def most_voted_keeper_address(self) -> str:
+        """Get the most_voted_keeper_address."""
+        return cast(str, self.db.get_strict("most_voted_keeper_address"))
+
+    @property
+    def is_keeper_set(self) -> bool:
+        """Check whether keeper is set."""
+        return self.db.get("most_voted_keeper_address", None) is not None
+
+    @property
+    def participant_to_selection(self) -> Mapping:
+        """Check whether keeper is set."""
+        return cast(Dict, self.db.get_strict("participant_to_selection"))
+
+    @property
+    def participant_to_randomness(self) -> Mapping:
+        """Check whether keeper is set."""
+        return cast(Dict, self.db.get_strict("participant_to_randomness"))
+
+    @property
+    def participant_to_votes(self) -> Mapping:
+        """Check whether keeper is set."""
+        return cast(Dict, self.db.get_strict("participant_to_votes"))
 
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):
@@ -551,7 +665,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         self.process_payload(transaction.payload)
 
     @abstractmethod
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """
         Process the end of the block.
 
@@ -706,6 +820,33 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """Process payload."""
 
 
+class DegenerateRound(AbstractRound):
+    """
+    This class represents the finished round during operation.
+
+    Input: a period state with the contracts from previous rounds
+    Output: a period state with the set of participants.
+
+    It is a sink round.
+    """
+
+    round_id = "finished"
+    allowed_tx_type = None
+    payload_attribute = ""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+        raise NotImplementedError("DegenerateRound should not be used in operation.")
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+        raise NotImplementedError("DegenerateRound should not be used in operation.")
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """End block."""
+        raise NotImplementedError("DegenerateRound should not be used in operation.")
+
+
 class CollectionRound(AbstractRound):
     """
     CollectionRound.
@@ -798,6 +939,13 @@ class CollectSameUntilThresholdRound(CollectionRound):
     same payload from k of n agents.
     """
 
+    done_event: Any
+    no_majority_event: Any
+    none_event: Any
+    collection_key: str
+    selection_key: str
+    period_state_class = BasePeriodState
+
     @property
     def threshold_reached(
         self,
@@ -829,6 +977,25 @@ class CollectSameUntilThresholdRound(CollectionRound):
             raise ABCIAppInternalError("not enough votes")
         return most_voted_payload
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        if self.threshold_reached and self.most_voted_payload is not None:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                **{
+                    self.collection_key: self.collection,
+                    self.selection_key: self.most_voted_payload,
+                },
+            )
+            return state, self.done_event
+        if self.threshold_reached and self.most_voted_payload is None:
+            return self.period_state, self.none_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, self.no_majority_event
+        return None
+
 
 class OnlyKeeperSendsRound(AbstractRound):
     """
@@ -839,6 +1006,10 @@ class OnlyKeeperSendsRound(AbstractRound):
     """
 
     keeper_payload: Optional[Any]
+    done_event: Any
+    fail_event: Any
+    payload_key: str
+    period_state_class = BasePeriodState
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the 'collect-observation' round."""
@@ -888,6 +1059,19 @@ class OnlyKeeperSendsRound(AbstractRound):
 
         return self.keeper_sent_payload
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.has_keeper_sent_payload and self.keeper_payload is not None:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                **{self.payload_key: self.keeper_payload},
+            )
+            return state, self.done_event
+        if self.has_keeper_sent_payload and self.keeper_payload is None:
+            return self.period_state, self.fail_event
+        return None
+
 
 class VotingRound(CollectionRound):
     """
@@ -896,6 +1080,13 @@ class VotingRound(CollectionRound):
     This class represents logic for rounds where a round needs votes from
     agents, pass if k same votes of n agents
     """
+
+    done_event: Any
+    negative_event: Any
+    none_event: Any
+    no_majority_event: Any
+    collection_key: str
+    period_state_class = BasePeriodState
 
     @property
     def positive_vote_threshold_reached(self) -> bool:
@@ -924,6 +1115,22 @@ class VotingRound(CollectionRound):
         # check that "None" has at least the consensus # of votes
         return none_votes >= self._consensus_params.consensus_threshold
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.positive_vote_threshold_reached:
+            state = self.period_state.update(period_state_class=self.period_state_class, **{self.collection_key: self.collection})  # type: ignore
+            return state, self.done_event
+        if self.negative_vote_threshold_reached:
+            return self.period_state, self.negative_event
+        if self.none_vote_threshold_reached:
+            return self.period_state, self.none_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, self.no_majority_event
+        return None
+
 
 class CollectDifferentUntilThresholdRound(CollectionRound):
     """
@@ -933,6 +1140,13 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
     different payloads from k of n agents
     """
 
+    done_event: Any
+    no_majority_event: Any
+    selection_key: str
+    collection_key: str
+    required_block_confirmations: int = 0
+    period_state_class = BasePeriodState
+
     @property
     def collection_threshold_reached(
         self,
@@ -940,10 +1154,34 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         """Check if the threshold has been reached."""
         return len(self.collection) >= self._consensus_params.consensus_threshold
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            self.block_confirmations += 1
+        if (  # contracts are set from previous rounds
+            self.collection_threshold_reached
+            and self.block_confirmations
+            > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
+        ):
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                period_count=None,
+                **{
+                    self.selection_key: frozenset(list(self.collection.keys())),
+                    self.collection_key: self.collection,
+                },
+            )
+            return state, self.done_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, self.no_majority_event
+        return None
 
-AbciAppTransitionFunction = Dict[
-    Type[AbstractRound], Dict[EventType, Type[AbstractRound]]
-]
+
+AppState = Type[AbstractRound]
+AbciAppTransitionFunction = Dict[AppState, Dict[EventType, AppState]]
+EventToTimeout = Dict[EventType, float]
 
 
 @dataclass(order=True)
@@ -1022,12 +1260,13 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     Base class for ABCI apps.
 
     Concrete classes of this class implement the ABCI App.
-    It requires to set
     """
 
-    initial_round_cls: Type[AbstractRound]
+    initial_round_cls: AppState
+    initial_states: Set[AppState] = set()
     transition_function: AbciAppTransitionFunction
-    event_to_timeout: Dict[EventType, float] = {}
+    final_states: Set[AppState] = set()
+    event_to_timeout: EventToTimeout = {}
 
     def __init__(
         self,
@@ -1040,7 +1279,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self.consensus_params = consensus_params
         self.logger = logger
 
-        self._current_round_cls: Optional[Type[AbstractRound]] = None
+        self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
@@ -1051,7 +1290,10 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
 
         self._check_class_attributes()
         self._check_class_attributes_consistency(
-            self.initial_round_cls, self.transition_function, self.event_to_timeout
+            self.initial_round_cls,
+            self.initial_states,
+            self.transition_function,
+            self.event_to_timeout,
         )
 
     @property
@@ -1062,6 +1304,22 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             if len(self._round_results) > 0
             else self._initial_state
         )
+
+    @classmethod
+    def get_all_rounds(cls) -> Set[AppState]:
+        """Get all the round states."""
+        states = set()
+        for start_state, _ in cls.transition_function.items():
+            states.add(start_state)
+        return states
+
+    @classmethod
+    def get_all_events(cls) -> Set[EventType]:
+        """Get all the events."""
+        events: Set[EventType] = set()
+        for _start_state, transitions in cls.transition_function.items():
+            events.update(transitions.keys())
+        return events
 
     def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
@@ -1077,9 +1335,10 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     @classmethod
     def _check_class_attributes_consistency(
         cls,
-        initial_round_cls: Type[AbstractRound],
+        initial_round_cls: AppState,
+        initial_states: Set[AppState],
         transition_function: AbciAppTransitionFunction,
-        event_to_timeout: Dict[EventType, float],
+        event_to_timeout: EventToTimeout,
     ) -> None:
         """
         Check that required class attributes values are consistent.
@@ -1089,21 +1348,23 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         - check that the initial state has outgoing transitions
         - check that the initial state does not trigger timeout events. This is because we need at
           least one block/timestamp to start timeouts.
+        - check that the set of final states is a proper subset of the set of states.
 
         :param initial_round_cls: the initial round class
+        :param initial_states: the set of initial states
         :param transition_function: the transition function
         :param event_to_timeout: mapping from events to its timeout in seconds.
         :raises:
             ValueError if the initial round class is not in the set of rounds.
         """
-        states = set()
-        for start_state, transitions in transition_function.items():
-            states.add(start_state)
-            for _event, end_state in transitions.items():
-                states.add(end_state)
+        states = cls.get_all_rounds()
         enforce(
             initial_round_cls in states,
             f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
+        )
+        enforce(
+            initial_states == set() or initial_round_cls in initial_states,
+            f"initial round class {initial_round_cls} is not in the set of initial states: {initial_states}",
         )
         enforce(
             initial_round_cls in transition_function,
@@ -1118,10 +1379,16 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
         )
 
+        unknown_final_states = set.difference(cls.final_states, states)
+        enforce(
+            len(unknown_final_states) == 0,
+            f"the following final states are not in the set of states: {unknown_final_states}",
+        )
+
     @classmethod
-    def get_all_round_classes(cls) -> Set[Type[AbstractRound]]:
+    def get_all_round_classes(cls) -> Set[AppState]:
         """Get all round classes."""
-        result: Set[Type[AbstractRound]] = set()
+        result: Set[AppState] = set()
         for start, out_transitions in cls.transition_function.items():
             result.add(start)
             for _event, end in out_transitions.items():
@@ -1151,7 +1418,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             f"'{self.current_round.round_id}' round is done with event: {event}"
         )
 
-    def _schedule_round(self, round_cls: Type[AbstractRound]) -> None:
+    def _schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 
@@ -1449,7 +1716,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         ):
-            raise ABCIAppInternalError("cannot accept a 'begin_block' request.")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'begin_block' request. Current phase={self._block_construction_phase}"
+            )
 
         # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
         self._block_construction_phase = (
@@ -1472,7 +1741,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
-            raise ABCIAppInternalError("cannot accept a 'deliver_tx' request")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'deliver_tx' request. Current phase={self._block_construction_phase}"
+            )
 
         self.abci_app.check_transaction(transaction)
         self.abci_app.process_transaction(transaction)
@@ -1484,7 +1755,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         ):
-            raise ABCIAppInternalError("cannot accept a 'end_block' request.")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'end_block' request. Current phase={self._block_construction_phase}"
+            )
         # The ABCI app waits for the commit
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_COMMIT
@@ -1496,7 +1769,9 @@ class Period:
             self._block_construction_phase
             != Period._BlockConstructionState.WAITING_FOR_COMMIT
         ):
-            raise ABCIAppInternalError("cannot accept a 'commit' request.")
+            raise ABCIAppInternalError(
+                f"cannot accept a 'commit' request. Current phase={self._block_construction_phase}"
+            )
         block = self._block_builder.get_block()
         try:
             self._blockchain.add_block(block)
@@ -1507,6 +1782,12 @@ class Period:
             )
         except AddBlockError as exception:
             raise exception
+
+    def reset_blockchain(
+        self,
+    ) -> None:
+        """Reset blockchain after tendermint reset."""
+        self._blockchain = Blockchain()
 
     def _update_round(self) -> None:
         """

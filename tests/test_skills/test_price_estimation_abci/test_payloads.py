@@ -20,15 +20,27 @@
 """Test the payloads.py module of the skill."""
 
 from packages.valory.skills.price_estimation_abci.payloads import (
-    DeploySafePayload,
     EstimatePayload,
-    FinalizationTxPayload,
     ObservationPayload,
+    TransactionHashPayload,
+)
+from packages.valory.skills.price_estimation_abci.payloads import (
+    TransactionType as PETransactionType,
+)
+from packages.valory.skills.safe_deployment_abci.payloads import (
+    DeploySafePayload,
     RandomnessPayload,
     SelectKeeperPayload,
+)
+from packages.valory.skills.safe_deployment_abci.payloads import (
+    TransactionType as DSTransactionType,
+)
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    FinalizationTxPayload,
     SignaturePayload,
-    TransactionHashPayload,
-    TransactionType,
+)
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    TransactionType as TSTransactionType,
 )
 
 
@@ -39,7 +51,7 @@ def test_select_keeper_payload() -> None:
 
     assert payload.keeper == "keeper"
     assert payload.data == {"keeper": "keeper"}
-    assert payload.transaction_type == TransactionType.SELECT_KEEPER
+    assert payload.transaction_type == DSTransactionType.SELECT_KEEPER
 
 
 def test_deploy_safe_payload() -> None:
@@ -49,7 +61,7 @@ def test_deploy_safe_payload() -> None:
 
     assert payload.safe_contract_address == "address"
     assert payload.data == {"safe_contract_address": "address"}
-    assert payload.transaction_type == TransactionType.DEPLOY_SAFE
+    assert payload.transaction_type == DSTransactionType.DEPLOY_SAFE
 
 
 def test_observation_payload() -> None:
@@ -59,7 +71,7 @@ def test_observation_payload() -> None:
 
     assert payload.observation == 1.0
     assert payload.data == {"observation": 1.0}
-    assert payload.transaction_type == TransactionType.OBSERVATION
+    assert payload.transaction_type == PETransactionType.OBSERVATION
 
 
 def test_estimate_payload() -> None:
@@ -69,7 +81,7 @@ def test_estimate_payload() -> None:
 
     assert payload.estimate == 1.0
     assert payload.data == {"estimate": 1.0}
-    assert payload.transaction_type == TransactionType.ESTIMATE
+    assert payload.transaction_type == PETransactionType.ESTIMATE
 
 
 def test_signature_payload() -> None:
@@ -79,7 +91,7 @@ def test_signature_payload() -> None:
 
     assert payload.signature == "sign"
     assert payload.data == {"signature": "sign"}
-    assert payload.transaction_type == TransactionType.SIGNATURE
+    assert payload.transaction_type == TSTransactionType.SIGNATURE
 
 
 def test_transaction_hash_payload() -> None:
@@ -89,7 +101,7 @@ def test_transaction_hash_payload() -> None:
 
     assert payload.tx_hash == "hash"
     assert payload.data == {"tx_hash": "hash"}
-    assert payload.transaction_type == TransactionType.TX_HASH
+    assert payload.transaction_type == PETransactionType.TX_HASH
 
 
 def test_finalization_tx_payload() -> None:
@@ -99,7 +111,7 @@ def test_finalization_tx_payload() -> None:
 
     assert payload.tx_hash == "hash"
     assert payload.data == {"tx_hash": "hash"}
-    assert payload.transaction_type == TransactionType.FINALIZATION
+    assert payload.transaction_type == TSTransactionType.FINALIZATION
 
 
 def test_randomness_payload() -> None:
@@ -112,4 +124,4 @@ def test_randomness_payload() -> None:
     assert payload.id_ == "id"
     assert payload.data == {"round_id": 1, "randomness": "1"}
 
-    assert payload.transaction_type == TransactionType.RANDOMNESS
+    assert payload.transaction_type == DSTransactionType.RANDOMNESS

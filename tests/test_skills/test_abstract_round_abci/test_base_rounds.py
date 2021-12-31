@@ -20,16 +20,16 @@
 """Test the base round classes."""
 
 import re
+from enum import Enum
 from typing import (
-    AbstractSet,
     Any,
     Callable,
-    Dict,
     FrozenSet,
     Generator,
     List,
     Mapping,
     Optional,
+    Tuple,
     Type,
     cast,
 )
@@ -48,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     ConsensusParams,
     OnlyKeeperSendsRound,
+    StateDB,
     TransactionNotValidError,
     VotingRound,
 )
@@ -89,28 +90,12 @@ class DummyTxPayload(BaseTxPayload):
 class DummyPeriodState(BasePeriodState):
     """Dummy Period state for tests."""
 
-    def __init__(
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        most_voted_keeper_address: Optional[str] = None,
-    ) -> None:
-        """Initialize DummyPeriodState."""
-
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-        )
-        self._most_voted_keeper_address = most_voted_keeper_address
-
     @property
     def most_voted_keeper_address(
         self,
-    ) -> Optional[str]:
+    ) -> str:
         """Returns value for _most_voted_keeper_address."""
-        return self._most_voted_keeper_address
+        return self.db.get_strict("most_voted_keeper_address")
 
 
 def get_dummy_tx_payloads(
@@ -137,7 +122,7 @@ class DummyRound(AbstractRound):
     allowed_tx_type = DummyTxPayload.transaction_type
     payload_attribute = "value"
 
-    def end_block(self) -> None:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """end_block method."""
 
 
@@ -185,7 +170,9 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = cls._period_state_class(
-            participants=cls.participants
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=cls.participants)
+            )
         )  # type: ignore
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
@@ -197,7 +184,7 @@ class BaseRoundTestClass:
             _, event = result
             assert event == self._event_class.NO_MAJORITY
 
-    def _complete_run(self, test_runner: Generator) -> None:
+    def _complete_run(self, test_runner: Generator, iter_count: int = 4) -> None:
         """
         This method represents logic to execute test logic defined in _test_round method.
 
@@ -212,10 +199,11 @@ class BaseRoundTestClass:
         7. test state and event
 
         :param test_runner: test runner
+        :param iter_count: iter_count
         """
-        next(test_runner)
-        next(test_runner)
-        next(test_runner)
+
+        for _ in range(iter_count):
+            next(test_runner)
 
 
 class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
@@ -260,6 +248,7 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
             for state_attr_getter in state_attr_checks:
                 assert state_attr_getter(state) == state_attr_getter(actual_next_state)
             assert event == exit_event
+        yield
 
 
 class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
@@ -308,6 +297,7 @@ class BaseCollectSameUntilThresholdRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
 
 class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
@@ -344,6 +334,7 @@ class BaseOnlyKeeperSendsRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
 
 class BaseVotingRoundTest(BaseRoundTestClass):
@@ -386,6 +377,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
     def _test_voting_round_positive(
         self,
@@ -484,6 +476,7 @@ class BaseCollectDifferentUntilThresholdRoundTest(BaseRoundTestClass):
         for state_attr_getter in state_attr_checks:
             assert state_attr_getter(state) == state_attr_getter(actual_next_state)
         assert event == exit_event
+        yield
 
 
 class _BaseRoundTestClass(BaseRoundTestClass):
