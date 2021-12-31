@@ -49,8 +49,10 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseVotingRoundTest,
 )
 from tests.test_skills.test_price_estimation_abci.test_rounds import (
-    get_participant_to_signature,
     get_participant_to_votes,
+)
+from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
+    get_participant_to_signature,
 )
 
 
