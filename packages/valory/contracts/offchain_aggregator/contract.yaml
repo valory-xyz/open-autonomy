@@ -11,6 +11,7 @@ fingerprint:
   build/VerySimpleOffchainAggregator.json: QmZQmgG4HdVQWoTH7cFYrcVEGPMFDnq1hXiCfrSAEtN46F
   contract.py: QmT7E4gyVuA6mWXcDKxdva69uegDAX4jnzeNqq6C2Y8TX6
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: OffchainAggregatorContract
 contract_interface_paths:
   ethereum: build/VerySimpleOffchainAggregator.json

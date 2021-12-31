@@ -10,6 +10,7 @@ fingerprint:
   build/IUniswapV2Router02.json: QmZPa3Ua4UU8MrRmyDmRFFJuK6UPiGV2N75anRASzpiKMK
   contract.py: QmQgBkhTwRGzc8Jf1DrjaN5PMi1FED5782knf6ygTtGrHn
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: UniswapV2Router02Contract
 contract_interface_paths:
   ethereum: build/IUniswapV2Router02.json

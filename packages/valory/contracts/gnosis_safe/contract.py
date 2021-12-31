@@ -36,6 +36,10 @@ from py_eth_sig_utils.eip712 import encode_typed_data
 from web3.exceptions import TransactionNotFound
 from web3.types import TxParams, Wei
 
+from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
+    GnosisSafeProxyFactoryContract,
+)
+
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
 
@@ -217,10 +221,6 @@ class GnosisSafeContract(Contract):
         )
         if nonce is None:
             raise ValueError("No nonce returned.")  # pragma: nocover
-        # TOFIX: lazy import until contract dependencies supported in AEA
-        from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (  # pylint: disable=import-outside-toplevel
-            GnosisSafeProxyFactoryContract,
-        )
 
         (
             tx_params,
@@ -470,8 +470,7 @@ class GnosisSafeContract(Contract):
         operation: int = SafeOperation.CALL.value,
         safe_tx_gas: int = 0,
         base_gas: int = 0,
-        safe_gas_price: int = 0,  # pylint: disable=unused-argument
-        gas_price: Optional[int] = None,
+        gas_price: int = 0,
         gas_token: str = NULL_ADDRESS,
         refund_receiver: str = NULL_ADDRESS,
         safe_version: Optional[str] = None,
@@ -493,8 +492,7 @@ class GnosisSafeContract(Contract):
         :param safe_tx_gas: Gas that should be used for the Safe transaction
         :param base_gas: Gas costs for that are independent of the transaction execution
             (e.g. base transaction fee, signature check, payment of the refund)
-        :param safe_gas_price: Gas price that should be used for the payment calculation
-        :param gas_price: gas price
+        :param gas_price: Gas price that should be used for the payment calculation
         :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
         :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
         :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network

@@ -10,6 +10,7 @@ fingerprint:
   build/IUniswapV2ERC20.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
   contract.py: QmPgLtfbspPqcBpdNPsGxTKtr448B7DVm89gubH4d8A1TN
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: UniswapV2ERC20Contract
 contract_interface_paths:
   ethereum: build/IUniswapV2ERC20.json

@@ -11,6 +11,7 @@ fingerprint:
   build/ProxyFactory_V1_3_0.json: QmRKHfF1hYrrSZNZmec2AS3xSPWdB29uyEWAYdAS5cKHdL
   contract.py: QmX5zy86uUJhKoNWWiDrAfJQSYS9aurZ4NYK5j1Nny8Xvg
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: GnosisSafeProxyFactoryContract
 contract_interface_paths:
   ethereum: build/ProxyFactory_V1_3_0.json
