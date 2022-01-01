@@ -49,6 +49,7 @@ from web3 import Web3
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
+from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
@@ -67,7 +68,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
-from packages.valory.skills.price_estimation_abci.payloads import SignaturePayload
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
@@ -249,33 +250,48 @@ class TestLiquidityProvisionHardhat(
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
         cls.default_period_state_enter = PeriodState(
-            most_voted_tx_hash=cls.most_voted_tx_hash_enter,
-            safe_contract_address=cls.safe_contract_address,
-            most_voted_keeper_address=cls.keeper_address,
-            most_voted_strategy=cls.strategy,
-            multisend_contract_address=cls.multisend_contract_address,
-            router_contract_address=cls.router_contract_address,
-            participants=frozenset(list(cls.safe_owners.keys())),
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash=cls.most_voted_tx_hash_enter,
+                    safe_contract_address=cls.safe_contract_address,
+                    most_voted_keeper_address=cls.keeper_address,
+                    most_voted_strategy=cls.strategy,
+                    multisend_contract_address=cls.multisend_contract_address,
+                    router_contract_address=cls.router_contract_address,
+                    participants=frozenset(list(cls.safe_owners.keys())),
+                ),
+            )
         )
 
         cls.default_period_state_exit = PeriodState(
-            most_voted_tx_hash=cls.most_voted_tx_hash_exit,
-            safe_contract_address=cls.safe_contract_address,
-            most_voted_keeper_address=cls.keeper_address,
-            most_voted_strategy=cls.strategy,
-            multisend_contract_address=cls.multisend_contract_address,
-            router_contract_address=cls.router_contract_address,
-            participants=frozenset(list(cls.safe_owners.keys())),
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash=cls.most_voted_tx_hash_exit,
+                    safe_contract_address=cls.safe_contract_address,
+                    most_voted_keeper_address=cls.keeper_address,
+                    most_voted_strategy=cls.strategy,
+                    multisend_contract_address=cls.multisend_contract_address,
+                    router_contract_address=cls.router_contract_address,
+                    participants=frozenset(list(cls.safe_owners.keys())),
+                ),
+            )
         )
 
         cls.default_period_state_swap_back = PeriodState(
-            most_voted_tx_hash=cls.most_voted_tx_hash_swap_back,
-            safe_contract_address=cls.safe_contract_address,
-            most_voted_keeper_address=cls.keeper_address,
-            most_voted_strategy=cls.strategy,
-            multisend_contract_address=cls.multisend_contract_address,
-            router_contract_address=cls.router_contract_address,
-            participants=frozenset(list(cls.safe_owners.keys())),
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash=cls.most_voted_tx_hash_swap_back,
+                    safe_contract_address=cls.safe_contract_address,
+                    most_voted_keeper_address=cls.keeper_address,
+                    most_voted_strategy=cls.strategy,
+                    multisend_contract_address=cls.multisend_contract_address,
+                    router_contract_address=cls.router_contract_address,
+                    participants=frozenset(list(cls.safe_owners.keys())),
+                ),
+            )
         )
 
         cls.ethereum_api = make_ledger_api("ethereum")

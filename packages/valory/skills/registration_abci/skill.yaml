@@ -1,0 +1,23 @@
+name: registration_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for common apps.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmNt5fz6jXkkDHapVUKKkBhhSsFNgEKT3ukY2F3CHToo3y
+  behaviours.py: QmYy7nkYHiJUD38FmKuYaQzE6imBp8z7DjGHyigaPsWTnY
+  payloads.py: QmVVNDzw1jj8B4eabfbG47SzFK4uSH86WpNweKJhXvmigP
+  rounds.py: QmPxppoUSezih1XnodGiDBHR2Q1KasLKeb6pjDsQNPvoZH
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols: []
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours: {}
+handlers: {}
+models: {}
+dependencies: {}
+is_abstract: false

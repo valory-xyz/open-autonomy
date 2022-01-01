@@ -33,7 +33,8 @@ from tests.test_contracts.base import BaseGanacheContractTest
 
 
 DEFAULT_GAS = 1000000
-DEFAULT_GAS_PRICE = 1000000
+DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
+DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 
 
 class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
@@ -47,7 +48,11 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        return dict(gas=DEFAULT_GAS, gasPrice=DEFAULT_GAS_PRICE)
+        return dict(
+            gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
+        )
 
     def test_deploy(self) -> None:
         """Test deployment results."""
@@ -65,19 +70,21 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
             self.deployer_crypto.address,
             b"",
             1,
-            gas=1000,
-            gas_price=1000,
+            gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             nonce=1,
         )
         assert len(result) == 2
-        assert len(result[0]) == 8
+        assert len(result[0]) == 9
         assert all(
             [
                 key
                 in [
                     "value",
                     "gas",
-                    "gasPrice",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
                     "chainId",
                     "from",
                     "to",

@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-import re
 from typing import Dict, FrozenSet, Optional, cast
 from unittest import mock
 
@@ -28,6 +27,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbstractRound,
     ConsensusParams,
+    StateDB,
     TransactionNotValidError,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -110,6 +110,16 @@ def get_participant_to_invalid_randomness(
             round_id=round_id,
             randomness=INVALID_RANDOMNESS,
         )
+        for participant in participants
+    }
+
+
+def get_participant_to_fetching_payload(
+    participants: FrozenSet[str],
+) -> Dict[str, FetchingPayload]:
+    """Get participant_to_fetching payloads."""
+    return {
+        participant: FetchingPayload(participant, "historical_data_hash")
         for participant in participants
     }
 
@@ -202,7 +212,11 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(participants=cls.participants)
+        cls.period_state = PeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=cls.participants)
+            )
+        )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     @staticmethod
@@ -267,7 +281,11 @@ class TestRegistrationRound(BaseRoundTestClass):
         if confirmations is not None:
             test_round.block_confirmations = confirmations
 
-        actual_next_state = PeriodState(participants=test_round.collection)
+        actual_next_state = PeriodState(
+            db=StateDB(
+                initial_period=0, initial_data=dict(participants=test_round.collection)
+            )
+        )
 
         res = test_round.end_block()
 
@@ -283,78 +301,27 @@ class TestRegistrationRound(BaseRoundTestClass):
             assert event == expected_event
 
 
-class TestCollectHistoryRound(BaseRoundTestClass):
+class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
     """Test `CollectHistoryRound`."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
 
     def test_run(
         self,
     ) -> None:
         """Runs test."""
-
-        test_round = CollectHistoryRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.process_payload(FetchingPayload(sender="sender", history="x0"))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
-            ),
-        ):
-            test_round.check_payload(FetchingPayload(sender="sender", history="x0"))
-
-        participant_to_fetching_payloads = get_participant_to_fetching(
-            self.participants
-        )
-
-        first_payload = participant_to_fetching_payloads.pop(
-            sorted(list(participant_to_fetching_payloads.keys()))[0]
-        )
-        test_round.process_payload(first_payload)
-
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-        assert not test_round.threshold_reached
-
-        with pytest.raises(
-            ABCIAppInternalError, match="internal error: not enough votes"
-        ):
-            _ = test_round.most_voted_payload
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: collect_history",
-        ):
-            test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: collect_history",
-        ):
-            test_round.check_payload(
-                FetchingPayload(sender=sorted(list(self.participants))[0], history="x0")
+        test_round = CollectHistoryRound(self.period_state, self.consensus_params)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_fetching_payload(self.participants),
+                state_update_fn=lambda _period_state, _: _period_state,
+                state_attr_checks=[],
+                most_voted_payload="historical_data_hash",
+                exit_event=Event.DONE,
             )
-
-        for payload in participant_to_fetching_payloads.values():
-            test_round.process_payload(payload)
-
-        assert test_round.threshold_reached
-        assert test_round.most_voted_payload == "x0"
-
-        actual_next_state = self.period_state
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert state == actual_next_state
-        assert event == Event.DONE
+        )
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
@@ -580,7 +547,7 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                    n_estimations=0,
                 ),
                 state_attr_checks=[lambda state: state.n_estimations],
                 most_voted_payload=10.0,
@@ -591,15 +558,13 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
     def test_restart_cycle_run(self) -> None:
         """Runs test."""
 
-        test_round = EstimateRound(
-            self.period_state.update(n_estimations=59), self.consensus_params
-        )
+        test_round = EstimateRound(self.period_state, self.consensus_params)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=get_participant_to_estimate_payload(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    n_estimations=cast(PeriodState, self.period_state).n_estimations + 1
+                    n_estimations=59
                 ),
                 state_attr_checks=[lambda state: 60],
                 most_voted_payload=10.0,
@@ -631,8 +596,8 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
-                    period_setup_params=None,
-                    most_voted_estimate=None,
+                    participants=get_participants(),
+                    full_training=False,
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,
@@ -664,8 +629,10 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
-                    period_setup_params=None,
-                    most_voted_estimate=None,
+                    pair_name="",
+                    full_training=False,
+                    n_estimations=1,
+                    participants=get_participants(),
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,
@@ -692,19 +659,22 @@ def test_period() -> None:
     n_estimations = 1
 
     period_state = PeriodState(
-        participants=participants,
-        period_count=period_count,
-        period_setup_params=period_setup_params,
-        most_voted_randomness=most_voted_randomness,
-        most_voted_estimate=most_voted_estimate,
-        full_training=full_training,
-        pair_name=pair_name,
-        n_estimations=n_estimations,
+        db=StateDB(
+            initial_period=period_count,
+            initial_data=dict(
+                participants=participants,
+                period_setup_params=period_setup_params,
+                most_voted_randomness=most_voted_randomness,
+                most_voted_estimate=most_voted_estimate,
+                full_training=full_training,
+                pair_name=pair_name,
+                n_estimations=n_estimations,
+            ),
+        )
     )
 
     assert period_state.participants == participants
     assert period_state.period_count == period_count
-    assert period_state.period_setup_params == period_setup_params
     assert period_state.most_voted_randomness == most_voted_randomness
     assert period_state.most_voted_estimate == most_voted_estimate
     assert period_state.full_training == full_training

@@ -47,6 +47,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
+    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -91,6 +92,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    period_state: PeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -130,6 +132,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.simple_abci_behaviour.current_state).state_id
             == cls.simple_abci_behaviour.initial_state_cls.state_id
         )
+        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -398,7 +401,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -445,7 +448,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -479,7 +482,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -505,7 +508,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -535,8 +538,13 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             behaviour=self.simple_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=PeriodState(
-                participants,
-                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        participants=participants,
+                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                    ),
+                )
             ),
         )
         assert (
@@ -708,7 +716,7 @@ class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.simple_abci_behaviour,
             RegistrationBehaviour.state_id,
-            PeriodState(),
+            self.period_state,
         )
         assert (
             cast(
@@ -753,7 +761,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(),
+            period_state=self.period_state,
         )
         assert (
             cast(
@@ -779,7 +787,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.simple_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(),
+            period_state=self.period_state,
         )
         self.simple_abci_behaviour.current_state.pause = False  # type: ignore
         assert (

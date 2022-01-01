@@ -89,10 +89,15 @@ class Objective:  # pylint: disable=too-few-public-methods
 
         # Perform CV and get the average of the results.
         cv = pm.model_selection.SlidingWindowForecastCV(window_size=self.__window_size)
-        scores = pm.model_selection.cross_val_score(
-            forecaster, self.__y, scoring=self.__scoring, cv=cv
-        )
-        average_score = np.average(scores)
+
+        try:
+            scores = pm.model_selection.cross_val_score(
+                forecaster, self.__y, scoring=self.__scoring, cv=cv
+            )
+            average_score = np.average(scores)
+
+        except ValueError:
+            average_score = np.nan
 
         return average_score
 

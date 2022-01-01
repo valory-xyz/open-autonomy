@@ -130,6 +130,7 @@ services:
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
     entrypoint: /bin/bash
     command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci0"]
     networks:
@@ -150,6 +151,7 @@ services:
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
     entrypoint: /bin/bash
     command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci1"]
     networks:
@@ -170,6 +172,7 @@ services:
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
     entrypoint: /bin/bash
     command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci2"]
     networks:
@@ -190,6 +193,7 @@ services:
       dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
     volumes:
       - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
     entrypoint: /bin/bash
     command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci3"]
     networks:
