@@ -48,7 +48,8 @@ from tests.test_contracts.base import (
 
 
 DEFAULT_GAS = 1000000
-DEFAULT_GAS_PRICE = 1000000
+DEFAULT_MAX_FEE_PER_GAS = 10 ** 15
+DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 15
 
 
 class BaseContractTest(BaseGanacheContractTest):
@@ -81,7 +82,8 @@ class BaseContractTest(BaseGanacheContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
-            gas_price=DEFAULT_GAS_PRICE,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -140,7 +142,8 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
-            gas_price=DEFAULT_GAS_PRICE,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -190,10 +193,11 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             owners=self.owners(),
             threshold=int(self.threshold()),
             gas=DEFAULT_GAS,
-            gas_price=DEFAULT_GAS_PRICE,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
         assert type(result) == dict
-        assert len(result) == 9
+        assert len(result) == 10
         data = result.pop("data")
         assert type(data) == str
         assert len(data) > 0 and data.startswith("0x")
@@ -204,7 +208,8 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                     "value",
                     "from",
                     "gas",
-                    "gasPrice",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
                     "chainId",
                     "nonce",
                     "to",
@@ -313,7 +318,8 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             to_address=receiver.address,
             value=value,
             data=data,
-            gas_price=10 ** 10,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             signatures_by_owner={
                 self.deployer_crypto.address.lower(): signatures_by_owners[
                     self.deployer_crypto.address
@@ -328,7 +334,8 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
                 "data",
                 "from",
                 "gas",
-                "gasPrice",
+                "maxFeePerGas",
+                "maxPriorityFeePerGas",
                 "nonce",
                 "to",
                 "value",
