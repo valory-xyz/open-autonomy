@@ -10,7 +10,7 @@ RUN sudo apt-get install wait-for-it -y pipenv
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install click Wheel watchdog requests --user
-RUN python -m pip install "open-aea[all]>=1.2.0,<2.0.0" --user
+RUN python -m pip install "open-aea[all]>=1.3.0,<2.0.0" --user
 RUN python -m pip install open-aea-cli-ipfs open-aea-ledger-cosmos open-aea-ledger-ethereum --user
 
 WORKDIR /home/ubuntu

@@ -19,7 +19,6 @@
 
 """This module contains the data classes for the price estimation ABCI application."""
 import statistics
-import struct
 from enum import Enum
 from typing import Dict, Set, Type, cast
 
@@ -52,11 +51,6 @@ class Event(Enum):
     NONE = "none"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
-
-
-def encode_float(value: float) -> bytes:
-    """Encode a float value."""
-    return struct.pack("d", value)
 
 
 class PeriodState(BasePeriodState):

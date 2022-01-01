@@ -22,7 +22,7 @@ import binascii
 import logging
 import secrets
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -35,6 +35,10 @@ from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
 from web3.exceptions import TransactionNotFound
 from web3.types import TxParams, Wei
+
+from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
+    GnosisSafeProxyFactoryContract,
+)
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
@@ -108,18 +112,9 @@ class GnosisSafeContract(Contract):
         """
         owners = kwargs.pop("owners")
         threshold = kwargs.pop("threshold")
-        salt_nonce = kwargs.pop("salt_nonce", None)
-        gas = kwargs.pop("gas", None)
-        gas_price = kwargs.pop("gas_price", None)
         ledger_api = cast(EthereumApi, ledger_api)
         tx_params, contract_address = cls._get_deploy_transaction(
-            ledger_api,
-            deployer_address,
-            owners=owners,
-            threshold=threshold,
-            salt_nonce=salt_nonce,
-            gas=gas,
-            gas_price=gas_price,
+            ledger_api, deployer_address, owners=owners, threshold=threshold, **kwargs
         )
         result = dict(cast(Dict, tx_params))
         # piggyback the contract address
@@ -136,6 +131,8 @@ class GnosisSafeContract(Contract):
         salt_nonce: Optional[int] = None,
         gas: Optional[int] = None,
         gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
@@ -150,7 +147,8 @@ class GnosisSafeContract(Contract):
         :param salt_nonce: Use a custom nonce for the deployment. Defaults to random nonce.
         :param gas: gas cost
         :param gas_price: Gas price that should be used for the payment calculation
-
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
         :return: transaction params and contract address
         """
         salt_nonce = salt_nonce if salt_nonce is not None else _get_nonce()
@@ -223,10 +221,6 @@ class GnosisSafeContract(Contract):
         )
         if nonce is None:
             raise ValueError("No nonce returned.")  # pragma: nocover
-        # TOFIX: lazy import until contract dependencies supported in AEA
-        from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (  # pylint: disable=import-outside-toplevel
-            GnosisSafeProxyFactoryContract,
-        )
 
         (
             tx_params,
@@ -241,6 +235,8 @@ class GnosisSafeContract(Contract):
             nonce=nonce,
             gas=gas,
             gas_price=gas_price,
+            max_fee_per_gas=max_fee_per_gas,
+            max_priority_fee_per_gas=max_priority_fee_per_gas,
         )
         return tx_params, contract_address
 
@@ -378,9 +374,12 @@ class GnosisSafeContract(Contract):
         operation: int = SafeOperation.CALL.value,
         safe_tx_gas: int = 0,
         base_gas: int = 0,
-        gas_price: int = 0,
+        safe_gas_price: int = 0,
         gas_token: str = NULL_ADDRESS,
         refund_receiver: str = NULL_ADDRESS,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -397,9 +396,12 @@ class GnosisSafeContract(Contract):
         :param safe_tx_gas: Gas that should be used for the Safe transaction
         :param base_gas: Gas costs for that are independent of the transaction execution
             (e.g. base transaction fee, signature check, payment of the refund)
-        :param gas_price: Gas price that should be used for the payment calculation
+        :param safe_gas_price: Gas price that should be used for the payment calculation
         :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
         :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
+        :param gas_price: gas price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
         :return: the raw Safe transaction
         """
         sender_address = ledger_api.api.toChecksumAddress(sender_address)
@@ -415,16 +417,18 @@ class GnosisSafeContract(Contract):
             operation,
             safe_tx_gas,
             base_gas,
-            gas_price,
+            safe_gas_price,
             gas_token,
             refund_receiver,
             signatures,
         )
-        tx_gas_price = gas_price or ledger_api.api.eth.gas_price
-        tx_parameters = {
-            "from": sender_address,
-            "gasPrice": tx_gas_price,
-        }
+        tx_parameters: Dict[str, Union[str, int]] = {"from": sender_address}
+        if gas_price is not None:
+            tx_parameters["gasPrice"] = gas_price
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = max_fee_per_gas
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = max_priority_fee_per_gas
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(

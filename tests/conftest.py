@@ -35,7 +35,11 @@ from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS, LedgerApi
 from aea.crypto.registries import ledger_apis_registry, make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
-from aea_ledger_ethereum import EthereumCrypto
+from aea_ledger_ethereum import (
+    DEFAULT_EIP1559_STRATEGY,
+    DEFAULT_GAS_STATION_STRATEGY,
+    EthereumCrypto,
+)
 from web3 import Web3
 
 from tests.helpers.constants import KEY_PAIRS
@@ -92,6 +96,11 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
     "chain_id": DEFAULT_GANACHE_CHAIN_ID,
     # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM, # noqa: E800
     # "gas_price_api_key": GAS_PRICE_API_KEY, # noqa: E800
+    "default_gas_price_strategy": "eip1559",
+    "gas_price_strategies": {
+        "gas_station": DEFAULT_GAS_STATION_STRATEGY,
+        "eip1559": DEFAULT_EIP1559_STRATEGY,
+    },
 }
 
 
@@ -341,7 +350,8 @@ def gnosis_safe_contract(
         ledger_api=ledger_api,
         deployer_address=crypto.address,
         gas=5000000,
-        gas_price=5000000,
+        max_fee_per_gas=10 ** 10,
+        max_priority_fee_per_gas=10 ** 10,
         owners=owners,
         threshold=threshold,
     )

@@ -355,6 +355,8 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            max_fee_per_gas=10 ** 10,  # TOFIX
+            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_msg.performative
@@ -456,13 +458,13 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                             msg = response.get("message")
                             self.context.logger.error(f"Error resetting: {msg}")
                             yield from self.sleep(self.params.sleep_time)
-                            return
+                            return  # pragma: no cover
                     except json.JSONDecodeError:
                         self.context.logger.error(
                             "Error communicating with tendermint com server."
                         )
                         yield from self.sleep(self.params.sleep_time)
-                        return
+                        return  # pragma: no cover
 
                 status = yield from self._get_status()
                 try:

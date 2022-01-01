@@ -68,8 +68,13 @@ ledger_ids = pytest.mark.parametrize(
 gas_strategies = pytest.mark.parametrize(
     "gas_strategies",
     [
-        {"gas_price_strategy": None, "gas_price": 10 ** 10},
-        {"gas_price_strategy": "average"},
+        {"gas_price_strategy": None},
+        {"gas_price_strategy": "gas_station"},
+        {"gas_price_strategy": "eip1559"},
+        {
+            "max_fee_per_gas": 1_000_000_000,
+            "max_priority_fee_per_gas": 1_000_000_000,
+        },
     ],
 )
 

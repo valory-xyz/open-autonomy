@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import fileinput
 import logging
+import sys
 import time
 from typing import List
 
@@ -34,6 +36,7 @@ from tests.helpers.docker.base import DockerImage
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
 GNOSIS_SAFE_CONTRACTS_ROOT_DIR = THIRD_PARTY / "safe-contracts"
+CONFIG_FILE = GNOSIS_SAFE_CONTRACTS_ROOT_DIR / "hardhat.config.ts"
 
 _SLEEP_TIME = 1
 
@@ -64,6 +67,16 @@ class GnosisSafeNetDockerImage(DockerImage):
         """Get the tag."""
         return "node:16.7.0"
 
+    def _update_config(self) -> None:
+        """Build command."""
+        for line in fileinput.input(CONFIG_FILE, inplace=True):
+            if "      gas: 100000000\n" in line:
+                line = line.replace(
+                    "      gas: 100000000\n",
+                    "      gas: 100000000,\n      hardfork: london\n",
+                )
+            sys.stdout.write(line)
+
     def _build_command(self) -> List[str]:
         """Build command."""
         cmd = ["run", "hardhat", "node", "--port", str(self.port)]
@@ -71,6 +84,7 @@ class GnosisSafeNetDockerImage(DockerImage):
 
     def create(self) -> Container:
         """Create the container."""
+        self._update_config()
         cmd = self._build_command()
         working_dir = "/build"
         volumes = {

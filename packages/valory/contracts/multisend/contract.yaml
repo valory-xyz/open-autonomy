@@ -11,6 +11,7 @@ fingerprint:
   build/MultiSend.json: QmSg3P5wrqdjUwGShZxZi4pM4xtGtV98DiRZ8hSmYqhPmU
   contract.py: QmbSDh9mL2gZWzKPEzQpecqomyG1xFK4uRqL1oa1XjYG5j
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: MultiSendContract
 contract_interface_paths:
   ethereum: build/MultiSend.json
