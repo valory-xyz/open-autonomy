@@ -157,14 +157,14 @@ class _TendermintProtocolDecoder:
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
         """
-        Decode a info request.
+        Decode a set_option request.
 
         :param request: the request.
         :param dialogues: the dialogues object.
         :param counterparty: the counterparty.
         :return: the AbciMessage request.
         """
-        set_option = request.info
+        set_option = request.set_option
         abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_SET_OPTION,
             counterparty=counterparty,
@@ -388,7 +388,7 @@ class _TendermintProtocolDecoder:
             counterparty=counterparty,
             height=load_snapshot_chunk.height,
             format=load_snapshot_chunk.format,
-            chunk_index=load_snapshot_chunk.chunk_index,
+            chunk_index=load_snapshot_chunk.chunk,
         )
         return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
@@ -401,9 +401,9 @@ class _TendermintProtocolDecoder:
         abci_message, abci_dialogue = dialogues.create(
             performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
             counterparty=counterparty,
-            height=apply_snapshot_chunk.index,
-            format=apply_snapshot_chunk.chunk,
-            chunk_index=apply_snapshot_chunk.sender,
+            index=apply_snapshot_chunk.index,
+            chunk=apply_snapshot_chunk.chunk,
+            chunk_sender=apply_snapshot_chunk.sender,
         )
         return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 

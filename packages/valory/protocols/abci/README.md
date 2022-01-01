@@ -334,6 +334,7 @@ initiation:
 - request_echo
 - request_flush
 - request_info
+- request_set_option
 - request_init_chain
 - request_query
 - request_begin_block
