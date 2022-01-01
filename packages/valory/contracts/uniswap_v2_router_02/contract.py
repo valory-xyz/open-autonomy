@@ -719,8 +719,10 @@ class UniswapV2Router02Contract(Contract):
         if gas_price is not None:
             tx_params["gasPrice"] = gas_price
         if max_fee_per_gas is not None:
-            tx_params["maxFeePerGas"] = max_fee_per_gas
+            tx_params["maxFeePerGas"] = max_fee_per_gas  # pragma: nocover
         if max_priority_fee_per_gas is not None:
-            tx_params["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+            tx_params[
+                "maxPriorityFeePerGas"
+            ] = max_priority_fee_per_gas  # pragma: nocover
         tx = tx.buildTransaction(tx_params)
         return tx

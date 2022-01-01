@@ -318,6 +318,37 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             to_address=receiver.address,
             value=value,
             data=data,
+            gas_price=DEFAULT_MAX_FEE_PER_GAS,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )
+
+        assert all(
+            key
+            in [
+                "chainId",
+                "data",
+                "from",
+                "gas",
+                "gasPrice",
+                "nonce",
+                "to",
+                "value",
+            ]
+            for key in tx.keys()
+        ), "Missing key"
+
+        tx = self.contract.get_raw_safe_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            sender_address=sender.address,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=receiver.address,
+            value=value,
+            data=data,
             max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
             max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             signatures_by_owner={

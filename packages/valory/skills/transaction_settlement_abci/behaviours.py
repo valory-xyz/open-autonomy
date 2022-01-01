@@ -458,13 +458,13 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                             msg = response.get("message")
                             self.context.logger.error(f"Error resetting: {msg}")
                             yield from self.sleep(self.params.sleep_time)
-                            return
+                            return  # pragma: no cover
                     except json.JSONDecodeError:
                         self.context.logger.error(
                             "Error communicating with tendermint com server."
                         )
                         yield from self.sleep(self.params.sleep_time)
-                        return
+                        return  # pragma: no cover
 
                 status = yield from self._get_status()
                 try:
