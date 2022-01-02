@@ -24,7 +24,7 @@ import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Tuple, Type, cast
 
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
@@ -54,6 +54,14 @@ DEFAULT_ABCI_PORT = 26658
 MAX_READ_IN_BYTES = 64 * 1024  # Max we'll consume on a read stream
 
 
+class DecodeVarintError(Exception):
+    """This exception is raised when an error occurs while decoding a varint."""
+
+
+class ShortBufferLengthError(Exception):
+    """This exception is raised when the buffer length is shorter than expected."""
+
+
 class _TendermintABCISerializer:
     """(stateless) utility class to encode/decode messages for the communication with Tendermint."""
 
@@ -75,23 +83,40 @@ class _TendermintABCISerializer:
 
     @classmethod
     def decode_varint(cls, buffer: BytesIO) -> int:
-        """Decode a number from its varint coding."""
+        """
+        Decode a number from its varint coding.
+
+        :param buffer: the buffer to read from.
+        :return: the decoded int.
+
+        :raise: DecodeVarintError if the varint could not be decoded.
+        """
         shift = 0
         result = 0
-        while True:
-            i = cls._read_one(buffer)
-            result |= (i & 0x7F) << shift
+        success = False
+        byte = cls._read_one(buffer)
+        while byte is not None:
+            result |= (byte & 0x7F) << shift
             shift += 7
-            if not i & 0x80:
+            if not byte & 0x80:
+                success = True
                 break
+            byte = cls._read_one(buffer)
+        if not success:
+            raise DecodeVarintError("could not decode varint")
         return result
 
     @classmethod
-    def _read_one(cls, buffer: BytesIO) -> int:
-        """Read one byte to decode a varint."""
+    def _read_one(cls, buffer: BytesIO) -> Optional[int]:
+        """
+        Read one byte to decode a varint.
+
+        :param buffer: the buffer to read from.
+        :return: the next character, or None if EOF is reached.
+        """
         character = buffer.read(1)
         if character == b"":
-            raise EOFError("Unexpected EOF while reading bytes")
+            return None
         return ord(character)
 
     @classmethod
@@ -105,22 +130,28 @@ class _TendermintABCISerializer:
         return buffer.getvalue()
 
     @classmethod
-    def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Request:
-        """Return an iterator over the messages found in the `reader` buffer."""
-        while True:
-            try:
-                length = cls.decode_varint(buffer) >> 1
-            except EOFError:
-                return
+    def read_messages(
+        cls, buffer: BytesIO, message_cls: Type
+    ) -> Generator[Request, None, None]:
+        """
+        Return an iterator over the messages found in the `reader` buffer.
+
+        :param: buffer: the buffer to read messages from.
+        :param: message_cls: the message class to instantiate.
+        :yield: a new message.
+
+        :raise: DecodeVarintError if the varint cannot be decoded correctly.
+        :raise: ShortBufferLengthError if the buffer length is shorter than expected.
+        :raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
+        """
+        total_length = buffer.getbuffer().nbytes
+        while buffer.tell() < total_length:
+            length = cls.decode_varint(buffer) >> 1
             data = buffer.read(length)
             if len(data) < length:
-                return  # pragma: nocover
+                raise ShortBufferLengthError()
             message = message_cls()
-            try:
-                message.ParseFromString(data)
-            except DecodeError:  # pragma: nocover
-                return
-
+            message.ParseFromString(data)
             yield message
 
 
@@ -132,7 +163,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         target_skill_id: PublicId,
         address: str,
         port: int,
-        logger: Optional[Logger] = None,
+        logger: Logger,
     ):
         """
         Initialize the TCP server.
@@ -233,26 +264,51 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             # with varint encoded length. We use the 'data' buffer to
             # keep track of where we are in the byte stream and progress
             # based on the length encoding
-            for message in _TendermintABCISerializer.read_messages(data, Request):
-                if self.is_stopped:
-                    break
-                req_type = message.WhichOneof("value")
-                self.logger.debug(f"Received message of type: {req_type}")
-                result = _TendermintProtocolDecoder.process(
-                    message, self._dialogues, str(self.target_skill_id)
-                )
-                if result is not None:
-                    request, dialogue = result
-                    # associate request to peer, so we remember who to reply to
-                    self._request_id_to_socket[
-                        dialogue.incomplete_dialogue_label
-                    ] = peer_name
-                    envelope = Envelope(
-                        to=request.to, sender=request.sender, message=request
+            message_iterator: Generator[
+                Request, None, None
+            ] = _TendermintABCISerializer.read_messages(data, Request)
+            end_of_message_iterator = False
+            sentinel = object()
+            while not self.is_stopped:
+                try:
+                    message = next(message_iterator, sentinel)
+                except (DecodeVarintError, ShortBufferLengthError, DecodeError) as e:
+                    self.logger.error(
+                        f"an error occurred while reading a message: "
+                        f"{type(e).__name__}: {e}. "
+                        f"The message will be ignored."
                     )
-                    await self.queue.put(envelope)
-                else:  # pragma: nocover
-                    self.logger.warning(f"Decoded request {req_type} was not a match.")
+                    continue
+
+                if message == sentinel:
+                    # we reached the end of the iterator
+                    end_of_message_iterator = True
+                    break
+                await self._handle_message(message, peer_name)
+
+            # check whether we exited the loop because of the end of the iterator
+            # or because the reading loop has been stopped prematurely
+            if not end_of_message_iterator:
+                self.logger.warning(
+                    "prematurely interrupting the message reading loop; "
+                    "there may be some unread messages that will be lost"
+                )
+
+    async def _handle_message(self, message: Request, peer_name: str) -> None:
+        """Handle a single message from a peer."""
+        req_type = message.WhichOneof("value")
+        self.logger.debug(f"Received message of type: {req_type}")
+        result = _TendermintProtocolDecoder.process(
+            message, self._dialogues, str(self.target_skill_id)
+        )
+        if result is not None:
+            request, dialogue = result
+            # associate request to peer, so we remember who to reply to
+            self._request_id_to_socket[dialogue.incomplete_dialogue_label] = peer_name
+            envelope = Envelope(to=request.to, sender=request.sender, message=request)
+            await cast(asyncio.Queue, self.queue).put(envelope)
+        else:  # pragma: nocover
+            self.logger.warning(f"Decoded request {req_type} was not a match.")
 
     async def get_message(self) -> Envelope:
         """Get a message from the queue."""
@@ -415,7 +471,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.target_skill_id = target_skill_id
 
         self.channel = TcpServerChannel(
-            self.target_skill_id, address=self.host, port=self.port
+            self.target_skill_id, address=self.host, port=self.port, logger=self.logger
         )
 
     def _process_tendermint_params(self) -> None:
