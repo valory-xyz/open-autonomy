@@ -148,7 +148,7 @@ class AbciDialogue(Dialogue):
         ),
         AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK: frozenset(
             {
-                AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+                AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
                 AbciMessage.Performative.RESPONSE_EXCEPTION,
             }
         ),

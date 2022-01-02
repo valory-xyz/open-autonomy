@@ -33,6 +33,10 @@ from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
     PublicKey,
+    Result,
+    ResultType,
+    SnapShots,
+    Snapshot,
     Timestamp,
     ValidatorUpdate,
     ValidatorUpdates,
@@ -172,6 +176,31 @@ class TestABCIHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_INFO
 
+    def test_echo(self) -> None:
+        """Test the 'echo' handler method."""
+        expected_message = "message"
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_ECHO,
+            message=expected_message,
+        )
+        response = self.handler.echo(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert response.performative == AbciMessage.Performative.RESPONSE_ECHO
+        assert response.message == expected_message
+
+    def test_set_option(self) -> None:
+        """Test the 'set_option' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_SET_OPTION,
+        )
+        response = self.handler.set_option(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert response.performative == AbciMessage.Performative.RESPONSE_SET_OPTION
+
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
         message, dialogue = self.dialogues.create(
@@ -284,3 +313,67 @@ class TestABCIHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_QUERY
+
+    def test_list_snapshots(self) -> None:
+        """Test the 'list_snapshots' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS,
+        )
+        response = self.handler.list_snapshots(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert response.performative == AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS
+        assert response.snapshots == SnapShots([])
+
+    def test_offer_snapshot(self) -> None:
+        """Test the 'offer_snapshot' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
+            snapshot=Snapshot(0, 0, 0, b"", b""),
+            app_hash=b"",
+        )
+        response = self.handler.offer_snapshot(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert response.performative == AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT
+        assert response.result == Result(ResultType.REJECT)
+
+    def test_load_snapshot_chunk(self) -> None:
+        """Test the 'load_snapshot_chunk' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,
+            height=0,
+            format=0,
+            chunk_index=0,
+        )
+        response = self.handler.load_snapshot_chunk(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert (
+            response.performative
+            == AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK
+        )
+        assert response.chunk == b""
+
+    def test_apply_snapshot_chunk(self) -> None:
+        """Test the 'apply_snapshot_chunk' handler method."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
+            index=0,
+            chunk=b"",
+            chunk_sender="",
+        )
+        response = self.handler.apply_snapshot_chunk(
+            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        )
+        assert (
+            response.performative
+            == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK
+        )
+        assert response.result == Result(ResultType.REJECT)
+        assert response.refetch_chunks == []
+        assert response.reject_senders == []

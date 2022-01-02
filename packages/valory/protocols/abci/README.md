@@ -377,7 +377,7 @@ reply:
   response_offer_snapshot: []
   request_apply_snapshot_chunk: [response_apply_snapshot_chunk, response_exception]
   response_apply_snapshot_chunk: []
-  request_load_snapshot_chunk: [response_offer_snapshot, response_exception]
+  request_load_snapshot_chunk: [response_load_snapshot_chunk, response_exception]
   response_load_snapshot_chunk: []
   dummy: []
 termination:
