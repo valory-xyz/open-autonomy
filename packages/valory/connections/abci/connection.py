@@ -149,7 +149,9 @@ class _TendermintABCISerializer:
             length = cls.decode_varint(buffer)
             data = buffer.read(length)
             if len(data) < length:
-                raise ShortBufferLengthError()
+                raise ShortBufferLengthError(
+                    f"expected buffer of length {length}, got {len(data)}"
+                )
             message = message_cls()
             message.ParseFromString(data)
             yield message
@@ -272,7 +274,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             while not self.is_stopped:
                 try:
                     message = next(message_iterator, sentinel)
-                except (DecodeVarintError, ShortBufferLengthError, DecodeError) as e:
+                except (
+                    DecodeVarintError,
+                    ShortBufferLengthError,
+                    DecodeError,
+                ) as e:  # pragma: nocover
                     self.logger.error(
                         f"an error occurred while reading a message: "
                         f"{type(e).__name__}: {e}. "
