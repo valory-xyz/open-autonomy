@@ -35,6 +35,9 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
 
 
+ERROR_CODE = 1
+
+
 class ABCIHandler(Handler):
     """
     Default ABCI handler.
@@ -168,9 +171,9 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_SET_OPTION,
             target_message=message,
-            code=0,
-            log="",
-            info="",
+            code=ERROR_CODE,
+            log="operation not supported",
+            info="operation not supported",
         )
         return cast(AbciMessage, reply)
 
@@ -207,9 +210,9 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_QUERY,
             target_message=message,
-            code=0,
-            log="",
-            info="",
+            code=ERROR_CODE,
+            log="operation not supported",
+            info="operation not supported",
             index=0,
             key=b"",
             value=b"",
@@ -232,10 +235,10 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
             target_message=message,
-            code=0,  # OK
+            code=ERROR_CODE,
             data=b"",
-            log="",
-            info="",
+            log="operation not supported",
+            info="operation not supported",
             gas_wanted=0,
             gas_used=0,
             events=Events([]),
@@ -256,10 +259,10 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
             target_message=message,
-            code=0,  # OK
+            code=ERROR_CODE,
             data=b"",
-            log="",
-            info="",
+            log="operation not supported",
+            info="operation not supported",
             gas_wanted=0,
             gas_used=0,
             events=Events([]),

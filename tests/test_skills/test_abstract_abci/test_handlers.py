@@ -43,8 +43,7 @@ from packages.valory.protocols.abci.custom_types import (
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
-from packages.valory.skills.abstract_abci.handlers import ABCIHandler
-from packages.valory.skills.abstract_round_abci.base import OK_CODE
+from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
 
 from tests.conftest import ROOT_DIR
 
@@ -200,6 +199,7 @@ class TestABCIHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_SET_OPTION
+        assert response.code == ERROR_CODE
 
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
@@ -228,7 +228,7 @@ class TestABCIHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_CHECK_TX
-        assert response.code == OK_CODE
+        assert response.code == ERROR_CODE
 
     def test_deliver_tx(self, *_: Any) -> None:
         """Test the 'deliver_tx' handler method."""
@@ -241,7 +241,7 @@ class TestABCIHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
-        assert response.code == OK_CODE
+        assert response.code == ERROR_CODE
 
     def test_end_block(self) -> None:
         """Test the 'end_block' handler method."""
@@ -313,6 +313,7 @@ class TestABCIHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_QUERY
+        assert response.code == ERROR_CODE
 
     def test_list_snapshots(self) -> None:
         """Test the 'list_snapshots' handler method."""
