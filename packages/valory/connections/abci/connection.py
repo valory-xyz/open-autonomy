@@ -49,8 +49,13 @@ from packages.valory.protocols.abci import AbciMessage
 
 PUBLIC_ID = CONNECTION_PUBLIC_ID
 
-DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
+LOCALHOST = "127.0.0.1"
 DEFAULT_ABCI_PORT = 26658
+DEFAULT_P2P_PORT = 26656
+DEFAULT_RPC_PORT = 26657
+DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
+DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
+DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
 MAX_READ_IN_BYTES = 64 * 1024  # Max we'll consume on a read stream
 
 
@@ -165,7 +170,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         target_skill_id: PublicId,
         address: str,
         port: int,
-        logger: Logger,
+        logger: Optional[Logger] = None
     ):
         """
         Initialize the TCP server.
@@ -178,7 +183,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self.target_skill_id = target_skill_id
         self.address = address
         self.port = port
-        self.logger = logger
+        self.logger = logger or logging.getLogger()
 
         # channel state
         self._loop: Optional[AbstractEventLoop] = None
@@ -366,6 +371,17 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
 
+    def __str__(self) -> str:
+        """Get the string representation."""
+        return f"{self.__class__.__name__}(" \
+               f"    proxy_app={self.proxy_app},\n" \
+               f"    rpc_laddr={self.rpc_laddr},\n" \
+               f"    p2p_laddr={self.p2p_laddr},\n" \
+               f"    p2p_seeds={self.p2p_seeds},\n" \
+               f"    consensus_create_empty_blocks={self.consensus_create_empty_blocks},\n" \
+               f"    home={self.home},\n" \
+               ")"
+
 
 class TendermintNode:
     """A class to manage a Tendermint node."""
@@ -496,12 +512,14 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         if not self.use_tendermint:
             return
         tendermint_config = self.configuration.config.get("tendermint_config", {})
-        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr"))
-        p2p_laddr = cast(str, tendermint_config.get("p2p_laddr"))
-        p2p_seeds = cast(List[str], tendermint_config.get("p2p_seeds"))
-        home = cast(str, tendermint_config.get("home"))
+        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_PORT))
+        p2p_laddr = cast(
+            str, tendermint_config.get("p2p_laddr", DEFAULT_P2P_LISTEN_ADDRESS)
+        )
+        p2p_seeds = cast(List[str], tendermint_config.get("p2p_seeds", []))
+        home = cast(Optional[str], tendermint_config.get("home", None))
         consensus_create_empty_blocks = cast(
-            bool, tendermint_config.get("consensus_create_empty_blocks")
+            bool, tendermint_config.get("consensus_create_empty_blocks", True)
         )
         proxy_app = f"tcp://{self.host}:{self.port}"
         self.params = TendermintParams(
@@ -512,6 +530,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             consensus_create_empty_blocks,
             home,
         )
+        self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
 
     async def connect(self) -> None:
