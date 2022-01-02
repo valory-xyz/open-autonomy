@@ -22,6 +22,7 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
+from io import BytesIO
 from typing import Any, Callable, List, cast
 
 import pytest
@@ -31,6 +32,8 @@ from aea.identity.base import Identity
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
+from hypothesis import given
+from hypothesis.strategies import integers
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (
@@ -438,6 +441,14 @@ def test_encode_varint_method() -> None:
     assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
     assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
     assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
+
+
+@given(integers(min_value=0))
+def test_encode_decode_varint(value) -> None:
+    """Test that encoding and decoding works."""
+    encoder = _TendermintABCISerializer.encode_varint
+    decoder = _TendermintABCISerializer.decode_varint
+    assert decoder(BytesIO(encoder(value))) == value
 
 
 def test_dep_util() -> None:

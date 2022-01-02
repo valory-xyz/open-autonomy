@@ -104,7 +104,7 @@ class _TendermintABCISerializer:
             byte = cls._read_one(buffer)
         if not success:
             raise DecodeVarintError("could not decode varint")
-        return result
+        return result >> 1
 
     @classmethod
     def _read_one(cls, buffer: BytesIO) -> Optional[int]:
@@ -146,7 +146,7 @@ class _TendermintABCISerializer:
         """
         total_length = buffer.getbuffer().nbytes
         while buffer.tell() < total_length:
-            length = cls.decode_varint(buffer) >> 1
+            length = cls.decode_varint(buffer)
             data = buffer.read(length)
             if len(data) < length:
                 raise ShortBufferLengthError()
