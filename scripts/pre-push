@@ -9,6 +9,8 @@ function run_check(){
     fi
 }
 
+make clean
+
 run_check black-check
 run_check isort-check
 run_check flake8
