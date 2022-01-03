@@ -785,17 +785,17 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
             self.apy_estimation_behaviour.context.spooky_subgraph,
             self.apy_estimation_behaviour.context.fantom_subgraph,
+            self.apy_estimation_behaviour.context.spooky_subgraph,
+            self.apy_estimation_behaviour.context.spooky_subgraph,
         )
-        subgraphs_sorted_by_utilization_moment += tuple(  # type: ignore
-            subgraphs_sorted_by_utilization_moment[0] for _ in range(2)
-        )
-        for subgraph in subgraphs_sorted_by_utilization_moment:
-            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: bool)
-            self.apy_estimation_behaviour.act_wrapper()
-            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-            assert state.state_id == FetchBehaviour.state_id
 
-        self._test_done_flag_set()
+        for subgraph in subgraphs_sorted_by_utilization_moment:
+            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: True)
+            with pytest.raises(
+                AEAActException, match="Cannot continue FetchBehaviour."
+            ):
+                self.apy_estimation_behaviour.act_wrapper()
+                self.apy_estimation_behaviour.act_wrapper()
 
     def test_fetch_value_none(
         self,

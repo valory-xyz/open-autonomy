@@ -303,13 +303,13 @@ class FetchBehaviour(APYEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         if self.context.spooky_subgraph.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
+            # We cannot continue if the data were not fetched.
+            # It is going to make the agent fail in the next behaviour while looking for the historical data file.
+            self.context.logger.error(
+                "Retries were exceeded while downloading the historical data!"
+            )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue FetchBehaviour.")
 
         with benchmark_tool.measure(
             self,
