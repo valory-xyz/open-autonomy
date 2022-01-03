@@ -165,9 +165,7 @@ class SyncTimeRound(CollectionRound):
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        print(f"Heeeeeeeeeeeeeeeeere: {self.collection}")
         if len(self.collection) >= self._consensus_params.max_participants:
-            print(f"Heeeeeeeeeeeeeeeeere: {self.collection}")
             updated_state = self.period_state.update(
                 synced_time=aggregate_agent_times(
                     tuple(
