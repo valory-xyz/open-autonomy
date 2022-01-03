@@ -600,7 +600,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
             create_pathdirs(save_path)
             split.to_csv(save_path, index=False)
             hash_ = hasher.get(save_path)
-            self.context.logger.info(f"IPFS hash for {split} data is: {hash_}")
+            self.context.logger.info(f"IPFS hash for {filename} data is: {hash_}")
             hashes.append(hash_)
 
         # Pass the hash as a Payload.
