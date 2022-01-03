@@ -29,7 +29,13 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
-from aea_ledger_ethereum import EthereumCrypto
+from aea_ledger_ethereum import (
+    DEFAULT_CHAIN_ID,
+    DEFAULT_CURRENCY_DENOM,
+    DEFAULT_EIP1559_STRATEGY,
+    DEFAULT_GAS_STATION_STRATEGY,
+    EthereumCrypto,
+)
 
 from tests.fixture_helpers import (
     GanacheBaseTest,
@@ -54,10 +60,20 @@ class BaseContractTest(ABC):
         """Setup test."""
         key_pairs: List[Tuple[str, str]] = kwargs.pop("key_pairs")
         url: str = kwargs.pop("url")
+        new_config = {
+            "address": url,
+            "chain_id": DEFAULT_CHAIN_ID,
+            "denom": DEFAULT_CURRENCY_DENOM,
+            "default_gas_price_strategy": "eip1559",
+            "gas_price_strategies": {
+                "gas_station": DEFAULT_GAS_STATION_STRATEGY,
+                "eip1559": DEFAULT_EIP1559_STRATEGY,
+            },
+        }
         cls.contract = get_register_contract(cls.contract_directory)
         cls.ledger_api = ledger_apis_registry.make(
             cls.identifier,
-            address=url,
+            **new_config,
         )
         with TemporaryDirectory() as temp_dir:
             output_file = Path(os.path.join(temp_dir, "key_file"))

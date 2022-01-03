@@ -80,6 +80,8 @@ markdown_extensions:
   - markdown_include.include:
       base_path: docs
   - pymdownx.arithmatex
+  - attr_list
+  - md_in_html
 
 #extra_css:
 #    - css/my-styles.css

@@ -27,16 +27,22 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.behaviours import (
-    CommonAppsBaseState,
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
-from packages.valory.skills.common_apps.payloads import ValidatePayload
-from packages.valory.skills.oracle_deployment_abci.payloads import DeployOraclePayload
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.oracle_deployment_abci.models import Params
+from packages.valory.skills.oracle_deployment_abci.payloads import (
+    DeployOraclePayload,
+    RandomnessPayload,
+    SelectKeeperPayload,
+    ValidateOraclePayload,
+)
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
+    PeriodState,
     RandomnessOracleRound,
     SelectKeeperOracleRound,
     ValidateOracleRound,
@@ -46,11 +52,26 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 benchmark_tool = BenchmarkTool()
 
 
+class OracleDeploymentBaseState(BaseState):
+    """Base state behaviour for the common apps skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, super().period_state)
+
+    @property
+    def params(self) -> Params:
+        """Return the period state."""
+        return cast(Params, super().params)
+
+
 class RandomnessOracleBehaviour(RandomnessBehaviour):
     """Retrive randomness for oracle deployment."""
 
     state_id = "retrieve_randomness_oracle"
     matching_round = RandomnessOracleRound
+    payload_class = RandomnessPayload
 
 
 class SelectKeeperOracleBehaviour(SelectKeeperBehaviour):
@@ -58,9 +79,10 @@ class SelectKeeperOracleBehaviour(SelectKeeperBehaviour):
 
     state_id = "select_keeper_oracle"
     matching_round = SelectKeeperOracleRound
+    payload_class = SelectKeeperPayload
 
 
-class DeployOracleBehaviour(CommonAppsBaseState):
+class DeployOracleBehaviour(OracleDeploymentBaseState):
     """Deploy oracle."""
 
     state_id = "deploy_oracle"
@@ -128,7 +150,8 @@ class DeployOracleBehaviour(CommonAppsBaseState):
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
-            gas_price=10 ** 10,  # TOFIX
+            max_fee_per_gas=10 ** 10,  # TOFIX
+            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_response.performative
@@ -151,7 +174,7 @@ class DeployOracleBehaviour(CommonAppsBaseState):
         return contract_address
 
 
-class ValidateOracleBehaviour(CommonAppsBaseState):
+class ValidateOracleBehaviour(OracleDeploymentBaseState):
     """Validate oracle."""
 
     state_id = "validate_oracle"
@@ -172,7 +195,7 @@ class ValidateOracleBehaviour(CommonAppsBaseState):
             self,
         ).local():
             is_correct = yield from self.has_correct_contract_been_deployed()
-            payload = ValidatePayload(self.context.agent_address, is_correct)
+            payload = ValidateOraclePayload(self.context.agent_address, is_correct)
 
         with benchmark_tool.measure(
             self,

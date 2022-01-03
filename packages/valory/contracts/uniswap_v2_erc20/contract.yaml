@@ -8,8 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmQVHdKLbvg2LmuujxGysznbfRVbwaoKLJBrw8ZNb9FyCi
   build/IUniswapV2ERC20.json: QmWkFwmbi17vsAkee8RwWrcBbafZDP1bUpBb5RKfMwByQJ
-  contract.py: QmaZuAcgKLcESXxcRpS1zeo9hJu4bmEHi3npmYvci5Ear1
+  contract.py: QmVZE4QF1sqqYCf1tKWjwJP6U9rQZERv6FGecvavf1ADNj
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: UniswapV2ERC20Contract
 contract_interface_paths:
   ethereum: build/IUniswapV2ERC20.json

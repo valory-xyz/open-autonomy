@@ -126,7 +126,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
                 performative=ContractApiMessage.Performative.ERROR,
                 target_message=message,
                 code=500,
-                message=str(exception),
+                message=parse_exception(exception),
                 data=b"",
             ),
         )
@@ -155,11 +155,13 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             data = self._get_data(ledger_api, message, contract)
             response = response_builder(data, dialogue)
         except AEAException as exception:
-            self.logger.error(f"Exception during contract request: {str(exception)}")
+            self.logger.debug(
+                f"Whilst processing the contract api request:\n{message}\nthe following exception occured:\n{str(exception)}"
+            )
             response = self.get_error_message(exception, ledger_api, message, dialogue)
         except Exception as exception:  # pylint: disable=broad-except  # pragma: nocover
-            self.logger.error(
-                f"An error occurred while processing the contract api request: '{parse_exception(exception)}'."
+            self.logger.debug(
+                f"Whilst processing the contract api request:\n{message}\nthe following error occured:\n{parse_exception(exception)}"
             )
             response = self.get_error_message(exception, ledger_api, message, dialogue)
         return response

@@ -22,6 +22,7 @@ import time
 from abc import ABC
 from collections import OrderedDict
 from datetime import datetime
+from enum import Enum
 from typing import Any, Generator, Optional, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
@@ -290,7 +291,7 @@ def test_async_behaviour_stop() -> None:
 class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, "AbstractRound"]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Handle end block."""
         return None
 

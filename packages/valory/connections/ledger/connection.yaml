@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: QmdcyANC7j6fteqzBoFLBg9NfHBAxryY1ykfywzeSpp8iC
   base.py: QmZCAuMU5xb7jdvq8tDgyNyVTp4ao1zPEGhqCRh2ZeqjYU
   connection.py: QmSY8uatfZ7ssKHqZMx4VBYbNU7W2ZcXQmxW3XZSbqunnd
-  contract_dispatcher.py: QmQR8dBKZB8gUuGWAfTZWB9srXGYxwyw97zje65G9mdw7u
+  contract_dispatcher.py: QmSgp7p9ZdTLok4SCbjwoz6HcDCrUUrW43S2UCyJkGzYci
   ledger_dispatcher.py: Qmerw4o1Ef1WUqqUZwnTmjjACJRsWrt59PrPvnEAcxBhaU
 fingerprint_ignore_patterns: []
 connections: []
@@ -22,8 +22,23 @@ config:
   ledger_apis:
     ethereum:
       address: http://127.0.0.1:8545
-      gas_price_api_key: null
       chain_id: 1337
+      default_gas_price_strategy: eip1559
+      gas_price_strategies:
+        gas_station:
+          gas_price_api_key: null
+          gas_price_strategy: fast
+        eip1559:
+          max_gas_fast: 1500
+          fee_history_blocks: 10
+          fee_history_percentile: 5
+          priority_fee_estimation_trigger: 100
+          default_priority_fee: 3
+          fallback_estimate:
+            maxFeePerGas: 20000000000
+            maxPriorityFeePerGas: 3000000000
+            baseFee: null
+          priority_fee_increase_boundary: 200
   retry_attempts: 240
   retry_timeout: 3
 excluded_protocols: []

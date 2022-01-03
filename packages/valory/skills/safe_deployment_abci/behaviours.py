@@ -25,16 +25,21 @@ from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.common_apps.behaviours import (
-    CommonAppsBaseState,
+from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
-from packages.valory.skills.common_apps.payloads import ValidatePayload
-from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.safe_deployment_abci.payloads import (
+    DeploySafePayload,
+    RandomnessPayload,
+    SelectKeeperPayload,
+    ValidatePayload,
+)
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
+    PeriodState,
     RandomnessSafeRound,
     SelectKeeperSafeRound,
     ValidateSafeRound,
@@ -44,11 +49,21 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 benchmark_tool = BenchmarkTool()
 
 
+class SafeDeploymentBaseState(BaseState):
+    """Base state behaviour for the common apps skill."""
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, super().period_state)
+
+
 class RandomnessSafeBehaviour(RandomnessBehaviour):
     """Retrive randomness for oracle deployment."""
 
     state_id = "randomness_safe"
     matching_round = RandomnessSafeRound
+    payload_class = RandomnessPayload
 
 
 class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
@@ -56,9 +71,10 @@ class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
 
     state_id = "select_keeper_safe"
     matching_round = SelectKeeperSafeRound
+    payload_class = SelectKeeperPayload
 
 
-class DeploySafeBehaviour(CommonAppsBaseState):
+class DeploySafeBehaviour(SafeDeploymentBaseState):
     """Deploy Safe."""
 
     state_id = "deploy_safe"
@@ -121,7 +137,8 @@ class DeploySafeBehaviour(CommonAppsBaseState):
             threshold=threshold,
             deployer_address=self.context.agent_address,
             gas=10 ** 7,
-            gas_price=10 ** 10,  # TOFIX
+            max_fee_per_gas=10 ** 10,  # TOFIX
+            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_response.performative
@@ -153,7 +170,7 @@ class DeploySafeBehaviour(CommonAppsBaseState):
         return contract_address
 
 
-class ValidateSafeBehaviour(CommonAppsBaseState):
+class ValidateSafeBehaviour(SafeDeploymentBaseState):
     """ValidateSafe."""
 
     state_id = "validate_safe"

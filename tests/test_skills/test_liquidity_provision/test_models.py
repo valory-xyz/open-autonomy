@@ -55,13 +55,18 @@ class TestParams:
         params = Params(
             name="",
             skill_context=DummyContext(),
-            tendermint_url="",
             consensus={"max_participants": 1},
             max_healthcheck=10,
             round_timeout_seconds=1,
             sleep_time=1,
             retry_timeout=1,
             retry_attempts=1,
+            drand_public_key="868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31",
+            observation_interval=10,
+            period_setup={},
+            reset_tendermint_after=2,
+            tendermint_com_url="http://localhost:8080",
+            tendermint_url="http://localhost:26657",
         )
         assert not params.is_health_check_timed_out()
         params.increment_retries()

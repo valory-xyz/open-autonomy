@@ -45,7 +45,8 @@ class BaseContractTest(BaseGanacheContractTest):
     DESCRIPTION: str = "BTC"
     NB_TRANSMITTERS: int = 1
     GAS: int = 10 ** 10
-    GAS_PRICE: int = 10 ** 10
+    DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
+    DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
     contract_directory = Path(
         ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
     )
@@ -61,6 +62,8 @@ class BaseContractTest(BaseGanacheContractTest):
             _description=cls.DESCRIPTION,
             _transmitters=cls.transmitters(),
             gas=cls.GAS,
+            max_fee_per_gas=cls.DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=cls.DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -89,7 +92,7 @@ class TestDeployTransaction(BaseContractTest):
             **self.deployment_kwargs()
         )
         assert type(result) == dict
-        assert len(result) == 7
+        assert len(result) == 8
         data = result.pop("data")
         assert type(data) == str
         assert len(data) > 0 and data.startswith("0x")
@@ -100,7 +103,8 @@ class TestDeployTransaction(BaseContractTest):
                     "value",
                     "from",
                     "gas",
-                    "gasPrice",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
                     "nonce",
                 ]
             ]
@@ -160,13 +164,14 @@ class TestDeployTransaction(BaseContractTest):
             contract_address=self.contract_address,
             sender_address=self.transmitters()[0],
             gas=self.GAS,
-            gas_price=self.GAS_PRICE,
+            max_fee_per_gas=self.DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=self.DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             epoch_=epoch_,
             round_=round_,
             amount_=amount_,
         )
         assert result is not None, "Tx generation failed"
-        assert len(result) == 7
+        assert len(result) == 8
         sender = crypto_registry.make(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
         )
