@@ -19,13 +19,20 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 protocol_specification_id: valory/abci:0.1.0
 speech_acts:
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L42
   request_echo:
     message: pt:str
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L46
   request_flush: {}
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L48
   request_info:
     version: pt:str
     block_version: pt:int
     p2p_version: pt:int
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L55
+  request_set_option:
+    option_key: pt:str
+    option_value: pt:str
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L60
   request_init_chain:
     time: ct:Timestamp
@@ -75,7 +82,9 @@ speech_acts:
     chunk: pt:bytes
     chunk_sender: pt:str  # 'sender' conflicts with the attribute of 'Message'
   # responses
-  response_exception: {}
+  response_exception: {
+    error: pt:str
+  }
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L157
   response_echo:
     message: pt:str
@@ -88,6 +97,11 @@ speech_acts:
     app_version: pt:int
     last_block_height: pt:int
     last_block_app_hash: pt:bytes
+  # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L181
+  response_set_option:
+    code: pt:int
+    log: pt:str
+    info: pt:str
   # https://github.com/tendermint/tendermint/blob/v0.34.11/proto/tendermint/abci/types.proto#L181
   response_init_chain:
     consensus_params: pt:optional[ct:ConsensusParams]
@@ -320,6 +334,7 @@ initiation:
 - request_echo
 - request_flush
 - request_info
+- request_set_option
 - request_init_chain
 - request_query
 - request_begin_block
@@ -340,6 +355,8 @@ reply:
   response_flush: []
   request_info: [response_info, response_exception]
   response_info: []
+  request_set_option: [response_set_option, response_exception]
+  response_set_option: []
   request_init_chain: [response_init_chain, response_exception]
   response_init_chain: []
   request_query: [response_query, response_exception]
@@ -360,7 +377,7 @@ reply:
   response_offer_snapshot: []
   request_apply_snapshot_chunk: [response_apply_snapshot_chunk, response_exception]
   response_apply_snapshot_chunk: []
-  request_load_snapshot_chunk: [response_offer_snapshot, response_exception]
+  request_load_snapshot_chunk: [response_load_snapshot_chunk, response_exception]
   response_load_snapshot_chunk: []
   dummy: []
 termination:
@@ -368,6 +385,7 @@ termination:
   - response_echo
   - response_flush
   - response_info
+  - response_set_option
   - response_init_chain
   - response_query
   - response_begin_block

@@ -27,13 +27,20 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     Events,
     ProofOps,
+    Result,
+    ResultType,
+    SnapShots,
     ValidatorUpdates,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
 
 
 class ABCIHandler(Handler):
-    """ABCI handler."""
+    """
+    Default ABCI handler.
+
+    This handler of ABCI requests produces default responses to the client.
+    """
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 
@@ -85,6 +92,23 @@ class ABCIHandler(Handler):
             f"An exception occured: {error_message} for message: {message}"
         )
 
+    def echo(  # pylint: disable=no-self-use
+        self, message: AbciMessage, dialogue: AbciDialogue
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_ECHO performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_ECHO,
+            target_message=message,
+            message=message.message,
+        )
+        return cast(AbciMessage, reply)
+
     def info(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
@@ -114,7 +138,7 @@ class ABCIHandler(Handler):
     def flush(  # pylint: disable=no-self-use
         self,
         message: AbciMessage,
-        dialogue: AbciDialogue,  # pylint: disable=unused-argument
+        dialogue: AbciDialogue,
     ) -> AbciMessage:
         """
         Handle a message of REQUEST_FLUSH performative.
@@ -126,6 +150,27 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_FLUSH,
             target_message=message,
+        )
+        return cast(AbciMessage, reply)
+
+    def set_option(  # pylint: disable=no-self-use
+        self,
+        message: AbciMessage,
+        dialogue: AbciDialogue,
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_SET_OPTION performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,
+            target_message=message,
+            code=0,
+            log="",
+            info="",
         )
         return cast(AbciMessage, reply)
 
@@ -272,5 +317,83 @@ class ABCIHandler(Handler):
             target_message=message,
             data=b"",
             retain_height=0,
+        )
+        return cast(AbciMessage, reply)
+
+    def list_snapshots(  # pylint: disable=no-self-use
+        self,
+        message: AbciMessage,
+        dialogue: AbciDialogue,
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_LIST_SNAPSHOT performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,
+            target_message=message,
+            snapshots=SnapShots([]),
+        )
+        return cast(AbciMessage, reply)
+
+    def offer_snapshot(  # pylint: disable=no-self-use
+        self,
+        message: AbciMessage,
+        dialogue: AbciDialogue,
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_OFFER_SNAPSHOT performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
+            target_message=message,
+            result=Result(ResultType.REJECT),  # by default, we reject
+        )
+        return cast(AbciMessage, reply)
+
+    def load_snapshot_chunk(  # pylint: disable=no-self-use
+        self,
+        message: AbciMessage,
+        dialogue: AbciDialogue,
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_LOAD_SNAPSHOT_CHUNK performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
+            target_message=message,
+            chunk=b"",
+        )
+        return cast(AbciMessage, reply)
+
+    def apply_snapshot_chunk(  # pylint: disable=no-self-use
+        self,
+        message: AbciMessage,
+        dialogue: AbciDialogue,
+    ) -> AbciMessage:
+        """
+        Handle a message of REQUEST_APPLY_SNAPSHOT_CHUNK performative.
+
+        :param message: the ABCI request.
+        :param dialogue: the ABCI dialogue.
+        :return: the response.
+        """
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
+            target_message=message,
+            result=Result(ResultType.REJECT),
+            refetch_chunks=[],
+            reject_senders=[],
         )
         return cast(AbciMessage, reply)

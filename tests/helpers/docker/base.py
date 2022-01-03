@@ -131,7 +131,7 @@ def launch_image(
     else:
         logger.info("Done!")
         time.sleep(timeout)
-        yield
+        yield image
         logger.info(f"Stopping the image {image.tag}...")
         container.stop()
         logger.info("Logs from container:\n%s", container.logs().decode())

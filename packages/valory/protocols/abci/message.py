@@ -52,7 +52,7 @@ _default_logger = logging.getLogger("aea.packages.valory.protocols.abci.message"
 DEFAULT_BODY_SIZE = 4
 
 
-class AbciMessage(Message):
+class AbciMessage(Message):  # pylint: disable=too-many-public-methods
     """A protocol for ABCI requests and responses."""
 
     protocol_id = PublicId.from_str("valory/abci:0.1.0")
@@ -100,6 +100,7 @@ class AbciMessage(Message):
         REQUEST_LOAD_SNAPSHOT_CHUNK = "request_load_snapshot_chunk"
         REQUEST_OFFER_SNAPSHOT = "request_offer_snapshot"
         REQUEST_QUERY = "request_query"
+        REQUEST_SET_OPTION = "request_set_option"
         RESPONSE_APPLY_SNAPSHOT_CHUNK = "response_apply_snapshot_chunk"
         RESPONSE_BEGIN_BLOCK = "response_begin_block"
         RESPONSE_CHECK_TX = "response_check_tx"
@@ -115,6 +116,7 @@ class AbciMessage(Message):
         RESPONSE_LOAD_SNAPSHOT_CHUNK = "response_load_snapshot_chunk"
         RESPONSE_OFFER_SNAPSHOT = "response_offer_snapshot"
         RESPONSE_QUERY = "response_query"
+        RESPONSE_SET_OPTION = "response_set_option"
 
         def __str__(self) -> str:
             """Get the string representation."""
@@ -136,6 +138,7 @@ class AbciMessage(Message):
         "request_load_snapshot_chunk",
         "request_offer_snapshot",
         "request_query",
+        "request_set_option",
         "response_apply_snapshot_chunk",
         "response_begin_block",
         "response_check_tx",
@@ -151,6 +154,7 @@ class AbciMessage(Message):
         "response_load_snapshot_chunk",
         "response_offer_snapshot",
         "response_query",
+        "response_set_option",
     }
     __slots__: Tuple[str, ...] = tuple()
 
@@ -172,6 +176,7 @@ class AbciMessage(Message):
             "data",
             "dialogue_reference",
             "dummy_consensus_params",
+            "error",
             "events",
             "format",
             "gas_used",
@@ -190,6 +195,8 @@ class AbciMessage(Message):
             "log",
             "message",
             "message_id",
+            "option_key",
+            "option_value",
             "p2p_version",
             "path",
             "performative",
@@ -227,6 +234,7 @@ class AbciMessage(Message):
         :param dialogue_reference: the dialogue reference.
         :param target: the message target.
         :param performative: the message performative.
+        :param **kwargs: extra options.
         """
         super().__init__(
             dialogue_reference=dialogue_reference,
@@ -362,6 +370,12 @@ class AbciMessage(Message):
         return cast(CustomConsensusParams, self.get("dummy_consensus_params"))
 
     @property
+    def error(self) -> str:
+        """Get the 'error' content from the message."""
+        enforce(self.is_set("error"), "'error' content is not set.")
+        return cast(str, self.get("error"))
+
+    @property
     def events(self) -> CustomEvents:
         """Get the 'events' content from the message."""
         enforce(self.is_set("events"), "'events' content is not set.")
@@ -469,6 +483,18 @@ class AbciMessage(Message):
         """Get the 'message' content from the message."""
         enforce(self.is_set("message"), "'message' content is not set.")
         return cast(str, self.get("message"))
+
+    @property
+    def option_key(self) -> str:
+        """Get the 'option_key' content from the message."""
+        enforce(self.is_set("option_key"), "'option_key' content is not set.")
+        return cast(str, self.get("option_key"))
+
+    @property
+    def option_value(self) -> str:
+        """Get the 'option_value' content from the message."""
+        enforce(self.is_set("option_value"), "'option_value' content is not set.")
+        return cast(str, self.get("option_value"))
 
     @property
     def p2p_version(self) -> int:
@@ -654,6 +680,20 @@ class AbciMessage(Message):
                     type(self.p2p_version) is int,
                     "Invalid type for content 'p2p_version'. Expected 'int'. Found '{}'.".format(
                         type(self.p2p_version)
+                    ),
+                )
+            elif self.performative == AbciMessage.Performative.REQUEST_SET_OPTION:
+                expected_nb_of_contents = 2
+                enforce(
+                    isinstance(self.option_key, str),
+                    "Invalid type for content 'option_key'. Expected 'str'. Found '{}'.".format(
+                        type(self.option_key)
+                    ),
+                )
+                enforce(
+                    isinstance(self.option_value, str),
+                    "Invalid type for content 'option_value'. Expected 'str'. Found '{}'.".format(
+                        type(self.option_value)
                     ),
                 )
             elif self.performative == AbciMessage.Performative.REQUEST_INIT_CHAIN:
@@ -846,7 +886,13 @@ class AbciMessage(Message):
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_EXCEPTION:
-                expected_nb_of_contents = 0
+                expected_nb_of_contents = 1
+                enforce(
+                    isinstance(self.error, str),
+                    "Invalid type for content 'error'. Expected 'str'. Found '{}'.".format(
+                        type(self.error)
+                    ),
+                )
             elif self.performative == AbciMessage.Performative.RESPONSE_ECHO:
                 expected_nb_of_contents = 1
                 enforce(
@@ -887,6 +933,26 @@ class AbciMessage(Message):
                     isinstance(self.last_block_app_hash, bytes),
                     "Invalid type for content 'last_block_app_hash'. Expected 'bytes'. Found '{}'.".format(
                         type(self.last_block_app_hash)
+                    ),
+                )
+            elif self.performative == AbciMessage.Performative.RESPONSE_SET_OPTION:
+                expected_nb_of_contents = 3
+                enforce(
+                    type(self.code) is int,
+                    "Invalid type for content 'code'. Expected 'int'. Found '{}'.".format(
+                        type(self.code)
+                    ),
+                )
+                enforce(
+                    isinstance(self.log, str),
+                    "Invalid type for content 'log'. Expected 'str'. Found '{}'.".format(
+                        type(self.log)
+                    ),
+                )
+                enforce(
+                    isinstance(self.info, str),
+                    "Invalid type for content 'info'. Expected 'str'. Found '{}'.".format(
+                        type(self.info)
                     ),
                 )
             elif self.performative == AbciMessage.Performative.RESPONSE_INIT_CHAIN:
@@ -1200,7 +1266,7 @@ class AbciMessage(Message):
                         self.target
                     ),
                 )
-        except (AEAEnforceError, ValueError, KeyError) as e:  # pragma: nocover
+        except (AEAEnforceError, ValueError, KeyError) as e:
             _default_logger.error(str(e))
             return False
 

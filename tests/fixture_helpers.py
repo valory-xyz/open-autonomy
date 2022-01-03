@@ -51,7 +51,18 @@ class UseTendermint:
     @pytest.fixture(autouse=True)
     def _start_tendermint(self, tendermint: Any, tendermint_port: Any) -> None:
         """Start a Tendermint image."""
+        self._tendermint_image = tendermint
         self.tendermint_port = tendermint_port
+
+    @property
+    def abci_host(self) -> str:
+        """Get the abci host address."""
+        return self._tendermint_image.abci_host
+
+    @property
+    def abci_port(self) -> int:
+        """Get the abci port."""
+        return self._tendermint_image.abci_port
 
     @property
     def node_address(self) -> str:
