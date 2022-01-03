@@ -287,6 +287,7 @@ class FetchBehaviour(APYEstimationBaseState):
                 value = value[key]
 
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
+        self._call_failed = False
         subgraph.reset_retries()
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
