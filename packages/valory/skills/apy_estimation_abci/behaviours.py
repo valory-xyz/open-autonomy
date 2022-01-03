@@ -371,12 +371,14 @@ class FetchBehaviour(APYEstimationBaseState):
                             self.context.logger.error(
                                 f"Path '{self._save_path}' could not be found!"
                             )
+                            # Fix: exit round via fail event and move to right round
                             raise exc
 
                         except TypeError as exc:
                             self.context.logger.error(
                                 "Historical data cannot be JSON serialized!"
                             )
+                            # Fix: exit round via fail event and move to right round
                             raise exc
 
                         # Hash the file.
@@ -802,7 +804,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         try:
             best_params = study.best_params
 
-        except ValueError as e:
+        except ValueError:
             # If no trial finished, set random params as best.
             best_params = study.trials[0].params
             self.context.logger.warning(
@@ -811,7 +813,6 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 "for the optimization procedure. Setting best parameters randomly!"
             )
             # Fix: exit round via fail event and move to right round
-            raise e
 
         try:
             to_json_file(best_params_save_path, best_params)
@@ -857,8 +858,6 @@ class TrainBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
-        should_create_task = True
-        best_params = {}
         y: Union[np.ndarray, List[np.ndarray]] = []
 
         # Load the best params from the optimization results.
@@ -871,20 +870,23 @@ class TrainBehaviour(APYEstimationBaseState):
         try:
             best_params = cast(Dict[str, Any], read_json_file(best_params_path))
 
-        except OSError:  # pragma: nocover
+        except OSError as e:  # pragma: nocover
             self.context.logger.error(f"Path '{best_params_path}' could not be found!")
-            should_create_task = False
+            # Fix: exit round via fail event and move to right round
+            raise e
 
-        except json.JSONDecodeError:  # pragma: nocover
+        except json.JSONDecodeError as e:  # pragma: nocover
             self.context.logger.error(
                 f"File '{best_params_path}' has an invalid JSON encoding!"
             )
-            should_create_task = False
+            # Fix: exit round via fail event and move to right round
+            raise e
 
-        except ValueError:  # pragma: nocover
+        except ValueError as e:  # pragma: nocover
             self.context.logger.error(
                 f"There is an encoding error in the '{best_params_path}' file!"
             )
+            # Fix: exit round via fail event and move to right round
             raise e
 
         # Load training data.
@@ -899,12 +901,12 @@ class TrainBehaviour(APYEstimationBaseState):
                 try:
                     cast(List[np.ndarray], y).append(pd.read_csv(path).values.ravel())
 
-                except FileNotFoundError:  # pragma: nocover
+                except FileNotFoundError as e:  # pragma: nocover
                     self.context.logger.error(f"File {path} was not found!")
-                    should_create_task = False
+                    # Fix: exit round via fail event and move to right round
+                    raise e
 
-            if should_create_task:
-                y = np.concatenate(y)
+            y = np.concatenate(y)
 
         else:
             path = os.path.join(
@@ -916,23 +918,16 @@ class TrainBehaviour(APYEstimationBaseState):
             try:
                 y = pd.read_csv(path).values.ravel()
 
-            except FileNotFoundError:  # pragma: nocover
+            except FileNotFoundError as e:  # pragma: nocover
                 self.context.logger.error(f"File {path} was not found!")
-                should_create_task = False
+                # Fix: exit round via fail event and move to right round
+                raise e
 
-        if should_create_task:
-            train_task = TrainTask()
-            task_id = self.context.task_manager.enqueue_task(
-                train_task, args=(y,), kwargs=best_params
-            )
-            self._async_result = self.context.task_manager.get_task_result(task_id)
-
-        else:  # pragma: nocover
-            self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TrainBehaviour.")
+        train_task = TrainTask()
+        task_id = self.context.task_manager.enqueue_task(
+            train_task, args=(y,), kwargs=best_params
+        )
+        self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -994,9 +989,7 @@ class TestBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load test data.
-        should_create_task = True
         y: Dict[str, Optional[np.ndarray]] = {"y_train": None, "y_test": None}
-        forecaster: Optional[Pipeline] = None
 
         for split in ("train", "test"):
             path = os.path.join(
@@ -1008,9 +1001,10 @@ class TestBehaviour(APYEstimationBaseState):
             try:
                 y[f"y_{split}"] = pd.read_csv(path).values.ravel()
 
-            except FileNotFoundError:  # pragma: nocover
+            except FileNotFoundError as e:  # pragma: nocover
                 self.context.logger.error(f"File {path} was not found!")
-                should_create_task = False
+                # Fix: exit round via fail event and move to right round
+                raise e
 
         model_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
@@ -1021,28 +1015,21 @@ class TestBehaviour(APYEstimationBaseState):
         try:
             forecaster = load_forecaster(model_path)
 
-        except (NotADirectoryError, FileNotFoundError):  # pragma: nocover
+        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
             self.context.logger.error(f"Could not detect {model_path}!")
-            should_create_task = False
-
-        if should_create_task:
-            test_task = TestTask()
-            task_args = (
-                forecaster,
-                y["y_train"],
-                y["y_test"],
-                self.period_state.pair_name,
-                self.params.testing["steps_forward"],
-            )
-            task_id = self.context.task_manager.enqueue_task(test_task, task_args)
-            self._async_result = self.context.task_manager.get_task_result(task_id)
-
-        else:  # pragma: nocover
-            self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
-            )
             # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TestBehaviour.")
+            raise e
+
+        test_task = TestTask()
+        task_args = (
+            forecaster,
+            y["y_train"],
+            y["y_test"],
+            self.period_state.pair_name,
+            self.params.testing["steps_forward"],
+        )
+        task_id = self.context.task_manager.enqueue_task(test_task, task_args)
+        self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""

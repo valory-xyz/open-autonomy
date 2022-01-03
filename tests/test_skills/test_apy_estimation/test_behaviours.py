@@ -1730,6 +1730,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_optimize_behaviour_value_error(
         self,
         monkeypatch: MonkeyPatch,
+        caplog: LogCaptureFixture,
         optimize_task_result_empty: optuna.Study,
     ) -> None:
         """Run test for `optimize_behaviour` when `ValueError` is raised."""
@@ -1750,8 +1751,17 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # test ValueError handling.
-        with pytest.raises(AEAActException):
+        with caplog.at_level(
+            logging.WARNING,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
             self.apy_estimation_behaviour.act_wrapper()
+
+        assert (
+            "The optimization could not be done! "
+            "Please make sure that there is a sufficient number of data for the optimization procedure. "
+            "Setting best parameters randomly!"
+        ) in caplog.text
 
     def test_optimize_behaviour_type_error(
         self,
