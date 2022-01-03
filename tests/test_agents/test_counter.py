@@ -30,6 +30,7 @@ import pytest
 import requests
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseTendermint
 from tests.helpers.constants import DEFAULT_REQUESTS_TIMEOUT
 from tests.helpers.tendermint_utils import (
@@ -96,6 +97,14 @@ class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
         self.generate_private_key("ethereum")
         self.add_private_key("ethereum", "ethereum_private_key.txt")
         self.set_config("vendor.valory.connections.abci.config.use_tendermint", False)
+        self.set_config(
+            "vendor.valory.connections.abci.config.host",
+            ANY_ADDRESS,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.port",
+            self.abci_port,
+        )
 
         process = self.run_agent()
         is_running = self.is_running(process)

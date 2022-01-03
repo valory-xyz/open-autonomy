@@ -58,7 +58,8 @@ from tests.helpers.docker.gnosis_safe_net import (
     GnosisSafeNetDockerImage,
 )
 from tests.helpers.docker.tendermint import (
-    DEFAULT_PROXY_APP,
+    DEFAULT_ABCI_HOST,
+    DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     TendermintDockerImage,
 )
@@ -103,6 +104,8 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
     },
 }
 
+ANY_ADDRESS = "0.0.0.0"  # nosec
+
 
 @pytest.fixture()
 def tendermint_port() -> int:
@@ -113,14 +116,15 @@ def tendermint_port() -> int:
 @pytest.fixture(scope="function")
 def tendermint(
     tendermint_port: Any,
-    proxy_app: str = DEFAULT_PROXY_APP,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
     """Launch the Ganache image."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
-    image = TendermintDockerImage(client, tendermint_port, proxy_app)
+    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 

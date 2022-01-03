@@ -170,7 +170,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         target_skill_id: PublicId,
         address: str,
         port: int,
-        logger: Optional[Logger] = None
+        logger: Optional[Logger] = None,
     ):
         """
         Initialize the TCP server.
@@ -373,14 +373,16 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
 
     def __str__(self) -> str:
         """Get the string representation."""
-        return f"{self.__class__.__name__}(" \
-               f"    proxy_app={self.proxy_app},\n" \
-               f"    rpc_laddr={self.rpc_laddr},\n" \
-               f"    p2p_laddr={self.p2p_laddr},\n" \
-               f"    p2p_seeds={self.p2p_seeds},\n" \
-               f"    consensus_create_empty_blocks={self.consensus_create_empty_blocks},\n" \
-               f"    home={self.home},\n" \
-               ")"
+        return (
+            f"{self.__class__.__name__}("
+            f"    proxy_app={self.proxy_app},\n"
+            f"    rpc_laddr={self.rpc_laddr},\n"
+            f"    p2p_laddr={self.p2p_laddr},\n"
+            f"    p2p_seeds={self.p2p_seeds},\n"
+            f"    consensus_create_empty_blocks={self.consensus_create_empty_blocks},\n"
+            f"    home={self.home},\n"
+            ")"
+        )
 
 
 class TendermintNode:

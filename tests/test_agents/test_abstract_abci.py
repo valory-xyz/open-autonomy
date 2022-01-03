@@ -23,6 +23,7 @@ import time
 import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseTendermint
 
 
@@ -57,7 +58,14 @@ class TestABCISkill(AEATestCaseMany, UseTendermint):
         #     "vendor.valory.connections.abci.config.use_tendermint",  # noqa: E800
         #     False,  # noqa: E800
         # )  # noqa: E800
-
+        self.set_config(
+            "vendor.valory.connections.abci.config.host",
+            ANY_ADDRESS,
+        )
+        self.set_config(
+            "vendor.valory.connections.abci.config.port",
+            self.abci_port,
+        )
         process = self.run_agent()
         is_running = self.is_running(process)
         assert is_running, "AEA not running within timeout!"

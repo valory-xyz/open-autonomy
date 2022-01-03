@@ -62,6 +62,7 @@ from packages.valory.protocols.abci.custom_types import (  # type: ignore
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
+from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseTendermint
 from tests.helpers.async_utils import (
     AnotherThreadTask,
@@ -428,7 +429,9 @@ async def test_connection_standalone_tendermint_setup() -> None:
         target_skill_id="dummy_author/dummy:0.1.0",
         use_tendermint=True,
         tendermint_config=dict(
-            rpc_laddr="0.0.0.0:26657", p2p_laddr="0.0.0.0:26656", p2p_seeds=[]
+            rpc_laddr=f"{ANY_ADDRESS}:26657",
+            p2p_laddr=f"{ANY_ADDRESS}:26656",
+            p2p_seeds=[],
         ),
     )
     connection = ABCIServerConnection(
