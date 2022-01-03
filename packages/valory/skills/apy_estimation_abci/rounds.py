@@ -29,6 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
+    CollectionRound,
     TransactionType,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -39,6 +40,7 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
+    SyncPayload,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload as _TestingPayload,
@@ -47,7 +49,10 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
 )
-from packages.valory.skills.apy_estimation_abci.tools.general import filter_out_numbers
+from packages.valory.skills.apy_estimation_abci.tools.general import (
+    aggregate_agent_times,
+    filter_out_numbers,
+)
 
 
 N_ESTIMATIONS_BEFORE_RETRAIN = 60
@@ -67,6 +72,11 @@ class Event(Enum):
 
 class PeriodState(BasePeriodState):
     """Class to represent a period state. This state is replicated by the tendermint application."""
+
+    @property
+    def synced_time(self) -> int:
+        """Get the synced_time."""
+        return cast(int, self.db.get_strict("synced_time"))
 
     @property
     def most_voted_estimate(self) -> float:
@@ -133,6 +143,38 @@ class RegistrationRound(CollectDifferentUntilAllRound):
                 period_state_class=PeriodState,
                 full_training=False,
                 n_estimations=0,
+            )
+            return updated_state, Event.DONE
+
+        return None
+
+
+class SyncTimeRound(CollectionRound):
+    """
+    This class represents the 'sync-time' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the agents' times.
+
+    It schedules the CollectHistoryRound.
+    """
+
+    round_id = "sync_time"
+    allowed_tx_type = SyncPayload.transaction_type
+    payload_attribute = "time"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        print(f"Heeeeeeeeeeeeeeeeere: {self.collection}")
+        if len(self.collection) >= self._consensus_params.max_participants:
+            print(f"Heeeeeeeeeeeeeeeeere: {self.collection}")
+            updated_state = self.period_state.update(
+                synced_time=aggregate_agent_times(
+                    tuple(
+                        cast(SyncPayload, payload).time
+                        for payload in self.collection.values()
+                    )
+                )
             )
             return updated_state, Event.DONE
 
@@ -415,7 +457,11 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
+            Event.DONE: SyncTimeRound,
+        },
+        SyncTimeRound: {
             Event.DONE: CollectHistoryRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         CollectHistoryRound: {
             Event.DONE: TransformRound,
@@ -461,7 +507,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
-            Event.DONE: CollectHistoryRound,
+            Event.DONE: SyncTimeRound,
             Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we try to assemble a new group of agents
             Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we try to assemble a new group of agents
         },

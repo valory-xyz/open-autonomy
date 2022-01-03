@@ -20,13 +20,13 @@
 """Test the `tools/general.py` module of the skill."""
 import json
 import os
-import time
 from pathlib import PosixPath
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.general import (
+    aggregate_agent_times,
     create_pathdirs,
     filter_out_numbers,
     gen_unix_timestamps,
@@ -45,10 +45,11 @@ class TestGeneral:
         n_months_to_check = 1
         days_in_month = 30
 
-        monkeypatch.setattr(
-            time, "time", lambda: day_in_unix * n_months_to_check * (days_in_month + 1)
+        timestamps = list(
+            gen_unix_timestamps(
+                day_in_unix * n_months_to_check * (days_in_month + 1), n_months_to_check
+            )
         )
-        timestamps = list(gen_unix_timestamps(n_months_to_check))
 
         expected = day_in_unix
         for timestamp in timestamps:
@@ -166,3 +167,9 @@ class TestGeneral:
         """Test `filter_out_numbers`."""
         filtered_num = filter_out_numbers(unfiltered_string)
         assert filtered_num == expected
+
+    @staticmethod
+    def test_aggregate_agent_times() -> None:
+        """Test `aggregate_agent_times` function."""
+
+        assert aggregate_agent_times((1, 2, 3, 4, 5)) == 3.0

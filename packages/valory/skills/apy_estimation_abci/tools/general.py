@@ -21,8 +21,8 @@
 """Tools for the APY skill."""
 import json
 import os
-import time
-from typing import Any, Dict, Iterator, Optional, Union
+import statistics
+from typing import Any, Collection, Dict, Iterator, Optional, Union
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
@@ -32,18 +32,18 @@ HyperParamsType = Dict[str, Any]
 StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
 
 
-def gen_unix_timestamps(duration: int) -> Iterator[int]:
+def gen_unix_timestamps(synced_now: int, duration: int) -> Iterator[int]:
     """Generate the UNIX timestamps from `duration` months ago up to today.
 
+    :param synced_now: the synced time across the agents.
     :param duration: the duration of the timestamps to be returned, in months (more precisely, in 30 days).
     :yields: the UNIX timestamps.
     """
     day_in_unix = 24 * 60 * 60
 
-    now = int(time.time())
-    duration_before = now - (duration * 30 * day_in_unix)
+    duration_before = synced_now - (duration * 30 * day_in_unix)
 
-    for day in range(duration_before, now, day_in_unix):
+    for day in range(duration_before, synced_now, day_in_unix):
         yield day
 
 
@@ -95,3 +95,12 @@ def filter_out_numbers(string: str) -> Optional[int]:
         filtered_result = int(str(filtered_result)[:9])
 
     return filtered_result
+
+
+def aggregate_agent_times(times: Collection[int]) -> int:
+    """Aggregate the agents' times.
+
+    :param times: the input times collection.
+    :return: the median of the agents' times.
+    """
+    return int(statistics.median(times))

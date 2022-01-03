@@ -84,6 +84,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     RandomnessBehaviour,
     RegistrationBehaviour,
     ResetBehaviour,
+    SyncTimeBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
@@ -607,7 +608,7 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Base test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = FetchBehaviour
+    next_behaviour_class = SyncTimeBehaviour
 
     def test_registration(self) -> None:
         """Test registration."""
@@ -643,7 +644,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            period_state=PeriodState(
+                StateDB(initial_period=0, initial_data=dict(synced_time=0))
+            ),
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -696,30 +699,31 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_fetch_behaviour(
         self,
-        monkeypatch: MonkeyPatch,
-        top_n_pairs_q: str,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
         pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            self.period_state,
-        )
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            period_state=PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        synced_time=1618735147 + history_duration * 30 * 24 * 60 * 60
+                    ),
+                )
+            ),
+        )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
-        monkeypatch.setattr(
-            time,
-            "time",
-            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
-        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -779,7 +783,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
-            self.period_state,
+            period_state=PeriodState(
+                StateDB(initial_period=0, initial_data=dict(synced_time=0))
+            ),
         )
 
         subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
@@ -799,29 +805,31 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_fetch_value_none(
         self,
-        monkeypatch: MonkeyPatch,
         caplog: LogCaptureFixture,
-        top_n_pairs_q: str,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
         pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Test when fetched value is none."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
-        )
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            FetchBehaviour.state_id,
+            period_state=PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        synced_time=1618735147 + history_duration * 30 * 24 * 60 * 60
+                    ),
+                )
+            ),
+        )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
-        monkeypatch.setattr(
-            time,
-            "time",
-            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
-        )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.sleep_time = SLEEP_TIME_TWEAK
@@ -949,7 +957,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, synced_time=0),
+                )
             ),
         )
         # set history duration to a negative value in order to raise a `StopIteration`.
@@ -966,7 +977,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, synced_time=0),
+                )
             ),
         )
 
@@ -985,7 +999,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, synced_time=0),
+                )
             ),
         )
 
@@ -1007,7 +1024,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             FetchBehaviour.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, synced_time=0),
+                )
             ),
         )
 
@@ -2382,14 +2402,9 @@ class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
     behaviour_class = ResetBehaviour
-    next_behaviour_class = FetchBehaviour
+    next_behaviour_class = SyncTimeBehaviour
 
-    def test_reset_behaviour(
-        self,
-        monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
-        caplog: LogCaptureFixture,
-    ) -> None:
+    def test_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
         """Run test for `ResetBehaviour`."""
         self.fast_forward_to_state(
             behaviour=self.apy_estimation_behaviour,

@@ -32,6 +32,7 @@ class TransactionType(Enum):
     RANDOMNESS = "randomness"
     SELECT_KEEPER = "select_keeper"
     RESET = "reset"
+    SYNC = "sync"
     FETCHING = "fetching"
     TRANSFORMATION = "transformation"
     PREPROCESS = "preprocess"
@@ -92,6 +93,32 @@ class RandomnessPayload(BaseAPYPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(round_id=self._round_id, randomness=self._randomness)
+
+
+class SyncPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'sync'."""
+
+    transaction_type = TransactionType.SYNC
+
+    def __init__(self, sender: str, time: int, id_: Optional[str] = None) -> None:
+        """Initialize a 'time' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param time: the time
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._time = time
+
+    @property
+    def time(self) -> int:
+        """Get the time."""
+        return self._time
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(time=self.time)
 
 
 class FetchingPayload(BaseAPYPayload):
