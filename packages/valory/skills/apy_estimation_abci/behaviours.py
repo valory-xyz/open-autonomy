@@ -341,6 +341,7 @@ class FetchBehaviour(APYEstimationBaseState):
                         # Hash the file.
                         hasher = IPFSHashOnly()
                         hist_hash = hasher.get(self._save_path)
+                        self.context.logger.info(f"IPFS hash for fetched data is: {hist_hash}")
 
                         # Pass the hash as a Payload.
                         payload = FetchingPayload(
@@ -471,10 +472,8 @@ class TransformBehaviour(APYEstimationBaseState):
         )
         create_pathdirs(self._transformed_history_save_path)
 
-        # Load historical data from a json file.
-        pairs_hist = None
-
         try:
+            # Load historical data from a json file.
             pairs_hist = read_json_file(self._history_save_path)
 
         except OSError as e:  # all these exceptions are not handled properly. it will break the app; a problem throughout this file
@@ -505,7 +504,7 @@ class TransformBehaviour(APYEstimationBaseState):
 
         else:
             self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
+                "Could not create the transform task! This will result in an error while running the round!"
             )
             # Fix: exit round via fail event and move to right round
             raise RuntimeError("Cannot continue TransformBehaviour.")
@@ -537,6 +536,7 @@ class TransformBehaviour(APYEstimationBaseState):
         # Hash the file.
         hasher = IPFSHashOnly()
         hist_hash = hasher.get(self._transformed_history_save_path)
+        self.context.logger.info(f"IPFS hash for transformed data is: {hist_hash}")
 
         # Pass the hash as a Payload.
         payload = TransformationPayload(
@@ -572,44 +572,46 @@ class PreprocessBehaviour(APYEstimationBaseState):
         try:
             pairs_hist = load_hist(transformed_history_load_path)
 
-            (y_train, y_test), pair_name = prepare_pair_data(
-                pairs_hist, self.params.pair_ids[0]
-            )
-            self.context.logger.info("Data have been preprocessed.")
-            self.context.logger.info(f"y_train: {y_train.to_string()}")
-            self.context.logger.info(f"y_test: {y_test.to_string()}")
-
-            # Store and hash the preprocessed data.
-            hasher = IPFSHashOnly()
-            hashes = []
-            for filename, split in {"train": y_train, "test": y_test}.items():
-                save_path = os.path.join(
-                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_ids[0],
-                    f"y_{filename}.csv",
-                )
-                create_pathdirs(save_path)
-                split.to_csv(save_path, index=False)
-                hashes.append(hasher.get(save_path))
-
-            # Pass the hash as a Payload.
-            payload = PreprocessPayload(
-                self.context.agent_address, pair_name, hashes[0], hashes[1]
-            )
-
-            # Finish behaviour.
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-
         except FileNotFoundError as e:  # pragma: nocover
             self.context.logger.error(
                 f"File {transformed_history_load_path} was not found!"
             )
             # FIX: it makes no sense to sleep when the file is not found!
             raise e
+
+        (y_train, y_test), pair_name = prepare_pair_data(
+            pairs_hist, self.params.pair_ids[0]
+        )
+        self.context.logger.info("Data have been preprocessed.")
+        self.context.logger.info(f"y_train: {y_train.to_string()}")
+        self.context.logger.info(f"y_test: {y_test.to_string()}")
+
+        # Store and hash the preprocessed data.
+        hasher = IPFSHashOnly()
+        hashes = []
+        for filename, split in {"train": y_train, "test": y_test}.items():
+            save_path = os.path.join(
+                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                f"y_{filename}.csv",
+            )
+            create_pathdirs(save_path)
+            split.to_csv(save_path, index=False)
+            hash_ = hasher.get(save_path)
+            self.context.logger.info(f"IPFS hash for {split} data is: {hash_}")
+            hashes.append(hash_)
+
+        # Pass the hash as a Payload.
+        payload = PreprocessPayload(
+            self.context.agent_address, pair_name, hashes[0], hashes[1]
+        )
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class RandomnessBehaviour(APYEstimationBaseState):
@@ -786,6 +788,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         # Hash the file.
         hasher = IPFSHashOnly()
         best_params_hash = hasher.get(best_params_save_path)
+        self.context.logger.info(f"IPFS hash for best params is: {best_params_hash}")
 
         # Pass the best params hash as a Payload.
         payload = OptimizationPayload(self.context.agent_address, best_params_hash)
@@ -920,11 +923,8 @@ class TrainBehaviour(APYEstimationBaseState):
         # Hash the file.
         hasher = IPFSHashOnly()
         model_hash = hasher.get(forecaster_save_path)
+        self.context.logger.info(f"IPFS hash for {prefix}forecasting model is: {model_hash}")
 
-        # Pass the hash and the best trial as a Payload.
-        self.context.logger.info(
-            f"The {forecaster_save_path} model's hash is: '{model_hash}'"
-        )
         payload = TrainingPayload(self.context.agent_address, model_hash)
 
         # Finish behaviour.
@@ -1041,6 +1041,7 @@ class TestBehaviour(APYEstimationBaseState):
         # Hash the file.
         hasher = IPFSHashOnly()
         report_hash = hasher.get(report_save_path)
+        self.context.logger.info(f"IPFS hash for test report is: {report_hash}")
 
         # Pass the hash and the best trial as a Payload.
         payload = TestingPayload(self.context.agent_address, report_hash)
