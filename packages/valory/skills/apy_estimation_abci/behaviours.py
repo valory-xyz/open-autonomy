@@ -341,7 +341,9 @@ class FetchBehaviour(APYEstimationBaseState):
                         # Hash the file.
                         hasher = IPFSHashOnly()
                         hist_hash = hasher.get(self._save_path)
-                        self.context.logger.info(f"IPFS hash for fetched data is: {hist_hash}")
+                        self.context.logger.info(
+                            f"IPFS hash for fetched data is: {hist_hash}"
+                        )
 
                         # Pass the hash as a Payload.
                         payload = FetchingPayload(
@@ -923,7 +925,9 @@ class TrainBehaviour(APYEstimationBaseState):
         # Hash the file.
         hasher = IPFSHashOnly()
         model_hash = hasher.get(forecaster_save_path)
-        self.context.logger.info(f"IPFS hash for {prefix}forecasting model is: {model_hash}")
+        self.context.logger.info(
+            f"IPFS hash for {prefix}forecasting model is: {model_hash}"
+        )
 
         payload = TrainingPayload(self.context.agent_address, model_hash)
 
@@ -1124,7 +1128,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
             )
             # Fix: add pausing
             benchmark_tool.save()
-        if self.cycle and not self.period_state.is_most_voted_estimate_set:
+        elif self.cycle and not self.period_state.is_most_voted_estimate_set:
             self.context.logger.info("Finalized estimate not available. Resetting!")
         else:
             self.context.logger.info(
