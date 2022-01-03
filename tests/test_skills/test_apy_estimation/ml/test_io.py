@@ -26,7 +26,10 @@ import numpy as np
 import pytest
 from aea.helpers.ipfs.base import IPFSHashOnly
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
+    init_forecaster,
+    train_forecaster,
+)
 from packages.valory.skills.apy_estimation_abci.ml.io import (
     load_forecaster,
     save_forecaster,
@@ -56,6 +59,26 @@ class TestIO:
         actual_hash = hasher.get(actual_filepath)
         expected_hash = hasher.get(expected_filepath)
         assert actual_hash == expected_hash
+
+    @staticmethod
+    def test_hashes_of_saved_forecasters(tmp_path: PosixPath) -> None:
+        """Test hashes of `save_forecaster`'s generated files."""
+        # has to be > 1
+        n_hashes_to_compare = 5
+        hashes = []
+        dummy_training_data = np.asarray([i for i in range(30)])
+        filepath = os.path.join(tmp_path, "forecaster.joblib")
+
+        for _ in range(n_hashes_to_compare):
+            # Train & save the forecaster.
+            forecaster = train_forecaster(dummy_training_data, 2, 2, 2, 20, 1)
+            save_forecaster(filepath, forecaster)
+            # Hash the forecaster's file.
+            hasher = IPFSHashOnly()
+            hashes.append(hasher.get(filepath))
+
+        # See if all the hashes are the same.
+        assert all(x == hashes[0] for x in hashes[1:])
 
     @staticmethod
     def test_load_forecaster(tmp_path: PosixPath, observations: np.ndarray) -> None:

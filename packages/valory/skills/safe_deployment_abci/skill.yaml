@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmbQpaLfkreTY7i2qQaVHcqPrajfcvFQnvho19L7GiTTSC
-  behaviours.py: QmQrmtJQ7qbUa9ECufqrJ9zZQ5L2QEtN6PoyAewnrnq5VW
-  payloads.py: QmNrSEUoXknvcuEEW9wKMCvK6SqD9zVryHLTWJT7MsGrxV
-  rounds.py: Qmd8BnCs4Z4BducAm6oLvsfxvLbD5MFnSv81pbRg2t4FSZ
+  behaviours.py: QmfXsPev4KJgEeZykZ55qb1tEj9SwdjpkLwpozJ6SbzxUm
+  payloads.py: QmSjhP6nLVWtY3d9yo9E43iQ1UNBtEu8MXvrB69otPEqqg
+  rounds.py: QmTwVu8C7s4foeCAqM6skkcTyitCcvZW425RQ2cdUpdf6p
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -19,7 +19,6 @@ protocols:
 - valory/contract_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
-- valory/common_apps:0.1.0
 behaviours: {}
 handlers: {}
 models: {}

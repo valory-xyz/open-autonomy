@@ -23,7 +23,19 @@ import json
 import os
 from abc import ABC
 from multiprocessing.pool import AsyncResult
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import numpy as np
 import pandas as pd
@@ -79,7 +91,10 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
     TrainTask,
     TransformTask,
 )
-from packages.valory.skills.apy_estimation_abci.tools.etl import load_hist
+from packages.valory.skills.apy_estimation_abci.tools.etl import (
+    ResponseItemType,
+    load_hist,
+)
 from packages.valory.skills.apy_estimation_abci.tools.general import (
     create_pathdirs,
     gen_unix_timestamps,
@@ -129,40 +144,31 @@ class TendermintHealthcheckBehaviour(APYEstimationBaseState):
 
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
-        expired = False
-
-        if self._check_started is not None and not self._is_healthy:
-            expired = (
-                datetime.datetime.now()
-                > self._check_started + datetime.timedelta(0, self._timeout)
-            )
-
-        return expired
+        if self._check_started is None or self._is_healthy:
+            return False  # pragma: no cover
+        return datetime.datetime.now() > self._check_started + datetime.timedelta(
+            0, self._timeout
+        )
 
     def async_act(self) -> Generator:
         """Do the action."""
+
         self.start()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
-
         if not self._is_healthy:
             health = yield from self._get_health()
             try:
-                json.loads(health.body.decode())
-
+                json_body = json.loads(health.body.decode())
             except json.JSONDecodeError:
                 self.context.logger.error("Tendermint not running yet, trying again!")
                 yield from self.sleep(self.params.sleep_time)
                 return
-
             self._is_healthy = True
-
         status = yield from self._get_status()
-
         try:
             json_body = json.loads(status.body.decode())
-
         except json.JSONDecodeError:
             self.context.logger.error(
                 "Tendermint not accepting transactions yet, trying again!"
@@ -175,12 +181,10 @@ class TendermintHealthcheckBehaviour(APYEstimationBaseState):
         self.context.logger.info(
             "local-height = %s, remote-height=%s", local_height, remote_height
         )
-
         if local_height != remote_height:
             self.context.logger.info("local height != remote height; retrying...")
             yield from self.sleep(self.params.sleep_time)
             return
-
         self.context.logger.info("local height == remote height; done")
         self.set_done()
 
@@ -230,6 +234,11 @@ class FetchBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._save_path = ""
+        self._spooky_api_specs: Dict[str, Any] = dict()
+        self._timestamps_iterator: Optional[Iterator[int]] = None
+        self._current_timestamp: Optional[int] = None
+        self._call_failed = False
+        self._pairs_hist: ResponseItemType = []
 
     def setup(self) -> None:
         """Set the behaviour up."""
@@ -238,6 +247,16 @@ class FetchBehaviour(APYEstimationBaseState):
             "historical_data.json",
         )
         create_pathdirs(self._save_path)
+
+        self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
+        available_specs = set(self._spooky_api_specs.keys())
+        needed_specs = {"method", "url", "headers"}
+        unwanted_specs = available_specs - (available_specs & needed_specs)
+
+        for unwanted in unwanted_specs:
+            self._spooky_api_specs.pop(unwanted)
+
+        self._timestamps_iterator = gen_unix_timestamps(self.params.history_duration)
 
     def _handle_response(
         self,
@@ -258,6 +277,7 @@ class FetchBehaviour(APYEstimationBaseState):
                 f"Could not get {res_context} from {subgraph.api_id}"
             )
 
+            self._call_failed = True
             subgraph.increment_retries()
             raise EmptyResponseError()
 
@@ -289,125 +309,133 @@ class FetchBehaviour(APYEstimationBaseState):
             ).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
+            return
 
-        else:
-            with benchmark_tool.measure(
-                self,
-            ).local():
-                spooky_api_specs = self.context.spooky_subgraph.get_spec()
-                available_specs = set(spooky_api_specs.keys())
-                needed_specs = {"method", "url", "headers"}
-                unwanted_specs = available_specs - (available_specs & needed_specs)
-
-                for unwanted in unwanted_specs:
-                    spooky_api_specs.pop(unwanted)
-
-                pairs_hist = []
-                for timestamp in gen_unix_timestamps(self.params.history_duration):
-                    # Fetch block.
-                    fantom_api_specs = self.context.fantom_subgraph.get_spec()
-                    res_raw = yield from self.get_http_response(
-                        method=fantom_api_specs["method"],
-                        url=fantom_api_specs["url"],
-                        headers=fantom_api_specs["headers"],
-                        content=block_from_timestamp_q(timestamp),
-                    )
-                    res = self.context.fantom_subgraph.process_response(res_raw)
-
-                    try:
-                        self._handle_response(
-                            res,
-                            res_context="block",
-                            keys=("blocks", 0),
-                            subgraph=self.context.fantom_subgraph,
-                        )
-                    except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
-                        return
-
-                    fetched_block = res["blocks"][0]
-
-                    # Fetch ETH price for block.
-                    res_raw = yield from self.get_http_response(
-                        content=eth_price_usd_q(
-                            self.context.spooky_subgraph.bundle_id,
-                            fetched_block["number"],
-                        ),
-                        **spooky_api_specs,
-                    )
-                    res = self.context.spooky_subgraph.process_response(res_raw)
-
-                    try:
-                        self._handle_response(
-                            res,
-                            res_context=f"ETH price for block {fetched_block}",
-                            keys=("bundles", 0, "ethPrice"),
-                            subgraph=self.context.spooky_subgraph,
-                        )
-                    except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
-                        return
-
-                    eth_price = float(res["bundles"][0]["ethPrice"])
-
-                    # Fetch pool data for block.
-                    res_raw = yield from self.get_http_response(
-                        content=pairs_q(fetched_block["number"], self.params.pair_ids),
-                        **spooky_api_specs,
-                    )
-                    res = self.context.spooky_subgraph.process_response(res_raw)
-
-                    try:
-                        self._handle_response(
-                            res,
-                            res_context=f"pool data for block {fetched_block} (Showing first example)",
-                            keys=("pairs", 0),
-                            subgraph=self.context.spooky_subgraph,
-                        )
-                    except EmptyResponseError:
-                        yield from self.sleep(self.params.sleep_time)
-                        return
-
-                    # Add extra fields to the pairs.
-                    for i in range(len(res["pairs"])):
-                        res["pairs"][i]["for_timestamp"] = timestamp
-                        res["pairs"][i]["block_number"] = fetched_block["number"]
-                        res["pairs"][i]["block_timestamp"] = fetched_block["timestamp"]
-                        res["pairs"][i]["eth_price"] = eth_price
-
-                    pairs_hist.extend(res["pairs"])
-
-            if len(pairs_hist) > 0:
-                # Store historical data to a json file.
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            if not self._call_failed:
                 try:
-                    to_json_file(self._save_path, pairs_hist)
-                except OSError:
-                    self.context.logger.error(
-                        f"Path '{self._save_path}' could not be found!"
-                    )
-                except TypeError:
-                    self.context.logger.error(
-                        "Historical data cannot be JSON serialized!"
+                    self._current_timestamp = next(
+                        cast(Iterator[int], self._timestamps_iterator)
                     )
 
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                hist_hash = hasher.get(self._save_path)
+                except StopIteration as e:
 
-                # Pass the hash as a Payload.
-                payload = FetchingPayload(
-                    self.context.agent_address,
-                    hist_hash,
+                    if len(self._pairs_hist) > 0:
+                        # Store historical data to a json file.
+                        try:
+                            to_json_file(self._save_path, self._pairs_hist)
+                        except OSError as exc:
+                            self.context.logger.error(
+                                f"Path '{self._save_path}' could not be found!"
+                            )
+                            raise exc
+
+                        except TypeError as exc:
+                            self.context.logger.error(
+                                "Historical data cannot be JSON serialized!"
+                            )
+                            raise exc
+
+                        # Hash the file.
+                        hasher = IPFSHashOnly()
+                        hist_hash = hasher.get(self._save_path)
+
+                        # Pass the hash as a Payload.
+                        payload = FetchingPayload(
+                            self.context.agent_address,
+                            hist_hash,
+                        )
+
+                        # Finish behaviour.
+                        with benchmark_tool.measure(
+                            self,
+                        ).consensus():
+                            yield from self.send_a2a_transaction(payload)
+                            yield from self.wait_until_round_end()
+
+                        self.set_done()
+                        return
+
+                    self.context.logger.error("Could not download any historical data!")
+                    # Fix: exit round via fail event and move to right round
+                    raise RuntimeError("Cannot continue FetchBehaviour.") from e
+
+            # Fetch block.
+            fantom_api_specs = self.context.fantom_subgraph.get_spec()
+            res_raw = yield from self.get_http_response(
+                method=fantom_api_specs["method"],
+                url=fantom_api_specs["url"],
+                headers=fantom_api_specs["headers"],
+                content=block_from_timestamp_q(cast(int, self._current_timestamp)),
+            )
+            res = self.context.fantom_subgraph.process_response(res_raw)
+
+            try:
+                self._handle_response(
+                    res,
+                    res_context="block",
+                    keys=("blocks", 0),
+                    subgraph=self.context.fantom_subgraph,
                 )
+            except EmptyResponseError:
+                yield from self.sleep(self.params.sleep_time)
+                return
 
-                # Finish behaviour.
-                with benchmark_tool.measure(
-                    self,
-                ).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
+            fetched_block = res["blocks"][0]
 
-                self.set_done()
+            # Fetch ETH price for block.
+            res_raw = yield from self.get_http_response(
+                content=eth_price_usd_q(
+                    self.context.spooky_subgraph.bundle_id,
+                    fetched_block["number"],
+                ),
+                **self._spooky_api_specs,
+            )
+            res = self.context.spooky_subgraph.process_response(res_raw)
+
+            try:
+                self._handle_response(
+                    res,
+                    res_context=f"ETH price for block {fetched_block}",
+                    keys=("bundles", 0, "ethPrice"),
+                    subgraph=self.context.spooky_subgraph,
+                )
+            except EmptyResponseError:
+                yield from self.sleep(
+                    self.params.sleep_time
+                )  # if we end up here we unnecessarily rerun the fetch block!
+                return
+
+            eth_price = float(res["bundles"][0]["ethPrice"])
+
+            # Fetch pool data for block.
+            res_raw = yield from self.get_http_response(
+                content=pairs_q(fetched_block["number"], self.params.pair_ids),
+                **self._spooky_api_specs,
+            )
+            res = self.context.spooky_subgraph.process_response(res_raw)
+
+            try:
+                self._handle_response(
+                    res,
+                    res_context=f"pool data for block {fetched_block} (Showing first example)",
+                    keys=("pairs", 0),
+                    subgraph=self.context.spooky_subgraph,
+                )
+            except EmptyResponseError:
+                yield from self.sleep(self.params.sleep_time)  # same as above
+                return
+
+            # Add extra fields to the pairs.
+            for i in range(len(res["pairs"])):
+                res["pairs"][i]["for_timestamp"] = self._current_timestamp
+                res["pairs"][i]["block_number"] = fetched_block["number"]
+                res["pairs"][i]["block_timestamp"] = fetched_block["timestamp"]
+                res["pairs"][i]["eth_price"] = eth_price
+
+            self._pairs_hist.extend(res["pairs"])
 
     def clean_up(self) -> None:
         """
@@ -449,20 +477,24 @@ class TransformBehaviour(APYEstimationBaseState):
         try:
             pairs_hist = read_json_file(self._history_save_path)
 
-        except OSError:
+        except OSError as e:  # all these exceptions are not handled properly. it will break the app; a problem throughout this file
             self.context.logger.error(
                 f"Path '{self._history_save_path}' could not be found!"
             )
-
-        except json.JSONDecodeError:
+            # Fix: exit round via fail event and move to right round
+            raise e
+        except json.JSONDecodeError as e:
             self.context.logger.error(
                 f"File '{self._history_save_path}' has an invalid JSON encoding!"
             )
-
-        except ValueError:
+            # Fix: exit round via fail event and move to right round
+            raise e
+        except ValueError as e:
             self.context.logger.error(
                 f"There is an encoding error in the '{self._history_save_path}' file!"
             )
+            # Fix: exit round via fail event and move to right round
+            raise e
 
         if pairs_hist is not None:
             transform_task = TransformTask()
@@ -475,50 +507,49 @@ class TransformBehaviour(APYEstimationBaseState):
             self.context.logger.error(
                 "Could not create the task! This will result in an error while running the round!"
             )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TransformBehaviour.")
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is not None:
-
-            if self._async_result.ready():
-                # Get the transformed data from the task.
-                completed_task = self._async_result.get()
-                transformed_history = cast(pd.DataFrame, completed_task)
-                self.context.logger.info(
-                    f"Data have been transformed. Showing the first row:\n{transformed_history.to_string()}"
-                )
-
-                # Store the transformed data.
-                transformed_history.to_csv(
-                    self._transformed_history_save_path, index=False
-                )
-
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                hist_hash = hasher.get(self._transformed_history_save_path)
-
-                # Pass the hash as a Payload.
-                payload = TransformationPayload(
-                    self.context.agent_address,
-                    hist_hash,
-                )
-
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
-
-                self.set_done()
-
-            else:
-                self.context.logger.debug("The transform task is not finished yet.")
-                yield from self.sleep(self.params.sleep_time)
-
-        else:
+        if self._async_result is None:
             self.context.logger.error(
                 "Undefined behaviour encountered with `TransformTask`."
             )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TransformBehaviour.")
+
+        if not self._async_result.ready():
+            self.context.logger.debug("The transform task is not finished yet.")
             yield from self.sleep(self.params.sleep_time)
+            return
+
+        # Get the transformed data from the task.
+        completed_task = self._async_result.get()
+        transformed_history = cast(pd.DataFrame, completed_task)
+        self.context.logger.info(
+            f"Data have been transformed:\n{transformed_history.to_string()}"
+        )
+
+        # Store the transformed data.
+        transformed_history.to_csv(self._transformed_history_save_path, index=False)
+
+        # Hash the file.
+        hasher = IPFSHashOnly()
+        hist_hash = hasher.get(self._transformed_history_save_path)
+
+        # Pass the hash as a Payload.
+        payload = TransformationPayload(
+            self.context.agent_address,
+            hist_hash,
+        )
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class PreprocessBehaviour(APYEstimationBaseState):
@@ -545,6 +576,8 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 pairs_hist, self.params.pair_ids[0]
             )
             self.context.logger.info("Data have been preprocessed.")
+            self.context.logger.info(f"y_train: {y_train.to_string()}")
+            self.context.logger.info(f"y_test: {y_test.to_string()}")
 
             # Store and hash the preprocessed data.
             hasher = IPFSHashOnly()
@@ -571,11 +604,12 @@ class PreprocessBehaviour(APYEstimationBaseState):
 
             self.set_done()
 
-        except FileNotFoundError:
+        except FileNotFoundError as e:  # pragma: nocover
             self.context.logger.error(
                 f"File {transformed_history_load_path} was not found!"
             )
-            yield from self.sleep(self.params.sleep_time)
+            # FIX: it makes no sense to sleep when the file is not found!
+            raise e
 
 
 class RandomnessBehaviour(APYEstimationBaseState):
@@ -605,38 +639,38 @@ class RandomnessBehaviour(APYEstimationBaseState):
             )
             observation = self.context.randomness_api.process_response(response)
 
-        if observation:
-            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            self.context.logger.info("Verifying DRAND values.")
-            drand_check = VerifyDrand()
-            check, error = drand_check.verify(observation, self.params.drand_public_key)
-
-            if check:
-                self.context.logger.info("DRAND check successful.")
-            else:
-                self.context.logger.info(f"DRAND check failed, {error}.")
-                observation["randomness"] = ""
-                observation["round"] = ""
-
-            payload = RandomnessPayload(
-                self.context.agent_address,
-                observation["round"],
-                observation["randomness"],
-            )
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-
-        else:
+        if not observation:
             self.context.logger.error(
                 f"Could not get randomness from {self.context.randomness_api.api_id}"
             )
             yield from self.sleep(self.params.sleep_time)
             self.context.randomness_api.increment_retries()
+            return
+
+        self.context.logger.info(f"Retrieved DRAND values: {observation}.")
+        self.context.logger.info("Verifying DRAND values.")
+        drand_check = VerifyDrand()
+        check, error = drand_check.verify(observation, self.params.drand_public_key)
+
+        if check:
+            self.context.logger.info("DRAND check successful.")
+        else:
+            self.context.logger.info(f"DRAND check failed, {error}.")
+            observation["randomness"] = ""
+            observation["round"] = ""
+
+        payload = RandomnessPayload(
+            self.context.agent_address,
+            observation["round"],
+            observation["randomness"],
+        )
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
     def clean_up(self) -> None:
         """
@@ -681,82 +715,87 @@ class OptimizeBehaviour(APYEstimationBaseState):
             )
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             self.context.logger.error(f"File {training_data_path} was not found!")
             self.context.logger.error(
                 "Could not create the task! This will result in an error while running the round!"
             )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue OptimizeBehaviour.") from e
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is not None:
-
-            if self._async_result.ready():
-                # Get the study's result.
-                completed_task = self._async_result.get()
-                study = cast(Study, completed_task)
-                study_results = study.trials_dataframe()
-                self.context.logger.info(
-                    "Optimization has finished. Showing the results:\n"
-                    f"{study_results.to_string()}"
-                )
-
-                # Store the best params from the results.
-                best_params_save_path = os.path.join(
-                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_ids[0],
-                    "best_params.json",
-                )
-                create_pathdirs(best_params_save_path)
-
-                try:
-                    best_params = study.best_params
-
-                except ValueError:
-                    # If no trial finished, set random params as best.
-                    best_params = study.trials[0].params
-                    self.context.logger.warning(
-                        "The optimization could not be done! "
-                        "Please make sure that there is a sufficient number of data "
-                        "for the optimization procedure. Setting best parameters randomly!"
-                    )
-
-                try:
-                    to_json_file(best_params_save_path, best_params)
-
-                except OSError:
-                    self.context.logger.error(
-                        f"Path '{best_params_save_path}' could not be found!"
-                    )
-
-                except TypeError:
-                    self.context.logger.error("Params cannot be JSON serialized!")
-
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                best_params_hash = hasher.get(best_params_save_path)
-
-                # Pass the best params hash as a Payload.
-                payload = OptimizationPayload(
-                    self.context.agent_address, best_params_hash
-                )
-
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
-
-                self.set_done()
-
-            else:
-                self.context.logger.debug("The optimization task is not finished yet.")
-                yield from self.sleep(self.params.sleep_time)
-
-        else:
+        if self._async_result is None:
             self.context.logger.error(
                 "Undefined behaviour encountered with `OptimizationTask`."
             )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue OptimizationTask.")
+
+        if not self._async_result.ready():
+            self.context.logger.debug("The optimization task is not finished yet.")
             yield from self.sleep(self.params.sleep_time)
+            return
+
+        # Get the study's result.
+        completed_task = self._async_result.get()
+        study = cast(Study, completed_task)
+        study_results = study.trials_dataframe()
+        self.context.logger.info(
+            "Optimization has finished. Showing the results:\n"
+            f"{study_results.to_string()}"
+        )
+
+        # Store the best params from the results.
+        best_params_save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+            "best_params.json",
+        )
+        create_pathdirs(best_params_save_path)
+
+        try:
+            best_params = study.best_params
+
+        except ValueError as e:
+            # If no trial finished, set random params as best.
+            best_params = study.trials[0].params
+            self.context.logger.warning(
+                "The optimization could not be done! "
+                "Please make sure that there is a sufficient number of data "
+                "for the optimization procedure. Setting best parameters randomly!"
+            )
+            # Fix: exit round via fail event and move to right round
+            raise e
+
+        try:
+            to_json_file(best_params_save_path, best_params)
+
+        except OSError as e:
+            self.context.logger.error(
+                f"Path '{best_params_save_path}' could not be found!"
+            )
+            # Fix: exit round via fail event and move to right round
+            raise e
+
+        except TypeError as e:
+            self.context.logger.error("Params cannot be JSON serialized!")
+            # Fix: exit round via fail event and move to right round
+            raise e
+
+        # Hash the file.
+        hasher = IPFSHashOnly()
+        best_params_hash = hasher.get(best_params_save_path)
+
+        # Pass the best params hash as a Payload.
+        payload = OptimizationPayload(self.context.agent_address, best_params_hash)
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class TrainBehaviour(APYEstimationBaseState):
@@ -786,17 +825,17 @@ class TrainBehaviour(APYEstimationBaseState):
         try:
             best_params = cast(Dict[str, Any], read_json_file(best_params_path))
 
-        except OSError:
+        except OSError:  # pragma: nocover
             self.context.logger.error(f"Path '{best_params_path}' could not be found!")
             should_create_task = False
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError:  # pragma: nocover
             self.context.logger.error(
                 f"File '{best_params_path}' has an invalid JSON encoding!"
             )
             should_create_task = False
 
-        except ValueError:
+        except ValueError:  # pragma: nocover
             self.context.logger.error(
                 f"There is an encoding error in the '{best_params_path}' file!"
             )
@@ -814,11 +853,12 @@ class TrainBehaviour(APYEstimationBaseState):
                 try:
                     cast(List[np.ndarray], y).append(pd.read_csv(path).values.ravel())
 
-                except FileNotFoundError:
+                except FileNotFoundError:  # pragma: nocover
                     self.context.logger.error(f"File {path} was not found!")
                     should_create_task = False
 
-            y = np.concatenate(y)
+            if should_create_task:
+                y = np.concatenate(y)
 
         else:
             path = os.path.join(
@@ -830,7 +870,7 @@ class TrainBehaviour(APYEstimationBaseState):
             try:
                 y = pd.read_csv(path).values.ravel()
 
-            except FileNotFoundError:
+            except FileNotFoundError:  # pragma: nocover
                 self.context.logger.error(f"File {path} was not found!")
                 should_create_task = False
 
@@ -841,52 +881,58 @@ class TrainBehaviour(APYEstimationBaseState):
             )
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        else:
+        else:  # pragma: nocover
             self.context.logger.error(
                 "Could not create the task! This will result in an error while running the round!"
             )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TrainBehaviour.")
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is not None:
+        if self._async_result is None:
+            self.context.logger.error(
+                "Undefined behaviour encountered with `TrainTask`."
+            )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TrainTask.")
 
-            if self._async_result.ready():
-                # Get the trained estimator.
-                completed_task = self._async_result.get()
-                forecaster = cast(Pipeline, completed_task)
-                self.context.logger.info("Training has finished.")
-
-                # Store the results.
-                prefix = "fully_trained_" if self.period_state.full_training else ""
-                forecaster_save_path = os.path.join(
-                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_ids[0],
-                    f"{prefix}forecaster.joblib",
-                )
-                create_pathdirs(forecaster_save_path)
-                save_forecaster(forecaster_save_path, forecaster)
-
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                model_hash = hasher.get(forecaster_save_path)
-
-                # Pass the hash and the best trial as a Payload.
-                payload = TrainingPayload(self.context.agent_address, model_hash)
-
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
-
-                self.set_done()
-
-            else:
-                self.context.logger.debug("The training task is not finished yet.")
-                yield from self.sleep(self.params.sleep_time)
-
-        else:
-            self.context.logger.error("Undefined behaviour encountered with `Task`.")
+        if not self._async_result.ready():
+            self.context.logger.debug("The training task is not finished yet.")
             yield from self.sleep(self.params.sleep_time)
+            return
+
+        # Get the trained estimator.
+        completed_task = self._async_result.get()
+        forecaster = cast(Pipeline, completed_task)
+        self.context.logger.info("Training has finished.")
+
+        # Store the results.
+        prefix = "fully_trained_" if self.period_state.full_training else ""
+        forecaster_save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+            f"{prefix}forecaster.joblib",
+        )
+        create_pathdirs(forecaster_save_path)
+        save_forecaster(forecaster_save_path, forecaster)
+
+        # Hash the file.
+        hasher = IPFSHashOnly()
+        model_hash = hasher.get(forecaster_save_path)
+
+        # Pass the hash and the best trial as a Payload.
+        self.context.logger.info(
+            f"The {forecaster_save_path} model's hash is: '{model_hash}'"
+        )
+        payload = TrainingPayload(self.context.agent_address, model_hash)
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class TestBehaviour(APYEstimationBaseState):
@@ -917,7 +963,7 @@ class TestBehaviour(APYEstimationBaseState):
             try:
                 y[f"y_{split}"] = pd.read_csv(path).values.ravel()
 
-            except FileNotFoundError:
+            except FileNotFoundError:  # pragma: nocover
                 self.context.logger.error(f"File {path} was not found!")
                 should_create_task = False
 
@@ -930,7 +976,7 @@ class TestBehaviour(APYEstimationBaseState):
         try:
             forecaster = load_forecaster(model_path)
 
-        except (NotADirectoryError, FileNotFoundError):
+        except (NotADirectoryError, FileNotFoundError):  # pragma: nocover
             self.context.logger.error(f"Could not detect {model_path}!")
             should_create_task = False
 
@@ -946,63 +992,65 @@ class TestBehaviour(APYEstimationBaseState):
             task_id = self.context.task_manager.enqueue_task(test_task, task_args)
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        else:
+        else:  # pragma: nocover
             self.context.logger.error(
                 "Could not create the task! This will result in an error while running the round!"
             )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TestBehaviour.")
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is not None:
+        if self._async_result is None:
+            self.context.logger.error(
+                "Undefined behaviour encountered with `TestTask`."
+            )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue TestTask.")
 
-            if self._async_result.ready():
-                # Get the test report.
-                completed_task = self._async_result.get()
-                report = cast(TestReportType, completed_task)
-                self.context.logger.info(
-                    f"Testing has finished. Report follows:\n{report}"
-                )
-
-                # Store the results.
-                report_save_path = os.path.join(
-                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_ids[0],
-                    "test_report.json",
-                )
-                create_pathdirs(report_save_path)
-
-                try:
-                    to_json_file(report_save_path, report)
-
-                except OSError:
-                    self.context.logger.error(
-                        f"Path '{report_save_path}' could not be found!"
-                    )
-
-                except TypeError:
-                    self.context.logger.error("Report cannot be JSON serialized!")
-
-                # Hash the file.
-                hasher = IPFSHashOnly()
-                report_hash = hasher.get(report_save_path)
-
-                # Pass the hash and the best trial as a Payload.
-                payload = TestingPayload(self.context.agent_address, report_hash)
-
-                # Finish behaviour.
-                with benchmark_tool.measure(self).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
-
-                self.set_done()
-
-            else:
-                self.context.logger.debug("The testing task is not finished yet.")
-                yield from self.sleep(self.params.sleep_time)
-
-        else:
-            self.context.logger.error("Undefined behaviour encountered with `Task`.")
+        if not self._async_result.ready():
+            self.context.logger.debug("The testing task is not finished yet.")
             yield from self.sleep(self.params.sleep_time)
+            return
+
+        # Get the test report.
+        completed_task = self._async_result.get()
+        report = cast(TestReportType, completed_task)
+        self.context.logger.info(f"Testing has finished. Report follows:\n{report}")
+
+        # Store the results.
+        report_save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+            "test_report.json",
+        )
+        create_pathdirs(report_save_path)
+
+        try:
+            to_json_file(report_save_path, report)
+
+        except OSError as e:
+            self.context.logger.error(f"Path '{report_save_path}' could not be found!")
+            # Fix: exit round via fail event and move to right round
+            raise e
+        except TypeError as e:
+            self.context.logger.error("Report cannot be JSON serialized!")
+            # Fix: exit round via fail event and move to right round
+            raise e
+
+        # Hash the file.
+        hasher = IPFSHashOnly()
+        report_hash = hasher.get(report_save_path)
+
+        # Pass the hash and the best trial as a Payload.
+        payload = TestingPayload(self.context.agent_address, report_hash)
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class EstimateBehaviour(APYEstimationBaseState):
@@ -1029,26 +1077,27 @@ class EstimateBehaviour(APYEstimationBaseState):
 
         try:
             forecaster = load_forecaster(model_path)
-            # currently, a `steps_forward != 1` will fail
-            estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
-
-            self.context.logger.info(
-                "Got estimate of APY for %s: %s",
-                self.period_state.pair_name,
-                estimation,
-            )
-
-            payload = EstimatePayload(self.context.agent_address, estimation)
-
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-
-        except (NotADirectoryError, FileNotFoundError):
+        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
             self.context.logger.error(f"Could not detect {model_path}!")
-            yield from self.sleep(self.params.sleep_time)
+            # Fix: exit round via fail event and move to right round
+            raise e
+
+        # currently, a `steps_forward != 1` will fail
+        estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
+
+        self.context.logger.info(
+            "Got estimate of APY for %s: %s",
+            self.period_state.pair_name,
+            estimation,
+        )
+
+        payload = EstimatePayload(self.context.agent_address, estimation)
+
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class BaseResetBehaviour(APYEstimationBaseState):
@@ -1068,19 +1117,14 @@ class BaseResetBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if self.cycle:
-
-            if self.period_state.is_most_voted_estimate_set:
-                self.context.logger.info(
-                    f"Finalized estimate: {self.period_state.most_voted_estimate}"
-                )
-
-            else:
-                self.context.logger.info("Finalized estimate not available.")
-
-            self.context.logger.info("Period end.")
+        if self.cycle and self.period_state.is_most_voted_estimate_set:
+            self.context.logger.info(
+                f"Finalized estimate: {self.period_state.most_voted_estimate}. Resetting and pausing!"
+            )
+            # Fix: add pausing
             benchmark_tool.save()
-
+        if self.cycle and not self.period_state.is_most_voted_estimate_set:
+            self.context.logger.info("Finalized estimate not available. Resetting!")
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
