@@ -10,16 +10,4 @@ function run_check(){
 }
 
 run_check black
-run_check black-check
 run_check isort
-run_check isort-check
-run_check mypy
-run_check flake8
-run_check pylint
-run_check darglint
-run_check vulture
-run_check bandit
-run_check safety
-run_check check-copyright
-run_check check-packages
-run_check check-hash

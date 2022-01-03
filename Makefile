@@ -165,7 +165,9 @@ new_env: clean
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
 
-.PHONY: install_pre_commit
-install_pre_commit:
-	echo "Installing pre_commit"
+.PHONY: install-hooks
+install-hooks:
+	@echo "Installing pre-push"
+	cp scripts/pre-push .git/hooks/pre-push
+	@echo "Installing pre-commit"
 	cp scripts/pre-commit .git/hooks/pre-commit
