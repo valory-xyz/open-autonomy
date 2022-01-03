@@ -176,11 +176,10 @@ class OffchainAggregatorContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         epoch_: int,
         round_: int,
         amount_: int,
+        **kwargs: int,
     ) -> Optional[JSONLike]:
         """
         Handler method for the 'get_active_project' requests.
@@ -191,11 +190,10 @@ class OffchainAggregatorContract(Contract):
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
         :param sender_address: the sender address.
-        :param gas: the max gas used.
-        :param gas_price: the gas price.
         :param epoch_: the epoch
         :param round_: the round
         :param amount_: the amount
+        :param kwargs: the kwargs
         :return: the tx  # noqa: DAR202
         """
         report = cls.get_report(epoch_, round_, amount_)
@@ -203,10 +201,9 @@ class OffchainAggregatorContract(Contract):
             ledger_api,
             contract_address,
             sender_address,
-            gas,
-            gas_price,
             "transmit",
             report,
+            **kwargs,
         )
 
     @classmethod
@@ -248,16 +245,28 @@ class OffchainAggregatorContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         sender_address: str,
-        gas: int,
-        gas_price: int,
         method_name: str,
         *method_args: Any,
+        eth_value: int = 0,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Optional[JSONLike]:
         """Prepare tx method."""
         contract = cls.get_instance(ledger_api, contract_address)
         method = getattr(contract.functions, method_name)
         tx = method(*method_args)
-        tx = cls._build_transaction(ledger_api, sender_address, tx, gas, gas_price)
+        tx = cls._build_transaction(
+            ledger_api,
+            sender_address,
+            tx,
+            eth_value,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
         return tx
 
     @classmethod
@@ -266,18 +275,25 @@ class OffchainAggregatorContract(Contract):
         ledger_api: LedgerApi,
         sender_address: str,
         tx: Any,
-        gas: int,
-        gas_price: int,
         eth_value: int = 0,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Optional[JSONLike]:
         """Build transaction method."""
         nonce = ledger_api.api.eth.get_transaction_count(sender_address)
-        tx = tx.buildTransaction(
-            {
-                "gas": gas,
-                "gasPrice": gas_price,
-                "nonce": nonce,
-                "value": eth_value,
-            }
-        )
+        tx_params = {
+            "nonce": nonce,
+            "value": eth_value,
+        }
+        if gas is not None:
+            tx_params["gas"] = gas  # pragma: nocover
+        if gas_price is not None:
+            tx_params["gasPrice"] = gas_price
+        if max_fee_per_gas is not None:
+            tx_params["maxFeePerGas"] = max_fee_per_gas
+        if max_priority_fee_per_gas is not None:
+            tx_params["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+        tx = tx.buildTransaction(tx_params)
         return tx

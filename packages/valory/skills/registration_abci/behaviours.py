@@ -20,14 +20,12 @@
 """This module contains the behaviours for the 'abci' skill."""
 import datetime
 import json
-from abc import ABC
-from typing import Generator, Optional, cast
+from typing import Generator, Optional
 
 from packages.valory.skills.abstract_round_abci.behaviours import BaseState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
-    PeriodState,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -39,16 +37,7 @@ ETHER_VALUE = 0  # TOFIX
 benchmark_tool = BenchmarkTool()
 
 
-class RegistrationBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps skill."""
-
-    @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, super().period_state)
-
-
-class TendermintHealthcheckBehaviour(RegistrationBaseState):
+class TendermintHealthcheckBehaviour(BaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -112,7 +101,7 @@ class TendermintHealthcheckBehaviour(RegistrationBaseState):
         self.set_done()
 
 
-class RegistrationBaseBehaviour(RegistrationBaseState):
+class RegistrationBaseBehaviour(BaseState):
     """Register to the next periods."""
 
     def async_act(self) -> Generator:

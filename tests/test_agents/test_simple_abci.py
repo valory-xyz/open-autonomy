@@ -73,5 +73,5 @@ class TestSimpleABCIFourAgents(
     NB_AGENTS = 4
     agent_package = "valory/simple_abci:0.1.0"
     skill_package = "valory/simple_abci:0.1.0"
-    wait_to_finish = 40
+    wait_to_finish = 80
     check_strings = CHECK_STRINGS

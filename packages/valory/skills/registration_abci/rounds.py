@@ -19,7 +19,7 @@
 
 """This module contains the data classes for common apps ABCI application."""
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple, Type, cast
+from typing import Dict, Optional, Set, Tuple, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -41,29 +41,6 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     FAST_FORWARD = "fast_forward"
-
-
-def rotate_list(my_list: list, positions: int) -> List[str]:
-    """Rotate a list n positions."""
-    return my_list[positions:] + my_list[:positions]
-
-
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
-    """
-    Class to represent a period state.
-
-    This state is replicated by the tendermint application.
-    """
-
-    @property
-    def safe_contract_address(self) -> str:
-        """Get the safe contract address."""
-        return cast(str, self.db.get_strict("safe_contract_address"))
-
-    @property
-    def oracle_contract_address(self) -> str:
-        """Get the oracle contract address."""
-        return cast(str, self.db.get_strict("oracle_contract_address"))
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -111,7 +88,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
                 oracle_contract_address=self.period_state.db.get_strict(
                     "oracle_contract_address"
                 ),
-                period_state_class=PeriodState,
+                period_state_class=BasePeriodState,
             )
             return state, Event.FAST_FORWARD
         if (
@@ -120,7 +97,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         ):  # initial deployment round
             state = self.period_state.update(
                 participants=self.collection,
-                period_state_class=PeriodState,
+                period_state_class=BasePeriodState,
             )
             return state, Event.DONE
         return None
@@ -153,7 +130,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
         ):
             state = self.period_state.update(
                 participants=frozenset(list(self.collection.keys())),
-                period_state_class=PeriodState,
+                period_state_class=BasePeriodState,
             )
             return state, Event.DONE
         return None

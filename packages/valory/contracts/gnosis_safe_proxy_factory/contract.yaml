@@ -9,8 +9,9 @@ fingerprint:
   README.md: QmRSN363rGLMwfAmBQzNKPsx952w93E9fSyu7obaDfho5a
   __init__.py: Qmdd5tuA2NPcHxhYpSW3ceNh8akivnxQC83pvTT91YyupV
   build/ProxyFactory_V1_3_0.json: QmRKHfF1hYrrSZNZmec2AS3xSPWdB29uyEWAYdAS5cKHdL
-  contract.py: QmRsYHrW9CUgohXD6Qye6YjJqKrAVrxkRvPMCT6Gy9VD2S
+  contract.py: QmX5zy86uUJhKoNWWiDrAfJQSYS9aurZ4NYK5j1Nny8Xvg
 fingerprint_ignore_patterns: []
+contracts: []
 class_name: GnosisSafeProxyFactoryContract
 contract_interface_paths:
   ethereum: build/ProxyFactory_V1_3_0.json

@@ -92,7 +92,7 @@ from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_liquidity_provision.test_rounds import get_participants
-from tests.test_skills.test_price_estimation_abci.test_rounds import (
+from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
     get_participant_to_signature,
 )
 
@@ -1168,6 +1168,8 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
                         },
+                        max_fee_per_gas=10000000000,
+                        max_priority_fee_per_gas=10000000000,
                     )
                 ),
             ),
