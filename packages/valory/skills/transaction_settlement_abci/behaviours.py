@@ -40,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
+    GasPayload,
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -49,6 +50,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     CollectSignatureRound,
     FinalizationRound,
+    GasAdjustmentRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetAndPauseRound,
@@ -59,7 +61,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0  # TOFIX
 
 benchmark_tool = BenchmarkTool()
@@ -190,7 +191,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             to_address=self.period_state.oracle_contract_address,
             value=ETHER_VALUE,
             data=data,
-            safe_tx_gas=SAFE_TX_GAS,
+            safe_tx_gas=self.period_state.gas_data["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -260,6 +261,62 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         signature_hex = signature_hex[2:]
         self.context.logger.info(f"Signature: {signature_hex}")
         return signature_hex
+
+
+class GasAdjustmentBehaviour(TransactionSettlementBaseState):
+    """Adjust gas."""
+
+    state_id = "gas_adjustment"
+    matching_round = GasAdjustmentRound
+
+    def async_act(self) -> Generator[None, None, None]:
+        """
+        Do the action.
+
+        Steps:
+        - If the agent is the keeper, then prepare the transaction and send it.
+        - Otherwise, wait until the next round.
+        - If a timeout is hit, set exit A event, otherwise set done event.
+        """
+        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+            yield from self._not_sender_act()
+        else:
+            yield from self._sender_act()
+
+    def _not_sender_act(self) -> Generator:
+        """Do the non-sender action."""
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.wait_until_round_end()
+        self.set_done()
+
+    def _sender_act(self) -> Generator[None, None, None]:
+        """Do the sender action."""
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info("I am the designated sender, adjusting the gas...")
+
+            safe_tx_gas = int(4e6)
+            max_fee_per_gas = int(10e10)
+            max_priority_fee_per_gas = int(10e10)
+
+            payload = GasPayload(
+                self.context.agent_address,
+                safe_tx_gas,
+                max_fee_per_gas,
+                max_priority_fee_per_gas,
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class FinalizeBehaviour(TransactionSettlementBaseState):
@@ -350,13 +407,15 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             to_address=self.period_state.oracle_contract_address,
             value=ETHER_VALUE,
             data=data,
-            safe_tx_gas=SAFE_TX_GAS,
+            safe_tx_gas=self.period_state.gas_data["safe_tx_gas"],
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            max_fee_per_gas=10 ** 10,  # TOFIX
-            max_priority_fee_per_gas=10 ** 10,
+            max_fee_per_gas=self.period_state.gas_data["max_fee_per_gas"],
+            max_priority_fee_per_gas=self.period_state.gas_data[
+                "max_priority_fee_per_gas"
+            ],
         )
         if (
             contract_api_msg.performative

@@ -35,6 +35,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
+    GasPayload,
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -112,6 +113,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Check if most_voted_estimate is set."""
         return self.db.get("most_voted_estimate", None) is not None
 
+    @property
+    def gas_data(self) -> dict:
+        """Get the gas data."""
+        return cast(dict, self.db.get_strict("gas_data"))
+
 
 class FinishedRegistrationRound(DegenerateRound):
     """This class represents the finished round during operation."""
@@ -155,6 +161,18 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     selection_key = "participant"
     collection_key = "participant_to_signature"
+
+
+class GasAdjustmentRound(OnlyKeeperSendsRound):
+    """This class represents the 'gas_adjustment' round."""
+
+    round_id = "gas_adjustment"
+    allowed_tx_type = GasPayload.transaction_type
+    payload_attribute = "data"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    payload_key = "gas_data"
 
 
 class FinalizationRound(OnlyKeeperSendsRound):
@@ -301,6 +319,11 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectSignatureRound: {
+            Event.DONE: GasAdjustmentRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+        },
+        GasAdjustmentRound: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
@@ -313,7 +336,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: ResetRound,  # if the round reaches a negative vote we continue; TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
-            Event.NONE: ResetRound,  # if the round reaches a none vote we continue; TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
+            Event.NONE: GasAdjustmentRound,
             Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
             Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
         },

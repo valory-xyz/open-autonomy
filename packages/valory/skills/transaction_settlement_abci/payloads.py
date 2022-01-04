@@ -33,6 +33,7 @@ class TransactionType(Enum):
     RESET = "reset_transaction"
     RANDOMNESS = "randomness_transaction"
     SELECT_KEEPER = "select_keeper_transaction"
+    GAS = "gas"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -98,6 +99,65 @@ class SelectKeeperPayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(keeper=self.keeper)
+
+
+class GasPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'gas_adjustment'."""
+
+    transaction_type = TransactionType.GAS
+
+    def __init__(
+        self,
+        sender: str,
+        safe_tx_gas: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
+        id_: Optional[str] = None,
+    ) -> None:
+        """Initialize an 'validate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param safe_tx_gas: the safe_tx_gas
+        :param max_fee_per_gas: the max_fee_per_gas
+        :param max_priority_fee_per_gas: the max_priority_fee_per_gas
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._safe_tx_gas = safe_tx_gas
+        self._max_fee_per_gas = max_fee_per_gas
+        self._max_priority_fee_per_gas = max_priority_fee_per_gas
+
+    @property
+    def safe_tx_gas(self) -> Optional[int]:
+        """Get the safe_tx_gas."""
+        return self._safe_tx_gas
+
+    @property
+    def max_fee_per_gas(self) -> Optional[int]:
+        """Get the max_fee_per_gas."""
+        return self._max_fee_per_gas
+
+    @property
+    def max_priority_fee_per_gas(self) -> Optional[int]:
+        """Get the max_priority_fee_per_gas."""
+        return self._max_priority_fee_per_gas
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return (
+            dict(
+                safe_tx_gas=self.safe_tx_gas,
+                max_fee_per_gas=self.max_fee_per_gas,
+                max_priority_fee_per_gas=self.max_priority_fee_per_gas,
+            )
+            if (
+                self.safe_tx_gas is not None
+                and self.max_fee_per_gas is not None
+                and self.max_priority_fee_per_gas is not None
+            )
+            else {}
+        )
 
 
 class ValidatePayload(BaseTxPayload):

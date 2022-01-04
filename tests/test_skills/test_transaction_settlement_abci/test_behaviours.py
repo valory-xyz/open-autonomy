@@ -52,6 +52,7 @@ from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.price_estimation_abci.behaviours import (
     FinalizeBehaviour,
+    GasAdjustmentBehaviour,
     ObserveBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
@@ -153,7 +154,7 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == FinalizeBehaviour.state_id
+        assert state.state_id == GasAdjustmentBehaviour.state_id
 
 
 class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
@@ -213,6 +214,11 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             1,
                             1,
                         ),
+                        gas_data={
+                            "safe_tx_gas": int(4e6),
+                            "max_fee_per_gas": int(10e10),
+                            "max_priority_fee_per_gas": int(10e10),
+                        },
                     ),
                 )
             ),
@@ -304,6 +310,11 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             1,
                             1,
                         ),
+                        gas_data={
+                            "safe_tx_gas": int(4e6),
+                            "max_fee_per_gas": int(10e10),
+                            "max_priority_fee_per_gas": int(10e10),
+                        },
                     ),
                 )
             ),
