@@ -21,6 +21,7 @@
 import json
 import logging
 import time
+import warnings
 from pathlib import Path
 from typing import List, Tuple
 
@@ -151,9 +152,12 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
-            assert self.is_successfully_terminated(
-                process
-            ), "ABCI agent wasn't successfully terminated."
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
 
 
 class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
@@ -190,6 +194,9 @@ class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
-            assert self.is_successfully_terminated(
-                process
-            ), "ABCI agent wasn't successfully terminated."
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )

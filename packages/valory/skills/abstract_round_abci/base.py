@@ -836,15 +836,21 @@ class DegenerateRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
-        raise NotImplementedError("DegenerateRound should not be used in operation.")
+        raise NotImplementedError(  # pragma: nocover
+            "DegenerateRound should not be used in operation."
+        )
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        raise NotImplementedError("DegenerateRound should not be used in operation.")
+        raise NotImplementedError(  # pragma: nocover
+            "DegenerateRound should not be used in operation."
+        )
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """End block."""
-        raise NotImplementedError("DegenerateRound should not be used in operation.")
+        raise NotImplementedError(  # pragma: nocover
+            "DegenerateRound should not be used in operation."
+        )
 
 
 class CollectionRound(AbstractRound):
