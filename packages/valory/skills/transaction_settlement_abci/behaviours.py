@@ -191,7 +191,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             to_address=self.period_state.oracle_contract_address,
             value=ETHER_VALUE,
             data=data,
-            safe_tx_gas=self.period_state.gas_data["safe_tx_gas"],
+            safe_tx_gas=self.params.safe_tx_gas,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -300,7 +300,6 @@ class GasAdjustmentBehaviour(TransactionSettlementBaseState):
             self.context.logger.info("I am the designated sender, adjusting the gas...")
 
             gas_data = {
-                "safe_tx_gas": int(4e6),
                 "max_fee_per_gas": int(10e10),
                 "max_priority_fee_per_gas": int(10e10),
             }
@@ -407,7 +406,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             to_address=self.period_state.oracle_contract_address,
             value=ETHER_VALUE,
             data=data,
-            safe_tx_gas=self.period_state.gas_data["safe_tx_gas"],
+            safe_tx_gas=self.params.safe_tx_gas,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()

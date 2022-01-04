@@ -146,6 +146,7 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.ten
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after 100 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 1200 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 1200 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.safe_tx_gas 4000000 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "{network_endpoint}"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id {chain_id} --type int
 {extra_config}
@@ -213,7 +214,7 @@ spec:
         args: ["../run.sh", ]
         command:
           - /bin/bash
-        env: 
+        env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
           - name: CLUSTERED
@@ -222,14 +223,14 @@ spec:
             value: "{aea_key}"
         volumeMounts:
           - mountPath: /build
-            name: build   
+            name: build
       volumes:
         - name: build
           persistentVolumeClaim:
             claimName: 'build-vol'
 """
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = """ 
+CLUSTER_CONFIGURATION_TEMPLATE: str = """
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -325,7 +326,7 @@ def build_configuration_job(number_of_agents: int) -> None:
 
 def build_agent_deployment(agent_ix: int, ip_address: IPv4Address, number_of_agents: int) -> None:
 
-    
+
     host_names = ", ".join([f"\"--hostname=agent-node-{i}-service\"" for i in range(number_of_agents)])
 
     config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]

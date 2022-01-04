@@ -214,7 +214,6 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             1,
                         ),
                         gas_data={
-                            "safe_tx_gas": int(4e6),
                             "max_fee_per_gas": int(10e10),
                             "max_priority_fee_per_gas": int(10e10),
                         },
@@ -310,7 +309,6 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             1,
                         ),
                         gas_data={
-                            "safe_tx_gas": int(4e6),
                             "max_fee_per_gas": int(10e10),
                             "max_priority_fee_per_gas": int(10e10),
                         },

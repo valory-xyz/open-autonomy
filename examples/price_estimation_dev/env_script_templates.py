@@ -26,7 +26,7 @@ sudo chown -R ubuntu:ubuntu /logs
 ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash
 
 cd /home/ubuntu/
-rm -rf price_estimation 
+rm -rf price_estimation
 aea --registry-path=/packages fetch --local valory/price_estimation:0.1.0
 cd price_estimation
 
@@ -45,6 +45,7 @@ aea config set vendor.valory.skills.price_estimation_abci.models.params.args.ten
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after 10 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval 3 --type int
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck 10 --type int
+aea config set vendor.valory.skills.price_estimation_abci.models.params.args.safe_tx_gas 4000000 --type int
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "http://hardhat:8545"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id 31337 --type int
 

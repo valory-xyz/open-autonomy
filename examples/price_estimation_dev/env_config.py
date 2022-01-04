@@ -146,4 +146,9 @@ COMON_CONFIG: List[Tuple[str, str, Optional[str]]] = [
         "31337",
         "int",
     ),
+    (
+        "vendor.valory.skills.price_estimation_abci.models.params.args.safe_tx_gas",
+        "4000000",
+        "int",
+    ),
 ]

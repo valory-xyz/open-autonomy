@@ -82,6 +82,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
+      safe_tx_gas: 4000000
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
