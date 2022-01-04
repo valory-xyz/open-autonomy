@@ -122,11 +122,10 @@ class APYEstimationBaseState(BaseState, ABC):
 
     def send_file_to_ipfs_node(self, filepath: str) -> str:
         """Send a file to the IPFS node."""
-        with self.__ipfs_tool.daemon:
-            # Check node.
-            self.__ipfs_tool.check_ipfs_node_running()
-            # Send file.
-            _, hist_hash, _ = self.__ipfs_tool.add(filepath)
+        # Check node.
+        self.__ipfs_tool.check_ipfs_node_running()
+        # Send file.
+        _, hist_hash, _ = self.__ipfs_tool.add(filepath)
 
         return hist_hash
 

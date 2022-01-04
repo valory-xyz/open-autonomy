@@ -21,6 +21,7 @@
 
 from typing import Tuple, cast
 
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 import pytest
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
@@ -128,6 +129,11 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     check_strings = CHECK_STRINGS
     KEEPER_TIMEOUT = 120
     wait_to_finish = 240
+
+    def test_run(self) -> None:
+        """Run the ABCI skill with an IPFS daemon."""
+        with IPFSDaemon():
+            super(BaseTestABCIAPYEstimationSkillNormalExecution, self).test_run()
 
 
 class TestABCIAPYEstimationSingleAgent(
