@@ -19,9 +19,8 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 
-import statistics
 from abc import ABC
-from typing import Callable, Dict, Generator, Iterable, Optional, Set, Type, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
@@ -194,12 +193,6 @@ class EstimateBehaviour(PriceEstimationBaseState):
     state_id = "estimate"
     matching_round = EstimateConsensusRound
 
-    _aggregator_methods: Dict[str, Callable[[Iterable], float]] = {
-        "mean": statistics.mean,
-        "median": statistics.median,
-        "mode": statistics.mode,
-    }
-
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -214,11 +207,10 @@ class EstimateBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            if self.period_state.aggregator_method is None:
-                self.period_state.aggregator_method = self._aggregator_methods.get(
-                    self.params.observation_aggregator_function, statistics.mean
-                )
 
+            self.period_state.set_aggregator_method(
+                self.params.observation_aggregator_function
+            )
             self.context.logger.info(
                 "Got estimate of %s price in %s: %s, Using aggregator method: %s",
                 self.context.price_api.currency_id,

@@ -410,6 +410,7 @@ def test_period_states() -> None:
             ),
         )
     )
+
     assert period_state____.keeper_randomness == actual_keeper_randomness
     assert period_state____.most_voted_randomness == most_voted_randomness
     assert period_state____.most_voted_keeper_address == most_voted_keeper_address
@@ -431,6 +432,9 @@ def test_period_states() -> None:
             ),
         )
     )
+
+    period_state______.set_aggregator_method("median")
+
     assert period_state______.keeper_randomness == actual_keeper_randomness
     assert period_state______.most_voted_randomness == most_voted_randomness
     assert period_state______.most_voted_keeper_address == most_voted_keeper_address
