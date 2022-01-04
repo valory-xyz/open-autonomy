@@ -53,6 +53,7 @@ class Event(Enum):
     NEGATIVE = "negative"
     NONE = "none"
     VALIDATE_TIMEOUT = "validate_timeout"
+    FINALIZE_TIMEOUT = "finalize_timeout"
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     FAILED = "failed"
@@ -319,11 +320,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CollectSignatureRound: {
-            Event.DONE: GasAdjustmentRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-        },
-        GasAdjustmentRound: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
@@ -331,12 +327,18 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FINALIZE_TIMEOUT: GasAdjustmentRound,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,  # the keeper was unsuccessful;
+        },
+        GasAdjustmentRound: {
+            Event.DONE: FinalizationRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: ResetRound,  # if the round reaches a negative vote we continue; TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
-            Event.NONE: GasAdjustmentRound,
+            Event.NONE: ResetRound,  # if the round reaches a none vote we continue; TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
             Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
             Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
         },
@@ -362,6 +364,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
+        Event.FINALIZE_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
