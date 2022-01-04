@@ -169,5 +169,5 @@ new_env: clean
 install-hooks:
 	@echo "Installing pre-push"
 	cp scripts/pre-push .git/hooks/pre-push
-	@echo "Installing pre-commit"
-	cp scripts/pre-commit .git/hooks/pre-commit
+	@echo "Installing pre-add"
+	cp scripts/pre-add .git/hooks/pre-add
