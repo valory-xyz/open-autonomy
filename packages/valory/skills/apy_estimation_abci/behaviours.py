@@ -482,6 +482,9 @@ class FetchBehaviour(APYEstimationBaseState):
                 res["pairs"][i]["eth_price"] = eth_price
 
             self._pairs_hist.extend(res["pairs"])
+            self.context.logger.info(
+                f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
+            )
 
     def clean_up(self) -> None:
         """
