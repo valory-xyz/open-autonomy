@@ -288,9 +288,9 @@ class OffchainAggregatorContract(Contract):
             "value": eth_value,
         }
         if gas is not None:
-            tx_params["gas"] = gas  # pragma: nocover
+            tx_params["gas"] = gas
         if gas_price is not None:
-            tx_params["gasPrice"] = gas_price
+            tx_params["gasPrice"] = gas_price  # pragma: nocover
         if max_fee_per_gas is not None:
             tx_params["maxFeePerGas"] = max_fee_per_gas
         if max_priority_fee_per_gas is not None:

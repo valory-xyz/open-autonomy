@@ -902,6 +902,10 @@ class TestAbciApp:
         self.abci_app.update_time(current_time)
         assert height == self.abci_app.current_round_height
 
+    def test_get_all_events(self) -> None:
+        """Test the all events getter."""
+        assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
+
 
 class TestPeriod:
     """Test the Period class."""

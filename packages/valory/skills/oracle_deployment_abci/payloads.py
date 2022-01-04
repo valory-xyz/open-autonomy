@@ -60,7 +60,7 @@ class RandomnessPayload(BaseTxPayload):
     @property
     def round_id(self) -> int:
         """Get the round id."""
-        return self._round_id
+        return self._round_id  # pragma: nocover
 
     @property
     def randomness(self) -> str:
