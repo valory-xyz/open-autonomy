@@ -40,7 +40,7 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-from aea.helpers.ipfs.base import IPFSHashOnly
+from aea_cli_ipfs.ipfs_utils import IPFSTool
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
@@ -114,6 +114,21 @@ benchmark_tool = BenchmarkTool()
 
 class APYEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the APY estimation skill."""
+
+    def __init__(self, **kwargs: Any):
+        """Initialize an `APYEstimationBaseState` behaviour."""
+        super().__init__(**kwargs)
+        self.__ipfs_tool = IPFSTool({"addr": self.params.ipfs_domain_name})
+
+    def send_file_to_ipfs_node(self, filepath: str) -> str:
+        """Send a file to the IPFS node."""
+        with self.__ipfs_tool.daemon:
+            # Check node.
+            self.__ipfs_tool.check_ipfs_node_running()
+            # Send file.
+            _, hist_hash, _ = self.__ipfs_tool.add(filepath)
+
+        return hist_hash
 
     @property
     def period_state(self) -> PeriodState:
@@ -349,8 +364,8 @@ class FetchBehaviour(APYEstimationBaseState):
                             raise exc
 
                         # Hash the file.
-                        hasher = IPFSHashOnly()
-                        hist_hash = hasher.get(self._save_path)
+
+                        hist_hash = self.send_file_to_ipfs_node(self._save_path)
                         self.context.logger.info(
                             f"IPFS hash for fetched data is: {hist_hash}"
                         )
@@ -549,14 +564,17 @@ class TransformBehaviour(APYEstimationBaseState):
         transformed_history.to_csv(self._transformed_history_save_path, index=False)
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        hist_hash = hasher.get(self._transformed_history_save_path)
-        self.context.logger.info(f"IPFS hash for transformed data is: {hist_hash}")
+        transformed_hist_hash = self.send_file_to_ipfs_node(
+            self._transformed_history_save_path
+        )
+        self.context.logger.info(
+            f"IPFS hash for transformed data is: {transformed_hist_hash}"
+        )
 
         # Pass the hash as a Payload.
         payload = TransformationPayload(
             self.context.agent_address,
-            hist_hash,
+            transformed_hist_hash,
         )
 
         # Finish behaviour.
@@ -602,7 +620,6 @@ class PreprocessBehaviour(APYEstimationBaseState):
         self.context.logger.info(f"y_test: {y_test.to_string()}")
 
         # Store and hash the preprocessed data.
-        hasher = IPFSHashOnly()
         hashes = []
         for filename, split in {"train": y_train, "test": y_test}.items():
             save_path = os.path.join(
@@ -612,9 +629,9 @@ class PreprocessBehaviour(APYEstimationBaseState):
             )
             create_pathdirs(save_path)
             split.to_csv(save_path, index=False)
-            hash_ = hasher.get(save_path)
-            self.context.logger.info(f"IPFS hash for {filename} data is: {hash_}")
-            hashes.append(hash_)
+            split_hash = self.send_file_to_ipfs_node(save_path)
+            self.context.logger.info(f"IPFS hash for {filename} data is: {split_hash}")
+            hashes.append(split_hash)
 
         # Pass the hash as a Payload.
         payload = PreprocessPayload(
@@ -800,8 +817,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             raise e
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        best_params_hash = hasher.get(best_params_save_path)
+        best_params_hash = self.send_file_to_ipfs_node(best_params_save_path)
         self.context.logger.info(f"IPFS hash for best params is: {best_params_hash}")
 
         # Pass the best params hash as a Payload.
@@ -929,8 +945,7 @@ class TrainBehaviour(APYEstimationBaseState):
         save_forecaster(forecaster_save_path, forecaster)
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        model_hash = hasher.get(forecaster_save_path)
+        model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
         self.context.logger.info(
             f"IPFS hash for {prefix}forecasting model is: {model_hash}"
         )
@@ -1041,8 +1056,7 @@ class TestBehaviour(APYEstimationBaseState):
             raise e
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        report_hash = hasher.get(report_save_path)
+        report_hash = self.send_file_to_ipfs_node(report_save_path)
         self.context.logger.info(f"IPFS hash for test report is: {report_hash}")
 
         # Pass the hash and the best trial as a Payload.

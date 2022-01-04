@@ -967,6 +967,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         with pytest.raises(AEAActException):
             self.apy_estimation_behaviour.act_wrapper()
 
+        importlib.reload(os.path)
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
             self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
@@ -1143,6 +1144,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             "[test_agent_name] The transform task is not finished yet." in caplog.text
         )
 
+        importlib.reload(os.path)
         self.end_round()
 
     def test_transform_behaviour_waiting_for_task(
@@ -2192,7 +2194,6 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.period_state,
         )
         # patching for setup.
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
         monkeypatch.setattr(
             pd, "read_csv", lambda _: pd.DataFrame({"y": [i for i in range(5)]})
         )
