@@ -109,53 +109,26 @@ class GasPayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        safe_tx_gas: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+        gas_data: Optional[dict] = None,
         id_: Optional[str] = None,
     ) -> None:
-        """Initialize an 'validate' transaction payload.
+        """Initialize an 'gas_adjustment' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param safe_tx_gas: the safe_tx_gas
-        :param max_fee_per_gas: the max_fee_per_gas
-        :param max_priority_fee_per_gas: the max_priority_fee_per_gas
+        :param gas_data: the gas_data
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._safe_tx_gas = safe_tx_gas
-        self._max_fee_per_gas = max_fee_per_gas
-        self._max_priority_fee_per_gas = max_priority_fee_per_gas
-
-    @property
-    def safe_tx_gas(self) -> Optional[int]:
-        """Get the safe_tx_gas."""
-        return self._safe_tx_gas
-
-    @property
-    def max_fee_per_gas(self) -> Optional[int]:
-        """Get the max_fee_per_gas."""
-        return self._max_fee_per_gas
-
-    @property
-    def max_priority_fee_per_gas(self) -> Optional[int]:
-        """Get the max_priority_fee_per_gas."""
-        return self._max_priority_fee_per_gas
+        self._gas_data = gas_data
 
     @property
     def data(self) -> Dict:
         """Get the data."""
         return (
             dict(
-                safe_tx_gas=self.safe_tx_gas,
-                max_fee_per_gas=self.max_fee_per_gas,
-                max_priority_fee_per_gas=self.max_priority_fee_per_gas,
+                gas_data=self._gas_data,
             )
-            if (
-                self.safe_tx_gas is not None
-                and self.max_fee_per_gas is not None
-                and self.max_priority_fee_per_gas is not None
-            )
+            if self._gas_data is not None
             else {}
         )
 

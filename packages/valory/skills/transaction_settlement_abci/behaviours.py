@@ -299,15 +299,15 @@ class GasAdjustmentBehaviour(TransactionSettlementBaseState):
         ).local():
             self.context.logger.info("I am the designated sender, adjusting the gas...")
 
-            safe_tx_gas = int(4e6)
-            max_fee_per_gas = int(10e10)
-            max_priority_fee_per_gas = int(10e10)
+            gas_data = {
+                "safe_tx_gas": int(4e6),
+                "max_fee_per_gas": int(10e10),
+                "max_priority_fee_per_gas": int(10e10),
+            }
 
             payload = GasPayload(
                 self.context.agent_address,
-                safe_tx_gas,
-                max_fee_per_gas,
-                max_priority_fee_per_gas,
+                gas_data,
             )
 
         with benchmark_tool.measure(
