@@ -69,6 +69,38 @@ class PeriodState(BasePeriodState):
     """Class to represent a period state. This state is replicated by the tendermint application."""
 
     @property
+    def history_hash(self) -> str:
+        """Get the most voted history hash."""
+        return cast(str, self.db.get_strict("most_voted_history"))
+
+    @property
+    def transformed_history_hash(self) -> str:
+        """Get the most voted transformed history hash."""
+        return cast(str, self.db.get_strict("most_voted_transform"))
+
+    @property
+    def train_hash(self) -> str:
+        """Get the most voted train hash."""
+        split = cast(str, self.db.get_strict("most_voted_split"))
+        return split[0 : int(len(split) / 2)]
+
+    @property
+    def test_hash(self) -> str:
+        """Get the most voted test hash."""
+        split = cast(str, self.db.get_strict("most_voted_split"))
+        return split[int(len(split) / 2) :]
+
+    @property
+    def params_hash(self) -> str:
+        """Get the most_voted_params."""
+        return cast(str, self.db.get_strict("most_voted_params"))
+
+    @property
+    def model_hash(self) -> str:
+        """Get the most_voted_model."""
+        return cast(str, self.db.get_strict("most_voted_model"))
+
+    @property
     def most_voted_estimate(self) -> float:
         """Get the most_voted_estimate."""
         return cast(float, self.db.get_strict("most_voted_estimate"))

@@ -352,7 +352,7 @@ def test_task_result_non_serializable() -> bytes:
 
 
 @pytest.fixture
-def transformed_historical_data() -> pd.DataFrame:
+def transformed_historical_data_no_datetime_conversion() -> pd.DataFrame:
     """Create dummy transformed historical data"""
     return pd.DataFrame(
         {
@@ -425,6 +425,20 @@ def transformed_historical_data() -> pd.DataFrame:
     )
 
 
+@pytest.fixture
+def transformed_historical_data(
+    transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+) -> pd.DataFrame:
+    """Create dummy transformed historical data"""
+    transformed_historical_data_no_datetime_conversion[
+        "block_timestamp"
+    ] = pd.to_datetime(
+        transformed_historical_data_no_datetime_conversion["block_timestamp"], unit="s"
+    )
+
+    return transformed_historical_data_no_datetime_conversion
+
+
 class DummyPipeline:
     """A dummy pipeline."""
 
@@ -435,7 +449,7 @@ class DummyPipeline:
         :param steps_forward: how many timesteps the model will be predicting in the future.
         :return: a `numpy` array with the dummy predictions.
         """
-        return np.zeros(steps_forward)
+        return np.ones(steps_forward)
 
     @staticmethod
     def update(_y: np.ndarray) -> None:
