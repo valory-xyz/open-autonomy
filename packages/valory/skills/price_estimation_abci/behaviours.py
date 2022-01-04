@@ -19,8 +19,9 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 
+import statistics
 from abc import ABC
-from typing import Generator, Optional, Set, Type, cast
+from typing import Callable, Dict, Generator, Iterable, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
@@ -125,6 +126,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
     state_id = "collect_observation"
     matching_round = CollectObservationRound
 
+    _aggregator_methods: Dict[str, Callable[[Iterable], float]] = {
+        "mean": statistics.mean,
+        "median": statistics.median,
+        "mode": statistics.mode,
+    }
+
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -136,6 +143,12 @@ class ObserveBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
+
+        if self.period_state.aggregator_method is None:
+            self.period_state.aggregator_method = self._aggregator_methods.get(
+                self.params.observation_aggregator_function, statistics.mean
+            )
+
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
             with benchmark_tool.measure(

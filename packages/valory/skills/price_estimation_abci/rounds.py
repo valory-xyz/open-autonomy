@@ -20,7 +20,7 @@
 """This module contains the data classes for the price estimation ABCI application."""
 import statistics
 from enum import Enum
-from typing import Dict, Set, Type, cast
+from typing import Callable, Dict, Iterable, Optional, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -59,6 +59,8 @@ class PeriodState(BasePeriodState):
 
     This state is replicated by the tendermint application.
     """
+
+    aggregator_method: Optional[Callable[[Iterable], float]] = None
 
     @property
     def safe_contract_address(self) -> str:
