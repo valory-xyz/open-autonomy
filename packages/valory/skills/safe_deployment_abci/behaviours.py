@@ -137,8 +137,6 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
             threshold=threshold,
             deployer_address=self.context.agent_address,
             gas=10 ** 7,
-            max_fee_per_gas=10 ** 10,  # TOFIX
-            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_response.performative
