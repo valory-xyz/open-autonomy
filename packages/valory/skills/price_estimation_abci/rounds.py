@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the price estimation ABCI application."""
-import statistics
 from enum import Enum
 from typing import Callable, Dict, Iterable, Optional, Set, Type, cast
 
@@ -37,11 +36,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     ObservationPayload,
     TransactionHashPayload,
 )
-
-
-def aggregate(*observations: float) -> float:
-    """Aggregate a list of observations."""
-    return statistics.mean(observations)
 
 
 class Event(Enum):
@@ -78,7 +72,7 @@ class PeriodState(BasePeriodState):
         observations = [
             value.observation for value in self.participant_to_observations.values()
         ]
-        return aggregate(*observations)
+        return self.aggregator_method(observations)
 
     @property
     def most_voted_estimate(self) -> float:
