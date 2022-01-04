@@ -118,13 +118,13 @@ class APYEstimationBaseState(BaseState, ABC):
     def __init__(self, **kwargs: Any):
         """Initialize an `APYEstimationBaseState` behaviour."""
         super().__init__(**kwargs)
+        # Create an IPFS tool.
         self.__ipfs_tool = IPFSTool({"addr": self.params.ipfs_domain_name})
+        # Check IPFS node.
+        self.__ipfs_tool.check_ipfs_node_running()
 
     def send_file_to_ipfs_node(self, filepath: str) -> str:
         """Send a file to the IPFS node."""
-        # Check node.
-        self.__ipfs_tool.check_ipfs_node_running()
-        # Send file.
         _, hist_hash, _ = self.__ipfs_tool.add(filepath)
 
         return hist_hash
