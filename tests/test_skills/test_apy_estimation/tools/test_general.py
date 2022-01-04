@@ -26,7 +26,6 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.general import (
-    aggregate_agent_times,
     create_pathdirs,
     filter_out_numbers,
     gen_unix_timestamps,
@@ -167,9 +166,3 @@ class TestGeneral:
         """Test `filter_out_numbers`."""
         filtered_num = filter_out_numbers(unfiltered_string)
         assert filtered_num == expected
-
-    @staticmethod
-    def test_aggregate_agent_times() -> None:
-        """Test `aggregate_agent_times` function."""
-
-        assert aggregate_agent_times((1, 2, 3, 4, 5)) == 3.0

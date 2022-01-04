@@ -39,14 +39,6 @@ states_checks_config = {
         "extra_logs": (),
         "only_at_first_period": True,
     },
-    "sync_time": {
-        "state_name": "sync_time",
-        "extra_logs": (
-            "Syncing time across agents...",
-            "Time has been synced across agents.",
-        ),
-        "only_at_first_period": True,
-    },
     "collect_history": {
         "state_name": "collect_history",
         "extra_logs": (

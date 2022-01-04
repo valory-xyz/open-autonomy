@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the APY estimation skill."""
+import calendar
 import datetime
 import json
 import os
-import time
 from abc import ABC
 from multiprocessing.pool import AsyncResult
 from typing import (
@@ -67,7 +67,6 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    SyncPayload,
     TestingPayload,
     TrainingPayload,
     TransformationPayload,
@@ -83,7 +82,6 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     RandomnessRound,
     RegistrationRound,
     ResetRound,
-    SyncTimeRound,
     TestRound,
     TrainRound,
     TransformRound,
@@ -223,41 +221,6 @@ class RegistrationBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
-class SyncTimeBehaviour(APYEstimationBaseState):
-    """Sync time across agents."""
-
-    state_id = "sync_time"
-    matching_round = SyncTimeRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            now = int(time.time())
-
-        payload = SyncPayload(self.context.agent_address, now)
-        self.context.logger.info(f"Syncing time across agents... Time sent is: {now}")
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            self.context.logger.info("Time has been synced across agents.")
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
 class EmptyResponseError(Exception):
     """Exception for empty response."""
 
@@ -294,8 +257,12 @@ class FetchBehaviour(APYEstimationBaseState):
         for unwanted in unwanted_specs:
             self._spooky_api_specs.pop(unwanted)
 
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp
+        last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
         self._timestamps_iterator = gen_unix_timestamps(
-            self.period_state.synced_time, self.params.history_duration
+            last_timestamp_unix, self.params.history_duration
         )
 
     def _handle_response(
@@ -1197,7 +1164,6 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[APYEstimationBaseState]] = {
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
-        SyncTimeBehaviour,  # type: ignore
         FetchBehaviour,
         TransformBehaviour,
         PreprocessBehaviour,  # type: ignore

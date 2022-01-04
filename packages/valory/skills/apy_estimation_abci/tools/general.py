@@ -21,8 +21,7 @@
 """Tools for the APY skill."""
 import json
 import os
-import statistics
-from typing import Any, Collection, Dict, Iterator, Optional, Union
+from typing import Any, Dict, Iterator, Optional, Union
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
@@ -95,12 +94,3 @@ def filter_out_numbers(string: str) -> Optional[int]:
         filtered_result = int(str(filtered_result)[:9])
 
     return filtered_result
-
-
-def aggregate_agent_times(times: Collection[int]) -> int:
-    """Aggregate the agents' times.
-
-    :param times: the input times collection.
-    :return: the median of the agents' times.
-    """
-    return int(statistics.median(times))

@@ -84,7 +84,6 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     RandomnessBehaviour,
     RegistrationBehaviour,
     ResetBehaviour,
-    SyncTimeBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
@@ -608,7 +607,7 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Base test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = SyncTimeBehaviour
+    next_behaviour_class = FetchBehaviour
 
     def test_registration(self) -> None:
         """Test registration."""
@@ -641,12 +640,12 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_setup(self, monkeypatch: MonkeyPatch) -> None:
         """Test behaviour setup."""
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            period_state=PeriodState(
-                StateDB(initial_period=0, initial_data=dict(synced_time=0))
-            ),
+            self.period_state,
         )
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -708,18 +707,12 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+        self.skill.skill_context.state.period.abci_app._last_timestamp = (
+            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
+        )
 
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            period_state=PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(
-                        synced_time=1618735147 + history_duration * 30 * 24 * 60 * 60
-                    ),
-                )
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
@@ -780,12 +773,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_fetch_behaviour_retries_exceeded(self, monkeypatch: MonkeyPatch) -> None:
         """Run tests for exceeded retries."""
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            period_state=PeriodState(
-                StateDB(initial_period=0, initial_data=dict(synced_time=0))
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
@@ -815,17 +806,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+        self.skill.skill_context.state.period.abci_app._last_timestamp = (
+            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
+        )
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            period_state=PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(
-                        synced_time=1618735147 + history_duration * 30 * 24 * 60 * 60
-                    ),
-                )
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
@@ -952,16 +937,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         no_action: Callable[[Any], None],
     ) -> None:
         """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(most_voted_randomness=0, synced_time=0),
-                )
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
         # set history duration to a negative value in order to raise a `StopIteration`.
         cast(
@@ -974,14 +954,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(most_voted_randomness=0, synced_time=0),
-                )
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         # test with retrieved history and non-existing save path.
@@ -996,14 +969,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(most_voted_randomness=0, synced_time=0),
-                )
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         # test with retrieved history and valid save path.
@@ -1021,14 +987,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(most_voted_randomness=0, synced_time=0),
-                )
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         # test with non-serializable retrieved history and valid save path.
@@ -2412,7 +2371,7 @@ class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
     behaviour_class = ResetBehaviour
-    next_behaviour_class = SyncTimeBehaviour
+    next_behaviour_class = FetchBehaviour
 
     def test_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
         """Run test for `ResetBehaviour`."""
