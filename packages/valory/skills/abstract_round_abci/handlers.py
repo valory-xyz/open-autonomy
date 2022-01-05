@@ -46,7 +46,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests, SharedSt
 
 
 def exception_to_info_msg(exception: Exception) -> str:
-    """Trnasform an exception to an info string message."""
+    """Transform an exception to an info string message."""
     return f"{exception.__class__.__name__}: {str(exception)}"
 
 

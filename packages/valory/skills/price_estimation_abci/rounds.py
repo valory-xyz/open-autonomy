@@ -104,7 +104,7 @@ class CollectObservationRound(CollectDifferentUntilThresholdRound):
     This class represents the 'collect-observation' round.
 
     Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the observations
+    Output: a new period state with the prior round data and the observations
 
     It schedules the EstimateConsensusRound.
     """
@@ -124,7 +124,7 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound):
     This class represents the 'estimate_consensus' round.
 
     Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the votes for each estimate
+    Output: a new period state with the prior round data and the votes for each estimate
 
     It schedules the TxHashRound.
     """
@@ -145,7 +145,7 @@ class TxHashRound(CollectSameUntilThresholdRound):
     This class represents the 'tx-hash' round.
 
     Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the votes for each tx hash
+    Output: a new period state with the prior round data and the votes for each tx hash
 
     It schedules the CollectSignatureRound.
     """
@@ -162,7 +162,7 @@ class TxHashRound(CollectSameUntilThresholdRound):
 
 
 class FinishedPriceAggregationRound(DegenerateRound):
-    """This class represents the finished round of the price aggreagation."""
+    """This class represents the finished round of the price aggregation."""
 
     round_id = "finished_price_aggregation"
 

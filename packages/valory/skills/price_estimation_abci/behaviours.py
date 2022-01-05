@@ -106,7 +106,7 @@ def payload_to_hex(tx_hash: str, epoch_: int, round_: int, amount_: int) -> str:
 
 
 class PriceEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
