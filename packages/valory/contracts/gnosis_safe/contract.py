@@ -131,8 +131,6 @@ class GnosisSafeContract(Contract):
         salt_nonce: Optional[int] = None,
         gas: Optional[int] = None,
         gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
@@ -147,8 +145,6 @@ class GnosisSafeContract(Contract):
         :param salt_nonce: Use a custom nonce for the deployment. Defaults to random nonce.
         :param gas: gas cost
         :param gas_price: Gas price that should be used for the payment calculation
-        :param max_fee_per_gas: max
-        :param max_priority_fee_per_gas: max
         :return: transaction params and contract address
         """
         salt_nonce = salt_nonce if salt_nonce is not None else _get_nonce()
