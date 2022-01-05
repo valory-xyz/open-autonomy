@@ -18,9 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the price estimation ABCI application."""
+
 import statistics
 from enum import Enum
-from typing import Dict, Set, Type, cast
+from typing import Callable, Dict, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -39,11 +40,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 )
 
 
-def aggregate(*observations: float) -> float:
-    """Aggregate a list of observations."""
-    return statistics.mean(observations)
-
-
 class Event(Enum):
     """Event enumeration for the price estimation demo."""
 
@@ -59,6 +55,19 @@ class PeriodState(BasePeriodState):
 
     This state is replicated by the tendermint application.
     """
+
+    _aggregator_method: Callable
+    _aggregator_methods: Dict[str, Callable] = {
+        "mean": statistics.mean,
+        "median": statistics.median,
+        "mode": statistics.mode,
+    }
+
+    def set_aggregator_method(self, aggregator_method: str) -> None:
+        """Set aggregator method."""
+        self._aggregator_method = self._aggregator_methods.get(  # type: ignore
+            aggregator_method, statistics.median
+        )
 
     @property
     def safe_contract_address(self) -> str:
@@ -76,7 +85,7 @@ class PeriodState(BasePeriodState):
         observations = [
             value.observation for value in self.participant_to_observations.values()
         ]
-        return aggregate(*observations)
+        return self._aggregator_method(observations)
 
     @property
     def most_voted_estimate(self) -> float:
