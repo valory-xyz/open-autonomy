@@ -729,6 +729,6 @@ class UniswapV2Router02Contract(Contract):
             and max_fee_per_gas is None
             and max_priority_fee_per_gas is None
         ):
-            tx_params.update(ledger_api.try_get_gas_pricing())
+            tx_params.update(ledger_api.try_get_gas_pricing())  # pragma: nocover
         tx = tx.buildTransaction(tx_params)
         return tx

@@ -426,8 +426,8 @@ class GnosisSafeContract(Contract):
         if gas_price is not None:
             tx_parameters["gasPrice"] = gas_price
         if max_fee_per_gas is not None:
-            tx_parameters["maxFeePerGas"] = max_fee_per_gas
-        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = max_fee_per_gas  # pragma: nocover
+        if max_priority_fee_per_gas is not None:  # pragma: nocover
             tx_parameters["maxPriorityFeePerGas"] = max_priority_fee_per_gas
         if (
             gas_price is None

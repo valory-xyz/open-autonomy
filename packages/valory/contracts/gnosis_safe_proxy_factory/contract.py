@@ -122,10 +122,12 @@ class GnosisSafeProxyFactoryContract(Contract):
             tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
 
         if max_fee_per_gas is not None:
-            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
 
         if max_priority_fee_per_gas is not None:
-            tx_parameters["maxPriorityFeePerGas"] = Wei(max_priority_fee_per_gas)
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
 
         if (
             gas_price is None
