@@ -35,6 +35,7 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
+    GasPayload,
     ResetPayload,
     SignaturePayload,
     ValidatePayload,
@@ -45,7 +46,10 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import FinalizationRound
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FinalizationRound,
+    GasAdjustmentRound,
+)
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
@@ -236,6 +240,45 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 ),
                 state_attr_checks=[],
                 exit_event=self._event_class.FAILED,
+            )
+        )
+
+
+class TestGasAdjustmentRound(BaseOnlyKeeperSendsRoundTest):
+    """Test GasAdjustmentRound."""
+
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
+
+    def test_run(
+        self,
+    ) -> None:
+        """Runs tests."""
+
+        keeper = sorted(list(self.participants))[0]
+        self.period_state = cast(
+            PeriodState,
+            self.period_state.update(most_voted_keeper_address=keeper),
+        )
+
+        test_round = GasAdjustmentRound(
+            state=self.period_state,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                keeper_payloads=GasPayload(
+                    sender=keeper,
+                    gas_data={
+                        "max_fee_per_gas": int(10e10),
+                        "max_priority_fee_per_gas": int(10e10),
+                    },
+                ),
+                state_update_fn=lambda _period_state, _: _period_state,
+                state_attr_checks=[],
+                exit_event=self._event_class.DONE,
             )
         )
 
