@@ -82,8 +82,6 @@ class BaseContractTest(BaseGanacheContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -142,8 +140,6 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -193,8 +189,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             owners=self.owners(),
             threshold=int(self.threshold()),
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
         assert type(result) == dict
         assert len(result) == 10
@@ -349,8 +343,6 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             to_address=receiver.address,
             value=value,
             data=data,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             signatures_by_owner={
                 self.deployer_crypto.address.lower(): signatures_by_owners[
                     self.deployer_crypto.address

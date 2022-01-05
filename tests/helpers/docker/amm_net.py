@@ -101,7 +101,7 @@ class AMMNetDockerImage(DockerImage):
         :param sleep_rate: the amount of time to sleep between different requests.
         :return: True if the wait was successful, False otherwise.
         """
-        for i in range(max_attempts):
+        for i in range(5):
             try:
                 response = requests.get(f"{self.addr}:{self.port}")
                 enforce(response.status_code == 200, "")

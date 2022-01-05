@@ -354,8 +354,6 @@ def gnosis_safe_contract(
         ledger_api=ledger_api,
         deployer_address=crypto.address,
         gas=5000000,
-        max_fee_per_gas=10 ** 10,
-        max_priority_fee_per_gas=10 ** 10,
         owners=owners,
         threshold=threshold,
     )
