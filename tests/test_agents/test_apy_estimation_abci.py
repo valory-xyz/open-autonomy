@@ -135,7 +135,8 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
             # Always stop the daemon, even if an exception is raised. Then, re-raise the exception.
             daemon.stop()
             raise e
-        daemon.stop()
+        finally:
+            daemon.stop()
 
 
 class TestABCIAPYEstimationSingleAgent(
