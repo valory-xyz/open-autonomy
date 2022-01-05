@@ -148,8 +148,8 @@ class AsyncBehaviour(ABC):
         """
         Try to send a message to a waiting behaviour.
 
-        It will be send only if the behaviour is actually
-        waiting for a message and it was not already notified.
+        It will be sent only if the behaviour is actually
+        waiting for a message, and it was not already notified.
 
         :param message: a Python object.
         :raises: SendException if the behaviour was not waiting for a message,
@@ -925,7 +925,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param performative: the message performative
         :param contract_address: the contract address
         :param contract_id: the contract id
-        :param contract_callable: the collable to call on the contract
+        :param contract_callable: the callable to call on the contract
         :param kwargs: keyword argument for the contract api request
         :return: the contract api response
         :yields: the contract api response

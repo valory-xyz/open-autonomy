@@ -77,7 +77,7 @@ class ABCIHandler(Handler):
             return
 
         self.context.logger.debug(
-            "ABCI Handler: message={}, sender={}".format(message, message.sender)
+            f"ABCI Handler: message={message}, sender={message.sender}"
         )
         response = handler(message, abci_dialogue)
         self.context.outbox.put_message(message=response)
@@ -89,7 +89,7 @@ class ABCIHandler(Handler):
     def log_exception(self, message: AbciMessage, error_message: str) -> None:
         """Log a response exception."""
         self.context.logger.error(
-            f"An exception occured: {error_message} for message: {message}"
+            f"An exception occurred: {error_message} for message: {message}"
         )
 
     def echo(  # pylint: disable=no-self-use
@@ -232,7 +232,7 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
             target_message=message,
-            code=0,  # OK
+            code=0,  # OKf"ABCI Handler: message={message}, sender={message.sender}"debug
             data=b"",
             log="",
             info="",

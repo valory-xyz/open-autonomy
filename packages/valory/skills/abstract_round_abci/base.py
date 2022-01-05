@@ -113,7 +113,7 @@ class _MetaPayload(ABCMeta):
     Payload metaclass.
 
     The purpose of this metaclass is to remember the association
-    between the type of a payload and the payload class to build it.
+    between the type of payload and the payload class to build it.
     This is necessary to recover the right payload class to instantiate
     at decoding time.
 
@@ -714,12 +714,12 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """
         Check that a Byzantine majority is still achievable, once a new vote is added.
 
-         :param votes_by_participant: a mapping from a participant to its vote, before the new vote is added
-         :param new_voter: the new voter
-         :param new_vote: the new vote
-         :param nb_participants: the total number of participants
-         :param exception_cls: the class of the exception to raise in case the check fails.
-         :raises: exception_cls: in case the check does not pass.
+        :param votes_by_participant: a mapping from a participant to its vote, before the new vote is added
+        :param new_voter: the new voter
+        :param new_vote: the new vote
+        :param nb_participants: the total number of participants
+        :param exception_cls: the class of the exception to raise in case the check fails.
+        :raises: exception_cls: in case the check does not pass.
         """
         # check preconditions
         enforce(
@@ -733,7 +733,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             ABCIAppInternalError,
         )
 
-        # copy the input dictionary to avoid side-effects
+        # copy the input dictionary to avoid side effects
         votes_by_participant = copy(votes_by_participant)
 
         # add the new vote
@@ -763,7 +763,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             nb_remaining_votes + largest_nb_votes < quorum
 
         That is, if the number of remaining votes is not enough to make
-        the most voted item so far to exceed the quorm.
+        the most voted item so far to exceed the quorum.
 
         Preconditions on the input:
         - the size of votes_by_participant should not be greater than "nb_participants - 1" voters
