@@ -40,7 +40,7 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-from aea_cli_ipfs.ipfs_utils import IPFSTool
+from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
@@ -148,8 +148,13 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: the deserialized json file's content
         """
-        self.__ipfs_tool.download(hash_, target_dir)
         filepath = os.path.join(target_dir, filename)
+
+        try:
+            self.__ipfs_tool.download(hash_, target_dir)
+        except DownloadError:
+            os.remove(filepath)
+            self.__ipfs_tool.download(hash_, target_dir)
 
         try:
             # Load & return data from json file.
@@ -184,8 +189,13 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        self.__ipfs_tool.download(hash_, target_dir)
         filepath = os.path.join(target_dir, filename)
+
+        try:
+            self.__ipfs_tool.download(hash_, target_dir)
+        except DownloadError:
+            os.remove(filepath)
+            self.__ipfs_tool.download(hash_, target_dir)
 
         try:
             hist = load_hist(filepath)
@@ -207,8 +217,13 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        self.__ipfs_tool.download(hash_, target_dir)
         filepath = os.path.join(target_dir, filename)
+
+        try:
+            self.__ipfs_tool.download(hash_, target_dir)
+        except DownloadError:
+            os.remove(filepath)
+            self.__ipfs_tool.download(hash_, target_dir)
 
         try:
             df = pd.read_csv(filepath)
@@ -230,8 +245,13 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        self.__ipfs_tool.download(hash_, target_dir)
         filepath = os.path.join(target_dir, filename)
+
+        try:
+            self.__ipfs_tool.download(hash_, target_dir)
+        except DownloadError:
+            os.remove(filepath)
+            self.__ipfs_tool.download(hash_, target_dir)
 
         try:
             forecaster = load_forecaster(filepath)
