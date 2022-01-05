@@ -295,5 +295,11 @@ class OffchainAggregatorContract(Contract):
             tx_params["maxFeePerGas"] = max_fee_per_gas
         if max_priority_fee_per_gas is not None:
             tx_params["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_params.update(ledger_api.try_get_gas_pricing())
         tx = tx.buildTransaction(tx_params)
         return tx

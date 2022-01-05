@@ -429,6 +429,12 @@ class GnosisSafeContract(Contract):
             tx_parameters["maxFeePerGas"] = max_fee_per_gas
         if max_priority_fee_per_gas is not None:
             tx_parameters["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
