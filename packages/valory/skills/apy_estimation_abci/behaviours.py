@@ -40,7 +40,7 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool
+from aea_cli_ipfs.ipfs_utils import IPFSTool
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
@@ -131,11 +131,32 @@ class APYEstimationBaseState(BaseState, ABC):
         :return: the file's hash
         """
         _, hist_hash, _ = self.__ipfs_tool.add(filepath)
-        os.remove(filepath)
 
         return hist_hash
 
-    def download_json_from_ipfs_node(
+    def __download_from_ipfs_node(
+        self,
+        hash_: str,
+        target_dir: str,
+        filename: str,
+    ) -> str:
+        """Download a file from the IPFS node.
+
+        :param hash_: hash of file to download
+        :param target_dir: directory to place downloaded file
+        :param filename: the original name of the file to download
+        :return: the filepath of the downloaded file
+        """
+        filepath = os.path.join(target_dir, filename)
+
+        if os.path.exists(filepath):  # pragma: nocover
+            os.remove(filepath)
+
+        self.__ipfs_tool.download(hash_, target_dir)
+
+        return filepath
+
+    def get_and_read_json(
         self,
         hash_: str,
         target_dir: str,
@@ -148,38 +169,29 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: the deserialized json file's content
         """
-        filepath = os.path.join(target_dir, filename)
-
-        try:
-            self.__ipfs_tool.download(hash_, target_dir)
-        except DownloadError:
-            os.remove(filepath)
-            self.__ipfs_tool.download(hash_, target_dir)
+        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
             # Load & return data from json file.
-            json_data = read_json_file(filepath)
+            return read_json_file(filepath)
 
         except OSError as e:  # pragma: nocover
-            self.context.logger.error(f"Path '{target_dir}' could not be found!")
+            self.context.logger.error(f"Path '{filepath}' could not be found!")
             raise e
 
         except json.JSONDecodeError as e:  # pragma: nocover
             self.context.logger.error(
-                f"File '{target_dir}' has an invalid JSON encoding!"
+                f"File '{filepath}' has an invalid JSON encoding!"
             )
             raise e
 
         except ValueError as e:  # pragma: nocover
             self.context.logger.error(
-                f"There is an encoding error in the '{target_dir}' file!"
+                f"There is an encoding error in the '{filepath}' file!"
             )
             raise e
 
-        os.remove(filepath)
-        return json_data
-
-    def download_hist_csv_from_ipfs_node(
+    def get_and_read_hist(
         self, hash_: str, target_dir: str, filename: str
     ) -> pd.DataFrame:
         """Download a csv file with historical data from the IPFS node.
@@ -189,25 +201,16 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        filepath = os.path.join(target_dir, filename)
+        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
-            self.__ipfs_tool.download(hash_, target_dir)
-        except DownloadError:
-            os.remove(filepath)
-            self.__ipfs_tool.download(hash_, target_dir)
-
-        try:
-            hist = load_hist(filepath)
+            return load_hist(filepath)
 
         except FileNotFoundError as e:  # pragma: nocover
-            self.context.logger.error(f"File {target_dir} was not found!")
+            self.context.logger.error(f"File {filepath} was not found!")
             raise e
 
-        os.remove(filepath)
-        return hist
-
-    def download_csv_from_ipfs_node(
+    def get_and_read_csv(
         self, hash_: str, target_dir: str, filename: str
     ) -> pd.DataFrame:
         """Download a csv file from the IPFS node.
@@ -217,25 +220,16 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        filepath = os.path.join(target_dir, filename)
+        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
-            self.__ipfs_tool.download(hash_, target_dir)
-        except DownloadError:
-            os.remove(filepath)
-            self.__ipfs_tool.download(hash_, target_dir)
-
-        try:
-            df = pd.read_csv(filepath)
+            return pd.read_csv(filepath)
 
         except FileNotFoundError as e:  # pragma: nocover
-            self.context.logger.error(f"File {target_dir} was not found!")
+            self.context.logger.error(f"File {filepath} was not found!")
             raise e
 
-        os.remove(filepath)
-        return df
-
-    def download_model_from_ipfs_node(
+    def get_and_read_forecaster(
         self, hash_: str, target_dir: str, filename: str
     ) -> Pipeline:
         """Download a csv file from the IPFS node.
@@ -245,23 +239,14 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        filepath = os.path.join(target_dir, filename)
+        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
-            self.__ipfs_tool.download(hash_, target_dir)
-        except DownloadError:
-            os.remove(filepath)
-            self.__ipfs_tool.download(hash_, target_dir)
-
-        try:
-            forecaster = load_forecaster(filepath)
+            return load_forecaster(filepath)
 
         except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
-            self.context.logger.error(f"Could not detect {target_dir}!")
+            self.context.logger.error(f"Could not detect {filepath}!")
             raise e
-
-        os.remove(filepath)
-        return forecaster
 
     @property
     def period_state(self) -> PeriodState:
@@ -625,7 +610,7 @@ class TransformBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
-        pairs_hist = self.download_json_from_ipfs_node(
+        pairs_hist = self.get_and_read_json(
             self.period_state.history_hash,
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "historical_data.json",
@@ -709,7 +694,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
         #  Eventually, we will have to run this and all the following behaviours for all the available pools.
 
         # Get the historical data and preprocess them.
-        pairs_hist = self.download_hist_csv_from_ipfs_node(
+        pairs_hist = self.get_and_read_hist(
             self.period_state.transformed_history_hash,
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "transformed_historical_data.csv",
@@ -836,7 +821,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        y = self.download_csv_from_ipfs_node(
+        y = self.get_and_read_csv(
             self.period_state.train_hash, training_data_path, "y_train.csv"
         )
 
@@ -947,7 +932,7 @@ class TrainBehaviour(APYEstimationBaseState):
         )
         best_params = cast(
             Dict[str, Any],
-            self.download_json_from_ipfs_node(
+            self.get_and_read_json(
                 self.period_state.params_hash, best_params_path, "best_params.json"
             ),
         )
@@ -959,7 +944,7 @@ class TrainBehaviour(APYEstimationBaseState):
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                     self.params.pair_ids[0],
                 )
-                df = self.download_csv_from_ipfs_node(
+                df = self.get_and_read_csv(
                     getattr(self.period_state, f"{split}_hash"), path, f"y_{split}.csv"
                 )
                 cast(List[np.ndarray], y).append(df.values.ravel())
@@ -971,7 +956,7 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
-            y = self.download_csv_from_ipfs_node(
+            y = self.get_and_read_csv(
                 self.period_state.train_hash, path, "y_train.csv"
             ).values.ravel()
 
@@ -1047,7 +1032,7 @@ class TestBehaviour(APYEstimationBaseState):
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
-            df = self.download_csv_from_ipfs_node(
+            df = self.get_and_read_csv(
                 getattr(self.period_state, f"{split}_hash"), path, f"y_{split}.csv"
             )
             y[f"y_{split}"] = df.values.ravel()
@@ -1056,7 +1041,7 @@ class TestBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        forecaster = self.download_model_from_ipfs_node(
+        forecaster = self.get_and_read_forecaster(
             self.period_state.model_hash, model_path, "forecaster.joblib"
         )
 
@@ -1146,7 +1131,7 @@ class EstimateBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        forecaster = self.download_model_from_ipfs_node(
+        forecaster = self.get_and_read_forecaster(
             self.period_state.model_hash,
             model_path,
             "fully_trained_forecaster.joblib",

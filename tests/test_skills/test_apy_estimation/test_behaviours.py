@@ -386,8 +386,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         assert isinstance(hash_, str)
         assert len(hash_) == 46
 
-    def test_download_json_from_ipfs_node(self, tmp_path: PosixPath) -> None:
-        """Test `download_json_from_ipfs_node`"""
+    def test_get_and_read_json(self, tmp_path: PosixPath) -> None:
+        """Test `get_and_read_json`"""
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -401,16 +401,16 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         ).send_file_to_ipfs_node(save_filepath)
         download_json_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).download_json_from_ipfs_node(hash_, download_folder, "save")
+        ).get_and_read_json(hash_, download_folder, "save")
 
         assert download_json_data == save_json_data
 
-    def test_download_hist_csv_from_ipfs_node(
+    def test_get_and_read_hist(
         self,
         tmp_path: PosixPath,
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
     ) -> None:
-        """Test `download_hist_csv_from_ipfs_node`."""
+        """Test `get_and_read_hist`."""
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -422,7 +422,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         ).send_file_to_ipfs_node(save_filepath)
         download_csv_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).download_hist_csv_from_ipfs_node(hash_, download_folder, "save")
+        ).get_and_read_hist(hash_, download_folder, "save")
 
         save_csv_data["block_timestamp"] = pd.to_datetime(
             save_csv_data["block_timestamp"], unit="s"
@@ -430,8 +430,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
         pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
 
-    def test_download_csv_from_ipfs_node(self, tmp_path: PosixPath) -> None:
-        """Test `download_csv_from_ipfs_node`."""
+    def test_get_and_read_csv(self, tmp_path: PosixPath) -> None:
+        """Test `get_and_read_csv`."""
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -443,12 +443,12 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         ).send_file_to_ipfs_node(save_filepath)
         download_csv_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).download_csv_from_ipfs_node(hash_, download_folder, "save")
+        ).get_and_read_csv(hash_, download_folder, "save")
 
         pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
 
-    def test_download_model_from_ipfs_node(self, tmp_path: PosixPath) -> None:
-        """Test `download_model_from_ipfs_node`."""
+    def test_get_and_read_forecaster(self, tmp_path: PosixPath) -> None:
+        """Test `get_and_read_forecaster`."""
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -473,7 +473,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         ).send_file_to_ipfs_node(save_filepath)
         downloaded_forecaster = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).download_model_from_ipfs_node(hash_, download_folder, "save")
+        ).get_and_read_forecaster(hash_, download_folder, "save")
 
         pipeline_steps_downloaded = downloaded_forecaster.get_params()["steps"]
         fourier_downloaded = pipeline_steps_downloaded[0][1].get_params()
@@ -1161,13 +1161,13 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: {"test": "test"}  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
 
         self.apy_estimation_behaviour.context.task_manager.start()
         cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         # Test with `None` pairs' history.
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: None  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: None  # type: ignore
         self.apy_estimation_behaviour.context.task_manager.start()
         with pytest.raises(RuntimeError, match="Cannot continue TransformBehaviour."):
             cast(
@@ -1198,7 +1198,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             "get_task_result",
             lambda *_: DummyAsyncResult(transform_task_result, ready=False),
         )
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: {"test": "test"}  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
 
         with caplog.at_level(
             logging.DEBUG,
@@ -1283,7 +1283,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                             self.apy_estimation_behaviour.current_state,
                         ).params.sleep_time = SLEEP_TIME_TWEAK
 
-                        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: {}  # type: ignore
+                        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {}  # type: ignore
 
                         # Run the Behaviour for the first time, with a non-ready `DummyAsyncResult`.
                         self.apy_estimation_behaviour.act_wrapper()
@@ -1370,7 +1370,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: {"test": "test"}  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
 
         with pytest.raises(
             AEAActException, match="Cannot continue TransformBehaviour."
@@ -1414,7 +1414,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     return_value=3,
                 ):
                     self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-                    self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: {"test": "test"}  # type: ignore
+                    self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
                     with open(
                         os.path.join(
                             self.apy_estimation_behaviour.context._get_agent_context().data_dir,
@@ -1459,7 +1459,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        self.apy_estimation_behaviour.current_state.download_hist_csv_from_ipfs_node = (  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_hist = (  # type: ignore
             lambda *_: transformed_historical_data
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
@@ -1683,7 +1683,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
         cast(
@@ -1712,7 +1712,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         self.apy_estimation_behaviour.context.task_manager.start()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
@@ -1746,7 +1746,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
 
@@ -1777,7 +1777,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
@@ -1886,7 +1886,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
         monkeypatch.setattr(
             TaskManager,
@@ -1946,8 +1946,8 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: best_params  # type: ignore
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
 
@@ -1992,8 +1992,8 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: best_params  # type: ignore
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
         self.apy_estimation_behaviour.context.task_manager.start()
@@ -2056,8 +2056,8 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: best_params  # type: ignore
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
 
@@ -2095,8 +2095,8 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        self.apy_estimation_behaviour.current_state.download_json_from_ipfs_node = lambda *_: best_params  # type: ignore
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
@@ -2140,10 +2140,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
-        self.apy_estimation_behaviour.current_state.download_model_from_ipfs_node = lambda *_: DummyPipeline()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
@@ -2177,10 +2177,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
-        self.apy_estimation_behaviour.current_state.download_model_from_ipfs_node = lambda *_: DummyPipeline()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         self.apy_estimation_behaviour.context.task_manager.start()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
@@ -2266,10 +2266,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
-        self.apy_estimation_behaviour.current_state.download_model_from_ipfs_node = lambda *_: DummyPipeline()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         # patching for setup.
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(
@@ -2318,10 +2318,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
         # patching for setup.
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
-        self.apy_estimation_behaviour.current_state.download_model_from_ipfs_node = lambda *_: DummyPipeline()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
 
@@ -2352,10 +2352,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
         # patching for setup.
-        self.apy_estimation_behaviour.current_state.download_csv_from_ipfs_node = lambda *_: pd.DataFrame(  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
             [i for i in range(5)]
         )
-        self.apy_estimation_behaviour.current_state.download_model_from_ipfs_node = lambda *_: DummyPipeline()  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(
             TaskManager,
@@ -2402,7 +2402,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
-        self.apy_estimation_behaviour.current_state.download_model_from_ipfs_node = (  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = (  # type: ignore
             lambda *_: DummyPipeline
         )
         # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
