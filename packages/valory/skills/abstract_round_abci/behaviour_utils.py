@@ -118,6 +118,7 @@ class AsyncBehaviour(ABC):
         self.__stopped: bool = True
         self.__notified: bool = False
         self.__message: Any = None
+        self.__setup_called: bool = False
 
     @abstractmethod
     def async_act(self) -> Generator:
@@ -233,6 +234,11 @@ class AsyncBehaviour(ABC):
 
     def act(self) -> None:
         """Do the act."""
+        # call setup only the first time act is called
+        if not self.__setup_called:
+            self.setup()
+            self.__setup_called = True
+
         if self.__state == self.AsyncState.READY:
             self.__call_act_first_time()
             return
@@ -252,9 +258,6 @@ class AsyncBehaviour(ABC):
 
     def __call_act_first_time(self) -> None:
         """Call the 'async_act' method for the first time."""
-        if self.is_stopped:
-            self.setup()
-
         self.__stopped = False
         self.__state = self.AsyncState.RUNNING
         try:
