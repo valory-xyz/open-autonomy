@@ -131,10 +131,8 @@ class GnosisSafeContract(Contract):
         salt_nonce: Optional[int] = None,
         gas: Optional[int] = None,
         gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,  # pylint: disable=unused-argument
-        max_priority_fee_per_gas: Optional[  # pylint: disable=unused-argument
-            int
-        ] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
@@ -237,6 +235,8 @@ class GnosisSafeContract(Contract):
             nonce=nonce,
             gas=gas,
             gas_price=gas_price,
+            max_fee_per_gas=max_fee_per_gas,
+            max_priority_fee_per_gas=max_priority_fee_per_gas,
         )
         return tx_params, contract_address
 
