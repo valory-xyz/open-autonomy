@@ -131,6 +131,7 @@ class APYEstimationBaseState(BaseState, ABC):
         :return: the file's hash
         """
         _, hist_hash, _ = self.__ipfs_tool.add(filepath)
+        os.remove(filepath)
 
         return hist_hash
 
@@ -148,10 +149,11 @@ class APYEstimationBaseState(BaseState, ABC):
         :return: the deserialized json file's content
         """
         self.__ipfs_tool.download(hash_, target_dir)
+        filepath = os.path.join(target_dir, filename)
 
         try:
             # Load & return data from json file.
-            return read_json_file(os.path.join(target_dir, filename))
+            json_data = read_json_file(filepath)
 
         except OSError as e:  # pragma: nocover
             self.context.logger.error(f"Path '{target_dir}' could not be found!")
@@ -169,6 +171,9 @@ class APYEstimationBaseState(BaseState, ABC):
             )
             raise e
 
+        os.remove(filepath)
+        return json_data
+
     def download_hist_csv_from_ipfs_node(
         self, hash_: str, target_dir: str, filename: str
     ) -> pd.DataFrame:
@@ -180,13 +185,17 @@ class APYEstimationBaseState(BaseState, ABC):
         :return: a pandas dataframe of the downloaded csv
         """
         self.__ipfs_tool.download(hash_, target_dir)
+        filepath = os.path.join(target_dir, filename)
 
         try:
-            return load_hist(os.path.join(target_dir, filename))
+            hist = load_hist(filepath)
 
         except FileNotFoundError as e:  # pragma: nocover
             self.context.logger.error(f"File {target_dir} was not found!")
             raise e
+
+        os.remove(filepath)
+        return hist
 
     def download_csv_from_ipfs_node(
         self, hash_: str, target_dir: str, filename: str
@@ -199,13 +208,17 @@ class APYEstimationBaseState(BaseState, ABC):
         :return: a pandas dataframe of the downloaded csv
         """
         self.__ipfs_tool.download(hash_, target_dir)
+        filepath = os.path.join(target_dir, filename)
 
         try:
-            return pd.read_csv((os.path.join(target_dir, filename)))
+            df = pd.read_csv(filepath)
 
         except FileNotFoundError as e:  # pragma: nocover
             self.context.logger.error(f"File {target_dir} was not found!")
             raise e
+
+        os.remove(filepath)
+        return df
 
     def download_model_from_ipfs_node(
         self, hash_: str, target_dir: str, filename: str
@@ -218,13 +231,17 @@ class APYEstimationBaseState(BaseState, ABC):
         :return: a pandas dataframe of the downloaded csv
         """
         self.__ipfs_tool.download(hash_, target_dir)
+        filepath = os.path.join(target_dir, filename)
 
         try:
-            return load_forecaster(os.path.join(target_dir, filename))
+            forecaster = load_forecaster(filepath)
 
         except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
             self.context.logger.error(f"Could not detect {target_dir}!")
             raise e
+
+        os.remove(filepath)
+        return forecaster
 
     @property
     def period_state(self) -> PeriodState:
