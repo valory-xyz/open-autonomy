@@ -129,8 +129,12 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
         """Run the ABCI skill with an IPFS daemon."""
         daemon = IPFSDaemon()
         daemon.start()
-        super(BaseTestABCIAPYEstimationSkillNormalExecution, self).test_run()
-        daemon.stop()
+        try:
+            super(BaseTestABCIAPYEstimationSkillNormalExecution, self).test_run()
+        except Exception as e:
+            # Always stop the daemon, even if an exception is raised. Then, re-raise the exception.
+            daemon.stop()
+            raise e
 
 
 class TestABCIAPYEstimationSingleAgent(
