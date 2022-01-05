@@ -77,6 +77,7 @@ class TestAPYParams:
             "testing": "test",
             "estimation": "test",
             "pair_ids": "test",
+            "safe_tx_gas": "test",
         }
 
         if param_value == "None":
