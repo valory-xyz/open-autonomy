@@ -424,6 +424,7 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             )
             if self.round_id == "cycle_reset":
                 kwargs["pair_name"] = self.period_state.pair_name
+                kwargs["most_voted_model"] = self.period_state.model_hash
             updated_state = self.period_state.update(**kwargs)
             return updated_state, Event.DONE
 
