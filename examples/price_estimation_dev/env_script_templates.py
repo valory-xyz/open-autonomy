@@ -21,6 +21,7 @@
 
 BASE_SETUP = """#!/usr/bin/bash
 sudo chown -R ubuntu:ubuntu /logs
+sudo chown -R ubuntu:ubuntu /packages
 """
 
 ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash
