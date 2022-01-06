@@ -110,7 +110,7 @@ class RandomnessBehaviour(BaseState):
                 self.context.logger.info("Generating randomness from chain.")
                 observation = yield from self.failsafe_randomness()
             else:
-                self.context.logger.info(f"Retrieving DRAND values from api.")
+                self.context.logger.info("Retrieving DRAND values from api.")
                 observation = yield from self.get_randomness_from_api()
 
         if observation:
