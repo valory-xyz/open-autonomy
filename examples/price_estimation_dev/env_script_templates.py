@@ -35,6 +35,8 @@ aea add-key ethereum
 
 aea config set agent.skill_exception_policy "just_log"
 aea config set agent.connection_exception_policy "just_log"
+aea config set vendor.valory.connections.abci.config.host "abci{node_id}"
+aea config set vendor.valory.connections.abci.config.port 26658 --type int
 aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5

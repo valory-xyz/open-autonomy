@@ -119,13 +119,22 @@ class GnosisSafeProxyFactoryContract(Contract):
         contract_address = create_proxy_fn.call(tx_parameters)
 
         if gas_price is not None:
-            tx_parameters["gasPrice"] = Wei(gas_price)
+            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
 
         if max_fee_per_gas is not None:
-            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
 
         if max_priority_fee_per_gas is not None:
-            tx_parameters["maxPriorityFeePerGas"] = Wei(max_priority_fee_per_gas)
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
+
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
 
         if gas is not None:
             tx_parameters["gas"] = Wei(gas)

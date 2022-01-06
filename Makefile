@@ -153,6 +153,7 @@ new_env: clean
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
 	fi;\
+
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
@@ -163,3 +164,8 @@ new_env: clean
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
+
+.PHONY: install-hooks
+install-hooks:
+	@echo "Installing pre-push"
+	cp scripts/pre-push .git/hooks/pre-push

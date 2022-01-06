@@ -20,16 +20,18 @@
 """Tests package for the 'valory/abci' protocol."""
 import datetime
 from abc import abstractmethod
-from typing import Type
+from typing import Callable, Type
 from unittest import mock
 
 import pytest
 from aea.common import Address
+from aea.exceptions import AEAEnforceError
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
+import packages
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
@@ -65,6 +67,9 @@ from packages.valory.protocols.abci.custom_types import (
     VoteInfo,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
+from packages.valory.protocols.abci.message import (
+    _default_logger as abci_message_logger,
+)
 
 
 class BaseTestMessageConstruction:
@@ -414,6 +419,18 @@ class TestRequestEndBlock(BaseTestMessageConstruction):
         )
 
 
+class TestRequestSetOption(BaseTestMessageConstruction):
+    """Test ABCI request end block."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.REQUEST_SET_OPTION,  # type: ignore
+            option_key="",
+            option_value="",
+        )
+
+
 class TestResponseEndBlock(BaseTestMessageConstruction):
     """Test ABCI response end block."""
 
@@ -578,8 +595,39 @@ class TestResponseException(BaseTestMessageConstruction):
     def build_message(self) -> AbciMessage:
         """Build the message."""
         return AbciMessage(
-            performative=AbciMessage.Performative.RESPONSE_EXCEPTION,  # type: ignore
+            performative=AbciMessage.Performative.RESPONSE_EXCEPTION, error=""  # type: ignore
         )
+
+
+class TestResponseSetOption(BaseTestMessageConstruction):
+    """Test ABCI request end block."""
+
+    def build_message(self) -> AbciMessage:
+        """Build the message."""
+        return AbciMessage(
+            performative=AbciMessage.Performative.RESPONSE_SET_OPTION,  # type: ignore
+            code=1,
+            log="",
+            info="",
+        )
+
+
+@mock.patch.object(
+    packages.valory.protocols.abci.message,
+    "enforce",
+    side_effect=AEAEnforceError("some error"),
+)
+def test_incorrect_message(mocked_enforce: Callable) -> None:
+    """Test that we raise an exception when the message is incorrect."""
+    with mock.patch.object(abci_message_logger, "error") as mock_logger:
+        AbciMessage(
+            message_id=1,
+            dialogue_reference=(str(0), ""),
+            target=0,
+            performative=AbciMessage.Performative.DUMMY,  # type: ignore
+        )
+
+        mock_logger.assert_any_call("some error")
 
 
 def test_performative_string_value() -> None:
@@ -679,6 +727,12 @@ def test_performative_string_value() -> None:
     assert (
         str(AbciMessage.Performative.RESPONSE_QUERY) == "response_query"
     ), "The str value must be response_query"
+    assert (
+        str(AbciMessage.Performative.RESPONSE_SET_OPTION) == "response_set_option"
+    ), "The str value must be response_set_option"
+    assert (
+        str(AbciMessage.Performative.REQUEST_SET_OPTION) == "request_set_option"
+    ), "The str value must be request_set_option"
 
 
 def test_encoding_unknown_performative() -> None:

@@ -24,14 +24,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
     to_int,
 )
-from packages.valory.skills.price_estimation_abci.rounds import aggregate
 from packages.valory.skills.transaction_settlement_abci.behaviours import hex_to_payload
-
-
-def test_aggregate_function() -> None:
-    """Test `aggregate` function."""
-
-    assert aggregate(1, 2, 3, 4, 5) == 3.0
 
 
 def test_random_selection_function() -> None:

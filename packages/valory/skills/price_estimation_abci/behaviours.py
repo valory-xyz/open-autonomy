@@ -136,6 +136,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
+
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
             with benchmark_tool.measure(
@@ -206,11 +207,16 @@ class EstimateBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
+
+            self.period_state.set_aggregator_method(
+                self.params.observation_aggregator_function
+            )
             self.context.logger.info(
-                "Got estimate of %s price in %s: %s",
+                "Got estimate of %s price in %s: %s, Using aggregator method: %s",
                 self.context.price_api.currency_id,
                 self.context.price_api.convert_id,
                 self.period_state.estimate,
+                self.params.observation_aggregator_function,
             )
             payload = EstimatePayload(
                 self.context.agent_address, self.period_state.estimate

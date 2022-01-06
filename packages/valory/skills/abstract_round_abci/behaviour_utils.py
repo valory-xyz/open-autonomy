@@ -79,7 +79,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 
 
-_REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_TX_TIMEOUT = 10.0
 
@@ -118,6 +118,7 @@ class AsyncBehaviour(ABC):
         self.__stopped: bool = True
         self.__notified: bool = False
         self.__message: Any = None
+        self.__setup_called: bool = False
 
     @abstractmethod
     def async_act(self) -> Generator:
@@ -233,6 +234,11 @@ class AsyncBehaviour(ABC):
 
     def act(self) -> None:
         """Do the act."""
+        # call setup only the first time act is called
+        if not self.__setup_called:
+            self.setup()
+            self.__setup_called = True
+
         if self.__state == self.AsyncState.READY:
             self.__call_act_first_time()
             return
@@ -252,9 +258,6 @@ class AsyncBehaviour(ABC):
 
     def __call_act_first_time(self) -> None:
         """Call the 'async_act' method for the first time."""
-        if self.is_stopped:
-            self.setup()
-
         self.__stopped = False
         self.__state = self.AsyncState.RUNNING
         try:
@@ -448,7 +451,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return dialogue.dialogue_label.dialogue_reference[0]
 
     def _send_transaction(
-        self, payload: BaseTxPayload, stop_condition: Callable[[], bool] = lambda: False
+        self,
+        payload: BaseTxPayload,
+        stop_condition: Callable[[], bool] = lambda: False,
+        request_timeout: float = _DEFAULT_REQUEST_TIMEOUT,
+        request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
+        tx_timeout: float = _DEFAULT_TX_TIMEOUT,
     ) -> Generator:
         """
         Send transaction and wait for the response, and repeat until not successful.
@@ -460,6 +468,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         :param: payload: the payload to send
         :param: stop_condition: the condition to be checked to interrupt the waiting loop.
+        :param: request_timeout: the timeout for the requests
+        :param: request_retry_delay: the delay to wait after failed requests
+        :param: tx_timeout: the timeout to wait for tx delivery
         :yield: the responses
         """
         while not stop_condition():
@@ -467,20 +478,20 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             transaction = Transaction(payload, signature_bytes)
             try:
                 response = yield from self._submit_tx(
-                    transaction.encode(), timeout=_DEFAULT_REQUEST_TIMEOUT
+                    transaction.encode(), timeout=request_timeout
                 )
             except TimeoutException:
                 self.context.logger.info(
-                    f"Timeout expired for submit tx. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                    f"Timeout expired for submit tx. Retrying in {request_retry_delay} seconds..."
                 )
-                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
             if not self._check_http_return_code_200(response):
                 self.context.logger.info(
-                    f"Received return code != 200. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                    f"Received return code != 200. Retrying in {request_retry_delay} seconds..."
                 )
-                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                yield from self.sleep(request_retry_delay)
                 continue
             try:
                 json_body = json.loads(response.body)
@@ -493,13 +504,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
             try:
                 is_delivered = yield from self._wait_until_transaction_delivered(
-                    tx_hash, timeout=_DEFAULT_TX_TIMEOUT
+                    tx_hash, timeout=tx_timeout
                 )
             except TimeoutException:
                 self.context.logger.info(
-                    f"Timeout expired for wait until transaction delivered. Retrying in {_REQUEST_RETRY_DELAY} seconds..."
+                    f"Timeout expired for wait until transaction delivered. Retrying in {request_retry_delay} seconds..."
                 )
-                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                yield from self.sleep(request_retry_delay)
                 continue
 
             if is_delivered:
@@ -772,13 +783,17 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return request_http_message, http_dialogue
 
     def _wait_until_transaction_delivered(
-        self, tx_hash: str, timeout: Optional[float] = None
+        self,
+        tx_hash: str,
+        timeout: Optional[float] = None,
+        request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
     ) -> Generator[None, None, bool]:
         """
         Wait until transaction is delivered.
 
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
+        :param: request_retry_delay: the delay to wait after failed requests
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """
@@ -798,7 +813,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
             response = yield from self._get_tx_info(tx_hash, timeout=request_timeout)
             if response.status_code != 200:
-                yield from self.sleep(_REQUEST_RETRY_DELAY)
+                yield from self.sleep(request_retry_delay)
                 continue
             try:
                 json_body = json.loads(response.body)
