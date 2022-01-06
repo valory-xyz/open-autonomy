@@ -64,6 +64,7 @@ class TestAPYParams:
             "tendermint_url": "test",
             "tendermint_com_url": "test",
             "reset_tendermint_after": "test",
+            "ipfs_domain_name": "test",
             "consensus": {"max_participants": 0},
             "max_healthcheck": "test",
             "round_timeout_seconds": "test",

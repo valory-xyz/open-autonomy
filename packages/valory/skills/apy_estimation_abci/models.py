@@ -84,6 +84,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
         self.pair_ids = self._ensure("pair_ids", kwargs)
+        self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         super().__init__(*args, **kwargs)
 
         self.__validate_params()
