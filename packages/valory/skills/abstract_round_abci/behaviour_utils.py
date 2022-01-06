@@ -331,11 +331,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
 
     def check_in_round(self, round_id: str) -> bool:
-        """Check that we entered in a specific round."""
+        """Check that we entered a specific round."""
         return cast(SharedState, self.context.state).period.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
-        """Check that we entered in a specific round."""
+        """Check that we entered a specific round."""
         return cast(SharedState, self.context.state).period.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
@@ -352,10 +352,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
     def check_round_height_has_changed(self, round_height: int) -> bool:
         """Check that the round height has changed."""
-        return (
-            cast(SharedState, self.context.state).period.current_round_height
-            != round_height
-        )
+        shared_state = cast(SharedState, self.context.state)
+        return shared_state.period.current_round_height != round_height
 
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
@@ -679,7 +677,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         parameters: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
-        Send an http request message from the skill context.
+        Send a http request message from the skill context.
 
         This method is skill-specific, and therefore
         should not be used elsewhere.
@@ -797,24 +795,22 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """
+        deadline = datetime.datetime.max
         if timeout is not None:
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
-        else:
-            deadline = datetime.datetime.max
 
         while True:
-            request_timeout = (
-                (deadline - datetime.datetime.now()).total_seconds()
-                if timeout is not None
-                else None
-            )
-            if request_timeout is not None and request_timeout < 0:
-                raise TimeoutException()
+            seconds = None
+            if timeout is not None:
+                seconds = (deadline - datetime.datetime.now()).total_seconds()
+                if seconds < 0:
+                    raise TimeoutException()
 
-            response = yield from self._get_tx_info(tx_hash, timeout=request_timeout)
+            response = yield from self._get_tx_info(tx_hash, timeout=seconds)
             if response.status_code != 200:
                 yield from self.sleep(request_retry_delay)
                 continue
+
             try:
                 json_body = json.loads(response.body)
             except json.JSONDecodeError as e:  # pragma: nocover
@@ -946,10 +942,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
             **kwargs
         )
-        contract_api_dialogue = cast(
-            ContractApiDialogue,
-            contract_api_dialogue,
-        )
+        contract_api_dialogue = cast(ContractApiDialogue, contract_api_dialogue)
         contract_api_dialogue.terms = self._get_default_terms()
         request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
         cast(Requests, self.context.requests).request_id_to_callback[

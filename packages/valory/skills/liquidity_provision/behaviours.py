@@ -129,18 +129,15 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             self.context.logger.info(
-                f"Consensus reached on {self.state_id} tx hash: {self.period_state.most_voted_tx_hash}"
+                f"Consensus reached on {self.state_id} "
+                f"tx hash: {self.period_state.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -149,9 +146,9 @@ class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(
-            self.period_state.most_voted_tx_hash[:64]
-        )
+        most_voted_tx_hash = self.period_state.most_voted_tx_hash
+        safe_tx_hash_bytes = binascii.unhexlify(most_voted_tx_hash[:64])
+
         signature_hex = yield from self.get_signature(
             safe_tx_hash_bytes, is_deprecated_mode=True
         )
@@ -180,18 +177,14 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
     def _not_sender_act(self) -> Generator:
         """Do the non-sender action."""
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.wait_until_round_end()
         self.set_done()
 
     def _sender_act(self) -> Generator[None, None, None]:
         """Do the sender action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             self.context.logger.info(
                 "I am the designated sender, attempting to send the safe transaction..."
             )
@@ -207,9 +200,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 )
             payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -218,6 +209,10 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
     def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
         """Send a Safe transaction using the participants' signatures."""
         strategy = self.period_state.most_voted_strategy
+        signatures_by_owner = {
+            key: payload.signature
+            for key, payload in self.period_state.participant_to_signature.items()
+        }
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -226,14 +221,12 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=self.period_state.multisend_contract_address,
-            value=ETHER_VALUE,  # TOFIX: value, operation, safe_nonce, safe_tx_gas need to be configurable and synchronised
+            value=ETHER_VALUE,
+            # TOFIX: value, operation, safe_nonce, safe_tx_gas need to be configurable and synchronised
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=strategy["safe_tx_gas"],
-            signatures_by_owner={
-                key: payload.signature
-                for key, payload in self.period_state.participant_to_signature.items()
-            },
+            signatures_by_owner=signatures_by_owner,
         )
         if (
             contract_api_msg.performative
@@ -261,15 +254,11 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             is_correct = yield from self.has_transaction_been_sent()
             payload = ValidatePayload(self.context.agent_address, is_correct)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -302,7 +291,8 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
             to_address=self.period_state.multisend_contract_address,
-            value=ETHER_VALUE,  # TOFIX: value, operation, safe_nonce and safe_tx_gas should be part of synchronised params
+            value=ETHER_VALUE,
+            # TOFIX: value, operation, safe_nonce and safe_tx_gas should be part of synchronised params
             data=bytes.fromhex(self.period_state.most_voted_tx_data),
             operation=SafeOperation.DELEGATE_CALL.value,
             safe_tx_gas=strategy["safe_tx_gas"],
@@ -372,9 +362,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
     def async_act(self) -> Generator:
         """Do the action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
 
             strategy = get_strategy_update()
             if strategy["action"] == StrategyType.WAIT:  # pragma: nocover
@@ -388,9 +376,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             strategy["action"] = strategy["action"].value  # type: ignore
             payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -414,9 +400,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
 
             strategy = self.period_state.most_voted_strategy
 
@@ -450,7 +434,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Swap first token (can be native or not)
             if strategy["pair"]["token_a"]["ticker"] != strategy["base"]["ticker"]:
-
                 method_name = (
                     "swap_tokens_for_exact_ETH"
                     if strategy["pair"]["token_a"]["is_native"]
@@ -484,7 +467,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Swap second token (always non-native)
             if strategy["pair"]["token_b"]["ticker"] != strategy["base"]["ticker"]:
-
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                     contract_address=self.period_state.router_contract_address,
@@ -571,10 +553,12 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     ),
                     amount_token_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    ),
+                    # Review this factor. For now, we don't want to lose more than 1% here.
                     amount_ETH_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    ),
+                    # Review this factor. For now, we don't want to lose more than 1% here.
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
                 )
@@ -609,10 +593,12 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     ),
                     amount_a_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
+                    ),
+                    # Review this factor. For now, we don't want to lose more than 10% here.
                     amount_b_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
+                    ),
+                    # Review this factor. For now, we don't want to lose more than 10% here.
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
                 )
@@ -662,9 +648,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 ),  # TOFIX
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -723,9 +707,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
 
             strategy = self.period_state.most_voted_strategy
 
@@ -857,9 +839,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 ),  # TOFIX
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -880,7 +860,9 @@ class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
     matching_round = ExitPoolTransactionSendRound
 
 
-class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
+class ExitPoolTransactionValidationBehaviour(
+    TransactionValidationBaseBehaviour,
+):
     """Prepare the 'exit pool' multisend tx."""
 
     state_id = "exit_pool_tx_validation"
@@ -918,9 +900,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
 
             strategy = self.period_state.most_voted_strategy
 
@@ -1069,9 +1049,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 ),  # TOFIX
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -1118,7 +1096,8 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
-    behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
+    behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {
+        # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
         EnterPoolTransactionSignatureBehaviour,  # type: ignore

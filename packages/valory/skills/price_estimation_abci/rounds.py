@@ -50,8 +50,8 @@ class Event(Enum):
 
 
 class PeriodState(BasePeriodState):
-    """
-    Class to represent a period state.
+    """Class to represent a period state.
+
     This state is replicated by the tendermint application.
     """
 
@@ -108,9 +108,7 @@ class PeriodState(BasePeriodState):
 
 
 class CollectObservationRound(CollectDifferentUntilThresholdRound):
-    """
-    A round in which agents are deployed to collect observational data
-    """
+    """A round in which agents are deployed to collect observational data"""
 
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
@@ -123,9 +121,7 @@ class CollectObservationRound(CollectDifferentUntilThresholdRound):
 
 
 class EstimateConsensusRound(CollectSameUntilThresholdRound):
-    """
-    A round in which agents attempt to reach majority consensus
-    """
+    """A round in which agents attempt to reach majority consensus"""
 
     round_id = "estimate_consensus"
     allowed_tx_type = EstimatePayload.transaction_type
@@ -139,9 +135,7 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound):
 
 
 class TxHashRound(CollectSameUntilThresholdRound):
-    """
-    A round in which agents compute the transaction hash
-    """
+    """A round in which agents compute the transaction hash"""
 
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
@@ -155,9 +149,7 @@ class TxHashRound(CollectSameUntilThresholdRound):
 
 
 class FinishedPriceAggregationRound(DegenerateRound):
-    """
-    The final round signalling that price aggregation has finished
-    """
+    """The final round signalling that price aggregation has finished"""
 
     round_id = "finished_price_aggregation"
 

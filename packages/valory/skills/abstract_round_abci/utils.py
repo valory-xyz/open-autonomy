@@ -54,25 +54,21 @@ def locate(path: str) -> Any:
         spec_name = ".".join(parts[: i + 1])
         module_location = os.path.join(file_location, "__init__.py")
         spec = importlib.util.spec_from_file_location(spec_name, module_location)
-        nextmodule = _get_module(spec)  # type: ignore
-        if nextmodule is None:
+        next_module = _get_module(spec)  # type: ignore
+        if next_module is None:
             module_location = file_location + ".py"
             spec = importlib.util.spec_from_file_location(spec_name, module_location)
-            nextmodule = _get_module(spec)  # type: ignore
+            next_module = _get_module(spec)  # type: ignore
 
-        if os.path.exists(file_location) or nextmodule:
-            module, i = nextmodule, i + 1
+        if os.path.exists(file_location) or next_module:
+            module, i = next_module, i + 1
         else:  # pragma: nocover
             break
-    if module:
-        object_ = module
-    else:
-        object_ = builtins
+
+    object_ = module if module else builtins
     for part in parts[i:]:
-        try:
-            object_ = getattr(object_, part)
-        except AttributeError:
-            return None
+        object_ = getattr(object_, part, None)
+
     return object_
 
 
@@ -100,9 +96,7 @@ class BenchmarkBlock:
         """Benchmark for single round."""
         self.block_type = block_type
 
-    def __enter__(
-        self,
-    ) -> None:
+    def __enter__(self) -> None:
         """Enter context."""
         self.start = time()
 
@@ -144,15 +138,11 @@ class BenchmarkBehaviour:
 
         return self.local_data[block_type]
 
-    def local(
-        self,
-    ) -> BenchmarkBlock:
+    def local(self) -> BenchmarkBlock:
         """Measure local block."""
         return self._measure(BenchmarkBlockTypes.LOCAL)
 
-    def consensus(
-        self,
-    ) -> BenchmarkBlock:
+    def consensus(self) -> BenchmarkBlock:
         """Measure consensus block."""
         return self._measure(BenchmarkBlockTypes.CONSENSUS)
 
@@ -171,9 +161,7 @@ class BenchmarkTool:
     behaviours: List[str]
     logger: logging.Logger
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         """Benchmark tool for rounds behaviours."""
         self.agent = None
         self.agent_address = None
@@ -182,61 +170,37 @@ class BenchmarkTool:
         self.logger = logging.getLogger()
 
     @property
-    def data(
-        self,
-    ) -> Dict:
+    def data(self) -> Dict:
         """Returns formatted data."""
+        behavioural_data = []
+        for behaviour in self.behaviours:
+            data = {
+                key: value.total_time
+                for key, value in self.benchmark_data[behaviour].local_data.items()
+            }
+            data[BenchmarkBlockTypes.TOTAL] = sum(data.values())
+            data["behaviour"] = behaviour  # type: ignore
+            behavioural_data.append(data)
+
         return {
             "agent_address": self.agent_address,
             "agent": self.agent,
-            "data": [
-                {
-                    "behaviour": behaviour,
-                    "data": dict(
-                        [
-                            (key, value.total_time)
-                            for key, value in self.benchmark_data[
-                                behaviour
-                            ].local_data.items()
-                        ]
-                        + [
-                            (
-                                BenchmarkBlockTypes.TOTAL,
-                                sum(
-                                    [
-                                        value.total_time
-                                        for value in self.benchmark_data[
-                                            behaviour
-                                        ].local_data.values()
-                                    ]
-                                ),
-                            )
-                        ]
-                    ),
-                }
-                for behaviour in self.behaviours
-            ],
+            "data": behavioural_data,
         }
 
-    def log(
-        self,
-    ) -> None:
+    def log(self) -> None:
         """Output log."""
 
         self.logger.info(f"Agent : {self.agent}")
         self.logger.info(f"Agent Address : {self.agent_address}")
 
-    def save(
-        self,
-    ) -> None:
+    def save(self) -> None:
         """Save logs to a file."""
 
         try:
-            with open(
-                os.path.join(os.getcwd(), "logs", f"{self.agent_address}.json"),
-                "w+",
-                encoding="utf-8",
-            ) as outfile:
+            filename = f"{self.agent_address}.json"
+            filepath = os.path.join(os.getcwd(), "logs", filename)
+            with open(filepath, "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
         except (PermissionError, FileNotFoundError):
             self.logger.info("Error saving benchmark data.")
@@ -249,7 +213,8 @@ class BenchmarkTool:
             self.agent = behaviour.context.agent_name
 
         if behaviour.state_id not in self.benchmark_data:
-            self.benchmark_data[behaviour.state_id] = BenchmarkBehaviour(behaviour)
+            benchmark = BenchmarkBehaviour(behaviour)
+            self.benchmark_data[behaviour.state_id] = benchmark
 
         if behaviour.state_id not in self.behaviours:
             self.behaviours.append(behaviour.state_id)
@@ -284,14 +249,14 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
         message: bytes,
         signature: Union[BLSSignature, bytes],
     ) -> bool:
-        """Veryfy randomness signature."""
+        """Verify randomness signature."""
         return bls.Verify(
             cast(BLSPubkey, pubkey), message, cast(BLSSignature, signature)
         )
 
     def verify(self, data: Dict, pubkey: str) -> Tuple[bool, Optional[str]]:
         """
-        Verify drand value retrived from external APIs.
+        Verify drand value retrieved from external APIs.
 
         :param data: dictionary containing drand parameters.
         :param pubkey: league of entropy public key ( https://drand.love/developer/http-api/#public-endpoints ).

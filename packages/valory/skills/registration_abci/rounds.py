@@ -74,33 +74,27 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
-        if (  # fast forward at setup
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-            and self.period_state.db.get("safe_contract_address", None) is not None
-            and self.period_state.db.get("oracle_contract_address", None) is not None
-        ):
+        if not self.collection_threshold_reached:
+            return None
+        if self.block_confirmations <= self.required_block_confirmations:
+            return None
+
+        # fast-forward at setup
+        db = self.period_state.db
+        if db.get("safe_contract_address") and db.get("oracle_contract_address"):
             state = self.period_state.update(
                 participants=self.collection,
-                safe_contract_address=self.period_state.db.get_strict(
-                    "safe_contract_address"
-                ),
-                oracle_contract_address=self.period_state.db.get_strict(
-                    "oracle_contract_address"
-                ),
+                safe_contract_address=db.get_strict("safe_contract_address"),
+                oracle_contract_address=db.get_strict("oracle_contract_address"),
                 period_state_class=BasePeriodState,
             )
             return state, Event.FAST_FORWARD
-        if (
-            self.collection_threshold_reached
-            and self.block_confirmations > self.required_block_confirmations
-        ):  # initial deployment round
-            state = self.period_state.update(
-                participants=self.collection,
-                period_state_class=BasePeriodState,
-            )
-            return state, Event.DONE
-        return None
+        # initial deployment round
+        state = self.period_state.update(
+            participants=self.collection,
+            period_state_class=BasePeriodState,
+        )
+        return state, Event.DONE
 
 
 class RegistrationRound(CollectDifferentUntilThresholdRound):
@@ -129,7 +123,7 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
             state = self.period_state.update(
-                participants=frozenset(list(self.collection.keys())),
+                participants=frozenset(self.collection.keys()),
                 period_state_class=BasePeriodState,
             )
             return state, Event.DONE

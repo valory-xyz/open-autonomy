@@ -56,7 +56,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    TendermintHealthcheckBehaviour,
+    TendermintHealthCheckBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
@@ -324,10 +324,10 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = TendermintHealthCheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
+        TendermintHealthCheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
         RandomnessSafeBehaviour,  # type: ignore

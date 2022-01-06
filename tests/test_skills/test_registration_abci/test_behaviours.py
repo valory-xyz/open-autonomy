@@ -37,7 +37,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    TendermintHealthcheckBehaviour,
+    TendermintHealthCheckBehaviour,
 )
 from packages.valory.skills.registration_abci.rounds import (
     BasePeriodState as RegistrationPeriodState,
@@ -69,7 +69,7 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == TendermintHealthcheckBehaviour.state_id
+            == TendermintHealthCheckBehaviour.state_id
         )
         self.behaviour.act_wrapper()
 
@@ -104,7 +104,7 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == TendermintHealthcheckBehaviour.state_id
+            == TendermintHealthCheckBehaviour.state_id
         )
         with patch.object(
             self.behaviour.current_state,
@@ -123,7 +123,7 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == TendermintHealthcheckBehaviour.state_id
+            == TendermintHealthCheckBehaviour.state_id
         )
         self.behaviour.act_wrapper()
         self.mock_http_request(
@@ -159,7 +159,7 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
             logging.ERROR, "Tendermint not accepting transactions yet, trying again!"
         )
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        assert state.state_id == TendermintHealthCheckBehaviour.state_id
         time.sleep(1)
         self.behaviour.act_wrapper()
 
@@ -170,7 +170,7 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == TendermintHealthcheckBehaviour.state_id
+            == TendermintHealthCheckBehaviour.state_id
         )
         self.behaviour.act_wrapper()
         self.mock_http_request(
@@ -224,14 +224,14 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
                 BaseState,
                 cast(BaseState, self.behaviour.current_state),
             ).state_id
-            == TendermintHealthcheckBehaviour.state_id
+            == TendermintHealthCheckBehaviour.state_id
         )
         cast(
-            TendermintHealthcheckBehaviour,
+            TendermintHealthCheckBehaviour,
             self.behaviour.current_state,
         )._check_started = datetime.datetime.now()
         cast(
-            TendermintHealthcheckBehaviour,
+            TendermintHealthCheckBehaviour,
             self.behaviour.current_state,
         )._is_healthy = True
         self.behaviour.act_wrapper()
@@ -266,7 +266,7 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
             logging.INFO, "local height != remote height; retrying..."
         )
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        assert state.state_id == TendermintHealthCheckBehaviour.state_id
         time.sleep(1)
         self.behaviour.act_wrapper()
 

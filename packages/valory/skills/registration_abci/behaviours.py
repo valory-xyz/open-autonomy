@@ -37,7 +37,7 @@ ETHER_VALUE = 0  # TOFIX
 benchmark_tool = BenchmarkTool()
 
 
-class TendermintHealthcheckBehaviour(BaseState):
+class TendermintHealthCheckBehaviour(BaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -53,6 +53,8 @@ class TendermintHealthcheckBehaviour(BaseState):
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
+        else:
+            self.context.logger.info("TendermintHealthCheck already started")
 
     def _is_timeout_expired(self) -> bool:
         """Check if the timeout expired."""
@@ -115,14 +117,10 @@ class RegistrationBaseBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             payload = RegistrationPayload(self.context.agent_address)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

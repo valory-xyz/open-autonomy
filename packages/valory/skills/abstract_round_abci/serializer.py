@@ -25,10 +25,12 @@ from google.protobuf.struct_pb2 import Struct
 
 
 class DictProtobufStructSerializer:
-    """
-    Serialize python dictionaries of type DictType = Dict[str, ValueType] recursively conserving their dynamic type, using google.protobuf.Struct
+    """Serialize python dictionaries
 
-    ValueType = PrimitiveType | DictType | List[ValueType]]
+    Serialize python dictionaries of type DictType = Dict[str, ValueType]
+    recursively conserving their dynamic type, using google.protobuf.Struct
+
+    ValueType = PrimitiveType | DictType | List[ValueType]
     PrimitiveType = bool | int | float | str | bytes
     """
 
@@ -46,7 +48,7 @@ class DictProtobufStructSerializer:
         """
         if not isinstance(dictionary, dict):
             raise TypeError(  # pragma: nocover
-                "dictionary must be of dict type, got type {}".format(type(dictionary))
+                f"dictionary must be of dict type, got type {type(dictionary)}"
             )
         patched_dict = copy.deepcopy(dictionary)
         cls._patch_dict(patched_dict)
@@ -64,20 +66,12 @@ class DictProtobufStructSerializer:
         return dictionary
 
     @classmethod
-    def _bytes_to_str(cls, value: bytes) -> str:
-        return value.decode("utf-8")
-
-    @classmethod
-    def _str_to_bytes(cls, value: str) -> bytes:
-        return value.encode("utf-8")
-
-    @classmethod
     def _patch_dict(cls, dictionnary: Dict[str, Any]) -> None:
         need_patch: Dict[str, bool] = {}
         for key, value in dictionnary.items():
             if isinstance(value, bytes):
                 # convert bytes values to string, as protobuf.Struct does support byte fields
-                dictionnary[key] = cls._bytes_to_str(value)
+                dictionnary[key] = value.decode("utf-8")
                 if cls.NEED_PATCH in dictionnary:
                     dictionnary[cls.NEED_PATCH][key] = True
                 else:
@@ -90,25 +84,18 @@ class DictProtobufStructSerializer:
                     need_patch[key] = True
             elif isinstance(value, dict):
                 cls._patch_dict(value)  # pylint: disable=protected-access
-            elif (
-                not isinstance(value, bool)
-                and not isinstance(value, float)
-                and not isinstance(value, str)
-                and not isinstance(value, Struct)
-            ):  # pragma: nocover
+            elif not isinstance(value, (bool, float, str, Struct)):  # pragma: nocover
                 raise NotImplementedError(
-                    "DictProtobufStructSerializer doesn't support dict value type {}".format(
-                        type(value)
-                    )
+                    f"DictProtobufStructSerializer doesn't support dict value type {type(value)}"
                 )
-        if len(need_patch) > 0:
+        if need_patch:
             dictionnary[cls.NEED_PATCH] = need_patch
 
     @classmethod
     def _patch_dict_restore(cls, dictionary: Dict[str, Any]) -> None:
         # protobuf Struct doesn't recursively convert Struct to dict
         need_patch = dictionary.get(cls.NEED_PATCH, {})
-        if len(need_patch) > 0:
+        if need_patch:
             dictionary[cls.NEED_PATCH] = dict(need_patch)
 
         for key, value in dictionary.items():
@@ -116,20 +103,15 @@ class DictProtobufStructSerializer:
                 continue
 
             # protobuf struct doesn't recursively convert Struct to dict
-            if isinstance(value, Struct):
-                if value != Struct():
-                    value = dict(value)
-                dictionary[key] = value
+            if isinstance(value, Struct) and value:
+                dictionary[key] = dict(value)
 
+            need_patch = dictionary.get(cls.NEED_PATCH, {})
             if isinstance(value, dict):
                 cls._patch_dict_restore(value)
-            elif isinstance(value, str) and dictionary.get(cls.NEED_PATCH, {}).get(
-                key, False
-            ):
-                dictionary[key] = cls._str_to_bytes(value)
-            elif isinstance(value, float) and dictionary.get(cls.NEED_PATCH, {}).get(
-                key, False
-            ):
+            elif isinstance(value, str) and need_patch.get(key):
+                dictionary[key] = value.encode("utf-8")
+            elif isinstance(value, float) and need_patch.get(key):
                 dictionary[key] = int(value)
 
         dictionary.pop(cls.NEED_PATCH, None)

@@ -80,10 +80,9 @@ class SharedState(Model):
         self.period = Period(self.abci_app_cls)
         consensus_params = cast(BaseParams, self.context.params).consensus_params
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
+        state_db = StateDB(initial_period=0, initial_data=period_setup_params)
         self.period.setup(
-            BasePeriodState(
-                StateDB(initial_period=0, initial_data=period_setup_params)
-            ),
+            BasePeriodState(state_db),
             consensus_params,
             self.context.logger,
         )
@@ -91,21 +90,19 @@ class SharedState(Model):
     @property
     def period_state(self) -> BasePeriodState:
         """Get the period state if available."""
-        period_state = self.period.latest_result
-        if period_state is None:
+        if self.period.latest_result is None:
             raise ValueError("period_state not available")
-        return period_state
+        return self.period.latest_result
 
-    @classmethod
-    def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
+    @staticmethod
+    def _process_abci_app_cls(abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
         """Process the 'initial_round_cls' parameter."""
         if not inspect.isclass(abci_app_cls):
             raise ValueError(f"The object {abci_app_cls} is not a class")
         if not issubclass(abci_app_cls, AbciApp):
-            cls_name = AbciApp.__name__
-            cls_module = AbciApp.__module__
+            name, module = AbciApp.__name__, AbciApp.__module__
             raise ValueError(
-                f"The class {abci_app_cls} is not an instance of {cls_module}.{cls_name}"
+                f"The class {abci_app_cls} is not an instance of {module}.{name}"
             )
         return abci_app_cls
 
@@ -167,9 +164,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
             )
         return value
 
-    def get_spec(
-        self,
-    ) -> Dict:
+    def get_spec(self) -> Dict:
         """Returns dictionary containing api specifications."""
 
         return {

@@ -930,9 +930,7 @@ class CollectDifferentUntilAllRound(AbstractRound):
             )
 
     @property
-    def collection_threshold_reached(
-        self,
-    ) -> bool:
+    def collection_threshold_reached(self) -> bool:
         """Check that the collection threshold has been reached."""
         return len(self.collection) >= self._consensus_params.max_participants
 
@@ -953,9 +951,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
     period_state_class = BasePeriodState
 
     @property
-    def threshold_reached(
-        self,
-    ) -> bool:
+    def threshold_reached(self) -> bool:
         """Check if the threshold has been reached."""
 
         counter: CounterType = Counter()
@@ -969,9 +965,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
         )
 
     @property
-    def most_voted_payload(
-        self,
-    ) -> Any:
+    def most_voted_payload(self) -> Any:
         """Get the most voted payload."""
         counter = Counter()  # type: ignore
         counter.update(
@@ -1154,9 +1148,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
     period_state_class = BasePeriodState
 
     @property
-    def collection_threshold_reached(
-        self,
-    ) -> bool:
+    def collection_threshold_reached(self) -> bool:
         """Check if the threshold has been reached."""
         return len(self.collection) >= self._consensus_params.consensus_threshold
 
@@ -1215,8 +1207,7 @@ class Timeouts(Generic[EventType]):
         # Mapping from entry id to task
         self._entry_finder: Dict[int, TimeoutEvent[EventType]] = {}
 
-    @property
-    def size(self) -> int:
+    def __len__(self) -> int:
         """Get the size of the timeout queue."""
         return len(self._heap)
 
@@ -1240,12 +1231,12 @@ class Timeouts(Generic[EventType]):
 
     def pop_earliest_cancelled_timeouts(self) -> None:
         """Pop earliest cancelled timeouts."""
-        if self.size == 0:
+        if not self:
             return
         entry = self._heap[0]
         while entry.cancelled:
             self.pop_timeout()
-            if self.size == 0:
+            if not self:
                 break
             entry = self._heap[0]
 
@@ -1556,7 +1547,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self.logger.info("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
-        if self._timeouts.size == 0:
+        if not self._timeouts:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
@@ -1590,7 +1581,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             self.process_event(timeout_event)
 
             self._timeouts.pop_earliest_cancelled_timeouts()
-            if self._timeouts.size == 0:
+            if not self._timeouts:
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()
 

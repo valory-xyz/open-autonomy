@@ -113,15 +113,15 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
     def _deployer_act(self) -> Generator:
         """Do the deployer action."""
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             self.context.logger.info(
                 "I am the designated sender, deploying the oracle contract..."
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
-                raise RuntimeError("No constract address, oracle deployment failed!")  # pragma: nocover
+                raise RuntimeError(
+                    "No contract address, oracle deployment failed!"
+                )  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
         with benchmark_tool.measure(
@@ -134,20 +134,17 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         self.set_done()
 
     def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
-        min_answer = self.params.oracle_params["min_answer"]
-        max_answer = self.params.oracle_params["max_answer"]
-        decimals = self.params.oracle_params["decimals"]
-        description = self.params.oracle_params["description"]
+        performative = ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION
         contract_api_response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
+            performative=performative,  # type: ignore
             contract_address=None,
             contract_id=str(OffchainAggregatorContract.contract_id),
             contract_callable="get_deploy_transaction",
             deployer_address=self.context.agent_address,
-            _minAnswer=min_answer,
-            _maxAnswer=max_answer,
-            _decimals=decimals,
-            _description=description,
+            _minAnswer=self.params.oracle_params["min_answer"],
+            _maxAnswer=self.params.oracle_params["max_answer"],
+            _decimals=self.params.oracle_params["decimals"],
+            _description=self.params.oracle_params["description"],
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
         )
@@ -183,21 +180,19 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         Do the action.
 
         Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the contract address provided by the keeper
+          points to a valid contract.
+        - Send the transaction with the validation result
+          and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             is_correct = yield from self.has_correct_contract_been_deployed()
             payload = ValidateOraclePayload(self.context.agent_address, is_correct)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

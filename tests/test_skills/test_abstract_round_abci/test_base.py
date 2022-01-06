@@ -703,9 +703,9 @@ class TestTimeouts:
 
     def test_size(self) -> None:
         """Test the 'size' property."""
-        assert self.timeouts.size == 0
+        assert not self.timeouts
         self.timeouts._heap.append(MagicMock())
-        assert self.timeouts.size == 1
+        assert len(self.timeouts) == 1
 
     def test_add_timeout(self) -> None:
         """Test the 'add_timeout' method."""
@@ -720,12 +720,12 @@ class TestTimeouts:
     def test_cancel_timeout(self) -> None:
         """Test the 'cancel_timeout' method."""
         entry_count = self.timeouts.add_timeout(datetime.datetime.now(), MagicMock())
-        assert self.timeouts.size == 1
+        assert len(self.timeouts) == 1
 
         self.timeouts.cancel_timeout(entry_count)
 
         # cancelling timeouts does not remove them from the heap
-        assert self.timeouts.size == 1
+        assert len(self.timeouts) == 1
 
     def test_pop_earliest_cancelled_timeouts(self) -> None:
         """Test the 'pop_earliest_cancelled_timeouts' method."""
@@ -734,7 +734,7 @@ class TestTimeouts:
         self.timeouts.cancel_timeout(entry_count_1)
         self.timeouts.cancel_timeout(entry_count_2)
         self.timeouts.pop_earliest_cancelled_timeouts()
-        assert self.timeouts.size == 0
+        assert not self.timeouts
 
     def test_get_earliest_timeout_a(self) -> None:
         """Test the 'get_earliest_timeout' method."""
@@ -748,14 +748,14 @@ class TestTimeouts:
         self.timeouts.add_timeout(deadline_2, event_2)
         self.timeouts.add_timeout(deadline_1, event_1)
 
-        assert self.timeouts.size == 2
+        assert len(self.timeouts) == 2
         # test that we get the event with the earliest deadline
         timeout, event = self.timeouts.get_earliest_timeout()
         assert timeout == deadline_1
         assert event == event_1
 
         # test that get_earliest_timeout does not remove elements
-        assert self.timeouts.size == 2
+        assert len(self.timeouts) == 2
 
         popped_timeout, popped_event = self.timeouts.pop_timeout()
         assert popped_timeout == timeout
@@ -774,14 +774,14 @@ class TestTimeouts:
         self.timeouts.add_timeout(deadline_1, event_1)
         self.timeouts.add_timeout(deadline_2, event_2)
 
-        assert self.timeouts.size == 2
+        assert len(self.timeouts) == 2
         # test that we get the event with the earliest deadline
         timeout, event = self.timeouts.get_earliest_timeout()
         assert timeout == deadline_1
         assert event == event_1
 
         # test that get_earliest_timeout does not remove elements
-        assert self.timeouts.size == 2
+        assert len(self.timeouts) == 2
 
     def test_pop_timeout(self) -> None:
         """Test the 'pop_timeout' method."""
@@ -795,14 +795,14 @@ class TestTimeouts:
         self.timeouts.add_timeout(deadline_2, event_2)
         self.timeouts.add_timeout(deadline_1, event_1)
 
-        assert self.timeouts.size == 2
+        assert len(self.timeouts) == 2
         # test that we get the event with the earliest deadline
         timeout, event = self.timeouts.pop_timeout()
         assert timeout == deadline_1
         assert event == event_1
 
         # test that pop_timeout removes elements
-        assert self.timeouts.size == 1
+        assert len(self.timeouts) == 1
 
 
 class TestAbciApp:

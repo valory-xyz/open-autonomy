@@ -60,16 +60,12 @@ class RandomnessBehaviour(BaseState):
         """
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with benchmark_tool.measure(self).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             api_specs = self.context.randomness_api.get_spec()
             response = yield from self.get_http_response(
                 method=api_specs["method"],
@@ -93,9 +89,7 @@ class RandomnessBehaviour(BaseState):
                 observation["round"],
                 observation["randomness"],
             )
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
+            with benchmark_tool.measure(self).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -132,9 +126,7 @@ class SelectKeeperBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(
-            self,
-        ).local():
+        with benchmark_tool.measure(self).local():
             if (
                 self.period_state.is_keeper_set
                 and len(self.period_state.participants) > 1
@@ -153,9 +145,7 @@ class SelectKeeperBehaviour(BaseState):
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = self.payload_class(self.context.agent_address, keeper_address)
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
+        with benchmark_tool.measure(self).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

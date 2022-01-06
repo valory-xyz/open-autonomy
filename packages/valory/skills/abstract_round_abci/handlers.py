@@ -132,9 +132,9 @@ class ABCIRoundHandler(ABCIHandler):
         # return commit success
         return super().commit(message, dialogue)
 
-    @classmethod
+    @staticmethod
     def _check_tx_failed(
-        cls, message: AbciMessage, dialogue: AbciDialogue, info: str = ""
+        message: AbciMessage, dialogue: AbciDialogue, info: str = ""
     ) -> AbciMessage:
         """Handle a failed check_tx request."""
         reply = dialogue.reply(
@@ -151,9 +151,9 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    @classmethod
+    @staticmethod
     def _deliver_tx_failed(
-        cls, message: AbciMessage, dialogue: AbciDialogue, info: str = ""
+        message: AbciMessage, dialogue: AbciDialogue, info: str = ""
     ) -> AbciMessage:
         """Handle a failed deliver_tx request."""
         reply = dialogue.reply(
@@ -227,7 +227,7 @@ class AbstractResponseHandler(Handler, ABC):
             return
 
         if message.performative not in self.allowed_response_performatives:
-            self._handle_unallowed_performative(message)
+            self._handle_disallowed_performative(message)
             return
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
@@ -268,8 +268,7 @@ class AbstractResponseHandler(Handler, ABC):
         """Handle missing dialogues in context."""
         expected_attribute_name = self._get_dialogues_attribute_name()
         self.context.logger.info(
-            "cannot find Dialogues object in skill context with attribute name: %s",
-            expected_attribute_name,
+            f"cannot find Dialogues object in skill context with attribute name: {expected_attribute_name}"
         )
 
     def _handle_unidentified_dialogue(self, message: Message) -> None:
@@ -282,7 +281,7 @@ class AbstractResponseHandler(Handler, ABC):
             "received invalid message: unidentified dialogue. message=%s", message
         )
 
-    def _handle_unallowed_performative(self, message: Message) -> None:
+    def _handle_disallowed_performative(self, message: Message) -> None:
         """
         Handle a message with an unallowed response performative.
 
@@ -292,7 +291,7 @@ class AbstractResponseHandler(Handler, ABC):
         :param message: the message
         """
         self.context.logger.warning(
-            "received invalid message: unallowed performative. message=%s.", message
+            f"received invalid message: disallowed performative. message={message}."
         )
 
     def _handle_no_callback(self, _message: Message, dialogue: Dialogue) -> None:
@@ -309,9 +308,7 @@ class AbstractResponseHandler(Handler, ABC):
 
     def _log_message_handling(self, message: Message) -> None:
         """Log the handling of the message."""
-        self.context.logger.debug(
-            "calling registered callback with message=%s", message
-        )
+        self.context.logger.debug(f"calling registered callback with message={message}")
 
 
 class HttpHandler(AbstractResponseHandler):
