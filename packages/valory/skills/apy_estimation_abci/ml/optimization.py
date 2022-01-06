@@ -96,7 +96,7 @@ class Objective:  # pylint: disable=too-few-public-methods
             )
             average_score = np.average(scores)
 
-        except ValueError:
+        except ValueError:  # pragma: nocover
             average_score = np.nan
 
         return average_score

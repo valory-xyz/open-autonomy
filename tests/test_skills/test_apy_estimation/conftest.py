@@ -21,7 +21,7 @@
 """Configurations for APY skill's tests."""
 
 import warnings
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Iterator, Tuple, Union
 from unittest import mock
 
 import numpy as np
@@ -29,6 +29,7 @@ import optuna
 import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
 from optuna.trial import TrialState
@@ -40,6 +41,17 @@ from packages.valory.skills.apy_estimation_abci.models import SharedState
 
 HeaderType = Dict[str, str]
 SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
+
+
+@pytest.fixture(scope="module")
+def ipfs_daemon() -> Iterator[bool]:
+    """Starts an IPFS daemon for the tests."""
+    print("Starting IPFS daemon...")
+    daemon = IPFSDaemon(offline=True)
+    daemon.start()
+    yield daemon.is_started()
+    print("Tearing down IPFS daemon...")
+    daemon.stop()
 
 
 @pytest.fixture
@@ -340,7 +352,7 @@ def test_task_result_non_serializable() -> bytes:
 
 
 @pytest.fixture
-def transformed_historical_data() -> pd.DataFrame:
+def transformed_historical_data_no_datetime_conversion() -> pd.DataFrame:
     """Create dummy transformed historical data"""
     return pd.DataFrame(
         {
@@ -413,6 +425,20 @@ def transformed_historical_data() -> pd.DataFrame:
     )
 
 
+@pytest.fixture
+def transformed_historical_data(
+    transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+) -> pd.DataFrame:
+    """Create dummy transformed historical data"""
+    transformed_historical_data_no_datetime_conversion[
+        "block_timestamp"
+    ] = pd.to_datetime(
+        transformed_historical_data_no_datetime_conversion["block_timestamp"], unit="s"
+    )
+
+    return transformed_historical_data_no_datetime_conversion
+
+
 class DummyPipeline:
     """A dummy pipeline."""
 
@@ -423,7 +449,7 @@ class DummyPipeline:
         :param steps_forward: how many timesteps the model will be predicting in the future.
         :return: a `numpy` array with the dummy predictions.
         """
-        return np.zeros(steps_forward)
+        return np.ones(steps_forward)
 
     @staticmethod
     def update(_y: np.ndarray) -> None:

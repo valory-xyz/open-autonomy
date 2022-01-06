@@ -21,7 +21,7 @@
 
 from typing import Tuple, cast
 
-import pytest
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
@@ -41,21 +41,17 @@ states_checks_config = {
     },
     "collect_history": {
         "state_name": "collect_history",
-        "extra_logs": (
-            "Retrieved block: ",
-            "Retrieved ETH price for block ",
-            "Retrieved pool data for block ",
-        ),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "transform": {
         "state_name": "transform",
-        "extra_logs": ("Data have been transformed:\n",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "preprocess": {
         "state_name": "preprocess",
-        "extra_logs": ("Data have been preprocessed.",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "randomness": {
@@ -65,32 +61,32 @@ states_checks_config = {
     },
     "optimize": {
         "state_name": "optimize",
-        "extra_logs": ("Optimization has finished. Showing the results:\n",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "train": {
         "state_name": "train",
-        "extra_logs": ("Training has finished.",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "test": {
         "state_name": "test",
-        "extra_logs": ("Testing has finished. Report follows:\n",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "full_train": {
         "state_name": "train",
-        "extra_logs": ("Training has finished.",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "estimate": {
         "state_name": "estimate",
-        "extra_logs": ("Got estimate of APY for ",),
+        "extra_logs": (),
         "only_at_first_period": False,
     },
     "cycle_reset": {
         "state_name": "cycle_reset",
-        "extra_logs": ("Finalized estimate: ",),
+        "extra_logs": (),
         "only_at_first_period": False,
     },
 }
@@ -129,6 +125,19 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     KEEPER_TIMEOUT = 120
     wait_to_finish = 240
 
+    def test_run(self) -> None:
+        """Run the ABCI skill with an IPFS daemon."""
+        daemon = IPFSDaemon(offline=True)
+        daemon.start()
+        try:
+            super(BaseTestABCIAPYEstimationSkillNormalExecution, self).test_run()
+        except Exception as e:
+            # Always stop the daemon, even if an exception is raised. Then, re-raise the exception.
+            daemon.stop()
+            raise e
+        finally:
+            daemon.stop()
+
 
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
@@ -148,7 +157,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
