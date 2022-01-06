@@ -21,7 +21,7 @@
 
 import hashlib
 from math import floor
-from typing import Dict, Generator, List, Type
+from typing import Dict, Generator, List, Optional, Type
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
@@ -50,7 +50,7 @@ class RandomnessBehaviour(BaseState):
 
     payload_class: Type[BaseTxPayload]
 
-    def _failsafe_randomness(
+    def failsafe_randomness(
         self,
     ) -> Generator[None, None, Dict[str, str]]:
         """
@@ -71,6 +71,27 @@ class RandomnessBehaviour(BaseState):
         ).hexdigest()
         return {"randomness": randomness, "round": "0"}
 
+    def get_randomness_from_api(
+        self,
+    ) -> Generator[None, None, Optional[Dict[str, str]]]:
+        """Retrieve randomness from given api specs."""
+        api_specs = self.context.randomness_api.get_spec()
+        response = yield from self.get_http_response(
+            method=api_specs["method"],
+            url=api_specs["url"],
+        )
+        observation = self.context.randomness_api.process_response(response)
+        if observation is not None:
+            self.context.logger.info("Verifying DRAND values.")
+            check, error = drand_check.verify(observation, self.params.drand_public_key)
+            if check:
+                self.context.logger.info("DRAND check successful.")
+            else:
+                self.context.logger.info(f"DRAND check failed, {error}.")
+                observation["randomness"] = ""
+                observation["round"] = ""
+        return observation
+
     def async_act(self) -> Generator:
         """
         Check whether tendermint is running or not.
@@ -85,27 +106,15 @@ class RandomnessBehaviour(BaseState):
             self,
         ).local():
             if self.context.randomness_api.is_retries_exceeded():
-                observation = yield from self._failsafe_randomness()
-
+                self.context.logger.info("Cannot retrieve randomness from api.")
+                self.context.logger.info("Generating randomness from chain.")
+                observation = yield from self.failsafe_randomness()
             else:
-                api_specs = self.context.randomness_api.get_spec()
-                response = yield from self.get_http_response(
-                    method=api_specs["method"],
-                    url=api_specs["url"],
-                )
-                observation = self.context.randomness_api.process_response(response)
+                self.context.logger.info(f"Retrieving DRAND values from api.")
+                observation = yield from self.get_randomness_from_api()
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            self.context.logger.info("Verifying DRAND values.")
-            check, error = drand_check.verify(observation, self.params.drand_public_key)
-            if check:
-                self.context.logger.info("DRAND check successful.")
-            else:
-                self.context.logger.info(f"DRAND check failed, {error}.")
-                observation["randomness"] = ""
-                observation["round"] = ""
-
             payload = self.payload_class(  # type: ignore
                 self.context.agent_address,
                 observation["round"],

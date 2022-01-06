@@ -280,4 +280,5 @@ def test_base_params_model_initialization() -> None:
         drand_public_key="",
         tendermint_com_url="",
         reset_tendermint_after=1,
+        service_id="price_estimation",
     )
