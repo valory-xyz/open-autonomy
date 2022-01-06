@@ -19,8 +19,8 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 
-from decimal import Decimal
 from abc import ABC
+from decimal import Decimal
 from typing import Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
