@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the APY estimation skill."""
+import calendar
 import datetime
 import json
 import os
@@ -39,7 +40,7 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-from aea.helpers.ipfs.base import IPFSHashOnly
+from aea_cli_ipfs.ipfs_utils import IPFSTool
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
@@ -96,6 +97,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     load_hist,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import (
+    HyperParamsType,
     create_pathdirs,
     gen_unix_timestamps,
     read_json_file,
@@ -113,6 +115,138 @@ benchmark_tool = BenchmarkTool()
 
 class APYEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the APY estimation skill."""
+
+    def __init__(self, **kwargs: Any):
+        """Initialize an `APYEstimationBaseState` behaviour."""
+        super().__init__(**kwargs)
+        # Create an IPFS tool.
+        self.__ipfs_tool = IPFSTool({"addr": self.params.ipfs_domain_name})
+        # Check IPFS node.
+        self.__ipfs_tool.check_ipfs_node_running()
+
+    def send_file_to_ipfs_node(self, filepath: str) -> str:
+        """Send a file to the IPFS node.
+
+        :param filepath: the filepath of the file to send
+        :return: the file's hash
+        """
+        _, hist_hash, _ = self.__ipfs_tool.add(filepath)
+
+        return hist_hash
+
+    def _download_from_ipfs_node(
+        self,
+        hash_: str,
+        target_dir: str,
+        filename: str,
+    ) -> str:
+        """Download a file from the IPFS node.
+
+        :param hash_: hash of file to download
+        :param target_dir: directory to place downloaded file
+        :param filename: the original name of the file to download
+        :return: the filepath of the downloaded file
+        """
+        filepath = os.path.join(target_dir, filename)
+
+        if os.path.exists(filepath):  # pragma: nocover
+            os.remove(filepath)
+
+        self.__ipfs_tool.download(hash_, target_dir)
+
+        return filepath
+
+    def get_and_read_json(
+        self,
+        hash_: str,
+        target_dir: str,
+        filename: str,
+    ) -> Union[ResponseItemType, HyperParamsType]:
+        """Download a json file from the IPFS node.
+
+        :param hash_: hash of file to download
+        :param target_dir: directory to place downloaded file
+        :param filename: the original name of the file to download
+        :return: the deserialized json file's content
+        """
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
+
+        try:
+            # Load & return data from json file.
+            return read_json_file(filepath)
+
+        except OSError as e:  # pragma: nocover
+            self.context.logger.error(f"Path '{filepath}' could not be found!")
+            raise e
+
+        except json.JSONDecodeError as e:  # pragma: nocover
+            self.context.logger.error(
+                f"File '{filepath}' has an invalid JSON encoding!"
+            )
+            raise e
+
+        except ValueError as e:  # pragma: nocover
+            self.context.logger.error(
+                f"There is an encoding error in the '{filepath}' file!"
+            )
+            raise e
+
+    def get_and_read_hist(
+        self, hash_: str, target_dir: str, filename: str
+    ) -> pd.DataFrame:
+        """Download a csv file with historical data from the IPFS node.
+
+        :param hash_: hash of file to download
+        :param target_dir: directory to place downloaded file
+        :param filename: the original name of the file to download
+        :return: a pandas dataframe of the downloaded csv
+        """
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
+
+        try:
+            return load_hist(filepath)
+
+        except FileNotFoundError as e:  # pragma: nocover
+            self.context.logger.error(f"File {filepath} was not found!")
+            raise e
+
+    def get_and_read_csv(
+        self, hash_: str, target_dir: str, filename: str
+    ) -> pd.DataFrame:
+        """Download a csv file from the IPFS node.
+
+        :param hash_: hash of file to download
+        :param target_dir: directory to place downloaded file
+        :param filename: the original name of the file to download
+        :return: a pandas dataframe of the downloaded csv
+        """
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
+
+        try:
+            return pd.read_csv(filepath)
+
+        except FileNotFoundError as e:  # pragma: nocover
+            self.context.logger.error(f"File {filepath} was not found!")
+            raise e
+
+    def get_and_read_forecaster(
+        self, hash_: str, target_dir: str, filename: str
+    ) -> Pipeline:
+        """Download a csv file from the IPFS node.
+
+        :param hash_: hash of file to download
+        :param target_dir: directory to place downloaded file
+        :param filename: the original name of the file to download
+        :return: a pandas dataframe of the downloaded csv
+        """
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
+
+        try:
+            return load_forecaster(filepath)
+
+        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
+            self.context.logger.error(f"Could not detect {filepath}!")
+            raise e
 
     @property
     def period_state(self) -> PeriodState:
@@ -256,7 +390,13 @@ class FetchBehaviour(APYEstimationBaseState):
         for unwanted in unwanted_specs:
             self._spooky_api_specs.pop(unwanted)
 
-        self._timestamps_iterator = gen_unix_timestamps(self.params.history_duration)
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp
+        last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
+        self._timestamps_iterator = gen_unix_timestamps(
+            last_timestamp_unix, self.params.history_duration
+        )
 
     def _handle_response(
         self,
@@ -287,6 +427,7 @@ class FetchBehaviour(APYEstimationBaseState):
                 value = value[key]
 
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
+        self._call_failed = False
         subgraph.reset_retries()
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
@@ -303,13 +444,13 @@ class FetchBehaviour(APYEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         if self.context.spooky_subgraph.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
+            # We cannot continue if the data were not fetched.
+            # It is going to make the agent fail in the next behaviour while looking for the historical data file.
+            self.context.logger.error(
+                "Retries were exceeded while downloading the historical data!"
+            )
+            # Fix: exit round via fail event and move to right round
+            raise RuntimeError("Cannot continue FetchBehaviour.")
 
         with benchmark_tool.measure(
             self,
@@ -330,17 +471,22 @@ class FetchBehaviour(APYEstimationBaseState):
                             self.context.logger.error(
                                 f"Path '{self._save_path}' could not be found!"
                             )
+                            # Fix: exit round via fail event and move to right round
                             raise exc
 
                         except TypeError as exc:
                             self.context.logger.error(
                                 "Historical data cannot be JSON serialized!"
                             )
+                            # Fix: exit round via fail event and move to right round
                             raise exc
 
                         # Hash the file.
-                        hasher = IPFSHashOnly()
-                        hist_hash = hasher.get(self._save_path)
+
+                        hist_hash = self.send_file_to_ipfs_node(self._save_path)
+                        self.context.logger.info(
+                            f"IPFS hash for fetched data is: {hist_hash}"
+                        )
 
                         # Pass the hash as a Payload.
                         payload = FetchingPayload(
@@ -436,6 +582,9 @@ class FetchBehaviour(APYEstimationBaseState):
                 res["pairs"][i]["eth_price"] = eth_price
 
             self._pairs_hist.extend(res["pairs"])
+            self.context.logger.info(
+                f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
+            )
 
     def clean_up(self) -> None:
         """
@@ -461,40 +610,17 @@ class TransformBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
-        self._history_save_path = os.path.join(
+        pairs_hist = self.get_and_read_json(
+            self.period_state.history_hash,
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "historical_data.json",
         )
+
         self._transformed_history_save_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "transformed_historical_data.csv",
         )
         create_pathdirs(self._transformed_history_save_path)
-
-        # Load historical data from a json file.
-        pairs_hist = None
-
-        try:
-            pairs_hist = read_json_file(self._history_save_path)
-
-        except OSError as e:  # all these exceptions are not handled properly. it will break the app; a problem throughout this file
-            self.context.logger.error(
-                f"Path '{self._history_save_path}' could not be found!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise e
-        except json.JSONDecodeError as e:
-            self.context.logger.error(
-                f"File '{self._history_save_path}' has an invalid JSON encoding!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise e
-        except ValueError as e:
-            self.context.logger.error(
-                f"There is an encoding error in the '{self._history_save_path}' file!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise e
 
         if pairs_hist is not None:
             transform_task = TransformTask()
@@ -505,7 +631,7 @@ class TransformBehaviour(APYEstimationBaseState):
 
         else:
             self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
+                "Could not create the transform task! This will result in an error while running the round!"
             )
             # Fix: exit round via fail event and move to right round
             raise RuntimeError("Cannot continue TransformBehaviour.")
@@ -535,13 +661,17 @@ class TransformBehaviour(APYEstimationBaseState):
         transformed_history.to_csv(self._transformed_history_save_path, index=False)
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        hist_hash = hasher.get(self._transformed_history_save_path)
+        transformed_hist_hash = self.send_file_to_ipfs_node(
+            self._transformed_history_save_path
+        )
+        self.context.logger.info(
+            f"IPFS hash for transformed data is: {transformed_hist_hash}"
+        )
 
         # Pass the hash as a Payload.
         payload = TransformationPayload(
             self.context.agent_address,
-            hist_hash,
+            transformed_hist_hash,
         )
 
         # Finish behaviour.
@@ -564,52 +694,44 @@ class PreprocessBehaviour(APYEstimationBaseState):
         #  Eventually, we will have to run this and all the following behaviours for all the available pools.
 
         # Get the historical data and preprocess them.
-        transformed_history_load_path = os.path.join(
+        pairs_hist = self.get_and_read_hist(
+            self.period_state.transformed_history_hash,
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "transformed_historical_data.csv",
         )
 
-        try:
-            pairs_hist = load_hist(transformed_history_load_path)
+        (y_train, y_test), pair_name = prepare_pair_data(
+            pairs_hist, self.params.pair_ids[0]
+        )
+        self.context.logger.info("Data have been preprocessed.")
+        self.context.logger.info(f"y_train: {y_train.to_string()}")
+        self.context.logger.info(f"y_test: {y_test.to_string()}")
 
-            (y_train, y_test), pair_name = prepare_pair_data(
-                pairs_hist, self.params.pair_ids[0]
+        # Store and hash the preprocessed data.
+        hashes = []
+        for filename, split in {"train": y_train, "test": y_test}.items():
+            save_path = os.path.join(
+                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                f"y_{filename}.csv",
             )
-            self.context.logger.info("Data have been preprocessed.")
-            self.context.logger.info(f"y_train: {y_train.to_string()}")
-            self.context.logger.info(f"y_test: {y_test.to_string()}")
+            create_pathdirs(save_path)
+            split.to_csv(save_path, index=False)
+            split_hash = self.send_file_to_ipfs_node(save_path)
+            self.context.logger.info(f"IPFS hash for {filename} data is: {split_hash}")
+            hashes.append(split_hash)
 
-            # Store and hash the preprocessed data.
-            hasher = IPFSHashOnly()
-            hashes = []
-            for filename, split in {"train": y_train, "test": y_test}.items():
-                save_path = os.path.join(
-                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                    self.params.pair_ids[0],
-                    f"y_{filename}.csv",
-                )
-                create_pathdirs(save_path)
-                split.to_csv(save_path, index=False)
-                hashes.append(hasher.get(save_path))
+        # Pass the hash as a Payload.
+        payload = PreprocessPayload(
+            self.context.agent_address, pair_name, hashes[0], hashes[1]
+        )
 
-            # Pass the hash as a Payload.
-            payload = PreprocessPayload(
-                self.context.agent_address, pair_name, hashes[0], hashes[1]
-            )
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
 
-            # Finish behaviour.
-            with benchmark_tool.measure(self).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-
-        except FileNotFoundError as e:  # pragma: nocover
-            self.context.logger.error(
-                f"File {transformed_history_load_path} was not found!"
-            )
-            # FIX: it makes no sense to sleep when the file is not found!
-            raise e
+        self.set_done()
 
 
 class RandomnessBehaviour(APYEstimationBaseState):
@@ -698,30 +820,21 @@ class OptimizeBehaviour(APYEstimationBaseState):
         training_data_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
-            "y_train.csv",
+        )
+        y = self.get_and_read_csv(
+            self.period_state.train_hash, training_data_path, "y_train.csv"
         )
 
-        try:
-            y = pd.read_csv(training_data_path)
-
-            optimize_task = OptimizeTask()
-            task_id = self.context.task_manager.enqueue_task(
-                optimize_task,
-                args=(
-                    y.values.ravel(),
-                    self.period_state.most_voted_randomness,
-                ),
-                kwargs=self.params.optimizer_params,
-            )
-            self._async_result = self.context.task_manager.get_task_result(task_id)
-
-        except FileNotFoundError as e:
-            self.context.logger.error(f"File {training_data_path} was not found!")
-            self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue OptimizeBehaviour.") from e
+        optimize_task = OptimizeTask()
+        task_id = self.context.task_manager.enqueue_task(
+            optimize_task,
+            args=(
+                y.values.ravel(),
+                self.period_state.most_voted_randomness,
+            ),
+            kwargs=self.params.optimizer_params,
+        )
+        self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -757,7 +870,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         try:
             best_params = study.best_params
 
-        except ValueError as e:
+        except ValueError:
             # If no trial finished, set random params as best.
             best_params = study.trials[0].params
             self.context.logger.warning(
@@ -766,26 +879,25 @@ class OptimizeBehaviour(APYEstimationBaseState):
                 "for the optimization procedure. Setting best parameters randomly!"
             )
             # Fix: exit round via fail event and move to right round
-            raise e
 
         try:
             to_json_file(best_params_save_path, best_params)
 
-        except OSError as e:
+        except OSError as e:  # pragma: nocover
             self.context.logger.error(
                 f"Path '{best_params_save_path}' could not be found!"
             )
             # Fix: exit round via fail event and move to right round
             raise e
 
-        except TypeError as e:
+        except TypeError as e:  # pragma: nocover
             self.context.logger.error("Params cannot be JSON serialized!")
             # Fix: exit round via fail event and move to right round
             raise e
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        best_params_hash = hasher.get(best_params_save_path)
+        best_params_hash = self.send_file_to_ipfs_node(best_params_save_path)
+        self.context.logger.info(f"IPFS hash for best params is: {best_params_hash}")
 
         # Pass the best params hash as a Payload.
         payload = OptimizationPayload(self.context.agent_address, best_params_hash)
@@ -811,35 +923,19 @@ class TrainBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
-        should_create_task = True
-        best_params = {}
         y: Union[np.ndarray, List[np.ndarray]] = []
 
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
-            "best_params.json",
         )
-
-        try:
-            best_params = cast(Dict[str, Any], read_json_file(best_params_path))
-
-        except OSError:  # pragma: nocover
-            self.context.logger.error(f"Path '{best_params_path}' could not be found!")
-            should_create_task = False
-
-        except json.JSONDecodeError:  # pragma: nocover
-            self.context.logger.error(
-                f"File '{best_params_path}' has an invalid JSON encoding!"
-            )
-            should_create_task = False
-
-        except ValueError:  # pragma: nocover
-            self.context.logger.error(
-                f"There is an encoding error in the '{best_params_path}' file!"
-            )
-            should_create_task = False
+        best_params = cast(
+            Dict[str, Any],
+            self.get_and_read_json(
+                self.period_state.params_hash, best_params_path, "best_params.json"
+            ),
+        )
 
         # Load training data.
         if self.period_state.full_training:
@@ -847,46 +943,28 @@ class TrainBehaviour(APYEstimationBaseState):
                 path = os.path.join(
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                     self.params.pair_ids[0],
-                    f"y_{split}.csv",
                 )
+                df = self.get_and_read_csv(
+                    getattr(self.period_state, f"{split}_hash"), path, f"y_{split}.csv"
+                )
+                cast(List[np.ndarray], y).append(df.values.ravel())
 
-                try:
-                    cast(List[np.ndarray], y).append(pd.read_csv(path).values.ravel())
-
-                except FileNotFoundError:  # pragma: nocover
-                    self.context.logger.error(f"File {path} was not found!")
-                    should_create_task = False
-
-            if should_create_task:
-                y = np.concatenate(y)
+            y = np.concatenate(y)
 
         else:
             path = os.path.join(
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
-                "y_train.csv",
             )
+            y = self.get_and_read_csv(
+                self.period_state.train_hash, path, "y_train.csv"
+            ).values.ravel()
 
-            try:
-                y = pd.read_csv(path).values.ravel()
-
-            except FileNotFoundError:  # pragma: nocover
-                self.context.logger.error(f"File {path} was not found!")
-                should_create_task = False
-
-        if should_create_task:
-            train_task = TrainTask()
-            task_id = self.context.task_manager.enqueue_task(
-                train_task, args=(y,), kwargs=best_params
-            )
-            self._async_result = self.context.task_manager.get_task_result(task_id)
-
-        else:  # pragma: nocover
-            self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TrainBehaviour.")
+        train_task = TrainTask()
+        task_id = self.context.task_manager.enqueue_task(
+            train_task, args=(y,), kwargs=best_params
+        )
+        self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -918,13 +996,11 @@ class TrainBehaviour(APYEstimationBaseState):
         save_forecaster(forecaster_save_path, forecaster)
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        model_hash = hasher.get(forecaster_save_path)
-
-        # Pass the hash and the best trial as a Payload.
+        model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
         self.context.logger.info(
-            f"The {forecaster_save_path} model's hash is: '{model_hash}'"
+            f"IPFS hash for {prefix}forecasting model is: {model_hash}"
         )
+
         payload = TrainingPayload(self.context.agent_address, model_hash)
 
         # Finish behaviour.
@@ -949,55 +1025,36 @@ class TestBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load test data.
-        should_create_task = True
         y: Dict[str, Optional[np.ndarray]] = {"y_train": None, "y_test": None}
-        forecaster: Optional[Pipeline] = None
 
         for split in ("train", "test"):
             path = os.path.join(
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
-                f"y_{split}.csv",
             )
-
-            try:
-                y[f"y_{split}"] = pd.read_csv(path).values.ravel()
-
-            except FileNotFoundError:  # pragma: nocover
-                self.context.logger.error(f"File {path} was not found!")
-                should_create_task = False
+            df = self.get_and_read_csv(
+                getattr(self.period_state, f"{split}_hash"), path, f"y_{split}.csv"
+            )
+            y[f"y_{split}"] = df.values.ravel()
 
         model_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
-            "forecaster.joblib",
+        )
+        forecaster = self.get_and_read_forecaster(
+            self.period_state.model_hash, model_path, "forecaster.joblib"
         )
 
-        try:
-            forecaster = load_forecaster(model_path)
-
-        except (NotADirectoryError, FileNotFoundError):  # pragma: nocover
-            self.context.logger.error(f"Could not detect {model_path}!")
-            should_create_task = False
-
-        if should_create_task:
-            test_task = TestTask()
-            task_args = (
-                forecaster,
-                y["y_train"],
-                y["y_test"],
-                self.period_state.pair_name,
-                self.params.testing["steps_forward"],
-            )
-            task_id = self.context.task_manager.enqueue_task(test_task, task_args)
-            self._async_result = self.context.task_manager.get_task_result(task_id)
-
-        else:  # pragma: nocover
-            self.context.logger.error(
-                "Could not create the task! This will result in an error while running the round!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TestBehaviour.")
+        test_task = TestTask()
+        task_args = (
+            forecaster,
+            y["y_train"],
+            y["y_test"],
+            self.period_state.pair_name,
+            self.params.testing["steps_forward"],
+        )
+        task_id = self.context.task_manager.enqueue_task(test_task, task_args)
+        self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -1029,18 +1086,19 @@ class TestBehaviour(APYEstimationBaseState):
         try:
             to_json_file(report_save_path, report)
 
-        except OSError as e:
+        except OSError as e:  # pragma: nocover
             self.context.logger.error(f"Path '{report_save_path}' could not be found!")
             # Fix: exit round via fail event and move to right round
             raise e
-        except TypeError as e:
+
+        except TypeError as e:  # pragma: nocover
             self.context.logger.error("Report cannot be JSON serialized!")
             # Fix: exit round via fail event and move to right round
             raise e
 
         # Hash the file.
-        hasher = IPFSHashOnly()
-        report_hash = hasher.get(report_save_path)
+        report_hash = self.send_file_to_ipfs_node(report_save_path)
+        self.context.logger.info(f"IPFS hash for test report is: {report_hash}")
 
         # Pass the hash and the best trial as a Payload.
         payload = TestingPayload(self.context.agent_address, report_hash)
@@ -1072,15 +1130,12 @@ class EstimateBehaviour(APYEstimationBaseState):
         model_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
+        )
+        forecaster = self.get_and_read_forecaster(
+            self.period_state.model_hash,
+            model_path,
             "fully_trained_forecaster.joblib",
         )
-
-        try:
-            forecaster = load_forecaster(model_path)
-        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
-            self.context.logger.error(f"Could not detect {model_path}!")
-            # Fix: exit round via fail event and move to right round
-            raise e
 
         # currently, a `steps_forward != 1` will fail
         estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
@@ -1123,7 +1178,7 @@ class BaseResetBehaviour(APYEstimationBaseState):
             )
             # Fix: add pausing
             benchmark_tool.save()
-        if self.cycle and not self.period_state.is_most_voted_estimate_set:
+        elif self.cycle and not self.period_state.is_most_voted_estimate_set:
             self.context.logger.info("Finalized estimate not available. Resetting!")
         else:
             self.context.logger.info(
