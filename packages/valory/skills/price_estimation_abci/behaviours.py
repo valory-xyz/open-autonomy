@@ -90,8 +90,8 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     decimal_places = most_voted_estimate_[::-1].find(".")
     if decimal_places > decimals:
         most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
-    most_voted_estimate = Decimal(most_voted_estimate_)
-    int_value = int(most_voted_estimate * (10 ** decimals))
+    most_voted_estimate_decimal = Decimal(most_voted_estimate_)
+    int_value = int(most_voted_estimate_decimal * (10 ** decimals))
     return int_value
 
 
