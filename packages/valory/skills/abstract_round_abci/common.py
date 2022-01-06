@@ -86,13 +86,13 @@ class RandomnessBehaviour(BaseState):
         - If healthcheck passes set done event.
         """
 
-        if self.context.randomness_api.is_retries_exceeded():
-            observation = yield from self._failsafe_randomness()
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            if self.context.randomness_api.is_retries_exceeded():
+                observation = yield from self._failsafe_randomness()
 
-        else:
-            with benchmark_tool.measure(
-                self,
-            ).local():
+            else:
                 api_specs = self.context.randomness_api.get_spec()
                 response = yield from self.get_http_response(
                     method=api_specs["method"],
