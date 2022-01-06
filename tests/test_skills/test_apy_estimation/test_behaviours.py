@@ -1114,6 +1114,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         )._pairs_hist = [{"test": "test"}]
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -1138,6 +1139,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             match="TypeError: Object of type bytes is not JSON serializable",
         ):
             self.apy_estimation_behaviour.act_wrapper()
+
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_clean_up(
         self,
@@ -1276,6 +1279,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     "enqueue_task",
                     return_value=3,
                 ):
+                    initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
                     self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
                     with open(
                         os.path.join(
@@ -1354,6 +1358,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         self.mock_a2a_transaction()
                         self._test_done_flag_set()
                         self.end_round()
+                        self.apy_estimation_behaviour.context._agent_context._data_dir = (  # type: ignore
+                            initial_data_dir
+                        )
 
     def test_async_result_none(
         self,
@@ -1434,6 +1441,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     "enqueue_task",
                     return_value=3,
                 ):
+                    initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
                     self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
                     self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
                     with open(
@@ -1450,6 +1458,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     self.mock_a2a_transaction()
                     self._test_done_flag_set()
                     self.end_round()
+                    self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1464,6 +1473,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         tmp_path: PosixPath,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         # Increase the amount of dummy data for the train-test split.
         transformed_historical_data = pd.DataFrame(
@@ -1492,6 +1502,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.end_round()
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1903,6 +1914,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
@@ -1928,6 +1940,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1960,6 +1973,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -1977,6 +1991,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_task_not_ready(
         self,
@@ -2006,6 +2021,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2033,6 +2049,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_async_result_none(
         self,
@@ -2109,6 +2126,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
         # patching for setup.
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2133,6 +2151,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -2299,6 +2318,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             lambda *_: DummyAsyncResult(test_task_result_non_serializable),
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2316,6 +2336,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             match=re.escape("Object of type bytes is not JSON serializable"),
         ):
             self.apy_estimation_behaviour.act_wrapper()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_async_result_none(
         self,
@@ -2385,6 +2406,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # changes for act.
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2397,6 +2419,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
