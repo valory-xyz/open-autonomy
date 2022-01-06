@@ -21,7 +21,7 @@
 """Configurations for APY skill's tests."""
 
 import warnings
-from typing import Any, Callable, Dict, Iterator, Tuple, Union
+from typing import Any, Callable, Dict, Tuple, Union
 from unittest import mock
 
 import numpy as np
@@ -29,7 +29,6 @@ import optuna
 import pandas as pd
 import pytest
 from aea.skills.base import SkillContext
-from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 from optuna.distributions import UniformDistribution
 from optuna.exceptions import ExperimentalWarning
 from optuna.trial import TrialState
@@ -41,17 +40,6 @@ from packages.valory.skills.apy_estimation_abci.models import SharedState
 
 HeaderType = Dict[str, str]
 SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
-
-
-@pytest.fixture(scope="module")
-def ipfs_daemon() -> Iterator[bool]:
-    """Starts an IPFS daemon for the tests."""
-    print("Starting IPFS daemon...")
-    daemon = IPFSDaemon(offline=True)
-    daemon.start()
-    yield daemon.is_started()
-    print("Tearing down IPFS daemon...")
-    daemon.stop()
 
 
 @pytest.fixture

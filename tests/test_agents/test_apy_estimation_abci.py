@@ -21,11 +21,13 @@
 
 from typing import Tuple, cast
 
-from aea_cli_ipfs.ipfs_utils import IPFSDaemon
+import pytest
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
+
+ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 # check log messages of the happy path
 CHECK_STRINGS_LIST = [
@@ -116,6 +118,7 @@ build_check_strings()
 CHECK_STRINGS = tuple(CHECK_STRINGS_LIST)
 
 
+@ipfs_daemon
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecution):
     """Base class for the APY estimation e2e tests."""
 
@@ -124,19 +127,6 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     check_strings = CHECK_STRINGS
     KEEPER_TIMEOUT = 120
     wait_to_finish = 240
-
-    def test_run(self) -> None:
-        """Run the ABCI skill with an IPFS daemon."""
-        daemon = IPFSDaemon(offline=True)
-        daemon.start()
-        try:
-            super(BaseTestABCIAPYEstimationSkillNormalExecution, self).test_run()
-        except Exception as e:
-            # Always stop the daemon, even if an exception is raised. Then, re-raise the exception.
-            daemon.stop()
-            raise e
-        finally:
-            daemon.stop()
 
 
 class TestABCIAPYEstimationSingleAgent(

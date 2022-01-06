@@ -22,7 +22,7 @@ import logging
 import socket
 import time
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Generator, List, Tuple, cast
+from typing import Any, AsyncGenerator, Dict, Generator, Iterator, List, Tuple, cast
 from unittest.mock import MagicMock
 
 import docker
@@ -35,6 +35,7 @@ from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS, LedgerApi
 from aea.crypto.registries import ledger_apis_registry, make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 from aea_ledger_ethereum import (
     DEFAULT_EIP1559_STRATEGY,
     DEFAULT_GAS_STATION_STRATEGY,
@@ -368,3 +369,14 @@ def gnosis_safe_contract(
     assert receipt is not None
     # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
     yield contract, contract_address
+
+
+@pytest.fixture(scope="module")
+def ipfs_daemon() -> Iterator[bool]:
+    """Starts an IPFS daemon for the tests."""
+    print("Starting IPFS daemon...")
+    daemon = IPFSDaemon(offline=True)
+    daemon.start()
+    yield daemon.is_started()
+    print("Tearing down IPFS daemon...")
+    daemon.stop()
