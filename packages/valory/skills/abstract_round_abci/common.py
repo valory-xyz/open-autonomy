@@ -21,7 +21,7 @@
 
 import hashlib
 from math import floor
-from typing import Dict, Generator, List, Optional, Type
+from typing import Dict, Generator, List, Type
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
@@ -73,7 +73,7 @@ class RandomnessBehaviour(BaseState):
 
     def get_randomness_from_api(
         self,
-    ) -> Generator[None, None, Optional[Dict[str, str]]]:
+    ) -> Generator[None, None, Dict[str, str]]:
         """Retrieve randomness from given api specs."""
         api_specs = self.context.randomness_api.get_spec()
         response = yield from self.get_http_response(
