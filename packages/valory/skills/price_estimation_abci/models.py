@@ -63,46 +63,37 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=PriceEstimationAbciApp, **kwargs)
 
     def setup(self) -> None:
-        """Set up."""
+        """
+        Set up shared state and timeouts for events
+        """
         super().setup()
-        PriceEstimationAbciApp.event_to_timeout[
-            Event.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[
-            SafeEvent.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[
-            OracleEvent.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[
-            TSEvent.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
-        PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
-            self.context.params.round_timeout_seconds * MULTIPLIER
-        )
-        PriceEstimationAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        PriceEstimationAbciApp.event_to_timeout[OracleEvent.VALIDATE_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        PriceEstimationAbciApp.event_to_timeout[TSEvent.VALIDATE_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        PriceEstimationAbciApp.event_to_timeout[OracleEvent.DEPLOY_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        PriceEstimationAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
-        )
-        PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_AND_PAUSE_TIMEOUT] = (
+
+        time_allowed = self.context.params.round_timeout_seconds
+        retry_attempts = self.context.params.retry_attempts
+        retry_time_allowed = time_allowed * retry_attempts + MARGIN
+        event_to_timeout = PriceEstimationAbciApp.event_to_timeout
+
+        for timeout in (
+            Event.ROUND_TIMEOUT,
+            SafeEvent.ROUND_TIMEOUT,
+            OracleEvent.ROUND_TIMEOUT,
+            TSEvent.ROUND_TIMEOUT,
+        ):
+            event_to_timeout[timeout] = time_allowed
+
+        for timeout_with_retry in (
+                SafeEvent.VALIDATE_TIMEOUT,
+                OracleEvent.VALIDATE_TIMEOUT,
+                TSEvent.VALIDATE_TIMEOUT,
+                OracleEvent.DEPLOY_TIMEOUT,
+                SafeEvent.DEPLOY_TIMEOUT,
+        ):
+            event_to_timeout[timeout_with_retry] = retry_time_allowed
+
+        event_to_timeout[TSEvent.RESET_TIMEOUT] = time_allowed * MULTIPLIER
+
+        event_to_timeout[TSEvent.RESET_AND_PAUSE_TIMEOUT] = \
             self.context.params.observation_interval + MARGIN
-        )
 
 
 class RandomnessApi(ApiSpecs):
