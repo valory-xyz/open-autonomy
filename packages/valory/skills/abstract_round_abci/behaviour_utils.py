@@ -911,6 +911,46 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_receipt
 
+    def get_ledger_api_response(
+        self,
+        performative: LedgerApiMessage.Performative,
+        ledger_callable: str,
+        **kwargs: Any,
+    ) -> Generator[None, None, LedgerApiMessage]:
+        """
+        Request contract safe transaction hash
+
+        :param performative: the message performative
+        :param ledger_callable: the collable to call on the contract
+        :param kwargs: keyword argument for the contract api request
+        :return: the contract api response
+        :yields: the contract api response
+        """
+        ledger_api_dialogues = cast(
+            LedgerApiDialogues, self.context.ledger_api_dialogues
+        )
+        kwargs = {
+            "performative": performative,
+            "counterparty": LEDGER_API_ADDRESS,
+            "ledger_id": self.context.default_ledger_id,
+            "callable": ledger_callable,
+            "kwargs": LedgerApiMessage.Kwargs(kwargs),
+            "args": tuple(),
+        }
+        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(**kwargs)
+        ledger_api_dialogue = cast(
+            LedgerApiDialogue,
+            ledger_api_dialogue,
+        )
+        ledger_api_dialogue.terms = self._get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
+        cast(Requests, self.context.requests).request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=ledger_api_msg)
+        response = yield from self.wait_for_message()
+        return response
+
     def get_contract_api_response(
         self,
         performative: ContractApiMessage.Performative,

@@ -19,16 +19,17 @@
 
 """This module contains the behaviours, round and payloads for the 'abstract_round_abci' skill."""
 
+import hashlib
 from math import floor
-from typing import Generator, List, Type
+from typing import Dict, Generator, List, Type
 
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 
 
 benchmark_tool = BenchmarkTool()
-
 drand_check = VerifyDrand()
 
 
@@ -49,6 +50,32 @@ class RandomnessBehaviour(BaseState):
 
     payload_class: Type[BaseTxPayload]
 
+    def _failsafe_randomness(
+        self,
+    ) -> Generator[None, None, Dict[str, str]]:
+        """
+        This methods provides a failsafe for randomeness retrival.
+
+        TODO:
+            randomness := H(service_id||latest_blockheader), where H is a secure
+            hash function (e.g. H = SHA256 or SHA-3) and service_id a bit_string
+            "kind of" unique for the given agent service instance
+
+        :return: derived randomness
+        :yields: derived randomness
+        """
+        ledger_api_response = yield from self.get_ledger_api_response(
+            performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
+            ledger_callable="get_block",
+            block_identifier="latest",
+        )
+
+        randomness = hashlib.sha256(
+            ledger_api_response.state.body.get("hash").encode()
+            + self.context.agent_address.encode()
+        ).hexdigest()
+        return {"randomness": randomness, "round": "0"}
+
     def async_act(self) -> Generator:
         """
         Check whether tendermint is running or not.
@@ -58,24 +85,20 @@ class RandomnessBehaviour(BaseState):
         - Retry until healthcheck passes or timeout is hit.
         - If healthcheck passes set done event.
         """
+
         if self.context.randomness_api.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
+            observation = yield from self._failsafe_randomness()
+
+        else:
             with benchmark_tool.measure(
                 self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            api_specs = self.context.randomness_api.get_spec()
-            response = yield from self.get_http_response(
-                method=api_specs["method"],
-                url=api_specs["url"],
-            )
-            observation = self.context.randomness_api.process_response(response)
+            ).local():
+                api_specs = self.context.randomness_api.get_spec()
+                response = yield from self.get_http_response(
+                    method=api_specs["method"],
+                    url=api_specs["url"],
+                )
+                observation = self.context.randomness_api.process_response(response)
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
