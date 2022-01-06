@@ -127,7 +127,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
 
     def test_run(self) -> None:
         """Run the ABCI skill with an IPFS daemon."""
-        daemon = IPFSDaemon()
+        daemon = IPFSDaemon(offline=True)
         daemon.start()
         try:
             super(BaseTestABCIAPYEstimationSkillNormalExecution, self).test_run()

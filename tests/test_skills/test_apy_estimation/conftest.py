@@ -43,11 +43,11 @@ HeaderType = Dict[str, str]
 SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module")
 def ipfs_daemon() -> Iterator[bool]:
     """Starts an IPFS daemon for the tests."""
     print("Starting IPFS daemon...")
-    daemon = IPFSDaemon()
+    daemon = IPFSDaemon(offline=True)
     daemon.start()
     yield daemon.is_started()
     print("Tearing down IPFS daemon...")

@@ -46,6 +46,7 @@ from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
+from aea_cli_ipfs.ipfs_utils import IPFSTool
 from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
 from pmdarima.preprocessing import FourierFeaturizer
@@ -103,6 +104,8 @@ from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
 
 SLEEP_TIME_TWEAK = 0.01
 
+ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
+
 
 class DummyAsyncResult(object):
     """Dummy class for AsyncResult."""
@@ -131,6 +134,7 @@ class DummyAsyncResult(object):
         return self._task_result
 
 
+@ipfs_daemon
 class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing APYEstimation FSMBehaviour."""
 
@@ -373,6 +377,8 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
 class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
     """Tests for `APYEstimationBaseState`."""
 
+    ipfs_tool = IPFSTool()
+
     def test_send_file_to_ipfs_node(self, tmp_path: PosixPath) -> None:
         """Test `send_file_to_ipfs_node`."""
         filepath = os.path.join(tmp_path, "test")
@@ -386,6 +392,24 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         assert isinstance(hash_, str)
         assert len(hash_) == 46
 
+    def test_download_from_ipfs_node(self, tmp_path: PosixPath) -> None:
+        """Test `download_from_ipfs_node`."""
+        filename = "test"
+        filepath = os.path.join(tmp_path, filename)
+
+        with open(filepath, "w") as f:
+            f.write("test")
+
+        _, hash_, _ = self.ipfs_tool.add(filepath)
+        os.remove(filepath)
+
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        )._download_from_ipfs_node(hash_, str(tmp_path), filename)
+
+        with open(filepath, "r") as f:
+            assert f.read() == "test"
+
     def test_get_and_read_json(self, tmp_path: PosixPath) -> None:
         """Test `get_and_read_json`"""
         save_filepath = os.path.join(tmp_path, "save")
@@ -396,9 +420,9 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         with open(save_filepath, "w") as f:
             json.dump(save_json_data, f)
 
-        hash_ = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).send_file_to_ipfs_node(save_filepath)
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
+
         download_json_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).get_and_read_json(hash_, download_folder, "save")
@@ -417,9 +441,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         save_csv_data = transformed_historical_data_no_datetime_conversion
         save_csv_data.to_csv(save_filepath, index=False)
 
-        hash_ = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).send_file_to_ipfs_node(save_filepath)
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
         download_csv_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).get_and_read_hist(hash_, download_folder, "save")
@@ -438,9 +461,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         save_csv_data = pd.DataFrame({"test": ["test"]})
         save_csv_data.to_csv(save_filepath, index=False)
 
-        hash_ = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).send_file_to_ipfs_node(save_filepath)
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
         download_csv_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).get_and_read_csv(hash_, download_folder, "save")
@@ -468,9 +490,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
         joblib.dump(saved_forecaster, save_filepath)
 
-        hash_ = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).send_file_to_ipfs_node(save_filepath)
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
         downloaded_forecaster = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).get_and_read_forecaster(hash_, download_folder, "save")

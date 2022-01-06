@@ -134,7 +134,7 @@ class APYEstimationBaseState(BaseState, ABC):
 
         return hist_hash
 
-    def __download_from_ipfs_node(
+    def _download_from_ipfs_node(
         self,
         hash_: str,
         target_dir: str,
@@ -169,7 +169,7 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: the deserialized json file's content
         """
-        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
             # Load & return data from json file.
@@ -201,7 +201,7 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
             return load_hist(filepath)
@@ -220,7 +220,7 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
             return pd.read_csv(filepath)
@@ -239,7 +239,7 @@ class APYEstimationBaseState(BaseState, ABC):
         :param filename: the original name of the file to download
         :return: a pandas dataframe of the downloaded csv
         """
-        filepath = self.__download_from_ipfs_node(hash_, target_dir, filename)
+        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
             return load_forecaster(filepath)
