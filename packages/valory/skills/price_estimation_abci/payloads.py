@@ -75,7 +75,7 @@ class ObservationPayload(BaseTxPayload):
         """Initialize an 'observation' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param observation: the observation
+        :param observation: the observed price
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
@@ -101,7 +101,7 @@ class EstimatePayload(BaseTxPayload):
         """Initialize an 'estimate' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param estimate: the estimate
+        :param estimate: the price estimate
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)

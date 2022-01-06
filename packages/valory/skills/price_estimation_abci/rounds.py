@@ -52,7 +52,6 @@ class Event(Enum):
 class PeriodState(BasePeriodState):
     """
     Class to represent a period state.
-
     This state is replicated by the tendermint application.
     """
 
@@ -110,12 +109,7 @@ class PeriodState(BasePeriodState):
 
 class CollectObservationRound(CollectDifferentUntilThresholdRound):
     """
-    This class represents the 'collect-observation' round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the observations
-
-    It schedules the EstimateConsensusRound.
+    A round in which agents are deployed to collect observational data
     """
 
     round_id = "collect_observation"
@@ -130,12 +124,7 @@ class CollectObservationRound(CollectDifferentUntilThresholdRound):
 
 class EstimateConsensusRound(CollectSameUntilThresholdRound):
     """
-    This class represents the 'estimate_consensus' round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the votes for each estimate
-
-    It schedules the TxHashRound.
+    A round in which agents attempt to reach majority consensus
     """
 
     round_id = "estimate_consensus"
@@ -151,12 +140,7 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound):
 
 class TxHashRound(CollectSameUntilThresholdRound):
     """
-    This class represents the 'tx-hash' round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the votes for each tx hash
-
-    It schedules the CollectSignatureRound.
+    A round in which agents compute the transaction hash
     """
 
     round_id = "tx_hash"
@@ -171,30 +155,50 @@ class TxHashRound(CollectSameUntilThresholdRound):
 
 
 class FinishedPriceAggregationRound(DegenerateRound):
-    """This class represents the finished round of the price aggregation."""
+    """
+    The final round signalling that price aggregation has finished
+    """
 
     round_id = "finished_price_aggregation"
 
 
 class PriceAggregationAbciApp(AbciApp[Event]):
-    """Price estimation ABCI application."""
+    """Price estimation ABCI application.
+
+    State transitions:
+    1. Start with collecting observations
+        - if successful: consensus round
+        - if timeout: restart period
+        - if no majority: ? (issue #369)
+    2. Consensus round
+        - if successful: transaction hash round
+        - if timeout: restart period
+        - if no majority: restart period
+    3. Transaction hash round
+        - if successful: price aggregation round
+        - if none: restart period
+        - if timeout: restart period
+        - if no majority: restart period
+    4. Finished with price aggregation round
+    """
 
     initial_round_cls: Type[AbstractRound] = CollectObservationRound
     transition_function: AbciAppTransitionFunction = {
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
+            Event.ROUND_TIMEOUT: CollectObservationRound,
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: CollectObservationRound,
+            Event.NO_MAJORITY: CollectObservationRound,
         },
+        # TODO: let participants to vote for transactions
         TxHashRound: {
             Event.DONE: FinishedPriceAggregationRound,
-            Event.NONE: CollectObservationRound,  # if the agents cannot produce the hash we reset the period
-            Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
+            Event.NONE: CollectObservationRound,
+            Event.ROUND_TIMEOUT: CollectObservationRound,
+            Event.NO_MAJORITY: CollectObservationRound,
         },
         FinishedPriceAggregationRound: {},
     }

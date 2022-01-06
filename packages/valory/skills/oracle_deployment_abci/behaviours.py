@@ -67,7 +67,7 @@ class OracleDeploymentBaseState(BaseState):
 
 
 class RandomnessOracleBehaviour(RandomnessBehaviour):
-    """Retrive randomness for oracle deployment."""
+    """Retrieve randomness for oracle deployment."""
 
     state_id = "retrieve_randomness_oracle"
     matching_round = RandomnessOracleRound
@@ -121,7 +121,7 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
-                raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
+                raise RuntimeError("No constract address, oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
         with benchmark_tool.measure(
