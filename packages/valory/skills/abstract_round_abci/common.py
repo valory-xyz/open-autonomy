@@ -56,11 +56,6 @@ class RandomnessBehaviour(BaseState):
         """
         This methods provides a failsafe for randomeness retrival.
 
-        TODO:
-            randomness := H(service_id||latest_blockheader), where H is a secure
-            hash function (e.g. H = SHA256 or SHA-3) and service_id a bit_string
-            "kind of" unique for the given agent service instance
-
         :return: derived randomness
         :yields: derived randomness
         """
@@ -72,7 +67,7 @@ class RandomnessBehaviour(BaseState):
 
         randomness = hashlib.sha256(
             ledger_api_response.state.body.get("hash").encode()
-            + self.context.agent_address.encode()
+            + str(self.params.service_id).encode()
         ).hexdigest()
         return {"randomness": randomness, "round": "0"}
 
