@@ -11,4 +11,5 @@ No behaviours (the skill is purely reactive).
 
 ## Handlers
 
-* `counter`: handles `abci` messages from a Tendermint node and implements the ABCI `counter` app.
+- ABCICounterHandler \
+  handles abci messages from a Tendermint node and implements the ABCI counter app.
