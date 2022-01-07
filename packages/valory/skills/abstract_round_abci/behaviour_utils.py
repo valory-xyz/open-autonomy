@@ -802,7 +802,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         while True:
             request_timeout = (
                 (deadline - datetime.datetime.now()).total_seconds()
-                if timeout is not None else None
+                if timeout is not None
+                else None
             )
             if request_timeout is not None and request_timeout < 0:
                 raise TimeoutException()

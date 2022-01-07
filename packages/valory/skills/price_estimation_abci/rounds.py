@@ -159,18 +159,14 @@ class PriceAggregationAbciApp(AbciApp[Event]):
 
     State transitions:
     1. Start with collecting observations
-        - if successful: consensus round
-        - if timeout: restart period
-        - if no majority: ? (issue #369)
+        - if successful: transition to consensus round
+        - if timeout or no majority: restart period
     2. Consensus round
-        - if successful: transaction hash round
-        - if timeout: restart period
-        - if no majority: restart period
+        - if successful: transition to transaction hash round
+        - if timeout or no majority: restart period
     3. Transaction hash round
-        - if successful: price aggregation round
-        - if none: restart period
-        - if timeout: restart period
-        - if no majority: restart period
+        - if successful: transition to price aggregation round
+        - if none, timeout or no majority: restart period
     4. Finished with price aggregation round
     """
 
@@ -179,13 +175,13 @@ class PriceAggregationAbciApp(AbciApp[Event]):
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
             Event.ROUND_TIMEOUT: CollectObservationRound,
+            Event.NO_MAJORITY: CollectObservationRound,
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
             Event.ROUND_TIMEOUT: CollectObservationRound,
             Event.NO_MAJORITY: CollectObservationRound,
         },
-        # TODO: let participants to vote for transactions
         TxHashRound: {
             Event.DONE: FinishedPriceAggregationRound,
             Event.NONE: CollectObservationRound,

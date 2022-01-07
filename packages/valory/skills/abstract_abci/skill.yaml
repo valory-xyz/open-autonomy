@@ -9,7 +9,7 @@ fingerprint:
   README.md: QmVY6g2xBzqgPiMbrzxkrjB8SA58euTuD5okjNT974Vygu
   __init__.py: QmcujhbnYzRVJvd2HZeVQQ4rmDaDzZq5rmPSwwJHj9Vq1b
   dialogues.py: QmeL5JBHMJinEKz1KfusitwftG8stei4UWmfBAi1LrzCUV
-  handlers.py: QmSq7QeT3C4eziu25dXQjk5Tx4ByAHPTUTeU36qo6M3SFK
+  handlers.py: QmYiNAFXSEmQcM3xdutt8WQeBTizpjpkRvcdrTJbrd61HA
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

@@ -960,8 +960,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
             for payload in self.collection.values()
         )
         return any(
-            count >= self._consensus_params.threshold
-            for count in counter.values()
+            count >= self._consensus_params.threshold for count in counter.values()
         )
 
     @property
@@ -1089,23 +1088,31 @@ class VotingRound(CollectionRound):
     period_state_class = BasePeriodState
 
     @property
-    def vote_count(self):
-        return Counter(self.collection.values())
-
-    @property
     def positive_vote_threshold_reached(self) -> bool:
-        """Check that the vote threshold of 'True' has been reached."""
-        return self.vote_count[True] >= self._consensus_params.threshold
+        """Check that the vote threshold has been reached."""
+        true_votes = sum(
+            payload.vote is True for payload in self.collection.values()  # type: ignore
+        )
+        # check that "true" has at least the consensus # of votes
+        return true_votes >= self._consensus_params.threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
-        """Check that the vote threshold of 'False' has been reached."""
-        return self.vote_count[False] >= self._consensus_params.threshold
+        """Check that the vote threshold has been reached."""
+        false_votes = sum(
+            payload.vote is False for payload in self.collection.values()  # type: ignore
+        )
+        # check that "false" has at least the consensus # of votes
+        return false_votes >= self._consensus_params.threshold
 
     @property
     def none_vote_threshold_reached(self) -> bool:
-        """Check that the vote threshold of 'None' has been reached."""
-        return self.vote_count[None] >= self._consensus_params.threshold
+        """Check that the vote threshold has been reached."""
+        none_votes = sum(
+            payload.vote is None for payload in self.collection.values()  # type: ignore
+        )
+        # check that "None" has at least the consensus # of votes
+        return none_votes >= self._consensus_params.threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""

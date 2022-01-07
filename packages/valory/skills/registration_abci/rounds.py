@@ -81,9 +81,8 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
 
         # fast-forward at setup
         db = self.period_state.db
-        if (
-            db.get("safe_contract_address", None) and
-            db.get("oracle_contract_address", None)
+        if db.get("safe_contract_address", None) and db.get(
+            "oracle_contract_address", None
         ):
             state = self.period_state.update(
                 participants=self.collection,
