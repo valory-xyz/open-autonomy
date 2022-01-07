@@ -67,7 +67,7 @@ class TestParams:
             reset_tendermint_after=2,
             tendermint_com_url="http://localhost:8080",
             tendermint_url="http://localhost:26657",
-            service_id="price_estimation",
+            service_id="liquidity_provision",
         )
         assert not params.is_health_check_timed_out()
         params.increment_retries()

@@ -78,7 +78,7 @@ class TestAPYParams:
             "testing": "test",
             "estimation": "test",
             "pair_ids": "test",
-            "service_id": "price_estimation",
+            "service_id": "apy_estimation",
         }
 
         if param_value == "None":
