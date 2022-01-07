@@ -346,6 +346,7 @@ class LedgerApiHandler(AbstractResponseHandler):
             LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
             LedgerApiMessage.Performative.ERROR,
             ContractApiMessage.Performative.STATE,
+            LedgerApiMessage.Performative.STATE,
         }
     )
 

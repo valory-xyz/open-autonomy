@@ -46,7 +46,10 @@ from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
+from aea_cli_ipfs.ipfs_utils import IPFSTool
+from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
+from pmdarima.preprocessing import FourierFeaturizer
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
@@ -101,6 +104,8 @@ from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
 
 SLEEP_TIME_TWEAK = 0.01
 
+ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
+
 
 class DummyAsyncResult(object):
     """Dummy class for AsyncResult."""
@@ -129,6 +134,7 @@ class DummyAsyncResult(object):
         return self._task_result
 
 
+@ipfs_daemon
 class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing APYEstimation FSMBehaviour."""
 
@@ -366,6 +372,136 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+
+
+class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
+    """Tests for `APYEstimationBaseState`."""
+
+    ipfs_tool = IPFSTool()
+
+    def test_send_file_to_ipfs_node(self, tmp_path: PosixPath) -> None:
+        """Test `send_file_to_ipfs_node`."""
+        filepath = os.path.join(tmp_path, "test")
+
+        with open(filepath, "w") as f:
+            f.write("test")
+
+        hash_ = cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).send_file_to_ipfs_node(filepath)
+        assert isinstance(hash_, str)
+        assert len(hash_) == 46
+
+    def test_download_from_ipfs_node(self, tmp_path: PosixPath) -> None:
+        """Test `download_from_ipfs_node`."""
+        filename = "test"
+        filepath = os.path.join(tmp_path, filename)
+
+        with open(filepath, "w") as f:
+            f.write("test")
+
+        _, hash_, _ = self.ipfs_tool.add(filepath)
+        os.remove(filepath)
+
+        cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        )._download_from_ipfs_node(hash_, str(tmp_path), filename)
+
+        with open(filepath, "r") as f:
+            assert f.read() == "test"
+
+    def test_get_and_read_json(self, tmp_path: PosixPath) -> None:
+        """Test `get_and_read_json`"""
+        save_filepath = os.path.join(tmp_path, "save")
+        download_folder = os.path.join(tmp_path, "download")
+        os.makedirs(download_folder, exist_ok=True)
+        save_json_data = {"test": "test"}
+
+        with open(save_filepath, "w") as f:
+            json.dump(save_json_data, f)
+
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
+
+        download_json_data = cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).get_and_read_json(hash_, download_folder, "save")
+
+        assert download_json_data == save_json_data
+
+    def test_get_and_read_hist(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
+    ) -> None:
+        """Test `get_and_read_hist`."""
+        save_filepath = os.path.join(tmp_path, "save")
+        download_folder = os.path.join(tmp_path, "download")
+        os.makedirs(download_folder, exist_ok=True)
+        save_csv_data = transformed_historical_data_no_datetime_conversion
+        save_csv_data.to_csv(save_filepath, index=False)
+
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
+        download_csv_data = cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).get_and_read_hist(hash_, download_folder, "save")
+
+        save_csv_data["block_timestamp"] = pd.to_datetime(
+            save_csv_data["block_timestamp"], unit="s"
+        )
+
+        pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
+
+    def test_get_and_read_csv(self, tmp_path: PosixPath) -> None:
+        """Test `get_and_read_csv`."""
+        save_filepath = os.path.join(tmp_path, "save")
+        download_folder = os.path.join(tmp_path, "download")
+        os.makedirs(download_folder, exist_ok=True)
+        save_csv_data = pd.DataFrame({"test": ["test"]})
+        save_csv_data.to_csv(save_filepath, index=False)
+
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
+        download_csv_data = cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).get_and_read_csv(hash_, download_folder, "save")
+
+        pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
+
+    def test_get_and_read_forecaster(self, tmp_path: PosixPath) -> None:
+        """Test `get_and_read_forecaster`."""
+        save_filepath = os.path.join(tmp_path, "save")
+        download_folder = os.path.join(tmp_path, "download")
+        os.makedirs(download_folder, exist_ok=True)
+
+        saved_forecaster = Pipeline(
+            [
+                ("fourier", FourierFeaturizer(0, 0)),
+                (
+                    "arima",
+                    ARIMA((1, 1, 1), suppress_warnings=True),
+                ),
+            ]
+        )
+        pipeline_steps_saved = saved_forecaster.get_params()["steps"]
+        fourier_saved = pipeline_steps_saved[0][1].get_params()
+        arima_saved = pipeline_steps_saved[1][1].get_params()
+
+        joblib.dump(saved_forecaster, save_filepath)
+
+        _, hash_, _ = self.ipfs_tool.add(save_filepath)
+        os.remove(save_filepath)
+        downloaded_forecaster = cast(
+            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+        ).get_and_read_forecaster(hash_, download_folder, "save")
+
+        pipeline_steps_downloaded = downloaded_forecaster.get_params()["steps"]
+        fourier_downloaded = pipeline_steps_downloaded[0][1].get_params()
+        arima_downloaded = pipeline_steps_downloaded[1][1].get_params()
+
+        assert fourier_saved == fourier_downloaded
+        assert arima_saved == arima_downloaded
 
 
 class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -640,6 +776,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_setup(self, monkeypatch: MonkeyPatch) -> None:
         """Test behaviour setup."""
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
@@ -696,30 +834,25 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_fetch_behaviour(
         self,
-        monkeypatch: MonkeyPatch,
-        top_n_pairs_q: str,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
         pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Run tests."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            self.period_state,
-        )
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+        self.skill.skill_context.state.period.abci_app._last_timestamp = (
+            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
+        )
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
+        )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
-        monkeypatch.setattr(
-            time,
-            "time",
-            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
-        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -776,52 +909,48 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_fetch_behaviour_retries_exceeded(self, monkeypatch: MonkeyPatch) -> None:
         """Run tests for exceeded retries."""
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            self.period_state,
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         subgraphs_sorted_by_utilization_moment: Tuple[Any, ...] = (
             self.apy_estimation_behaviour.context.spooky_subgraph,
             self.apy_estimation_behaviour.context.fantom_subgraph,
+            self.apy_estimation_behaviour.context.spooky_subgraph,
+            self.apy_estimation_behaviour.context.spooky_subgraph,
         )
-        subgraphs_sorted_by_utilization_moment += tuple(  # type: ignore
-            subgraphs_sorted_by_utilization_moment[0] for _ in range(2)
-        )
-        for subgraph in subgraphs_sorted_by_utilization_moment:
-            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: bool)
-            self.apy_estimation_behaviour.act_wrapper()
-            state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-            assert state.state_id == FetchBehaviour.state_id
 
-        self._test_done_flag_set()
+        for subgraph in subgraphs_sorted_by_utilization_moment:
+            monkeypatch.setattr(subgraph, "is_retries_exceeded", lambda *_: True)
+            with pytest.raises(
+                AEAActException, match="Cannot continue FetchBehaviour."
+            ):
+                self.apy_estimation_behaviour.act_wrapper()
+                self.apy_estimation_behaviour.act_wrapper()
 
     def test_fetch_value_none(
         self,
-        monkeypatch: MonkeyPatch,
         caplog: LogCaptureFixture,
-        top_n_pairs_q: str,
         block_from_timestamp_q: str,
         eth_price_usd_q: str,
         pairs_q: str,
         pool_fields: Tuple[str, ...],
     ) -> None:
         """Test when fetched value is none."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
-        )
         history_duration = cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.history_duration
+        self.skill.skill_context.state.period.abci_app._last_timestamp = (
+            datetime.utcfromtimestamp(1618735147 + history_duration * 30 * 24 * 60 * 60)
+        )
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
+        )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids = ["0xec454eda10accdd66209c57af8c12924556f3abd"]
-        monkeypatch.setattr(
-            time,
-            "time",
-            lambda *_: 1618735147 + history_duration * 30 * 24 * 60 * 60,
-        )
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         ).params.sleep_time = SLEEP_TIME_TWEAK
@@ -944,13 +1073,11 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         no_action: Callable[[Any], None],
     ) -> None:
         """Test `FetchBehaviour`'s `async_act` after all the timestamps have been generated."""
+        self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
+
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
         # set history duration to a negative value in order to raise a `StopIteration`.
         cast(
@@ -963,11 +1090,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         # test with retrieved history and non-existing save path.
@@ -980,13 +1103,10 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         with pytest.raises(AEAActException):
             self.apy_estimation_behaviour.act_wrapper()
 
+        importlib.reload(os.path)
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         # test with retrieved history and valid save path.
@@ -1004,11 +1124,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         # fast-forward to fetch behaviour.
         self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            FetchBehaviour.state_id,
-            PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
-            ),
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
         )
 
         # test with non-serializable retrieved history and valid save path.
@@ -1051,64 +1167,28 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = TransformBehaviour
     next_behaviour_class = PreprocessBehaviour
 
-    def test_setup(
-        self,
-        monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
-        tmp_path: PosixPath,
-    ) -> None:
+    def test_setup(self) -> None:
         """Test behaviour setup."""
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_randomness=0, most_voted_history="test"
+                    ),
+                )
             ),
         )
 
-        # Test `OSError` handling.
-        filepath = os.path.join(tmp_path, "test")
-        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
-        with pytest.raises(
-            OSError,
-            match=re.escape(f"[Errno 2] No such file or directory: '{filepath}'"),
-        ):
-            cast(
-                TransformBehaviour, self.apy_estimation_behaviour.current_state
-            ).setup()
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
 
-        # Test `JSONDecodeError` handling.
-        with open(filepath, "wb") as fb:
-            fb.write(b"non-serializable")
-        with pytest.raises(
-            json.JSONDecodeError,
-            match=re.escape("Expecting value: line 1 column 1 (char 0)"),
-        ):
-            cast(
-                TransformBehaviour, self.apy_estimation_behaviour.current_state
-            ).setup()
-
-        # Test `ValueError` handling.
-        with open(filepath, "w", encoding="utf-16") as f:
-            json.dump({"test": "τεστ"}, f, ensure_ascii=True, indent=4)
-        with pytest.raises(
-            ValueError,
-            match=re.escape(
-                "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"
-            ),
-        ):
-            cast(
-                TransformBehaviour, self.apy_estimation_behaviour.current_state
-            ).setup()
-
-        # Test without error while reading the pairs' history.
-        with open(filepath, "w") as f:
-            json.dump({"test": "test"}, f, ensure_ascii=False, indent=4)
         self.apy_estimation_behaviour.context.task_manager.start()
         cast(TransformBehaviour, self.apy_estimation_behaviour.current_state).setup()
 
         # Test with `None` pairs' history.
-        monkeypatch.setattr(json, "load", lambda _: None)
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: None  # type: ignore
         self.apy_estimation_behaviour.context.task_manager.start()
         with pytest.raises(RuntimeError, match="Cannot continue TransformBehaviour."):
             cast(
@@ -1119,24 +1199,27 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         caplog: LogCaptureFixture,
-        tmp_path: PosixPath,
         transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_randomness=0, most_voted_history="test"
+                    ),
+                )
+            ),
         )
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
             lambda *_: DummyAsyncResult(transform_task_result, ready=False),
         )
-        filepath = os.path.join(tmp_path, "test")
-        monkeypatch.setattr(os.path, "join", lambda *_: filepath)
-        with open(filepath, "w") as f:
-            json.dump({"test": "test"}, f, ensure_ascii=False, indent=4)
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
 
         with caplog.at_level(
             logging.DEBUG,
@@ -1164,10 +1247,12 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             "[test_agent_name] The transform task is not finished yet." in caplog.text
         )
 
+        importlib.reload(os.path)
         self.end_round()
 
     def test_transform_behaviour_waiting_for_task(
         self,
+        monkeypatch: MonkeyPatch,
         transform_task_result: pd.DataFrame,
         tmp_path: PosixPath,
     ) -> None:
@@ -1195,14 +1280,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     with open(
                         os.path.join(
                             self.apy_estimation_behaviour.context._get_agent_context().data_dir,
-                            "historical_data.json",
-                        ),
-                        "w+",
-                    ) as fp:
-                        fp.write("{}")
-                    with open(
-                        os.path.join(
-                            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
                             "transformed_historical_data.csv",
                         ),
                         "w+",
@@ -1213,7 +1290,12 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         self.fast_forward_to_state(
                             self.apy_estimation_behaviour,
                             self.behaviour_class.state_id,
-                            self.period_state,
+                            PeriodState(
+                                StateDB(
+                                    initial_period=0,
+                                    initial_data=dict(most_voted_history="test"),
+                                )
+                            ),
                         )
 
                         # Decrease the sleep time for faster testing.
@@ -1221,6 +1303,8 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                             TransformBehaviour,
                             self.apy_estimation_behaviour.current_state,
                         ).params.sleep_time = SLEEP_TIME_TWEAK
+
+                        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {}  # type: ignore
 
                         # Run the Behaviour for the first time, with a non-ready `DummyAsyncResult`.
                         self.apy_estimation_behaviour.act_wrapper()
@@ -1281,7 +1365,14 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_randomness=0, most_voted_history="test"
+                    ),
+                )
+            ),
         )
 
         monkeypatch.setattr(
@@ -1300,15 +1391,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-
-        with open(
-            os.path.join(
-                self.apy_estimation_behaviour.context._get_agent_context().data_dir,
-                "historical_data.json",
-            ),
-            "w+",
-        ) as fp:
-            fp.write("{}")
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
 
         with pytest.raises(
             AEAActException, match="Cannot continue TransformBehaviour."
@@ -1322,6 +1405,18 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         transform_task_result: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour`."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_randomness=0, most_voted_history="test"
+                    ),
+                )
+            ),
+        )
 
         with mock.patch(
             "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
@@ -1340,14 +1435,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     return_value=3,
                 ):
                     self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-                    with open(
-                        os.path.join(
-                            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
-                            "historical_data.json",
-                        ),
-                        "w+",
-                    ) as fp:
-                        fp.write("{}")
+                    self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
                     with open(
                         os.path.join(
                             self.apy_estimation_behaviour.context._get_agent_context().data_dir,
@@ -1356,12 +1444,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         "w+",
                     ) as fp:
                         fp.write("")
-
-                    self.fast_forward_to_state(
-                        self.apy_estimation_behaviour,
-                        self.behaviour_class.state_id,
-                        self.period_state,
-                    )
 
                     self.apy_estimation_behaviour.act_wrapper()
 
@@ -1378,25 +1460,28 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
 
     def test_preprocess_behaviour(
         self,
-        monkeypatch: MonkeyPatch,
         transformed_historical_data: pd.DataFrame,
         tmp_path: PosixPath,
-        no_action: Callable[[Any], None],
     ) -> None:
         """Run test for `preprocess_behaviour`."""
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
-        filepath = os.path.join(tmp_path, "transformed_historical_data.csv")
         # Increase the amount of dummy data for the train-test split.
         transformed_historical_data = pd.DataFrame(
             np.repeat(transformed_historical_data.values, 3, axis=0),
             columns=transformed_historical_data.columns,
         )
-        transformed_historical_data.to_csv(filepath, index=False)
 
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            PeriodState(
+                StateDB(
+                    initial_period=0, initial_data=dict(most_voted_transform="test")
+                )
+            ),
+        )
+        self.apy_estimation_behaviour.current_state.get_and_read_hist = (  # type: ignore
+            lambda *_: transformed_historical_data
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
@@ -1604,25 +1689,6 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = OptimizeBehaviour
     next_behaviour_class = TrainBehaviour
 
-    def test_setup_file_not_found(
-        self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
-    ) -> None:
-        """Test behaviour setup when file not found error is raised."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
-            ),
-        )
-
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-
-        with pytest.raises(RuntimeError, match="Cannot continue OptimizeBehaviour."):
-            cast(
-                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-            ).setup()
-
     def test_setup(
         self, monkeypatch: MonkeyPatch, no_action: Callable[[Any], None]
     ) -> None:
@@ -1631,12 +1697,14 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
+                )
             ),
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
         cast(
@@ -1651,7 +1719,10 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
+                )
             ),
         )
 
@@ -1662,8 +1733,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         self.apy_estimation_behaviour.context.task_manager.start()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
@@ -1690,12 +1760,14 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
+                )
             ),
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
 
@@ -1710,6 +1782,8 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
     def test_optimize_behaviour_value_error(
         self,
         monkeypatch: MonkeyPatch,
+        tmp_path: PosixPath,
+        caplog: LogCaptureFixture,
         optimize_task_result_empty: optuna.Study,
     ) -> None:
         """Run test for `optimize_behaviour` when `ValueError` is raised."""
@@ -1717,11 +1791,18 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
+                )
             ),
         )
 
-        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
         monkeypatch.setattr(
             TaskManager,
@@ -1730,8 +1811,17 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # test ValueError handling.
-        with pytest.raises(AEAActException):
+        with caplog.at_level(
+            logging.WARNING,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
             self.apy_estimation_behaviour.act_wrapper()
+
+        assert (
+            "The optimization could not be done! "
+            "Please make sure that there is a sufficient number of data for the optimization procedure. "
+            "Setting best parameters randomly!"
+        ) in caplog.text
 
     def test_optimize_behaviour_type_error(
         self,
@@ -1744,7 +1834,10 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
+                )
             ),
         )
 
@@ -1774,7 +1867,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             PeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(most_voted_randomness=0),
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
                 )
             ),
         )
@@ -1803,7 +1896,10 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(most_voted_randomness=0))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(most_voted_randomness=0, most_voted_split="test"),
+                )
             ),
         )
 
@@ -1811,7 +1907,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
-        monkeypatch.setattr(pd, "read_csv", lambda _: pd.DataFrame())
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
         monkeypatch.setattr(
             TaskManager,
@@ -1854,7 +1950,12 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
-                    initial_period=0, initial_data=dict(full_training=full_training)
+                    initial_period=0,
+                    initial_data=dict(
+                        full_training=full_training,
+                        most_voted_params="test",
+                        most_voted_split="test",
+                    ),
                 )
             ),
         )
@@ -1865,21 +1966,12 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
-        best_params_filepath = os.path.join(
-            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
-            cast(
-                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.pair_ids[0],
-            "best_params.json",
-        )
-
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        with open(best_params_filepath, "w") as f:
-            json.dump(best_params, f)
-
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
         )
+
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
         cast(
@@ -1890,14 +1982,20 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self,
         monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
-        no_action: Callable[[Any], None],
     ) -> None:
         """Run test for behaviour when task result is not ready."""
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(full_training=False))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        full_training=False,
+                        most_voted_params="test",
+                        most_voted_split="test",
+                    ),
+                )
             ),
         )
 
@@ -1914,20 +2012,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
-        best_params_filepath = os.path.join(
-            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
-            cast(
-                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.pair_ids[0],
-            "best_params.json",
-        )
-
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        with open(best_params_filepath, "w") as f:
-            json.dump(best_params, f)
-
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
         )
         self.apy_estimation_behaviour.context.task_manager.start()
 
@@ -1956,7 +2044,16 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        full_training=False,
+                        most_voted_params="test",
+                        most_voted_split="test",
+                    ),
+                )
+            ),
         )
 
         monkeypatch.setattr(
@@ -1979,11 +2076,11 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             TrainBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
-        with open(os.path.join(tmp_path, "best_params.json"), "w") as f:
-            f.write("{}")
-
-        dummy_y_train = pd.DataFrame([i for i in range(5)])
-        dummy_y_train.to_csv(os.path.join(tmp_path, "y_train.csv"))
+        best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
+        )
 
         with pytest.raises(AEAActException, match="Cannot continue TrainTask."):
             self.apy_estimation_behaviour.act_wrapper()
@@ -2001,7 +2098,14 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                StateDB(initial_period=0, initial_data=dict(full_training=False))
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        full_training=False,
+                        most_voted_params="test",
+                        most_voted_split="test",
+                    ),
+                )
             ),
         )
         # patching for setup.
@@ -2011,20 +2115,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
-        best_params_filepath = os.path.join(
-            self.apy_estimation_behaviour.context._get_agent_context().data_dir,
-            cast(
-                OptimizeBehaviour, self.apy_estimation_behaviour.current_state
-            ).params.pair_ids[0],
-            "best_params.json",
-        )
-
         best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        with open(best_params_filepath, "w") as f:
-            json.dump(best_params, f)
-
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
         )
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 3)
         monkeypatch.setattr(
@@ -2056,14 +2150,22 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        pair_name="test",
+                        most_voted_split="test",
+                        most_voted_model="test",
+                    ),
+                )
+            ),
         )
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
+        )
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
-        )
-        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)
         cast(
@@ -2077,7 +2179,16 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        pair_name="test",
+                        most_voted_split="test",
+                        most_voted_model="test",
+                    ),
+                )
+            ),
         )
 
         assert (
@@ -2087,11 +2198,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
         )
-        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         self.apy_estimation_behaviour.context.task_manager.start()
 
         monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
@@ -2119,7 +2229,16 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        pair_name="test",
+                        most_voted_split="test",
+                        most_voted_model="test",
+                    ),
+                )
+            ),
         )
         # patching for setup.
         monkeypatch.setattr(os.path, "join", lambda *_: "")
@@ -2157,14 +2276,22 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        pair_name="test",
+                        most_voted_split="test",
+                        most_voted_model="test",
+                    ),
+                )
+            ),
         )
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
+        )
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         # patching for setup.
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
-        )
-        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(
             TaskManager,
@@ -2200,14 +2327,22 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            self.period_state,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        pair_name="test",
+                        most_voted_split="test",
+                        most_voted_model="test",
+                    ),
+                )
+            ),
         )
         # patching for setup.
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [i for i in range(5)]})
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
         )
-        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: None)
 
@@ -2226,14 +2361,22 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        pair_name="test",
+                        most_voted_split="test",
+                        most_voted_model="test",
+                    ),
+                )
+            ),
         )
         # patching for setup.
-        monkeypatch.setattr(os.path, "join", lambda *_: "")
-        monkeypatch.setattr(
-            pd, "read_csv", lambda _: pd.DataFrame({"y": [1, 2, 3, 4, 5]})
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
+            [i for i in range(5)]
         )
-        monkeypatch.setattr(joblib, "load", lambda *_: DummyPipeline())
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = lambda *_: DummyPipeline()  # type: ignore
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(
             TaskManager,
@@ -2270,12 +2413,19 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.apy_estimation_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(initial_period=0, initial_data=dict(pair_name="test"))),
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(pair_name="test", most_voted_model="test"),
+                )
+            ),
         )
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
-        monkeypatch.setattr(joblib, "load", lambda _: DummyPipeline())
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = (  # type: ignore
+            lambda *_: DummyPipeline
+        )
         # the line below overcomes the limitation of the `EstimateBehaviour` to predict more than one steps forward.
         monkeypatch.setattr(DummyPipeline, "predict", lambda *_: [0])
 
@@ -2384,12 +2534,7 @@ class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     behaviour_class = ResetBehaviour
     next_behaviour_class = FetchBehaviour
 
-    def test_reset_behaviour(
-        self,
-        monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
-        caplog: LogCaptureFixture,
-    ) -> None:
+    def test_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
         """Run test for `ResetBehaviour`."""
         self.fast_forward_to_state(
             behaviour=self.apy_estimation_behaviour,

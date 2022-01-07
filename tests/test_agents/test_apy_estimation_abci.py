@@ -27,6 +27,8 @@ from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
 
+ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
+
 # check log messages of the happy path
 CHECK_STRINGS_LIST = [
     "Entered in the 'tendermint_healthcheck' behaviour state",
@@ -41,21 +43,17 @@ states_checks_config = {
     },
     "collect_history": {
         "state_name": "collect_history",
-        "extra_logs": (
-            "Retrieved block: ",
-            "Retrieved ETH price for block ",
-            "Retrieved pool data for block ",
-        ),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "transform": {
         "state_name": "transform",
-        "extra_logs": ("Data have been transformed:\n",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "preprocess": {
         "state_name": "preprocess",
-        "extra_logs": ("Data have been preprocessed.",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "randomness": {
@@ -65,32 +63,32 @@ states_checks_config = {
     },
     "optimize": {
         "state_name": "optimize",
-        "extra_logs": ("Optimization has finished. Showing the results:\n",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "train": {
         "state_name": "train",
-        "extra_logs": ("Training has finished.",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "test": {
         "state_name": "test",
-        "extra_logs": ("Testing has finished. Report follows:\n",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "full_train": {
         "state_name": "train",
-        "extra_logs": ("Training has finished.",),
+        "extra_logs": (),
         "only_at_first_period": True,
     },
     "estimate": {
         "state_name": "estimate",
-        "extra_logs": ("Got estimate of APY for ",),
+        "extra_logs": (),
         "only_at_first_period": False,
     },
     "cycle_reset": {
         "state_name": "cycle_reset",
-        "extra_logs": ("Finalized estimate: ",),
+        "extra_logs": (),
         "only_at_first_period": False,
     },
 }
@@ -120,6 +118,7 @@ build_check_strings()
 CHECK_STRINGS = tuple(CHECK_STRINGS_LIST)
 
 
+@ipfs_daemon
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecution):
     """Base class for the APY estimation e2e tests."""
 
@@ -139,7 +138,6 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -149,7 +147,6 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
-@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,

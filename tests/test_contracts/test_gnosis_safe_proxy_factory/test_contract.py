@@ -50,8 +50,6 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
         """Get deployment kwargs."""
         return dict(
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     def test_deploy(self) -> None:
@@ -71,8 +69,6 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
             b"",
             1,
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             nonce=1,
         )
         assert len(result) == 2
