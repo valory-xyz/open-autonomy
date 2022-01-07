@@ -114,6 +114,28 @@ def block_from_timestamp_q(timestamp: int) -> bytes:
     return finalize_q(query)
 
 
+def latest_block() -> bytes:
+    """Create query to get the latest block.
+
+    :return: the built query.
+    """
+    query = """
+    {
+        blocks(
+            first: 1,
+            orderBy: timestamp,
+            orderDirection: desc
+        )
+        {
+            timestamp
+            number
+        }
+    }
+    """
+
+    return finalize_q(query)
+
+
 def top_n_pairs_q(top_n: int) -> bytes:
     """Create a query to get the first `top_n` pool ids based on their total liquidity.
 

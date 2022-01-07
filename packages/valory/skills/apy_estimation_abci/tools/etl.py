@@ -156,8 +156,14 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     pairs_hist["current_change"] = pairs_hist.groupby("id")[
         "updatedVolumeUSD"
     ].transform(calc_change)
+
     # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
-    pairs_hist.dropna(inplace=True)
+    pairs_hist.dropna(subset=["current_change"], inplace=True)
+
+    if len(pairs_hist.index) == 0:
+        raise ValueError(
+            "APY cannot be calculated if there are not at least two observations for a pool!"
+        )
 
     # Calculate APY.
     pairs_hist["APY"] = pairs_hist.apply(calc_apy, axis=1)

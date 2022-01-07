@@ -82,7 +82,9 @@ def get_participant_to_fetching(
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
-        participant: FetchingPayload(sender=participant, history="x0")
+        participant: FetchingPayload(
+            sender=participant, history="x0", latest_observation_timestamp=0
+        )
         for participant in participants
     }
 
@@ -111,16 +113,6 @@ def get_participant_to_invalid_randomness(
             round_id=round_id,
             randomness=INVALID_RANDOMNESS,
         )
-        for participant in participants
-    }
-
-
-def get_participant_to_fetching_payload(
-    participants: FrozenSet[str],
-) -> Dict[str, FetchingPayload]:
-    """Get participant_to_fetching payloads."""
-    return {
-        participant: FetchingPayload(participant, "historical_data_hash")
         for participant in participants
     }
 
@@ -316,10 +308,10 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_fetching_payload(self.participants),
+                round_payloads=get_participant_to_fetching(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="historical_data_hash",
+                most_voted_payload="x0",
                 exit_event=Event.DONE,
             )
         )

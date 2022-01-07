@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionType,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
+    BatchPreparationPayload,
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -46,6 +47,7 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
 from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
+    UpdatePayload,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import filter_out_numbers
 
@@ -72,6 +74,16 @@ class PeriodState(BasePeriodState):
     def history_hash(self) -> str:
         """Get the most voted history hash."""
         return cast(str, self.db.get_strict("most_voted_history"))
+
+    @property
+    def latest_observation_timestamp(self) -> str:
+        """Get the latest observation's timestamp."""
+        return cast(str, self.db.get_strict("latest_observation_timestamp"))
+
+    @property
+    def batch_hash(self) -> str:
+        """Get the most voted batch hash."""
+        return cast(str, self.db.get_strict("most_voted_batch"))
 
     @property
     def transformed_history_hash(self) -> str:
@@ -171,7 +183,7 @@ class RegistrationRound(CollectDifferentUntilAllRound):
         return None
 
 
-class CollectHistoryRound(CollectSameUntilThresholdRound):
+class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
     This class represents the 'collect-history' round.
 
@@ -184,11 +196,47 @@ class CollectHistoryRound(CollectSameUntilThresholdRound):
     round_id = "collect_history"
     allowed_tx_type = FetchingPayload.transaction_type
     payload_attribute = "history"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_history"
     selection_key = "most_voted_history"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            update_kwargs = {
+                self.collection_key: self.collection,
+                self.selection_key: self.most_voted_payload,
+                "latest_observation_timestamp": cast(
+                    FetchingPayload, list(self.collection.values())[0]
+                ).latest_observation_timestamp,
+            }
+
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(**update_kwargs),
+            )
+            return updated_state, Event.DONE
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+
+        return None
+
+
+class CollectLatestHistoryBatchRound(CollectHistoryRound):
+    """
+    This class represents the 'CollectLatestHistoryBatchRound' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the historical batch data.
+
+    It schedules the `PrepareBatchRound`.
+    """
+
+    round_id = "collect_batch"
+    collection_key = "participant_to_batch"
+    selection_key = "most_voted_batch"
 
 
 class TransformRound(CollectSameUntilThresholdRound):
@@ -246,6 +294,26 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
             return self._return_no_majority_event()
 
         return None
+
+
+class PrepareBatchRound(CollectSameUntilThresholdRound):
+    """
+    This class represents the 'PrepareBatchRound'.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the transformed data.
+
+    It schedules the `UpdateForecasterRound`.
+    """
+
+    round_id = "prepare_batch"
+    allowed_tx_type = BatchPreparationPayload.transaction_type
+    payload_attribute = "prepared_batch"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_batch_preparation"
+    selection_key = "most_voted_prepared_batch"
 
 
 class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -364,6 +432,26 @@ class TestRound(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_full_training"
     selection_key = "full_training"
+
+
+class UpdateForecasterRound(CollectSameUntilThresholdRound):
+    """
+    This class represents the 'UpdateForecasterRound' round.
+
+    Input: a period state with the prior round data.
+    Output: a new period state with the prior round data and the votes for the historical batch data.
+
+    It schedules the `EstimateRound`.
+    """
+
+    round_id = "update_forecaster"
+    allowed_tx_type = UpdatePayload.transaction_type
+    payload_attribute = "updated_model_hash"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_update"
+    selection_key = "most_voted_model"
 
 
 class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -505,9 +593,24 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CycleResetRound: {
-            Event.DONE: EstimateRound,
+            Event.DONE: CollectLatestHistoryBatchRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we try to assemble a new group of agents
             Event.NO_MAJORITY: ResetRound,  # if we cannot agree we try to assemble a new group of agents
+        },
+        CollectLatestHistoryBatchRound: {
+            Event.DONE: PrepareBatchRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+        },
+        PrepareBatchRound: {
+            Event.DONE: UpdateForecasterRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+        },
+        UpdateForecasterRound: {
+            Event.DONE: EstimateRound,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
             Event.DONE: RegistrationRound,

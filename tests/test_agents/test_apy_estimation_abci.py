@@ -91,6 +91,21 @@ states_checks_config = {
         "extra_logs": (),
         "only_at_first_period": False,
     },
+    "fetch_batch": {
+        "state_name": "fetch_batch",
+        "extra_logs": (),
+        "only_at_first_period": False,
+    },
+    "prepare_batch": {
+        "state_name": "prepare_batch",
+        "extra_logs": (),
+        "only_at_first_period": False,
+    },
+    "update": {
+        "state_name": "update",
+        "extra_logs": (),
+        "only_at_first_period": False,
+    },
 }
 
 

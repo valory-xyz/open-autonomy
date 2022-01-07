@@ -102,7 +102,7 @@ class TestProcessing:
                 "symbol": "X",
             }
         with pytest.raises(
-            ValueError, match="Wrong number of items passed 31, placement implies 1"
+            ValueError, match="APY cannot be calculated if there are not at least two observations for a pool!"
         ):
             transform_hist_data([invalid_current_change])  # type: ignore
 

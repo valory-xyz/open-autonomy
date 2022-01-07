@@ -34,10 +34,12 @@ class TransactionType(Enum):
     RESET = "reset"
     FETCHING = "fetching"
     TRANSFORMATION = "transformation"
+    BATCH_PREPARATION = "batch_preparation"
     PREPROCESS = "preprocess"
     OPTIMIZATION = "optimization"
     TRAINING = "training"
     TESTING = "testing"
+    UPDATE = "update"
     ESTIMATION = "estimation"
 
     def __str__(self) -> str:
@@ -99,15 +101,23 @@ class FetchingPayload(BaseAPYPayload):
 
     transaction_type = TransactionType.FETCHING
 
-    def __init__(self, sender: str, history: str, id_: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        sender: str,
+        history: str,
+        latest_observation_timestamp: int,
+        id_: Optional[str] = None,
+    ) -> None:
         """Initialize a 'fetching' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param history: the fetched history's hash.
+        :param latest_observation_timestamp: the latest observation's timestamp.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
         self._history = history
+        self._latest_observation_timestamp = latest_observation_timestamp
 
     @property
     def history(self) -> str:
@@ -115,9 +125,17 @@ class FetchingPayload(BaseAPYPayload):
         return self._history
 
     @property
-    def data(self) -> Dict[str, str]:
+    def latest_observation_timestamp(self) -> int:
+        """Get the latest observation's timestamp."""
+        return self._latest_observation_timestamp
+
+    @property
+    def data(self) -> Dict[str, Union[str, int]]:
         """Get the data."""
-        return {"history": self._history}
+        return {
+            "history": self._history,
+            "latest_observation_timestamp": self._latest_observation_timestamp,
+        }
 
 
 class TransformationPayload(BaseAPYPayload):
@@ -207,6 +225,34 @@ class PreprocessPayload(BaseAPYPayload):
         return {"train_test": self.train_test_hash, "pair_name": self._pair_name}
 
 
+class BatchPreparationPayload(BaseAPYPayload):
+    """Represent a transaction payload of type 'batch_preparation'."""
+
+    transaction_type = TransactionType.BATCH_PREPARATION
+
+    def __init__(
+        self, sender: str, prepared_batch: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize a 'batch_preparation' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param prepared_batch: the transformation's hash.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._prepared_batch = prepared_batch
+
+    @property
+    def prepared_batch(self) -> str:
+        """Get the prepared batch's hash."""
+        return self._prepared_batch
+
+    @property
+    def data(self) -> Dict[str, str]:
+        """Get the data."""
+        return {"prepared_batch": self._prepared_batch}
+
+
 class OptimizationPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'optimization'."""
 
@@ -290,6 +336,34 @@ class TestingPayload(BaseAPYPayload):
     def data(self) -> Dict[str, str]:
         """Get the data."""
         return {"report_hash": self._report_hash}
+
+
+class UpdatePayload(BaseAPYPayload):
+    """Represent a transaction payload of type 'update'."""
+
+    transaction_type = TransactionType.UPDATE
+
+    def __init__(
+        self, sender: str, updated_model_hash: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'update' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param updated_model_hash: the updated model's hash.
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._updated_model_hash = updated_model_hash
+
+    @property
+    def updated_model_hash(self) -> str:
+        """Get the updated model's hash."""
+        return self._updated_model_hash
+
+    @property
+    def data(self) -> Dict[str, str]:
+        """Get the data."""
+        return {"updated_model_hash": self._updated_model_hash}
 
 
 class EstimatePayload(BaseAPYPayload):

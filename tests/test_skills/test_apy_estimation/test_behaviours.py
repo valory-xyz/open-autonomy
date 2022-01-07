@@ -81,6 +81,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationConsensusBehaviour,
     CycleResetBehaviour,
     EstimateBehaviour,
+    FetchBatchBehaviour,
     FetchBehaviour,
     FreshModelResetBehaviour,
     OptimizeBehaviour,
@@ -2465,7 +2466,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test CycleResetBehaviour."""
 
     behaviour_class = CycleResetBehaviour
-    next_behaviour_class = EstimateBehaviour
+    next_behaviour_class = FetchBatchBehaviour
 
     def test_reset_behaviour(
         self,

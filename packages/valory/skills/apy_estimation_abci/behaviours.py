@@ -56,10 +56,12 @@ from packages.valory.skills.apy_estimation_abci.ml.io import (
     save_forecaster,
 )
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
+    filter_pair_data,
     prepare_pair_data,
 )
 from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
 from packages.valory.skills.apy_estimation_abci.payloads import (
+    BatchPreparationPayload,
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -70,15 +72,18 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     TestingPayload,
     TrainingPayload,
     TransformationPayload,
+    UpdatePayload,
 )
 from packages.valory.skills.apy_estimation_abci.rounds import (
     APYEstimationAbciApp,
     CollectHistoryRound,
+    CollectLatestHistoryBatchRound,
     CycleResetRound,
     EstimateRound,
     FreshModelResetRound,
     OptimizeRound,
     PeriodState,
+    PrepareBatchRound,
     PreprocessRound,
     RandomnessRound,
     RegistrationRound,
@@ -86,6 +91,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     TestRound,
     TrainRound,
     TransformRound,
+    UpdateForecasterRound,
 )
 from packages.valory.skills.apy_estimation_abci.tasks import (
     OptimizeTask,
@@ -96,6 +102,7 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
     load_hist,
+    transform_hist_data,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import (
     HyperParamsType,
@@ -107,6 +114,7 @@ from packages.valory.skills.apy_estimation_abci.tools.general import (
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
+    latest_block,
     pairs_q,
 )
 
@@ -364,10 +372,12 @@ class FetchBehaviour(APYEstimationBaseState):
 
     state_id = "fetch"
     matching_round = CollectHistoryRound
+    batch = False
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
+        self._last_timestamp_unix: Optional[int] = None
         self._save_path = ""
         self._spooky_api_specs: Dict[str, Any] = dict()
         self._timestamps_iterator: Optional[Iterator[int]] = None
@@ -377,9 +387,23 @@ class FetchBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Set the behaviour up."""
+        last_timestamp = cast(
+            SharedState, self.context.state
+        ).period.abci_app.last_timestamp
+        self._last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
+        filename = "historical_data"
+
+        if self.batch:
+            filename += f"_batch_{self._last_timestamp_unix}"
+            self._timestamps_iterator = iter((self._last_timestamp_unix,))
+        else:
+            self._timestamps_iterator = gen_unix_timestamps(
+                self._last_timestamp_unix, self.params.history_duration
+            )
+
         self._save_path = os.path.join(
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            "historical_data.json",
+            f"{filename}.json",
         )
         create_pathdirs(self._save_path)
 
@@ -390,14 +414,6 @@ class FetchBehaviour(APYEstimationBaseState):
 
         for unwanted in unwanted_specs:
             self._spooky_api_specs.pop(unwanted)
-
-        last_timestamp = cast(
-            SharedState, self.context.state
-        ).period.abci_app.last_timestamp
-        last_timestamp_unix = int(calendar.timegm(last_timestamp.timetuple()))
-        self._timestamps_iterator = gen_unix_timestamps(
-            last_timestamp_unix, self.params.history_duration
-        )
 
     def _handle_response(
         self,
@@ -493,6 +509,7 @@ class FetchBehaviour(APYEstimationBaseState):
                         payload = FetchingPayload(
                             self.context.agent_address,
                             hist_hash,
+                            cast(int, self._last_timestamp_unix),
                         )
 
                         # Finish behaviour.
@@ -511,11 +528,16 @@ class FetchBehaviour(APYEstimationBaseState):
 
             # Fetch block.
             fantom_api_specs = self.context.fantom_subgraph.get_spec()
+            query = (
+                latest_block()
+                if self.batch
+                else block_from_timestamp_q(cast(int, self._current_timestamp))
+            )
             res_raw = yield from self.get_http_response(
                 method=fantom_api_specs["method"],
                 url=fantom_api_specs["url"],
                 headers=fantom_api_specs["headers"],
-                content=block_from_timestamp_q(cast(int, self._current_timestamp)),
+                content=query,
             )
             res = self.context.fantom_subgraph.process_response(res_raw)
 
@@ -583,9 +605,11 @@ class FetchBehaviour(APYEstimationBaseState):
                 res["pairs"][i]["eth_price"] = eth_price
 
             self._pairs_hist.extend(res["pairs"])
-            self.context.logger.info(
-                f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
-            )
+
+            if not self.batch:
+                self.context.logger.info(
+                    f"Fetched day {len(self._pairs_hist)}/{self.params.history_duration * 30}."
+                )
 
     def clean_up(self) -> None:
         """
@@ -597,6 +621,14 @@ class FetchBehaviour(APYEstimationBaseState):
         self.context.fantom_subgraph.reset_retries()
 
 
+class FetchBatchBehaviour(FetchBehaviour):
+    """Observe the latest batch of historical data."""
+
+    state_id = "fetch_batch"
+    matching_round = CollectLatestHistoryBatchRound
+    batch = True
+
+
 class TransformBehaviour(APYEstimationBaseState):
     """Transform historical data, i.e., convert them to a dataframe and calculate useful metrics, such as the APY."""
 
@@ -606,7 +638,7 @@ class TransformBehaviour(APYEstimationBaseState):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
-        self._history_save_path = self._transformed_history_save_path = ""
+        self._transformed_history_save_path = ""
         self._async_result: Optional[AsyncResult] = None
 
     def setup(self) -> None:
@@ -725,6 +757,77 @@ class PreprocessBehaviour(APYEstimationBaseState):
         # Pass the hash as a Payload.
         payload = PreprocessPayload(
             self.context.agent_address, pair_name, hashes[0], hashes[1]
+        )
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
+class PrepareBatchBehaviour(APYEstimationBaseState):
+    """Transform and preprocess batch data."""
+
+    state_id = "prepare_batch"
+    matching_round = PrepareBatchRound
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
+        super().__init__(**kwargs)
+        self._batch: Optional[ResponseItemType] = None
+        self._prepared_batch_save_path = ""
+
+    def setup(self) -> None:
+        """Setup behaviour."""
+        self._batch = cast(
+            ResponseItemType,
+            self.get_and_read_json(
+                self.period_state.batch_hash,
+                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+            ),
+        )
+
+        self._prepared_batch_save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+            f"prepared_batch_{self.period_state.latest_observation_timestamp}.csv",
+        )
+        create_pathdirs(self._prepared_batch_save_path)
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        # Transform and filter data. We are not using a `Task` here, because preparing a single batch is not intense.
+        # TODO insert the latest batch as a row before transforming, in order to be able to calculate the APY.
+        self.context.logger.info(f"Batch is:\n{self._batch}")
+        transformed_batch = transform_hist_data(cast(ResponseItemType, self._batch))
+        self.context.logger.info(
+            f"Batch has been transformed:\n{transformed_batch.to_string()}"
+        )
+        prepared_batch, _, _ = filter_pair_data(
+            transformed_batch, self.params.pair_ids[0]
+        )
+        self.context.logger.info(
+            f"Batch has been prepared:\n{prepared_batch.to_string()}"
+        )
+
+        # Store the prepared batch.
+        prepared_batch.to_csv(self._prepared_batch_save_path, index=False)
+
+        # Hash the file.
+        prepared_batch_hash = self.send_file_to_ipfs_node(
+            self._prepared_batch_save_path
+        )
+        self.context.logger.info(
+            f"IPFS hash for prepared data is: {prepared_batch_hash}"
+        )
+
+        # Pass the hash as a Payload.
+        payload = BatchPreparationPayload(
+            self.context.agent_address,
+            prepared_batch_hash,
         )
 
         # Finish behaviour.
@@ -1112,6 +1215,70 @@ class TestBehaviour(APYEstimationBaseState):
         self.set_done()
 
 
+class UpdateForecasterBehaviour(APYEstimationBaseState):
+    """Update an estimator."""
+
+    state_id = "update"
+    matching_round = UpdateForecasterRound
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize Behaviour."""
+        super().__init__(**kwargs)
+        self._y: Optional[np.ndarray] = None
+        self._forecaster_filename: Optional[str] = None
+        self._forecaster: Optional[Pipeline] = None
+
+    def setup(self) -> None:
+        """Setup behaviour."""
+        self._forecaster_filename = "fully_trained_forecaster.joblib"
+        pair_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+        )
+
+        # Load data batch.
+        self._y = self.get_and_read_csv(
+            self.period_state.batch_hash,
+            pair_path,
+            f"prepared_batch_{self.period_state.latest_observation_timestamp}.csv",
+        ).values.ravel()
+
+        # Load forecaster.
+        self._forecaster = self.get_and_read_forecaster(
+            self.period_state.train_hash,
+            pair_path,
+            self._forecaster_filename,
+        )
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+        cast(Pipeline, self._forecaster).update(self._y)
+        self.context.logger.info("Forecaster has been updated.")
+
+        # Store the results.
+        forecaster_save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+            cast(str, self._forecaster_filename),
+        )
+        save_forecaster(forecaster_save_path, self._forecaster)
+
+        # Hash the file.
+        model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
+        self.context.logger.info(
+            f"IPFS hash for updated forecasting model is: {model_hash}"
+        )
+
+        payload = UpdatePayload(self.context.agent_address, model_hash)
+
+        # Finish behaviour.
+        with benchmark_tool.measure(self).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
 class EstimateBehaviour(APYEstimationBaseState):
     """Estimate APY."""
 
@@ -1171,6 +1338,8 @@ class BaseResetBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
+        # TODO if we are not in the `cycle_reset` state, should we clear all the data from IPFS?
+
         if (
             self.state_id == "cycle_reset"
             and self.period_state.is_most_voted_estimate_set
@@ -1233,12 +1402,15 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         FetchBehaviour,
+        FetchBatchBehaviour,
         TransformBehaviour,
         PreprocessBehaviour,  # type: ignore
+        PrepareBatchBehaviour,
         RandomnessBehaviour,  # type: ignore
         OptimizeBehaviour,
         TrainBehaviour,
         TestBehaviour,
+        UpdateForecasterBehaviour,
         EstimateBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
         FreshModelResetBehaviour,  # type: ignore
