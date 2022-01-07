@@ -101,7 +101,7 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
     if len(copyright_years) == 1 and copyright_years[0] != modification_date.year:
         return (
             False,
-            "Start year is 2021 but the file has been modified in another later year (missing -202x)",
+            f"Start year is 2021 but the file has been modified in another later year (missing -202x), date last modified {date_string.decode().strip()}",
         )
 
     # End year does not match the last modification year
