@@ -21,7 +21,7 @@
 
 import hashlib
 from math import floor
-from typing import Dict, Generator, List, Optional, Type
+from typing import Dict, Generator, List, Optional, Type, Union
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
@@ -29,7 +29,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 
 
-RandomnessObservation = Optional[Dict[str, str]]
+RandomnessObservation = Optional[Dict[str, Union[str, int]]]
 
 benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
@@ -117,8 +117,8 @@ class RandomnessBehaviour(BaseState):
         if observation:
             payload = self.payload_class(  # type: ignore
                 self.context.agent_address,
-                observation["round"],
-                observation["randomness"],
+                round_id_=observation["round"],
+                randomness=observation["randomness"],
             )
             with benchmark_tool.measure(
                 self,
