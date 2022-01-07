@@ -117,7 +117,7 @@ class RandomnessBehaviour(BaseState):
         if observation:
             payload = self.payload_class(  # type: ignore
                 self.context.agent_address,
-                round_id_=observation["round"],
+                round_id=observation["round"],
                 randomness=observation["randomness"],
             )
             with benchmark_tool.measure(
