@@ -20,6 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 
 from abc import ABC
+from decimal import Decimal
 from typing import Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -89,8 +90,8 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     decimal_places = most_voted_estimate_[::-1].find(".")
     if decimal_places > decimals:
         most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
-    most_voted_estimate = float(most_voted_estimate_)
-    int_value = int(most_voted_estimate * (10 ** decimals))
+    most_voted_estimate_decimal = Decimal(most_voted_estimate_)
+    int_value = int(most_voted_estimate_decimal * (10 ** decimals))
     return int_value
 
 

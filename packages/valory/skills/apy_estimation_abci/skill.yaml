@@ -109,6 +109,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120
+      service_id: apy_estimation
       sleep_time: 5
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
