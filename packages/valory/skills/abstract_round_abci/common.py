@@ -71,7 +71,7 @@ class RandomnessBehaviour(BaseState):
             ledger_api_response.state.body.get("hash").encode()
             + str(self.params.service_id).encode()
         ).hexdigest()
-        return {"randomness": randomness, "round": "0"}
+        return {"randomness": randomness, "round": 0}
 
     def get_randomness_from_api(
         self,
