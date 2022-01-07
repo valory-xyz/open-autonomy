@@ -32,7 +32,7 @@ It is assumed the script is run from the repository root.
 import itertools
 import re
 import shutil
-import subprocess
+import subprocess  # nosec
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -85,7 +85,7 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
 
     copyright_years_str = match.groups(0)[1]  # type: ignore
     copyright_years = tuple(int(i) for i in copyright_years_str.split("-"))
-    date_string, _ = subprocess.Popen(  # pylint: disable=consider-using-with
+    date_string, _ = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
         [str(GIT_PATH), "log", "-1", '--format="%ad"', "--", str(file)],
         stdout=subprocess.PIPE,
     ).communicate()

@@ -23,7 +23,7 @@ fingerprint:
   protos/tendermint/version/types.proto: QmVvixZ8bXGrTGdVBbmyZruc8azvcZb6J9hno6UmbpR2uH
   readme.md: QmY84Kw2PQX4pmohsCbPRwL4kryQxCHk5awWSKrTMhtdxr
   scripts/genproto.py: QmSXcBiVGzjokqQrsvpBXkvSrtWDJNT15Y31cPWxHJbU4w
-  tendermint/__init__.py: QmQq2BVtXaQXk5f9EGBMxYUUyMVbyBFxA5LXHvT5dVC7u2
+  tendermint/__init__.py: Qmdb8Dfjbme2z6SBpDmnZw5kNt9aFZD2yVyCN6M6hX5PHC
   tendermint/abci/types_pb2.py: Qmb1YoGv34WhNM38M6nzHLajAra5NK18Pg4JQy42inQ4Ne
   tendermint/crypto/keys_pb2.py: Qma7KXYmK66s5PZso9d7NosNv4Mm6yikrg3hzcWNYGs513
   tendermint/crypto/proof_pb2.py: QmUPgricNi5rQHFZ6zEz7jPWVc5P7gnkWiuPFSUHyvzbQG
