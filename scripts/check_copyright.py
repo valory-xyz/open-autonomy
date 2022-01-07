@@ -30,14 +30,14 @@ It is assumed the script is run from the repository root.
 """
 
 import itertools
-import os
 import re
-import subprocess
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
+
 
 GIT_PATH = shutil.which("git")
 HEADER_REGEX = re.compile(
