@@ -83,10 +83,10 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
     if match is None:
         return False, "Invalid copyright header."
 
-    copyright_years_str = match.groups(0)[1]
+    copyright_years_str = match.groups(0)[1]  #  type: ignore
     copyright_years = tuple(int(i) for i in copyright_years_str.split("-"))
-    date_string, _ = subprocess.Popen(
-        [GIT_PATH, "log", "-1", '--format="%ad"', "--", str(file)],
+    date_string, _ = subprocess.Popen(  #  pylint: disable=consider-using-with
+        [str(GIT_PATH), "log", "-1", '--format="%ad"', "--", str(file)],
         stdout=subprocess.PIPE,
     ).communicate()
     modification_date = datetime.strptime(
