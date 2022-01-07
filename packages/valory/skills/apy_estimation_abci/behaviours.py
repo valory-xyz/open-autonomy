@@ -76,6 +76,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     CollectHistoryRound,
     CycleResetRound,
     EstimateRound,
+    FreshModelResetRound,
     OptimizeRound,
     PeriodState,
     PreprocessRound,
@@ -1158,8 +1159,6 @@ class EstimateBehaviour(APYEstimationBaseState):
 class BaseResetBehaviour(APYEstimationBaseState):
     """Reset state."""
 
-    cycle = False
-
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -1172,14 +1171,25 @@ class BaseResetBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if self.cycle and self.period_state.is_most_voted_estimate_set:
+        if (
+            self.state_id == "cycle_reset"
+            and self.period_state.is_most_voted_estimate_set
+        ):
             self.context.logger.info(
                 f"Finalized estimate: {self.period_state.most_voted_estimate}. Resetting and pausing!"
             )
-            # Fix: add pausing
+            self.context.logger.info(
+                f"Estimation will happen again in {self.params.observation_interval} seconds."
+            )
+            yield from self.sleep(self.params.observation_interval)
             benchmark_tool.save()
-        elif self.cycle and not self.period_state.is_most_voted_estimate_set:
+        elif (
+            self.state_id == "cycle_reset"
+            and not self.period_state.is_most_voted_estimate_set
+        ):
             self.context.logger.info("Finalized estimate not available. Resetting!")
+        elif self.state_id == "fresh_model_reset":
+            self.context.logger.info("Resetting to create a fresh forecasting model!")
         else:
             self.context.logger.info(
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
@@ -1200,12 +1210,18 @@ class ResetBehaviour(BaseResetBehaviour):
     state_id = "reset"
 
 
+class FreshModelResetBehaviour(BaseResetBehaviour):
+    """Reset state to start with a fresh model."""
+
+    matching_round = FreshModelResetRound
+    state_id = "fresh_model_reset"
+
+
 class CycleResetBehaviour(BaseResetBehaviour):
     """Cycle reset state."""
 
     matching_round = CycleResetRound
     state_id = "cycle_reset"
-    cycle = True
 
 
 class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
@@ -1225,6 +1241,7 @@ class APYEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TestBehaviour,
         EstimateBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
+        FreshModelResetBehaviour,  # type: ignore
         CycleResetBehaviour,  # type: ignore
     }
 

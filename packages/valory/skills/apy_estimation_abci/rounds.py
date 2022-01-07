@@ -422,7 +422,7 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
             )
-            if self.round_id == "cycle_reset":
+            if self.round_id in ("cycle_reset", "fresh_model_reset"):
                 kwargs["pair_name"] = self.period_state.pair_name
                 kwargs["most_voted_model"] = self.period_state.model_hash
             updated_state = self.period_state.update(**kwargs)
@@ -434,6 +434,12 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             return self._return_no_majority_event()
 
         return None
+
+
+class FreshModelResetRound(ResetRound):
+    """This class represents round that gets activated if `N_ESTIMATIONS_BEFORE_RETRAIN` get reached."""
+
+    round_id = "fresh_model_reset"
 
 
 class CycleResetRound(ResetRound):
@@ -488,20 +494,25 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
         },
         EstimateRound: {
-            Event.DONE: ResetRound,
+            Event.DONE: FreshModelResetRound,
             Event.ESTIMATION_CYCLE: CycleResetRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
-        ResetRound: {
+        FreshModelResetRound: {
             Event.DONE: CollectHistoryRound,
-            Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we try to assemble a new group of agents
-            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we try to assemble a new group of agents
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         CycleResetRound: {
             Event.DONE: EstimateRound,
-            Event.RESET_TIMEOUT: ResetRound,  # if the round times out we try to assemble a new group of agents
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we try to assemble a new group of agents
             Event.NO_MAJORITY: ResetRound,  # if we cannot agree we try to assemble a new group of agents
+        },
+        ResetRound: {
+            Event.DONE: RegistrationRound,
+            Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we try to assemble a new group of agents
+            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we try to assemble a new group of agents
         },
     }
     event_to_timeout: Dict[Event, float] = {

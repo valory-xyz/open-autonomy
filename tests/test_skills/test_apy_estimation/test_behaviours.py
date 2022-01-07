@@ -82,6 +82,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     CycleResetBehaviour,
     EstimateBehaviour,
     FetchBehaviour,
+    FreshModelResetBehaviour,
     OptimizeBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
@@ -2426,7 +2427,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
     behaviour_class = EstimateBehaviour
-    next_behaviour_class = ResetBehaviour
+    next_behaviour_class = FreshModelResetBehaviour
 
     def test_estimate_behaviour(
         self,
@@ -2486,10 +2487,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
         cast(
             CycleResetBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.observation_interval = 0.1
-        cast(
-            CycleResetBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
+        ).params.observation_interval = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
@@ -2551,11 +2549,50 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
+class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test FreshModelResetBehaviour."""
+
+    behaviour_class = FreshModelResetBehaviour
+    next_behaviour_class = FetchBehaviour
+
+    def test_fresh_model_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
+        """Run test for `ResetBehaviour`."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(StateDB(initial_period=0, initial_data={})),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
+
+        assert (
+            "[test_agent_name] Entered in the 'fresh_model_reset' behaviour state"
+            in caplog.text
+        )
+        assert (
+            "[test_agent_name] Resetting to create a fresh forecasting model!"
+            in caplog.text
+        )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
 class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test EstimateBehaviour."""
+    """Test ResetBehaviour."""
 
     behaviour_class = ResetBehaviour
-    next_behaviour_class = FetchBehaviour
+    next_behaviour_class = RegistrationBehaviour
 
     def test_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
         """Run test for `ResetBehaviour`."""

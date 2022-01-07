@@ -51,6 +51,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     CycleResetRound,
     EstimateRound,
     Event,
+    FreshModelResetRound,
     OptimizeRound,
     PeriodState,
     PreprocessRound,
@@ -645,6 +646,42 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
         test_round = CycleResetRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
+
+class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test `FreshModelResetRound`."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests"""
+
+        test_round = FreshModelResetRound(self.period_state, self.consensus_params)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_reset_payload(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    period_count=_test_round.most_voted_payload,
+                    most_voted_model="",
+                    pair_name="",
+                    full_training=False,
+                    n_estimations=1,
+                    participants=get_participants(),
+                ),
+                state_attr_checks=[],
+                most_voted_payload=1,
+                exit_event=Event.DONE,
+            )
+        )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = FreshModelResetRound(self.period_state, self.consensus_params)
         self._test_no_majority_event(test_round)
 
 
