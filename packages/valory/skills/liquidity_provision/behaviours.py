@@ -1096,8 +1096,7 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
-    behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {
-        # type: ignore
+    behaviour_states: Set[Type[LiquidityProvisionBaseBehaviour]] = {  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
         EnterPoolTransactionSignatureBehaviour,  # type: ignore

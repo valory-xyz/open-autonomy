@@ -800,13 +800,14 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             deadline = datetime.datetime.now() + datetime.timedelta(0, timeout)
 
         while True:
-            seconds = None
-            if timeout is not None:
-                seconds = (deadline - datetime.datetime.now()).total_seconds()
-                if seconds < 0:
-                    raise TimeoutException()
+            request_timeout = (
+                (deadline - datetime.datetime.now()).total_seconds()
+                if timeout is not None else None
+            )
+            if request_timeout is not None and request_timeout < 0:
+                raise TimeoutException()
 
-            response = yield from self._get_tx_info(tx_hash, timeout=seconds)
+            response = yield from self._get_tx_info(tx_hash, timeout=request_timeout)
             if response.status_code != 200:
                 yield from self.sleep(request_retry_delay)
                 continue

@@ -417,7 +417,7 @@ class TestConsensusParams:
     def test_threshold_getter(self, nb_participants: int, expected: int) -> None:
         """Test threshold property getter."""
         params = ConsensusParams(nb_participants)
-        assert params.consensus_threshold == expected
+        assert params.threshold == expected
 
     def test_from_json(self) -> None:
         """Test 'from_json' method."""
@@ -703,7 +703,7 @@ class TestTimeouts:
 
     def test_size(self) -> None:
         """Test the 'size' property."""
-        assert not self.timeouts
+        assert len(self.timeouts) == 0
         self.timeouts._heap.append(MagicMock())
         assert len(self.timeouts) == 1
 
@@ -734,7 +734,7 @@ class TestTimeouts:
         self.timeouts.cancel_timeout(entry_count_1)
         self.timeouts.cancel_timeout(entry_count_2)
         self.timeouts.pop_earliest_cancelled_timeouts()
-        assert not self.timeouts
+        assert len(self.timeouts) == 0
 
     def test_get_earliest_timeout_a(self) -> None:
         """Test the 'get_earliest_timeout' method."""

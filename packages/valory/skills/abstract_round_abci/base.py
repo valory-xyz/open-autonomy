@@ -415,7 +415,7 @@ class ConsensusParams:
         return self._max_participants
 
     @property
-    def consensus_threshold(self) -> int:
+    def threshold(self) -> int:
         """Get the consensus threshold."""
         return consensus_threshold(self.max_participants)
 
@@ -960,7 +960,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
             for payload in self.collection.values()
         )
         return any(
-            count >= self._consensus_params.consensus_threshold
+            count >= self._consensus_params.threshold
             for count in counter.values()
         )
 
@@ -973,7 +973,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
             for payload in self.collection.values()
         )
         most_voted_payload, max_votes = max(counter.items(), key=itemgetter(1))
-        if max_votes < self._consensus_params.consensus_threshold:
+        if max_votes < self._consensus_params.threshold:
             raise ABCIAppInternalError("not enough votes")
         return most_voted_payload
 
@@ -1089,31 +1089,23 @@ class VotingRound(CollectionRound):
     period_state_class = BasePeriodState
 
     @property
+    def vote_count(self):
+        return Counter(self.collection.values())
+
+    @property
     def positive_vote_threshold_reached(self) -> bool:
-        """Check that the vote threshold has been reached."""
-        true_votes = sum(
-            [payload.vote is True for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "true" has at least the consensus # of votes
-        return true_votes >= self._consensus_params.consensus_threshold
+        """Check that the vote threshold of 'True' has been reached."""
+        return self.vote_count[True] >= self._consensus_params.threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
-        """Check that the vote threshold has been reached."""
-        false_votes = sum(
-            [payload.vote is False for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "false" has at least the consensus # of votes
-        return false_votes >= self._consensus_params.consensus_threshold
+        """Check that the vote threshold of 'False' has been reached."""
+        return self.vote_count[False] >= self._consensus_params.threshold
 
     @property
     def none_vote_threshold_reached(self) -> bool:
-        """Check that the vote threshold has been reached."""
-        none_votes = sum(
-            [payload.vote is None for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "None" has at least the consensus # of votes
-        return none_votes >= self._consensus_params.consensus_threshold
+        """Check that the vote threshold of 'None' has been reached."""
+        return self.vote_count[None] >= self._consensus_params.threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
@@ -1150,7 +1142,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
     @property
     def collection_threshold_reached(self) -> bool:
         """Check if the threshold has been reached."""
-        return len(self.collection) >= self._consensus_params.consensus_threshold
+        return len(self.collection) >= self._consensus_params.threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
@@ -1165,7 +1157,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
                 period_state_class=self.period_state_class,
                 period_count=None,
                 **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
+                    self.selection_key: frozenset(self.collection.keys()),
                     self.collection_key: self.collection,
                 },
             )
@@ -1231,12 +1223,12 @@ class Timeouts(Generic[EventType]):
 
     def pop_earliest_cancelled_timeouts(self) -> None:
         """Pop earliest cancelled timeouts."""
-        if not self:
+        if len(self) == 0:
             return
         entry = self._heap[0]
         while entry.cancelled:
             self.pop_timeout()
-            if not self:
+            if len(self) == 0:
                 break
             entry = self._heap[0]
 
@@ -1489,7 +1481,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
     @property
     def latest_result(self) -> Optional[Any]:
         """Get the latest result of the round."""
-        return None if len(self._round_results) == 0 else self._round_results[-1]
+        return self._round_results[-1] if len(self._round_results) > 0 else None
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
@@ -1547,7 +1539,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self.logger.info("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
-        if not self._timeouts:
+        if len(self._timeouts) == 0:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
@@ -1581,7 +1573,7 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
             self.process_event(timeout_event)
 
             self._timeouts.pop_earliest_cancelled_timeouts()
-            if not self._timeouts:
+            if len(self._timeouts) == 0:
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()
 

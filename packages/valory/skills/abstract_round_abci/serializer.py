@@ -35,6 +35,7 @@ class DictProtobufStructSerializer:
     """
 
     NEED_PATCH = "_need_patch"
+    ENCODING = "utf-8"
 
     @classmethod
     def encode(cls, dictionary: Dict[str, Any]) -> bytes:
@@ -71,7 +72,7 @@ class DictProtobufStructSerializer:
         for key, value in dictionnary.items():
             if isinstance(value, bytes):
                 # convert bytes values to string, as protobuf.Struct does support byte fields
-                dictionnary[key] = value.decode("utf-8")
+                dictionnary[key] = value.decode(self.ENCODING)
                 if cls.NEED_PATCH in dictionnary:
                     dictionnary[cls.NEED_PATCH][key] = True
                 else:
@@ -88,14 +89,14 @@ class DictProtobufStructSerializer:
                 raise NotImplementedError(
                     f"DictProtobufStructSerializer doesn't support dict value type {type(value)}"
                 )
-        if need_patch:
+        if len(need_patch) == 0:
             dictionnary[cls.NEED_PATCH] = need_patch
 
     @classmethod
     def _patch_dict_restore(cls, dictionary: Dict[str, Any]) -> None:
         # protobuf Struct doesn't recursively convert Struct to dict
         need_patch = dictionary.get(cls.NEED_PATCH, {})
-        if need_patch:
+        if len(need_patch) == 0:
             dictionary[cls.NEED_PATCH] = dict(need_patch)
 
         for key, value in dictionary.items():
@@ -103,15 +104,15 @@ class DictProtobufStructSerializer:
                 continue
 
             # protobuf struct doesn't recursively convert Struct to dict
-            if isinstance(value, Struct) and value:
-                dictionary[key] = dict(value)
+            if isinstance(value, Struct):
+                dictionary[key] = dict(value) if value != Struct() else value
 
             need_patch = dictionary.get(cls.NEED_PATCH, {})
             if isinstance(value, dict):
                 cls._patch_dict_restore(value)
-            elif isinstance(value, str) and need_patch.get(key):
-                dictionary[key] = value.encode("utf-8")
-            elif isinstance(value, float) and need_patch.get(key):
+            elif isinstance(value, str) and need_patch.get(key, False):
+                dictionary[key] = value.encode(self.ENCODING)
+            elif isinstance(value, float) and need_patch.get(key, False):
                 dictionary[key] = int(value)
 
         dictionary.pop(cls.NEED_PATCH, None)

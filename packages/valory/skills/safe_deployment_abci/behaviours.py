@@ -127,7 +127,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
 
     def _send_deploy_transaction(self) -> Generator[None, None, Optional[str]]:
         owners = self.period_state.sorted_participants
-        threshold = self.params.consensus_params.consensus_threshold
+        threshold = self.params.consensus_params.threshold
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_DEPLOY_TRANSACTION,  # type: ignore
             contract_address=None,

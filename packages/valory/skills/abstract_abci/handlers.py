@@ -232,7 +232,7 @@ class ABCIHandler(Handler):
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
             target_message=message,
-            code=0,  # OKf"ABCI Handler: message={message}, sender={message.sender}"debug
+            code=0,  # OK
             data=b"",
             log="",
             info="",
