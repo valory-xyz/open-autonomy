@@ -21,7 +21,7 @@
 
 import hashlib
 from math import floor
-from typing import Dict, Generator, List, Optional, Type, Union
+from typing import Dict, Generator, List, Optional, Type, Union, cast
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
@@ -68,7 +68,7 @@ class RandomnessBehaviour(BaseState):
         )
 
         randomness = hashlib.sha256(
-            ledger_api_response.state.body.get("hash").encode()
+            cast(str, ledger_api_response.state.body.get("hash")).encode()
             + str(self.params.service_id).encode()
         ).hexdigest()
         return {"randomness": randomness, "round": 0}

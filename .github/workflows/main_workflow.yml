@@ -183,7 +183,7 @@ jobs:
       #      run: ...
       - name: Unit tests and coverage
         run: |
-          tox -e plugins-py${{ matrix.python_version }} -- -m 'not e2e'
+          tox -e py${{ matrix.python-version }} -- -m 'not e2e'
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
@@ -256,4 +256,4 @@ jobs:
 
       - name: Unit tests and coverage
         run: |
-          tox -e plugins-py${{ matrix.python_version }} -- -m 'e2e'
+          tox -e py${{ matrix.python-version }} -- -m 'e2e'
