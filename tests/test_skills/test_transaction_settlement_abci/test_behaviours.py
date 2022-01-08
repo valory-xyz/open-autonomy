@@ -211,7 +211,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             1,
                             1,
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
-                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                     ),
                 )
@@ -290,7 +290,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             1,
                             1,
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
-                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                     ),
                 )

@@ -60,7 +60,7 @@ benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
 
-def hex_to_payload(payload: str) -> Tuple[str, int, int, str, str]:
+def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:
     """Decode payload."""
     if len(payload) < 234:
         raise ValueError("cannot decode provided payload")  # pragma: nocover
@@ -68,7 +68,7 @@ def hex_to_payload(payload: str) -> Tuple[str, int, int, str, str]:
     ether_value = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
     safe_tx_gas = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
     to_address = payload[192:234]
-    data = payload[234:]
+    data = bytes.fromhex(payload[234:])
     return (tx_hash, ether_value, safe_tx_gas, to_address, data)
 
 

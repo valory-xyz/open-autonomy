@@ -311,7 +311,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_transmit_data",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
+                    ledger_id="ethereum", body={"data": b"data"}
                 ),
             ),
         )

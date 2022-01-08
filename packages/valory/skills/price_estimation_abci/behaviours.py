@@ -96,7 +96,7 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
 
 
 def payload_to_hex(
-    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: str
+    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
 ) -> str:
     """Serialise to a hex string."""
     if len(tx_hash) != 64:  # should be exactly 32 bytes!
@@ -105,7 +105,7 @@ def payload_to_hex(
     safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
     if len(to_address) != 42:
         raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data
+    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
     return concatenated
 
 
@@ -300,7 +300,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         ):  # pragma: nocover
             self.context.logger.warning("get_transmit_data unsuccessful!")
             return None
-        data = cast(str, contract_api_msg.raw_transaction.body["data"])
+        data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
         to_address = self.period_state.oracle_contract_address
         ether_value = ETHER_VALUE
         safe_tx_gas = SAFE_TX_GAS
