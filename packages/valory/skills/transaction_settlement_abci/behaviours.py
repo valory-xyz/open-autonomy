@@ -28,9 +28,6 @@ from typing import Generator, Optional, Tuple, cast
 from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.offchain_aggregator.contract import (
-    OffchainAggregatorContract,
-)
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import BaseState
 from packages.valory.skills.abstract_round_abci.common import (
@@ -59,22 +56,20 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-SAFE_TX_GAS = 4000000  # TOFIX
-ETHER_VALUE = 0  # TOFIX
-
 benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
 
-def hex_to_payload(payload: str) -> Tuple[str, int, int, int]:
+def hex_to_payload(payload: str) -> Tuple[str, int, int, str, str]:
     """Decode payload."""
-    if len(payload) != 106:
-        raise ValueError("cannot encode provided payload")  # pragma: nocover
+    if len(payload) < 234:
+        raise ValueError("cannot decode provided payload")  # pragma: nocover
     tx_hash = payload[:64]
-    epoch_ = int.from_bytes(bytes.fromhex(payload[64:72]), "big")
-    round_ = int.from_bytes(bytes.fromhex(payload[72:74]), "big")
-    amount_ = int.from_bytes(bytes.fromhex(payload[74:]), "big")
-    return (tx_hash, epoch_, round_, amount_)
+    ether_value = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
+    safe_tx_gas = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
+    to_address = payload[192:234]
+    data = payload[234:]
+    return (tx_hash, ether_value, safe_tx_gas, to_address, data)
 
 
 class TransactionSettlementBaseState(BaseState, ABC):
@@ -159,27 +154,9 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.final_tx_hash} not settled!"
             )
             return False
-        _, epoch_, round_, amount_ = hex_to_payload(
+        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
-        contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
-            contract_id=str(OffchainAggregatorContract.contract_id),
-            contract_callable="get_transmit_data",
-            epoch_=epoch_,
-            round_=round_,
-            amount_=amount_,
-        )
-        if (
-            contract_api_msg.performative
-            != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
-            self.context.logger.error(
-                f"get_transmit_data unsuccessful! Received: {contract_api_msg}"
-            )
-            return False
-        data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -187,10 +164,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             contract_callable="verify_tx",
             tx_hash=self.period_state.final_tx_hash,
             owners=tuple(self.period_state.participants),
-            to_address=self.period_state.oracle_contract_address,
-            value=ETHER_VALUE,
+            to_address=to_address,
+            value=ether_value,
             data=data,
-            safe_tx_gas=SAFE_TX_GAS,
+            safe_tx_gas=safe_tx_gas,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
@@ -248,11 +225,11 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         self.set_done()
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
+        """Get signature of safe transaction hash."""
+        safe_tx_hash, _, _, _, _ = hex_to_payload(self.period_state.most_voted_tx_hash)
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
-        safe_tx_hash_bytes = binascii.unhexlify(
-            self.period_state.most_voted_tx_hash[:64]
-        )
+        safe_tx_hash_bytes = binascii.unhexlify(safe_tx_hash)
         signature_hex = yield from self.get_signature(
             safe_tx_hash_bytes, is_deprecated_mode=True
         )
@@ -321,25 +298,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, epoch_, round_, amount_ = hex_to_payload(
+        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
-        contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-            contract_address=self.period_state.oracle_contract_address,
-            contract_id=str(OffchainAggregatorContract.contract_id),
-            contract_callable="get_transmit_data",
-            epoch_=epoch_,
-            round_=round_,
-            amount_=amount_,
-        )
-        if (
-            contract_api_msg.performative
-            != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
-            self.context.logger.warning("get_transmit_data unsuccessful!")
-            return None
-        data = contract_api_msg.raw_transaction.body["data"]
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -347,10 +308,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             contract_callable="get_raw_safe_transaction",
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
-            to_address=self.period_state.oracle_contract_address,
-            value=ETHER_VALUE,
+            to_address=to_address,
+            value=ether_value,
             data=data,
-            safe_tx_gas=SAFE_TX_GAS,
+            safe_tx_gas=safe_tx_gas,
             signatures_by_owner={
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
