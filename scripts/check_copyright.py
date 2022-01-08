@@ -30,7 +30,6 @@ It is assumed the script is run from the repository root.
 """
 
 import itertools
-import os
 import re
 import shutil
 import subprocess  # nosec
@@ -90,9 +89,8 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
         [str(GIT_PATH), "log", "-1", '--format="%ad"', "--", str(file)],
         stdout=subprocess.PIPE,
     ).communicate()
-    date_string_ = date_string.decode().split("\n")
-    ds = date_string_[-2].strip()
-    modification_date = datetime.strptime(ds, '"%a %b %d %X %Y %z"')
+    date_string_ = date_string.decode().strip()
+    modification_date = datetime.strptime(date_string_, '"%a %b %d %X %Y %z"')
 
     # Start year is not 2021
     if copyright_years[0] != 2021:
@@ -102,7 +100,7 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
     if len(copyright_years) == 1 and copyright_years[0] != modification_date.year:
         return (
             False,
-            f"Start year is 2021 but the file has been modified in another later year (missing -202x), date last modified {ds}",
+            f"Start year is 2021 but the file has been modified in another later year (missing -202x), date last modified {date_string_}",
         )
 
     # End year does not match the last modification year
@@ -113,7 +111,6 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
 
 
 if __name__ == "__main__":
-    print(f"env: {os.environ.get('CI')}, all: {os.environ}")
     exclude_files = {Path("scripts", "whitelist.py")}
     python_files = filter(
         lambda x: x not in exclude_files,
