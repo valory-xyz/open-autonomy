@@ -115,7 +115,7 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
 
 
 if __name__ == "__main__":
-    print(f"env: {os.environ.get("CI")}, all: {os.environ}")
+    print(f"env: {os.environ.get('CI')}, all: {os.environ}")
     exclude_files = {Path("scripts", "whitelist.py")}
     python_files = filter(
         lambda x: x not in exclude_files,
