@@ -430,6 +430,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
             ):
                 yield from self.start_reset()
                 if self._is_timeout_expired():
+                    # if the Tendermint node cannot update the app then the app cannot work
                     raise RuntimeError(  # pragma: no cover
                         "Error resetting tendermint node."
                     )

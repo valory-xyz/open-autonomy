@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ from packages.valory.protocols.http.dialogues import (
 from packages.valory.protocols.http.dialogues import (
     HttpDialogues as BaseHttpDialogues,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
 )
+from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogue as BaseLedgerApiDialogue,
 )
@@ -153,7 +154,49 @@ class SigningDialogues(Model, BaseSigningDialogues):
         )
 
 
-LedgerApiDialogue = BaseLedgerApiDialogue
+class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
+    BaseLedgerApiDialogue
+):
+    """The dialogue class maintains state of a dialogue and manages it."""
+
+    __slots__ = ("_terms",)
+
+    def __init__(
+        self,
+        dialogue_label: BaseDialogueLabel,
+        self_address: Address,
+        role: BaseDialogue.Role,
+        message_class: Type[LedgerApiMessage] = LedgerApiMessage,
+    ) -> None:
+        """
+        Initialize a dialogue.
+
+        :param dialogue_label: the identifier of the dialogue
+        :param self_address: the address of the entity for whom this dialogue is maintained
+        :param role: the role of the agent this dialogue is maintained for
+        :param message_class: the message class
+        """
+        BaseLedgerApiDialogue.__init__(
+            self,
+            dialogue_label=dialogue_label,
+            self_address=self_address,
+            role=role,
+            message_class=message_class,
+        )
+        self._terms = None  # type: Optional[Terms]
+
+    @property
+    def terms(self) -> Terms:
+        """Get the terms."""
+        if self._terms is None:
+            raise ValueError("Terms not set!")
+        return self._terms
+
+    @terms.setter
+    def terms(self, terms: Terms) -> None:
+        """Set the terms."""
+        enforce(self._terms is None, "Terms already set!")
+        self._terms = terms
 
 
 class LedgerApiDialogues(Model, BaseLedgerApiDialogues):

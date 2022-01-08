@@ -78,7 +78,9 @@ class OffchainAggregatorContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+    def verify_contract(
+        cls, ledger_api: EthereumApi, contract_address: str
+    ) -> JSONLike:
         """
         Verify the contract's bytecode
 
@@ -95,7 +97,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def get_transmit_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         epoch_: int,
         round_: int,
@@ -122,7 +124,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def get_latest_transmission_details(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
     ) -> JSONLike:
         """
@@ -173,7 +175,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def transmit(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         epoch_: int,
@@ -209,7 +211,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def latest_round_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
     ) -> Optional[JSONLike]:
         """
@@ -228,7 +230,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def _call(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         *method_args: Any,
@@ -242,7 +244,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         method_name: str,
@@ -272,7 +274,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def _build_transaction(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         sender_address: str,
         tx: Any,
         eth_value: int = 0,

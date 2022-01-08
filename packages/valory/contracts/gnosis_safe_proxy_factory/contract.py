@@ -81,7 +81,7 @@ class GnosisSafeProxyFactoryContract(Contract):
     @classmethod
     def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         proxy_factory_address: str,
         master_copy: str,
         address: str,
@@ -148,7 +148,9 @@ class GnosisSafeProxyFactoryContract(Contract):
         return transaction_dict, contract_address
 
     @classmethod
-    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+    def verify_contract(
+        cls, ledger_api: EthereumApi, contract_address: str
+    ) -> JSONLike:
         """
         Verify the contract's bytecode
 

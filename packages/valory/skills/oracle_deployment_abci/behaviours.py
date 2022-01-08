@@ -121,6 +121,10 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
+                # The oracle_deployment_abci app should only be used in staging.
+                # If the oracle contract deployment fails we abort. Alternatively,
+                # we could send a None payload and then transition into an appropriate
+                # round to handle the deployment failure.
                 raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 

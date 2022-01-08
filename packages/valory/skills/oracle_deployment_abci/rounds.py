@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -161,7 +161,10 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperOracleRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.DEPLOY_TIMEOUT: SelectKeeperOracleRound,  # if the round times out we try with a new keeper
+            # NOTE: Consider the case where the keeper does send the tx but doesn't share the hash.
+            # We do not need to check for this! A simple round timeout will do here as the agents
+            # do not care about this oracle instance.
             Event.FAILED: SelectKeeperOracleRound,  # the keeper was unsuccessful;
         },
         ValidateOracleRound: {
