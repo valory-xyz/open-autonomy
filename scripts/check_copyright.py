@@ -45,7 +45,7 @@ HEADER_REGEX = re.compile(
 )?# -\*- coding: utf-8 -\*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright (2021(-202\d)?) Valory AG
+#   Copyright ((2021|2022)(-202\d)?) Valory AG
 #
 #   Licensed under the Apache License, Version 2\.0 \(the "License"\);
 #   you may not use this file except in compliance with the License\.
@@ -90,17 +90,35 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
         stdout=subprocess.PIPE,
     ).communicate()
     date_string_ = date_string.decode().strip()
-    modification_date = datetime.strptime(date_string_, '"%a %b %d %X %Y %z"')
+    if date_string_ == "":
+        modification_date = datetime.now()
+    else:
+        modification_date = datetime.strptime(date_string_, '"%a %b %d %X %Y %z"')
 
-    # Start year is not 2021
-    if copyright_years[0] != 2021:
-        return False, "Start year is not 2021."
+    # Start year is not 2021 or 2022
+    if copyright_years[0] not in [2021, 2022]:
+        return False, "Start year is not 2021 or 2022."
 
-    # Start year is 2021 but the file has been modified in another later year (missing -202x)
-    if len(copyright_years) == 1 and copyright_years[0] != modification_date.year:
+    # Specified year is 2021 but the file has been last modified in another later year (missing -202x)
+    if (
+        copyright_years[0] == 2021
+        and len(copyright_years) == 1
+        and copyright_years[0] < modification_date.year
+    ):
         return (
             False,
-            f"Start year is 2021 but the file has been modified in another later year (missing -202x), date last modified {date_string_}",
+            f"Specified year is 2021 but the file has been last modified in another later year (missing -202x), date last modified {date_string_}",
+        )
+
+    # Specified year is 2022 but the file has been modified in an earlier year
+    if (
+        copyright_years[0] == 2022
+        and len(copyright_years) == 1
+        and copyright_years[0] > modification_date.year
+    ):
+        return (
+            False,
+            f"Specified year is 2022 but the file has been last modified in an earlier year, date last modified {date_string_}",
         )
 
     # End year does not match the last modification year
