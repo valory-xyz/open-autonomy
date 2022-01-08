@@ -30,6 +30,7 @@ It is assumed the script is run from the repository root.
 """
 
 import itertools
+import os
 import re
 import shutil
 import subprocess  # nosec
@@ -85,12 +86,14 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
 
     copyright_years_str = match.groups(0)[1]  # type: ignore
     copyright_years = tuple(int(i) for i in copyright_years_str.split("-"))
+    depth = "-2" if os.environ.get("CI") else "-1"
     date_string, _ = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
-        [str(GIT_PATH), "log", "-1", '--format="%ad"', "--", str(file)],
+        [str(GIT_PATH), "log", depth, '--format="%ad"', "--", str(file)],
         stdout=subprocess.PIPE,
     ).communicate()
+    date_string_ = date_string.decode().split("\n")
     modification_date = datetime.strptime(
-        date_string.decode().strip(), '"%a %b %d %X %Y %z"'
+        date_string_[-2].strip(), '"%a %b %d %X %Y %z"'
     )
 
     # Start year is not 2021
