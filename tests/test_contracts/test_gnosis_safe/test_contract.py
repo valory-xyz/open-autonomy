@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -82,8 +82,6 @@ class BaseContractTest(BaseGanacheContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -142,8 +140,6 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -172,15 +168,6 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-@pytest.mark.skip
-class TestDeployTransactionGanache(BaseContractTest):
-    """Test."""
-
-    def test_run(self) -> None:
-        """Run tests."""
-        # TOFIX: predeploy gnosis safe factory
-
-
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
@@ -193,8 +180,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             owners=self.owners(),
             threshold=int(self.threshold()),
             gas=DEFAULT_GAS,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
         assert type(result) == dict
         assert len(result) == 10
@@ -349,8 +334,6 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             to_address=receiver.address,
             value=value,
             data=data,
-            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             signatures_by_owner={
                 self.deployer_crypto.address.lower(): signatures_by_owners[
                     self.deployer_crypto.address

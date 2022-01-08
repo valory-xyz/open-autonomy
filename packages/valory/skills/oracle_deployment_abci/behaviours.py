@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -121,6 +121,10 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
+                # The oracle_deployment_abci app should only be used in staging.
+                # If the oracle contract deployment fails we abort. Alternatively,
+                # we could send a None payload and then transition into an appropriate
+                # round to handle the deployment failure.
                 raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
@@ -150,8 +154,6 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             _description=description,
             _transmitters=[self.period_state.safe_contract_address],
             gas=10 ** 7,
-            max_fee_per_gas=10 ** 10,  # TOFIX
-            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_response.performative

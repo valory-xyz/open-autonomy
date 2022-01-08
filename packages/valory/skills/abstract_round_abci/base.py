@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -836,15 +836,21 @@ class DegenerateRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
-        raise NotImplementedError("DegenerateRound should not be used in operation.")
+        raise NotImplementedError(  # pragma: nocover
+            "DegenerateRound should not be used in operation."
+        )
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        raise NotImplementedError("DegenerateRound should not be used in operation.")
+        raise NotImplementedError(  # pragma: nocover
+            "DegenerateRound should not be used in operation."
+        )
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """End block."""
-        raise NotImplementedError("DegenerateRound should not be used in operation.")
+        raise NotImplementedError(  # pragma: nocover
+            "DegenerateRound should not be used in operation."
+        )
 
 
 class CollectionRound(AbstractRound):

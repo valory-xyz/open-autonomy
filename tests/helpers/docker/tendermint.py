@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ from tests.helpers.docker.base import DockerImage
 
 DEFAULT_TENDERMINT_PORT = 26657
 DEFAULT_ABCI_PORT = 26658
-DEFAULT_PROXY_APP = f"tcp://host.docker.internal:{DEFAULT_ABCI_PORT}"
+# we need this because we want to connect from the Tendermint
+# Docker container to the ABCI server that lives in the host
+DEFAULT_ABCI_HOST = "host.docker.internal"
 
 _SLEEP_TIME = 1
 
@@ -40,13 +42,16 @@ class TendermintDockerImage(DockerImage):
     def __init__(
         self,
         client: docker.DockerClient,
+        abci_host: str = DEFAULT_ABCI_HOST,
+        abci_port: int = DEFAULT_ABCI_PORT,
         port: int = DEFAULT_TENDERMINT_PORT,
-        proxy_app: str = DEFAULT_PROXY_APP,
     ):
         """Initialize."""
         super().__init__(client)
+        self.abci_host = abci_host
+        self.abci_port = abci_port
         self.port = port
-        self.proxy_app = proxy_app
+        self.proxy_app = f"tcp://{self.abci_host}:{self.abci_port}"
 
     @property
     def tag(self) -> str:
@@ -64,12 +69,16 @@ class TendermintDockerImage(DockerImage):
         ports = {
             f"{DEFAULT_TENDERMINT_PORT}/tcp": ("0.0.0.0", self.port),  # nosec
         }
+        if self.abci_host == DEFAULT_ABCI_HOST:
+            extra_hosts_config = {self.abci_host: "host-gateway"}
+        else:
+            extra_hosts_config = {}
         container = self._client.containers.run(
             self.tag,
             command=cmd,
             detach=True,
             ports=ports,
-            extra_hosts={"host.docker.internal": "host-gateway"},
+            extra_hosts=extra_hosts_config,
         )
         return container
 

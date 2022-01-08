@@ -42,7 +42,7 @@ lint:
 	isort aea_consensus_algorithms packages/valory scripts tests
 	flake8 aea_consensus_algorithms packages/valory scripts tests
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills tests
+	darglint aea_consensus_algorithms scripts packages/valory/* tests
 
 .PHONY: pylint
 pylint:
@@ -153,6 +153,7 @@ new_env: clean
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
 	fi;\
+
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
@@ -163,3 +164,8 @@ new_env: clean
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
+
+.PHONY: install-hooks
+install-hooks:
+	@echo "Installing pre-push"
+	cp scripts/pre-push .git/hooks/pre-push

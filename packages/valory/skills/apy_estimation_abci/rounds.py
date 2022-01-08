@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -67,6 +67,38 @@ class Event(Enum):
 
 class PeriodState(BasePeriodState):
     """Class to represent a period state. This state is replicated by the tendermint application."""
+
+    @property
+    def history_hash(self) -> str:
+        """Get the most voted history hash."""
+        return cast(str, self.db.get_strict("most_voted_history"))
+
+    @property
+    def transformed_history_hash(self) -> str:
+        """Get the most voted transformed history hash."""
+        return cast(str, self.db.get_strict("most_voted_transform"))
+
+    @property
+    def train_hash(self) -> str:
+        """Get the most voted train hash."""
+        split = cast(str, self.db.get_strict("most_voted_split"))
+        return split[0 : int(len(split) / 2)]
+
+    @property
+    def test_hash(self) -> str:
+        """Get the most voted test hash."""
+        split = cast(str, self.db.get_strict("most_voted_split"))
+        return split[int(len(split) / 2) :]
+
+    @property
+    def params_hash(self) -> str:
+        """Get the most_voted_params."""
+        return cast(str, self.db.get_strict("most_voted_params"))
+
+    @property
+    def model_hash(self) -> str:
+        """Get the most_voted_model."""
+        return cast(str, self.db.get_strict("most_voted_model"))
 
     @property
     def most_voted_estimate(self) -> float:
@@ -388,10 +420,11 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
                 full_training=False,
+                n_estimations=self.period_state.n_estimations,
             )
             if self.round_id == "cycle_reset":
                 kwargs["pair_name"] = self.period_state.pair_name
-                kwargs["n_estimations"] = self.period_state.n_estimations
+                kwargs["most_voted_model"] = self.period_state.model_hash
             updated_state = self.period_state.update(**kwargs)
             return updated_state, Event.DONE
 

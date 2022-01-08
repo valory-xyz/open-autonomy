@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ class TestAPYParams:
             "tendermint_url": "test",
             "tendermint_com_url": "test",
             "reset_tendermint_after": "test",
+            "ipfs_domain_name": "test",
             "consensus": {"max_participants": 0},
             "max_healthcheck": "test",
             "round_timeout_seconds": "test",
@@ -77,6 +78,7 @@ class TestAPYParams:
             "testing": "test",
             "estimation": "test",
             "pair_ids": "test",
+            "service_id": "apy_estimation",
         }
 
         if param_value == "None":

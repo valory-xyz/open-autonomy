@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,7 +51,18 @@ class UseTendermint:
     @pytest.fixture(autouse=True)
     def _start_tendermint(self, tendermint: Any, tendermint_port: Any) -> None:
         """Start a Tendermint image."""
+        self._tendermint_image = tendermint
         self.tendermint_port = tendermint_port
+
+    @property
+    def abci_host(self) -> str:
+        """Get the abci host address."""
+        return self._tendermint_image.abci_host
+
+    @property
+    def abci_port(self) -> int:
+        """Get the abci port."""
+        return self._tendermint_image.abci_port
 
     @property
     def node_address(self) -> str:

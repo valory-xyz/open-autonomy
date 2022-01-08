@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 BASE_SETUP = """#!/usr/bin/bash
 sudo chown -R ubuntu:ubuntu /logs
+sudo chown -R ubuntu:ubuntu /packages
 """
 
 ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash
@@ -35,6 +36,8 @@ aea add-key ethereum
 
 aea config set agent.skill_exception_policy "just_log"
 aea config set agent.connection_exception_policy "just_log"
+aea config set vendor.valory.connections.abci.config.host "abci{node_id}"
+aea config set vendor.valory.connections.abci.config.port 26658 --type int
 aea config set vendor.valory.connections.abci.config.use_tendermint False
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants {max_participants}
 aea config set vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds 5

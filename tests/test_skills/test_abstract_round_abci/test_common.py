@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import Any, Type, cast
 from unittest import mock
 
+from packages.valory.protocols.contract_api.custom_types import State
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BasePeriodState, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 
@@ -200,9 +202,23 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             return_value=True,
         ):
             self.behaviour.act_wrapper()
-            state = cast(BaseState, self.behaviour.current_state)
-            assert state.state_id == self.randomness_behaviour_class.state_id
+            self.mock_ledger_api_request(
+                request_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.GET_STATE
+                ),
+                response_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.STATE,
+                    state=State(ledger_id="ethereum", body={"hash": "0xa"}),
+                ),
+            )
+
+            self.behaviour.act_wrapper()
+            self.mock_a2a_transaction()
             self._test_done_flag_set()
+            self.end_round(self.done_event)
+
+            state = cast(BaseState, self.behaviour.current_state)
+            assert state.state_id == self.next_behaviour_class.state_id
 
     def test_clean_up(
         self,

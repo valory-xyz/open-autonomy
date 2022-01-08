@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import logging
 import socket
 import time
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Generator, List, Tuple, cast
+from typing import Any, AsyncGenerator, Dict, Generator, Iterator, List, Tuple, cast
 from unittest.mock import MagicMock
 
 import docker
@@ -35,6 +35,7 @@ from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS, LedgerApi
 from aea.crypto.registries import ledger_apis_registry, make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 from aea_ledger_ethereum import (
     DEFAULT_EIP1559_STRATEGY,
     DEFAULT_GAS_STATION_STRATEGY,
@@ -58,7 +59,8 @@ from tests.helpers.docker.gnosis_safe_net import (
     GnosisSafeNetDockerImage,
 )
 from tests.helpers.docker.tendermint import (
-    DEFAULT_PROXY_APP,
+    DEFAULT_ABCI_HOST,
+    DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     TendermintDockerImage,
 )
@@ -103,6 +105,8 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
     },
 }
 
+ANY_ADDRESS = "0.0.0.0"  # nosec
+
 
 @pytest.fixture()
 def tendermint_port() -> int:
@@ -113,14 +117,15 @@ def tendermint_port() -> int:
 @pytest.fixture(scope="function")
 def tendermint(
     tendermint_port: Any,
-    proxy_app: str = DEFAULT_PROXY_APP,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
     """Launch the Ganache image."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
-    image = TendermintDockerImage(client, tendermint_port, proxy_app)
+    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -350,8 +355,6 @@ def gnosis_safe_contract(
         ledger_api=ledger_api,
         deployer_address=crypto.address,
         gas=5000000,
-        max_fee_per_gas=10 ** 10,
-        max_priority_fee_per_gas=10 ** 10,
         owners=owners,
         threshold=threshold,
     )
@@ -368,3 +371,14 @@ def gnosis_safe_contract(
     assert receipt is not None
     # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
     yield contract, contract_address
+
+
+@pytest.fixture(scope="module")
+def ipfs_daemon() -> Iterator[bool]:
+    """Starts an IPFS daemon for the tests."""
+    print("Starting IPFS daemon...")
+    daemon = IPFSDaemon(offline=True)
+    daemon.start()
+    yield daemon.is_started()
+    print("Tearing down IPFS daemon...")
+    daemon.stop()

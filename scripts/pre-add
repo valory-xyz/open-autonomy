@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+function run_check(){
+    tox -e $1
+    if [ "$?" = "1" ]
+    then
+        echo "$1 check failed."
+        exit 1
+    fi
+}
+
+run_check black
+run_check isort

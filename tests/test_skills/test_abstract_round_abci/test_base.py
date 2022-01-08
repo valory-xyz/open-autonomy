@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -901,6 +901,10 @@ class TestAbciApp:
         height = self.abci_app.current_round_height
         self.abci_app.update_time(current_time)
         assert height == self.abci_app.current_round_height
+
+    def test_get_all_events(self) -> None:
+        """Test the all events getter."""
+        assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
 
 
 class TestPeriod:

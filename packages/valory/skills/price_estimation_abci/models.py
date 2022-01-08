@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,17 @@ MULTIPLIER = 2
 Requests = BaseRequests
 
 
-Params = BaseParams
+class Params(BaseParams):
+    """Parameters."""
+
+    observation_aggregator_function: str
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters object."""
+        self.observation_aggregator_function = self._ensure(
+            "observation_aggregator_function", kwargs
+        )
+        super().__init__(*args, **kwargs)
 
 
 class SharedState(BaseSharedState):

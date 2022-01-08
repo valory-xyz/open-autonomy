@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -78,7 +78,9 @@ class OffchainAggregatorContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+    def verify_contract(
+        cls, ledger_api: EthereumApi, contract_address: str
+    ) -> JSONLike:
         """
         Verify the contract's bytecode
 
@@ -95,7 +97,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def get_transmit_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         epoch_: int,
         round_: int,
@@ -122,7 +124,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def get_latest_transmission_details(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
     ) -> JSONLike:
         """
@@ -173,7 +175,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def transmit(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         epoch_: int,
@@ -209,7 +211,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def latest_round_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
     ) -> Optional[JSONLike]:
         """
@@ -228,7 +230,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def _call(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         *method_args: Any,
@@ -242,7 +244,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         method_name: str,
@@ -272,7 +274,7 @@ class OffchainAggregatorContract(Contract):
     @classmethod
     def _build_transaction(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         sender_address: str,
         tx: Any,
         eth_value: int = 0,
@@ -288,12 +290,18 @@ class OffchainAggregatorContract(Contract):
             "value": eth_value,
         }
         if gas is not None:
-            tx_params["gas"] = gas  # pragma: nocover
+            tx_params["gas"] = gas
         if gas_price is not None:
-            tx_params["gasPrice"] = gas_price
+            tx_params["gasPrice"] = gas_price  # pragma: nocover
         if max_fee_per_gas is not None:
-            tx_params["maxFeePerGas"] = max_fee_per_gas
-        if max_priority_fee_per_gas is not None:
+            tx_params["maxFeePerGas"] = max_fee_per_gas  # pragma: nocover
+        if max_priority_fee_per_gas is not None:  # pragma: nocover
             tx_params["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_params.update(ledger_api.try_get_gas_pricing())
         tx = tx.buildTransaction(tx_params)
         return tx

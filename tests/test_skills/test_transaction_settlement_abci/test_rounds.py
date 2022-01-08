@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,12 +20,15 @@
 """Tests for valory/registration_abci skill's rounds."""
 
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, Optional, cast
+from typing import Dict, FrozenSet, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
 )
-from packages.valory.skills.abstract_round_abci.base import StateDB
+from packages.valory.skills.abstract_round_abci.base import (
+    CollectSameUntilThresholdRound,
+    StateDB,
+)
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -47,9 +50,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    ResetRound as ConsensusReachedRound,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
+    ResetAndPauseRound,
+    ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
@@ -121,6 +123,11 @@ def get_most_voted_keeper_address() -> str:
 
 def get_safe_contract_address() -> str:
     """safe_contract_address"""
+    return "0x6f6ab56aca12"
+
+
+def get_oracle_contract_address() -> str:
+    """oracle_contract_address"""
     return "0x6f6ab56aca12"
 
 
@@ -264,9 +271,10 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
         self._test_no_majority_event(test_round)
 
 
-class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test ConsensusReachedRound."""
+class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
+    """Test ResetRound."""
 
+    test_class: Type[CollectSameUntilThresholdRound]
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
 
@@ -275,8 +283,12 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Runs tests."""
 
-        test_round = ConsensusReachedRound(
-            state=self.period_state, consensus_params=self.consensus_params
+        period_state = self.period_state.update(
+            oracle_contract_address=get_oracle_contract_address(),
+            safe_contract_address=get_safe_contract_address(),
+        )
+        test_round = self.test_class(
+            state=period_state, consensus_params=self.consensus_params
         )
         next_period_count = 1
         self._complete_run(
@@ -288,6 +300,8 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     period_count=next_period_count,
                     participants=self.participants,
+                    oracle_contract_address=_period_state.oracle_contract_address,
+                    safe_contract_address=_period_state.safe_contract_address,
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],
                 most_voted_payload=next_period_count,
@@ -296,11 +310,26 @@ class TestConsensusReachedRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
+class TestResetRound(BaseResetRoundTest):
+    """Test ResetRound."""
+
+    test_class = ResetRound
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
+
+
+class TestResetAndPauseRound(BaseResetRoundTest):
+    """Test ResetAndPauseRound."""
+
+    test_class = ResetAndPauseRound
+    _period_state_class = TransactionSettlementPeriodState
+    _event_class = TransactionSettlementEvent
+
+
 class TestValidateTransactionRound(BaseValidateRoundTest):
     """Test ValidateRound."""
 
     test_class = ValidateTransactionRound
-    test_payload = ValidatePayload
     _event_class = TransactionSettlementEvent
     _period_state_class = TransactionSettlementPeriodState
 
@@ -314,7 +343,7 @@ def test_period_states() -> None:
     participant_to_selection = get_participant_to_selection(participants)
     most_voted_keeper_address = get_most_voted_keeper_address()
     safe_contract_address = get_safe_contract_address()
-    oracle_contract_address = get_safe_contract_address()
+    oracle_contract_address = get_oracle_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
     final_tx_hash = get_final_tx_hash()

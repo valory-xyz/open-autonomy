@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 
 from abc import ABC
+from decimal import Decimal
 from typing import Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -89,8 +90,8 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     decimal_places = most_voted_estimate_[::-1].find(".")
     if decimal_places > decimals:
         most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
-    most_voted_estimate = float(most_voted_estimate_)
-    int_value = int(most_voted_estimate * (10 ** decimals))
+    most_voted_estimate_decimal = Decimal(most_voted_estimate_)
+    int_value = int(most_voted_estimate_decimal * (10 ** decimals))
     return int_value
 
 
@@ -136,6 +137,7 @@ class ObserveBehaviour(PriceEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
+
         if self.context.price_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round, otherwise we should restart?
             with benchmark_tool.measure(
@@ -206,11 +208,16 @@ class EstimateBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
+
+            self.period_state.set_aggregator_method(
+                self.params.observation_aggregator_function
+            )
             self.context.logger.info(
-                "Got estimate of %s price in %s: %s",
+                "Got estimate of %s price in %s: %s, Using aggregator method: %s",
                 self.context.price_api.currency_id,
                 self.context.price_api.convert_id,
                 self.period_state.estimate,
+                self.params.observation_aggregator_function,
             )
             payload = EstimatePayload(
                 self.context.agent_address, self.period_state.estimate

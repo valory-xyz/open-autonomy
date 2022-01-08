@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ def launch_image(
     else:
         logger.info("Done!")
         time.sleep(timeout)
-        yield
+        yield image
         logger.info(f"Stopping the image {image.tag}...")
         container.stop()
         logger.info("Logs from container:\n%s", container.logs().decode())

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 """Tools for the APY skill."""
 import json
 import os
-import time
 from typing import Any, Dict, Iterator, Optional, Union
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
@@ -32,18 +31,18 @@ HyperParamsType = Dict[str, Any]
 StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
 
 
-def gen_unix_timestamps(duration: int) -> Iterator[int]:
+def gen_unix_timestamps(synced_now: int, duration: int) -> Iterator[int]:
     """Generate the UNIX timestamps from `duration` months ago up to today.
 
+    :param synced_now: the synced time across the agents.
     :param duration: the duration of the timestamps to be returned, in months (more precisely, in 30 days).
     :yields: the UNIX timestamps.
     """
     day_in_unix = 24 * 60 * 60
 
-    now = int(time.time())
-    duration_before = now - (duration * 30 * day_in_unix)
+    duration_before = synced_now - (duration * 30 * day_in_unix)
 
-    for day in range(duration_before, now, day_in_unix):
+    for day in range(duration_before, synced_now, day_in_unix):
         yield day
 
 

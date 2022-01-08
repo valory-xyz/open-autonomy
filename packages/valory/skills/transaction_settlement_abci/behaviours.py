@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -355,8 +355,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            max_fee_per_gas=10 ** 10,  # TOFIX
-            max_priority_fee_per_gas=10 ** 10,
         )
         if (
             contract_api_msg.performative
@@ -432,6 +430,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
             ):
                 yield from self.start_reset()
                 if self._is_timeout_expired():
+                    # if the Tendermint node cannot update the app then the app cannot work
                     raise RuntimeError(  # pragma: no cover
                         "Error resetting tendermint node."
                     )

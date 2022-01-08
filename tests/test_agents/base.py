@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 import json
 import logging
 import time
+import warnings
 from pathlib import Path
 from typing import List, Tuple
 
@@ -35,6 +36,7 @@ from tests.helpers.tendermint_utils import (
 )
 
 
+@pytest.mark.e2e
 class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
@@ -151,9 +153,12 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
-            assert self.is_successfully_terminated(
-                process
-            ), "ABCI agent wasn't successfully terminated."
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
 
 
 class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
@@ -190,6 +195,9 @@ class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
-            assert self.is_successfully_terminated(
-                process
-            ), "ABCI agent wasn't successfully terminated."
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )

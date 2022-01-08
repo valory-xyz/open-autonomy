@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -61,12 +61,12 @@ class RandomnessPayload(BaseTxPayload):
     @property
     def round_id(self) -> int:
         """Get the round id."""
-        return self._round_id
+        return self._round_id  # pragma: nocover
 
     @property
     def randomness(self) -> str:
         """Get the randomness."""
-        return self._randomness
+        return self._randomness  # pragma: nocover
 
     @property
     def data(self) -> Dict:

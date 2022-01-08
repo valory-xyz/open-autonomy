@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
+from io import BytesIO
 from typing import Any, Callable, List, cast
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -31,12 +33,16 @@ from aea.identity.base import Identity
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
+from hypothesis import given
+from hypothesis.strategies import integers
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (
     ABCIServerConnection,
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
+    DecodeVarintError,
+    ShortBufferLengthError,
     _TendermintABCISerializer,
 )
 from packages.valory.protocols.abci import AbciMessage
@@ -56,6 +62,7 @@ from packages.valory.protocols.abci.custom_types import (  # type: ignore
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
+from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseTendermint
 from tests.helpers.async_utils import (
     AnotherThreadTask,
@@ -422,7 +429,9 @@ async def test_connection_standalone_tendermint_setup() -> None:
         target_skill_id="dummy_author/dummy:0.1.0",
         use_tendermint=True,
         tendermint_config=dict(
-            rpc_laddr="0.0.0.0:26657", p2p_laddr="0.0.0.0:26656", p2p_seeds=[]
+            rpc_laddr=f"{ANY_ADDRESS}:26657",
+            p2p_laddr=f"{ANY_ADDRESS}:26656",
+            p2p_seeds=[],
         ),
     )
     connection = ABCIServerConnection(
@@ -438,6 +447,38 @@ def test_encode_varint_method() -> None:
     assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
     assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
     assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
+
+
+@given(integers(min_value=0))
+def test_encode_decode_varint(value: int) -> None:
+    """Test that encoding and decoding works."""
+    encoder = _TendermintABCISerializer.encode_varint
+    decoder = _TendermintABCISerializer.decode_varint
+    assert decoder(BytesIO(encoder(value))) == value
+
+
+def test_decode_varint_raises_exception_when_failing() -> None:
+    """Test that decode_varint raises exception when the decoding fails."""
+    with pytest.raises(DecodeVarintError, match="could not decode varint"):
+        _TendermintABCISerializer.decode_varint(BytesIO(b""))
+
+
+def test_read_messages_raises_short_buffer_length_error_when_length_wrong() -> None:
+    """
+    Test _TendermintABCISerializer.read_messages().
+
+    Test that the function raises ShortBufferLengthError when the
+    varint encoded length of the data is greater than the actual
+    length of the buffer.
+    """
+    with pytest.raises(ShortBufferLengthError):
+        # '42' encoded as varint
+        expected_length_encoded = b"T"
+        # to make this test to work, length(message) < expected_length_encoded
+        message = expected_length_encoded + b"too_short_buffer"
+        buffer = BytesIO(message)
+        generator = _TendermintABCISerializer.read_messages(buffer, MagicMock())
+        next(generator)
 
 
 def test_dep_util() -> None:
