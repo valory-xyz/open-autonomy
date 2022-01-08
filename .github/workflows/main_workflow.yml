@@ -29,6 +29,32 @@ jobs:
           pipenv run pip install -e .[all]
           pipenv lock
 
+  copyright_checks:
+    continue-on-error: False
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@master
+    - name: Install dependencies
+      run:  |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install tox
+        pip install --user --upgrade setuptools
+    - name: Check copyright
+      run: tox -e check-copyright
+
   linter_checks:
     continue-on-error: False
     runs-on: ${{ matrix.os }}
@@ -66,8 +92,6 @@ jobs:
       run: |
         tox -e bandit
         tox -e safety
-    - name: Check copyright
-      run: tox -e check-copyright
     - name: Check packages
       run: tox -e check-packages
     - name: Check hash
