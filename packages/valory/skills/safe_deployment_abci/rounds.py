@@ -155,7 +155,11 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # if the round times out we try with a new keeper;
+            # NOTE: Consider the case where the keeper does send the tx but doesn't share the hash.
+            # We do not need to check for this! A simple round timeout will do here as the safe is
+            # either unusable by the keeper (requiring the other agent's to sign) or simply has signers which are
+            # different to the other agents and therefore they don't care about this safe instance.
             Event.FAILED: SelectKeeperSafeRound,  # the keeper was unsuccessful;
         },
         ValidateSafeRound: {
