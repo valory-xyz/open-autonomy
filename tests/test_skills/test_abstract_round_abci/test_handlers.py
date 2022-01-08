@@ -104,7 +104,7 @@ class TestABCIRoundHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_CHECK_TX
-        assert response.code == OK_CODE
+        assert response.code == ERROR_CODE
 
     @mock.patch(
         "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
@@ -136,7 +136,7 @@ class TestABCIRoundHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
-        assert response.code == OK_CODE
+        assert response.code == ERROR_CODE
 
     @mock.patch(
         "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
