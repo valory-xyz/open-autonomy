@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 valory
+#   Copyright 2022 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ _default_logger = logging.getLogger("aea.packages.valory.protocols.abci.message"
 DEFAULT_BODY_SIZE = 4
 
 
-class AbciMessage(Message):  # pylint: disable=too-many-public-methods
+class AbciMessage(Message):
     """A protocol for ABCI requests and responses."""
 
     protocol_id = PublicId.from_str("valory/abci:0.1.0")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 valory
+#   Copyright 2022 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class AbciSerializer(Serializer):
     """Serialization for the 'abci' protocol."""
 
     @staticmethod
-    def encode(msg: Message) -> bytes:  # pylint: disable=too-many-branches
+    def encode(msg: Message) -> bytes:
         """
         Encode a 'Abci' message into bytes.
 
@@ -349,7 +349,7 @@ class AbciSerializer(Serializer):
         return message_bytes
 
     @staticmethod
-    def decode(obj: bytes) -> Message:  # pylint: disable=too-many-branches
+    def decode(obj: bytes) -> Message:
         """
         Decode bytes into a 'Abci' message.
 

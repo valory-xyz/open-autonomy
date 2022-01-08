@@ -28,6 +28,7 @@ from tests.conftest import ANY_ADDRESS
 from tests.fixture_helpers import UseTendermint
 
 
+@pytest.mark.e2e
 @pytest.mark.integration
 class TestABCISkill(AEATestCaseMany, UseTendermint):
     """Test that the ABCI skill works together with Tendermint."""

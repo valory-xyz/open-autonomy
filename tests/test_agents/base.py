@@ -36,6 +36,7 @@ from tests.helpers.tendermint_utils import (
 )
 
 
+@pytest.mark.e2e
 class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
