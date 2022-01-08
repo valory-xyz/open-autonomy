@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -198,7 +198,7 @@ class IPFSDaemon:
         res = shutil.which("ipfs")
         if res is None:
             raise Exception("Please install IPFS first!")
-        process = subprocess.Popen(  # nosec
+        process = subprocess.Popen(  # nosec  # pylint: disable=consider-using-with
             ["ipfs", "--version"],
             stdout=subprocess.PIPE,
             env=os.environ.copy(),
@@ -218,7 +218,7 @@ class IPFSDaemon:
             env=os.environ.copy(),
         )
         empty_outputs = 0
-        for stdout_line in iter(self.process.stdout.readline, ""):
+        for stdout_line in iter(self.process.stdout.readline, ""):  # type: ignore
             if b"Daemon is ready" in stdout_line:
                 break
             if stdout_line == b"":
@@ -230,7 +230,7 @@ class IPFSDaemon:
         """Terminate the ipfs daemon."""
         if self.process is None:
             return
-        self.process.stdout.close()
+        self.process.stdout.close()  # type: ignore
         self.process.send_signal(signal.SIGTERM)
         self.process.wait(timeout=30)
         poll = self.process.poll()
@@ -409,7 +409,6 @@ def update_hashes(vendor: str = "") -> int:
     """
     Process all AEA packages, update fingerprint, and update hashes.csv files.
 
-    :param timeout: timeout to the update.
     :param vendor: vendor to hash packages from
     :return: exit code. 0 for success, 1 if an exception occurred.
     """
@@ -489,7 +488,6 @@ def check_hashes(vendor: str = "") -> int:
     """
     Check fingerprints and outer hash of all AEA packages.
 
-    :param timeout: timeout to the check.
     :param vendor: vendor to hash packages from
     :return: exit code. 1 if some fingerprint/hash don't match
         or if an exception occurs, 0 in case of success.
