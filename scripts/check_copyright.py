@@ -86,15 +86,13 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
 
     copyright_years_str = match.groups(0)[1]  # type: ignore
     copyright_years = tuple(int(i) for i in copyright_years_str.split("-"))
-    depth = "-2" if os.environ.get("CI") else "-1"
     date_string, _ = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
-        [str(GIT_PATH), "log", depth, '--format="%ad"', "--", str(file)],
+        [str(GIT_PATH), "log", "-1", '--format="%ad"', "--", str(file)],
         stdout=subprocess.PIPE,
     ).communicate()
     date_string_ = date_string.decode().split("\n")
-    modification_date = datetime.strptime(
-        date_string_[-2].strip(), '"%a %b %d %X %Y %z"'
-    )
+    ds = date_string_[-2].strip()
+    modification_date = datetime.strptime(ds, '"%a %b %d %X %Y %z"')
 
     # Start year is not 2021
     if copyright_years[0] != 2021:
@@ -104,7 +102,7 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
     if len(copyright_years) == 1 and copyright_years[0] != modification_date.year:
         return (
             False,
-            f"Start year is 2021 but the file has been modified in another later year (missing -202x), date last modified {date_string.decode().strip()}",
+            f"Start year is 2021 but the file has been modified in another later year (missing -202x), date last modified {ds}",
         )
 
     # End year does not match the last modification year
