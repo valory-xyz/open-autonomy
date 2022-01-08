@@ -11,25 +11,32 @@ jobs:
   lock_check:
     continue-on-error: False
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-python@master
-        with:
-          python-version: 3.6
-      - name: Install dependencies (ubuntu-latest)
-        run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get autoremove
-          sudo apt-get autoclean
-          pip install pipenv
-      - name: Pipenv install requirements and check it can be locked
-        run: |
-          pipenv install --dev --skip-lock
-          pipenv run pip install -e .[all]
-          pipenv lock
 
-  copyright_checks:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sudo apt-get update --fix-missing
+        sudo apt-get autoremove
+        sudo apt-get autoclean
+        pip install pipenv
+    - name: Pipenv install requirements and check it can be locked
+      run: |
+        pipenv install --dev --skip-lock
+        pipenv run pip install -e .[all]
+        pipenv lock
+
+  copyright_check:
     continue-on-error: False
     runs-on: ${{ matrix.os }}
 
@@ -45,6 +52,8 @@ jobs:
       with:
         fetch-depth: 0
     - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run:  |
         sudo apt-get update --fix-missing
@@ -112,6 +121,7 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
+      - copyright_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
@@ -132,7 +142,8 @@ jobs:
         with:
           submodules: recursive
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - if: matrix.os == 'ubuntu-latest'
+        name: Install dependencies (ubuntu-latest)
         run: |
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
@@ -170,9 +181,6 @@ jobs:
             yarn
 
       #    # set up environment depending on the platform in use
-      #    - if: matrix.os == 'ubuntu-latest'
-      #      name: Install dependencies (ubuntu-latest)
-      #      run: ...
       #    - if: matrix.os == 'macos-latest'
       #      name: Install dependencies (macos-latest)
       #      run: ...
@@ -181,10 +189,11 @@ jobs:
       #      env:
       #        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       #      run: ...
-      - name: Unit tests and coverage
+      - name: Unit tests
         run: |
           tox -e py${{ matrix.python-version }} -- -m 'not e2e'
-      - name: Upload coverage to Codecov
+      - if: matrix.os == 'ubuntu-latest' 
+        name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -197,13 +206,14 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
+      - copyright_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ ubuntu-latest ] # TODO add [macos-latest, windows-latest]
-        python-version: [ 3.7 ] # TODO add [3.6, 3.7, 3.8, 3.9]
+        os: [ ubuntu-latest ]
+        python-version: [ 3.7 ]
 
     timeout-minutes: 30
 
@@ -254,6 +264,6 @@ jobs:
           cd third_party/contracts-amm &&\
             yarn
 
-      - name: Unit tests and coverage
+      - name: Unit tests
         run: |
           tox -e py${{ matrix.python-version }} -- -m 'e2e'

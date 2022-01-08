@@ -168,15 +168,6 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
 
-@pytest.mark.skip
-class TestDeployTransactionGanache(BaseContractTest):
-    """Test."""
-
-    def test_run(self) -> None:
-        """Run tests."""
-        # TOFIX: predeploy gnosis safe factory
-
-
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 

@@ -60,6 +60,17 @@ def test_dialogues_creation(
     )
 
 
+def test_ledger_api_dialogue() -> None:
+    """Test 'LedgerApiDialogue' creation."""
+    dialogue = LedgerApiDialogue(MagicMock(), "", MagicMock())
+    with pytest.raises(ValueError, match="Terms not set!"):
+        dialogue.terms
+
+    expected_terms = MagicMock()
+    dialogue.terms = expected_terms
+    assert expected_terms == dialogue.terms
+
+
 def test_contract_api_dialogue() -> None:
     """Test 'ContractApiDialogue' creation."""
     dialogue = ContractApiDialogue(MagicMock(), "", MagicMock())
