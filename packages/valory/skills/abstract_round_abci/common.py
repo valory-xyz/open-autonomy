@@ -19,16 +19,19 @@
 
 """This module contains the behaviours, round and payloads for the 'abstract_round_abci' skill."""
 
+import hashlib
 from math import floor
-from typing import Generator, List, Type
+from typing import Dict, Generator, List, Optional, Type, Union, cast
 
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 
 
-benchmark_tool = BenchmarkTool()
+RandomnessObservation = Optional[Dict[str, Union[str, int]]]
 
+benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
 
@@ -53,7 +56,7 @@ class RandomnessBehaviour(BaseState):
         self,
     ) -> Generator[None, None, RandomnessObservation]:
         """
-        This methods provides a failsafe for randomeness retrival.
+        This methods provides a failsafe for randomness retrieval.
 
         :return: derived randomness
         :yields: derived randomness
@@ -87,13 +90,35 @@ class RandomnessBehaviour(BaseState):
                 self.context.logger.info("DRAND check successful.")
             else:
                 self.context.logger.info(f"DRAND check failed, {error}.")
-                observation["randomness"] = ""
-                observation["round"] = ""
+                return None
+        return observation
 
+    def async_act(self) -> Generator:
+        """
+        Retrieve randomness from API.
+
+        Steps:
+        - Do a http request to the API.
+        - Retry until reciving valid values for randomness or retries exceed.
+        - If retrieved values are valid continue else generate randomness from chain.
+        """
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            if self.context.randomness_api.is_retries_exceeded():
+                self.context.logger.info("Cannot retrieve randomness from api.")
+                self.context.logger.info("Generating randomness from chain.")
+                observation = yield from self.failsafe_randomness()
+            else:
+                self.context.logger.info("Retrieving DRAND values from api.")
+                observation = yield from self.get_randomness_from_api()
+                self.context.logger.info(f"Retrieved DRAND values: {observation}.")
+
+        if observation:
             payload = self.payload_class(  # type: ignore
                 self.context.agent_address,
-                observation["round"],
-                observation["randomness"],
+                round_id=observation["round"],
+                randomness=observation["randomness"],
             )
             with benchmark_tool.measure(
                 self,
