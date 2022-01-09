@@ -155,19 +155,32 @@ class FinishedPriceAggregationRound(DegenerateRound):
 
 
 class PriceAggregationAbciApp(AbciApp[Event]):
-    """Price estimation ABCI application.
+    """PriceAggregationAbciApp
 
-    State transitions:
-    1. Start with collecting observations
-        - if successful: transition to consensus round
-        - if timeout or no majority: restart period
-    2. Consensus round
-        - if successful: transition to transaction hash round
-        - if timeout or no majority: restart period
-    3. Transaction hash round
-        - if successful: transition to price aggregation round
-        - if none, timeout or no majority: restart period
-    4. Finished with price aggregation round
+    Initial round: CollectObservationRound
+
+    Initial states:
+
+    Transition states:
+    0. CollectObservationRound
+        - done: 1.
+        - round timeout: 0.
+        - no majority: 0.
+    1. EstimateConsensusRound
+        - done: 2.
+        - round timeout: 0.
+        - no majority: 0.
+    2. TxHashRound
+        - done: 3.
+        - none: 0.
+        - round timeout: 0.
+        - no majority: 0.
+    3. FinishedPriceAggregationRound
+
+    Final states: FinishedPriceAggregationRound
+
+    Timeouts:
+        round timeout: 30.0
     """
 
     initial_round_cls: Type[AbstractRound] = CollectObservationRound

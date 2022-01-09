@@ -221,7 +221,7 @@ class RandomnessBehaviour(SimpleABCIBaseState):
 
 
 class RandomnessAtStartupBehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
+    """Retrieve randomness at startup."""
 
     state_id = "retrieve_randomness_at_startup"
     matching_round = RandomnessStartupRound

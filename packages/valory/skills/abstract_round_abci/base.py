@@ -854,12 +854,11 @@ class DegenerateRound(AbstractRound):
 
 
 class CollectionRound(AbstractRound):
-    """
-    CollectionRound.
+    """CollectionRound
 
     This class represents abstract logic for collection based rounds where
     the round object needs to collect data from different agents. The data
-    maybe same for a voting round or different like estimate round.
+    might for example be from a voting round or estimation round.
     """
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -899,11 +898,10 @@ class CollectionRound(AbstractRound):
 
 
 class CollectDifferentUntilAllRound(AbstractRound):
-    """
-    CollectDifferentUntilAllRound
+    """CollectDifferentUntilAllRound
 
     This class represents logic for rounds where a round needs to collect
-    different payloads from each agent.
+    different payloads from each agent until a certain threshold is surpassed.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -936,8 +934,7 @@ class CollectDifferentUntilAllRound(AbstractRound):
 
 
 class CollectSameUntilThresholdRound(CollectionRound):
-    """
-    CollectSameUntilThresholdRound
+    """CollectSameUntilThresholdRound
 
     This class represents logic for rounds where a round needs to collect
     same payload from k of n agents.
@@ -997,8 +994,7 @@ class CollectSameUntilThresholdRound(CollectionRound):
 
 
 class OnlyKeeperSendsRound(AbstractRound):
-    """
-    OnlyKeeperSendsRound
+    """OnlyKeeperSendsRound
 
     This class represents logic for rounds where only one agent sends a
     payload
@@ -1073,8 +1069,7 @@ class OnlyKeeperSendsRound(AbstractRound):
 
 
 class VotingRound(CollectionRound):
-    """
-    VotingRound
+    """VotingRound
 
     This class represents logic for rounds where a round needs votes from
     agents, pass if k same votes of n agents
@@ -1132,8 +1127,7 @@ class VotingRound(CollectionRound):
 
 
 class CollectDifferentUntilThresholdRound(CollectionRound):
-    """
-    CollectDifferentUntilThresholdRound
+    """CollectDifferentUntilThresholdRound
 
     This class represents logic for rounds where a round needs to collect
     different payloads from k of n agents
@@ -1200,7 +1194,7 @@ class Timeouts(Generic[EventType]):
         # the same priority are returned in the order they were added
         self._counter = itertools.count()
 
-        # The timeout priority queue keeps the the earliest deadline at the top.
+        # The timeout priority queue keeps the earliest deadline at the top.
         self._heap: List[TimeoutEvent[EventType]] = []
 
         # Mapping from entry id to task
@@ -1232,7 +1226,7 @@ class Timeouts(Generic[EventType]):
         """Pop earliest cancelled timeouts."""
         if len(self) == 0:
             return
-        entry = self._heap[0]
+        entry = self._heap[0]  # heap peek
         while entry.cancelled:
             self.pop_timeout()
             if len(self) == 0:

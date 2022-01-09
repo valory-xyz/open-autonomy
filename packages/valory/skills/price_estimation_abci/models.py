@@ -102,10 +102,14 @@ class RandomnessApi(ApiSpecs):
 
 
 class PriceApi(ApiSpecs):
-    """A model that wraps ApiSpecs for various cryptocurrency price api specifications."""
+    """A model that wraps ApiSpecs for various cryptocurrency price api specifications.
 
-    convert_id: str
+    currency_id: currency id to be converted
+    convert_id: target currency id
+    """
+
     currency_id: str
+    convert_id: str
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize PriceApi."""

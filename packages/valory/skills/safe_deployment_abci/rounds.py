@@ -139,31 +139,64 @@ class FinishedSafeRound(DegenerateRound):
 
 
 class SafeDeploymentAbciApp(AbciApp[Event]):
-    """Safe deployment ABCI application."""
+    """SafeDeploymentAbciApp
+
+    Initial round: RandomnessSafeRound
+
+    Initial states:
+
+    Transition states:
+    0. RandomnessSafeRound
+        - done: 1.
+        - round timeout: 0.
+        - no majority: 0.
+    1. SelectKeeperSafeRound
+        - done: 2.
+        - round timeout: 0.
+        - no majority: 0.
+    2. DeploySafeRound
+        - done: 3.
+        - deploy timeout: 1.
+        - failed: 1.
+    3. ValidateSafeRound
+        - done: 4.
+        - negative: 0.
+        - none: 0.
+        - validate timeout: 0.
+        - no majority: 0.
+    4. FinishedSafeRound
+
+    Final states: FinishedSafeRound
+
+    Timeouts:
+        round timeout: 30.0
+        validate timeout: 30.0
+        deploy timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RandomnessSafeRound
     transition_function: AbciAppTransitionFunction = {
         RandomnessSafeRound: {
             Event.DONE: SelectKeeperSafeRound,
-            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessSafeRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,
+            Event.NO_MAJORITY: RandomnessSafeRound,
         },
         SelectKeeperSafeRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,
+            Event.NO_MAJORITY: RandomnessSafeRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-            Event.FAILED: SelectKeeperSafeRound,  # the keeper was unsuccessful;
+            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperSafeRound,
         },
         ValidateSafeRound: {
             Event.DONE: FinishedSafeRound,
-            Event.NEGATIVE: RandomnessSafeRound,  # if the round does not reach a positive vote we restart
+            Event.NEGATIVE: RandomnessSafeRound,
             Event.NONE: RandomnessSafeRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
+            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,
+            Event.NO_MAJORITY: RandomnessSafeRound,
         },
         FinishedSafeRound: {},
     }

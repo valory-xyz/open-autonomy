@@ -133,7 +133,26 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
 
 
 class AgentRegistrationAbciApp(AbciApp[Event]):
-    """Registration ABCI application."""
+    """AgentRegistrationAbciApp
+
+    Initial round: RegistrationStartupRound
+
+    Initial states: RegistrationStartupRound, RegistrationRound
+
+    Transition states:
+    0. RegistrationStartupRound
+        - done: 2.
+        - fast forward: 3.
+    1. RegistrationRound
+        - done: 3.
+    2. FinishedRegistrationRound
+    3. FinishedRegistrationFFWRound
+
+    Final states: FinishedRegistrationRound, FinishedRegistrationFFWRound
+
+    Timeouts:
+        round timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
     initial_states: Set[AppState] = {RegistrationStartupRound, RegistrationRound}

@@ -6,10 +6,11 @@ description: ABCI application for safe deployments.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
+  README.md: QmeDjxuBGManF1ZhLcK4u8dDak27742RmmtYzUGfWfHHdW
   __init__.py: QmbQpaLfkreTY7i2qQaVHcqPrajfcvFQnvho19L7GiTTSC
   behaviours.py: QmVxg6ug4Ugxxi9f6Qid6bYGSyZC5qh4oSmw9EktzpHA1v
   payloads.py: QmSjhP6nLVWtY3d9yo9E43iQ1UNBtEu8MXvrB69otPEqqg
-  rounds.py: QmTwVu8C7s4foeCAqM6skkcTyitCcvZW425RQ2cdUpdf6p
+  rounds.py: QmXhHj4tDaY3RXarbAsxpHmTzjUVGeDMpe2nHbWZqUEiSC
 fingerprint_ignore_patterns: []
 connections: []
 contracts:

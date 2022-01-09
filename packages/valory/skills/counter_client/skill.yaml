@@ -6,7 +6,7 @@ description: A client for the ABCI counter application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmQh2D2kBn4PVK3JqxEx3CRe7G3dq6KKdG2AGWjzofCehv
+  README.md: QmPtnCau6frYc3rmXzzZbaJCAyiVkTFwf98mkkKLzrLnXt
   __init__.py: QmVTA54qs69dNuFFaqEJzxpKs6LqPqsnsbxNgrLdriJpSu
   behaviours.py: QmYc2iq5EvLbo8KNTbXLuSXmnaWDAC1SxGnMzsEnzjCjHi
   dialogues.py: QmVWYsN4ZY18BE6gRdP7twHvrfe5juVvko2sbhK684hxpL

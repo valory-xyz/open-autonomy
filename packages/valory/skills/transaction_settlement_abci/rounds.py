@@ -63,8 +63,7 @@ def rotate_list(my_list: list, positions: int) -> List[str]:
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
-    """
-    Class to represent a period state.
+    """Class to represent a period state.
 
     This state is replicated by the tendermint application.
     """
@@ -126,26 +125,19 @@ class FinishedRegistrationFFWRound(DegenerateRound):
 
 
 class FinishedTransactionSubmissionRound(DegenerateRound):
-    """This class represents the finished round during operation."""
+    """A round that signals that transaction submission has been completed"""
 
     round_id = "finished_transaction_submission"
 
 
 class FailedRound(DegenerateRound):
-    """This class represents the failed round during operation."""
+    """A round that signals that the period has failed"""
 
     round_id = "failed"
 
 
 class CollectSignatureRound(CollectDifferentUntilThresholdRound):
-    """
-    This class represents the 'collect-signature' round.
-
-    Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the signatures
-
-    It schedules the FinalizationRound.
-    """
+    """A round in which signatures are collected from the agents"""
 
     round_id = "collect_signature"
     allowed_tx_type = SignaturePayload.transaction_type
@@ -158,14 +150,7 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
 
 
 class FinalizationRound(OnlyKeeperSendsRound):
-    """
-    This class represents the finalization Safe round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the hash of the Safe transaction
-
-    It schedules the ValidateTransactionRound.
-    """
+    """A round in which a single agent finalizes the transaction by sending it"""
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
@@ -265,14 +250,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 
 
 class ValidateTransactionRound(VotingRound):
-    """
-    This class represents the validate transaction round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the validation of the transaction
-
-    It schedules the ResetRound or SelectKeeperTransactionSubmissionRoundA.
-    """
+    """A voting round in which agents validate the transaction hash"""
 
     round_id = "validate_transaction"
     allowed_tx_type = ValidatePayload.transaction_type
@@ -286,51 +264,102 @@ class ValidateTransactionRound(VotingRound):
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
-    """Transaction submission ABCI application."""
+    """TransactionSubmissionAbciApp
+
+    Initial round: RandomnessTransactionSubmissionRound
+
+    Initial states:
+
+    Transition states:
+    0. RandomnessTransactionSubmissionRound
+        - done: 1.
+        - round timeout: 6.
+        - no majority: 0.
+    1. SelectKeeperTransactionSubmissionRoundA
+        - done: 2.
+        - round timeout: 6.
+        - no majority: 6.
+    2. CollectSignatureRound
+        - done: 3.
+        - round timeout: 6.
+        - no majority: 6.
+    3. FinalizationRound
+        - done: 4.
+        - round timeout: 5.
+        - failed: 5.
+    4. ValidateTransactionRound
+        - done: 7.
+        - negative: 6.
+        - none: 6.
+        - validate timeout: 6.
+        - no majority: 4.
+    5. SelectKeeperTransactionSubmissionRoundB
+        - done: 3.
+        - round timeout: 6.
+        - no majority: 6.
+    6. ResetRound
+        - done: 0.
+        - reset timeout: 9.
+        - no majority: 9.
+    7. ResetAndPauseRound
+        - done: 8.
+        - reset and pause timeout: 9.
+        - no majority: 9.
+    8. FinishedTransactionSubmissionRound
+    9. FailedRound
+
+    Final states: FinishedTransactionSubmissionRound, FailedRound
+
+    Timeouts:
+        round timeout: 30.0
+        validate timeout: 30.0
+        reset timeout: 30.0
+        reset and pause timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
         SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         CollectSignatureRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-            Event.FAILED: SelectKeeperTransactionSubmissionRoundB,  # the keeper was unsuccessful;
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: ResetRound,  # if the round reaches a negative vote we continue; TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
-            Event.NONE: ResetRound,  # if the round reaches a none vote we continue; TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
-            Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
-            Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
+            Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
+            Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
+            Event.VALIDATE_TIMEOUT: ResetRound,  # TODO: see above
+            Event.NO_MAJORITY: ValidateTransactionRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         ResetRound: {
             Event.DONE: RandomnessTransactionSubmissionRound,
-            Event.RESET_TIMEOUT: FailedRound,  # if the round times out we see if we can assemble a new group of agents
-            Event.NO_MAJORITY: FailedRound,  # if we cannot agree we see if we can assemble a new group of agents
+            Event.RESET_TIMEOUT: FailedRound,
+            Event.NO_MAJORITY: FailedRound,
         },
         ResetAndPauseRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
-            Event.RESET_AND_PAUSE_TIMEOUT: FailedRound,  # if the round times out we see if we can assemble a new group of agents
-            Event.NO_MAJORITY: FailedRound,  # if we cannot agree we see if we can assemble a new group of agents
+            Event.RESET_AND_PAUSE_TIMEOUT: FailedRound,
+            Event.NO_MAJORITY: FailedRound,
         },
         FinishedTransactionSubmissionRound: {},
         FailedRound: {},

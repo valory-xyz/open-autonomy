@@ -166,14 +166,7 @@ class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC
 class TransactionHashBaseRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """
-    This class represents the 'tx-hash' round.
-
-    Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the votes for each tx hash
-
-    It schedules the CollectSignatureRound.
-    """
+    """A round in which agents compute the transaction hash"""
 
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
@@ -243,12 +236,7 @@ class TransactionSendBaseRound(OnlyKeeperSendsRound, LiquidityProvisionAbstractR
 
 
 class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRound):
-    """
-    This class represents the validate round.
-
-    Input: a period state with the set of participants, the keeper and the Safe contract address.
-    Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
-    """
+    """A round in which agents validate the safe contract address"""
 
     round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
@@ -276,13 +264,7 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
 class StrategyEvaluationRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """This class represents the strategy evaluation round.
-
-    Input: a set of participants (addresses)
-    Output: a set of participants (addresses) and the strategy
-
-    It schedules the WaitRound or the SwapRound.
-    """
+    """A round in which agents evaluate a chosen strategy"""
 
     round_id = "strategy_evaluation"
     allowed_tx_type = StrategyEvaluationPayload.transaction_type
@@ -423,7 +405,103 @@ class SwapBackSelectKeeperRound(
 
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
-    """Liquidity Provision ABCI application."""
+    """LiquidityProvisionAbciApp
+
+    Initial round: ResetRound
+
+    Initial states:
+
+    Transition states:
+    0. ResetRound
+        - done: 1.
+    1. StrategyEvaluationRound
+        - done: 2.
+        - wait: 20.
+        - round timeout: 0.
+        - no majority: 0.
+    2. EnterPoolTransactionHashRound
+        - done: 3.
+        - round timeout: 0.
+        - no majority: 0.
+    3. EnterPoolTransactionSignatureRound
+        - done: 4.
+        - round timeout: 0.
+        - no majority: 0.
+    4. EnterPoolTransactionSendRound
+        - done: 5.
+        - round timeout: 0.
+        - no majority: 0.
+    5. EnterPoolTransactionValidationRound
+        - done: 20.
+        - round timeout: 6.
+        - no majority: 0.
+    6. EnterPoolRandomnessRound
+        - done: 7.
+        - round timeout: 0.
+        - no majority: 0.
+    7. EnterPoolSelectKeeperRound
+        - done: 8.
+        - round timeout: 0.
+        - no majority: 0.
+    8. ExitPoolTransactionHashRound
+        - done: 9.
+        - round timeout: 0.
+        - no majority: 0.
+    9. ExitPoolTransactionSignatureRound
+        - done: 10.
+        - round timeout: 0.
+        - no majority: 0.
+    10. ExitPoolTransactionSendRound
+        - done: 11.
+        - round timeout: 0.
+        - no majority: 0.
+    11. ExitPoolTransactionValidationRound
+        - done: 14.
+        - round timeout: 12.
+        - no majority: 0.
+    12. ExitPoolRandomnessRound
+        - done: 13.
+        - round timeout: 0.
+        - no majority: 0.
+    13. ExitPoolSelectKeeperRound
+        - done: 8.
+        - round timeout: 0.
+        - no majority: 0.
+    14. SwapBackTransactionHashRound
+        - done: 15.
+        - round timeout: 0.
+        - no majority: 0.
+    15. SwapBackTransactionSignatureRound
+        - done: 16.
+        - round timeout: 0.
+        - no majority: 0.
+    16. SwapBackTransactionSendRound
+        - done: 17.
+        - round timeout: 0.
+        - no majority: 0.
+    17. SwapBackTransactionValidationRound
+        - done: 20.
+        - round timeout: 18.
+        - no majority: 0.
+    18. SwapBackRandomnessRound
+        - done: 19.
+        - round timeout: 0.
+        - no majority: 0.
+    19. SwapBackSelectKeeperRound
+        - done: 14.
+        - round timeout: 0.
+        - no majority: 0.
+    20. ResetAndPauseRound
+        - done: 1.
+        - reset timeout: 0.
+        - no majority: 0.
+
+    Final states:
+
+    Timeouts:
+        exit: 5.0
+        round timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = ResetRound
     transition_function: AbciAppTransitionFunction = {

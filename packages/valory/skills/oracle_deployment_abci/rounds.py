@@ -55,8 +55,7 @@ class Event(Enum):
 
 
 class PeriodState(BasePeriodState):
-    """
-    Class to represent a period state.
+    """Class to represent a period state.
 
     This state is replicated by the tendermint application.
     """
@@ -73,7 +72,12 @@ class PeriodState(BasePeriodState):
 
 
 class RandomnessOracleRound(CollectSameUntilThresholdRound):
-    """RandomnessOracleRound round for startup."""
+    """A round in which a random number is retrieved
+
+    This number is obtained from a distributed randomness beacon. The agents
+    need to reach consensus on this number and subsequently use it to seed
+    any random number generators.
+    """
 
     round_id = "randomness_oracle"
     allowed_tx_type = RandomnessPayload.transaction_type
@@ -86,7 +90,7 @@ class RandomnessOracleRound(CollectSameUntilThresholdRound):
 
 
 class SelectKeeperOracleRound(CollectSameUntilThresholdRound):
-    """SelectKeeperOracleRound round for startup."""
+    """A round in which a single agent is chosen to be the oracle keeper"""
 
     round_id = "select_keeper_oracle"
     allowed_tx_type = SelectKeeperPayload.transaction_type
@@ -99,14 +103,7 @@ class SelectKeeperOracleRound(CollectSameUntilThresholdRound):
 
 
 class DeployOracleRound(OnlyKeeperSendsRound):
-    """
-    This class represents the deploy Oracle round.
-
-    Input: a set of participants (addresses) and a keeper
-    Output: a period state with the set of participants, the keeper and the Oracle contract address.
-
-    It schedules the ValidateOracleRound.
-    """
+    """A round in which the chosen agent deploys the oracle"""
 
     round_id = "deploy_oracle"
     allowed_tx_type = DeployOraclePayload.transaction_type
@@ -118,14 +115,7 @@ class DeployOracleRound(OnlyKeeperSendsRound):
 
 
 class ValidateOracleRound(VotingRound):
-    """
-    This class represents the validate Oracle round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the validation of the contract address
-
-    It schedules the CollectObservationRound or SelectKeeperARound.
-    """
+    """A round in which the agents validate the oracle contract address"""
 
     round_id = "validate_oracle"
     allowed_tx_type = ValidateOraclePayload.transaction_type
@@ -139,37 +129,70 @@ class ValidateOracleRound(VotingRound):
 
 
 class FinishedOracleRound(DegenerateRound):
-    """This class represents the finished round of the oracle deployment."""
+    """A round that signals that oracle deployment has finished"""
 
     round_id = "finished_oracle"
 
 
 class OracleDeploymentAbciApp(AbciApp[Event]):
-    """Oracle deployment ABCI application."""
+    """OracleDeploymentAbciApp
+
+    Initial round: RandomnessOracleRound
+
+    Initial states:
+
+    Transition states:
+    0. RandomnessOracleRound
+        - done: 1.
+        - round timeout: 0.
+        - no majority: 0.
+    1. SelectKeeperOracleRound
+        - done: 2.
+        - round timeout: 0.
+        - no majority: 0.
+    2. DeployOracleRound
+        - done: 3.
+        - deploy timeout: 1.
+        - failed: 1.
+    3. ValidateOracleRound
+        - done: 4.
+        - negative: 0.
+        - none: 0.
+        - validate timeout: 0.
+        - no majority: 0.
+    4. FinishedOracleRound
+
+    Final states: FinishedOracleRound
+
+    Timeouts:
+        round timeout: 30.0
+        validate timeout: 30.0
+        deploy timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RandomnessOracleRound
     transition_function: AbciAppTransitionFunction = {
         RandomnessOracleRound: {
             Event.DONE: SelectKeeperOracleRound,
-            Event.ROUND_TIMEOUT: RandomnessOracleRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessOracleRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.ROUND_TIMEOUT: RandomnessOracleRound,
+            Event.NO_MAJORITY: RandomnessOracleRound,
         },
         SelectKeeperOracleRound: {
             Event.DONE: DeployOracleRound,
-            Event.ROUND_TIMEOUT: RandomnessOracleRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessOracleRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RandomnessOracleRound,
+            Event.NO_MAJORITY: RandomnessOracleRound,
         },
         DeployOracleRound: {
             Event.DONE: ValidateOracleRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperOracleRound,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-            Event.FAILED: SelectKeeperOracleRound,  # the keeper was unsuccessful;
+            Event.DEPLOY_TIMEOUT: SelectKeeperOracleRound,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FAILED: SelectKeeperOracleRound,
         },
         ValidateOracleRound: {
             Event.DONE: FinishedOracleRound,
-            Event.NEGATIVE: RandomnessOracleRound,  # if the round does not reach a positive vote we restart
+            Event.NEGATIVE: RandomnessOracleRound,
             Event.NONE: RandomnessOracleRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessOracleRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessOracleRound,  # if the round has no majority we restart
+            Event.VALIDATE_TIMEOUT: RandomnessOracleRound,
+            Event.NO_MAJORITY: RandomnessOracleRound,
         },
         FinishedOracleRound: {},
     }

@@ -25,7 +25,7 @@ from packages.valory.skills.abstract_round_abci.models import BaseParams
 
 
 class Params(BaseParams):
-    """Parameters."""
+    """Oracle parameters."""
 
     observation_interval: float
 

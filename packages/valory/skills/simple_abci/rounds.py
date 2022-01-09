@@ -132,14 +132,7 @@ class SimpleABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
 
 class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
+    """A round in which the agents get registered"""
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
@@ -157,13 +150,11 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
 
 
 class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
-    """
-    This class represents the randomness round.
+    """A round in which a random number is retrieved
 
-    Input: a set of participants (addresses)
-    Output: a set of participants (addresses) and randomness
-
-    It schedules the SelectKeeperARound.
+    This number is obtained from a distributed randomness beacon. The agents
+    need to reach consensus on this number and subsequently use it to seed
+    any random number generators.
     """
 
     allowed_tx_type = RandomnessPayload.transaction_type
@@ -185,12 +176,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRoun
 
 
 class SelectKeeperRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
-    """
-    This class represents the select keeper round.
-
-    Input: a set of participants (addresses)
-    Output: the selected keeper.
-    """
+    """A round in which a single agent is chosen to be the oracle keeper"""
 
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
@@ -250,7 +236,34 @@ class ResetAndPauseRound(BaseResetRound):
 
 
 class SimpleAbciApp(AbciApp[Event]):
-    """Simple ABCI application."""
+    """SimpleAbciApp
+
+    Initial round: RegistrationRound
+
+    Initial states:
+
+    Transition states:
+    0. RegistrationRound
+        - done: 1.
+    1. RandomnessStartupRound
+        - done: 2.
+        - round timeout: 1.
+        - no majority: 1.
+    2. SelectKeeperAStartupRound
+        - done: 3.
+        - round timeout: 0.
+        - no majority: 0.
+    3. ResetAndPauseRound
+        - done: 1.
+        - reset timeout: 0.
+        - no majority: 0.
+
+    Final states:
+
+    Timeouts:
+        round timeout: 30.0
+        reset timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
@@ -259,14 +272,13 @@ class SimpleAbciApp(AbciApp[Event]):
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
-            # we can have some agents on either side of an epoch, so we retry
+            Event.ROUND_TIMEOUT: RandomnessStartupRound,
             Event.NO_MAJORITY: RandomnessStartupRound,
         },
         SelectKeeperAStartupRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         ResetAndPauseRound: {
             Event.DONE: RandomnessStartupRound,
