@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ from typing import Any, Optional
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea.crypto.base import LedgerApi
+from aea_ledger_ethereum import EthereumApi
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -54,7 +54,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def get_method_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         **kwargs: Any,
@@ -87,7 +87,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def approve(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         spender_address: str,
@@ -108,7 +108,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def transfer(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         to_address: str,
@@ -129,7 +129,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def transfer_from(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         from_address: str,
@@ -152,7 +152,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def permit(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         owner_address: str,
@@ -183,7 +183,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def allowance(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         owner_address: str,
         spender_address: str,
@@ -199,7 +199,7 @@ class UniswapV2ERC20Contract(Contract):
 
     @classmethod
     def balance_of(
-        cls, ledger_api: LedgerApi, contract_address: str, owner_address: str
+        cls, ledger_api: EthereumApi, contract_address: str, owner_address: str
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
         return cls._call(
@@ -212,7 +212,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def _call(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         *method_args: Any,
@@ -226,7 +226,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         method_name: str,
@@ -256,7 +256,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def _build_transaction(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         sender_address: str,
         tx: Any,
         eth_value: int = 0,

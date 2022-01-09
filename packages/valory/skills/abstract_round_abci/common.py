@@ -49,32 +49,38 @@ class RandomnessBehaviour(BaseState):
 
     payload_class: Type[BaseTxPayload]
 
-    def async_act(self) -> Generator:
+    def failsafe_randomness(
+        self,
+    ) -> Generator[None, None, RandomnessObservation]:
         """
-        Check whether tendermint is running or not.
+        This methods provides a failsafe for randomeness retrival.
 
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit.
-        - If healthcheck passes set done event.
+        :return: derived randomness
+        :yields: derived randomness
         """
-        if self.context.randomness_api.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(self).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
+        ledger_api_response = yield from self.get_ledger_api_response(
+            performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
+            ledger_callable="get_block",
+            block_identifier="latest",
+        )
 
-        with benchmark_tool.measure(self).local():
-            api_specs = self.context.randomness_api.get_spec()
-            response = yield from self.get_http_response(
-                method=api_specs["method"],
-                url=api_specs["url"],
-            )
-            observation = self.context.randomness_api.process_response(response)
+        randomness = hashlib.sha256(
+            cast(str, ledger_api_response.state.body.get("hash")).encode()
+            + str(self.params.service_id).encode()
+        ).hexdigest()
+        return {"randomness": randomness, "round": 0}
 
-        if observation:
-            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
+    def get_randomness_from_api(
+        self,
+    ) -> Generator[None, None, RandomnessObservation]:
+        """Retrieve randomness from given api specs."""
+        api_specs = self.context.randomness_api.get_spec()
+        response = yield from self.get_http_response(
+            method=api_specs["method"],
+            url=api_specs["url"],
+        )
+        observation = self.context.randomness_api.process_response(response)
+        if observation is not None:
             self.context.logger.info("Verifying DRAND values.")
             check, error = drand_check.verify(observation, self.params.drand_public_key)
             if check:
@@ -89,7 +95,9 @@ class RandomnessBehaviour(BaseState):
                 observation["round"],
                 observation["randomness"],
             )
-            with benchmark_tool.measure(self).consensus():
+            with benchmark_tool.measure(
+                self,
+            ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
@@ -126,7 +134,9 @@ class SelectKeeperBehaviour(BaseState):
         - Go to the next behaviour state (set done event).
         """
 
-        with benchmark_tool.measure(self).local():
+        with benchmark_tool.measure(
+            self,
+        ).local():
             if (
                 self.period_state.is_keeper_set
                 and len(self.period_state.participants) > 1
@@ -145,7 +155,9 @@ class SelectKeeperBehaviour(BaseState):
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = self.payload_class(self.context.agent_address, keeper_address)
 
-        with benchmark_tool.measure(self).consensus():
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 

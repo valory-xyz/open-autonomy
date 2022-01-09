@@ -7,14 +7,14 @@ description: This skill implements liquidity provision capacities to move into a
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmS3BRBimb8PUnYv8rh4F9E5zGYSh8Ni9kEfq7B8KSXnSb
+  README.md: QmUghyvR1WTBy4uvQMXDeAKyrPrvUNrPCBGK7VM3BogGEe
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmNZmDQeAGZbruSf9cnoguTND12DHAY8tfmiVMMSkeMdkM
+  behaviours.py: QmbefN2S1oL7Usd5HmT2CV1DbWFyuA8dnoJ5QzP8wYXMK3
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
   models.py: Qmd2NZ9GFtzC7kHTHHspWS2zTYo81redF2uqCW4Anmyzu2
   payloads.py: QmT8J8jELpeZaqMoDTtya5RaRym53KWAsbT6LviHt9NLbz
-  rounds.py: QmR2A5t9uLYGqhKBZq8HYNMvXphvzgVgnQmPrVtr9cE41B
+  rounds.py: QmZWPWdvcLsvuP2h2LUHuCYTP4r8WX3Y8VBepftf274xWi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -79,6 +79,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
+      service_id: liquidity_provision
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657

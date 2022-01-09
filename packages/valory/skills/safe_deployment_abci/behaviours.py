@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -113,6 +113,10 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
+                # The safe_deployment_abci app should only be used in staging.
+                # If the safe contract deployment fails we abort. Alternatively,
+                # we could send a None payload and then transition into an appropriate
+                # round to handle the deployment failure.
                 raise RuntimeError("Safe deployment failed!")  # pragma: nocover
             payload = DeploySafePayload(self.context.agent_address, contract_address)
 

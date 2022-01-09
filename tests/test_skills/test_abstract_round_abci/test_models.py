@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -280,4 +280,5 @@ def test_base_params_model_initialization() -> None:
         drand_public_key="",
         tendermint_com_url="",
         reset_tendermint_after=1,
+        service_id="abstract_round_abci",
     )

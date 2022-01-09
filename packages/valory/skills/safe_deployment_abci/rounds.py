@@ -139,52 +139,19 @@ class FinishedSafeRound(DegenerateRound):
 
 
 class SafeDeploymentAbciApp(AbciApp[Event]):
-    """SafeDeploymentAbciApp
-
-    Initial round: RandomnessSafeRound
-
-    Initial states:
-
-    Transition states:
-    0. RandomnessSafeRound
-        - done: 1.
-        - round timeout: 0.
-        - no majority: 0.
-    1. SelectKeeperSafeRound
-        - done: 2.
-        - round timeout: 0.
-        - no majority: 0.
-    2. DeploySafeRound
-        - done: 3.
-        - deploy timeout: 1.
-        - failed: 1.
-    3. ValidateSafeRound
-        - done: 4.
-        - negative: 0.
-        - none: 0.
-        - validate timeout: 0.
-        - no majority: 0.
-    4. FinishedSafeRound
-
-    Final states: FinishedSafeRound
-
-    Timeouts:
-        round timeout: 30.0
-        validate timeout: 30.0
-        deploy timeout: 30.0
-    """
+    """Safe deployment ABCI application."""
 
     initial_round_cls: Type[AbstractRound] = RandomnessSafeRound
     transition_function: AbciAppTransitionFunction = {
         RandomnessSafeRound: {
             Event.DONE: SelectKeeperSafeRound,
-            Event.ROUND_TIMEOUT: RandomnessSafeRound,
-            Event.NO_MAJORITY: RandomnessSafeRound,
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessSafeRound,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperSafeRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RandomnessSafeRound,
-            Event.NO_MAJORITY: RandomnessSafeRound,
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
@@ -193,10 +160,10 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         },
         ValidateSafeRound: {
             Event.DONE: FinishedSafeRound,
-            Event.NEGATIVE: RandomnessSafeRound,
+            Event.NEGATIVE: RandomnessSafeRound,  # if the round does not reach a positive vote we restart
             Event.NONE: RandomnessSafeRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,
-            Event.NO_MAJORITY: RandomnessSafeRound,
+            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,  # the tx validation logic has its own timeout, this is just a safety check
+            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
         },
         FinishedSafeRound: {},
     }

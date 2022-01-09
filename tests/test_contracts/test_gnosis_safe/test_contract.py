@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -166,15 +166,6 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
         if cls.SALT_NONCE is not None:
             return cls.SALT_NONCE
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
-
-
-@pytest.mark.skip
-class TestDeployTransactionGanache(BaseContractTest):
-    """Test."""
-
-    def test_run(self) -> None:
-        """Run tests."""
-        # TOFIX: predeploy gnosis safe factory
 
 
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):

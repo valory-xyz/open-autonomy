@@ -7,15 +7,15 @@ description: ABCI application for cryptocurrency price estimation aggregating ob
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmP25jPebYMtjh8dZzBuaVT4ciJhgbhn1rAy4cq27Mxfo3
+  README.md: QmRoHvdbCkafxVGBcZVM7oPQALSpfURbszxMKgwJuTbwjF
   __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
-  behaviours.py: QmRhTSk6Qu6EoY28UMnsSkrF3gQvm6w7qy4jDCJ6siSAJh
-  composition.py: QmXPCozb7W5W6cLXys37poTDr8B9frrJfAc3mMAeP1tPgF
+  behaviours.py: QmWx7yEyThTr2DL4r8JgST93SQLtmhe6WS8byiGLmJoqcZ
+  composition.py: QmWjN6vbo3z6kjq6NJkBxwDhgWf7DeQ6vxowsTZPVqMYQy
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmerkyZTkovMLbiCUPtqVtdeS6ig12yoZWRy5jYU7kpDGJ
-  payloads.py: QmeafRCc85bPnxrx3qdTwke8RauG7LT3aiJmoVBw31dB8d
-  rounds.py: QmVRhVe1r2ctzqudKgSajK8HLXT7jSeeTTdQsFHDDgjY6n
+  models.py: Qmd5C29hzdfQxV52YsGE1A34yEqddS1S7mpMpxwGhg6eMo
+  payloads.py: QmdiwjgQpLKKFWA9sypsgFYAoiPRQqtxCiETekxFmi5tHM
+  rounds.py: QmTvt9sUnfW371m4URPLueFLjHPLqvMCgtfzZwMBS9rCSS
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -83,6 +83,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
+      service_id: price_estimation
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657

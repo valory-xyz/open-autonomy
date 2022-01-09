@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -243,7 +243,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         to_address: str,
         value: int,
@@ -363,7 +363,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         owners: Tuple[str],
@@ -465,7 +465,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def verify_tx(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         tx_hash: str,
         owners: Tuple[str],
