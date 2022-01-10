@@ -1,6 +1,18 @@
-# ABCI price estimation skill
+# Price estimation abci
 
-## Description
+## Description:
 
-This skill implements an ABCI application for cryptocurrency price estimation 
-aggregating observations from different sources.
+This module contains the ABCI 'price' skill for an AEA.
+
+## Behaviours
+
+ - EstimateBehaviour
+ - ObserveBehaviour
+ - PriceEstimationBaseState
+ - PriceEstimationConsensusBehaviour
+ - TransactionHashBehaviour
+
+## Handlers
+
+No Handlers (the skill is purely behavioural).
+

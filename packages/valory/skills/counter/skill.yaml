@@ -6,7 +6,7 @@ description: The ABCI Counter application example.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmWJQ3UTbXm6QD5qnHRezvAmp58ud4Tza8eMDPohSzqV4C
+  README.md: QmZLrPG2GLsPdtEiXdhLAzG7Cgvqe5Hzqi3PwNvknuiBYs
   __init__.py: QmexWMZ1UVku2xLzUkFUnjPrjKdosaB9bGyTRALDL7Ew3L
   dialogues.py: QmcD47X8huc7egekP12KPQuGnJvNygBmis1vr2aeZ3yqQT
   handlers.py: QmcuqWHZWtMQ5N5MTR6G19XVmdkDty2yg41cGb2JuQfQ6M

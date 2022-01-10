@@ -1,6 +1,37 @@
-# Liquidity provision skill
+# Liquidity provision
 
-## Description
+## Description:
 
-This skill implements liquidity provision capacities to move into and out
-of Uniswap-V2-based liquidity pools.
+This module contains the liquidity provision skill for an AEA.
+
+## Behaviours
+
+ - EnterPoolRandomnessBehaviour
+ - EnterPoolSelectKeeperBehaviour
+ - EnterPoolTransactionHashBehaviour
+ - EnterPoolTransactionSendBehaviour
+ - EnterPoolTransactionSignatureBehaviour
+ - EnterPoolTransactionValidationBehaviour
+ - ExitPoolRandomnessBehaviour
+ - ExitPoolSelectKeeperBehaviour
+ - ExitPoolTransactionHashBehaviour
+ - ExitPoolTransactionSendBehaviour
+ - ExitPoolTransactionSignatureBehaviour
+ - ExitPoolTransactionValidationBehaviour
+ - LiquidityProvisionBaseBehaviour
+ - LiquidityProvisionConsensusBehaviour
+ - StrategyEvaluationBehaviour
+ - SwapBackRandomnessBehaviour
+ - SwapBackSelectKeeperBehaviour
+ - SwapBackTransactionHashBehaviour
+ - SwapBackTransactionSendBehaviour
+ - SwapBackTransactionSignatureBehaviour
+ - SwapBackTransactionValidationBehaviour
+ - TransactionSendBaseBehaviour
+ - TransactionSignatureBaseBehaviour
+ - TransactionValidationBaseBehaviour
+
+## Handlers
+
+No Handlers (the skill is purely behavioural).
+

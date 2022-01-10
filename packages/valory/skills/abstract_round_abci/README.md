@@ -1,5 +1,20 @@
-# Round-based ABCI application  
+# Abstract round abci
 
-## Description
+## Description:
 
-This abstract skill provides abstractions for a round-based ABCI application.
+This module contains the ABCI 'price' skill for an AEA.
+
+## Behaviours
+
+ - AbstractRoundBehaviour
+ - _MetaRoundBehaviour
+
+## Handlers
+
+ - ABCIRoundHandler
+ - AbstractResponseHandler
+ - ContractApiHandler
+ - HttpHandler
+ - LedgerApiHandler
+ - SigningHandler
+

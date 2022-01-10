@@ -1,5 +1,29 @@
-# APY estimation skill
+# Apy estimation abci
 
-## Description
+## Description:
 
- This skill implements an operation that forecasts the APY for an AEA.
+This module contains the APY estimation skill for an AEA.
+
+## Behaviours
+
+ - APYEstimationBaseState
+ - APYEstimationConsensusBehaviour
+ - BaseResetBehaviour
+ - CycleResetBehaviour
+ - EmptyResponseError
+ - EstimateBehaviour
+ - FetchBehaviour
+ - OptimizeBehaviour
+ - PreprocessBehaviour
+ - RandomnessBehaviour
+ - RegistrationBehaviour
+ - ResetBehaviour
+ - TendermintHealthcheckBehaviour
+ - TestBehaviour
+ - TrainBehaviour
+ - TransformBehaviour
+
+## Handlers
+
+No Handlers (the skill is purely behavioural).
+

@@ -1,6 +1,16 @@
-# ABCI Counter client
+# Counter client
 
-## Description
+## Description:
 
-A client for the ABCI counter application. 
+This module contains an example of ABCI skill for an AEA.
+
+## Behaviours
+
+ - BaseBehaviour
+ - IncrementerBehaviour
+ - MonitorBehaviour
+
+## Handlers
+
+ - HttpHandler
 

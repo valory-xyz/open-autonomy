@@ -1,5 +1,23 @@
-# Simple ABCI skill
+# Simple abci
 
-## Description
+## Description:
 
-This skill implements an ABCI application for a simple demonstation.
+This module contains the ABCI 'simple' skill for an AEA.
+
+## Behaviours
+
+ - BaseResetBehaviour
+ - RandomnessAtStartupBehaviour
+ - RandomnessBehaviour
+ - RegistrationBehaviour
+ - ResetAndPauseBehaviour
+ - SelectKeeperAAtStartupBehaviour
+ - SelectKeeperBehaviour
+ - SimpleABCIBaseState
+ - SimpleAbciConsensusBehaviour
+ - TendermintHealthcheckBehaviour
+
+## Handlers
+
+No Handlers (the skill is purely behavioural).
+
