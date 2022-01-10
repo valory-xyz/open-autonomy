@@ -24,10 +24,14 @@ contracts = {
     "B": {"address": "0x9A676e781A523b5d0C0e43731313A708CB607508", "abi_file": abi_files["ERC20PresetFixedSupply"]},
     "LP": {"address": "0x50cd56fb094f8f06063066a619d898475dd3eede", "abi_file": abi_files["UniswapV2ERC20"]},
     "WETH": {"address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9", "abi_file": abi_files["WETH"]},
-    "A-WETH": {"address": "0x86A6C37D3E868580a65C723AAd7E0a945E170416", "abi_file": abi_files["UniswapV2Pair"]},
-    "B-WETH": {"address": "0x3430fe46bfE23b1fafDe4F7c78481051F7c0E01F", "abi_file": abi_files["UniswapV2Pair"]},
-    "A-B": {"address": "0x50CD56fb094F8f06063066a619D898475dD3EedE", "abi_file": abi_files["UniswapV2Pair"]},
+    "A-WETH-pool": {"address": "0x86A6C37D3E868580a65C723AAd7E0a945E170416", "abi_file": abi_files["UniswapV2Pair"]},
+    "B-WETH-pool": {"address": "0x3430fe46bfE23b1fafDe4F7c78481051F7c0E01F", "abi_file": abi_files["UniswapV2Pair"]},
+    "A-B-pool": {"address": "0x50CD56fb094F8f06063066a619D898475dD3EedE", "abi_file": abi_files["UniswapV2Pair"]},
+    "safe": {"address": "0x68FCdF52066CcE5612827E872c45767E5a1f6551"},
+    "zero_address": {"address": "0x0000000000000000000000000000000000000000"}
 }
+
+address_to_contract = {data["address"]: contract for contract, data in contracts.items()}
 
 hardhat_endpoint = "http://127.0.0.1:8545"
 
@@ -40,7 +44,8 @@ if __name__ == "__main__":
         print("Not connected!")
         sys.exit()
 
-    tx_hash = "0xd27c8eafeb85a8d94250c0d8ff422a8722fc864bfaa26f3293941776bdc6cb06"
+    # tx_hash = "0xd27c8eafeb85a8d94250c0d8ff422a8722fc864bfaa26f3293941776bdc6cb06"
+    tx_hash = "0xe3ecfe1e5e8a56922573046c9681e59bfce2af312c8375fce81a4786b4d52c76"
     tx_receipt = w3.eth.get_transaction_receipt(tx_hash)
 
     contract_key = "LP"
@@ -51,4 +56,14 @@ if __name__ == "__main__":
         rich_logs = contract.events.Transfer().processReceipt(tx_receipt)
 
         for log in rich_logs:
-            print(log['args']) # Getting 1000 and 1004 values here. What's that 1004?
+            from_name = log["args"]["from"] if log["args"]["from"] not in address_to_contract.keys() else address_to_contract[log["args"]["from"]]
+            to_name = log["args"]["to"] if log["args"]["to"] not in address_to_contract.keys() else address_to_contract[log["args"]["to"]]
+            print(from_name, " -> ", to_name, log["args"]["value"], address_to_contract[log["address"]])
+
+        lp_events = list(filter(lambda log: log["args"]["from"] == contracts["zero_address"]["address"] and log["args"]["to"] == contracts["safe"]["address"], rich_logs))
+
+        if len(lp_events) > 1:
+            raise ValueError("There's more than one transaction coming from the pool!")
+
+        print("Result: ", lp_events[0]["args"]["value"], address_to_contract[lp_events[0]["address"]])
+
