@@ -35,6 +35,7 @@ import shutil
 import signal
 import subprocess  # nosec
 import sys
+import time
 import traceback
 from pathlib import Path
 from typing import Collection, Dict, List, Optional, Tuple, Type, cast
@@ -184,13 +185,13 @@ class IPFSDaemon:
     """
 
     process: Optional[subprocess.Popen]  # nosec
+    timeout: float
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self, timeout: float) -> None:
         """Initialise IPFS daemon."""
         self._check_ipfs()
         self.process = None
+        self.timeout = timeout
 
     @staticmethod
     def _check_ipfs() -> None:
@@ -217,14 +218,12 @@ class IPFSDaemon:
             stdout=subprocess.PIPE,
             env=os.environ.copy(),
         )
-        empty_outputs = 0
-        for stdout_line in iter(self.process.stdout.readline, ""):  # type: ignore
+        timeout = time.time() + self.timeout
+        for stdout_line in iter(self.process.stdout.readline, "PROCESS_EXITED"):  # type: ignore
             if b"Daemon is ready" in stdout_line:
                 break
-            if stdout_line == b"":
-                empty_outputs += 1
-                if empty_outputs >= 5:
-                    raise RuntimeError("Could not start IPFS daemon.")
+            if time.time() >= timeout or stdout_line == b"PROCESS_EXITED":
+                raise RuntimeError("Could not start IPFS daemon.")
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
         """Terminate the ipfs daemon."""
@@ -395,6 +394,12 @@ def parse_arguments() -> argparse.Namespace:
         help="Only check if the hashes are up-to-date.",
     )
     parser.add_argument(
+        "--timeout",
+        type=float,
+        default=15.0,
+        help="Time to wait before IPFS daemon is up and running.",
+    )
+    parser.add_argument(
         "--vendor",
         type=str,
         default="",
@@ -405,17 +410,18 @@ def parse_arguments() -> argparse.Namespace:
     return arguments_
 
 
-def update_hashes(vendor: str = "") -> int:
+def update_hashes(timeout: float, vendor: str = "") -> int:
     """
     Process all AEA packages, update fingerprint, and update hashes.csv files.
 
+    :param timeout: timeout to the check.
     :param vendor: vendor to hash packages from
     :return: exit code. 0 for success, 1 if an exception occurred.
     """
     return_code = 0
     package_hashes = {}  # type: Dict[str, str]
     # run the ipfs daemon
-    with IPFSDaemon():
+    with IPFSDaemon(timeout=timeout):
         try:
             # connect ipfs client
             client = ipfshttpclient.connect(
@@ -484,10 +490,11 @@ def check_same_ipfs_hash(
     return result
 
 
-def check_hashes(vendor: str = "") -> int:
+def check_hashes(timeout: float, vendor: str = "") -> int:
     """
     Check fingerprints and outer hash of all AEA packages.
 
+    :param timeout: timeout to the check.
     :param vendor: vendor to hash packages from
     :return: exit code. 1 if some fingerprint/hash don't match
         or if an exception occurs, 0 in case of success.
@@ -496,7 +503,7 @@ def check_hashes(vendor: str = "") -> int:
     failed = False
     expected_package_hashes = from_csv(PACKAGE_HASHES_PATH)  # type: Dict[str, str]
     all_expected_hashes = {**expected_package_hashes}
-    with IPFSDaemon():
+    with IPFSDaemon(timeout=timeout):
         try:
             # connect ipfs client
             client = ipfshttpclient.connect(
@@ -534,10 +541,10 @@ def main() -> None:
     """Execute the script."""
     arguments = parse_arguments()
     if arguments.check:
-        return_code = check_hashes(arguments.vendor)
+        return_code = check_hashes(arguments.timeout, arguments.vendor)
     else:
         clean_directory()
-        return_code = update_hashes(arguments.vendor)
+        return_code = update_hashes(arguments.timeout, arguments.vendor)
 
     sys.exit(return_code)
 
