@@ -473,6 +473,16 @@ class TestBasePeriodState:
         expected_repr_regex = r"BasePeriodState\(db=StateDB\({(.*)}\)\)"
         assert re.match(expected_repr_regex, actual_repr) is not None
 
+    def test_participants_list_is_empty(
+        self,
+    ) -> None:
+        """Tets when participants list is set to zero."""
+        base_period_state = BasePeriodState(
+            db=StateDB(initial_period=0, initial_data=dict(participants={}))
+        )
+        with pytest.raises(ValueError, match="List participants cannot be empty."):
+            _ = base_period_state.participants
+
 
 class TestAbstractRound:
     """Test the 'AbstractRound' class."""
