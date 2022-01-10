@@ -42,7 +42,7 @@ from packages.valory.skills.simple_abci.rounds import (
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
-    SelectKeeperAStartupRound,
+    SelectKeeperAtStartupRound,
     SimpleAbciApp,
 )
 
@@ -261,11 +261,11 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         self.set_done()
 
 
-class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
+class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent at startup."""
 
-    state_id = "select_keeper_a_at_startup"
-    matching_round = SelectKeeperAStartupRound
+    state_id = "select_keeper_at_startup"
+    matching_round = SelectKeeperAtStartupRound
 
 
 class BaseResetBehaviour(SimpleABCIBaseState):
@@ -320,7 +320,7 @@ class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
-        SelectKeeperAAtStartupBehaviour,  # type: ignore
+        SelectKeeperAtStartupBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
 
