@@ -109,14 +109,7 @@ class PeriodState(BasePeriodState):
 
 
 class CollectObservationRound(CollectDifferentUntilThresholdRound):
-    """
-    This class represents the 'collect-observation' round.
-
-    Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the observations
-
-    It schedules the EstimateConsensusRound.
-    """
+    """A round in which agents collect observations"""
 
     round_id = "collect_observation"
     allowed_tx_type = ObservationPayload.transaction_type
@@ -129,14 +122,7 @@ class CollectObservationRound(CollectDifferentUntilThresholdRound):
 
 
 class EstimateConsensusRound(CollectSameUntilThresholdRound):
-    """
-    This class represents the 'estimate_consensus' round.
-
-    Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the votes for each estimate
-
-    It schedules the TxHashRound.
-    """
+    """A round in which agents reach consensus on an estimate"""
 
     round_id = "estimate_consensus"
     allowed_tx_type = EstimatePayload.transaction_type
@@ -150,14 +136,7 @@ class EstimateConsensusRound(CollectSameUntilThresholdRound):
 
 
 class TxHashRound(CollectSameUntilThresholdRound):
-    """
-    This class represents the 'tx-hash' round.
-
-    Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the votes for each tx hash
-
-    It schedules the CollectSignatureRound.
-    """
+    """A round in which agents compute the transaction hash"""
 
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
@@ -171,30 +150,57 @@ class TxHashRound(CollectSameUntilThresholdRound):
 
 
 class FinishedPriceAggregationRound(DegenerateRound):
-    """This class represents the finished round of the price aggreagation."""
+    """A round that represents price aggregation has finished"""
 
     round_id = "finished_price_aggregation"
 
 
 class PriceAggregationAbciApp(AbciApp[Event]):
-    """Price estimation ABCI application."""
+    """PriceAggregationAbciApp
+
+    Initial round: CollectObservationRound
+
+    Initial states:
+
+    Transition states:
+    0. CollectObservationRound
+        - done: 1.
+        - round timeout: 0.
+        - no majority: 0.
+    1. EstimateConsensusRound
+        - done: 2.
+        - round timeout: 0.
+        - no majority: 0.
+    2. TxHashRound
+        - done: 3.
+        - none: 0.
+        - round timeout: 0.
+        - no majority: 0.
+
+    3. FinishedPriceAggregationRound
+
+    Final states: FinishedPriceAggregationRound
+
+    Timeouts:
+        round timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = CollectObservationRound
     transition_function: AbciAppTransitionFunction = {
         CollectObservationRound: {
             Event.DONE: EstimateConsensusRound,
-            Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
+            Event.ROUND_TIMEOUT: CollectObservationRound,
         },
         EstimateConsensusRound: {
             Event.DONE: TxHashRound,
-            Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: CollectObservationRound,
+            Event.NO_MAJORITY: CollectObservationRound,
         },
         TxHashRound: {
             Event.DONE: FinishedPriceAggregationRound,
-            Event.NONE: CollectObservationRound,  # if the agents cannot produce the hash we reset the period
-            Event.ROUND_TIMEOUT: CollectObservationRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: CollectObservationRound,  # if there is no majority we reset the period
+            Event.NONE: CollectObservationRound,
+            Event.ROUND_TIMEOUT: CollectObservationRound,
+            Event.NO_MAJORITY: CollectObservationRound,
         },
         FinishedPriceAggregationRound: {},
     }

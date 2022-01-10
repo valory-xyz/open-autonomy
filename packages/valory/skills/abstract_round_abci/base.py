@@ -113,7 +113,7 @@ class _MetaPayload(ABCMeta):
     Payload metaclass.
 
     The purpose of this metaclass is to remember the association
-    between the type of a payload and the payload class to build it.
+    between the type of payload and the payload class to build it.
     This is necessary to recover the right payload class to instantiate
     at decoding time.
 
@@ -156,7 +156,9 @@ class _MetaPayload(ABCMeta):
             previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
             if new_payload_cls != previous_payload_cls:
                 raise ValueError(
-                    f"transaction type with name {transaction_type} already used by class {previous_payload_cls}, and cannot be used by class {new_payload_cls}"
+                    f"transaction type with name {transaction_type} already "
+                    f"used by class {previous_payload_cls}, and cannot be "
+                    f"used by class {new_payload_cls} "
                 )
 
     @classmethod
@@ -470,7 +472,8 @@ class StateDB:
         value = self.get(key)
         if value is None:
             raise ValueError(
-                f"Value of key={key} is None for current_period_count={self.current_period_count}"
+                f"Value of key={key} is None for "
+                f"current_period_count={self.current_period_count} "
             )
         return value
 
@@ -689,8 +692,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         Check the transaction is of the allowed transaction type.
 
         :param transaction: the transaction
-        :raises:
-            TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
+        :raises: TransactionTypeNotRecognizedError if the transaction can be
+                 applied to the current state.
         """
         if self.allowed_tx_type is None:
             raise TransactionTypeNotRecognizedError(
@@ -712,13 +715,15 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         exception_cls: Type[ABCIAppException] = ABCIAppException,
     ) -> None:
         """
-        Check that a Byzantine majority is still achievable, once a new vote is added.
+        Check that a Byzantine majority is achievable, once a new vote is added.
 
-         :param votes_by_participant: a mapping from a participant to its vote, before the new vote is added
+         :param votes_by_participant: a mapping from a participant to its vote,
+                before the new vote is added
          :param new_voter: the new voter
          :param new_vote: the new vote
          :param nb_participants: the total number of participants
-         :param exception_cls: the class of the exception to raise in case the check fails.
+         :param exception_cls: the class of the exception to raise in case the
+                               check fails.
          :raises: exception_cls: in case the check does not pass.
         """
         # check preconditions
@@ -733,7 +738,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             ABCIAppInternalError,
         )
 
-        # copy the input dictionary to avoid side-effects
+        # copy the input dictionary to avoid side effects
         votes_by_participant = copy(votes_by_participant)
 
         # add the new vote
@@ -763,15 +768,17 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             nb_remaining_votes + largest_nb_votes < quorum
 
         That is, if the number of remaining votes is not enough to make
-        the most voted item so far to exceed the quorm.
+        the most voted item so far to exceed the quorum.
 
         Preconditions on the input:
-        - the size of votes_by_participant should not be greater than "nb_participants - 1" voters
+        - the size of votes_by_participant should not be greater than
+          "nb_participants - 1" voters
         - new voter must not be in the current votes_by_participant
 
         :param votes_by_participant: a mapping from a participant to its vote
         :param nb_participants: the total number of participants
-        :param exception_cls: the class of the exception to raise in case the check fails.
+        :param exception_cls: the class of the exception to raise in case the
+                              check fails.
         :raises exception_cls: in case the check does not pass.
         """
         enforce(
@@ -799,7 +806,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         cls, votes_by_participant: Dict[Any, Any], nb_participants: int
     ) -> bool:
         """
-        Return true if a Byzantine majority is still achievable, false otherwise.
+        Return true if a Byzantine majority is achievable, false otherwise.
 
         :param votes_by_participant: a mapping from a participant to its vote
         :param nb_participants: the total number of participants
@@ -823,9 +830,6 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 class DegenerateRound(AbstractRound):
     """
     This class represents the finished round during operation.
-
-    Input: a period state with the contracts from previous rounds
-    Output: a period state with the set of participants.
 
     It is a sink round.
     """
@@ -859,7 +863,7 @@ class CollectionRound(AbstractRound):
 
     This class represents abstract logic for collection based rounds where
     the round object needs to collect data from different agents. The data
-    maybe same for a voting round or different like estimate round.
+    might for example be from a voting round or estimation round.
     """
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -1209,7 +1213,7 @@ class Timeouts(Generic[EventType]):
         # the same priority are returned in the order they were added
         self._counter = itertools.count()
 
-        # The timeout priority queue keeps the the earliest deadline at the top.
+        # The timeout priority queue keeps the earliest deadline at the top.
         self._heap: List[TimeoutEvent[EventType]] = []
 
         # Mapping from entry id to task
@@ -1306,12 +1310,14 @@ class _MetaAbciApp(ABCMeta):
         Check that initial states and final states are consistent.
 
         I.e.:
-        - check that all the initial states are in the set of states specified by the transition function.
+        - check that all the initial states are in the set of states specified
+          by the transition function.
         - check that the initial state has outgoing transitions
-        - check that the initial state does not trigger timeout events. This is because we need at
-          least one block/timestamp to start timeouts.
+        - check that the initial state does not trigger timeout events. This is
+          because we need at least one block/timestamp to start timeouts.
         - check that initial states are not final states.
-        - check that the set of final states is a proper subset of the set of states.
+        - check that the set of final states is a proper subset of the set of
+          states.
         - check that a final state does not have outgoing transitions.
 
         :param abci_app_cls: the AbciApp class
@@ -1324,7 +1330,8 @@ class _MetaAbciApp(ABCMeta):
 
         enforce(
             initial_states == set() or initial_round_cls in initial_states,
-            f"initial round class {initial_round_cls} is not in the set of initial states: {initial_states}",
+            f"initial round class {initial_round_cls} is not in the set of "
+            f"initial states: {initial_states}",
         )
         enforce(
             initial_round_cls in states
@@ -1346,7 +1353,8 @@ class _MetaAbciApp(ABCMeta):
         unknown_final_states = set.difference(final_states, states)
         enforce(
             len(unknown_final_states) == 0,
-            f"the following final states are not in the set of states: {unknown_final_states}",
+            f"the following final states are not in the set of states:"
+            f" {unknown_final_states}",
         )
 
         enforce(
@@ -1364,9 +1372,9 @@ class _MetaAbciApp(ABCMeta):
         """
         Check consistency of outgoing transitions from non-final states.
 
-        In particular:
-        - Check that all non-final states have at least one non-timeout transition.
-        - Check that all non-final states have at most one timeout transition
+        In particular, check that all non-final states have:
+        - at least one non-timeout transition.
+        - at most one timeout transition
 
         :param abci_app_cls: the AbciApp class
         """
@@ -1384,11 +1392,14 @@ class _MetaAbciApp(ABCMeta):
 
             enforce(
                 len(outgoing_timeout_events) < 2,
-                f"non-final state {non_final_state} cannot have more than one outgoing timeout event, got: {', '.join(map(str, outgoing_timeout_events))}",
+                f"non-final state {non_final_state} cannot have more than one "
+                f"outgoing timeout event, got: "
+                f"{', '.join(map(str, outgoing_timeout_events))}",
             )
             enforce(
                 len(outgoing_nontimeout_events) > 0,
-                f"non-final state {non_final_state} must have at least one non-timeout transition",
+                f"non-final state {non_final_state} must have at least one "
+                f"non-timeout transition",
             )
 
 
@@ -1476,7 +1487,8 @@ class AbciApp(
     def _log_start(self) -> None:
         """Log the entering in the round."""
         self.logger.info(
-            f"Entered in the '{self.current_round.round_id}' round for period {self.state.period_count}"
+            f"Entered in the '{self.current_round.round_id}' round for period "
+            f"{self.state.period_count}"
         )
 
     def _log_end(self, event: EventType) -> None:
@@ -1492,7 +1504,8 @@ class AbciApp(
         this means:
         - cancel timeout events belonging to the current round;
         - instantiate the new round class and set it as current round;
-        - create new timeout events and schedule them according to latest timestamp.
+        - create new timeout events and schedule them according to the latest
+          timestamp.
 
         :param round_cls: the class of the new round.
         """
@@ -1507,7 +1520,8 @@ class AbciApp(
             if timeout is not None:
                 # last_timestamp is not None because we are not in the first round
                 # (see consistency check)
-                # last timestamp can be in the past relative to last seen block time if we're scheduling from within update_time
+                # last timestamp can be in the past relative to last seen block
+                # time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
                 self.logger.info(
@@ -1518,7 +1532,8 @@ class AbciApp(
                 )
                 self._current_timeout_entries.append(entry_id)
 
-        # self.state will point to last result, or if not available to the initial state
+        # self.state will point to last result,
+        # or if not available to the initial state
         last_result = (
             self._round_results[-1]
             if len(self._round_results) > 0
@@ -1655,7 +1670,7 @@ class AbciApp(
                 break
             earliest_deadline, _ = self._timeouts.get_earliest_timeout()
 
-        # at this point, there is no timeout event left to be triggered
+        # at this point, there is no timeout event left to be triggered,
         # so it is safe to move forward the last known timestamp to the
         # new block's timestamp
         self._last_timestamp = timestamp

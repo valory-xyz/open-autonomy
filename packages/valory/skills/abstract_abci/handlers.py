@@ -89,7 +89,7 @@ class ABCIHandler(Handler):
     def log_exception(self, message: AbciMessage, error_message: str) -> None:
         """Log a response exception."""
         self.context.logger.error(
-            f"An exception occured: {error_message} for message: {message}"
+            f"An exception occurred: {error_message} for message: {message}"
         )
 
     def echo(  # pylint: disable=no-self-use

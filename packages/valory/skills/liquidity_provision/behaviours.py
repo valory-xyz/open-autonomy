@@ -255,8 +255,10 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Validate that the transaction hash provided by the keeper points to a valid transaction.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the transaction hash provided by the keeper points to a
+          valid transaction.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
@@ -398,7 +400,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the 'enter pool' multisend tx."""
+    """Prepare the transaction hash for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
@@ -408,7 +410,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -672,21 +675,21 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class EnterPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Sign the 'enter pool' multisend tx."""
+    """Sign the transaction for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_signature"
     matching_round = EnterPoolTransactionSignatureRound
 
 
 class EnterPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Send the 'enter pool' multisend tx."""
+    """Send the transaction for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_send"
     matching_round = EnterPoolTransactionSendRound
 
 
 class EnterPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Validate the 'enter pool' multisend tx."""
+    """Validate the transaction for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_validation"
     matching_round = EnterPoolTransactionValidationRound
@@ -707,7 +710,7 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Prepare the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
@@ -717,7 +720,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -867,21 +871,21 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Sign the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_signature"
     matching_round = ExitPoolTransactionSignatureRound
 
 
 class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Send the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_send"
     matching_round = ExitPoolTransactionSendRound
 
 
 class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Validate the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_validation"
     matching_round = ExitPoolTransactionValidationRound
@@ -902,7 +906,7 @@ class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the 'swap back' multisend tx."""
+    """Prepare the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
@@ -912,7 +916,8 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -1079,21 +1084,21 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class SwapBackTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Prepare the 'swap' multisend tx."""
+    """Sign the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_signature"
     matching_round = SwapBackTransactionSignatureRound
 
 
 class SwapBackTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Prepare the 'swap back' multisend tx."""
+    """Send the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_send"
     matching_round = SwapBackTransactionSendRound
 
 
 class SwapBackTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Prepare the 'swap back' multisend tx."""
+    """Validate the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_validation"
     matching_round = SwapBackTransactionValidationRound
@@ -1114,7 +1119,7 @@ class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the liquidity provision."""
+    """Managing of consensus stages for liquidity provision."""
 
     initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore

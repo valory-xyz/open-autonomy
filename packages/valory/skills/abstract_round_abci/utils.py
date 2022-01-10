@@ -135,7 +135,7 @@ class BenchmarkBehaviour:
         """
         Returns a BenchmarkBlock object.
 
-        :param block_type: type of block (eg. local, consensus, request)
+        :param block_type: type of block (e.g. local, consensus, request)
         :return: BenchmarkBlock
         """
 
@@ -259,7 +259,7 @@ class BenchmarkTool:
 
 class VerifyDrand:  # pylint: disable=too-few-public-methods
     """
-    Tool to verify Randomeness retrived from various external APIs.
+    Tool to verify Randomness retrieved from various external APIs.
 
     The ciphersuite used is BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_
 
@@ -284,17 +284,18 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
         message: bytes,
         signature: Union[BLSSignature, bytes],
     ) -> bool:
-        """Veryfy randomness signature."""
+        """Verify randomness signature."""
         return bls.Verify(
             cast(BLSPubkey, pubkey), message, cast(BLSSignature, signature)
         )
 
     def verify(self, data: Dict, pubkey: str) -> Tuple[bool, Optional[str]]:
         """
-        Verify drand value retrived from external APIs.
+        Verify drand value retried from external APIs.
 
         :param data: dictionary containing drand parameters.
-        :param pubkey: league of entropy public key ( https://drand.love/developer/http-api/#public-endpoints ).
+        :param pubkey: league of entropy public key
+                       https://drand.love/developer/http-api/#public-endpoints
         :returns: bool, error message
         """
 

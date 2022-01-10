@@ -25,10 +25,12 @@ from google.protobuf.struct_pb2 import Struct
 
 
 class DictProtobufStructSerializer:
-    """
-    Serialize python dictionaries of type DictType = Dict[str, ValueType] recursively conserving their dynamic type, using google.protobuf.Struct
+    """Serialize python dictionaries
 
-    ValueType = PrimitiveType | DictType | List[ValueType]]
+    Serialize python dictionaries of type DictType = Dict[str, ValueType]
+    recursively conserving their dynamic type, using google.protobuf.Struct
+
+    ValueType = PrimitiveType | DictType | List[ValueType]
     PrimitiveType = bool | int | float | str | bytes
     """
 
