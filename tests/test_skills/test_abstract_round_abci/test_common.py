@@ -254,6 +254,40 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
 
             self.behaviour.act_wrapper()
 
+    def test_max_retries_reached_fallback_fail_case_2(
+        self,
+    ) -> None:
+        """Test with max retries reached."""
+        self.fast_forward_to_state(
+            self.behaviour,
+            self.randomness_behaviour_class.state_id,
+            BasePeriodState(StateDB(initial_period=0, initial_data={})),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == self.randomness_behaviour_class.state_id
+        )
+        with mock.patch.object(
+            self.behaviour.context.randomness_api,
+            "is_retries_exceeded",
+            return_value=True,
+        ):
+            self.behaviour.act_wrapper()
+            self.mock_ledger_api_request(
+                request_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.GET_STATE
+                ),
+                response_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.STATE,
+                    state=State(ledger_id="ethereum", body={}),
+                ),
+            )
+
+            self.behaviour.act_wrapper()
+
     def test_clean_up(
         self,
     ) -> None:
