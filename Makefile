@@ -42,7 +42,7 @@ lint:
 	isort aea_consensus_algorithms packages/valory scripts tests
 	flake8 aea_consensus_algorithms packages/valory scripts tests
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills tests
+	darglint aea_consensus_algorithms scripts packages/valory/* tests
 
 .PHONY: pylint
 pylint:

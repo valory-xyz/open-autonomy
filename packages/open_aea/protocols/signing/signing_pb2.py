@@ -7,6 +7,7 @@ from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
 
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -84,7 +85,9 @@ _SIGNINGMESSAGE_ERRORCODE = _descriptor.Descriptor(
     ],
     extensions=[],
     nested_types=[],
-    enum_types=[_SIGNINGMESSAGE_ERRORCODE_ERRORCODEENUM,],
+    enum_types=[
+        _SIGNINGMESSAGE_ERRORCODE_ERRORCODEENUM,
+    ],
     serialized_options=None,
     is_extendable=False,
     syntax="proto3",

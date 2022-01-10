@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -243,7 +243,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         to_address: str,
         value: int,
@@ -363,7 +363,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         owners: Tuple[str],
@@ -426,9 +426,15 @@ class GnosisSafeContract(Contract):
         if gas_price is not None:
             tx_parameters["gasPrice"] = gas_price
         if max_fee_per_gas is not None:
-            tx_parameters["maxFeePerGas"] = max_fee_per_gas
-        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = max_fee_per_gas  # pragma: nocover
+        if max_priority_fee_per_gas is not None:  # pragma: nocover
             tx_parameters["maxPriorityFeePerGas"] = max_priority_fee_per_gas
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
@@ -459,7 +465,7 @@ class GnosisSafeContract(Contract):
     @classmethod
     def verify_tx(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         tx_hash: str,
         owners: Tuple[str],

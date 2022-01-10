@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,19 +42,6 @@ class TestPreprocessing:
         with pytest.raises(ValueError, match="Cannot work with 1 < 5 observations."):
             prepare_pair_data(transformed_historical_data, pair_id="x2", test_size=0.2)
 
-        # test with wrong block timestamp.
-        transformed_historical_data["block_timestamp"] = transformed_historical_data[
-            "block_timestamp"
-        ].astype(int)
-        with pytest.raises(
-            AttributeError, match="'Int64Index' object has no attribute 'to_period'"
-        ):
-            prepare_pair_data(
-                transformed_historical_data,
-                pair_id="0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
-                test_size=0.2,
-            )
-
         # test with correct data.
         transformed_historical_data["block_timestamp"] = pd.to_datetime(
             transformed_historical_data["block_timestamp"], unit="s"
@@ -68,3 +55,16 @@ class TestPreprocessing:
         np.allclose(y_train, np.array([0.1, 0.6, 0.7, 0.8]))
         np.allclose(y_test, np.array([0.9, 1.1]))
         assert pair_name == "x - y"
+
+        # test with wrong block timestamp.
+        transformed_historical_data["block_timestamp"] = transformed_historical_data[
+            "block_timestamp"
+        ].view(int)
+        with pytest.raises(
+            AttributeError, match="'Int64Index' object has no attribute 'to_period'"
+        ):
+            prepare_pair_data(
+                transformed_historical_data,
+                pair_id="0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+                test_size=0.2,
+            )

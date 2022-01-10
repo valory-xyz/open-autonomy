@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1261,7 +1261,140 @@ class Timeouts(Generic[EventType]):
         return entry.deadline, entry.event
 
 
-class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attributes
+class _MetaAbciApp(ABCMeta):
+    """A metaclass that validates AbciApp's attributes."""
+
+    def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
+        """Initialize the class."""
+        new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if ABC in bases:
+            # abstract class, return
+            return new_cls
+        if not issubclass(new_cls, AbciApp):
+            # the check only applies to AbciApp subclasses
+            return new_cls
+
+        mcs._check_consistency(cast(Type[AbciApp], new_cls))
+        return new_cls
+
+    @classmethod
+    def _check_consistency(mcs, abci_app_cls: Type["AbciApp"]) -> None:
+        """Check consistency of class attributes."""
+        mcs._check_required_class_attributes(abci_app_cls)
+        mcs._check_initial_states_and_final_states(abci_app_cls)
+        mcs._check_consistency_outgoing_transitions_from_non_final_states(abci_app_cls)
+
+    @classmethod
+    def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
+        """Check that required class attributes are set."""
+        try:
+            abci_app_cls.initial_round_cls
+        except AttributeError as exc:
+            raise ABCIAppInternalError("'initial_round_cls' field not set") from exc
+        try:
+            abci_app_cls.transition_function
+        except AttributeError as exc:
+            raise ABCIAppInternalError("'transition_function' field not set") from exc
+
+    @classmethod
+    def _check_initial_states_and_final_states(
+        mcs,
+        abci_app_cls: Type["AbciApp"],
+    ) -> None:
+        """
+        Check that initial states and final states are consistent.
+
+        I.e.:
+        - check that all the initial states are in the set of states specified by the transition function.
+        - check that the initial state has outgoing transitions
+        - check that the initial state does not trigger timeout events. This is because we need at
+          least one block/timestamp to start timeouts.
+        - check that initial states are not final states.
+        - check that the set of final states is a proper subset of the set of states.
+        - check that a final state does not have outgoing transitions.
+
+        :param abci_app_cls: the AbciApp class
+        """
+        initial_round_cls = abci_app_cls.initial_round_cls
+        initial_states = abci_app_cls.initial_states
+        transition_function = abci_app_cls.transition_function
+        final_states = abci_app_cls.final_states
+        states = abci_app_cls.get_all_rounds()
+
+        enforce(
+            initial_states == set() or initial_round_cls in initial_states,
+            f"initial round class {initial_round_cls} is not in the set of initial states: {initial_states}",
+        )
+        enforce(
+            initial_round_cls in states
+            and all(initial_state in states for initial_state in initial_states),
+            "initial states must be in the set of states",
+        )
+
+        true_initial_states = (
+            initial_states if initial_states != set() else {initial_round_cls}
+        )
+        enforce(
+            all(
+                initial_state not in final_states
+                for initial_state in true_initial_states
+            ),
+            "initial states cannot be final states",
+        )
+
+        unknown_final_states = set.difference(final_states, states)
+        enforce(
+            len(unknown_final_states) == 0,
+            f"the following final states are not in the set of states: {unknown_final_states}",
+        )
+
+        enforce(
+            all(
+                len(transition_function[final_state]) == 0
+                for final_state in final_states
+            ),
+            "final states cannot have outgoing transitions",
+        )
+
+    @classmethod
+    def _check_consistency_outgoing_transitions_from_non_final_states(
+        mcs, abci_app_cls: Type["AbciApp"]
+    ) -> None:
+        """
+        Check consistency of outgoing transitions from non-final states.
+
+        In particular:
+        - Check that all non-final states have at least one non-timeout transition.
+        - Check that all non-final states have at most one timeout transition
+
+        :param abci_app_cls: the AbciApp class
+        """
+        states = abci_app_cls.get_all_rounds()
+        event_to_timeout = abci_app_cls.event_to_timeout
+
+        non_final_states = states.difference(abci_app_cls.final_states)
+        timeout_events = set(event_to_timeout.keys())
+        for non_final_state in non_final_states:
+            outgoing_transitions = abci_app_cls.transition_function[non_final_state]
+
+            outgoing_events = set(outgoing_transitions.keys())
+            outgoing_timeout_events = set.intersection(outgoing_events, timeout_events)
+            outgoing_nontimeout_events = set.difference(outgoing_events, timeout_events)
+
+            enforce(
+                len(outgoing_timeout_events) < 2,
+                f"non-final state {non_final_state} cannot have more than one outgoing timeout event, got: {', '.join(map(str, outgoing_timeout_events))}",
+            )
+            enforce(
+                len(outgoing_nontimeout_events) > 0,
+                f"non-final state {non_final_state} must have at least one non-timeout transition",
+            )
+
+
+class AbciApp(
+    Generic[EventType], ABC, metaclass=_MetaAbciApp
+):  # pylint: disable=too-many-instance-attributes
     """
     Base class for ABCI apps.
 
@@ -1294,14 +1427,6 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
 
-        self._check_class_attributes()
-        self._check_class_attributes_consistency(
-            self.initial_round_cls,
-            self.initial_states,
-            self.transition_function,
-            self.event_to_timeout,
-        )
-
     @property
     def state(self) -> BasePeriodState:
         """Return the current state."""
@@ -1326,70 +1451,6 @@ class AbciApp(Generic[EventType]):  # pylint: disable=too-many-instance-attribut
         for _start_state, transitions in cls.transition_function.items():
             events.update(transitions.keys())
         return events
-
-    def _check_class_attributes(self) -> None:
-        """Check that required class attributes are set."""
-        try:
-            self.initial_round_cls
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'initial_round_cls' field not set") from exc
-        try:
-            self.transition_function
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'transition_function' field not set") from exc
-
-    @classmethod
-    def _check_class_attributes_consistency(
-        cls,
-        initial_round_cls: AppState,
-        initial_states: Set[AppState],
-        transition_function: AbciAppTransitionFunction,
-        event_to_timeout: EventToTimeout,
-    ) -> None:
-        """
-        Check that required class attributes values are consistent.
-
-        I.e.:
-        - check that the initial state is in the set of states specified by the transition function.
-        - check that the initial state has outgoing transitions
-        - check that the initial state does not trigger timeout events. This is because we need at
-          least one block/timestamp to start timeouts.
-        - check that the set of final states is a proper subset of the set of states.
-
-        :param initial_round_cls: the initial round class
-        :param initial_states: the set of initial states
-        :param transition_function: the transition function
-        :param event_to_timeout: mapping from events to its timeout in seconds.
-        :raises:
-            ValueError if the initial round class is not in the set of rounds.
-        """
-        states = cls.get_all_rounds()
-        enforce(
-            initial_round_cls in states,
-            f"initial round class {initial_round_cls} is not in the set of rounds: {states}",
-        )
-        enforce(
-            initial_states == set() or initial_round_cls in initial_states,
-            f"initial round class {initial_round_cls} is not in the set of initial states: {initial_states}",
-        )
-        enforce(
-            initial_round_cls in transition_function,
-            f"initial round class {initial_round_cls} does not have outgoing transitions",
-        )
-
-        timeout_events_from_initial_state = {
-            e for e in transition_function[initial_round_cls] if e in event_to_timeout
-        }
-        enforce(
-            len(timeout_events_from_initial_state) == 0,
-            f"initial round class {initial_round_cls} has timeout events in outgoing transitions: {timeout_events_from_initial_state}",
-        )
-
-        unknown_final_states = set.difference(cls.final_states, states)
-        enforce(
-            len(unknown_final_states) == 0,
-            f"the following final states are not in the set of states: {unknown_final_states}",
-        )
 
     @classmethod
     def get_all_round_classes(cls) -> Set[AppState]:

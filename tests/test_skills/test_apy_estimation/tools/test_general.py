@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 """Test the `tools/general.py` module of the skill."""
 import json
 import os
-import time
 from pathlib import PosixPath
 
 import pytest
@@ -45,10 +44,11 @@ class TestGeneral:
         n_months_to_check = 1
         days_in_month = 30
 
-        monkeypatch.setattr(
-            time, "time", lambda: day_in_unix * n_months_to_check * (days_in_month + 1)
+        timestamps = list(
+            gen_unix_timestamps(
+                day_in_unix * n_months_to_check * (days_in_month + 1), n_months_to_check
+            )
         )
-        timestamps = list(gen_unix_timestamps(n_months_to_check))
 
         expected = day_in_unix
         for timestamp in timestamps:

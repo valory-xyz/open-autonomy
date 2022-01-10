@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,9 +30,6 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationStartupRound,
 )
 
-
-SAFE_TX_GAS = 4000000  # TOFIX
-ETHER_VALUE = 0  # TOFIX
 
 benchmark_tool = BenchmarkTool()
 

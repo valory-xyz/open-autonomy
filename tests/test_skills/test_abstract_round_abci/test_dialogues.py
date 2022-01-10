@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -58,6 +58,17 @@ def test_dialogues_creation(
     assert expected_role_from_first_message == dialogues._role_from_first_message(
         MagicMock(), MagicMock()
     )
+
+
+def test_ledger_api_dialogue() -> None:
+    """Test 'LedgerApiDialogue' creation."""
+    dialogue = LedgerApiDialogue(MagicMock(), "", MagicMock())
+    with pytest.raises(ValueError, match="Terms not set!"):
+        dialogue.terms
+
+    expected_terms = MagicMock()
+    dialogue.terms = expected_terms
+    assert expected_terms == dialogue.terms
 
 
 def test_contract_api_dialogue() -> None:

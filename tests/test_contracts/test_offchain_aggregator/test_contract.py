@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -62,8 +62,6 @@ class BaseContractTest(BaseGanacheContractTest):
             _description=cls.DESCRIPTION,
             _transmitters=cls.transmitters(),
             gas=cls.GAS,
-            max_fee_per_gas=cls.DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=cls.DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -164,8 +162,6 @@ class TestDeployTransaction(BaseContractTest):
             contract_address=self.contract_address,
             sender_address=self.transmitters()[0],
             gas=self.GAS,
-            max_fee_per_gas=self.DEFAULT_MAX_FEE_PER_GAS,
-            max_priority_fee_per_gas=self.DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             epoch_=epoch_,
             round_=round_,
             amount_=amount_,

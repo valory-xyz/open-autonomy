@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ class Objective:  # pylint: disable=too-few-public-methods
             )
             average_score = np.average(scores)
 
-        except ValueError:
+        except ValueError:  # pragma: nocover
             average_score = np.nan
 
         return average_score
