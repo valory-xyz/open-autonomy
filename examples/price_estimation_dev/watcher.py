@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ from watchdog.observers import Observer
 
 ID = os.environ.get("ID")
 MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS"))
-PACKAGES_PATH = "/packages/hashes.csv"
+PACKAGES_PATH = "/packages"
 BASH_FILE = f"/configure_agents/abci{ID}.sh"
 BASE_SETUP_FILE = f"/configure_agents/base_setup.sh"
 TENDERMINT_COM_URL = os.environ.get("TENDERMINT_COM_URL", f"http://node{ID}:8080")
@@ -92,6 +92,7 @@ class AEARunner:
     @staticmethod
     def restart_tendermint() -> None:
         """Restart respective tendermint node."""
+        write("Restarting Tendermint.")
         response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
         assert response.status_code == 200
 
@@ -102,7 +103,7 @@ class AEARunner:
 
         if self.process is not None:
             return
-
+        write("Restarting Agent.")
         self.process = subprocess.Popen(["/bin/bash", BASH_FILE], preexec_fn=os.setsid)
 
     def stop(
@@ -111,7 +112,7 @@ class AEARunner:
         """Stop AEA process."""
         if self.process is None:
             return
-
+        write("Stopping Agent.")
         os.killpg(
             os.getpgid(self.process.pid), signal.SIGTERM
         )  # kills process instantly compared to process.terminate
@@ -127,18 +128,40 @@ class RestartAEA(FileSystemEventHandler):
         self.aea = AEARunner()
         self.aea.start()
 
+    @staticmethod
+    def fingerprint_item(src_path: str) -> None:
+        """Fingerprint items."""
+        cwd = os.curdir
+        *_path, vendor, item_type, item_name, _ = src_path.split(os.path.sep)
+        vendor_dir_str = os.path.sep.join([*_path, vendor])
+        os.chdir(vendor_dir_str)
+        subprocess.call(
+            [
+                "python3",
+                "-m",
+                "aea.cli",
+                "fingerprint",
+                item_type[:-1],
+                f"{vendor}/{item_name}",
+            ]
+        )
+        os.chdir(cwd)
+
     def on_any_event(self, event: FileSystemEvent):
         """
         This method reloads the agent when a change is detected in `hashes.csv`
         file.
         """
-        if not event.is_directory and event.event_type == EVENT_TYPE_CLOSED:
+        if (
+            not event.is_directory
+            and event.event_type == EVENT_TYPE_CLOSED
+            and event.src_path.endswith(".py")
+        ):
+
             write("Change detected.")
-            write("Stopping Agent.")
+            self.fingerprint_item(event.src_path)
             self.aea.stop()
-            write("Restarting Tendermint.")
             self.aea.restart_tendermint()
-            write("Restarting Agent.")
             self.aea.start()
 
 

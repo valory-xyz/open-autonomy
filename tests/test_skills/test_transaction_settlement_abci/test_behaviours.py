@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,9 +41,6 @@ from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
-)
-from packages.valory.contracts.offchain_aggregator.contract import (
-    PUBLIC_ID as ORACLE_CONTRACT_ID,
 )
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -127,7 +124,9 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(most_voted_tx_hash="68656c6c6f776f726c64"),
+                    initial_data=dict(
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                    ),
                 )
             ),
         )
@@ -212,7 +211,8 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
-                            1,
+                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                         gas_data={
                             "max_fee_per_gas": int(10e10),
@@ -230,19 +230,6 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             == FinalizeBehaviour.state_id
         )
         self.behaviour.act_wrapper()
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(ORACLE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
-                ),
-            ),
-        )
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -387,7 +374,8 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
-                            1,
+                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                         gas_data={
                             "max_fee_per_gas": int(10e10),
@@ -419,19 +407,6 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
                 transaction_receipt=TransactionReceipt(
                     ledger_id="ethereum", receipt={"status": 1}, transaction={}
-                ),
-            ),
-        )
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(ORACLE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
                 ),
             ),
         )

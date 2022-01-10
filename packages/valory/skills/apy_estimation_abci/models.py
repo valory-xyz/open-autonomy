@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
         self.pair_ids = self._ensure("pair_ids", kwargs)
+        self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         super().__init__(*args, **kwargs)
 
         self.__validate_params()

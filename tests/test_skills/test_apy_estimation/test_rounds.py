@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -598,6 +598,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                     period_count=_test_round.most_voted_payload,
                     participants=get_participants(),
                     full_training=False,
+                    n_estimations=1,
                 ),
                 state_attr_checks=[],
                 most_voted_payload=1,
@@ -629,6 +630,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_reset_payload(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     period_count=_test_round.most_voted_payload,
+                    most_voted_model="",
                     pair_name="",
                     full_training=False,
                     n_estimations=1,

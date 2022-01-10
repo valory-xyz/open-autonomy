@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,14 +24,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
     to_int,
 )
-from packages.valory.skills.price_estimation_abci.rounds import aggregate
 from packages.valory.skills.transaction_settlement_abci.behaviours import hex_to_payload
-
-
-def test_aggregate_function() -> None:
-    """Test `aggregate` function."""
-
-    assert aggregate(1, 2, 3, 4, 5) == 3.0
 
 
 def test_random_selection_function() -> None:
@@ -50,12 +43,14 @@ def test_to_int_positive() -> None:
 def test_payload_to_hex_and_back() -> None:
     """Test `payload_to_hex` function."""
     hex_str = "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
-    epoch_ = 1
-    round_ = 1
-    amount_ = 1
-    intermediate = payload_to_hex(hex_str, epoch_, round_, amount_)
-    h_, e_, r_, a_ = hex_to_payload(intermediate)
+    ether_value = 0
+    safe_tx_gas = 40000000
+    to_address = "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215"
+    data = b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+    intermediate = payload_to_hex(hex_str, ether_value, safe_tx_gas, to_address, data)
+    h_, e_, s_, a_, d_ = hex_to_payload(intermediate)
     assert h_ == hex_str
-    assert e_ == epoch_
-    assert r_ == round_
-    assert a_ == amount_
+    assert e_ == ether_value
+    assert s_ == safe_tx_gas
+    assert a_ == to_address
+    assert d_ == data

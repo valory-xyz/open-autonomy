@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -73,12 +73,6 @@ def chain(  # pylint: disable=too-many-locals
             raise ValueError(
                 f"Found non-initial state {value} specified in abci_app_transition_mapping."
             )
-
-    # Ensure final states do not specify any events
-    for app in abci_apps:
-        for final_state in app.final_states:
-            if app.transition_function[final_state] != {}:
-                raise ValueError(f"Final state {final_state} specifies transitions.")
 
     # Merge the transition functions, final states and events
     new_initial_round_cls = abci_apps[0].initial_round_cls

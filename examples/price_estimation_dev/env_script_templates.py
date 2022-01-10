@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 BASE_SETUP = """#!/usr/bin/bash
 sudo chown -R ubuntu:ubuntu /logs
+sudo chown -R ubuntu:ubuntu /packages
 """
 
 ABCI_CONFIG_SCRIPT: str = """#!/usr/bin/bash

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ from typing import Any, Optional
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea.crypto.base import LedgerApi
+from aea_ledger_ethereum import EthereumApi
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_router_02:0.1.0")
@@ -54,7 +54,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def get_method_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         **kwargs: Any,
@@ -88,7 +88,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def add_liquidity(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token_a: str,
@@ -121,7 +121,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def add_liquidity_ETH(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token: str,
@@ -150,7 +150,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def remove_liquidity(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token_a: str,
@@ -181,7 +181,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def remove_liquidity_ETH(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token: str,
@@ -210,7 +210,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def remove_liquidity_with_permit(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token_a: str,
@@ -249,7 +249,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def remove_liquidity_ETH_with_permit(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token: str,
@@ -286,7 +286,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def remove_liquidity_ETH_Supporting_fee_on_transfer_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token: str,
@@ -315,7 +315,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def remove_liquidity_ETH_with_permit_supporting_fee_on_transfer_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         token: str,
@@ -352,7 +352,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_exact_tokens_for_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_in: int,
@@ -379,7 +379,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_tokens_for_exact_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_out: int,
@@ -406,7 +406,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_exact_ETH_for_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_out_min: int,
@@ -431,7 +431,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_tokens_for_exact_ETH(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_out: int,
@@ -458,7 +458,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_exact_tokens_for_ETH(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_in: int,
@@ -485,7 +485,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_ETH_for_exact_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_out: int,
@@ -510,7 +510,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_exact_tokens_for_tokens_supporting_fee_on_transfer_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_in: int,
@@ -537,7 +537,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_exact_ETH_for_tokens_supporting_fee_on_transfer_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_out_min: int,
@@ -562,7 +562,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def swap_exact_tokens_for_ETH_supporting_fee_on_transfer_tokens(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         amount_in: int,
@@ -589,7 +589,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def quote(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         amount_a: int,
         reserve_a: int,
@@ -603,7 +603,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def get_amount_out(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         amount_in: int,
         reserve_in: int,
@@ -622,7 +622,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def get_amount_in(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         amount_out: int,
         reserve_in: int,
@@ -640,14 +640,14 @@ class UniswapV2Router02Contract(Contract):
 
     @classmethod
     def get_amounts_out(
-        cls, ledger_api: LedgerApi, contract_address: str, amount_in: int, path: list
+        cls, ledger_api: EthereumApi, contract_address: str, amount_in: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts out."""
         return cls._call(ledger_api, contract_address, "getAmountsOut", amount_in, path)
 
     @classmethod
     def get_amounts_in(
-        cls, ledger_api: LedgerApi, contract_address: str, amount_out: int, path: list
+        cls, ledger_api: EthereumApi, contract_address: str, amount_out: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts in."""
         return cls._call(ledger_api, contract_address, "getAmountsIn", amount_out, path)
@@ -655,7 +655,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def _call(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         *method_args: Any,
@@ -669,7 +669,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         method_name: str,
@@ -699,7 +699,7 @@ class UniswapV2Router02Contract(Contract):
     @classmethod
     def _build_transaction(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         sender_address: str,
         tx: Any,
         eth_value: int = 0,
@@ -724,5 +724,11 @@ class UniswapV2Router02Contract(Contract):
             tx_params[
                 "maxPriorityFeePerGas"
             ] = max_priority_fee_per_gas  # pragma: nocover
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_params.update(ledger_api.try_get_gas_pricing())  # pragma: nocover
         tx = tx.buildTransaction(tx_params)
         return tx

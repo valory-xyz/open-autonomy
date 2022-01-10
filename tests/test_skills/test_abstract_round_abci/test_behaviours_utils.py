@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseState,
     SendException,
     TimeoutException,
-    _REQUEST_RETRY_DELAY,
+    _DEFAULT_REQUEST_RETRY_DELAY,
 )
 
 from tests.helpers.base import try_send
@@ -137,6 +137,20 @@ def test_async_behaviour_wait_for_message() -> None:
     assert behaviour.counter == 2
     assert behaviour.message == expected_message
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
+
+
+def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
+    """Test 'wait_for_message' when it raises TimeoutException."""
+
+    with pytest.raises(TimeoutException):
+        behaviour = AsyncBehaviourTest()
+        gen = behaviour.wait_for_message(lambda _: False, timeout=0.01)
+        # trigger function
+        try_send(gen)
+        # sleep so to run out the timeout
+        time.sleep(0.02)
+        # trigger function and make the exception to raise
+        try_send(gen)
 
 
 def test_async_behaviour_wait_for_condition() -> None:
@@ -315,8 +329,20 @@ class TestBaseState:
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
+        self.context_params_mock = MagicMock()
+        self.context_state_period_state_mock = MagicMock()
+        self.context_mock.params = self.context_params_mock
+        self.context_mock.state.period_state = self.context_state_period_state_mock
         self.context_mock.state.period.current_round_id = "round_a"
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
+
+    def test_params_property(self) -> None:
+        """Test the 'params' property."""
+        assert self.behaviour.params == self.context_params_mock
+
+    def test_period_state_property(self) -> None:
+        """Test the 'period_state' property."""
+        assert self.behaviour.period_state == self.context_state_period_state_mock
 
     def test_check_in_round(self) -> None:
         """Test 'BaseState' initialization."""
@@ -380,6 +406,24 @@ class TestBaseState:
         """Test 'wait_until_round_end' method, positive case."""
         gen = self.behaviour.wait_until_round_end()
         try_send(gen)
+
+    def test_wait_from_last_timestamp(self) -> None:
+        """Test 'wait_from_last_timestamp'."""
+        timeout = 1.0
+        last_timestamp = datetime.now()
+        self.behaviour.context.state.period.abci_app.last_timestamp = last_timestamp
+        gen = self.behaviour.wait_from_last_timestamp(timeout)
+        # trigger first execution
+        try_send(gen)
+        # at the time this line is executed, the generator is not empty
+        # as the timeout has not run out yet
+        try_send(gen)
+        # sleep enough time to make the timeout to run out
+        time.sleep(timeout)
+        # the next iteration of the generator raises StopIteration
+        # because its execution terminates
+        with pytest.raises(StopIteration):
+            gen.send(MagicMock())
 
     def test_set_done(self) -> None:
         """Test 'set_done' method."""
@@ -471,6 +515,70 @@ class TestBaseState:
         "_build_http_request_message",
         return_value=(MagicMock(), MagicMock()),
     )
+    def test_send_transaction_timeout_exception(self, *_: Any) -> None:
+        """Test '_send_transaction', timeout exception."""
+        timeout = 0.05
+        delay = 0.1
+        m = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            gen = self.behaviour._send_transaction(
+                m, request_timeout=timeout, request_retry_delay=delay
+            )
+            # trigger generator function
+            try_send(gen, obj=None)
+            try_send(gen, obj=m)
+            time.sleep(timeout)
+            try_send(gen, obj=m)
+            time.sleep(delay)
+            mock_info.assert_called_with(
+                f"Timeout expired for submit tx. Retrying in {delay} seconds..."
+            )
+            try_send(gen, obj=None)
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(
+        BaseState,
+        "_check_http_return_code_200",
+        return_value=True,
+    )
+    @mock.patch("json.loads")
+    def test_send_transaction_wait_delivery_timeout_exception(self, *_: Any) -> None:
+        """Test '_send_transaction', timeout exception on tx delivery."""
+        timeout = 0.05
+        delay = 0.1
+        m = MagicMock()
+        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+            gen = self.behaviour._send_transaction(
+                m,
+                request_timeout=timeout,
+                request_retry_delay=delay,
+                tx_timeout=timeout,
+            )
+            # trigger generator function
+            try_send(gen, obj=None)
+            try_send(gen, obj=m)
+            try_send(gen, obj=m)
+            time.sleep(timeout)
+            try_send(gen, obj=m)
+            mock_info.assert_called_with(
+                f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
+            )
+            time.sleep(delay)
+            try_send(gen, obj=m)
+
+    @mock.patch.object(BaseState, "_send_signing_request")
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
     @mock.patch("json.loads")
     def test_send_transaction_error_status_code(self, *_: Any) -> None:
         """Test '_send_transaction', erorr status code."""
@@ -480,7 +588,7 @@ class TestBaseState:
         try_send(gen, obj=None)
         try_send(gen, obj=m)
         try_send(gen, obj=m)
-        time.sleep(_REQUEST_RETRY_DELAY)
+        time.sleep(_DEFAULT_REQUEST_RETRY_DELAY)
         try_send(gen, obj=None)
 
     @mock.patch.object(BaseState, "_get_request_nonce_from_dialogue")
@@ -564,6 +672,13 @@ class TestBaseState:
             status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
         )
         try_send(gen, success_response)
+
+    def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
+        """Test '_wait_until_transaction_delivered' method."""
+        gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
+        with pytest.raises(TimeoutException):
+            # trigger generator function
+            try_send(gen, obj=None)
 
     @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
     def test_get_default_terms(self, *_: Any) -> None:

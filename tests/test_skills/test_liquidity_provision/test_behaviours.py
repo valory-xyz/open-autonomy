@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1168,8 +1168,6 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
                             key: payload.signature
                             for key, payload in period_state.participant_to_signature.items()
                         },
-                        max_fee_per_gas=10000000000,
-                        max_priority_fee_per_gas=10000000000,
                     )
                 ),
             ),

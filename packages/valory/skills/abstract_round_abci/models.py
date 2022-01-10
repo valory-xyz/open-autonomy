@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
+        self.service_id = self._ensure("service_id", kwargs)
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
         self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
