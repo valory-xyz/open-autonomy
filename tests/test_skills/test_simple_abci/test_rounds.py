@@ -40,7 +40,7 @@ from packages.valory.skills.simple_abci.rounds import (
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
-    SelectKeeperAStartupRound,
+    SelectKeeperAtStartupRound,
     rotate_list,
 )
 
@@ -199,15 +199,15 @@ class TestRandomnessStartupRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestSelectKeeperAStartupRound(BaseRoundTestClass):
-    """Tests for SelectKeeperAStartupRound."""
+class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
+    """Tests for SelectKeeperAtStartupRound."""
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        test_round = SelectKeeperAStartupRound(
+        test_round = SelectKeeperAtStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 

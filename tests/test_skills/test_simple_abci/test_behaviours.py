@@ -56,7 +56,7 @@ from packages.valory.skills.simple_abci.behaviours import (
     RandomnessAtStartupBehaviour,
     RegistrationBehaviour,
     ResetAndPauseBehaviour,
-    SelectKeeperAAtStartupBehaviour,
+    SelectKeeperAtStartupBehaviour,
     SimpleAbciConsensusBehaviour,
     TendermintHealthcheckBehaviour,
 )
@@ -738,13 +738,13 @@ class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
 
     randomness_behaviour_class = RandomnessAtStartupBehaviour
-    next_behaviour_class = SelectKeeperAAtStartupBehaviour
+    next_behaviour_class = SelectKeeperAtStartupBehaviour
 
 
-class TestSelectKeeperAAtStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperAtStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
     next_behaviour_class = ResetAndPauseBehaviour
 
 
