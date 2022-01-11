@@ -19,12 +19,13 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
+from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -289,3 +290,43 @@ class UniswapV2ERC20Contract(Contract):
             tx_params.update(ledger_api.try_get_gas_pricing())  # pragma: nocover
         tx = tx.buildTransaction(tx_params)
         return tx
+
+    @classmethod
+    def get_tx_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+    ) -> JSONLike:
+        """
+        Get all transfer events derived from a transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        try:
+            tx_receipt = ledger_api.get_transaction_receipt(tx_hash)
+            if tx_receipt is None:
+                raise ValueError  # pragma: nocover
+
+        except (TransactionNotFound, ValueError):  # pragma: nocover
+            return dict(logs=[])
+
+        transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
+
+        return dict(
+            logs=[
+                {
+                    "from": log["args"]["from"],
+                    "to": log["args"]["to"],
+                    "value": log["args"]["value"],
+                    "token_address": log["address"],
+                }
+                for log in transfer_logs
+            ]
+        )

@@ -357,18 +357,20 @@ class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
         self.set_done()
 
     def get_lp_result(self) -> Generator[None, None, Optional[int]]:
-        """Contract deployment verification."""
-        response = yield from self.get_transaction_receipt(
+        """Transaction transfer result."""
+        strategy = self.period_state.most_voted_strategy
+
+        receipt = yield from self.get_transaction_receipt(
             self.period_state.final_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
-        if response is None:  # pragma: nocover
+        if receipt is None:  # pragma: nocover
             self.context.logger.info(
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
-        is_settled = EthereumApi.is_transaction_settled(response)
+        is_settled = EthereumApi.is_transaction_settled(receipt)
         if not is_settled:  # pragma: nocover
             self.context.logger.info(
                 f"tx {self.period_state.final_tx_hash} not settled!"
@@ -376,8 +378,8 @@ class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
             return False
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
-            contract_id=str(GnosisSafeContract.contract_id),
+            contract_address=strategy["pair"]["LP_token_address"],
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
             contract_callable="get_tx_transfer_logs",
             tx_hash=self.period_state.final_tx_hash,
         )
@@ -394,7 +396,7 @@ class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
             )
         )
 
-        if len(lp_events) > 1:
+        if len(lp_events) != 1:
             return None
 
         lp_value = lp_events[0]["value"]
@@ -440,7 +442,6 @@ def get_strategy_update() -> dict:
                 "amount_min_after_rem_liq": int(0.25e3),
             },
         },
-        "liquidity_to_remove": 1,  # TOFIX
     }
     return strategy
 
@@ -849,13 +850,13 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["liquidity_to_remove"],
+                    liquidity=self.period_state.most_voted_lp_result,
                     amount_token_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
                     ),  # FIX, get actual amount
                     amount_ETH_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    ),  # FIX, get actual amount
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -881,15 +882,13 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["pair"]["token_a"][
-                        "amount_min_after_add_liq"
-                    ],  # TOFIX: get the correct value
+                    liquidity=self.period_state.most_voted_lp_result,
                     amount_a_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    ),  # FIX, get actual amount
                     amount_b_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                    ),
+                    ),  # FIX, get actual amount
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )

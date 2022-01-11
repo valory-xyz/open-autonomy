@@ -132,7 +132,6 @@ def get_default_strategy(is_native: bool = True) -> Dict:
                 "amount_min_after_rem_liq": int(0.25e3),
             },
         },
-        "liquidity_to_remove": 1,
     }
 
 
@@ -1323,6 +1322,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
+                    most_voted_lp_result=1,
                 ),
             )
         )
@@ -1380,7 +1380,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
-                        liquidity=strategy["liquidity_to_remove"],
+                        liquidity=1,
                         amount_token_min=int(
                             strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
                         ),
@@ -1455,6 +1455,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
+                    most_voted_lp_result=1,
                 ),
             )
         )
@@ -1513,9 +1514,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
-                        liquidity=strategy["pair"]["token_a"][
-                            "amount_min_after_add_liq"
-                        ],
+                        liquidity=1,
                         amount_a_min=int(
                             strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
                         ),

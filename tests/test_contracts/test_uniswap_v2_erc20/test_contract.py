@@ -366,3 +366,13 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             "data": b"p\xa0\x821\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
             b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
         }
+
+    def test_get_tx_transfer_logs(self) -> None:
+        """Test get transfer logs."""
+        assert self.contract_address is not None
+        logs = self.contract.get_tx_transfer_logs(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+        )
+        assert type(logs) == dict, "The transfer logs is not a dict"
