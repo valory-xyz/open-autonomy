@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -44,26 +44,19 @@ class Event(Enum):
 
 
 class FinishedRegistrationRound(DegenerateRound):
-    """This class represents the finished round during operation."""
+    """A round representing that agent registration has finished"""
 
     round_id = "finished_registration"
 
 
 class FinishedRegistrationFFWRound(DegenerateRound):
-    """This class represents the finished round during operation."""
+    """A fast-forward round representing that agent registration has finished"""
 
     round_id = "finished_registration_ffw"
 
 
 class RegistrationStartupRound(CollectDifferentUntilAllRound):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperTransactionSubmissionRoundA.
-    """
+    """A round in which the agents get registered"""
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
@@ -104,14 +97,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
 
 
 class RegistrationRound(CollectDifferentUntilThresholdRound):
-    """
-    This class represents the registration round during operation.
-
-    Input: a period state with the contracts from previous rounds
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperTransactionSubmissionRoundA.
-    """
+    """A round in which the agents get registered"""
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
@@ -137,7 +123,26 @@ class RegistrationRound(CollectDifferentUntilThresholdRound):
 
 
 class AgentRegistrationAbciApp(AbciApp[Event]):
-    """Registration ABCI application."""
+    """AgentRegistrationAbciApp
+
+    Initial round: RegistrationStartupRound
+
+    Initial states: {RegistrationRound, RegistrationStartupRound}
+
+    Transition states:
+    0. RegistrationStartupRound
+        - done: 2.
+        - fast forward: 3.
+    1. RegistrationRound
+        - done: 3.
+    2. FinishedRegistrationRound
+    3. FinishedRegistrationFFWRound
+
+    Final states: {FinishedRegistrationRound, FinishedRegistrationFFWRound}
+
+    Timeouts:
+        round timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
     initial_states: Set[AppState] = {RegistrationStartupRound, RegistrationRound}

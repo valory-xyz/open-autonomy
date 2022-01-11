@@ -6,11 +6,12 @@ description: ABCI application for oracle deployments.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmbGAaFs9CYmk3o4ZgzUdkoVMkCAtSBeoAybvHZT14Fprb
-  behaviours.py: QmPoTQMWCgvbooK7JAtyXw2JRqpgb9ZXTXRkQoJ6ktzkhg
+  README.md: QmbVLScdfkiBRd1HJ3j2hH9dAyooqeVmrMAe9zm4WboxyZ
+  __init__.py: QmXWin5fsEAnCyYehninEjeP6diL3AwjNj6piBTxd2SQBA
+  behaviours.py: QmbrUTppDADWJ3M8aX6nBko9rQdb8JVS3BbaAPthFMera1
   models.py: QmWi4JYVHBXAj1ThCPvou9VDg1djeezfpMN9EYaWVr7ZdA
   payloads.py: QmZE3Zj7sEd7QN9qFdRmaZENqp6HWzcPt5JqAV9VsrvXc1
-  rounds.py: QmQ9y49hwjp9ywWjsbzKZmEEHW739RfS3UQ1zzkfxC3bRY
+  rounds.py: QmTXuaWwFYLfrnaFWcCRmHE5GgspJ1LDtauaQKBw7urK7f
 fingerprint_ignore_patterns: []
 connections: []
 contracts:

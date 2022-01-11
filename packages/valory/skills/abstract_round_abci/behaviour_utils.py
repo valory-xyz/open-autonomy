@@ -86,11 +86,11 @@ _DEFAULT_TX_MAX_ATTEMPTS = 5
 
 
 class SendException(Exception):
-    """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
+    """Exception raised if the 'try_send' to an AsyncBehaviour failed."""
 
 
 class TimeoutException(Exception):
-    """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
+    """Exception raised when a timeout during AsyncBehaviour occurs."""
 
 
 class AsyncBehaviour(ABC):
@@ -149,8 +149,8 @@ class AsyncBehaviour(ABC):
         """
         Try to send a message to a waiting behaviour.
 
-        It will be send only if the behaviour is actually
-        waiting for a message and it was not already notified.
+        It will be sent only if the behaviour is actually waiting for a message,
+        and it was not already notified.
 
         :param message: a Python object.
         :raises: SendException if the behaviour was not waiting for a message,
@@ -332,11 +332,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
 
     def check_in_round(self, round_id: str) -> bool:
-        """Check that we entered in a specific round."""
+        """Check that we entered a specific round."""
         return cast(SharedState, self.context.state).period.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
-        """Check that we entered in a specific round."""
+        """Check that we entered a specific round."""
         return cast(SharedState, self.context.state).period.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
@@ -460,15 +460,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_timeout: float = _DEFAULT_TX_TIMEOUT,
     ) -> Generator:
         """
-        Send transaction and wait for the response, and repeat until not successful.
+        Send transaction and wait for the response, repeat until not successful.
 
         Steps:
         - Request the signature of the payload to the Decision Maker
-        - Send the transaction to the 'price-estimation' app via the Tendermint node,
-          and wait/repeat until the transaction is not mined.
+        - Send the transaction to the 'price-estimation' app via the Tendermint
+          node, and wait/repeat until the transaction is not mined.
 
         :param: payload: the payload to send
-        :param: stop_condition: the condition to be checked to interrupt the waiting loop.
+        :param: stop_condition: the condition to be checked to interrupt the
+                waiting loop.
         :param: request_timeout: the timeout for the requests
         :param: request_retry_delay: the delay to wait after failed requests
         :param: tx_timeout: the timeout to wait for tx delivery
@@ -927,7 +928,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         Request contract safe transaction hash
 
         :param performative: the message performative
-        :param ledger_callable: the collable to call on the contract
+        :param ledger_callable: the callable to call on the contract
         :param kwargs: keyword argument for the contract api request
         :return: the contract api response
         :yields: the contract api response
@@ -971,7 +972,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param performative: the message performative
         :param contract_address: the contract address
         :param contract_id: the contract id
-        :param contract_callable: the collable to call on the contract
+        :param contract_callable: the callable to call on the contract
         :param kwargs: keyword argument for the contract api request
         :return: the contract api response
         :yields: the contract api response

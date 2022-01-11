@@ -106,11 +106,11 @@ class SharedState(BaseSharedState):
 
 
 class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
+    """A model for randomness api specifications."""
 
 
 class PriceApi(ApiSpecs):
-    """A model that wraps ApiSpecs for various cryptocurrency price api specifications."""
+    """A model for various cryptocurrency price api specifications."""
 
     convert_id: str
     currency_id: str
