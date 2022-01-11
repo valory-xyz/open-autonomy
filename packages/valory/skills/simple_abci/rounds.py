@@ -219,7 +219,7 @@ class RandomnessStartupRound(BaseRandomnessRound):
 class SelectKeeperAtStartupRound(SelectKeeperRound):
     """SelectKeeperAtStartupRound round for startup."""
 
-    round_id = "select_keeper_a_startup"
+    round_id = "select_keeper_at_startup"
 
 
 class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
@@ -259,7 +259,8 @@ class SimpleAbciApp(AbciApp[Event]):
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAtStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessStartupRound,
+            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
+            # we can have some agents on either side of an epoch, so we retry
             Event.NO_MAJORITY: RandomnessStartupRound,
         },
         SelectKeeperAtStartupRound: {
