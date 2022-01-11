@@ -56,7 +56,7 @@ class FinishedRegistrationFFWRound(DegenerateRound):
 
 
 class RegistrationStartupRound(CollectDifferentUntilAllRound):
-    """A round in which agent registration starts-up"""
+    """A round in which the agents get registered"""
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
