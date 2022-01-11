@@ -1,16 +1,31 @@
 # Oracle deployment abci
 
-## Description:
+## Description
 
-This module contains the ABCI 'oracle deployment' skill for an AEA.
+This module contains the ABCI oracle deployment skill for an AEA.
 
 ## Behaviours
 
- - DeployOracleBehaviour
- - OracleDeploymentBaseState
- - RandomnessOracleBehaviour
- - SelectKeeperOracleBehaviour
- - ValidateOracleBehaviour
+* `DeployOracleBehaviour`
+
+   Deploy oracle.
+
+* `OracleDeploymentBaseState`
+
+   Base state behaviour for the common apps' skill.
+
+* `RandomnessOracleBehaviour`
+
+   Retrieve randomness for oracle deployment.
+
+* `SelectKeeperOracleBehaviour`
+
+   Select the keeper agent.
+
+* `ValidateOracleBehaviour`
+
+   Validate oracle.
+
 
 ## Handlers
 

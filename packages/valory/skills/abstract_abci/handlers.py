@@ -39,7 +39,10 @@ class ABCIHandler(Handler):
     """
     Default ABCI handler.
 
-    This handler of ABCI requests produces default responses to the client.
+    This abstract skill provides a template of an ABCI application managed by an
+    AEA. This abstract Handler replies to ABCI requests with default responses.
+    In another skill, extend the class and override the request handlers
+    to implement a custom behaviour.
     """
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id

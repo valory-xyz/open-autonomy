@@ -160,13 +160,12 @@ class PriceAggregationAbciApp(AbciApp[Event]):
 
     Initial round: CollectObservationRound
 
-    Initial states:
+    Initial states: {CollectObservationRound}
 
     Transition states:
     0. CollectObservationRound
         - done: 1.
         - round timeout: 0.
-        - no majority: 0.
     1. EstimateConsensusRound
         - done: 2.
         - round timeout: 0.
@@ -176,10 +175,9 @@ class PriceAggregationAbciApp(AbciApp[Event]):
         - none: 0.
         - round timeout: 0.
         - no majority: 0.
-
     3. FinishedPriceAggregationRound
 
-    Final states: FinishedPriceAggregationRound
+    Final states: {FinishedPriceAggregationRound}
 
     Timeouts:
         round timeout: 30.0

@@ -17,7 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'simple' skill for an AEA."""
+"""
+This module contains the ABCI simple skill for an AEA. It implements an ABCI
+application for a simple demonstration.
+"""
 
 from aea.configurations.base import PublicId
 

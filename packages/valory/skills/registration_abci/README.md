@@ -1,15 +1,27 @@
 # Registration abci
 
-## Description:
+## Description
 
-This module contains the ABCI 'common apps' skill for an AEA.
+This module contains the ABCI registration skill for an AEA.
 
 ## Behaviours
 
- - RegistrationBaseBehaviour
- - RegistrationBehaviour
- - RegistrationStartupBehaviour
- - TendermintHealthcheckBehaviour
+* `RegistrationBaseBehaviour`
+
+   Register to the next periods.
+
+* `RegistrationBehaviour`
+
+   Register to the next periods.
+
+* `RegistrationStartupBehaviour`
+
+   Register to the next periods.
+
+* `TendermintHealthcheckBehaviour`
+
+   Check whether Tendermint nodes are running.
+
 
 ## Handlers
 

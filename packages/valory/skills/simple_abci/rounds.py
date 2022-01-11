@@ -235,7 +235,7 @@ class SimpleAbciApp(AbciApp[Event]):
 
     Initial round: RegistrationRound
 
-    Initial states:
+    Initial states: {RegistrationRound}
 
     Transition states:
     0. RegistrationRound
@@ -253,7 +253,7 @@ class SimpleAbciApp(AbciApp[Event]):
         - reset timeout: 0.
         - no majority: 0.
 
-    Final states:
+    Final states: {}
 
     Timeouts:
         round timeout: 30.0

@@ -392,7 +392,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
 
     Initial round: RegistrationRound
 
-    Initial states:
+    Initial states: {RegistrationRound}
 
     Transition states:
     0. RegistrationRound
@@ -441,7 +441,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
         - reset timeout: 9.
         - no majority: 9.
 
-    Final states:
+    Final states: {}
 
     Timeouts:
         round timeout: 30.0

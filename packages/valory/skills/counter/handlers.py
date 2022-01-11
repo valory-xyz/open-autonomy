@@ -42,7 +42,11 @@ def decode_number(raw: bytes) -> int:
 
 
 class ABCICounterHandler(ABCIHandler):
-    """ABCI counter handler."""
+    """ABCI counter handler.
+
+    Handles ABCI messages from a Tendermint node and implements the ABCI
+    Counter app.
+    """
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 

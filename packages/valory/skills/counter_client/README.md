@@ -1,16 +1,28 @@
 # Counter client
 
-## Description:
+## Description
 
-This module contains an example of ABCI skill for an AEA.
+This module contains a client for the counter ABCI skill for an AEA.
 
 ## Behaviours
 
- - BaseBehaviour
- - IncrementerBehaviour
- - MonitorBehaviour
+* `BaseBehaviour`
+
+   Abstract base behaviour for this skill.
+
+* `IncrementerBehaviour`
+
+   Send a transaction
+
+* `MonitorBehaviour`
+
+   Send an ABCI query periodically.
+
 
 ## Handlers
 
- - HttpHandler
+* `HttpHandler`
+
+   The HTTP response handler.
+
 

@@ -17,7 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'price' skill for an AEA."""
+"""
+This module contains the ABCI cryptocurrency price estimation skill for an AEA
+through aggregation of observations from different sources.
+"""
 
 from aea.configurations.base import PublicId
 

@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'price' skill for an AEA."""
+"""This module contains an abstract round ABCI skill template for an AEA."""
 
 from aea.configurations.base import PublicId
 

@@ -1,21 +1,51 @@
 # Transaction settlement abci
 
-## Description:
+## Description
 
-This module contains the ABCI 'transaction settlement' skill for an AEA.
+This module contains the ABCI transaction settlement skill for an AEA.
 
 ## Behaviours
 
- - BaseResetBehaviour
- - FinalizeBehaviour
- - RandomnessTransactionSubmissionBehaviour
- - ResetAndPauseBehaviour
- - ResetBehaviour
- - SelectKeeperTransactionSubmissionBehaviourA
- - SelectKeeperTransactionSubmissionBehaviourB
- - SignatureBehaviour
- - TransactionSettlementBaseState
- - ValidateTransactionBehaviour
+* `BaseResetBehaviour`
+
+   Reset state.
+
+* `FinalizeBehaviour`
+
+   Finalize state.
+
+* `RandomnessTransactionSubmissionBehaviour`
+
+   Retrieve randomness.
+
+* `ResetAndPauseBehaviour`
+
+   Reset and pause state.
+
+* `ResetBehaviour`
+
+   Reset state.
+
+* `SelectKeeperTransactionSubmissionBehaviourA`
+
+   Select the keeper agent.
+
+* `SelectKeeperTransactionSubmissionBehaviourB`
+
+   Select the keeper agent.
+
+* `SignatureBehaviour`
+
+   Signature state.
+
+* `TransactionSettlementBaseState`
+
+   Base state behaviour for the common apps' skill.
+
+* `ValidateTransactionBehaviour`
+
+   ValidateTransaction.
+
 
 ## Handlers
 

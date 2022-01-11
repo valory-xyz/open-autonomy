@@ -135,7 +135,7 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
 
     Initial round: RandomnessOracleRound
 
-    Initial states:
+    Initial states: {RandomnessOracleRound}
 
     Transition states:
     0. RandomnessOracleRound
@@ -158,7 +158,7 @@ class OracleDeploymentAbciApp(AbciApp[Event]):
         - no majority: 0.
     4. FinishedOracleRound
 
-    Final states: FinishedOracleRound
+    Final states: {FinishedOracleRound}
 
     Timeouts:
         round timeout: 30.0

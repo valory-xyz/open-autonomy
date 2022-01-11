@@ -1,16 +1,31 @@
 # Safe deployment abci
 
-## Description:
+## Description
 
-This module contains the ABCI 'safe deployment' skill for an AEA.
+This module contains the ABCI safe deployment skill for an AEA.
 
 ## Behaviours
 
- - DeploySafeBehaviour
- - RandomnessSafeBehaviour
- - SafeDeploymentBaseState
- - SelectKeeperSafeBehaviour
- - ValidateSafeBehaviour
+* `DeploySafeBehaviour`
+
+   Deploy Safe.
+
+* `RandomnessSafeBehaviour`
+
+   Retrieve randomness for oracle deployment.
+
+* `SafeDeploymentBaseState`
+
+   Base state behaviour for the common apps' skill.
+
+* `SelectKeeperSafeBehaviour`
+
+   Select the keeper agent.
+
+* `ValidateSafeBehaviour`
+
+   ValidateSafe.
+
 
 ## Handlers
 

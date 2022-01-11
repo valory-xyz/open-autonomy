@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains an example of ABCI skill for an AEA."""
+"""This module contains an abstract ABCI skill template for an AEA."""
 
 from aea.configurations.base import PublicId
 

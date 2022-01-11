@@ -129,7 +129,7 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
 
     Initial round: RandomnessSafeRound
 
-    Initial states:
+    Initial states: {RandomnessSafeRound}
 
     Transition states:
     0. RandomnessSafeRound
@@ -152,7 +152,7 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         - no majority: 0.
     4. FinishedSafeRound
 
-    Final states: FinishedSafeRound
+    Final states: {FinishedSafeRound}
 
     Timeouts:
         round timeout: 30.0

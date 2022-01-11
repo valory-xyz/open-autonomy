@@ -269,7 +269,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
 
     Initial round: RandomnessTransactionSubmissionRound
 
-    Initial states:
+    Initial states: {RandomnessTransactionSubmissionRound}
 
     Transition states:
     0. RandomnessTransactionSubmissionRound
@@ -309,7 +309,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     8. FinishedTransactionSubmissionRound
     9. FailedRound
 
-    Final states: FinishedTransactionSubmissionRound, FailedRound
+    Final states: {FinishedTransactionSubmissionRound, FailedRound}
 
     Timeouts:
         round timeout: 30.0
