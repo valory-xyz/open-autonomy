@@ -524,6 +524,8 @@ class BasePeriodState:
     def participants(self) -> FrozenSet[str]:
         """Get the participants."""
         participants = self.db.get_strict("participants")
+        if len(participants) == 0:
+            raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], participants)
 
     @property

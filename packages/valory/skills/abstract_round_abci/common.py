@@ -67,6 +67,12 @@ class RandomnessBehaviour(BaseState):
             block_identifier="latest",
         )
 
+        if (
+            ledger_api_response.performative == LedgerApiMessage.Performative.ERROR
+            or "hash" not in ledger_api_response.state.body
+        ):
+            return None
+
         randomness = hashlib.sha256(
             cast(str, ledger_api_response.state.body.get("hash")).encode()
             + str(self.params.service_id).encode()
@@ -109,6 +115,11 @@ class RandomnessBehaviour(BaseState):
                 self.context.logger.info("Cannot retrieve randomness from api.")
                 self.context.logger.info("Generating randomness from chain.")
                 observation = yield from self.failsafe_randomness()
+                if observation is None:
+                    self.context.logger.error(
+                        "Could not generate randomness from chain."
+                    )
+                    return
             else:
                 self.context.logger.info("Retrieving DRAND values from api.")
                 observation = yield from self.get_randomness_from_api()

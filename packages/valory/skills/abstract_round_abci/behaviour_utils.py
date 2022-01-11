@@ -82,6 +82,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_TX_TIMEOUT = 10.0
+_DEFAULT_TX_MAX_ATTEMPTS = 5
 
 
 class SendException(Exception):
@@ -787,6 +788,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_hash: str,
         timeout: Optional[float] = None,
         request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
+        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
     ) -> Generator[None, None, bool]:
         """
         Wait until transaction is delivered.
@@ -794,6 +796,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
         :param: request_retry_delay: the delay to wait after failed requests
+        :param: max_attempts: the maximun number of attempts
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """
@@ -802,7 +805,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         else:
             deadline = datetime.datetime.max
 
-        while True:
+        for _ in range(max_attempts):
             request_timeout = (
                 (deadline - datetime.datetime.now()).total_seconds()
                 if timeout is not None
@@ -815,6 +818,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             if response.status_code != 200:
                 yield from self.sleep(request_retry_delay)
                 continue
+
             try:
                 json_body = json.loads(response.body)
             except json.JSONDecodeError as e:  # pragma: nocover
@@ -823,6 +827,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 ) from e
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE
+
+        return False
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
