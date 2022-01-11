@@ -68,7 +68,7 @@ class PeriodState(BasePeriodState):
 
 
 class RandomnessSafeRound(CollectSameUntilThresholdRound):
-    """Randomness round for startup."""
+    """A round for generating randomness"""
 
     round_id = "randomness_safe"
     allowed_tx_type = RandomnessPayload.transaction_type
@@ -81,7 +81,7 @@ class RandomnessSafeRound(CollectSameUntilThresholdRound):
 
 
 class SelectKeeperSafeRound(CollectSameUntilThresholdRound):
-    """SelectKeeperSafeRound round for startup."""
+    """A round in a which keeper is selected"""
 
     round_id = "select_keeper_safe"
     allowed_tx_type = SelectKeeperPayload.transaction_type
@@ -94,14 +94,7 @@ class SelectKeeperSafeRound(CollectSameUntilThresholdRound):
 
 
 class DeploySafeRound(OnlyKeeperSendsRound):
-    """
-    This class represents the deploy Safe round.
-
-    Input: a set of participants (addresses) and a keeper
-    Output: a period state with the set of participants, the keeper and the Safe contract address.
-
-    It schedules the ValidateSafeRound.
-    """
+    """A round in a which the safe is deployed"""
 
     round_id = "deploy_safe"
     allowed_tx_type = DeploySafePayload.transaction_type
@@ -113,14 +106,7 @@ class DeploySafeRound(OnlyKeeperSendsRound):
 
 
 class ValidateSafeRound(VotingRound):
-    """
-    This class represents the validate Safe round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the validation of the contract address
-
-    It schedules the CollectObservationRound or SelectKeeperARound.
-    """
+    """A round in a which the safe address is validated"""
 
     round_id = "validate_safe"
     allowed_tx_type = ValidatePayload.transaction_type
@@ -133,41 +119,74 @@ class ValidateSafeRound(VotingRound):
 
 
 class FinishedSafeRound(DegenerateRound):
-    """This class represents the finished round of the safe deployment."""
+    """A round that represents that the safe has been deployed"""
 
     round_id = "finished_safe"
 
 
 class SafeDeploymentAbciApp(AbciApp[Event]):
-    """Safe deployment ABCI application."""
+    """SafeDeploymentAbciApp
+
+    Initial round: RandomnessSafeRound
+
+    Initial states: {RandomnessSafeRound}
+
+    Transition states:
+    0. RandomnessSafeRound
+        - done: 1.
+        - round timeout: 0.
+        - no majority: 0.
+    1. SelectKeeperSafeRound
+        - done: 2.
+        - round timeout: 0.
+        - no majority: 0.
+    2. DeploySafeRound
+        - done: 3.
+        - deploy timeout: 1.
+        - failed: 1.
+    3. ValidateSafeRound
+        - done: 4.
+        - negative: 0.
+        - none: 0.
+        - validate timeout: 0.
+        - no majority: 0.
+    4. FinishedSafeRound
+
+    Final states: {FinishedSafeRound}
+
+    Timeouts:
+        round timeout: 30.0
+        validate timeout: 30.0
+        deploy timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RandomnessSafeRound
     transition_function: AbciAppTransitionFunction = {
         RandomnessSafeRound: {
             Event.DONE: SelectKeeperSafeRound,
-            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessSafeRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,
+            Event.NO_MAJORITY: RandomnessSafeRound,
         },
         SelectKeeperSafeRound: {
             Event.DONE: DeploySafeRound,
-            Event.ROUND_TIMEOUT: RandomnessSafeRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: RandomnessSafeRound,
+            Event.NO_MAJORITY: RandomnessSafeRound,
         },
         DeploySafeRound: {
             Event.DONE: ValidateSafeRound,
-            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,  # if the round times out we try with a new keeper;
+            Event.DEPLOY_TIMEOUT: SelectKeeperSafeRound,
             # NOTE: Consider the case where the keeper does send the tx but doesn't share the hash.
             # We do not need to check for this! A simple round timeout will do here as the safe is
             # either unusable by the keeper (requiring the other agent's to sign) or simply has signers which are
             # different to the other agents and therefore they don't care about this safe instance.
-            Event.FAILED: SelectKeeperSafeRound,  # the keeper was unsuccessful;
+            Event.FAILED: SelectKeeperSafeRound,
         },
         ValidateSafeRound: {
             Event.DONE: FinishedSafeRound,
-            Event.NEGATIVE: RandomnessSafeRound,  # if the round does not reach a positive vote we restart
+            Event.NEGATIVE: RandomnessSafeRound,
             Event.NONE: RandomnessSafeRound,  # NOTE: unreachable
-            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,  # the tx validation logic has its own timeout, this is just a safety check
-            Event.NO_MAJORITY: RandomnessSafeRound,  # if the round has no majority we restart
+            Event.VALIDATE_TIMEOUT: RandomnessSafeRound,
+            Event.NO_MAJORITY: RandomnessSafeRound,
         },
         FinishedSafeRound: {},
     }

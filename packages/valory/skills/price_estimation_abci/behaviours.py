@@ -111,7 +111,7 @@ def payload_to_hex(
 
 
 class PriceEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -247,7 +247,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).

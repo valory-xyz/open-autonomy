@@ -50,7 +50,7 @@ benchmark_tool = BenchmarkTool()
 
 
 class SafeDeploymentBaseState(BaseState):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -59,7 +59,7 @@ class SafeDeploymentBaseState(BaseState):
 
 
 class RandomnessSafeBehaviour(RandomnessBehaviour):
-    """Retrive randomness for oracle deployment."""
+    """Retrieve randomness for oracle deployment."""
 
     state_id = "randomness_safe"
     matching_round = RandomnessSafeRound
@@ -85,7 +85,8 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         Do the action.
 
         Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - If the agent is the designated deployer, then prepare the deployment
+          transaction and send it.
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
@@ -183,8 +184,10 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         Do the action.
 
         Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the contract address provided by the keeper points to a
+          valid contract.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """

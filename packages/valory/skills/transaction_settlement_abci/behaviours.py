@@ -75,7 +75,7 @@ def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:
 
 
 class TransactionSettlementBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -118,8 +118,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         Do the action.
 
         Steps:
-        - Validate that the transaction hash provided by the keeper points to a valid transaction.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the transaction hash provided by the keeper points to a
+          valid transaction.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
@@ -540,7 +542,7 @@ class ResetBehaviour(BaseResetBehaviour):
 
 
 class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset state."""
+    """Reset and pause state."""
 
     matching_round = ResetAndPauseRound
     state_id = "reset_and_pause"

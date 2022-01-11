@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -166,14 +166,7 @@ class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC
 class TransactionHashBaseRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """
-    This class represents the 'tx-hash' round.
-
-    Input: a period state with the prior round data
-    Ouptut: a new period state with the prior round data and the votes for each tx hash
-
-    It schedules the CollectSignatureRound.
-    """
+    """A base class for rounds in which agents compute the transaction hash"""
 
     round_id = "tx_hash"
     allowed_tx_type = TransactionHashPayload.transaction_type
@@ -199,7 +192,7 @@ class TransactionHashBaseRound(
 class TransactionSignatureBaseRound(
     CollectDifferentUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """This class represents the 'abstract_signature' round."""
+    """A base class for rounds in which agents sign the transaction"""
 
     round_id = "abstract_signature"
     allowed_tx_type = SignaturePayload.transaction_type
@@ -220,14 +213,7 @@ class TransactionSignatureBaseRound(
 
 
 class TransactionSendBaseRound(OnlyKeeperSendsRound, LiquidityProvisionAbstractRound):
-    """
-    This class represents the finalization Safe round.
-
-    Input: a period state with the prior round data
-    Output: a new period state with the prior round data and the hash of the Safe transaction
-
-    It schedules the ValidateTransactionRound.
-    """
+    """A base class for rounds in which agents send the transaction"""
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
@@ -243,12 +229,7 @@ class TransactionSendBaseRound(OnlyKeeperSendsRound, LiquidityProvisionAbstractR
 
 
 class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRound):
-    """
-    This class represents the validate round.
-
-    Input: a period state with the set of participants, the keeper and the Safe contract address.
-    Output: a period state with the set of participants, the keeper, the Safe contract address and a validation of the Safe contract address.
-    """
+    """A base class for rounds in which agents validate the transaction"""
 
     round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
@@ -276,13 +257,7 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
 class StrategyEvaluationRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """This class represents the strategy evaluation round.
-
-    Input: a set of participants (addresses)
-    Output: a set of participants (addresses) and the strategy
-
-    It schedules the WaitRound or the SwapRound.
-    """
+    """A round in which agents evaluate the financial strategy"""
 
     round_id = "strategy_evaluation"
     allowed_tx_type = StrategyEvaluationPayload.transaction_type
@@ -309,31 +284,31 @@ class StrategyEvaluationRound(
 
 
 class EnterPoolTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the SwapBack transaction hash round."""
+    """A round in which agents compute the transaction hash for pool entry"""
 
     round_id = "enter_pool_tx_hash"
 
 
 class EnterPoolTransactionSignatureRound(TransactionSignatureBaseRound):
-    """This class represents the SwapBack signature round."""
+    """A round in which agents sign the transaction for pool entry"""
 
     round_id = "enter_pool_tx_signature"
 
 
 class EnterPoolTransactionSendRound(TransactionSendBaseRound):
-    """This class represents the SwapBack send round."""
+    """A round in which agents send the transaction for pool entry"""
 
     round_id = "enter_pool_tx_send"
 
 
 class EnterPoolTransactionValidationRound(TransactionValidationBaseRound):
-    """This class represents the SwapBack validation round."""
+    """A round in which agents validate the transaction for pool entry"""
 
     round_id = "enter_pool_tx_validation"
 
 
 class EnterPoolRandomnessRound(RandomnessRound):
-    """Enter pool randomness round."""
+    """A round for generating randomness"""
 
     round_id = "enter_pool_randomness"
 
@@ -341,37 +316,37 @@ class EnterPoolRandomnessRound(RandomnessRound):
 class EnterPoolSelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """This class represents the SwapBack select keeper round."""
+    """A round in which a keeper is selected"""
 
     round_id = "enter_pool_select_keeper"
 
 
 class ExitPoolTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the SwapBack transaction hash round."""
+    """A round in which agents compute the transaction hash for pool exit"""
 
     round_id = "exit_pool_tx_hash"
 
 
 class ExitPoolTransactionSignatureRound(TransactionSignatureBaseRound):
-    """This class represents the SwapBack signature round."""
+    """A round in which agents sign the transaction for pool exit"""
 
     round_id = "exit_pool_tx_signature"
 
 
 class ExitPoolTransactionSendRound(TransactionSendBaseRound):
-    """This class represents the SwapBack send round."""
+    """A round in which agents send the transaction for pool exit"""
 
     round_id = "exit_pool_tx_send"
 
 
 class ExitPoolTransactionValidationRound(TransactionValidationBaseRound):
-    """This class represents the SwapBack validation round."""
+    """A round in which agents validate the transaction for pool exit"""
 
     round_id = "exit_pool_tx_validation"
 
 
 class ExitPoolRandomnessRound(RandomnessRound):
-    """Exit pool randomness round."""
+    """A round for generating randomness"""
 
     round_id = "exit_pool_randomness"
 
@@ -379,37 +354,37 @@ class ExitPoolRandomnessRound(RandomnessRound):
 class ExitPoolSelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """This class represents the SwapBack select keeper round."""
+    """A round in a which keeper is selected"""
 
     round_id = "exit_pool_select_keeper"
 
 
 class SwapBackTransactionHashRound(TransactionHashBaseRound):
-    """This class represents the SwapBack transaction hash round."""
+    """A round in which agents compute the transaction hash for a swap back"""
 
     round_id = "swap_back_tx_hash"
 
 
 class SwapBackTransactionSignatureRound(TransactionSignatureBaseRound):
-    """This class represents the SwapBack signature round."""
+    """A round in which agents sign the transaction for a swap back"""
 
     round_id = "swap_back_tx_signature"
 
 
 class SwapBackTransactionSendRound(TransactionSendBaseRound):
-    """This class represents the SwapBack send round."""
+    """A round in which agents send the transaction for a swap back"""
 
     round_id = "swap_back_tx_send"
 
 
 class SwapBackTransactionValidationRound(TransactionValidationBaseRound):
-    """This class represents the SwapBack validation round."""
+    """A round in which agents validate the transaction for a swap back"""
 
     round_id = "swap_back_tx_validation"
 
 
 class SwapBackRandomnessRound(RandomnessRound):
-    """Exit pool randomness round."""
+    """A round for generating randomness"""
 
     round_id = "swap_back_randomness"
 
@@ -417,13 +392,109 @@ class SwapBackRandomnessRound(RandomnessRound):
 class SwapBackSelectKeeperRound(
     CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
 ):
-    """This class represents the SwapBack select keeper round."""
+    """A round in a which keeper is selected"""
 
     round_id = "swap_back_select_keeper"
 
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
-    """Liquidity Provision ABCI application."""
+    """LiquidityProvisionAbciApp
+
+    Initial round: ResetRound
+
+    Initial states: {ResetRound}
+
+    Transition states:
+    0. ResetRound
+        - done: 1.
+    1. StrategyEvaluationRound
+        - done: 2.
+        - wait: 20.
+        - round timeout: 0.
+        - no majority: 0.
+    2. EnterPoolTransactionHashRound
+        - done: 3.
+        - round timeout: 0.
+        - no majority: 0.
+    3. EnterPoolTransactionSignatureRound
+        - done: 4.
+        - round timeout: 0.
+        - no majority: 0.
+    4. EnterPoolTransactionSendRound
+        - done: 5.
+        - round timeout: 0.
+        - no majority: 0.
+    5. EnterPoolTransactionValidationRound
+        - done: 20.
+        - round timeout: 6.
+        - no majority: 0.
+    6. EnterPoolRandomnessRound
+        - done: 7.
+        - round timeout: 0.
+        - no majority: 0.
+    7. EnterPoolSelectKeeperRound
+        - done: 8.
+        - round timeout: 0.
+        - no majority: 0.
+    8. ExitPoolTransactionHashRound
+        - done: 9.
+        - round timeout: 0.
+        - no majority: 0.
+    9. ExitPoolTransactionSignatureRound
+        - done: 10.
+        - round timeout: 0.
+        - no majority: 0.
+    10. ExitPoolTransactionSendRound
+        - done: 11.
+        - round timeout: 0.
+        - no majority: 0.
+    11. ExitPoolTransactionValidationRound
+        - done: 14.
+        - round timeout: 12.
+        - no majority: 0.
+    12. ExitPoolRandomnessRound
+        - done: 13.
+        - round timeout: 0.
+        - no majority: 0.
+    13. ExitPoolSelectKeeperRound
+        - done: 8.
+        - round timeout: 0.
+        - no majority: 0.
+    14. SwapBackTransactionHashRound
+        - done: 15.
+        - round timeout: 0.
+        - no majority: 0.
+    15. SwapBackTransactionSignatureRound
+        - done: 16.
+        - round timeout: 0.
+        - no majority: 0.
+    16. SwapBackTransactionSendRound
+        - done: 17.
+        - round timeout: 0.
+        - no majority: 0.
+    17. SwapBackTransactionValidationRound
+        - done: 20.
+        - round timeout: 18.
+        - no majority: 0.
+    18. SwapBackRandomnessRound
+        - done: 19.
+        - round timeout: 0.
+        - no majority: 0.
+    19. SwapBackSelectKeeperRound
+        - done: 14.
+        - round timeout: 0.
+        - no majority: 0.
+    20. ResetAndPauseRound
+        - done: 1.
+        - reset timeout: 0.
+        - no majority: 0.
+
+    Final states: {}
+
+    Timeouts:
+        exit: 5.0
+        round timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = ResetRound
     transition_function: AbciAppTransitionFunction = {
