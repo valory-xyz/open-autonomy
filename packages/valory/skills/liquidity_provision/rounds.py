@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
+    LPResultPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -80,6 +81,11 @@ class PeriodState(
         return cast(dict, self.db.get_strict("most_voted_strategy"))
 
     @property
+    def most_voted_lp_result(self) -> dict:
+        """Get the most_voted_lp_result."""
+        return cast(dict, self.db.get_strict("most_voted_lp_result"))
+
+    @property
     def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
         """Get the participant_to_votes."""
         return cast(
@@ -92,6 +98,14 @@ class PeriodState(
         return cast(
             Mapping[str, StrategyEvaluationPayload],
             self.db.get_strict("participant_to_strategy"),
+        )
+
+    @property
+    def participant_to_lp_result(self) -> Mapping[str, LPResultPayload]:
+        """Get the participant_to_votes."""
+        return cast(
+            Mapping[str, LPResultPayload],
+            self.db.get_strict("participant_to_lp_result"),
         )
 
     @property
@@ -266,6 +280,41 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
         if self.negative_vote_threshold_reached:
             state = self.period_state.update()
             return state, self.exit_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class TransactionGetLPResultsRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
+    """
+    This class represents the get LP result round.
+
+    Input: a period state with the set of participants, the keeper and the Safe contract address.
+    Output: a period state with the set of participants, the keeper, the Safe contract address and the value transfered in the LP transaction.
+    """
+
+    round_id = "get_lp_result"
+    allowed_tx_type = LPResultPayload.transaction_type
+    exit_event: Event = Event.EXIT
+    payload_attribute = "value"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_lp_result=MappingProxyType(self.collection),
+                most_voted_lp_result=self.most_voted_payload,
+            )
+            event = (
+                Event.DONE
+                if state.most_voted_strategy["action"] == StrategyType.GO  # type: ignore
+                else Event.RESET_TIMEOUT
+            )
+            return state, event
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -452,10 +501,14 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionValidationRound: {
-            Event.DONE: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.DONE: TransactionGetLPResultsRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
+        },
+        TransactionGetLPResultsRound: {
+            Event.DONE: ExitPoolTransactionHashRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolRandomnessRound: {
             Event.DONE: EnterPoolSelectKeeperRound,
@@ -484,7 +537,6 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         ExitPoolTransactionValidationRound: {
             Event.DONE: SwapBackTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
         },
@@ -515,7 +567,6 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         SwapBackTransactionValidationRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: SwapBackRandomnessRound,
         },

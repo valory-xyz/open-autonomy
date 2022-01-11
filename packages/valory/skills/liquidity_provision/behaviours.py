@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
+    LPResultPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -76,6 +77,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
     SwapBackTransactionSendRound,
     SwapBackTransactionSignatureRound,
     SwapBackTransactionValidationRound,
+    TransactionGetLPResultsRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetAndPauseBehaviour,
@@ -321,6 +323,86 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         )
         self.context.logger.info(verified_log)
         return verified
+
+
+class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
+    """Get a LP transaction result."""
+
+    state_id = "get_lp_result"
+    matching_round = TransactionGetLPResultsRound
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Get the result of the enter pool transaction.
+        - Send the transaction with the transaction result and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            transfer_logs = yield from self.get_lp_result()
+            payload = LPResultPayload(self.context.agent_address, transfer_logs)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def get_lp_result(self) -> Generator[None, None, Optional[int]]:
+        """Contract deployment verification."""
+        response = yield from self.get_transaction_receipt(
+            self.period_state.final_tx_hash,
+            self.params.retry_timeout,
+            self.params.retry_attempts,
+        )
+        if response is None:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+            )
+            return None
+        is_settled = EthereumApi.is_transaction_settled(response)
+        if not is_settled:  # pragma: nocover
+            self.context.logger.info(
+                f"tx {self.period_state.final_tx_hash} not settled!"
+            )
+            return False
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_tx_transfer_logs",
+            tx_hash=self.period_state.final_tx_hash,
+        )
+        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            return False  # pragma: nocover
+        transfer_logs = cast(dict, contract_api_msg.state.body["logs"])
+
+        lp_events = list(
+            filter(
+                lambda log: log["args"]["from"]
+                == "0x0000000000000000000000000000000000000000"
+                and log["args"]["to"] == self.period_state.safe_contract_address,
+                transfer_logs,
+            )
+        )
+
+        if len(lp_events) > 1:
+            return None
+
+        lp_value = lp_events[0]["value"]
+        lp_token = lp_events[0]["token_address"]
+
+        transfer_log_message = f"The tx with hash {self.period_state.final_tx_hash} ended with an incoming transfer of {lp_value} tokens. Token address: {lp_token}."
+        self.context.logger.info(transfer_log_message)
+        return lp_value
 
 
 def get_strategy_update() -> dict:
@@ -1126,6 +1208,7 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         EnterPoolTransactionValidationBehaviour,  # type: ignore
         EnterPoolRandomnessBehaviour,  # type: ignore
         EnterPoolSelectKeeperBehaviour,  # type: ignore
+        TransactionGetLPResultsBehaviour,  # type: ignore
         ExitPoolTransactionHashBehaviour,  # type: ignore
         ExitPoolTransactionSignatureBehaviour,  # type: ignore
         ExitPoolTransactionSendBehaviour,  # type: ignore
