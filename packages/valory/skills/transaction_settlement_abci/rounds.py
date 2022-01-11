@@ -176,10 +176,10 @@ class FinalizationRound(OnlyKeeperSendsRound):
     payload_key = "final_tx_hash"
 
 
-class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
+class RandomnessTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     """Randomness round for operations."""
 
-    round_id = "randomness_transaction_submission"
+    round_id = "randomness_transaction_submission_a"
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
     period_state_class = PeriodState
@@ -200,6 +200,19 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_selection"
     selection_key = "most_voted_keeper_address"
+
+
+class RandomnessTransactionSubmissionRoundB(CollectSameUntilThresholdRound):
+    """Randomness round for operations."""
+
+    round_id = "randomness_transaction_submission_b"
+    allowed_tx_type = RandomnessPayload.transaction_type
+    payload_attribute = "randomness"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_randomness"
+    selection_key = "most_voted_randomness"
 
 
 class SelectKeeperTransactionSubmissionRoundB(CollectSameUntilThresholdRound):
@@ -288,12 +301,12 @@ class ValidateTransactionRound(VotingRound):
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """Transaction submission ABCI application."""
 
-    initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
+    initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRoundA
     transition_function: AbciAppTransitionFunction = {
-        RandomnessTransactionSubmissionRound: {
+        RandomnessTransactionSubmissionRoundA: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.NO_MAJORITY: RandomnessTransactionSubmissionRoundA,  # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperTransactionSubmissionRoundA: {
             Event.DONE: CollectSignatureRound,
@@ -307,7 +320,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.ROUND_TIMEOUT: RandomnessTransactionSubmissionRoundB,  # if the round times out we try with a new keeper; TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,  # the keeper was unsuccessful;
         },
         ValidateTransactionRound: {
@@ -317,13 +330,18 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.VALIDATE_TIMEOUT: ResetRound,  # the tx validation logic has its own timeout, this is just a safety check; TODO: see above
             Event.NO_MAJORITY: ValidateTransactionRound,  # if there is no majority we re-run the round (agents have different observations of the chain-state and need to agree before we can continue)
         },
+        RandomnessTransactionSubmissionRoundB: {
+            Event.DONE: SelectKeeperTransactionSubmissionRoundB,
+            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: RandomnessTransactionSubmissionRoundB,  # we can have some agents on either side of an epoch, so we retry
+        },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
             Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ResetRound: {
-            Event.DONE: RandomnessTransactionSubmissionRound,
+            Event.DONE: RandomnessTransactionSubmissionRoundA,
             Event.RESET_TIMEOUT: FailedRound,  # if the round times out we see if we can assemble a new group of agents
             Event.NO_MAJORITY: FailedRound,  # if we cannot agree we see if we can assemble a new group of agents
         },

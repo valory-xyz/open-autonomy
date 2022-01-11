@@ -47,7 +47,7 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     PeriodState as PriceEstimationPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    RandomnessTransactionSubmissionBehaviour,
+    RandomnessTransactionSubmissionBehaviourA,
 )
 
 from tests.conftest import ROOT_DIR
@@ -311,7 +311,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_transmit_data",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": b"data"}
+                    ledger_id="ethereum", body={"data": b"data"}  # type: ignore
                 ),
             ),
         )
@@ -335,4 +335,4 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(Event.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == RandomnessTransactionSubmissionBehaviour.state_id
+        assert state.state_id == RandomnessTransactionSubmissionBehaviourA.state_id

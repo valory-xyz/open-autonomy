@@ -57,7 +57,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    RandomnessTransactionSubmissionBehaviour,
+    RandomnessTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     TransactionSettlementBaseState,
@@ -88,7 +88,7 @@ class PriceEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
     """Test randomness in operation."""
 
-    randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    randomness_behaviour_class = RandomnessTransactionSubmissionBehaviourA
     next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     done_event = TransactionSettlementEvent.DONE
 
@@ -627,7 +627,7 @@ class TestResetBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test the reset behaviour."""
 
     behaviour_class = ResetBehaviour
-    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviourA
 
     def test_reset_behaviour(
         self,

@@ -47,7 +47,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     CollectSignatureRound,
     FinalizationRound,
     PeriodState,
-    RandomnessTransactionSubmissionRound,
+    RandomnessTransactionSubmissionRoundA,
+    RandomnessTransactionSubmissionRoundB,
     ResetAndPauseRound,
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
@@ -81,11 +82,11 @@ class TransactionSettlementBaseState(BaseState, ABC):
         return cast(PeriodState, super().period_state)
 
 
-class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
+class RandomnessTransactionSubmissionBehaviourA(RandomnessBehaviour):
     """Retrieve randomness."""
 
-    state_id = "randomness_transaction_submission"
-    matching_round = RandomnessTransactionSubmissionRound
+    state_id = "randomness_transaction_submission_a"
+    matching_round = RandomnessTransactionSubmissionRoundA
     payload_class = RandomnessPayload
 
 
@@ -95,6 +96,14 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     state_id = "select_keeper_transaction_submission_a"
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
+
+
+class RandomnessTransactionSubmissionBehaviourB(RandomnessBehaviour):
+    """Retrieve randomness."""
+
+    state_id = "randomness_transaction_submission_b"
+    matching_round = RandomnessTransactionSubmissionRoundB
+    payload_class = RandomnessPayload
 
 
 class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):

@@ -67,7 +67,8 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
+    RandomnessTransactionSubmissionBehaviourA,
+    RandomnessTransactionSubmissionBehaviourB,
     ResetAndPauseBehaviour,
     ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
@@ -347,7 +348,8 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         SelectKeeperOracleBehaviour,  # type: ignore
         DeployOracleBehaviour,  # type: ignore
         ValidateOracleBehaviour,  # type: ignore
-        RandomnessTransactionSubmissionBehaviour,  # type: ignore
+        RandomnessTransactionSubmissionBehaviourA,  # type: ignore
+        RandomnessTransactionSubmissionBehaviourB,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

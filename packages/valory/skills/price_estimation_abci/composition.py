@@ -47,7 +47,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     FailedRound,
     FinishedTransactionSubmissionRound,
-    RandomnessTransactionSubmissionRound,
+    RandomnessTransactionSubmissionRoundA,
     TransactionSubmissionAbciApp,
 )
 
@@ -57,7 +57,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedSafeRound: RandomnessOracleRound,
     FinishedOracleRound: CollectObservationRound,
     FinishedRegistrationFFWRound: CollectObservationRound,
-    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
+    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRoundA,
     FinishedTransactionSubmissionRound: CollectObservationRound,
     FailedRound: RegistrationRound,
 }

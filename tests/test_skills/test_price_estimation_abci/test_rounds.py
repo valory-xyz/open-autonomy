@@ -60,7 +60,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     PeriodState as TransactionSettlementPeriodState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    RandomnessTransactionSubmissionRound,
+    RandomnessTransactionSubmissionRoundA,
     rotate_list,
 )
 
@@ -183,8 +183,8 @@ def get_most_voted_tx_hash() -> str:
     return "tx_hash"
 
 
-class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test RandomnessTransactionSubmissionRound."""
+class TestRandomnessTransactionSubmissionRoundA(BaseCollectSameUntilThresholdRoundTest):
+    """Test RandomnessTransactionSubmissionRoundA."""
 
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
@@ -194,7 +194,7 @@ class TestRandomnessTransactionSubmissionRound(BaseCollectSameUntilThresholdRoun
     ) -> None:
         """Run tests."""
 
-        test_round = RandomnessTransactionSubmissionRound(
+        test_round = RandomnessTransactionSubmissionRoundA(
             self.period_state, self.consensus_params
         )
         self._complete_run(
