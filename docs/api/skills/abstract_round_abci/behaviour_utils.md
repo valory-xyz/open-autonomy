@@ -12,7 +12,7 @@ This module contains helper classes for behaviours.
 class SendException(Exception)
 ```
 
-This exception is raised if the 'try_send' to an AsyncBehaviour failed.
+Exception raised if the 'try_send' to an AsyncBehaviour failed.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TimeoutException"></a>
 
@@ -22,7 +22,7 @@ This exception is raised if the 'try_send' to an AsyncBehaviour failed.
 class TimeoutException(Exception)
 ```
 
-This exception is raised if the 'try_send' to an AsyncBehaviour failed.
+Exception raised when a timeout during AsyncBehaviour occurs.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour"></a>
 
@@ -113,8 +113,8 @@ def try_send(message: Any) -> None
 
 Try to send a message to a waiting behaviour.
 
-It will be send only if the behaviour is actually
-waiting for a message and it was not already notified.
+It will be sent only if the behaviour is actually waiting for a message,
+and it was not already notified.
 
 **Arguments**:
 
@@ -155,7 +155,7 @@ The argument may be a floating point number for subsecond precision.
 #### wait`_`for`_`message
 
 ```python
-def wait_for_message(condition: Callable = lambda message: True) -> Any
+def wait_for_message(condition: Callable = lambda message: True, timeout: Optional[float] = None) -> Any
 ```
 
 Wait for message.
@@ -166,10 +166,21 @@ Use directly after a request is being sent.
 **Arguments**:
 
 - `condition`: a callable
+- `timeout`: max time to wait (in seconds)
 
 **Returns**:
 
 a message
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Setup behaviour.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.act"></a>
 
@@ -211,6 +222,28 @@ def __init__(**kwargs: Any)
 
 Initialize a base state behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.params"></a>
+
+#### params
+
+```python
+@property
+def params() -> BaseParams
+```
+
+Return the params.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.period_state"></a>
+
+#### period`_`state
+
+```python
+@property
+def period_state() -> BasePeriodState
+```
+
+Return the period state.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_in_round"></a>
 
 #### check`_`in`_`round
@@ -219,7 +252,7 @@ Initialize a base state behaviour.
 def check_in_round(round_id: str) -> bool
 ```
 
-Check that we entered in a specific round.
+Check that we entered a specific round.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_in_last_round"></a>
 
@@ -229,7 +262,7 @@ Check that we entered in a specific round.
 def check_in_last_round(round_id: str) -> bool
 ```
 
-Check that we entered in a specific round.
+Check that we entered a specific round.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_not_in_round"></a>
 
@@ -261,6 +294,16 @@ def check_round_has_finished(round_id: str) -> bool
 
 Check that the round has finished.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.check_round_height_has_changed"></a>
+
+#### check`_`round`_`height`_`has`_`changed
+
+```python
+def check_round_height_has_changed(round_height: int) -> bool
+```
+
+Check that the round height has changed.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.is_round_ended"></a>
 
 #### is`_`round`_`ended
@@ -285,6 +328,23 @@ Wait until the ABCI application exits from a round.
 
 :yield: None
 - `timeout`: the timeout for the wait
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.wait_from_last_timestamp"></a>
+
+#### wait`_`from`_`last`_`timestamp
+
+```python
+def wait_from_last_timestamp(seconds: float) -> Any
+```
+
+Delay execution for a given number of seconds from the last timestamp.
+
+The argument may be a floating point number for subsecond precision.
+
+**Arguments**:
+
+:yield: None
+- `seconds`: the seconds
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.is_done"></a>
 
@@ -341,15 +401,81 @@ def default_callback_request(message: Message) -> None
 
 Implement default callback request.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_http_response"></a>
+
+#### get`_`http`_`response
+
+```python
+def get_http_response(method: str, url: str, content: Optional[bytes] = None, headers: Optional[List[OrderedDict[str, str]]] = None, parameters: Optional[List[Tuple[str, str]]] = None) -> Generator[None, None, HttpMessage]
+```
+
+Send an http request message from the skill context.
+
+This method is skill-specific, and therefore
+should not be used elsewhere.
+
+**Arguments**:
+
+:yield: wait the response message
+- `method`: the http request method (i.e. 'GET' or 'POST').
+- `url`: the url to send the message to.
+- `content`: the payload.
+- `headers`: headers to be included.
+- `parameters`: url query parameters.
+
+**Returns**:
+
+the http message and the http dialogue
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_signature"></a>
+
+#### get`_`signature
+
+```python
+def get_signature(message: bytes, is_deprecated_mode: bool = False) -> Generator[None, None, str]
+```
+
+Get signature for message.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
 
 #### send`_`raw`_`transaction
 
 ```python
-def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, Tuple[str, Dict]]
+def send_raw_transaction(transaction: RawTransaction) -> Generator[None, None, Optional[str]]
 ```
 
 Send raw transactions to the ledger for mining.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_transaction_receipt"></a>
+
+#### get`_`transaction`_`receipt
+
+```python
+def get_transaction_receipt(tx_digest: str, retry_timeout: Optional[int] = None, retry_attempts: Optional[int] = None) -> Generator[None, None, Optional[Dict]]
+```
+
+Get transaction receipt.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_ledger_api_response"></a>
+
+#### get`_`ledger`_`api`_`response
+
+```python
+def get_ledger_api_response(performative: LedgerApiMessage.Performative, ledger_callable: str, **kwargs: Any, ,) -> Generator[None, None, LedgerApiMessage]
+```
+
+Request contract safe transaction hash
+
+**Arguments**:
+
+- `performative`: the message performative
+- `ledger_callable`: the callable to call on the contract
+- `kwargs`: keyword argument for the contract api request
+
+**Returns**:
+
+the contract api response
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_contract_api_response"></a>
 
@@ -366,7 +492,7 @@ Request contract safe transaction hash
 - `performative`: the message performative
 - `contract_address`: the contract address
 - `contract_id`: the contract id
-- `contract_callable`: the collable to call on the contract
+- `contract_callable`: the callable to call on the contract
 - `kwargs`: keyword argument for the contract api request
 
 **Returns**:
