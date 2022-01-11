@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains an example of ABCI skill for an AEA."""
+"""
+This module contains an example of the counter ABCI skill for an AEA.
+
+It implements the [ABCI `counter` application](https://docs.tendermint.com/master/app-dev/getting-started.html),
+a toy example for [Tendermint](https://docs.tendermint.com/master/tendermint-core/using-tendermint.html).
+"""
 
 from aea.configurations.base import PublicId
 
