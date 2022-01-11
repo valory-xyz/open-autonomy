@@ -6,13 +6,13 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSR24UdwJjbdh9Drcm4nZ7Gi8VddL6ig3cfS7NY3pypRL
-  __init__.py: QmYD8Dyg4oypTp2zYSaZFQ4FFJrGVz4YK7dFaiVgUUtZ5H
+  README.md: Qme25K3isgbqMuTJ6jhL1Tu8jj7bJ96eJ8MLz4L5vHpZbV
+  __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmY4CAjgeM3GdPRT5NCTfeDdEfyUkCJc8FZNKsyW4vQ6oB
-  base.py: QmQDwpFYhKEijYDLMBdcByM2zNYhQzSxM9Pk6rmvNb7fmM
-  behaviour_utils.py: QmRAuhf728NtPCu9CLjHL9E9fusEmnDBhxMnEGXkXP7aDh
+  base.py: QmcLaYAt56AQSoxs14evWLPzuB5zpGHPRuFCjUjqKLeGa5
+  behaviour_utils.py: QmcXKWhAw3sscmEoJZ5WxCYhFfzzjSQKM5onQvGrNbSEYy
   behaviours.py: QmPcrdPCqeo3j8LWLX3wU8GvgXaDfMqvieUX6eHaL9Gc3M
-  common.py: QmRx2ZfHzLM5C4LR8qspdhf5ewH5xdSsgpeT2iz597CnQK
+  common.py: QmS6Jo5sqVBq9zK8BnSm7R581QzRzw33wV4QkiF9fb4VtW
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
   handlers.py: QmQsAq5hty7L4wa4jLWqNjpeetT7GM28rL125PUZ2dKrzc
   models.py: QmPMvNmQ1fYt2mw4s8JTs2Q64ng6aw3Hff5vwqQogiAA35

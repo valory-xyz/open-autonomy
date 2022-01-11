@@ -7,15 +7,15 @@ description: ABCI application for cryptocurrency price estimation aggregating ob
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmTtis7Z1BsV6Jf46oqgyF7HZ1fiBg22PGYuomEqc2Zd2s
-  __init__.py: QmaSFhnM257jBvNorhGMKEwtda6Jf1UzWyFAAQ47dsz9yJ
+  README.md: QmSinQfQbyxtxgCx6dSRDG3iLzMspsotw7xJwzq4CbdLMs
+  __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
   behaviours.py: QmXVmHds2jie5bvUVVL2fjUEhehGcCa4nCJdTphoGkUJnt
   composition.py: QmUU1YcGhFNuodMym8mg6LN8QQ3hcNXXjN4taEarxjq7Be
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmUvVL8aA2ST6xJkAMEGBcGbzCouGAyfrxPwB3SokswYJD
   payloads.py: QmdiwjgQpLKKFWA9sypsgFYAoiPRQqtxCiETekxFmi5tHM
-  rounds.py: QmeoRnyvm9iD8hPbqqEcP5CQK9J9tNn3u4yBnA3Axw8ye4
+  rounds.py: Qmc6jHWApp1rkqG9vQoVgKMW4Gt9EMuDCquKHs5Vuqzxv9
 fingerprint_ignore_patterns: []
 connections: []
 contracts:

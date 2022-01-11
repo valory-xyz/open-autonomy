@@ -6,7 +6,7 @@ description: This skill implements the APY estimation for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmSzm5E58yZmQv4aCqi1AjjsLGCp2YtN7TbidzLoDZ85zt
+  README.md: QmaQVmDR2casu1vcBsSrNf5eispadze3ZNRnLKWUpkuG6u
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
   behaviours.py: QmVMHADGZC2i34Zh7npet7hPT2ehjvQiev4d7rcPjJ3w47
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
@@ -18,7 +18,7 @@ fingerprint:
   ml/preprocessing.py: QmXkbxwhz8qTrRHzn7oBsKRo56JSGtE48dLu9gYmKYuL2C
   models.py: QmVYKvDpiUq1Lr5XHT3BxeBPUTgwVgtQouPmxhGmsb3wxj
   payloads.py: QmZmowfFx6wNQfMjvCfuSuhcX8d4155EFXKyyfffFXxmMi
-  rounds.py: QmVXNzhSVouzfCXGy78CgzXs344WWLWfBkQpqGCM1XPE6E
+  rounds.py: QmZFnvxozFPcWwrsVPwCuSqg9jTXXEtr7ECydcQx7qh1UF
   tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
   tools/etl.py: QmXYfXtpRGMbAVpm6n8dqWjiAc8Z3ne9YPbmuxPnJ6HQ5W

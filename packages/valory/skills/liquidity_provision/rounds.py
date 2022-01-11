@@ -399,7 +399,7 @@ class SwapBackSelectKeeperRound(
 
 class LiquidityProvisionAbciApp(AbciApp[Event]):
     """LiquidityProvisionAbciApp
-    
+
     Initial round: ResetRound
 
     Initial states: {ResetRound}

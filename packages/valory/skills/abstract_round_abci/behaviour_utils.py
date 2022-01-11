@@ -797,6 +797,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
         :param: request_retry_delay: the delay to wait after failed requests
+        :param: max_attempts: the maximun number of attempts
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """

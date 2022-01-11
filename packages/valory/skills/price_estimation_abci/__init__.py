@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """
-This module contains the ABCI cryptocurrency price estimation skill for an AEA
-through aggregation of observations from different sources.
+This module contains the ABCI cryptocurrency price estimation skill for an AEA.
+
+It does so through aggregation of observations from different sources.
 """
 
 from aea.configurations.base import PublicId
