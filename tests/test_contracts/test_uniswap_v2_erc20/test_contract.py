@@ -367,12 +367,38 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
         }
 
-    def test_get_tx_transfer_logs(self) -> None:
+    def test_get_tx_transfer_logs_no_tx(self) -> None:
         """Test get transfer logs."""
-        assert self.contract_address is not None
         logs = self.contract.get_tx_transfer_logs(
             ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+            contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
             tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
         )
         assert type(logs) == dict, "The transfer logs is not a dict"
+        assert "logs" in logs, "The transfer logs dict is empty"
+
+
+    def test_get_tx_transfer_logs(self) -> None:
+        """Test get transfer logs."""
+
+        DUMMY_EVENTS = ({"args": {"from": "address", "to": "address", "value": 5}, "address": "token_address"},)
+
+        with mock.patch.object(
+            self.ledger_api,
+            "get_transaction_receipt",
+            return_value="receipt",
+        ):
+            with mock.patch(
+                "web3.contract.ContractEvent.processReceipt",
+                return_value=DUMMY_EVENTS,
+            ):
+                logs = self.contract.get_tx_transfer_logs(
+                    ledger_api=self.ledger_api,
+                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+                )
+                assert type(logs) == dict, "The transfer logs is not a dict"
+                assert "logs" in logs, "The transfer logs dict is empty"
+                assert len(logs["logs"]) != 0, "Transfer logs is empty"
+
+
