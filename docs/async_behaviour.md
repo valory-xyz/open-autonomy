@@ -15,13 +15,6 @@ The `AsyncBehaviour` class, introduced in the `valory/abstract_round_abci`
 skill, is a mixin class that allows the AEA developer to use
 asynchronous programming patterns in a `Behaviour` implementation.
 
-It is assumed the reader has basic knowledge of the 
-[open AEA framework](https://valory-xyz.github.io/open-aea/),
-in particular of the `Behaviour` programming abstraction
-(see [here](https://valory-xyz.github.io/open-aea/skill-guide/#step-2-develop-a-behaviour) 
-and [here](valory-xyz.github.io/open-aea/skill/#behaviourspy)
-).
-
 ## Why?
 
 The main motivation behind the `AsyncBehaviour` utility class
@@ -95,10 +88,10 @@ Currently, the crux of the implementation is the
 
 - from the developer perspective, the execution can be suspended by using 
   `yield` or `yield from` expressions. This will return a generator object 
-  to the framework, which is opportunely stored in an object attribute; 
+  to the framework, which can opportunely be stored in an object attribute; 
 - from the framework perspective, the execution can be resumed by "sending" a
   value to the generator object, using the [`send()`](https://docs.python.org/3/reference/expressions.html#generator.send) 
-  method of the generator object The value can be `None`, 
+  method of the generator object. The value can be `None`, 
   or a message sent by another skill component.
 
 The abstract methods the developer should implement are called

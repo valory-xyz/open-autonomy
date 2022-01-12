@@ -39,7 +39,7 @@ In the following, we will consider Tendermint as our state-replication layer.
 
 ## What is Tendermint
 
-Tendermint is a software for securely and consistently replicating 
+Tendermint is software for securely and consistently replicating 
 an application on many machines.
 It is Byzantine fault tolerant (BFT),
 i.e. it has the ability to tolerate machines failing in arbitrary ways, 
@@ -53,7 +53,7 @@ a **blockchain consensus engine** and a **generic application interface**.
 - The application interface, called the **Application BlockChain Interface (ABCI)**, 
   enables the transactions to be processed in any programming language. 
   Unlike other blockchain and consensus solutions, which come pre-packaged with 
-  built in state machines, developers can use Tendermint for 
+  built-in state machines, developers can use Tendermint for 
   BFT state machine replication of applications written in whatever programming 
   language and development environment is right for them.
 
@@ -110,7 +110,7 @@ The transaction are submitted by a third entity,
 the _User_, that uses the ABCI app
 by interacting with a Tendermint node
 through the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
-At [this link](https://github.com/tendermint/tendermint/blob/master/proto/tendermint/abci/types.proto), 
+At [this link](https://github.com/tendermint/abci/blob/master/types/types.proto), 
 you can see the Protobuf definitions of those messages.
 
 In the following, we will review the most important interactions
