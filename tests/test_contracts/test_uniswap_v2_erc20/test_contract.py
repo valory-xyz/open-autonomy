@@ -374,7 +374,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
             tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
         )
-        assert type(logs) == dict, "The transfer logs is not a dict"
+        assert logs == dict(logs=[]), "The transfer logs do not have the correct format"
         assert "logs" in logs, "The transfer logs dict is empty"
 
 
