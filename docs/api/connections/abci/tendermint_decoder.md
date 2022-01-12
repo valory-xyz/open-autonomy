@@ -22,10 +22,31 @@ It translates from Tendermint's ABCI Protobuf messages into the AEA's ABCI proto
 
 ```python
 @classmethod
-def process(cls, message: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def process(cls, message: Request, dialogues: AbciDialogues, counterparty: str) -> Optional[Tuple[AbciMessage, AbciDialogue]]
 ```
 
 Process an ABCI request or response.
+
+<a id="packages.valory.connections.abci.tendermint_decoder._TendermintProtocolDecoder.request_echo"></a>
+
+#### request`_`echo
+
+```python
+@classmethod
+def request_echo(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+```
+
+Decode an echo request.
+
+**Arguments**:
+
+- `request`: the request.
+- `dialogues`: the dialogues object.
+- `counterparty`: the counterparty.
+
+**Returns**:
+
+the AbciMessage request.
 
 <a id="packages.valory.connections.abci.tendermint_decoder._TendermintProtocolDecoder.request_flush"></a>
 
@@ -58,6 +79,27 @@ def request_info(cls, request: Request, dialogues: AbciDialogues, counterparty: 
 ```
 
 Decode a info request.
+
+**Arguments**:
+
+- `request`: the request.
+- `dialogues`: the dialogues object.
+- `counterparty`: the counterparty.
+
+**Returns**:
+
+the AbciMessage request.
+
+<a id="packages.valory.connections.abci.tendermint_decoder._TendermintProtocolDecoder.request_set_option"></a>
+
+#### request`_`set`_`option
+
+```python
+@classmethod
+def request_set_option(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+```
+
+Decode a set_option request.
 
 **Arguments**:
 
@@ -222,7 +264,7 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_list_snapshots(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_list_snapshots(cls, _request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a list_snapshots request.

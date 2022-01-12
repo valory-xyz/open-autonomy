@@ -27,6 +27,63 @@ def process(cls, message: AbciMessage) -> Optional[Union[Request, Response]]
 
 Encode an AbciMessage object into either Request or Respose protobuf objects.
 
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_exception"></a>
+
+#### response`_`exception
+
+```python
+@classmethod
+def response_exception(cls, message: AbciMessage) -> Response
+```
+
+Process the response exception.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_echo"></a>
+
+#### response`_`echo
+
+```python
+@classmethod
+def response_echo(cls, message: AbciMessage) -> Response
+```
+
+Process the response echo.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_set_option"></a>
+
+#### response`_`set`_`option
+
+```python
+@classmethod
+def response_set_option(cls, message: AbciMessage) -> Response
+```
+
+Process the response set_option.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
 <a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_info"></a>
 
 #### response`_`info
@@ -189,6 +246,82 @@ def response_commit(cls, message: AbciMessage) -> Response
 ```
 
 Process the response commit.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_list_snapshots"></a>
+
+#### response`_`list`_`snapshots
+
+```python
+@classmethod
+def response_list_snapshots(cls, message: AbciMessage) -> Response
+```
+
+Process the response list_snapshots.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_offer_snapshot"></a>
+
+#### response`_`offer`_`snapshot
+
+```python
+@classmethod
+def response_offer_snapshot(cls, message: AbciMessage) -> Response
+```
+
+Process the response offer_snapshot.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_load_snapshot_chunk"></a>
+
+#### response`_`load`_`snapshot`_`chunk
+
+```python
+@classmethod
+def response_load_snapshot_chunk(cls, message: AbciMessage) -> Response
+```
+
+Process the response load_snapshot_chunk.
+
+**Arguments**:
+
+- `message`: the response.
+
+**Returns**:
+
+the ABCI protobuf object.
+
+<a id="packages.valory.connections.abci.tendermint_encoder._TendermintProtocolEncoder.response_apply_snapshot_chunk"></a>
+
+#### response`_`apply`_`snapshot`_`chunk
+
+```python
+@classmethod
+def response_apply_snapshot_chunk(cls, message: AbciMessage) -> Response
+```
+
+Process the response apply_snapshot_chunk.
 
 **Arguments**:
 

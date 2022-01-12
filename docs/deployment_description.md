@@ -24,9 +24,9 @@ Infrastructure deployment is handled by Terraform to ensure replicability across
 
 We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both Kubernetes based deployments, however the docker-compose deployment is able to skip this step.
 
-The domain can be aquired from a domain registrar such as [goDaddy](https://www.godaddy.com), or [Freenon](https://www.freenom.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars NameServer (NS) records easily.
+The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com), or [Freenom](https://www.freenom.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars nameserver (NS) records easily.
 
-##Install depenencies.
+##Install dependencies.
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
@@ -62,7 +62,7 @@ cd infra/digital_ocean
 terraform init # download required terraform packages
 terraform apply # deploy resources and approve when prompted.
 ```
-This will generate a kubeconfig which can be used to interact with the newly deployed resources. NOTE. This provides root access to the cluser so ensure that it is protected.
+This will generate a kubeconfig which can be used to interact with the newly deployed resources. NOTE. This provides root access to the cluster so ensure that it is protected.
 
 ## AWS
 1. Login to AWS console.
@@ -81,7 +81,7 @@ terraform apply # deploy resources and approve when prompted.
 
 # Post Cluster Deployment Setup
 
-Once the cluster has been deployed, we need to go ahead and actually deploy our application the cluster. We have included a number of convenice commands to speed this process up.
+Once the cluster has been deployed, we need to go ahead and actually deploy our application the cluster. We have included a number of convenience commands to speed this process up.
 
 Depending upon the Cloud Provider selected above, the user must now point their Kubectl at the newly deployed cluster as so;
 
@@ -105,4 +105,4 @@ make cluster-deploy
 ```bash
 make cluster-dashboard-start
 ```
-This will print a URL along with a passsword to allow access to the kubernetes dahboard where you will be able to see the status of the running containers along with their logs.
+This will print a URL along with a password to allow access to the kubernetes dashboard where you will be able to see the status of the running containers along with their logs.

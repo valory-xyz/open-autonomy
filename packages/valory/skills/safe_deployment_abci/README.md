@@ -24,7 +24,7 @@ This module contains the ABCI safe deployment skill for an AEA.
 
 * `ValidateSafeBehaviour`
 
-   ValidateSafe.
+   Validate Safe.
 
 
 ## Handlers

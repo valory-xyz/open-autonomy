@@ -12,7 +12,12 @@ This module contains the handler for the 'abci' skill.
 class ABCIHandler(Handler)
 ```
 
-ABCI handler.
+Default ABCI handler.
+
+This abstract skill provides a template of an ABCI application managed by an
+AEA. This abstract Handler replies to ABCI requests with default responses.
+In another skill, extend the class and override the request handlers
+to implement a custom behaviour.
 
 <a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.setup"></a>
 
@@ -58,6 +63,25 @@ def log_exception(message: AbciMessage, error_message: str) -> None
 
 Log a response exception.
 
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.echo"></a>
+
+#### echo
+
+```python
+def echo(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_ECHO performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
 <a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.info"></a>
 
 #### info
@@ -86,6 +110,25 @@ def flush(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_FLUSH performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.set_option"></a>
+
+#### set`_`option
+
+```python
+def set_option(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_SET_OPTION performative.
 
 **Arguments**:
 
@@ -219,6 +262,82 @@ def commit(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_COMMIT performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.list_snapshots"></a>
+
+#### list`_`snapshots
+
+```python
+def list_snapshots(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_LIST_SNAPSHOT performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.offer_snapshot"></a>
+
+#### offer`_`snapshot
+
+```python
+def offer_snapshot(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_OFFER_SNAPSHOT performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.load_snapshot_chunk"></a>
+
+#### load`_`snapshot`_`chunk
+
+```python
+def load_snapshot_chunk(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_LOAD_SNAPSHOT_CHUNK performative.
+
+**Arguments**:
+
+- `message`: the ABCI request.
+- `dialogue`: the ABCI dialogue.
+
+**Returns**:
+
+the response.
+
+<a id="packages.valory.skills.abstract_abci.handlers.ABCIHandler.apply_snapshot_chunk"></a>
+
+#### apply`_`snapshot`_`chunk
+
+```python
+def apply_snapshot_chunk(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+```
+
+Handle a message of REQUEST_APPLY_SNAPSHOT_CHUNK performative.
 
 **Arguments**:
 

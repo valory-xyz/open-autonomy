@@ -25,7 +25,7 @@ Delegate call can be difficult to wrap your head around, but think of it this wa
 
 - Create a Tenderly account and project.
 
-- Set yout Tenderly username and project name at `tenderly.yaml` (`exports/ganache/project_slug`) and at your `hardhat.config.js` module exports:
+- Set your Tenderly username and project name at `tenderly.yaml` (`exports/ganache/project_slug`) and at your `hardhat.config.js` module exports:
 
     ```
     tenderly: {
