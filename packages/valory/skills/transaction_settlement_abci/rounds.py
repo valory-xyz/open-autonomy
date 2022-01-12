@@ -357,6 +357,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.FINALIZE_TIMEOUT: GasAdjustmentRound,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
         },
         GasAdjustmentRound: {
