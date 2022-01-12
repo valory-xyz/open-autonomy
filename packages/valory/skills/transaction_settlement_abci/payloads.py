@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for common apps."""
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -33,6 +33,7 @@ class TransactionType(Enum):
     RESET = "reset_transaction"
     RANDOMNESS = "randomness_transaction"
     SELECT_KEEPER = "select_keeper_transaction"
+    GAS = "gas"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -100,6 +101,38 @@ class SelectKeeperPayload(BaseTxPayload):
         return dict(keeper=self.keeper)
 
 
+class GasPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'gas_adjustment'."""
+
+    transaction_type = TransactionType.GAS
+
+    def __init__(
+        self,
+        sender: str,
+        gas_data: Optional[Dict[str, int]] = None,
+        id_: Optional[str] = None,
+    ) -> None:
+        """Initialize an 'gas_adjustment' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param gas_data: the gas_data
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._gas_data = gas_data
+
+    @property
+    def data(self) -> Dict[str, Dict[str, int]]:
+        """Get the data."""
+        return (
+            dict(
+                gas_data=self._gas_data,
+            )
+            if self._gas_data is not None
+            else {}
+        )
+
+
 class ValidatePayload(BaseTxPayload):
     """Represent a transaction payload of type 'validate'."""
 
@@ -160,26 +193,32 @@ class FinalizationTxPayload(BaseTxPayload):
     transaction_type = TransactionType.FINALIZATION
 
     def __init__(
-        self, sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None
+        self,
+        sender: str,
+        tx_data: Optional[Dict[str, Union[str, int, None]]] = None,
+        id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'finalization' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param tx_hash: the 'safe' transaction hash
+        :param tx_data: the transaction data
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._tx_hash = tx_hash
+        self._tx_data = tx_data
 
     @property
-    def tx_hash(self) -> Optional[str]:
-        """Get the signature."""
-        return self._tx_hash
-
-    @property
-    def data(self) -> Dict:
+    def data(self) -> Dict[str, Union[str, int, None]]:
         """Get the data."""
-        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
+        return (
+            dict(
+                tx_hash=self._tx_data["tx_digest"],
+                max_fee_per_gas=self._tx_data["max_fee_per_gas"],
+                max_priority_fee_per_gas=self._tx_data["max_priority_fee_per_gas"],
+            )
+            if self._tx_data is not None
+            else {}
+        )
 
 
 class ResetPayload(BaseTxPayload):

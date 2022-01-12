@@ -205,7 +205,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
+            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)  # type: ignore
 
         with benchmark_tool.measure(
             self,

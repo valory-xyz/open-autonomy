@@ -48,19 +48,20 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    FinalizeBehaviour,
     ObserveBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
-    SignatureBehaviour,
-    ValidateTransactionBehaviour,
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    FinalizeBehaviour,
+    GasAdjustmentBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
+    SignatureBehaviour,
     TransactionSettlementBaseState,
+    ValidateTransactionBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
@@ -213,6 +214,10 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
                             b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
+                        gas_data={
+                            "max_fee_per_gas": None,
+                            "max_priority_fee_per_gas": None,
+                        },
                     ),
                 )
             ),
@@ -234,7 +239,12 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
+                    ledger_id="ethereum",
+                    body={
+                        "tx_hash": "0x3b",
+                        "maxFeePerGas": int(10e10),
+                        "maxPriorityFeePerGas": int(10e10),
+                    },
                 ),
             ),
         )
@@ -265,6 +275,87 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
 
+class TestGasAdjustmentBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test GasAdjustmentBehaviour."""
+
+    def test_non_sender_act(
+        self,
+    ) -> None:
+        """Test gas adjustment behaviour."""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=GasAdjustmentBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_keeper_address="most_voted_keeper_address",
+                        participants=participants,
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == GasAdjustmentBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == FinalizeBehaviour.state_id
+
+    def test_sender_act(
+        self,
+    ) -> None:
+        """Test gas adjustment behaviour."""
+        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=GasAdjustmentBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_keeper_address=self.skill.skill_context.agent_address,
+                        safe_contract_address="safe_contract_address",
+                        oracle_contract_address="oracle_contract_address",
+                        participants=participants,
+                        participant_to_signature={},
+                        most_voted_tx_hash=payload_to_hex(
+                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            1,
+                            1,
+                            "".join(["a" for _ in range(42)]),
+                            b"",
+                        ),
+                        gas_data={
+                            "max_fee_per_gas": int(10e10),
+                            "max_priority_fee_per_gas": int(10e10),
+                        },
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == GasAdjustmentBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == FinalizeBehaviour.state_id
+
+
 class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ValidateTransactionBehaviour."""
 
@@ -292,6 +383,10 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
                             b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
+                        gas_data={
+                            "max_fee_per_gas": int(10e10),
+                            "max_priority_fee_per_gas": int(10e10),
+                        },
                     ),
                 )
             ),

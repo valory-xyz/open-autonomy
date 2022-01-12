@@ -37,6 +37,7 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
+    GasPayload,
     SignaturePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
@@ -107,11 +108,41 @@ def test_transaction_hash_payload() -> None:
 def test_finalization_tx_payload() -> None:
     """Test `FinalizationTxPayload`."""
 
-    payload = FinalizationTxPayload(sender="sender", tx_hash="hash")
+    payload = FinalizationTxPayload(
+        sender="sender",
+        tx_data={
+            "tx_digest": "hash",
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        },
+    )
 
-    assert payload.tx_hash == "hash"
-    assert payload.data == {"tx_hash": "hash"}
+    assert payload.data == {
+        "tx_hash": "hash",
+        "max_fee_per_gas": 0,
+        "max_priority_fee_per_gas": 0,
+    }
     assert payload.transaction_type == TSTransactionType.FINALIZATION
+
+
+def test_gas_payload() -> None:
+    """Test `GasPayload`."""
+
+    payload = GasPayload(
+        sender="sender",
+        gas_data={
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        },
+    )
+
+    assert payload.data == {
+        "gas_data": {
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        }
+    }
+    assert payload.transaction_type == TSTransactionType.GAS
 
 
 def test_randomness_payload() -> None:

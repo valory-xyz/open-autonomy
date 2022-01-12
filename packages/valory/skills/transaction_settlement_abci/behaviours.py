@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Optional, Tuple, cast
+from typing import Dict, Generator, Optional, Tuple, Union, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
+    GasPayload,
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -46,6 +47,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     CollectSignatureRound,
     FinalizationRound,
+    GasAdjustmentRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetAndPauseRound,
@@ -241,6 +243,67 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         return signature_hex
 
 
+class GasAdjustmentBehaviour(TransactionSettlementBaseState):
+    """Adjust gas."""
+
+    state_id = "gas_adjustment"
+    matching_round = GasAdjustmentRound
+
+    def async_act(self) -> Generator[None, None, None]:
+        """
+        Do the action.
+
+        Steps:
+        - If the agent is the keeper, then prepare the transaction and send it.
+        - Otherwise, wait until the next round.
+        - If a timeout is hit, set exit A event, otherwise set done event.
+        """
+        if self.context.agent_address != self.period_state.most_voted_keeper_address:
+            yield from self._not_sender_act()
+        else:
+            yield from self._sender_act()
+
+    def _not_sender_act(self) -> Generator:
+        """Do the non-sender action."""
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.wait_until_round_end()
+        self.set_done()
+
+    def _sender_act(self) -> Generator[None, None, None]:
+        """Do the sender action."""
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            self.context.logger.info("I am the designated sender, adjusting the gas...")
+
+            # Recalculate the fees to use
+            # TODO use `EthereumApi.update_gas_pricing` call below.
+            gas_data = {
+                "max_fee_per_gas": cast(
+                    int, self.period_state.gas_data["max_fee_per_gas"]
+                ),
+                "max_priority_fee_per_gas": cast(
+                    int, self.period_state.gas_data["max_priority_fee_per_gas"]
+                ),
+            }
+
+            payload = GasPayload(
+                self.context.agent_address,
+                gas_data,
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
 class FinalizeBehaviour(TransactionSettlementBaseState):
     """Finalize state."""
 
@@ -278,17 +341,19 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.context.logger.info(
                 "I am the designated sender, attempting to send the safe transaction..."
             )
-            tx_digest = yield from self._send_safe_transaction()
-            if tx_digest is None:
+            tx_data = yield from self._send_safe_transaction()
+            if tx_data is None or tx_data["tx_digest"] is None:
                 self.context.logger.error(  # pragma: nocover
                     "Did not succeed with finalising the transaction!"
                 )
             else:
-                self.context.logger.info(f"Finalization tx digest: {tx_digest}")
+                self.context.logger.info(
+                    f"Finalization tx digest: {cast(Dict[str, Union[str, int]], tx_data['tx_digest'])}"
+                )
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
+            payload = FinalizationTxPayload(self.context.agent_address, tx_data)
 
         with benchmark_tool.measure(
             self,
@@ -298,7 +363,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
+    def _send_safe_transaction(
+        self,
+    ) -> Generator[None, None, Optional[Dict[str, Union[None, str, int]]]]:
         """Send a Safe transaction using the participants' signatures."""
         _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
@@ -318,6 +385,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            max_fee_per_gas=self.period_state.gas_data["max_fee_per_gas"],
+            max_priority_fee_per_gas=self.period_state.gas_data[
+                "max_priority_fee_per_gas"
+            ],
         )
         if (
             contract_api_msg.performative
@@ -328,7 +399,18 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
-        return tx_digest
+
+        tx_data = {
+            "tx_digest": tx_digest,
+            "max_fee_per_gas": int(
+                cast(str, contract_api_msg.raw_transaction.body["maxFeePerGas"])
+            ),
+            "max_priority_fee_per_gas": int(
+                cast(str, contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"])
+            ),
+        }
+
+        return tx_data
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):

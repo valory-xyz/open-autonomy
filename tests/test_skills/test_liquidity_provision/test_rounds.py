@@ -175,7 +175,14 @@ class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
     ) -> None:
         """Run tests."""
 
-        keeper_payload = FinalizationTxPayload(sender="agent_0", tx_hash="tx_hash")
+        keeper_payload = FinalizationTxPayload(
+            sender="agent_0",
+            tx_data={
+                "tx_digest": "hash",
+                "max_fee_per_gas": 0,
+                "max_priority_fee_per_gas": 0,
+            },
+        )
         test_round = TransactionSendBaseRound(
             self.period_state.update(
                 most_voted_keeper_address=keeper_payload.sender,
