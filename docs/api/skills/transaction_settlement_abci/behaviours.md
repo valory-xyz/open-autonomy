@@ -73,7 +73,7 @@ Select the keeper agent.
 class ValidateTransactionBehaviour(TransactionSettlementBaseState)
 ```
 
-ValidateTransaction.
+Validate a transaction.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour.async_act"></a>
 

@@ -79,7 +79,7 @@ Steps:
 class ValidateSafeBehaviour(SafeDeploymentBaseState)
 ```
 
-ValidateSafe.
+Validate Safe.
 
 <a id="packages.valory.skills.safe_deployment_abci.behaviours.ValidateSafeBehaviour.async_act"></a>
 
