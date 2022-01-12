@@ -74,7 +74,7 @@ an optional JSON-like object.
 
 ```python
 @classmethod
-def build_tx_deploy_proxy_contract_with_nonce(cls, ledger_api: LedgerApi, proxy_factory_address: str, master_copy: str, address: str, initializer: bytes, salt_nonce: int, gas: Optional[int] = None, gas_price: Optional[int] = None, nonce: Optional[int] = None) -> Tuple[TxParams, str]
+def build_tx_deploy_proxy_contract_with_nonce(cls, ledger_api: EthereumApi, proxy_factory_address: str, master_copy: str, address: str, initializer: bytes, salt_nonce: int, gas: Optional[int] = None, gas_price: Optional[int] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, nonce: Optional[int] = None) -> Tuple[TxParams, str]
 ```
 
 Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)
@@ -89,6 +89,8 @@ Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)
 - `salt_nonce`: Uint256 for `create2` salt
 - `gas`: Gas
 - `gas_price`: Gas Price
+- `max_fee_per_gas`: max
+- `max_priority_fee_per_gas`: max
 - `nonce`: Nonce
 
 **Returns**:
@@ -101,7 +103,7 @@ Tuple(tx-hash, tx, deployed contract address)
 
 ```python
 @classmethod
-def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike
+def verify_contract(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
 ```
 
 Verify the contract's bytecode

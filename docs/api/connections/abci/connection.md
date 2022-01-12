@@ -4,6 +4,26 @@
 
 Connection to interact with an ABCI server.
 
+<a id="packages.valory.connections.abci.connection.DecodeVarintError"></a>
+
+## DecodeVarintError Objects
+
+```python
+class DecodeVarintError(Exception)
+```
+
+This exception is raised when an error occurs while decoding a varint.
+
+<a id="packages.valory.connections.abci.connection.ShortBufferLengthError"></a>
+
+## ShortBufferLengthError Objects
+
+```python
+class ShortBufferLengthError(Exception)
+```
+
+This exception is raised when the buffer length is shorter than expected.
+
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer"></a>
 
 ## `_`TendermintABCISerializer Objects
@@ -36,6 +56,14 @@ def decode_varint(cls, buffer: BytesIO) -> int
 
 Decode a number from its varint coding.
 
+**Arguments**:
+
+- `buffer`: the buffer to read from.
+
+**Returns**:
+
+the decoded int.
+
 <a id="packages.valory.connections.abci.connection._TendermintABCISerializer.write_message"></a>
 
 #### write`_`message
@@ -53,10 +81,18 @@ Write a message in a buffer.
 
 ```python
 @classmethod
-def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Request
+def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Generator[Request, None, None]
 ```
 
 Return an iterator over the messages found in the `reader` buffer.
+
+:param: buffer: the buffer to read messages from.
+:param: message_cls: the message class to instantiate.
+:yield: a new message.
+
+:raise: DecodeVarintError if the varint cannot be decoded correctly.
+:raise: ShortBufferLengthError if the buffer length is shorter than expected.
+:raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
 
 <a id="packages.valory.connections.abci.connection.TcpServerChannel"></a>
 
@@ -180,6 +216,16 @@ Initialize the parameters to the Tendermint node.
 - `p2p_seeds`: P2P seeds.
 - `consensus_create_empty_blocks`: if true, Tendermint node creates empty blocks.
 - `home`: Tendermint's home directory.
+
+<a id="packages.valory.connections.abci.connection.TendermintParams.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+Get the string representation.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode"></a>
 

@@ -4,12 +4,33 @@
 
 This module contains the behaviours for the 'abstract_round_abci' skill.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour"></a>
+
+## `_`MetaRoundBehaviour Objects
+
+```python
+class _MetaRoundBehaviour(ABCMeta)
+```
+
+A metaclass that validates AbstractRoundBehaviour's attributes.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour.__new__"></a>
+
+#### `__`new`__`
+
+```python
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+```
+
+Initialize the class.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour"></a>
 
 ## AbstractRoundBehaviour Objects
 
 ```python
-class AbstractRoundBehaviour(Behaviour,  Generic[EventType])
+class AbstractRoundBehaviour(
+    Behaviour,  ABC,  Generic[EventType], metaclass=_MetaRoundBehaviour)
 ```
 
 This behaviour implements an abstract round behaviour.
