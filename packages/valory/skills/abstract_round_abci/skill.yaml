@@ -6,7 +6,7 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qme25K3isgbqMuTJ6jhL1Tu8jj7bJ96eJ8MLz4L5vHpZbV
+  README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmY4CAjgeM3GdPRT5NCTfeDdEfyUkCJc8FZNKsyW4vQ6oB
   base.py: QmcLaYAt56AQSoxs14evWLPzuB5zpGHPRuFCjUjqKLeGa5

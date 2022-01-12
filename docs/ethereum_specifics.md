@@ -21,11 +21,11 @@ Delegate call can be difficult to wrap your head around, but think of it this wa
 
 ## Debugging using Tenderly:
 
-[Tenderly](https://tenderly.co/) is a *"comprehensive Ethereum Developer Platform for real-time monitoring, alerting, debugging, and simulating Smart Contracts"*. When debugging transactions and contract calls, it can be useful to help us understand what's going on with our execution. [This guids](http://blog.tenderly.co/level-up-your-smart-contract-productivity-using-hardhat-and-tenderly/) contains a more exhaustive explanation on Tenderly, but for the basics:
+[Tenderly](https://tenderly.co/) is a *"comprehensive Ethereum Developer Platform for real-time monitoring, alerting, debugging, and simulating Smart Contracts"*. When debugging transactions and contract calls, it can be useful to help us understand what's going on with our execution. [This guide](http://blog.tenderly.co/level-up-your-smart-contract-productivity-using-hardhat-and-tenderly/) contains a more exhaustive explanation on Tenderly, but for the basics:
 
 - Create a Tenderly account and project.
 
-- Set yout Tenderly username and project name at `tenderly.yaml` (`exports/ganache/project_slug`) and at your `hardhat.config.js` module exports:
+- Set your Tenderly username and project name at `tenderly.yaml` (`exports/ganache/project_slug`) and at your `hardhat.config.js` module exports:
 
     ```
     tenderly: {

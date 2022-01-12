@@ -44,7 +44,7 @@ This module contains the ABCI transaction settlement skill for an AEA.
 
 * `ValidateTransactionBehaviour`
 
-   ValidateTransaction.
+   Validate a transaction.
 
 
 ## Handlers

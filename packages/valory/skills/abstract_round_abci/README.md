@@ -23,7 +23,7 @@ This module contains an abstract round ABCI skill template for an AEA.
 
 * `AbstractResponseHandler`
 
-   The concrete classes must set the 'allowed_response_performatives'
+   The concrete classes must set the `allowed_response_performatives`
     class attribute to the (frozen)set of performative the developer
     wants the handler to handle.
 

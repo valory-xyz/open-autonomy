@@ -69,7 +69,7 @@ hashes:
 	python scripts/generate_ipfs_hashes.py --vendor valory
 
 .PHONY: api-docs
-docs:
+api-docs:
 	python scripts/generate_api_documentation.py
 
 .PHONY: docs

@@ -1,4 +1,4 @@
-# OffchainAggregator contract
+# `OffchainAggregator` contract
 
 ## Description
 
