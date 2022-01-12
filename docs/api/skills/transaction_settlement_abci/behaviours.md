@@ -129,6 +129,31 @@ Steps:
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.GasAdjustmentBehaviour"></a>
+
+## GasAdjustmentBehaviour Objects
+
+```python
+class GasAdjustmentBehaviour(TransactionSettlementBaseState)
+```
+
+Adjust gas.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.GasAdjustmentBehaviour.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator[None, None, None]
+```
+
+Do the action.
+
+Steps:
+- If the agent is the keeper, then prepare the transaction and send it.
+- Otherwise, wait until the next round.
+- If a timeout is hit, set exit A event, otherwise set done event.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.FinalizeBehaviour"></a>
 
 ## FinalizeBehaviour Objects

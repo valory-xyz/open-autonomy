@@ -124,6 +124,17 @@ def is_most_voted_estimate_set() -> bool
 
 Check if most_voted_estimate is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.gas_data"></a>
+
+#### gas`_`data
+
+```python
+@property
+def gas_data() -> Dict[str, Optional[int]]
+```
+
+Get the gas data.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
@@ -174,6 +185,16 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound)
 
 A round in which agents sign the transaction
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.GasAdjustmentRound"></a>
+
+## GasAdjustmentRound Objects
+
+```python
+class GasAdjustmentRound(OnlyKeeperSendsRound)
+```
+
+This class represents the 'gas_adjustment' round.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinalizationRound"></a>
 
 ## FinalizationRound Objects
@@ -183,6 +204,16 @@ class FinalizationRound(OnlyKeeperSendsRound)
 ```
 
 A round that represents transaction signing has finished
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinalizationRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.RandomnessTransactionSubmissionRound"></a>
 
