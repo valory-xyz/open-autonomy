@@ -60,7 +60,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     skill_package: str
     wait_to_finish: int
     check_strings: Tuple[str, ...]
-    SAFE_TX_GAS = 4000000
 
     def setup(self) -> None:
         """Set up the test."""
@@ -115,10 +114,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
-            )
-            self.set_config(
-                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.safe_tx_gas",
-                self.SAFE_TX_GAS,
             )
 
         # run 'aea install' in only one AEA project, to save time
