@@ -106,7 +106,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
-    """ValidateTransaction."""
+    """Validate a transaction."""
 
     state_id = "validate_transaction"
     matching_round = ValidateTransactionRound

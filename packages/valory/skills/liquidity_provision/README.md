@@ -100,7 +100,7 @@ This module contains the liquidity provision skill for an AEA.
 
 * `TransactionValidationBaseBehaviour`
 
-   ValidateTransaction.
+   Validate a transaction.
 
 
 ## Handlers

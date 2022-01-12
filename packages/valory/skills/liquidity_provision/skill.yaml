@@ -7,9 +7,9 @@ description: This skill implements liquidity provision capacities to move into a
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qmez7bwErV39YbscavBdyBrWrJxcGRoRqVWcmSfANMWuVQ
+  README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmQ4qV4meKXAuGcS7ANzEDKD7VGfnm6mrxpqSfdS2pDC49
+  behaviours.py: QmRj8Qo6W58SpMPcPyvukWafMzSwnsd1wcikodX7CoThfD
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
   models.py: Qmd2NZ9GFtzC7kHTHHspWS2zTYo81redF2uqCW4Anmyzu2

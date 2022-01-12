@@ -41,5 +41,5 @@ Ensure your machine satisfies the following requirements:
 
 ## Getting started
 
-Have a look at the [price estimation](https://github.com/valory-xyz/consensus-algorithms/tree/main/examples/price_estimation) example. You must have completted setting up and be inside a virtual environment (`pipenv shell`) in order to run the examples.
+Have a look at the [price estimation](https://github.com/valory-xyz/consensus-algorithms/tree/main/examples/price_estimation) example. You must have completed setting up and be inside a virtual environment (`pipenv shell`) in order to run the examples.
 

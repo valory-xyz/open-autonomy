@@ -248,7 +248,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
-    """ValidateTransaction."""
+    """Validate a transaction."""
 
     def async_act(self) -> Generator:
         """
