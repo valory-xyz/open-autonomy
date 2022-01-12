@@ -390,7 +390,15 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         with mock.patch.object(
             self.ledger_api,
             "get_transaction_receipt",
-            return_value="receipt",
+            return_value={
+                "logs": [
+                    {
+                        "topics": [
+                            "0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603"
+                        ]
+                    },
+                ]
+            },
         ):
             with mock.patch(
                 "web3.contract.ContractEvent.processReceipt",
