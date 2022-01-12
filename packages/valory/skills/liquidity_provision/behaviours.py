@@ -347,6 +347,9 @@ class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
         with benchmark_tool.measure(
             self,
         ).local():
+            self.context.logger.info(
+                f"Attempting to retrieve the liquidity balance produced by tx {self.period_state.final_tx_hash}"
+            )
             transfer_logs = yield from self.get_lp_result()
             payload = LPResultPayload(self.context.agent_address, transfer_logs)
 
@@ -391,11 +394,14 @@ class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
 
         lp_events = list(
             filter(
-                lambda log: log["args"]["from"]
-                == "0x0000000000000000000000000000000000000000"
-                and log["args"]["to"] == self.period_state.safe_contract_address,
+                lambda log: log["from"] == "0x0000000000000000000000000000000000000000"
+                and log["to"] == self.period_state.safe_contract_address,
                 transfer_logs,
             )
+        )
+
+        self.context.logger.info(
+            f"Found the following incoming liquidity transfers: {str(lp_events)}"
         )
 
         if len(lp_events) != 1:

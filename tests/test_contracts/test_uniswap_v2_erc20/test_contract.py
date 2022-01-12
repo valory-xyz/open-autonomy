@@ -377,11 +377,15 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
         assert logs == dict(logs=[]), "The transfer logs do not have the correct format"
         assert "logs" in logs, "The transfer logs dict is empty"
 
-
     def test_get_tx_transfer_logs(self) -> None:
         """Test get transfer logs."""
 
-        DUMMY_EVENTS = ({"args": {"from": "address", "to": "address", "value": 5}, "address": "token_address"},)
+        DUMMY_EVENTS = (
+            {
+                "args": {"from": "address", "to": "address", "value": 5},
+                "address": "token_address",
+            },
+        )
 
         with mock.patch.object(
             self.ledger_api,
@@ -399,6 +403,4 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 )
                 assert type(logs) == dict, "The transfer logs is not a dict"
                 assert "logs" in logs, "The transfer logs dict is empty"
-                assert len(logs["logs"]) != 0, "Transfer logs is empty"
-
-
+                assert len(logs["logs"]) != 0, "Transfer logs is empty"  # type: ignore

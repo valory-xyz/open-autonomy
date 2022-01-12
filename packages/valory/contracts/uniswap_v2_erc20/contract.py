@@ -25,6 +25,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
+from hexbytes import HexBytes
 from web3.exceptions import TransactionNotFound
 
 
@@ -316,6 +317,13 @@ class UniswapV2ERC20Contract(Contract):
 
         except (TransactionNotFound, ValueError):  # pragma: nocover
             return dict(logs=[])
+
+        # Due to serialization, event topics must be converted again to HexBytes or processReceipt will fail
+        for i in range(len(tx_receipt["logs"])):
+            for j in range(len(tx_receipt["logs"][i]["topics"])):
+                tx_receipt["logs"][i]["topics"][j] = HexBytes(
+                    tx_receipt["logs"][i]["topics"][j]
+                )
 
         transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
 
