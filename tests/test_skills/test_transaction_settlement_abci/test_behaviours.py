@@ -215,8 +215,8 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                         gas_data={
-                            "max_fee_per_gas": int(10e10),
-                            "max_priority_fee_per_gas": int(10e10),
+                            "max_fee_per_gas": None,
+                            "max_priority_fee_per_gas": None,
                         },
                     ),
                 )
@@ -239,7 +239,12 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
+                    ledger_id="ethereum",
+                    body={
+                        "tx_hash": "0x3b",
+                        "maxFeePerGas": int(10e10),
+                        "maxPriorityFeePerGas": int(10e10),
+                    },
                 ),
             ),
         )
@@ -325,7 +330,8 @@ class TestGasAdjustmentBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
-                            1,
+                            "".join(["a" for _ in range(42)]),
+                            b"",
                         ),
                         gas_data={
                             "max_fee_per_gas": int(10e10),

@@ -115,9 +115,18 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.db.get("most_voted_estimate", None) is not None
 
     @property
-    def gas_data(self) -> dict:
+    def gas_data(self) -> Dict[str, Optional[int]]:
         """Get the gas data."""
-        return cast(dict, self.db.get_strict("gas_data"))
+        return cast(
+            Dict[str, Optional[int]],
+            self.db.get(
+                "gas_data",
+                {
+                    "max_fee_per_gas": None,
+                    "max_priority_fee_per_gas": None,
+                },
+            ),
+        )
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -174,11 +183,35 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "tx_hash"
+    payload_attribute = "data"
     period_state_class = PeriodState
     done_event = Event.DONE
     fail_event = Event.FAILED
-    payload_key = "final_tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the results
+        if (
+            self.has_keeper_sent_payload
+            and self.keeper_payload is not None
+            and self.keeper_payload["tx_hash"] is not None
+        ):
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                final_tx_hash=self.keeper_payload["tx_hash"],
+                gas_data={
+                    "max_fee_per_gas": self.keeper_payload["max_fee_per_gas"],
+                    "max_priority_fee_per_gas": self.keeper_payload[
+                        "max_priority_fee_per_gas"
+                    ],
+                },
+            )
+            return state, self.done_event
+        if self.has_keeper_sent_payload and (
+            self.keeper_payload is None or self.keeper_payload["tx_hash"] is None
+        ):
+            return self.period_state, self.fail_event
+        return None
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
@@ -230,8 +263,16 @@ class ResetRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            state_data = self.period_state.db.get_all()
+            state_data["final_tx_hash"] = None
+            state_data["gas_data"] = (
+                {
+                    "max_fee_per_gas": None,
+                    "max_priority_fee_per_gas": None,
+                },
+            )
             state = self.period_state.update(
-                period_count=self.most_voted_payload, **self.period_state.db.get_all()
+                period_count=self.most_voted_payload, **state_data
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -260,6 +301,11 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 safe_contract_address=self.period_state.db.get_strict(
                     "safe_contract_address"
                 ),
+                final_tx_hash=None,
+                gas_data={
+                    "max_fee_per_gas": None,
+                    "max_priority_fee_per_gas": None,
+                },
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -356,8 +402,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
-            Event.FINALIZE_TIMEOUT: GasAdjustmentRound,
+            Event.FINALIZE_TIMEOUT: GasAdjustmentRound,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
         },
         GasAdjustmentRound: {
