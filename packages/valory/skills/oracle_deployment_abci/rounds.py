@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
-    VotingRound,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     DeployOraclePayload,
@@ -110,12 +109,12 @@ class DeployOracleRound(OnlyKeeperSendsRound):
     payload_key = "oracle_contract_address"
 
 
-class ValidateOracleRound(VotingRound):
+class ValidateOracleRound(CollectSameUntilThresholdRound):
     """A round in a which the oracle address is validated"""
 
     round_id = "validate_oracle"
     allowed_tx_type = ValidateOraclePayload.transaction_type
-    payload_attribute = "vote"
+    payload_attribute = "data"
     period_state_class = PeriodState
     done_event = Event.DONE
     negative_event = Event.NEGATIVE

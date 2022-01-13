@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
-    VotingRound,
 )
 from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
@@ -105,12 +104,12 @@ class DeploySafeRound(OnlyKeeperSendsRound):
     payload_key = "safe_contract_address"
 
 
-class ValidateSafeRound(VotingRound):
+class ValidateSafeRound(CollectSameUntilThresholdRound):
     """A round in a which the safe address is validated"""
 
     round_id = "validate_safe"
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
+    payload_attribute = "data"
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE

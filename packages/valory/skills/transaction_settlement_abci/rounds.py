@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
-    VotingRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
@@ -111,6 +110,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def is_most_voted_estimate_set(self) -> bool:
         """Check if most_voted_estimate is set."""
         return self.db.get("most_voted_estimate", None) is not None
+
+    @property
+    def most_voted_amount(self) -> int:
+        """Get the most_voted_amount."""
+        return self.db.get_strict("most_voted_amount")
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -250,18 +254,32 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
         return None
 
 
-class ValidateTransactionRound(VotingRound):
+class ValidateTransactionRound(CollectSameUntilThresholdRound):
     """A round in which agents validate the transaction"""
 
     round_id = "validate_transaction"
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
+    payload_attribute = "data"
     period_state_class = PeriodState
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_votes"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participants=self.period_state.participants,
+                most_voted_amount=self.most_voted_payload.amount,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+        return None
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):

@@ -364,7 +364,7 @@ class UniswapV2ERC20Contract(Contract):
         :return: the incoming amount
         """
 
-        transfer_logs = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]
+        transfer_logs: list = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]  # type: ignore
 
         token_events = filter(
             lambda log: log["token_address"] == token_address,  # type: ignore

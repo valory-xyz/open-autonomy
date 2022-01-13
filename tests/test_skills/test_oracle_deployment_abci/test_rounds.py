@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     StateDB,
-    VotingRound,
 )
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     DeployOraclePayload,
@@ -61,7 +60,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
-    BaseVotingRoundTest,
 )
 
 
@@ -198,13 +196,13 @@ class TestDeployOracleRound(BaseDeployTestClass):
     _period_state_class = OracleDeploymentPeriodState
 
 
-class BaseValidateRoundTest(BaseVotingRoundTest):
+class BaseValidateRoundTest(BaseCollectSameUntilThresholdRoundTest):
     """Test BaseValidateRound."""
 
-    test_class: Type[VotingRound]
+    test_class: Type[CollectSameUntilThresholdRound]
     test_payload: Type[ValidatePayload]
 
-    def test_positive_votes(
+    def test_run(
         self,
     ) -> None:
         """Test ValidateRound."""
@@ -214,62 +212,17 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
         )
 
         self._complete_run(
-            self._test_voting_round_positive(
+            self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    participant_to_votes=MappingProxyType(
+                round_payloads=get_participant_to_selection(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    participant_to_selection=MappingProxyType(
                         dict(get_participant_to_votes(self.participants))
                     )
                 ),
-                state_attr_checks=[lambda state: state.participant_to_votes.keys()],
+                state_attr_checks=[lambda state: state.participant_to_selection.keys()],
+                most_voted_payload="data",
                 exit_event=self._event_class.DONE,
-            )
-        )
-
-    def test_negative_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        self._complete_run(
-            self._test_voting_round_negative(
-                test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants, vote=False),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants, vote=False))
-                    )
-                ),
-                state_attr_checks=[],
-                exit_event=self._event_class.NEGATIVE,
-            )
-        )
-
-    def test_none_votes(
-        self,
-    ) -> None:
-        """Test ValidateRound."""
-
-        test_round = self.test_class(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        self._complete_run(
-            self._test_voting_round_none(
-                test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants, vote=None),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants, vote=None))
-                    )
-                ),
-                state_attr_checks=[],
-                exit_event=self._event_class.NONE,
             )
         )
 
