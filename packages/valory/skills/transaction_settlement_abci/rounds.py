@@ -259,7 +259,7 @@ class ValidateTransactionRound(CollectSameUntilThresholdRound):
 
     round_id = "validate_transaction"
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "data"
+    payload_attribute = "vote"
     period_state_class = PeriodState
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
