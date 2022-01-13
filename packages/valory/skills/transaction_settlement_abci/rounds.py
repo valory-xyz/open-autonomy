@@ -280,9 +280,6 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 safe_contract_address=self.period_state.db.get_strict(
                     "safe_contract_address"
                 ),
-                final_tx_hash=None,
-                nonce=None,
-                max_priority_fee_per_gas=None,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
