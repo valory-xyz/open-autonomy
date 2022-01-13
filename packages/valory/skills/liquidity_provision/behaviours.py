@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
+    FinalizationTxPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -83,7 +84,6 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import (
-    FinalizationTxPayload,
     SignaturePayload,
     ValidatePayload,
 )
@@ -205,7 +205,7 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)  # type: ignore
+            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
 
         with benchmark_tool.measure(
             self,

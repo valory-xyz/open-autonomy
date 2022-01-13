@@ -368,7 +368,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         # Recalculate the fees to use.
         if self.period_state.is_resubmitting:
-            gas_data = EthereumApi.update_gas_pricing(gas_data)  # type: ignore
+            gas_data = EthereumApi.update_gas_pricing(gas_data)
 
         return gas_data
 

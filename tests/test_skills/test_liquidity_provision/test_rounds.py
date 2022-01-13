@@ -26,6 +26,7 @@ from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.liquidity_provision.payloads import (
+    FinalizationTxPayload,
     StrategyEvaluationPayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
@@ -38,9 +39,6 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     TransactionValidationBaseRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    FinalizationTxPayload,
-)
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilThresholdRoundTest,
@@ -177,11 +175,7 @@ class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
 
         keeper_payload = FinalizationTxPayload(
             sender="agent_0",
-            tx_data={
-                "tx_digest": "hash",
-                "max_fee_per_gas": 0,
-                "max_priority_fee_per_gas": 0,
-            },
+            tx_hash="hash",
         )
         test_round = TransactionSendBaseRound(
             self.period_state.update(
