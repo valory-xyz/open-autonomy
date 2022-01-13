@@ -131,7 +131,7 @@ the hash of the raw Safe transaction
 
 ```python
 @classmethod
-def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None) -> JSONLike
+def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None) -> JSONLike
 ```
 
 Get the raw Safe transaction
@@ -154,6 +154,7 @@ Get the raw Safe transaction
 - `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
 - `gas_price`: gas price
+- `nonce`: the nonce
 - `max_fee_per_gas`: max
 - `max_priority_fee_per_gas`: max
 

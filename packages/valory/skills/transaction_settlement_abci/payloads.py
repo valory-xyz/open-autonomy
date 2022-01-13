@@ -213,6 +213,7 @@ class FinalizationTxPayload(BaseTxPayload):
         return (
             dict(
                 tx_hash=self._tx_data["tx_digest"],
+                nonce=self._tx_data["nonce"],
                 max_fee_per_gas=self._tx_data["max_fee_per_gas"],
                 max_priority_fee_per_gas=self._tx_data["max_priority_fee_per_gas"],
             )

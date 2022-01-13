@@ -210,6 +210,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     sender=keeper,
                     tx_data={
                         "tx_digest": "hash",
+                        "nonce": 0,
                         "max_fee_per_gas": 0,
                         "max_priority_fee_per_gas": 0,
                     },
@@ -245,8 +246,9 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     sender=keeper,
                     tx_data={
                         "tx_digest": None,
-                        "max_fee_per_gas": None,
-                        "max_priority_fee_per_gas": None,
+                        "nonce": 0,
+                        "max_fee_per_gas": 0,
+                        "max_priority_fee_per_gas": 0,
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(

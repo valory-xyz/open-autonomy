@@ -282,6 +282,7 @@ class GasAdjustmentBehaviour(TransactionSettlementBaseState):
             # Recalculate the fees to use
             # TODO use `EthereumApi.update_gas_pricing` call below.
             gas_data = {
+                "nonce": cast(int, self.period_state.gas_data["nonce"]),
                 "max_fee_per_gas": cast(
                     int, self.period_state.gas_data["max_fee_per_gas"]
                 ),
@@ -343,6 +344,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             )
             tx_data = yield from self._send_safe_transaction()
             if tx_data is None or tx_data["tx_digest"] is None:
+                # if we enter here, then the event.FAILED will be raised from the round, and we will select a new keeper
                 self.context.logger.error(  # pragma: nocover
                     "Did not succeed with finalising the transaction!"
                 )
@@ -385,6 +387,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            nonce=self.period_state.gas_data["nonce"],
             max_fee_per_gas=self.period_state.gas_data["max_fee_per_gas"],
             max_priority_fee_per_gas=self.period_state.gas_data[
                 "max_priority_fee_per_gas"
@@ -402,11 +405,15 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         tx_data = {
             "tx_digest": tx_digest,
+            "nonce": int(cast(str, contract_api_msg.raw_transaction.body["nonce"])),
             "max_fee_per_gas": int(
                 cast(str, contract_api_msg.raw_transaction.body["maxFeePerGas"])
             ),
             "max_priority_fee_per_gas": int(
-                cast(str, contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"])
+                cast(
+                    str,
+                    contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
+                )
             ),
         }
 

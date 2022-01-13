@@ -119,14 +119,17 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get the gas data."""
         return cast(
             Dict[str, Optional[int]],
-            self.db.get(
-                "gas_data",
-                {
-                    "max_fee_per_gas": None,
-                    "max_priority_fee_per_gas": None,
-                },
-            ),
+            self.db.get("gas_data", self.get_empty_gas_data()),
         )
+
+    @staticmethod
+    def get_empty_gas_data() -> Dict[str, Optional[int]]:
+        """Get empty gas data."""
+        return {
+            "nonce": None,
+            "max_fee_per_gas": None,
+            "max_priority_fee_per_gas": None,
+        }
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -200,6 +203,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 period_state_class=self.period_state_class,
                 final_tx_hash=self.keeper_payload["tx_hash"],
                 gas_data={
+                    "nonce": self.keeper_payload["nonce"],
                     "max_fee_per_gas": self.keeper_payload["max_fee_per_gas"],
                     "max_priority_fee_per_gas": self.keeper_payload[
                         "max_priority_fee_per_gas"
@@ -265,12 +269,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
             state_data["final_tx_hash"] = None
-            state_data["gas_data"] = (
-                {
-                    "max_fee_per_gas": None,
-                    "max_priority_fee_per_gas": None,
-                },
-            )
+            state_data["gas_data"] = PeriodState.get_empty_gas_data()
             state = self.period_state.update(
                 period_count=self.most_voted_payload, **state_data
             )
@@ -302,10 +301,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                     "safe_contract_address"
                 ),
                 final_tx_hash=None,
-                gas_data={
-                    "max_fee_per_gas": None,
-                    "max_priority_fee_per_gas": None,
-                },
+                gas_data=PeriodState.get_empty_gas_data(),
             )
             return state, Event.DONE
         if not self.is_majority_possible(

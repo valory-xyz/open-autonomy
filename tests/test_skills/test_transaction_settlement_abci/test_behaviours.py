@@ -215,6 +215,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                         gas_data={
+                            "nonce": None,
                             "max_fee_per_gas": None,
                             "max_priority_fee_per_gas": None,
                         },
@@ -242,6 +243,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     ledger_id="ethereum",
                     body={
                         "tx_hash": "0x3b",
+                        "nonce": 0,
                         "maxFeePerGas": int(10e10),
                         "maxPriorityFeePerGas": int(10e10),
                     },
@@ -334,6 +336,7 @@ class TestGasAdjustmentBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             b"",
                         ),
                         gas_data={
+                            "nonce": 0,
                             "max_fee_per_gas": int(10e10),
                             "max_priority_fee_per_gas": int(10e10),
                         },

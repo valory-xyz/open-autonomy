@@ -135,6 +135,17 @@ def gas_data() -> Dict[str, Optional[int]]
 
 Get the gas data.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.get_empty_gas_data"></a>
+
+#### get`_`empty`_`gas`_`data
+
+```python
+@staticmethod
+def get_empty_gas_data() -> Dict[str, Optional[int]]
+```
+
+Get empty gas data.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
