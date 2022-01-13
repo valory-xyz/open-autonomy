@@ -87,31 +87,3 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
-
-
-class LPResultPayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'lp_result'."""
-
-    transaction_type = TransactionType.LP_RESULT
-
-    def __init__(
-        self, sender: str, value: Optional[int], id_: Optional[str] = None
-    ) -> None:
-        """Initialize a 'lp_result' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param value: the tx result value
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._value = value
-
-    @property
-    def value(self) -> Optional[int]:
-        """Get the value."""
-        return self._value
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(value=self.value)
