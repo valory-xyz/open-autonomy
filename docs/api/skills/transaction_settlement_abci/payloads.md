@@ -254,13 +254,24 @@ Initialize an 'finalization' transaction payload.
 - `tx_data`: the transaction data
 - `id_`: the id of the transaction
 
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.FinalizationTxPayload.tx_data"></a>
+
+#### tx`_`data
+
+```python
+@property
+def tx_data() -> Optional[Dict[str, Union[str, int, None]]]
+```
+
+Get the tx_data.
+
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.FinalizationTxPayload.data"></a>
 
 #### data
 
 ```python
 @property
-def data() -> Dict[str, Union[str, int, None]]
+def data() -> Dict[str, Dict[str, Union[str, int, None]]]
 ```
 
 Get the data.

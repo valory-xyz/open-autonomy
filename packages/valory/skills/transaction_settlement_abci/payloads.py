@@ -176,18 +176,14 @@ class FinalizationTxPayload(BaseTxPayload):
         self._tx_data = tx_data
 
     @property
-    def data(self) -> Dict[str, Union[str, int, None]]:
+    def tx_data(self) -> Optional[Dict[str, Union[str, int, None]]]:
+        """Get the tx_data."""
+        return self._tx_data
+
+    @property
+    def data(self) -> Dict[str, Dict[str, Union[str, int, None]]]:
         """Get the data."""
-        return (
-            dict(
-                tx_hash=self._tx_data["tx_digest"],
-                nonce=self._tx_data["nonce"],
-                max_fee_per_gas=self._tx_data["max_fee_per_gas"],
-                max_priority_fee_per_gas=self._tx_data["max_priority_fee_per_gas"],
-            )
-            if self._tx_data is not None
-            else {}
-        )
+        return dict(tx_data=self._tx_data) if self._tx_data is not None else {}
 
 
 class ResetPayload(BaseTxPayload):

@@ -184,7 +184,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "data"
+    payload_attribute = "tx_data"
     period_state_class = PeriodState
     done_event = Event.DONE
     fail_event = Event.FAILED
@@ -195,11 +195,11 @@ class FinalizationRound(OnlyKeeperSendsRound):
         if (
             self.has_keeper_sent_payload
             and self.keeper_payload is not None
-            and self.keeper_payload["tx_hash"] is not None
+            and self.keeper_payload["tx_digest"] is not None
         ):
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                final_tx_hash=self.keeper_payload["tx_hash"],
+                final_tx_hash=self.keeper_payload["tx_digest"],
                 nonce=self.keeper_payload["nonce"],
                 gas_data={
                     "max_fee_per_gas": self.keeper_payload["max_fee_per_gas"],
@@ -210,7 +210,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
             )
             return state, self.done_event
         if self.has_keeper_sent_payload and (
-            self.keeper_payload is None or self.keeper_payload["tx_hash"] is None
+            self.keeper_payload is None or self.keeper_payload["tx_digest"] is None
         ):
             return self.period_state, self.fail_event
         return None
