@@ -286,7 +286,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 )
             else:
                 self.context.logger.info(
-                    f"Finalization tx digest: {cast(Dict[str, Union[str, int]], tx_data['tx_digest'])}"
+                    f"Finalization tx digest: {cast(str, tx_data['tx_digest'])}"
                 )
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
