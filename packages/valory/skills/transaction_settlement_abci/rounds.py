@@ -54,7 +54,6 @@ class Event(Enum):
     NEGATIVE = "negative"
     NONE = "none"
     VALIDATE_TIMEOUT = "validate_timeout"
-    FINALIZE_TIMEOUT = "finalize_timeout"
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     FAILED = "failed"

@@ -33,7 +33,6 @@ class TransactionType(Enum):
     RESET = "reset_transaction"
     RANDOMNESS = "randomness_transaction"
     SELECT_KEEPER = "select_keeper_transaction"
-    GAS = "gas"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
