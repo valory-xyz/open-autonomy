@@ -435,7 +435,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
     B-Base-pool  ->  Safe        : B tokens
     Safe         ->  A-B-pool    : A tokens
     Safe         ->  A-B-pool    : B tokens
-    Minter       ->  Safe        : AB_LP tokens
+    A-B-pool Minter       ->  Safe        : AB_LP tokens
     """
 
     state_id = "enter_pool_tx_hash"
