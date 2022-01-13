@@ -68,6 +68,10 @@ package_checks:
 hashes:
 	python scripts/generate_ipfs_hashes.py --vendor valory
 
+.PHONY: api-docs
+api-docs:
+	python scripts/generate_api_documentation.py
+
 .PHONY: docs
 docs:
 	mkdocs build --clean

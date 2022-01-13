@@ -76,6 +76,56 @@ Initialize dialogues.
 
 - `kwargs`: keyword arguments
 
+<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue"></a>
+
+## LedgerApiDialogue Objects
+
+```python
+class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
+    BaseLedgerApiDialogue)
+```
+
+The dialogue class maintains state of a dialogue and manages it.
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(dialogue_label: BaseDialogueLabel, self_address: Address, role: BaseDialogue.Role, message_class: Type[LedgerApiMessage] = LedgerApiMessage) -> None
+```
+
+Initialize a dialogue.
+
+**Arguments**:
+
+- `dialogue_label`: the identifier of the dialogue
+- `self_address`: the address of the entity for whom this dialogue is maintained
+- `role`: the role of the agent this dialogue is maintained for
+- `message_class`: the message class
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue.terms"></a>
+
+#### terms
+
+```python
+@property
+def terms() -> Terms
+```
+
+Get the terms.
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogue.terms"></a>
+
+#### terms
+
+```python
+@terms.setter
+def terms(terms: Terms) -> None
+```
+
+Set the terms.
+
 <a id="packages.valory.skills.abstract_round_abci.dialogues.LedgerApiDialogues"></a>
 
 ## LedgerApiDialogues Objects

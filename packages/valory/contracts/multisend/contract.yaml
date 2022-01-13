@@ -6,7 +6,7 @@ description: MultiSend contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmViwynBxs2tY5riU9PqPwHybiCgDBUc39p8EVfsSH8RHL
+  README.md: QmUr1WWtQM1W7hR4Xixxs5cGH1J5rwztWaK42wie9YqPh5
   __init__.py: QmXyEcDdisehvHiMnJ1vaJwcZTDZzLm4h7MDU5cHR8TET7
   build/MultiSend.json: QmSg3P5wrqdjUwGShZxZi4pM4xtGtV98DiRZ8hSmYqhPmU
   contract.py: QmbSDh9mL2gZWzKPEzQpecqomyG1xFK4uRqL1oa1XjYG5j

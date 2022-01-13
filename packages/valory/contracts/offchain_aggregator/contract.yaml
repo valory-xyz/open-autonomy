@@ -6,7 +6,7 @@ description: OffchainAggregator (oracle) contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmVdWQBLXfvoZGSr7Bpy82m5m8aMLn2xc2SrKG2QeAdMFi
+  README.md: QmS9qjNYKDzkydTimXv2xPQCtSWw3cjAaWwSFXve9f9ToS
   __init__.py: QmV8z4Hn2SqLSC2rxTHkmpHo2egWsqSFsHxBngnwz4JSRJ
   build/VerySimpleOffchainAggregator.json: QmZQmgG4HdVQWoTH7cFYrcVEGPMFDnq1hXiCfrSAEtN46F
   contract.py: Qmc7daFB14Gg6aGGLdQEXnhjpSXL5cuLb9ywDDJ2qJMFkx

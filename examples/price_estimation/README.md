@@ -195,7 +195,7 @@ kind delete cluster
 
 ## Deployment on Ropsten
 
-Ensure accurate configuration, in paricular, swap folder names of `configure_agents` and `configure_agents_ropsten` (`mv configure_agents configure_agents_old` and `mv configure_agents_ropsten configure_agents`). Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
+Ensure accurate configuration, in particular, swap folder names of `configure_agents` and `configure_agents_ropsten` (`mv configure_agents configure_agents_old` and `mv configure_agents_ropsten configure_agents`). Then run `make localnet-start` from within the node: `ssh root@178.62.4.138`
 
 ```bash
 count=0

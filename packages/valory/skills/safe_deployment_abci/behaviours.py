@@ -174,7 +174,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
 
 
 class ValidateSafeBehaviour(SafeDeploymentBaseState):
-    """ValidateSafe."""
+    """Validate Safe."""
 
     state_id = "validate_safe"
     matching_round = ValidateSafeRound
