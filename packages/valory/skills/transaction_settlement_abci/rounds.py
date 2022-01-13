@@ -121,25 +121,9 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Optional[Nonce], self.db.get("nonce"))
 
     @property
-    def is_resubmitting(self) -> bool:
-        """Check if the nonce is set thus we are resubmitting a transaction."""
-        return self.nonce is not None
-
-    @property
-    def gas_data(self) -> Dict[str, Optional[int]]:
+    def max_priority_fee_per_gas(self) -> Optional[int]:
         """Get the gas data."""
-        return cast(
-            Dict[str, Optional[int]],
-            self.db.get("gas_data", self.get_empty_gas_data()),
-        )
-
-    @staticmethod
-    def get_empty_gas_data() -> Dict[str, Optional[int]]:
-        """Get empty gas data."""
-        return {
-            "max_fee_per_gas": None,
-            "max_priority_fee_per_gas": None,
-        }
+        return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -201,12 +185,9 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 period_state_class=self.period_state_class,
                 final_tx_hash=self.keeper_payload["tx_digest"],
                 nonce=self.keeper_payload["nonce"],
-                gas_data={
-                    "max_fee_per_gas": self.keeper_payload["max_fee_per_gas"],
-                    "max_priority_fee_per_gas": self.keeper_payload[
-                        "max_priority_fee_per_gas"
-                    ],
-                },
+                max_priority_fee_per_gas=self.keeper_payload[
+                    "max_priority_fee_per_gas"
+                ],
             )
             return state, self.done_event
         if self.has_keeper_sent_payload and (
@@ -267,7 +248,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
             state_data["final_tx_hash"] = None
-            state_data["gas_data"] = PeriodState.get_empty_gas_data()
+            state_data["max_priority_fee_per_gas"] = None
             state_data["nonce"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload, **state_data
@@ -301,7 +282,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 ),
                 final_tx_hash=None,
                 nonce=None,
-                gas_data=PeriodState.get_empty_gas_data(),
+                max_priority_fee_per_gas=None,
             )
             return state, Event.DONE
         if not self.is_majority_possible(

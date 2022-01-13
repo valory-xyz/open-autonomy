@@ -381,6 +381,7 @@ class GnosisSafeContract(Contract):
         nonce: Optional[Nonce] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
+        old_tip: Optional[int] = None,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -404,6 +405,7 @@ class GnosisSafeContract(Contract):
         :param nonce: the nonce
         :param max_fee_per_gas: max
         :param max_priority_fee_per_gas: max
+        :param old_tip: the old `maxPriorityFeePerGas` in case that we are trying to resubmit a transaction.
         :return: the raw Safe transaction
         """
         sender_address = ledger_api.api.toChecksumAddress(sender_address)
@@ -436,7 +438,7 @@ class GnosisSafeContract(Contract):
             and max_fee_per_gas is None
             and max_priority_fee_per_gas is None
         ):
-            tx_parameters.update(ledger_api.try_get_gas_pricing())
+            tx_parameters.update(ledger_api.try_get_gas_pricing(old_tip=old_tip))
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(

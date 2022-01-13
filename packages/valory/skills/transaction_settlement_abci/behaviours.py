@@ -309,8 +309,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.period_state.most_voted_tx_hash
         )
 
-        gas_data = self._adjust_gas_data()
-
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -327,8 +325,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.period_state.nonce,
-            max_fee_per_gas=gas_data["max_fee_per_gas"],
-            max_priority_fee_per_gas=gas_data["max_priority_fee_per_gas"],
+            old_tip=self.period_state.max_priority_fee_per_gas,
         )
         if (
             contract_api_msg.performative
@@ -343,9 +340,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         tx_data = {
             "tx_digest": tx_digest,
             "nonce": int(cast(str, contract_api_msg.raw_transaction.body["nonce"])),
-            "max_fee_per_gas": int(
-                cast(str, contract_api_msg.raw_transaction.body["maxFeePerGas"])
-            ),
             "max_priority_fee_per_gas": int(
                 cast(
                     str,
@@ -355,22 +349,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         }
 
         return tx_data
-
-    def _adjust_gas_data(self) -> Dict[str, int]:
-        """Get the gas data and adjust properly if re-submitting."""
-        # Get the gas data.
-        gas_data = {
-            "max_fee_per_gas": cast(int, self.period_state.gas_data["max_fee_per_gas"]),
-            "max_priority_fee_per_gas": cast(
-                int, self.period_state.gas_data["max_priority_fee_per_gas"]
-            ),
-        }
-
-        # Recalculate the fees to use.
-        if self.period_state.is_resubmitting:
-            gas_data = EthereumApi.update_gas_pricing(gas_data)
-
-        return gas_data
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):

@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Generator, Optional, cast
+from typing import Generator, Optional, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -193,15 +193,11 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
     def test_sender_act(self, resubmitting: bool) -> None:
         """Test finalize behaviour."""
         nonce: Optional[int] = None
-        gas_data: Dict[str, Optional[int]] = {
-            "max_fee_per_gas": None,
-            "max_priority_fee_per_gas": None,
-        }
+        max_priority_fee_per_gas: Optional[int] = None
 
         if resubmitting:
             nonce = 0
-            gas_data["max_fee_per_gas"] = 2
-            gas_data["max_priority_fee_per_gas"] = 1
+            max_priority_fee_per_gas = 1
 
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
@@ -224,7 +220,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
                         nonce=nonce,
-                        gas_data=gas_data,
+                        max_priority_fee_per_gas=max_priority_fee_per_gas,
                     ),
                 )
             ),
@@ -310,10 +306,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
                             b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
-                        gas_data={
-                            "max_fee_per_gas": int(10e10),
-                            "max_priority_fee_per_gas": int(10e10),
-                        },
+                        max_priority_fee_per_gas=int(10e10),
                     ),
                 )
             ),

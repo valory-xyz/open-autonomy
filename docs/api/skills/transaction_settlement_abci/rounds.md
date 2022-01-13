@@ -135,38 +135,16 @@ def nonce() -> Optional[Nonce]
 
 Get the nonce.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_resubmitting"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.max_priority_fee_per_gas"></a>
 
-#### is`_`resubmitting
-
-```python
-@property
-def is_resubmitting() -> bool
-```
-
-Check if the nonce is set thus we are resubmitting a transaction.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.gas_data"></a>
-
-#### gas`_`data
+#### max`_`priority`_`fee`_`per`_`gas
 
 ```python
 @property
-def gas_data() -> Dict[str, Optional[int]]
+def max_priority_fee_per_gas() -> Optional[int]
 ```
 
 Get the gas data.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.get_empty_gas_data"></a>
-
-#### get`_`empty`_`gas`_`data
-
-```python
-@staticmethod
-def get_empty_gas_data() -> Dict[str, Optional[int]]
-```
-
-Get empty gas data.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
