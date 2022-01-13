@@ -1233,6 +1233,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                     most_voted_keeper_address="most_voted_keeper_address",
                     participant_to_signature=get_participant_to_signature(participants),
                     router_contract_address="router_contract_address",
+                    most_voted_lp_result="most_voted_lp_result",
                 ),
             )
         )
@@ -1294,6 +1295,30 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                 state=State(
                     ledger_id="ethereum",
                     body={"verified": True},
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["pair"]["LP_token_address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        token_address=strategy["pair"]["LP_token_address"],
+                        source_address="0x0000000000000000000000000000000000000000",
+                        destination_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"amount": 1000},
                 ),
             ),
         )

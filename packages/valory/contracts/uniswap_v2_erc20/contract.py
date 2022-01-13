@@ -36,6 +36,13 @@ _logger = logging.getLogger(
 )
 
 
+def rebuild_receipt(tx_receipt: JSONLike) -> JSONLike:
+    """Convert all tx receipt's event topics to HexBytes"""
+    for i in range(len(tx_receipt["logs"])):  # type: ignore
+        tx_receipt["logs"][i]["topics"] = [HexBytes(topic) for topic in tx_receipt["logs"][i]["topics"]]  # type: ignore
+    return tx_receipt
+
+
 def snake_to_camel(string: str) -> str:
     """Convert snake_case to camelCase"""
 
@@ -319,11 +326,7 @@ class UniswapV2ERC20Contract(Contract):
             return dict(logs=[])
 
         # Due to serialization, event topics must be converted again to HexBytes or processReceipt will fail
-        for i in range(len(tx_receipt["logs"])):
-            for j in range(len(tx_receipt["logs"][i]["topics"])):
-                tx_receipt["logs"][i]["topics"][j] = HexBytes(
-                    tx_receipt["logs"][i]["topics"][j]
-                )
+        tx_receipt = rebuild_receipt(tx_receipt)
 
         transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
 
@@ -338,3 +341,47 @@ class UniswapV2ERC20Contract(Contract):
                 for log in transfer_logs
             ]
         )
+
+    @classmethod
+    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+        token_address: str,
+        source_address: Optional[str] = None,
+        destination_address: Optional[str] = None,
+    ) -> JSONLike:
+        """
+        Get the amount of a token transferred as a result of a transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :param token_address: the token's address
+        :param source_address: the source address
+        :param destination_address: the destination address
+        :return: the incoming amount
+        """
+
+        transfer_logs = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]
+
+        token_events = filter(
+            lambda log: log["token_address"] == token_address,  # type: ignore
+            transfer_logs,
+        )
+
+        if source_address:
+            token_events = filter(
+                lambda log: log["from"] == source_address,  # type: ignore
+                token_events,
+            )
+
+        if destination_address:
+            token_events = filter(
+                lambda log: log["to"] == destination_address,  # type: ignore
+                token_events,
+            )
+
+        amount = 0 if not token_events else sum([event["value"] for event in list(token_events)])  # type: ignore
+        return dict(amount=amount)

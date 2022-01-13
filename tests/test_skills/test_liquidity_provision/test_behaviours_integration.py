@@ -64,7 +64,6 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SwapBackTransactionSendBehaviour,
     SwapBackTransactionSignatureBehaviour,
     SwapBackTransactionValidationBehaviour,
-    TransactionGetLPResultsBehaviour,
     get_strategy_update,
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
@@ -582,11 +581,13 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
+            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -596,10 +597,13 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
+            {
+                "state": State,
+            },
         ]
         _, msg = self.process_n_messsages(
             EnterPoolTransactionValidationBehaviour.state_id,
-            2,
+            3,
             period_state,
             handlers,
             expected_content,
@@ -619,55 +623,6 @@ class TestLiquidityProvisionHardhat(
         # trace = self.ethereum_api.api.provider.make_request("debug_traceTransaction",[tx_digest, {}])  # noqa: E800
         # struct_log = trace['result']['structLogs']  # noqa: E800
         # decoded_trace = eth_event.decode_trace(struct_log, self.topic_map_gnosis, initial_address="0x5fc8d32690cc91d4c39d9d3abcbd16989f875707")  # noqa: E800
-
-        """test_transaction_get_LP_results__behaviour"""
-
-        period_state = cast(
-            PeriodState,
-            self.default_period_state_exit.update(
-                final_tx_hash=tx_digest,
-                most_voted_tx_hash=self.most_voted_tx_hash_enter,
-                most_voted_tx_data=self.multisend_data_enter,
-                participant_to_signature=participant_to_signature,
-            ),
-        )
-        handlers = [
-            self.ledger_handler,
-            self.contract_handler,
-        ]
-        expected_content = [
-            {
-                "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
-            },
-            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
-        ]
-        expected_types = [
-            {
-                "transaction_receipt": TransactionReceipt,
-            },
-            {
-                "state": State,
-            },
-        ]
-        _, msg = self.process_n_messsages(
-            TransactionGetLPResultsBehaviour.state_id,
-            2,
-            period_state,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-        assert msg is not None and isinstance(msg, ContractApiMessage)
-        assert (
-            type(msg.state.body["logs"]) == list
-        ), f"Message logs is not a list: {msg.state.body}"
-        # eventually replace with https://pypi.org/project/eth-event/
-        receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
-        logs = self.get_decoded_logs(self.gnosis_instance, receipt)
-
-        assert all(
-            [key != "ExecutionFailure" for dict_ in logs for key in dict_.keys()]
-        )
 
         """test_exit_pool_tx_send_behaviour"""
 

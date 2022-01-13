@@ -32,10 +32,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     OnlyKeeperSendsRound,
-    VotingRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
-    LPResultPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -98,14 +96,6 @@ class PeriodState(
         return cast(
             Mapping[str, StrategyEvaluationPayload],
             self.db.get_strict("participant_to_strategy"),
-        )
-
-    @property
-    def participant_to_lp_result(self) -> Mapping[str, LPResultPayload]:
-        """Get the participant_to_votes."""
-        return cast(
-            Mapping[str, LPResultPayload],
-            self.db.get_strict("participant_to_lp_result"),
         )
 
     @property
@@ -242,7 +232,9 @@ class TransactionSendBaseRound(OnlyKeeperSendsRound, LiquidityProvisionAbstractR
         return None
 
 
-class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRound):
+class TransactionValidationBaseRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """A base class for rounds in which agents validate the transaction"""
 
     round_id = "transaction_valid_round"
@@ -253,49 +245,12 @@ class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRoun
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
-        if self.positive_vote_threshold_reached:
-            state = self.period_state.update(
-                participant_to_votes=MappingProxyType(self.collection)
-            )
-            return state, Event.DONE
-        if self.negative_vote_threshold_reached:
-            state = self.period_state.update()
-            return state, self.exit_event
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
-
-
-class TransactionGetLPResultsRound(
-    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
-):
-    """
-    This class represents the get LP result round.
-
-    Input: a period state with the set of participants, the keeper and the Safe contract address.
-    Output: a period state with the set of participants, the keeper, the Safe contract address and the value transfered in the LP transaction.
-    """
-
-    round_id = "get_lp_result"
-    allowed_tx_type = LPResultPayload.transaction_type
-    exit_event: Event = Event.EXIT
-    payload_attribute = "value"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_lp_result=MappingProxyType(self.collection),
-                most_voted_lp_result=self.most_voted_payload,
+                participant_to_votes=MappingProxyType(self.collection),
+                most_voted_lp_result=self.most_voted_payload.amount,
             )
-            event = (
-                Event.DONE
-                if state.most_voted_strategy["action"] == StrategyType.GO  # type: ignore
-                else Event.RESET_TIMEOUT
-            )
-            return state, event
+            return state, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -572,14 +527,9 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionValidationRound: {
-            Event.DONE: TransactionGetLPResultsRound,
+            Event.DONE: ExitPoolTransactionHashRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
-        },
-        TransactionGetLPResultsRound: {
-            Event.DONE: ExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolRandomnessRound: {
             Event.DONE: EnterPoolSelectKeeperRound,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -40,13 +40,13 @@ from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
+    ValidatePayload,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilThresholdRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
-    BaseVotingRoundTest,
 )
 from tests.test_skills.test_price_estimation_abci.test_rounds import (
     get_participant_to_votes,
@@ -197,7 +197,7 @@ class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
         )
 
 
-class TestTransactionValidationBaseRound(BaseVotingRoundTest):
+class TestTransactionValidationBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionValidationBaseRound"""
 
     _period_state_class = PeriodState
@@ -210,44 +210,23 @@ class TestTransactionValidationBaseRound(BaseVotingRoundTest):
         test_round = TransactionValidationBaseRound(
             self.period_state, self.consensus_params
         )
-        self._complete_run(
-            self._test_voting_round_positive(
-                test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    participant_to_votes=MappingProxyType(
-                        get_participant_to_votes(self.participants)
+        with mock.patch.object(ValidatePayload, "data", return_value="data"):
+            self._complete_run(
+                self._test_round(
+                    test_round=test_round,
+                    round_payloads=get_participant_to_votes(self.participants),
+                    state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                        participant_to_votes=MappingProxyType(
+                            get_participant_to_votes(self.participants)
+                        ),
                     ),
-                ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_votes.keys(),
-                ],
-                exit_event=Event.DONE,
+                    state_attr_checks=[
+                        lambda state: state.participant_to_votes.keys(),
+                    ],
+                    most_voted_payload=ValidatePayload.data,
+                    exit_event=Event.DONE,
+                )
             )
-        )
-
-    def test_negative_votes(
-        self,
-    ) -> None:
-        """Run tests."""
-        test_round = TransactionValidationBaseRound(
-            self.period_state, self.consensus_params
-        )
-        self._complete_run(
-            self._test_voting_round_negative(
-                test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants, False),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    participant_to_votes=MappingProxyType(
-                        get_participant_to_votes(self.participants)
-                    ),
-                ),
-                state_attr_checks=[
-                    lambda state: None,
-                ],
-                exit_event=Event.EXIT,
-            )
-        )
 
 
 class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):

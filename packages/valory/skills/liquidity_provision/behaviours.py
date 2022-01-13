@@ -51,7 +51,6 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
-    LPResultPayload,
     StrategyEvaluationPayload,
     StrategyType,
 )
@@ -77,7 +76,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     SwapBackTransactionSendRound,
     SwapBackTransactionSignatureRound,
     SwapBackTransactionValidationRound,
-    TransactionGetLPResultsRound,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetAndPauseBehaviour,
@@ -269,7 +267,8 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            payload = ValidatePayload(self.context.agent_address, is_correct)
+            amount = yield from self.get_tx_result()
+            payload = ValidatePayload(self.context.agent_address, is_correct, amount)
 
         with benchmark_tool.measure(
             self,
@@ -326,93 +325,31 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         self.context.logger.info(verified_log)
         return verified
 
-
-class TransactionGetLPResultsBehaviour(LiquidityProvisionBaseBehaviour):
-    """Get a LP transaction result."""
-
-    state_id = "get_lp_result"
-    matching_round = TransactionGetLPResultsRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Get the result of the enter pool transaction.
-        - Send the transaction with the transaction result and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            self.context.logger.info(
-                f"Attempting to retrieve the liquidity balance produced by tx {self.period_state.final_tx_hash}"
-            )
-            transfer_logs = yield from self.get_lp_result()
-            payload = LPResultPayload(self.context.agent_address, transfer_logs)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-    def get_lp_result(self) -> Generator[None, None, Optional[int]]:
+    def get_tx_result(self) -> Generator[None, None, Optional[int]]:
         """Transaction transfer result."""
         strategy = self.period_state.most_voted_strategy
-
-        receipt = yield from self.get_transaction_receipt(
-            self.period_state.final_tx_hash,
-            self.params.retry_timeout,
-            self.params.retry_attempts,
-        )
-        if receipt is None:  # pragma: nocover
-            self.context.logger.info(
-                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
-            )
-            return None
-        is_settled = EthereumApi.is_transaction_settled(receipt)
-        if not is_settled:  # pragma: nocover
-            self.context.logger.info(
-                f"tx {self.period_state.final_tx_hash} not settled!"
-            )
-            return False
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["pair"]["LP_token_address"],
             contract_id=str(UniswapV2ERC20Contract.contract_id),
-            contract_callable="get_tx_transfer_logs",
+            contract_callable="get_tx_transfered_amount",
             tx_hash=self.period_state.final_tx_hash,
+            token_address=strategy["pair"]["LP_token_address"],
+            source_address="0x0000000000000000000000000000000000000000",
+            destination_address=self.period_state.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return False  # pragma: nocover
-        transfer_logs = cast(dict, contract_api_msg.state.body["logs"])
+        amount = cast(int, contract_api_msg.state.body["amount"])
 
-        lp_events = list(
-            filter(
-                lambda log: log["from"] == "0x0000000000000000000000000000000000000000"
-                and log["to"] == self.period_state.safe_contract_address,
-                transfer_logs,
-            )
+        transfer_log_message = (
+            f"The tx with hash {self.period_state.final_tx_hash} ended with a transfer of {amount} tokens.\n"
+            f"Token address: {strategy['pair']['LP_token_address']}.\n"
+            f"Source: 0x0000000000000000000000000000000000000000.\n"
+            f"Destination: self.period_state.safe_contract_address.\n"
         )
-
-        self.context.logger.info(
-            f"Found the following incoming liquidity transfers: {str(lp_events)}"
-        )
-
-        if len(lp_events) != 1:
-            return None
-
-        lp_value = lp_events[0]["value"]
-        lp_token = lp_events[0]["token_address"]
-
-        transfer_log_message = f"The tx with hash {self.period_state.final_tx_hash} ended with an incoming transfer of {lp_value} tokens. Token address: {lp_token}."
         self.context.logger.info(transfer_log_message)
-        return lp_value
+        return amount
 
 
 def get_strategy_update() -> dict:
@@ -489,7 +426,17 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the transaction hash for entering the liquidity pool"""
+    """Prepare the transaction hash for entering the liquidity pool
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-Base-pool : Base tokens
+    A-Base-pool  ->  safe        : A tokens
+    Safe         ->  B-Base-pool : Base tokens
+    B-Base-pool  ->  safe        : B tokens
+    Safe         ->  A-B-pool    : A tokens
+    Safe         ->  A-B-pool    : B tokens
+    Minter       ->  Safe        : AB_LP tokens
+    """
 
     state_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
@@ -799,7 +746,13 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the transaction hash for exiting the liquidity pool"""
+    """Prepare the transaction hash for exiting the liquidity pool
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-B-pool    : AB_LP tokens
+    AB_LP        ->  Safe        : A tokens
+    AB_LP        ->  Safe        : B tokens
+    """
 
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
@@ -993,7 +946,14 @@ class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the transaction hash for swapping back assets"""
+    """Prepare the transaction hash for swapping back assets
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-Base-pool    : A tokens
+    A-Base-pool  ->  Safe           : Base tokens
+    Safe         ->  B-Base-pool    : B tokens
+    B-Base-pool  ->  Safe           : Base tokens
+    """
 
     state_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
@@ -1218,7 +1178,6 @@ class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
         EnterPoolTransactionValidationBehaviour,  # type: ignore
         EnterPoolRandomnessBehaviour,  # type: ignore
         EnterPoolSelectKeeperBehaviour,  # type: ignore
-        TransactionGetLPResultsBehaviour,  # type: ignore
         ExitPoolTransactionHashBehaviour,  # type: ignore
         ExitPoolTransactionSignatureBehaviour,  # type: ignore
         ExitPoolTransactionSendBehaviour,  # type: ignore
