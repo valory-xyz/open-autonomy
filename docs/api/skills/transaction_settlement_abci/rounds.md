@@ -124,6 +124,28 @@ def is_most_voted_estimate_set() -> bool
 
 Check if most_voted_estimate is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.nonce"></a>
+
+#### nonce
+
+```python
+@property
+def nonce() -> Optional[Nonce]
+```
+
+Get the nonce.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_resubmitting"></a>
+
+#### is`_`resubmitting
+
+```python
+@property
+def is_resubmitting() -> bool
+```
+
+Check if the nonce is set thus we are resubmitting a transaction.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.gas_data"></a>
 
 #### gas`_`data
@@ -195,16 +217,6 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound)
 ```
 
 A round in which agents sign the transaction
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.GasAdjustmentRound"></a>
-
-## GasAdjustmentRound Objects
-
-```python
-class GasAdjustmentRound(OnlyKeeperSendsRound)
-```
-
-This class represents the 'gas_adjustment' round.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinalizationRound"></a>
 

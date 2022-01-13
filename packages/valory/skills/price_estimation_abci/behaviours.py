@@ -67,7 +67,6 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
-    GasAdjustmentBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
@@ -354,7 +353,6 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
-        GasAdjustmentBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore

@@ -101,38 +101,6 @@ class SelectKeeperPayload(BaseTxPayload):
         return dict(keeper=self.keeper)
 
 
-class GasPayload(BaseTxPayload):
-    """Represent a transaction payload of type 'gas_adjustment'."""
-
-    transaction_type = TransactionType.GAS
-
-    def __init__(
-        self,
-        sender: str,
-        gas_data: Optional[Dict[str, int]] = None,
-        id_: Optional[str] = None,
-    ) -> None:
-        """Initialize an 'gas_adjustment' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param gas_data: the gas_data
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._gas_data = gas_data
-
-    @property
-    def data(self) -> Dict[str, Dict[str, int]]:
-        """Get the data."""
-        return (
-            dict(
-                gas_data=self._gas_data,
-            )
-            if self._gas_data is not None
-            else {}
-        )
-
-
 class ValidatePayload(BaseTxPayload):
     """Represent a transaction payload of type 'validate'."""
 

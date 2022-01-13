@@ -132,43 +132,6 @@ def data() -> Dict
 
 Get the data.
 
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.GasPayload"></a>
-
-## GasPayload Objects
-
-```python
-class GasPayload(BaseTxPayload)
-```
-
-Represent a transaction payload of type 'gas_adjustment'.
-
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.GasPayload.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(sender: str, gas_data: Optional[Dict[str, int]] = None, id_: Optional[str] = None) -> None
-```
-
-Initialize an 'gas_adjustment' transaction payload.
-
-**Arguments**:
-
-- `sender`: the sender (Ethereum) address
-- `gas_data`: the gas_data
-- `id_`: the id of the transaction
-
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.GasPayload.data"></a>
-
-#### data
-
-```python
-@property
-def data() -> Dict[str, Dict[str, int]]
-```
-
-Get the data.
-
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload"></a>
 
 ## ValidatePayload Objects

@@ -37,7 +37,6 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
-    GasPayload,
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -47,7 +46,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     CollectSignatureRound,
     FinalizationRound,
-    GasAdjustmentRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetAndPauseRound,
@@ -243,68 +241,6 @@ class SignatureBehaviour(TransactionSettlementBaseState):
         return signature_hex
 
 
-class GasAdjustmentBehaviour(TransactionSettlementBaseState):
-    """Adjust gas."""
-
-    state_id = "gas_adjustment"
-    matching_round = GasAdjustmentRound
-
-    def async_act(self) -> Generator[None, None, None]:
-        """
-        Do the action.
-
-        Steps:
-        - If the agent is the keeper, then prepare the transaction and send it.
-        - Otherwise, wait until the next round.
-        - If a timeout is hit, set exit A event, otherwise set done event.
-        """
-        if self.context.agent_address != self.period_state.most_voted_keeper_address:
-            yield from self._not_sender_act()
-        else:
-            yield from self._sender_act()
-
-    def _not_sender_act(self) -> Generator:
-        """Do the non-sender action."""
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.wait_until_round_end()
-        self.set_done()
-
-    def _sender_act(self) -> Generator[None, None, None]:
-        """Do the sender action."""
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            self.context.logger.info("I am the designated sender, adjusting the gas...")
-
-            # Recalculate the fees to use
-            # TODO use `EthereumApi.update_gas_pricing` call below.
-            gas_data = {
-                "nonce": cast(int, self.period_state.gas_data["nonce"]),
-                "max_fee_per_gas": cast(
-                    int, self.period_state.gas_data["max_fee_per_gas"]
-                ),
-                "max_priority_fee_per_gas": cast(
-                    int, self.period_state.gas_data["max_priority_fee_per_gas"]
-                ),
-            }
-
-            payload = GasPayload(
-                self.context.agent_address,
-                gas_data,
-            )
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
 class FinalizeBehaviour(TransactionSettlementBaseState):
     """Finalize state."""
 
@@ -372,6 +308,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
+
+        gas_data = self._adjust_gas_data()
+
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -387,11 +326,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            nonce=self.period_state.gas_data["nonce"],
-            max_fee_per_gas=self.period_state.gas_data["max_fee_per_gas"],
-            max_priority_fee_per_gas=self.period_state.gas_data[
-                "max_priority_fee_per_gas"
-            ],
+            nonce=self.period_state.nonce,
+            max_fee_per_gas=gas_data["max_fee_per_gas"],
+            max_priority_fee_per_gas=gas_data["max_priority_fee_per_gas"],
         )
         if (
             contract_api_msg.performative
@@ -418,6 +355,22 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         }
 
         return tx_data
+
+    def _adjust_gas_data(self) -> Dict[str, int]:
+        """Get the gas data and adjust properly if re-submitting."""
+        # Get the gas data.
+        gas_data = {
+            "max_fee_per_gas": cast(int, self.period_state.gas_data["max_fee_per_gas"]),
+            "max_priority_fee_per_gas": cast(
+                int, self.period_state.gas_data["max_priority_fee_per_gas"]
+            ),
+        }
+
+        # Recalculate the fees to use.
+        if self.period_state.is_resubmitting:
+            gas_data = EthereumApi.update_gas_pricing(gas_data)  # type: ignore
+
+        return gas_data
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):

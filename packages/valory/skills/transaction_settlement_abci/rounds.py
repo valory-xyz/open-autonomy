@@ -21,6 +21,8 @@
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
+from web3.types import Nonce
+
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -35,7 +37,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
-    GasPayload,
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -115,6 +116,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.db.get("most_voted_estimate", None) is not None
 
     @property
+    def nonce(self) -> Optional[Nonce]:
+        """Get the nonce."""
+        return cast(Optional[Nonce], self.db.get("nonce"))
+
+    @property
+    def is_resubmitting(self) -> bool:
+        """Check if the nonce is set thus we are resubmitting a transaction."""
+        return self.nonce is not None
+
+    @property
     def gas_data(self) -> Dict[str, Optional[int]]:
         """Get the gas data."""
         return cast(
@@ -126,7 +137,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def get_empty_gas_data() -> Dict[str, Optional[int]]:
         """Get empty gas data."""
         return {
-            "nonce": None,
             "max_fee_per_gas": None,
             "max_priority_fee_per_gas": None,
         }
@@ -169,18 +179,6 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     collection_key = "participant_to_signature"
 
 
-class GasAdjustmentRound(OnlyKeeperSendsRound):
-    """This class represents the 'gas_adjustment' round."""
-
-    round_id = "gas_adjustment"
-    allowed_tx_type = GasPayload.transaction_type
-    payload_attribute = "data"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    payload_key = "gas_data"
-
-
 class FinalizationRound(OnlyKeeperSendsRound):
     """A round that represents transaction signing has finished"""
 
@@ -202,8 +200,8 @@ class FinalizationRound(OnlyKeeperSendsRound):
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 final_tx_hash=self.keeper_payload["tx_hash"],
+                nonce=self.keeper_payload["nonce"],
                 gas_data={
-                    "nonce": self.keeper_payload["nonce"],
                     "max_fee_per_gas": self.keeper_payload["max_fee_per_gas"],
                     "max_priority_fee_per_gas": self.keeper_payload[
                         "max_priority_fee_per_gas"
@@ -270,6 +268,7 @@ class ResetRound(CollectSameUntilThresholdRound):
             state_data = self.period_state.db.get_all()
             state_data["final_tx_hash"] = None
             state_data["gas_data"] = PeriodState.get_empty_gas_data()
+            state_data["nonce"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload, **state_data
             )
@@ -301,6 +300,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                     "safe_contract_address"
                 ),
                 final_tx_hash=None,
+                nonce=None,
                 gas_data=PeriodState.get_empty_gas_data(),
             )
             return state, Event.DONE
@@ -397,20 +397,15 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         FinalizationRound: {
-            Event.DONE: ValidateTransactionRound,
-            Event.FINALIZE_TIMEOUT: GasAdjustmentRound,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.DONE: ValidateTransactionRound,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.ROUND_TIMEOUT: ResetRound,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
-        },
-        GasAdjustmentRound: {
-            Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
             Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
-            Event.VALIDATE_TIMEOUT: ResetRound,  # TODO: see above
+            Event.VALIDATE_TIMEOUT: FinalizationRound,  # TODO: see above
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
@@ -435,7 +430,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.VALIDATE_TIMEOUT: 30.0,
-        Event.FINALIZE_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
