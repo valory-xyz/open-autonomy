@@ -124,6 +124,17 @@ def is_most_voted_estimate_set() -> bool
 
 Check if most_voted_estimate is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_amount"></a>
+
+#### most`_`voted`_`amount
+
+```python
+@property
+def most_voted_amount() -> int
+```
+
+Get the most_voted_amount.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
@@ -259,10 +270,20 @@ Process the end of the block.
 ## ValidateTransactionRound Objects
 
 ```python
-class ValidateTransactionRound(VotingRound)
+class ValidateTransactionRound(CollectSameUntilThresholdRound)
 ```
 
 A round in which agents validate the transaction
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

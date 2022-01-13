@@ -147,7 +147,7 @@ Represent a transaction payload of type 'validate'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, vote: Optional[bool] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, vote: Optional[bool] = None, amount: Optional[int] = None, id_: Optional[str] = None) -> None
 ```
 
 Initialize an 'validate' transaction payload.
@@ -156,6 +156,7 @@ Initialize an 'validate' transaction payload.
 
 - `sender`: the sender (Ethereum) address
 - `vote`: the vote
+- `amount`: the transfered amount
 - `id_`: the id of the transaction
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.vote"></a>
@@ -168,6 +169,17 @@ def vote() -> Optional[bool]
 ```
 
 Get the vote.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.amount"></a>
+
+#### amount
+
+```python
+@property
+def amount() -> Optional[int]
+```
+
+Get the amount.
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.data"></a>
 
