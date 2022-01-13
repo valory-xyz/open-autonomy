@@ -111,6 +111,7 @@ def test_finalization_tx_payload() -> None:
         sender="sender",
         tx_data={
             "tx_digest": "hash",
+            "nonce": 0,
             "max_fee_per_gas": 0,
             "max_priority_fee_per_gas": 0,
         },
@@ -118,6 +119,7 @@ def test_finalization_tx_payload() -> None:
 
     assert payload.data == {
         "tx_hash": "hash",
+        "nonce": 0,
         "max_fee_per_gas": 0,
         "max_priority_fee_per_gas": 0,
     }
