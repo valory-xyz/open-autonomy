@@ -430,9 +430,9 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
     The expected transfers derived from this behaviour are
     Safe         ->  A-Base-pool : Base tokens
-    A-Base-pool  ->  safe        : A tokens
+    A-Base-pool  ->  Safe        : A tokens
     Safe         ->  B-Base-pool : Base tokens
-    B-Base-pool  ->  safe        : B tokens
+    B-Base-pool  ->  Safe        : B tokens
     Safe         ->  A-B-pool    : A tokens
     Safe         ->  A-B-pool    : B tokens
     Minter       ->  Safe        : AB_LP tokens
