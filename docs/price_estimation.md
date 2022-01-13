@@ -14,80 +14,109 @@ runs a script to aggregate the observations to compute an estimate,
 and we say that the consensus is reached when one estimate
 reaches `ceil((2n + 1) / 3)` of the total voting power committed
 on the temporary blockchain.
-Once the consensus on an estimate has been reached, a multi-signature transaction with `ceil((2n + 1) / 3)` of the participants' signature is settled on the Ethereum chain (in the POC this is the hardhat node).
+Once the consensus on an estimate has been reached, a multi-signature transaction 
+with `ceil((2n + 1) / 3)` of the participants' signature is settled on the 
+Ethereum chain (in the POC this is the hardhat node).
 
 Alongside the finite-state machine behaviour, the AEAs runs
 an ABCI application instance which receives all the updates from the
 underlying Tendermint network.
 
-## Periods and phases
+## Periods and rounds
 
-We call _period_ a sequence of phases that lead to the consensus
-over an estimate. A _phase_ might just be a stage in the
-consensus (e.g. waiting that a sufficient number of participants commit their observations to the temporary tendermint blockchain), or a voting round (e.g. waiting that at least one estimate has reached `ceil((2n + 1) / 3)` of the votes).
+We call _period_ a sequence of rounds that lead to the consensus
+over an estimate. A _round_ might just be a stage in the consensus 
+(e.g. waiting that a sufficient number of participants commit their observations
+to the temporary tendermint blockchain), or a voting round (e.g. waiting that at
+least one estimate has reached `ceil((2n + 1) / 3)` of the votes).
+
+!!!warning
+
+    The content of this section needs updating.
 
 The POC has the following rounds:
 
-- Tendermint healthcheck behaviour: the agents check whether their corresponding Tendermint node is running.
+- Tendermint healthcheck behaviour: the agents check whether their corresponding
+  Tendermint node is running.
 
 - Registration round: the application accepts registrations
-    from AEAs to join the period, up to a configured
-    maximum number of participants (in the demo, this limit is 4);
-    once this threshold is hit ("registration threshold"),
-    the round goes to the _deploy-safe_ phase.
+  from AEAs to join the period, up to a configured
+  maximum number of participants (in the demo, this limit is 4);
+  once this threshold is hit ("registration threshold"),
+  the round goes to the _deploy-safe_ round.
 
 - Randomness startup round: some randomness is retrieved to be used in a keeper
-agent selection. In particular, agents individually request the latest random number from [DRAND](https://drand.love), establish consensus on it and then use it as a seed for computations requiring randomness (e.g. keeper selection).
+  agent selection. In particular, agents individually request the latest random 
+  number from [DRAND](https://drand.love), establish consensus on it and then use 
+  it as a seed for computations requiring randomness (e.g. keeper selection).
 
-- Select keeper A startup phase: the agents agree on a new keeper that will be in charge of sending deploying the multisig wallet and settling transactions.
+- Select keeper A startup phase: the agents agree on a new keeper that will be 
+  in charge of sending deploying the multisig wallet and settling transactions.
 
 - Deploy safe round:
-    a designated sender among the participants of the current period deploys a
-   <a href="https://gnosis-safe.io/">Gnosis Safe contract</a>
-   with all the participants as owners and with
-  `ceil((2n + 1) / 3)` as threshold. If the safe deployment has not been completed after some time, a new keeper will be selected and the safe deployment will be re-run.
+  a designated sender among the participants of the current period deploys a
+  <a href="https://gnosis-safe.io/">Gnosis Safe contract</a>
+  with all the participants as owners and with `ceil((2n + 1) / 3)` as 
+  threshold. If the safe deployment has not been completed after some time, 
+  a new keeper will be selected and the safe deployment will be re-run.
 
-- Validate safe round: all agents validate the previous deployment to ensure that the correct contract with the correct settings has been deployed. If the safe deployment could not be verified, the process will start again from the registration phase.
+- Validate safe round: all agents validate the previous deployment to ensure 
+  that the correct contract with the correct settings has been deployed. If the 
+  safe deployment could not be verified, the process will start again from the 
+  registration round.
 
-- Deploy oracle round: the designated sender deploys a <a href="https://github.com/valory-xyz/contracts-oracle/blob/main/contracts/VerySimpleOffchainAggregator.sol">VerySimpleOffchainAggregator contract</a> owned by the Gnosis Safe contract, so a threshold of participants (as defined on the Safe) will have to sign every time the oracle needs to be updated. If the oracle deployment times-out without success, a new keeper will be selected and the oracle deployment will be re-run.
+- Deploy oracle round: the designated sender deploys a <a href="https://github.com/valory-xyz/contracts-oracle/blob/main/contracts/VerySimpleOffchainAggregator.sol">VerySimpleOffchainAggregator contract</a> 
+  owned by the Gnosis Safe contract, so a threshold of participants (as defined 
+  on the Safe) will have to sign every time the oracle needs to be updated. If 
+  the oracle deployment times-out without success, a new keeper will be selected
+  and the oracle deployment will be re-run.
 
-- Validate oracle round: all agents verify that the Oracle contract has been deployed using the expected settings. If that's not the case, agents will restart the process from the registration phase.
+- Validate oracle round: all agents verify that the Oracle contract has been 
+  deployed using the expected settings. If that's not the case, agents will 
+  restart the process from the registration round.
 
-- Randomness round: some randomness is retrieved to be used in a keeper agent selection. In particular, agents individually request the latest random number from [DRAND](https://drand.love), establish consensus on it and then use it as a seed for computations requiring randomness (e.g. keeper selection).
+- Randomness round: some randomness is retrieved to be used in a keeper agent 
+  selection. In particular, agents individually request the latest random number
+  from [DRAND](https://drand.love), establish consensus on it and then use it as
+  a seed for computations requiring randomness (e.g. keeper selection).
 
-- Select keeper A round: the agents agree on a new keeper that will be in charge of sending deploying the multisig wallet and settling transactions.
+- Select keeper A round: the agents agree on a new keeper that will be in charge
+  of sending deploying the multisig wallet and settling transactions.
 
 - Collect observation round: the application accepts
-    observations, only one per agent,
-    of the target quantity to estimate from only the AEAs
-    that joined this round. Once 2/3 of the participants have submitted their observations, and the list of observations are replicated among the different ABCI application instances, the period goes to the next phase.
+  observations, only one per agent,
+  of the target quantity to estimate from only the AEAs
+  that joined this round. Once 2/3 of the participants have submitted their 
+  observations, and the list of observations are replicated among the different 
+  ABCI application instances, the period goes to the next round.
 
 - Estimate consensus round: the application waits for votes on
-    estimates. The participants are supposed to run the same script
-    to aggregate the set of observations.
-    Once the same estimate receives a number of votes greater or equal than
-    2/3 of the total voting power, the consensus is reached and the
-    period moves to the next phase.
+  estimates. The participants are supposed to run the same script
+  to aggregate the set of observations.
+  Once the same estimate receives a number of votes greater or equal than
+  2/3 of the total voting power, the consensus is reached and the
+  period moves to the next round.
 
 - Tx-Hash round: a designated sender composes the Safe transaction
-    and puts it on the temporary Tendermint-based chain
-    (TODO: let participants to vote for transactions).
+  and puts it on the temporary Tendermint-based chain
+  (TODO: let participants vote for transactions).
 
 - Collect signature round: the participants send their own signature
-    for the Safe transaction. As soon as 2/3 of the signature
-    have been committed to the temporary blockchain,
-    the period goes to the next phase.
-- Finalization phase: the designated sender adds the set of signatures
-    to the transaction and submits it through the Safe contract.
+  for the Safe transaction. As soon as 2/3 of the signature
+  have been committed to the temporary blockchain,
+  the period goes to the next round.
+
+- Finalization round: the designated sender adds the set of signatures
+  to the transaction and submits it through the Safe contract.
 
 - Transaction validation round: the agents validate the transaction has been send and is now
    part of a block. If the transaction could not be verified, a new keeper will be selected and
-   the previous phase will be re-run.
+   the previous round will be re-run.
 
 - Consensus reached: This is the final state of the period.
     At this point, each AEA has a local copy of the estimate, replicated
     by the Tendermint network, and submitted on the Ethereum chain
-    via the Safe transaction. After this stage, the agents transition to the randomness phase
+    via the Safe transaction. After this stage, the agents transition to the randomness round
     and continue iterating through the collect-estimate-update loop.
 
 A full diagram can be found [here](poc-diagram.md)

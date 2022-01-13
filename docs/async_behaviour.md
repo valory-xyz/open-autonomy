@@ -1,9 +1,9 @@
 # `AsyncBehaviour`
 
-!!!warning
-
-    The content of this section is subject to change. Some parts
-    might soon become obsolete (especially the API documentation).
+!!!note 
+    
+    The snippets of code here are a simplified representation of the actual 
+    implementation
 
 !!!note
     
@@ -23,21 +23,21 @@ cannot contain blocking code or long-running tasks, as otherwise
 the AEA thread that executes all the behaviours would get stuck.
 For example, in order to interact with an external component through
 a request-response pattern (e.g. sending requests to an HTTP server, 
-request the Decision Maker to sign a transaction), the usual approach
-is to:
+request the [Decision Maker](https://valory-xyz.github.io/open-aea/decision-maker/) 
+to sign a transaction), the usual approach is to:
 
 - send the message from the `act` method and update the state
-    into "waiting for the response" (e.g. by updating an attribute in 
-    the shared state or in the behaviour instance, or by using the 
-    ["State pattern"](https://gameprogrammingpatterns.com/state.html)),
-    such that the next call to `act` can be intercepted and controlled by the developer;
+  into "waiting for the response" (e.g. by updating an attribute in 
+  the shared state or in the behaviour instance, or by using the 
+  ["State pattern"](https://gameprogrammingpatterns.com/state.html)),
+  such that the next call to `act` can be intercepted and controlled by the developer;
 - receive the response in a concrete `Handler` object that is registered 
-    to process messages of the response protocol;
+  to process messages of the response protocol;
 - handle the response in the handler's `handle()` method according to the 
-    skill business logic and the current state behaviour, and notify 
-    the behaviour about the change of state (e.g. by updating an attribute 
-    in the shared state such that the next `act` call can read it and take 
-    a different execution path).
+  skill business logic and the current state behaviour, and notify 
+  the behaviour about the change of state (e.g. by updating an attribute 
+  in the shared state such that the next `act` call can read it and take 
+  a different execution path).
 
 For large and complex skills, this development approach is quite expensive 
 in terms of maintainability, as the business logic does not reside in a single 
@@ -66,18 +66,27 @@ we suggest reading the following resources:
 - [MDN Web Docs: Glossary: asynchronous](https://developer.mozilla.org/en-US/docs/Glossary/Asynchronous)
 - [`asyncio` standard Python library documentation](https://docs.python.org/3/library/asyncio.html)
 
+
 ## How `AsyncBehaviour` works
 
 The behaviour execution model of the AEA framework is the following. 
-At the AEA startup, the framework registers a periodic task,
-one for each `Behaviour` object `b`, that executes the `b.act` 
-method. Such periodic execution for behaviour `b`
-is scheduled in the main thread loop,
+At the AEA startup, the framework registers a periodic task, one for each 
+`Behaviour` object `b`, that executes the `b.act` method. Such periodic 
+execution for behaviour `b` is scheduled in the main thread loop,
 with a tick interval `b.tick_interval` and starting time `b.start_at`.
 As mentioned above, the code in `act()` should not be blocking,
 as otherwise it would block the main thread execution, and
 therefore it would prevent the execution of the other behaviours' `act()`
-and the processing of incoming messages. 
+and the processing of incoming messages.
+
+```python
+class SimpleBehaviour(Behaviour, ABC):
+    """This class implements a simple behaviour."""
+
+    def act(self) -> None:
+        """Do the action."""
+    ...
+```
 
 The `AsyncBehaviour` utility class allows to wrap the execution
 of the `act()` method allowing its execution to be "suspended"
@@ -93,6 +102,19 @@ Currently, the crux of the implementation is the
   value to the generator object, using the [`send()`](https://docs.python.org/3/reference/expressions.html#generator.send) 
   method of the generator object. The value can be `None`, 
   or a message sent by another skill component.
+
+```python
+class AsyncBehaviour(ABC):
+    
+    @abstractmethod
+    def async_act(self) -> Generator:
+        """Do the act, supporting asynchronous execution."""
+
+    @abstractmethod
+    def async_act_wrapper(self) -> Generator:
+        """Do the act, supporting asynchronous execution."""
+    ...
+```
 
 The abstract methods the developer should implement are called
 `async_act_wrapper` and `async_act`.
@@ -130,6 +152,10 @@ In words, the first time the `act()` method is called:
 4. sets the state to `RUNNING`;
 5. returns to the caller in the main loop.
 
+Any subsequent calls to the ```act()``` method are redirected to the generator
+whose execution was triggered by the first call which invokes ```async_act()```.
+
+
 ## A simple example
 
 Consider a [(one-shot) behaviour](https://valory-xyz.github.io/open-aea/skill/#behaviourspy) 
@@ -157,11 +183,6 @@ Without `AsyncBehaviour`, one should take care of:
 
 This is a naive implementation
 ```python
-
-import datetime
-from aea.skills.behaviours import SimpleBehaviour
-
-
 class PrintBehaviour(SimpleBehaviour):
 
     def __init__(self, *args, **kwargs):
@@ -191,11 +212,6 @@ class PrintBehaviour(SimpleBehaviour):
             self.last_time = now
             return
         # do nothing
-```
-
-
-```python
-
 ```
 
 
@@ -267,7 +283,7 @@ Follows the breakdown of each message exchange:
   Note that a component skill does not have access to the crypto identity of 
   an AEA, and it has to rely on the `DecisionMaker` for certain operations
   like digital signing.
-- The `DecisionMaker` sends the response to the dedicated handler, the `SigningH`.
+- The [`DecisionMaker`] sends the response to the dedicated handler, the `SigningH`.
   The `SigningH` submit the transactions to the `Ledger` (through the `ledger_api` connection);
 - The `Ledger`'s response (the transaction hash) is handled by the `LedgerH` handler, 
   which in turn sends the transaction hash to the `Seller`
@@ -318,7 +334,7 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
         # and (asynchronously) wait for the response 
         signed_tx = yield from send(tx)
         
-        # send transaction to the decision maker 
+        # send transaction to the distributed ledger
         # and (asynchronously) wait for the response
         tx_hash = yield from send(signed_tx)
 
@@ -338,9 +354,9 @@ the utility functions like `build_*` and `send`,
 but they are conceptually similar to what is done in the handlers of the 
 `fetchai/generic_buyer` skill. 
 
-The `wait_for_message` method, used in the `send(...)` method to wait for the response,
-allows to wait for specific events triggered
-by other components. In this case, each of the handler will
+The `wait_for_message` method, uses the `send(...)` method to wait for the 
+response, allowing it to wait for specific events triggered
+by other components. In this case, each of the handlers will
 dispatch the response to the requester component, whose request
 is identified by the [(dialogue) identifier](https://valory-xyz.github.io/open-aea/protocol/#dialogue-rules)
 of the interaction.

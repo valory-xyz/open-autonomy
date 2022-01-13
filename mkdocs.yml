@@ -12,9 +12,9 @@ nav:
   - Home: 'index.md'
   - Preliminaries:
     - AEA: 'autonomous_economic_agents.md'
-    - ABCI: 'abci.md'
     - AsyncBehaviour: 'async_behaviour.md'
     - FSM: 'finite_state_machine.md'
+    - ABCI: 'abci.md'
   - Price Estimation:
     - Demo: 'price_estimation_demo.md'
     - How it works: 'price_estimation.md'

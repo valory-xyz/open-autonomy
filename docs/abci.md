@@ -40,8 +40,7 @@ In the following, we will consider Tendermint as our state-replication layer.
 ## What is Tendermint
 
 Tendermint is software for securely and consistently replicating 
-an application on many machines.
-It is Byzantine fault tolerant (BFT),
+an application on many machines. It is Byzantine fault-tolerant (BFT),
 i.e. it has the ability to tolerate machines failing in arbitrary ways, 
 including becoming malicious.
 
