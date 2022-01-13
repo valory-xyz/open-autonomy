@@ -97,6 +97,7 @@ WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
 TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
 LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"  # nosec
+DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
 
 benchmark_tool = BenchmarkTool()
 
@@ -267,7 +268,9 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            amount = yield from self.get_tx_result()
+            amount = 0
+            if is_correct:
+                amount = yield from self.get_tx_result()
             payload = ValidatePayload(self.context.agent_address, is_correct, amount)
 
         with benchmark_tool.measure(
@@ -335,7 +338,7 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_callable="get_tx_transfered_amount",
             tx_hash=self.period_state.final_tx_hash,
             token_address=strategy["pair"]["LP_token_address"],
-            source_address="0x0000000000000000000000000000000000000000",
+            source_address=DEFAULT_MINTER,
             destination_address=self.period_state.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
