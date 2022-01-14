@@ -440,13 +440,13 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 "web3.contract.ContractEvent.processReceipt",
                 return_value=DUMMY_EVENTS,
             ):
-                result = self.contract.get_tx_transfered_amount(
+                result = self.contract.get_tx_transfered_amount(  # nosec
                     ledger_api=self.ledger_api,
-                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",  # nosec
-                    tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",  # nosec
-                    token_address="0x50cd56fb094f8f06063066a619d898475dd3eede",  # nosec
-                    source_address="0x50cd56fb094f8f06063066a619d898475dd3eede",  # nosec
-                    destination_address="0x50cd56fb094f8f06063066a619d898475dd3eede",  # nosec
+                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+                    token_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    source_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    destination_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
                 )
                 assert type(result) == dict, "The result is not a dict"
                 assert "amount" in result, "The result does not contain an amount field"
