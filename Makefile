@@ -95,6 +95,8 @@ checks:
 	&& make lint \
 	&& make pylint \
 	&& make copyright \
+	&& make docs \
+	&& make api-docs \
 	&& make hashes \
 	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci \
 	&& make test-sub-p tdir=skills/test_liquidity_provision/ dir=skills.liquidity_provision
