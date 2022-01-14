@@ -366,21 +366,27 @@ class UniswapV2ERC20Contract(Contract):
 
         transfer_logs: list = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]  # type: ignore
 
-        token_events = filter(
-            lambda log: log["token_address"] == token_address,  # type: ignore
-            transfer_logs,
+        token_events = list(
+            filter(
+                lambda log: log["token_address"] == ledger_api.api.toChecksumAddress(token_address),  # type: ignore
+                transfer_logs,
+            )
         )
 
         if source_address:
-            token_events = filter(
-                lambda log: log["from"] == source_address,  # type: ignore
-                token_events,
+            token_events = list(
+                filter(
+                    lambda log: log["from"] == ledger_api.api.toChecksumAddress(source_address),  # type: ignore
+                    token_events,
+                )
             )
 
         if destination_address:
-            token_events = filter(
-                lambda log: log["to"] == destination_address,  # type: ignore
-                token_events,
+            token_events = list(
+                filter(
+                    lambda log: log["to"] == ledger_api.api.toChecksumAddress(destination_address),  # type: ignore
+                    token_events,
+                )
             )
 
         amount = 0 if not token_events else sum([event["value"] for event in list(token_events)])  # type: ignore
