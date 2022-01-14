@@ -270,20 +270,10 @@ Process the end of the block.
 ## ValidateTransactionRound Objects
 
 ```python
-class ValidateTransactionRound(CollectSameUntilThresholdRound)
+class ValidateTransactionRound(VotingRound)
 ```
 
 A round in which agents validate the transaction
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Optional[Tuple[BasePeriodState, Event]]
-```
-
-Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

@@ -83,7 +83,7 @@ A round in a which the oracle is deployed
 ## ValidateOracleRound Objects
 
 ```python
-class ValidateOracleRound(CollectSameUntilThresholdRound)
+class ValidateOracleRound(VotingRound)
 ```
 
 A round in a which the oracle address is validated

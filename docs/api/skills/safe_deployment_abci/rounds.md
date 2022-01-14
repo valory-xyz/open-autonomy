@@ -72,7 +72,7 @@ A round in a which the safe is deployed
 ## ValidateSafeRound Objects
 
 ```python
-class ValidateSafeRound(CollectSameUntilThresholdRound)
+class ValidateSafeRound(VotingRound)
 ```
 
 A round in a which the safe address is validated
