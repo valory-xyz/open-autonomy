@@ -347,9 +347,9 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
         transfer_log_message = (
             f"The tx with hash {self.period_state.final_tx_hash} ended with a transfer of {amount} tokens.\n"
-            f"Token address: {strategy['pair']['LP_token_address']}.\n"
-            f"Source: 0x0000000000000000000000000000000000000000.\n"
-            f"Destination: self.period_state.safe_contract_address.\n"
+            f"Token address: {strategy['pair']['LP_token_address']}\n"
+            f"Source: {DEFAULT_MINTER}\n"
+            f"Destination: {self.period_state.safe_contract_address}\n"
         )
         self.context.logger.info(transfer_log_message)
         return amount
