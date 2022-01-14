@@ -67,6 +67,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     get_strategy_update,
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
+from packages.valory.skills.liquidity_provision.payloads import ValidatePayload
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
@@ -569,13 +570,20 @@ class TestLiquidityProvisionHardhat(
         tx_digest = msg.transaction_digest.body
 
         # validate
+        participant_to_lp_result = {
+            address: ValidatePayload(
+                sender=address,
+            )
+            for address, _ in self.safe_owners.items()
+        }
+
         period_state = cast(
             PeriodState,
             self.default_period_state_enter.update(
                 final_tx_hash=tx_digest,
                 most_voted_tx_hash=self.most_voted_tx_hash_enter,
                 most_voted_tx_data=self.multisend_data_enter,
-                participant_to_signature=participant_to_signature,
+                participant_to_lp_result=participant_to_lp_result,
             ),
         )
         handlers = [
