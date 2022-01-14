@@ -98,25 +98,17 @@ class ValidatePayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        vote: Optional[bool] = None,
         amount: Optional[int] = None,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'validate' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param vote: the vote
         :param amount: the transfered amount
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._vote = vote
         self._amount = amount
-
-    @property
-    def vote(self) -> Optional[bool]:
-        """Get the vote."""
-        return self._vote
 
     @property
     def amount(self) -> Optional[int]:
@@ -126,4 +118,4 @@ class ValidatePayload(BaseTxPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(vote=self.vote, amount=self.amount) if self.vote is not None else {}
+        return dict(amount=self.amount) if self.amount is not None else {}
