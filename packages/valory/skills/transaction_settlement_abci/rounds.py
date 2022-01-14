@@ -112,11 +112,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Check if most_voted_estimate is set."""
         return self.db.get("most_voted_estimate", None) is not None
 
-    @property
-    def most_voted_amount(self) -> int:
-        """Get the most_voted_amount."""
-        return self.db.get_strict("most_voted_amount")
-
 
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""
