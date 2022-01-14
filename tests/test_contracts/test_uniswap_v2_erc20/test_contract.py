@@ -450,4 +450,6 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 )
                 assert type(result) == dict, "The result is not a dict"
                 assert "amount" in result, "The result does not contain an amount field"
-                assert result["amount"] == 0, "The transfered amount is different from 0"
+                assert (
+                    result["amount"] == 0
+                ), "The transfered amount is different from 0"

@@ -609,7 +609,7 @@ class TestLiquidityProvisionHardhat(
                 "state": State,
             },
         ]
-        _, msg = self.process_n_messsages(
+        _, verif_msg, amount_msg = self.process_n_messsages(
             EnterPoolTransactionValidationBehaviour.state_id,
             3,
             period_state,
@@ -617,8 +617,13 @@ class TestLiquidityProvisionHardhat(
             expected_content,
             expected_types,
         )
-        assert msg is not None and isinstance(msg, ContractApiMessage)
-        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+        assert verif_msg.state.body[
+            "verified"
+        ], f"Message not verified: {verif_msg.state.body}"
+        assert (
+            cast(ContractApiMessage, amount_msg).state.body["amount"] == 1000
+        ), f"Amount is not correct: {verif_msg.state.body}"
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -730,7 +735,7 @@ class TestLiquidityProvisionHardhat(
                 "state": State,
             },
         ]
-        _, msg = self.process_n_messsages(
+        _, verif_msg, amount_msg = self.process_n_messsages(
             ExitPoolTransactionValidationBehaviour.state_id,
             3,
             period_state,
@@ -738,8 +743,13 @@ class TestLiquidityProvisionHardhat(
             expected_content,
             expected_types,
         )
-        assert msg is not None and isinstance(msg, ContractApiMessage)
-        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+        assert verif_msg.state.body[
+            "verified"
+        ], f"Message not verified: {verif_msg.state.body}"
+        assert (
+            cast(ContractApiMessage, amount_msg).state.body["amount"] == 0
+        ), f"Amount is not correct: {verif_msg.state.body}"
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
