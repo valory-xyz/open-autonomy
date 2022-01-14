@@ -124,17 +124,6 @@ def is_most_voted_estimate_set() -> bool
 
 Check if most_voted_estimate is set.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_amount"></a>
-
-#### most`_`voted`_`amount
-
-```python
-@property
-def most_voted_amount() -> int
-```
-
-Get the most_voted_amount.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
