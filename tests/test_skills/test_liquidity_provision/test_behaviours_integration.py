@@ -702,11 +702,13 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
+            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -716,10 +718,13 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
+            {
+                "state": State,
+            },
         ]
         _, msg = self.process_n_messsages(
             ExitPoolTransactionValidationBehaviour.state_id,
-            2,
+            3,
             period_state,
             handlers,
             expected_content,
