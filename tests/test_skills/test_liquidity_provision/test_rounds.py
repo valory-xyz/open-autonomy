@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ from unittest import mock
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
+    ValidatePayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     Event,
@@ -46,10 +47,6 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectDifferentUntilThresholdRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
-    BaseVotingRoundTest,
-)
-from tests.test_skills.test_price_estimation_abci.test_rounds import (
-    get_participant_to_votes,
 )
 from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
     get_participant_to_signature,
@@ -74,6 +71,16 @@ def get_participant_to_strategy(
             for participant in participants
         ]
     )
+
+
+def get_participant_to_lp_result(
+    participants: FrozenSet[str],
+) -> Dict[str, ValidatePayload]:
+    """Get participant_to_lp_result"""
+    return {
+        participant: ValidatePayload(sender=participant, amount=5)
+        for participant in participants
+    }
 
 
 def get_participant_to_tx_hash(
@@ -197,7 +204,7 @@ class TestTransactionSendBaseRound(BaseOnlyKeeperSendsRoundTest):
         )
 
 
-class TestTransactionValidationBaseRound(BaseVotingRoundTest):
+class TestTransactionValidationBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionValidationBaseRound"""
 
     _period_state_class = PeriodState
@@ -210,42 +217,21 @@ class TestTransactionValidationBaseRound(BaseVotingRoundTest):
         test_round = TransactionValidationBaseRound(
             self.period_state, self.consensus_params
         )
-        self._complete_run(
-            self._test_voting_round_positive(
-                test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    participant_to_votes=MappingProxyType(
-                        get_participant_to_votes(self.participants)
-                    ),
-                ),
-                state_attr_checks=[
-                    lambda state: state.participant_to_votes.keys(),
-                ],
-                exit_event=Event.DONE,
-            )
-        )
 
-    def test_negative_votes(
-        self,
-    ) -> None:
-        """Run tests."""
-        test_round = TransactionValidationBaseRound(
-            self.period_state, self.consensus_params
-        )
+        payloads = get_participant_to_lp_result(self.participants)
+
         self._complete_run(
-            self._test_voting_round_negative(
+            self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants, False),
+                round_payloads=get_participant_to_lp_result(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    participant_to_votes=MappingProxyType(
-                        get_participant_to_votes(self.participants)
-                    ),
+                    participant_to_lp_result=MappingProxyType(payloads),
                 ),
                 state_attr_checks=[
-                    lambda state: None,
+                    lambda state: state.participant_to_lp_result.keys(),
                 ],
-                exit_event=Event.EXIT,
+                most_voted_payload=payloads["agent_1"].amount,
+                exit_event=Event.DONE,
             )
         )
 
@@ -295,7 +281,7 @@ def test_period_state() -> None:
     multisend_contract_address = "0x_multisend"
     most_voted_tx_hash = "tx_hash"
     final_tx_hash = "tx_hash"
-    participant_to_votes = get_participant_to_votes(participants)
+    participant_to_lp_result = get_participant_to_lp_result(participants)
     participant_to_tx_hash = get_participant_to_tx_hash(participants)
     participant_to_signature = get_participant_to_signature(participants)
     participant_to_strategy = get_participant_to_strategy(participants)
@@ -312,7 +298,7 @@ def test_period_state() -> None:
                 multisend_contract_address=multisend_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 final_tx_hash=final_tx_hash,
-                participant_to_votes=participant_to_votes,
+                participant_to_lp_result=participant_to_lp_result,
                 participant_to_tx_hash=participant_to_tx_hash,
                 participant_to_signature=participant_to_signature,
                 participant_to_strategy=participant_to_strategy,
@@ -328,7 +314,7 @@ def test_period_state() -> None:
     assert period_state.multisend_contract_address == multisend_contract_address
     assert period_state.most_voted_tx_hash == most_voted_tx_hash
     assert period_state.final_tx_hash == final_tx_hash
-    assert period_state.participant_to_votes == participant_to_votes
+    assert period_state.participant_to_lp_result == participant_to_lp_result
     assert period_state.participant_to_tx_hash == participant_to_tx_hash
     assert period_state.participant_to_signature == participant_to_signature
     assert period_state.participant_to_strategy == participant_to_strategy

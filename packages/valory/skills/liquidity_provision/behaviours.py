@@ -53,6 +53,7 @@ from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    ValidatePayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
     EnterPoolRandomnessRound,
@@ -85,7 +86,6 @@ from packages.valory.skills.price_estimation_abci.payloads import TransactionHas
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
-    ValidatePayload,
 )
 
 
@@ -97,6 +97,7 @@ WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
 TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
 LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"  # nosec
+DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
 
 benchmark_tool = BenchmarkTool()
 
@@ -267,7 +268,10 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            payload = ValidatePayload(self.context.agent_address, is_correct)
+            amount: Optional[int] = 0
+            if is_correct:
+                amount = yield from self.get_tx_result()
+            payload = ValidatePayload(self.context.agent_address, amount)
 
         with benchmark_tool.measure(
             self,
@@ -324,6 +328,32 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         self.context.logger.info(verified_log)
         return verified
 
+    def get_tx_result(self) -> Generator[None, None, Optional[int]]:
+        """Transaction transfer result."""
+        strategy = self.period_state.most_voted_strategy
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=strategy["pair"]["LP_token_address"],
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            contract_callable="get_tx_transfered_amount",
+            tx_hash=self.period_state.final_tx_hash,
+            token_address=strategy["pair"]["LP_token_address"],
+            source_address=DEFAULT_MINTER,
+            destination_address=self.period_state.safe_contract_address,
+        )
+        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            return False  # pragma: nocover
+        amount = cast(int, contract_api_msg.state.body["amount"])
+
+        transfer_log_message = (
+            f"The tx with hash {self.period_state.final_tx_hash} ended with a transfer of {amount} tokens.\n"
+            f"Token address: {strategy['pair']['LP_token_address']}\n"
+            f"Source: {DEFAULT_MINTER}\n"
+            f"Destination: {self.period_state.safe_contract_address}\n"
+        )
+        self.context.logger.info(transfer_log_message)
+        return amount
+
 
 def get_strategy_update() -> dict:
     """Get a strategy update."""
@@ -360,7 +390,6 @@ def get_strategy_update() -> dict:
                 "amount_min_after_rem_liq": int(0.25e3),
             },
         },
-        "liquidity_to_remove": 1,  # TOFIX
     }
     return strategy
 
@@ -400,7 +429,17 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the transaction hash for entering the liquidity pool"""
+    """Prepare the transaction hash for entering the liquidity pool
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-Base-pool : Base tokens
+    A-Base-pool  ->  Safe        : A tokens
+    Safe         ->  B-Base-pool : Base tokens
+    B-Base-pool  ->  Safe        : B tokens
+    Safe         ->  A-B-pool    : A tokens
+    Safe         ->  A-B-pool    : B tokens
+    A-B-pool Minter       ->  Safe        : AB_LP tokens
+    """
 
     state_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
@@ -710,7 +749,13 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the transaction hash for exiting the liquidity pool"""
+    """Prepare the transaction hash for exiting the liquidity pool
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-B-pool    : AB_LP tokens
+    AB_LP        ->  Safe        : A tokens
+    AB_LP        ->  Safe        : B tokens
+    """
 
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
@@ -771,13 +816,13 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["liquidity_to_remove"],
+                    liquidity=self.period_state.most_voted_lp_result,
                     amount_token_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
                     ),  # FIX, get actual amount
                     amount_ETH_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    ),  # FIX, get actual amount
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -803,15 +848,13 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["pair"]["token_a"][
-                        "amount_min_after_add_liq"
-                    ],  # TOFIX: get the correct value
+                    liquidity=self.period_state.most_voted_lp_result,
                     amount_a_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    ),  # FIX, get actual amount
                     amount_b_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                    ),
+                    ),  # FIX, get actual amount
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -906,7 +949,14 @@ class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the transaction hash for swapping back assets"""
+    """Prepare the transaction hash for swapping back assets
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-Base-pool    : A tokens
+    A-Base-pool  ->  Safe           : Base tokens
+    Safe         ->  B-Base-pool    : B tokens
+    B-Base-pool  ->  Safe           : Base tokens
+    """
 
     state_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
