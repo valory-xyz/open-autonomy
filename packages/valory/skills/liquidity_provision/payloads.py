@@ -38,6 +38,7 @@ class TransactionType(Enum):
     TRANSACTION_VALIDATION = "tx_validation"
     TX_HASH = "tx_hash"
     LP_RESULT = "lp_result"
+    VALIDATE = "validate_transaction"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -87,3 +88,42 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
+
+
+class ValidatePayload(BaseTxPayload):
+    """Represent a transaction payload of type 'validate'."""
+
+    transaction_type = TransactionType.VALIDATE
+
+    def __init__(
+        self,
+        sender: str,
+        vote: Optional[bool] = None,
+        amount: Optional[int] = None,
+        id_: Optional[str] = None,
+    ) -> None:
+        """Initialize an 'validate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param vote: the vote
+        :param amount: the transfered amount
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._vote = vote
+        self._amount = amount
+
+    @property
+    def vote(self) -> Optional[bool]:
+        """Get the vote."""
+        return self._vote
+
+    @property
+    def amount(self) -> Optional[int]:
+        """Get the amount."""
+        return self._amount
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(vote=self.vote, amount=self.amount) if self.vote is not None else {}

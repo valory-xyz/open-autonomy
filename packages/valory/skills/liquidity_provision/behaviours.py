@@ -53,6 +53,7 @@ from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    ValidatePayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
     EnterPoolRandomnessRound,
@@ -85,7 +86,6 @@ from packages.valory.skills.price_estimation_abci.payloads import TransactionHas
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
-    ValidatePayload,
 )
 
 

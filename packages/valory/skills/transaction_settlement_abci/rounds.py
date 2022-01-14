@@ -31,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
+    VotingRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
@@ -254,7 +255,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
         return None
 
 
-class ValidateTransactionRound(CollectSameUntilThresholdRound):
+class ValidateTransactionRound(VotingRound):
     """A round in which agents validate the transaction"""
 
     round_id = "validate_transaction"
@@ -266,20 +267,6 @@ class ValidateTransactionRound(CollectSameUntilThresholdRound):
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_votes"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.period_state.update(
-                participants=self.period_state.participants,
-                most_voted_amount=self.most_voted_payload.amount,
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self.period_state, Event.NO_MAJORITY
-        return None
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
