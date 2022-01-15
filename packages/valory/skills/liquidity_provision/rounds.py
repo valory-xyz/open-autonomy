@@ -32,11 +32,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilThresholdRound,
     CollectSameUntilThresholdRound,
     OnlyKeeperSendsRound,
-    VotingRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    ValidatePayload,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     RandomnessOracleRound as RandomnessRound,
@@ -46,7 +46,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     SignaturePayload,
     TransactionType,
-    ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetAndPauseRound,
@@ -80,15 +79,21 @@ class PeriodState(
         return cast(dict, self.db.get_strict("most_voted_strategy"))
 
     @property
-    def participant_to_votes(self) -> Mapping[str, ValidatePayload]:
-        """Get the participant_to_votes."""
+    def most_voted_lp_result(self) -> dict:
+        """Get the most_voted_lp_result."""
+        return cast(dict, self.db.get_strict("most_voted_lp_result"))
+
+    @property
+    def participant_to_lp_result(self) -> Mapping[str, ValidatePayload]:
+        """Get the participant_to_lp_result."""
         return cast(
-            Mapping[str, ValidatePayload], self.db.get_strict("participant_to_votes")
+            Mapping[str, ValidatePayload],
+            self.db.get_strict("participant_to_lp_result"),
         )
 
     @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
-        """Get the participant_to_votes."""
+        """Get the participant_to_strategy."""
         return cast(
             Mapping[str, StrategyEvaluationPayload],
             self.db.get_strict("participant_to_strategy"),
@@ -228,25 +233,25 @@ class TransactionSendBaseRound(OnlyKeeperSendsRound, LiquidityProvisionAbstractR
         return None
 
 
-class TransactionValidationBaseRound(VotingRound, LiquidityProvisionAbstractRound):
+class TransactionValidationBaseRound(
+    CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound
+):
     """A base class for rounds in which agents validate the transaction"""
 
     round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
     exit_event: Event = Event.EXIT
-    payload_attribute = "vote"
+    payload_attribute = "amount"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         # if reached participant threshold, set the result
-        if self.positive_vote_threshold_reached:
+        if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_votes=MappingProxyType(self.collection)
+                participant_to_lp_result=MappingProxyType(self.collection),
+                most_voted_lp_result=self.most_voted_payload,
             )
             return state, Event.DONE
-        if self.negative_vote_threshold_reached:
-            state = self.period_state.update()
-            return state, self.exit_event
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -523,8 +528,7 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ResetRound,
         },
         EnterPoolTransactionValidationRound: {
-            Event.DONE: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.DONE: ExitPoolTransactionHashRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: EnterPoolRandomnessRound,
         },
@@ -555,7 +559,6 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         ExitPoolTransactionValidationRound: {
             Event.DONE: SwapBackTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: ExitPoolRandomnessRound,
         },
@@ -586,7 +589,6 @@ class LiquidityProvisionAbciApp(AbciApp[Event]):
         },
         SwapBackTransactionValidationRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
             Event.ROUND_TIMEOUT: SwapBackRandomnessRound,
         },
