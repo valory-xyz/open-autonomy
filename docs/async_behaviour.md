@@ -3,13 +3,7 @@
 !!!note 
     
     The snippets of code here are a simplified representation of the actual 
-    implementation
-
-!!!note
-    
-    At the time this document was written, the `aea` Python package
-    used was at version `1.0.1`. For later releases, some content
-    of this section may not be relevant anymore.
+    implementation.
 
 The `AsyncBehaviour` class, introduced in the `valory/abstract_round_abci`
 skill, is a mixin class that allows the AEA developer to use
@@ -153,7 +147,7 @@ In words, the first time the `act()` method is called:
 5. returns to the caller in the main loop.
 
 Any subsequent calls to the ```act()``` method are redirected to the generator
-whose execution was triggered by the first call which invokes ```async_act()```.
+whose execution was triggered by the first call, which invokes ```async_act()```.
 
 
 ## A simple example
@@ -183,6 +177,10 @@ Without `AsyncBehaviour`, one should take care of:
 
 This is a naive implementation
 ```python
+import datetime
+from aea.skills.behaviours import SimpleBehaviour
+
+
 class PrintBehaviour(SimpleBehaviour):
 
     def __init__(self, *args, **kwargs):
@@ -261,7 +259,7 @@ for `Behaviour`, and `H` is a shorthand for `Handler`.
 
 The participants `SearchB`, `SearchH`, `TransactionB`, `SigningH`, `LedgerH`, `FipaH`
 and `DecisionMaker` are **internal components** of the buyer AEA, 
-whereas `SOEF`, `Seller`, and `Ledger` are external actors.
+whereas `SOEF`, `Seller`, and `Ledger` are **external actors**.
 
 Follows the breakdown of each message exchange:
 
@@ -271,19 +269,24 @@ Follows the breakdown of each message exchange:
   agent service;
 - The search result of the SOEF gets routed to the search handler (`SearchH`),
   which selects one of the sellers, and sends a "call for proposal" (CFP) message to him.
-  The CFP is the first message of a [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
-  See the AEA documentation on the [AEA FIPA-like protocol](https://valory-xyz.github.io/open-aea/protocol/#fetchaifipa100-protocol). 
+  The CFP is the first message of a 
+  [FIPA protocol interaction](http://www.fipa.org/repository/ips.php3).
+  See the AEA documentation on the 
+  [AEA FIPA-like protocol](https://valory-xyz.github.io/open-aea/protocol/#fetchaifipa100-protocol). 
 - The seller replies with a "FIPA proposal" to the buyer. Such message
   is handled by the `FipaH` handler;
 - Once the negotiation has completed (only the `FipaH` is involved in the negotiation),
   the `FipaH` handler sends the payment transaction to the `TransactionB` behaviour
   such that it can be processed;
 - The `TransactionB`, which was periodically listening for new transaction to process,
-  reads the new transaction and sends a signing requests to the `DecisionMaker`.
-  Note that a component skill does not have access to the crypto identity of 
-  an AEA, and it has to rely on the `DecisionMaker` for certain operations
-  like digital signing.
-- The [`DecisionMaker`] sends the response to the dedicated handler, the `SigningH`.
+  reads the new transaction and sends a signing requests to the 
+  [DecisionMaker](https://valory-xyz.github.io/open-aea/api/decision_maker/base/).
+  Note that a skill component does not have access to the crypto identity of 
+  an AEA, and it has to rely on the
+  [DecisionMaker](https://valory-xyz.github.io/open-aea/api/decision_maker/base/)
+  for certain operations, such as the signing of transactions.
+- The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/decision-maker/) 
+  sends the response to the dedicated handler, the `SigningH`.
   The `SigningH` submit the transactions to the `Ledger` (through the `ledger_api` connection);
 - The `Ledger`'s response (the transaction hash) is handled by the `LedgerH` handler, 
   which in turn sends the transaction hash to the `Seller`
@@ -330,13 +333,13 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
         # in case both parties accept the negotiation outcome:
         tx = build_tx(...)
         
-        # send transaction to the decision maker 
+        # send transaction to the decision maker
         # and (asynchronously) wait for the response 
-        signed_tx = yield from send(tx)
+        signed_tx = yield from send(tx, to=decision_maker)
         
         # send transaction to the distributed ledger
         # and (asynchronously) wait for the response
-        tx_hash = yield from send(signed_tx)
+        tx_hash = yield from send(signed_tx, to=distributed_ledger)
 
         # send transaction hash to the seller
         send(tx_hash, to=seller)

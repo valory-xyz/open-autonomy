@@ -4,17 +4,17 @@
     
     The snippets of code here are a simplified representation of the actual 
     implementation. Details regarding the actual implementation can be found by 
-    using links to the API documentation.  
+    using links provided to the corresponding API documentation.  
 
 It is assumed the reader has a decent understanding of the 
 [open AEA framework](https://github.com/valory-xyz/open-aea).
-An [introductory guide](https://valory-xyz.github.io/open-aea/) to this paradigm
+An __[introductory guide to this paradigm](https://valory-xyz.github.io/open-aea/)__
 is available to help you get started in case you're not yet familiar. 
 The [Behaviour](https://valory-xyz.github.io/open-aea/skill/#behaviourspy) 
 programming abstraction is of particular relevance in these next sections.
 This section merely serves as a summary, showcasing some aspects of the
 implementation that are relevant for developers, and providing easy access to
-sections in the guide and API documentation related to concepts discussed.
+sections in the guide and API documentation related to the concepts discussed.
 
 ## Brief recap of core concepts
 
@@ -25,18 +25,18 @@ absence of a central moderator the resulting system becomes fundamentally
 uncertain. 
 
 So, how then can we create a functional system in which agents can pursue their
-objectives without guarantees on how other agents might behave? The answer is 
-that we minimize the need to trust other agents in the system by not making 
-assumptions on if and how other agent respond. 
+objectives without guarantees on how other agents might behave? The answer lies 
+in minimizing the need to trust other agents in the system by not making 
+assumptions on how, or even if, other agent will respond. 
 
 Instead of relying on the other party to behave honestly or a third party to 
 mediate transactions (e.g. via [escrow](https://en.wikipedia.org/wiki/Escrow)),
-we use a shared state in which we record transactions. This shared state takes
-the form of a deterministic state machine, which is 
-[replicated](https://en.wikipedia.org/wiki/State_machine_replication)
+we use a _distributed shared state_ in which transactions are recorded. This 
+_distributed shared state_ takes the form of a deterministic state machine, 
+which is [replicated](https://en.wikipedia.org/wiki/State_machine_replication)
 by all the agents so that each has a copy of it. In order to make any changes
 to this shared state, the agents need to reach consensus over the update. When 
-the majority of the agents which comprise the network decide on a single state, 
+a majority of agents comprising the network decides on a single state, 
 consensus is achieved and the shared state is updated accordingly. More 
 precisely, state machine replication with `N = 3f + 1` replicas can tolerate 
 `f` simultaneous failures, and hence consensus over the new state is reached 
@@ -50,6 +50,9 @@ Thus, by not trusting any single authority, this system creates trust by default
 An Autonomous Economic Agent (AEA) is a 
 [specific type of agent](https://valory-xyz.github.io/open-aea/agent-vs-aea/) 
 that is concerned with the generation of economic wealth on its owners' behalf.
+The [DecisionMaker](https://valory-xyz.github.io/open-aea/decision-maker/) 
+is where a developers' or users' goals, preferences, message handling and wallet
+control reside.
 AEAs possess [skills](https://valory-xyz.github.io/open-aea/skill/) which 
 allow them to operate proactively, through the expression of 
 [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects), 
@@ -77,7 +80,13 @@ that contain a [`Message`](https://valory-xyz.github.io/open-aea/api/protocols/b
 These messages adhere to specific messaging 
 [protocols](https://valory-xyz.github.io/open-aea/protocol/). 
 In order for AEAs to communicate with agents in the outside world they need to 
-set up [connections](https://valory-xyz.github.io/open-aea/connection/).
+set up a [connection](https://valory-xyz.github.io/open-aea/connection/), which
+are managed by the 
+[`Mutliplexer`](https://valory-xyz.github.io/open-aea/api/multiplexer/).
+The execution of smart 
+[contract](https://valory-xyz.github.io/open-aea/contract/)
+related logic, for example, requires a connection to provide the agent with the 
+necessary network access.
 
 
 ## The implementation of [`AEA`](https://valory-xyz.github.io/open-aea/api/aea/)
@@ -117,25 +126,40 @@ class Agent(AbstractAgent):
 The [`AEA`](https://valory-xyz.github.io/open-aea/api/aea/) inherits from the 
 [`Agent`](https://valory-xyz.github.io/open-aea/api/agent/) and extends it with 
 additional functionality, the most important of which for us to consider here 
-being the [`wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/), 
+being the 
+[`DecisionMaker`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/),
+[`wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/), 
 [`resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) 
 and agent [`context`](https://valory-xyz.github.io/open-aea/api/context/base/).
 
-- The [`wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/)
-contains access to the `public_keys`, `private_keys`, and crypto 
-`addresses`.
-- The [`resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) 
+- The [`DecisionMaker`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/)
+provides the agent with decision-making logic required for message handling. 
+It contains:
+  - [`Preferences`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/#preferences-objects)
+    used to check whether a proposed 
+    [`Transaction`](https://valory-xyz.github.io/open-aea/api/helpers/transaction/base/) 
+    satisfy its goals. This is done through the computation of a marginal 
+    utility score based on the 
+    [`Terms`](https://valory-xyz.github.io/open-aea/api/helpers/transaction/base/#terms-objects)
+    of the transaction and the agents' current
+    [`OwnershipState`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/#ownershipstate-objects).
+  - The [`Wallet`](https://valory-xyz.github.io/open-aea/api/crypto/wallet/),
+    accessible only to the 
+    [`DecisionMaker`](https://valory-xyz.github.io/open-aea/api/decision_maker/base/), 
+    containing access to crypto `addresses`, `public_keys` and `private_keys`.
+    [`Crypto`](https://valory-xyz.github.io/open-aea/api/crypto/base/) objects
+    are used to load and encrypt private keys stored in an agents' environment.
+- The [`Resources`](https://valory-xyz.github.io/open-aea/api/registries/resources/) 
 give access to various 
-[`registries`](https://valory-xyz.github.io/open-aea/api/registries/base/)
+[`Registries`](https://valory-xyz.github.io/open-aea/api/registries/base/)
 and allows for the registration of various components such as 
-[`protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects), 
-[`skills`](https://valory-xyz.github.io/open-aea/api/skills/base/), 
-[`contracts`](https://valory-xyz.github.io/open-aea/api/contracts/base/) and 
-[`connections`](https://valory-xyz.github.io/open-aea/api/connections/base/). 
-- The [`context`](https://valory-xyz.github.io/open-aea/api/context/base/) 
+[`Protocols`](https://valory-xyz.github.io/open-aea/api/protocols/base/#protocol-objects), 
+[`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/), 
+[`Contracts`](https://valory-xyz.github.io/open-aea/api/contracts/base/) and 
+[`Connections`](https://valory-xyz.github.io/open-aea/api/connections/base/). 
+- The [`AgentContext`](https://valory-xyz.github.io/open-aea/api/context/base/) 
 allows access to various objects that are relevant to the agents' 
-[`skills`](https://valory-xyz.github.io/open-aea/api/skills/base/).
-
+[`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/).
 
 ```python
 class AEA(Agent):
@@ -145,6 +169,7 @@ class AEA(Agent):
         self,
         wallet: Wallet,
         resources: Resources,
+        decision_maker_handler_class: Optional[Type[DecisionMakerHandler]] = None,
         ...
     ):
         """Instantiate the agent."""
@@ -250,8 +275,8 @@ Here we also see that
 [`Behaviour`](https://valory-xyz.github.io/open-aea/api/skills/base/#behaviour-objects)
 has access to two additional properties, `tick_interval` and `start_at`, that 
 allow it, or more specifically the `act()` method, to be invoked periodically 
-from a given moment onward. A simple concrete implementation of behaviour, one
-which we'll return to in the next section, looks as follows:
+starting from the designated time. A simple concrete implementation of behaviour,
+one which we'll return to in the next section, looks as follows:
 
 ```python
 class SimpleBehaviour(Behaviour, ABC):
@@ -283,11 +308,11 @@ class Skill(Component):
 
     @property
     def behaviours(self) -> Dict[str, Behaviour]:
-        """Get the handlers."""
+        """Get the behaviours."""
 
     @property
     def models(self) -> Dict[str, Model]:
-        """Get the handlers."""
+        """Get the models."""
 ```
 -->
 

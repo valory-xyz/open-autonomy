@@ -15,6 +15,11 @@ Blockchains are systems for multi-master state machine replication.
 Using a socket protocol, a consensus engine running in one process can manage 
 an application state running in another.
 
+The ABCI standard was introduced contextually with the
+[Tendermint project](https://docs.tendermint.com/master/introduction/what-is-tendermint.html), 
+although an ABCI-based app can work with any consensus engine
+that is ABCI-compatible, e.g. see [Fantom](https://fantom.foundation/about/).
+In the following, we will consider Tendermint as our state-replication layer.
 
 !!! note
 
@@ -30,12 +35,6 @@ an application state running in another.
     In other words, Valory **is not** an ABCI application, but can rely on
     ABCI-based systems.
 
-
-The ABCI standard was introduced contextually with the
-[Tendermint project](https://docs.tendermint.com/master/introduction/what-is-tendermint.html), 
-although an ABCI-based app can work with any consensus engine
-that is ABCI-compatible, e.g. see [Fantom](https://fantom.foundation/about/).
-In the following, we will consider Tendermint as our state-replication layer.
 
 ## What is Tendermint
 
@@ -63,7 +62,7 @@ from the consensus and networking layer (the consensus engine)
 through the ABCI protocol:
 
 <div style="text-align: center;"> 
-  <img src="../abci-tendermint.jpg" alt="ABCI and Tendermint" />
+  <img src="../images/abci-tendermint.jpg" alt="ABCI and Tendermint" />
 </div>
 
 The interaction between the consensus node and the ABCI application
@@ -118,7 +117,7 @@ with a focus on how the ABCI protocol comes into play.
 
 A quick overview of the ABCI protocol is depicted in this diagram:
 
-![](abci-requests.png)
+![](./images/abci-requests.png)
 
 ### Send a transaction
 
