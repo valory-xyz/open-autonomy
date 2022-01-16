@@ -449,7 +449,7 @@ class GnosisSafeContract(Contract):
                 ledger_api.api.toChecksumAddress(sender_address)
             )
         else:
-            transaction_dict["nonce"] = nonce
+            transaction_dict["nonce"] = nonce  # pragma: nocover
 
         return transaction_dict
 

@@ -81,7 +81,7 @@ benchmark_tool = BenchmarkTool()
 
 
 SAFE_TX_GAS = 4000000  # TOFIX
-ETHER_VALUE = 0  # TOFIX
+ETHER_VALUE = 0
 
 
 def to_int(most_voted_estimate: float, decimals: int) -> int:

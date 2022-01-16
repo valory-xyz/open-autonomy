@@ -330,7 +330,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         - done: 7.
         - negative: 6.
         - none: 6.
-        - validate timeout: 6.
+        - validate timeout: 3.
         - no majority: 4.
     5. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
@@ -382,7 +382,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
             Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
-            Event.VALIDATE_TIMEOUT: FinalizationRound,  # TODO: see above
+            Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {

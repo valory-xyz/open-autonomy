@@ -266,7 +266,7 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            amount: Optional[int] = 0
+            amount: Optional[int] = None
             if is_correct:
                 amount = yield from self.get_tx_result()
             payload = ValidatePayload(self.context.agent_address, amount)
