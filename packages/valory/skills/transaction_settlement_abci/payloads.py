@@ -106,7 +106,10 @@ class ValidatePayload(BaseTxPayload):
     transaction_type = TransactionType.VALIDATE
 
     def __init__(
-        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
+        self,
+        sender: str,
+        vote: Optional[bool] = None,
+        id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'validate' transaction payload.
 
