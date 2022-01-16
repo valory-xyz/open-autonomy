@@ -331,7 +331,7 @@ Transition states:
     - done: 7.
     - negative: 6.
     - none: 6.
-    - validate timeout: 6.
+    - validate timeout: 3.
     - no majority: 4.
 5. SelectKeeperTransactionSubmissionRoundB
     - done: 3.
