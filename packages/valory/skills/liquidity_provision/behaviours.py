@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
+    FinalizationTxPayload,
     StrategyEvaluationPayload,
     StrategyType,
     ValidatePayload,
@@ -83,10 +84,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    FinalizationTxPayload,
-    SignaturePayload,
-)
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
 
 ETHER_VALUE = 0  # TOFIX

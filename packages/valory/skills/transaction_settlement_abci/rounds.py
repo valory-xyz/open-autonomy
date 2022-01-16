@@ -21,6 +21,8 @@
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
+from web3.types import Nonce
+
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -112,6 +114,16 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Check if most_voted_estimate is set."""
         return self.db.get("most_voted_estimate", None) is not None
 
+    @property
+    def nonce(self) -> Optional[Nonce]:
+        """Get the nonce."""
+        return cast(Optional[Nonce], self.db.get("nonce"))
+
+    @property
+    def max_priority_fee_per_gas(self) -> Optional[int]:
+        """Get the gas data."""
+        return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
+
 
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""
@@ -155,11 +167,33 @@ class FinalizationRound(OnlyKeeperSendsRound):
 
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "tx_hash"
+    payload_attribute = "tx_data"
     period_state_class = PeriodState
     done_event = Event.DONE
     fail_event = Event.FAILED
-    payload_key = "final_tx_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the results
+        if (
+            self.has_keeper_sent_payload
+            and self.keeper_payload is not None
+            and self.keeper_payload["tx_digest"] is not None
+        ):
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                final_tx_hash=self.keeper_payload["tx_digest"],
+                nonce=self.keeper_payload["nonce"],
+                max_priority_fee_per_gas=self.keeper_payload[
+                    "max_priority_fee_per_gas"
+                ],
+            )
+            return state, self.done_event
+        if self.has_keeper_sent_payload and (
+            self.keeper_payload is None or self.keeper_payload["tx_digest"] is None
+        ):
+            return self.period_state, self.fail_event
+        return None
 
 
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
@@ -211,8 +245,12 @@ class ResetRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            state_data = self.period_state.db.get_all()
+            state_data["final_tx_hash"] = None
+            state_data["max_priority_fee_per_gas"] = None
+            state_data["nonce"] = None
             state = self.period_state.update(
-                period_count=self.most_voted_payload, **self.period_state.db.get_all()
+                period_count=self.most_voted_payload, **state_data
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -344,7 +382,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
             Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
-            Event.VALIDATE_TIMEOUT: ResetRound,  # TODO: see above
+            Event.VALIDATE_TIMEOUT: FinalizationRound,  # TODO: see above
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {

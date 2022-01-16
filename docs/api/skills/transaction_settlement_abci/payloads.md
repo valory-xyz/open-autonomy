@@ -243,7 +243,7 @@ Represent a transaction payload of type 'finalization'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int, None]]] = None, id_: Optional[str] = None) -> None
 ```
 
 Initialize an 'finalization' transaction payload.
@@ -251,19 +251,19 @@ Initialize an 'finalization' transaction payload.
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address
-- `tx_hash`: the 'safe' transaction hash
+- `tx_data`: the transaction data
 - `id_`: the id of the transaction
 
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.FinalizationTxPayload.tx_hash"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.FinalizationTxPayload.tx_data"></a>
 
-#### tx`_`hash
+#### tx`_`data
 
 ```python
 @property
-def tx_hash() -> Optional[str]
+def tx_data() -> Optional[Dict[str, Union[str, int, None]]]
 ```
 
-Get the signature.
+Get the tx_data.
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.FinalizationTxPayload.data"></a>
 
@@ -271,7 +271,7 @@ Get the signature.
 
 ```python
 @property
-def data() -> Dict
+def data() -> Dict[str, Dict[str, Union[str, int, None]]]
 ```
 
 Get the data.

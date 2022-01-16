@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
+    FinalizationTxPayload,
     StrategyEvaluationPayload,
     StrategyType,
     ValidatePayload,
@@ -43,7 +44,6 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import (
-    FinalizationTxPayload,
     SignaturePayload,
     TransactionType,
 )
