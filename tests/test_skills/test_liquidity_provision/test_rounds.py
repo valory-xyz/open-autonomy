@@ -71,12 +71,12 @@ def get_participant_to_strategy(
     )
 
 
-def get_participant_to_lp_result(
+def get_participant_to_transfers_result(
     participants: FrozenSet[str],
 ) -> Dict[str, ValidatePayload]:
     """Get participant_to_lp_result"""
     return {
-        participant: ValidatePayload(sender=participant, amount=5)
+        participant: ValidatePayload(sender=participant, transfers="[]")
         for participant in participants
     }
 
@@ -219,19 +219,19 @@ class TestTransactionValidationBaseRound(BaseCollectSameUntilThresholdRoundTest)
             self.period_state, self.consensus_params
         )
 
-        payloads = get_participant_to_lp_result(self.participants)
+        payloads = get_participant_to_transfers_result(self.participants)
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_lp_result(self.participants),
+                round_payloads=get_participant_to_transfers_result(self.participants),
                 state_update_fn=lambda _period_state, _test_round: _period_state.update(
                     participant_to_lp_result=MappingProxyType(payloads),
                 ),
                 state_attr_checks=[
                     lambda state: state.participant_to_lp_result.keys(),
                 ],
-                most_voted_payload=payloads["agent_1"].amount,
+                most_voted_payload=payloads["agent_1"].transfers,
                 exit_event=Event.DONE,
             )
         )
@@ -282,7 +282,7 @@ def test_period_state() -> None:
     multisend_contract_address = "0x_multisend"
     most_voted_tx_hash = "tx_hash"
     final_tx_hash = "tx_hash"
-    participant_to_lp_result = get_participant_to_lp_result(participants)
+    participant_to_lp_result = get_participant_to_transfers_result(participants)
     participant_to_tx_hash = get_participant_to_tx_hash(participants)
     participant_to_signature = get_participant_to_signature(participants)
     participant_to_strategy = get_participant_to_strategy(participants)
