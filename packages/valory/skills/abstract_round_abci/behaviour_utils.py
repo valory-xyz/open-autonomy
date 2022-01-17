@@ -429,7 +429,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             self._log_start()
             self._is_started = True
         try:
-            yield from self.async_act()
+            if self.context.state.period.syncing_up():
+                yield from self.async_act()
+            else:
+                yield from self.wait_until_round_end()
         except (GeneratorExit, StopIteration):
             self.clean_up()
             self.set_done()
