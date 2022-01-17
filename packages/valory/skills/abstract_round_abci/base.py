@@ -1714,7 +1714,7 @@ class Period:
     def __init__(self, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
         self._blockchain = Blockchain()
-        self._syncing_up = False
+        self._syncing_up = True
 
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -1736,7 +1736,7 @@ class Period:
 
     def start_sync(
         self,
-    ) -> None:
+    ) -> None:  # pragma: nocover
         """
         Set `_syncing_up` flag to true.
 
