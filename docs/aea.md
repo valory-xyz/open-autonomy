@@ -102,26 +102,6 @@ allows agent-to-agent communication.
 What is most important in the following sections is the `act()` method, which
 allows the agent to express proactive and reactive skills.
 
-```python
-class AbstractAgent(ABC):
-    """This class provides an abstract base  interface for an agent."""
-
-
-class Agent(AbstractAgent):
-    """This class provides an abstract base class for a generic agent."""
-    
-    def __init__(
-        self,
-        identity: Identity,
-        connections: List[Connection],
-        ...
-    ) -> None:
-        """Instantiate the agent."""
-        
-    def act(self) -> None:
-        """Perform actions on period."""
-    ...
-```
 
 The [`AEA`](https://valory-xyz.github.io/open-aea/api/aea/) inherits from the 
 [`Agent`](https://valory-xyz.github.io/open-aea/api/agent/) and extends it with 
@@ -161,24 +141,6 @@ and allows for the registration of various components such as
 allows access to various objects that are relevant to the agents' 
 [`Skills`](https://valory-xyz.github.io/open-aea/api/skills/base/).
 
-```python
-class AEA(Agent):
-    """This class implements an autonomous economic agent."""
-
-    def __init__(
-        self,
-        wallet: Wallet,
-        resources: Resources,
-        decision_maker_handler_class: Optional[Type[DecisionMakerHandler]] = None,
-        ...
-    ):
-        """Instantiate the agent."""
-    
-    @property
-    def context(self) -> AgentContext:
-        """Get (agent) context."""
-    ...
-```
 
 ## The implementation of `Behaviour`, `Handler` and `Model`
 

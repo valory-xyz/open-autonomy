@@ -335,11 +335,11 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
         
         # send transaction to the decision maker
         # and (asynchronously) wait for the response 
-        signed_tx = yield from send(tx, to=decision_maker)
+        signed_tx = yield from send(tx)
         
         # send transaction to the distributed ledger
         # and (asynchronously) wait for the response
-        tx_hash = yield from send(signed_tx, to=distributed_ledger)
+        tx_hash = yield from send(signed_tx)
 
         # send transaction hash to the seller
         send(tx_hash, to=seller)

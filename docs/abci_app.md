@@ -17,7 +17,7 @@ The `ABCIApp` is a finite-state machine implemented as an ABCI Application,
 that defines the finite-state machine of a period of the consensus on a 
 temporary blockchain. We call _round_ a state in an ABCIApp, and _period_ an 
 execution of the `ABCIApp`. The state of the `ABCIApp` is updated through 
-transactions on a distributed ledger that local. 
+transactions committed to a temporary blockchain. 
 
 This ledger is local with respect to the `Period`, which is to say that its 
 existence is controlled by, and only relevant in context of, the Period. It is
@@ -25,8 +25,7 @@ distributed and decentralized with respect to the AEAs in the system, all of
 whom run a local node. The underlying consensus engine (at present 
 Tendermint) allows decentralized state replication among different processes.
 The transitions in the FSM are triggered by the delivery of blocks from the 
-consensus engine. The transactions that are contained in these blocks are 
-updates of the shared state.
+consensus engine. The transactions that are  contained in these blocks are submitted by the agents, and can lead to updates of the shared state.
 
 Each round has its own business logic, that specifies how the participants'
 transactions are validated or the conditions that trigger a transition to 
@@ -61,7 +60,7 @@ instantiated in the state of the skill and accessible through the skill context.
 It is a concrete class, so the developer should not need to extend it.
 
 We remark that the ABCIApp, which resides with the AEA process, is updated by 
-the consensus engine through via ABCI requests handled by the ABCIHandler, and 
+the consensus engine through ABCI requests handled by the ABCIHandler, and 
 **NOT** by the AEA behaviours. The AEA behaviours can only send updates through 
 the process of sending transactions to the consensus engine.
 
