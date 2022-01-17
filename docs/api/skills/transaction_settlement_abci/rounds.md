@@ -124,6 +124,28 @@ def is_most_voted_estimate_set() -> bool
 
 Check if most_voted_estimate is set.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.nonce"></a>
+
+#### nonce
+
+```python
+@property
+def nonce() -> Optional[Nonce]
+```
+
+Get the nonce.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.max_priority_fee_per_gas"></a>
+
+#### max`_`priority`_`fee`_`per`_`gas
+
+```python
+@property
+def max_priority_fee_per_gas() -> Optional[int]
+```
+
+Get the gas data.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
@@ -183,6 +205,16 @@ class FinalizationRound(OnlyKeeperSendsRound)
 ```
 
 A round that represents transaction signing has finished
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.FinalizationRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.RandomnessTransactionSubmissionRound"></a>
 
@@ -299,7 +331,7 @@ Transition states:
     - done: 7.
     - negative: 6.
     - none: 6.
-    - validate timeout: 6.
+    - validate timeout: 3.
     - no majority: 4.
 5. SelectKeeperTransactionSubmissionRoundB
     - done: 3.

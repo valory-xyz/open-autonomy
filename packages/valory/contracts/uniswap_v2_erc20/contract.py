@@ -19,12 +19,14 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
+from hexbytes import HexBytes
+from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -32,6 +34,13 @@ PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
+
+
+def rebuild_receipt(tx_receipt: JSONLike) -> JSONLike:
+    """Convert all tx receipt's event topics to HexBytes"""
+    for i in range(len(tx_receipt["logs"])):  # type: ignore
+        tx_receipt["logs"][i]["topics"] = [HexBytes(topic) for topic in tx_receipt["logs"][i]["topics"]]  # type: ignore
+    return tx_receipt
 
 
 def snake_to_camel(string: str) -> str:
@@ -289,3 +298,96 @@ class UniswapV2ERC20Contract(Contract):
             tx_params.update(ledger_api.try_get_gas_pricing())  # pragma: nocover
         tx = tx.buildTransaction(tx_params)
         return tx
+
+    @classmethod
+    def get_tx_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+    ) -> JSONLike:
+        """
+        Get all transfer events derived from a transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        try:
+            tx_receipt = ledger_api.get_transaction_receipt(tx_hash)
+            if tx_receipt is None:
+                raise ValueError  # pragma: nocover
+
+        except (TransactionNotFound, ValueError):  # pragma: nocover
+            return dict(logs=[])
+
+        # Due to serialization, event topics must be converted again to HexBytes or processReceipt will fail
+        tx_receipt = rebuild_receipt(tx_receipt)
+
+        transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
+
+        return dict(
+            logs=[
+                {
+                    "from": log["args"]["from"],
+                    "to": log["args"]["to"],
+                    "value": log["args"]["value"],
+                    "token_address": log["address"],
+                }
+                for log in transfer_logs
+            ]
+        )
+
+    @classmethod
+    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+        token_address: str,
+        source_address: Optional[str] = None,
+        destination_address: Optional[str] = None,
+    ) -> JSONLike:
+        """
+        Get the amount of a token transferred as a result of a transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :param token_address: the token's address
+        :param source_address: the source address
+        :param destination_address: the destination address
+        :return: the incoming amount
+        """
+
+        transfer_logs: list = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]  # type: ignore
+
+        token_events = list(
+            filter(
+                lambda log: log["token_address"] == ledger_api.api.toChecksumAddress(token_address),  # type: ignore
+                transfer_logs,
+            )
+        )
+
+        if source_address:
+            token_events = list(
+                filter(
+                    lambda log: log["from"] == ledger_api.api.toChecksumAddress(source_address),  # type: ignore
+                    token_events,
+                )
+            )
+
+        if destination_address:
+            token_events = list(
+                filter(
+                    lambda log: log["to"] == ledger_api.api.toChecksumAddress(destination_address),  # type: ignore
+                    token_events,
+                )
+            )
+
+        amount = 0 if not token_events else sum([event["value"] for event in list(token_events)])  # type: ignore
+        return dict(amount=amount)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -366,3 +366,90 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             "data": b"p\xa0\x821\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
             b"F\xf4\x15\xf7\xbf0\xf4\"\x7f\x98\xde\xf9\xd2\xb2/\xf6'8\xfdh"
         }
+
+    def test_get_tx_transfer_logs_no_tx(self) -> None:
+        """Test get transfer logs."""
+        logs = self.contract.get_tx_transfer_logs(
+            ledger_api=self.ledger_api,
+            contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+            tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+        )
+        assert logs == dict(logs=[]), "The transfer logs do not have the correct format"
+        assert "logs" in logs, "The transfer logs dict is empty"
+
+    def test_get_tx_transfer_logs(self) -> None:
+        """Test get transfer logs."""
+
+        DUMMY_EVENTS = (
+            {
+                "args": {"from": "address", "to": "address", "value": 5},
+                "address": "token_address",
+            },
+        )
+
+        with mock.patch.object(
+            self.ledger_api,
+            "get_transaction_receipt",
+            return_value={
+                "logs": [
+                    {
+                        "topics": [
+                            "0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603"
+                        ]
+                    },
+                ]
+            },
+        ):
+            with mock.patch(
+                "web3.contract.ContractEvent.processReceipt",
+                return_value=DUMMY_EVENTS,
+            ):
+                logs = self.contract.get_tx_transfer_logs(
+                    ledger_api=self.ledger_api,
+                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+                )
+                assert type(logs) == dict, "The transfer logs is not a dict"
+                assert "logs" in logs, "The transfer logs dict is empty"
+                assert len(logs["logs"]) != 0, "Transfer logs is empty"  # type: ignore
+
+    def test_get_tx_transfered_amount(self) -> None:
+        """Test get transfer logs."""
+
+        DUMMY_EVENTS = (
+            {
+                "args": {"from": "address", "to": "address", "value": 5},
+                "address": "token_address",
+            },
+        )
+
+        with mock.patch.object(
+            self.ledger_api,
+            "get_transaction_receipt",
+            return_value={
+                "logs": [
+                    {
+                        "topics": [
+                            "0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603"
+                        ]
+                    },
+                ]
+            },
+        ):
+            with mock.patch(
+                "web3.contract.ContractEvent.processReceipt",
+                return_value=DUMMY_EVENTS,
+            ):
+                result = self.contract.get_tx_transfered_amount(  # nosec
+                    ledger_api=self.ledger_api,
+                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
+                    token_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    source_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                    destination_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
+                )
+                assert type(result) == dict, "The result is not a dict"
+                assert "amount" in result, "The result does not contain an amount field"
+                assert (
+                    result["amount"] == 0
+                ), "The transfered amount is different from 0"
