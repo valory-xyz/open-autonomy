@@ -1959,13 +1959,13 @@ def test_parse_tx_token_balance() -> None:
         },
     ]
 
-    amount_1 = parse_tx_token_balance(
+    amount_1 = parse_tx_token_balance(  # nosec
         transfer_logs=transfer_logs,
         token_address="token_address",
         source_address="from",
         destination_address="to",
     )
-    amount_2 = parse_tx_token_balance(
+    amount_2 = parse_tx_token_balance(  # nosec
         transfer_logs=transfer_logs,
         token_address="token_address_2",
         source_address="from_2",
