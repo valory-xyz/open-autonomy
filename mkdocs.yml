@@ -11,16 +11,15 @@ strict: true
 nav:
   - Home: 'index.md'
   - Preliminaries:
+    - AEA: 'aea.md'
     - ABCI: 'abci.md'
     - AsyncBehaviour: 'async_behaviour.md'
+    - Finite State Machine: 'fsm.md'
+    - ABCIApp: 'abci_app.md'
   - Price Estimation:
     - Demo: 'price_estimation_demo.md'
     - How it works: 'price_estimation.md'
-    - System: 'poc-diagram.md'
-    - FSM Diagram: 'fsm.md'
-    - POC FSM Diagram: 'poc-fsm.md'
-    - FSM vs ABCI app: 'fsm_vs_abci_app.md'
-    - Abstract Round ABCI: 'abstract_round_abci.md'
+    - FSM Diagram: 'fsm_diagram.md'
   - Ethereum:
     - Miscellaneous: 'ethereum_specifics.md'
   - API:
