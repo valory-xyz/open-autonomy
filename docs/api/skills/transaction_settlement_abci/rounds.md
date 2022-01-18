@@ -296,36 +296,6 @@ class ValidateTransactionRound(VotingRound)
 
 A round in which agents validate the transaction
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.CancelTransactionRound"></a>
-
-## CancelTransactionRound Objects
-
-```python
-class CancelTransactionRound(FinalizationRound)
-```
-
-A round in which the keeper agent cancels the transaction
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.VerifyCancelledTransactionRound"></a>
-
-## VerifyCancelledTransactionRound Objects
-
-```python
-class VerifyCancelledTransactionRound(VotingRound)
-```
-
-A round in which agents validate that the transaction has been cancelled
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperCancelTransactionRoundB"></a>
-
-## SelectKeeperCancelTransactionRoundB Objects
-
-```python
-class SelectKeeperCancelTransactionRoundB(CollectSameUntilThresholdRound)
-```
-
-A round in which a new keeper is selected for cancelling a transaction
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 
 ## TransactionSubmissionAbciApp Objects

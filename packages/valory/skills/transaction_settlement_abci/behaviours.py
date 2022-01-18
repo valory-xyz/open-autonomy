@@ -44,18 +44,15 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    CancelTransactionRound,
     CollectSignatureRound,
     FinalizationRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetAndPauseRound,
     ResetRound,
-    SelectKeeperCancelTransactionRoundB,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
-    VerifyCancelledTransactionRound,
 )
 
 
@@ -105,14 +102,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-    payload_class = SelectKeeperPayload
-
-
-class SelectKeeperCancelTransactionBehaviourB(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "select_keeper_transaction_cancelling_b"
-    matching_round = SelectKeeperCancelTransactionRoundB
     payload_class = SelectKeeperPayload
 
 
@@ -194,10 +183,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return False
         verified = cast(bool, contract_api_msg.state.body["verified"])
-
-        if self.state_id == "verify_cancelled_transaction":
-            verified = not verified if verified is not None else None
-
         verified_log = (
             f"Verified result: {verified}"
             if verified
@@ -205,13 +190,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         )
         self.context.logger.info(verified_log)
         return verified
-
-
-class VerifyCancelledTransaction(ValidateTransactionBehaviour):
-    """Verify that a transaction has been cancelled."""
-
-    state_id = "verify_cancelled_transaction"
-    matching_round = VerifyCancelledTransactionRound  # type: ignore
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -331,11 +309,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.period_state.most_voted_tx_hash
         )
 
-        if self.state == "cancel":
-            ether_value = 0
-            to_address = self.period_state.safe_contract_address
-            data = b""
-
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -376,13 +349,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         }
 
         return tx_data
-
-
-class CancelTransactionBehaviour(FinalizeBehaviour):
-    """Cancel transaction state."""
-
-    state_id = "cancel"
-    matching_round = CancelTransactionRound
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):

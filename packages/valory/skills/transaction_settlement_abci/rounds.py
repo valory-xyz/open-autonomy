@@ -302,44 +302,6 @@ class ValidateTransactionRound(VotingRound):
     collection_key = "participant_to_votes"
 
 
-class CancelTransactionRound(FinalizationRound):
-    """A round in which the keeper agent cancels the transaction"""
-
-    round_id = "cancel_transaction"
-    allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "tx_data"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    fail_event = Event.FAILED
-
-
-class VerifyCancelledTransactionRound(VotingRound):
-    """A round in which agents validate that the transaction has been cancelled"""
-
-    round_id = "verify_cancelled_transaction"
-    allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    negative_event = Event.NEGATIVE
-    none_event = Event.NONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_votes"
-
-
-class SelectKeeperCancelTransactionRoundB(CollectSameUntilThresholdRound):
-    """A round in which a new keeper is selected for cancelling a transaction"""
-
-    round_id = "select_keeper_transaction_cancelling_b"
-    allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keeper"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_selection"
-    selection_key = "most_voted_keeper_address"
-
-
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """TransactionSubmissionAbciApp
 
@@ -419,29 +381,12 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
             Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
-            Event.NONE: CancelTransactionRound,
+            Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
-        },
-        CancelTransactionRound: {
-            Event.DONE: VerifyCancelledTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperCancelTransactionRoundB,
-            Event.FAILED: SelectKeeperCancelTransactionRoundB,
-        },
-        VerifyCancelledTransactionRound: {
-            Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: SelectKeeperCancelTransactionRoundB,
-            Event.NONE: SelectKeeperCancelTransactionRoundB,
-            Event.VALIDATE_TIMEOUT: CancelTransactionRound,
-            Event.NO_MAJORITY: VerifyCancelledTransactionRound,
-        },
-        SelectKeeperCancelTransactionRoundB: {
-            Event.DONE: CancelTransactionRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },

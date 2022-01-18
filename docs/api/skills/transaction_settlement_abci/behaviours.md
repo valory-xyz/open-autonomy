@@ -65,16 +65,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour)
 
 Select the keeper agent.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperCancelTransactionBehaviourB"></a>
-
-## SelectKeeperCancelTransactionBehaviourB Objects
-
-```python
-class SelectKeeperCancelTransactionBehaviourB(SelectKeeperBehaviour)
-```
-
-Select the keeper agent.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
 ## ValidateTransactionBehaviour Objects
@@ -112,16 +102,6 @@ def has_transaction_been_sent() -> Generator[None, None, Optional[bool]]
 ```
 
 Transaction verification.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.VerifyCancelledTransaction"></a>
-
-## VerifyCancelledTransaction Objects
-
-```python
-class VerifyCancelledTransaction(ValidateTransactionBehaviour)
-```
-
-Verify that a transaction has been cancelled.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
@@ -173,16 +153,6 @@ Steps:
 - If the agent is the keeper, then prepare the transaction and send it.
 - Otherwise, wait until the next round.
 - If a timeout is hit, set exit A event, otherwise set done event.
-
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CancelTransactionBehaviour"></a>
-
-## CancelTransactionBehaviour Objects
-
-```python
-class CancelTransactionBehaviour(FinalizeBehaviour)
-```
-
-Cancel transaction state.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.BaseResetBehaviour"></a>
 

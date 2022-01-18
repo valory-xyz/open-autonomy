@@ -8,9 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmfAkYEteaRrvmQy5p57dAD2pa2TTgP87envhF5vtgnAQW
+  behaviours.py: QmYrBEM9M8coMA3VUVC5boVmVxyef8Xv2xumuQzDd7jk8x
   payloads.py: QmVSLPh7yP2u1SdEsGUozsqK1uSWJNwhKMeeeVxQygPbiQ
-  rounds.py: QmeYnDkKPqzFwvMyZ6NghUUYmzbKRL4CWoHW14vtxLJd8f
+  rounds.py: QmWVN67YHPQqcczy64iFPySgNBVpJ7hvoqJj5DwD5HygeP
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
