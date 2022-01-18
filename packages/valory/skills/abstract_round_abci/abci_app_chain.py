@@ -29,6 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventToTimeout,
     EventType,
 )
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 
 
 AbciAppTransitionMapping = Dict[AppState, AppState]
@@ -131,3 +132,15 @@ def chain(  # pylint: disable=too-many-locals
         event_to_timeout: EventToTimeout = new_events_to_timeout
 
     return ComposedAbciApp
+
+
+def chain_behaviours(
+    *base_behaviours: Type[AbstractRoundBehaviour],
+    parent_behaviour: Type[AbstractRoundBehaviour],
+) -> Type[AbstractRoundBehaviour]:
+    """Chain behaviours."""
+    behaviour_states = parent_behaviour.behaviour_states
+    for base_behaviour in base_behaviours:
+        behaviour_states.add(base_behaviour.behaviour_states)  # type: ignore
+    parent_behaviour.behaviour_states = behaviour_states
+    return parent_behaviour

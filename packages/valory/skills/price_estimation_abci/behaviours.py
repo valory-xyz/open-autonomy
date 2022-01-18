@@ -28,16 +28,14 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.abci_app_chain import chain_behaviours
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    DeployOracleBehaviour,
-    RandomnessOracleBehaviour,
-    SelectKeeperOracleBehaviour,
-    ValidateOracleBehaviour,
+    OracleDeploymentConsensusBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
@@ -55,25 +53,14 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     TxHashRound,
 )
 from packages.valory.skills.registration_abci.behaviours import (
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
+    AgentRegistrationConsensusBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
-    DeploySafeBehaviour,
-    RandomnessSafeBehaviour,
-    SelectKeeperSafeBehaviour,
-    ValidateSafeBehaviour,
+    SafeDeploymentConsensusBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    FinalizeBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
-    SelectKeeperTransactionSubmissionBehaviourB,
-    SignatureBehaviour,
-    ValidateTransactionBehaviour,
+    TransactionSettlementConsensusBehaviour,
 )
 
 
@@ -331,37 +318,27 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         return payload_string
 
 
-class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
+class PriceEstimationBaseBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        RegistrationStartupBehaviour,  # type: ignore
-        RandomnessSafeBehaviour,  # type: ignore
-        RandomnessOracleBehaviour,  # type: ignore
-        SelectKeeperSafeBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ValidateSafeBehaviour,  # type: ignore
-        SelectKeeperOracleBehaviour,  # type: ignore
-        DeployOracleBehaviour,  # type: ignore
-        ValidateOracleBehaviour,  # type: ignore
-        RandomnessTransactionSubmissionBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        ValidateTransactionBehaviour,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
-        ResetBehaviour,  # type: ignore
-        ResetAndPauseBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:
         """Set up the behaviour."""
         super().setup()
         benchmark_tool.logger = self.context.logger
+
+
+PriceEstimationConsensusBehaviour = chain_behaviours(
+    AgentRegistrationConsensusBehaviour,
+    SafeDeploymentConsensusBehaviour,
+    TransactionSettlementConsensusBehaviour,
+    OracleDeploymentConsensusBehaviour,
+    parent_behaviour=PriceEstimationBaseBehaviour,
+)

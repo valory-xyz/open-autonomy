@@ -79,7 +79,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
     SwapBackTransactionSignatureRound,
     SwapBackTransactionValidationRound,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import (
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
     ResetAndPauseBehaviour,
     ResetBehaviour,
 )

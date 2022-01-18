@@ -23,13 +23,16 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Tuple, Union, cast
+from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -52,6 +55,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
 
@@ -510,3 +514,25 @@ class ResetAndPauseBehaviour(BaseResetBehaviour):
     matching_round = ResetAndPauseRound
     state_id = "reset_and_pause"
     pause = True
+
+
+class TransactionSettlementConsensusBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the transaction settlement."""
+
+    initial_state_cls = RandomnessTransactionSubmissionBehaviour
+    abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        RandomnessTransactionSubmissionBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
+        ValidateTransactionBehaviour,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        ResetBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
+    }
+
+    def setup(self) -> None:
+        """Set up the behaviour."""
+        super().setup()
+        benchmark_tool.logger = self.context.logger
