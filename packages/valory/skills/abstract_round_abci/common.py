@@ -20,6 +20,7 @@
 """This module contains the behaviours, round and payloads for the 'abstract_round_abci' skill."""
 
 import hashlib
+import random
 from math import floor
 from typing import Dict, Generator, List, Optional, Type, Union, cast
 
@@ -176,11 +177,8 @@ class SelectKeeperBehaviour(BaseState):
             # Sorted list of participants
             relevant_set = sorted(list(self.period_state.participants))
 
-            # Random rotation of the list
-            random_first = floor(
-                self.period_state.keeper_randomness * len(relevant_set)
-            )
-            relevant_set = relevant_set[random_first:] + relevant_set[:random_first]
+            # Random shuffling of the set
+            random.Random(self.period_state.keeper_randomness).shuffle(relevant_set)
 
             # If the keeper is not set yet, pick the first address
             if not self.period_state.is_keeper_set:
