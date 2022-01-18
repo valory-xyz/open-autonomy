@@ -382,36 +382,3 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self.end_round(self.done_event)
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_select_keeper_preexisting_keeper_no_new_randomness(
-        self,
-    ) -> None:
-        """Test select keeper agent."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
-            behaviour=self.behaviour,
-            state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=BasePeriodState(
-                StateDB(
-                    initial_period=0,
-                    initial_data=dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                        most_voted_keeper_address=self.skill.skill_context.agent_address,
-                    ),
-                )
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == self.select_keeper_behaviour_class.state_id
-        )
-        self.behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round(self.done_event)
-        state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id

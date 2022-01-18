@@ -173,22 +173,27 @@ class SelectKeeperBehaviour(BaseState):
         with benchmark_tool.measure(
             self,
         ).local():
+            # Sorted list of participants
             relevant_set = sorted(list(self.period_state.participants))
 
-            keeper_address = random_selection(
-                relevant_set,
-                self.period_state.keeper_randomness,
+            # Random rotation of the list
+            random_first = floor(
+                self.period_state.keeper_randomness * len(relevant_set)
             )
+            relevant_set = relevant_set[random_first:] + relevant_set[:random_first]
 
-            # If the new keeper is the old one we skip to the next.
-            # This is useful for cases when no new randomness has been
-            # retrieved and to enforce switching keepers in all cases.
+            # If the keeper is not set yet, pick the first address
+            if not self.period_state.is_keeper_set:
+                keeper_address = relevant_set[0]
+
+            # If the keeper has been already set, select the next.
             if (
                 self.period_state.is_keeper_set
                 and len(self.period_state.participants) > 1
-                and keeper_address == self.period_state.most_voted_keeper_address
             ):
-                old_keeper_index = relevant_set.index(keeper_address)
+                old_keeper_index = relevant_set.index(
+                    self.period_state.most_voted_keeper_address
+                )
                 keeper_address = relevant_set[
                     (old_keeper_index + 1) % len(relevant_set)
                 ]
