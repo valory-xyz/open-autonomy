@@ -677,15 +677,20 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self,
     ) -> Generator[None, None, bool]:
         """Check if agent has completed sync."""
-        status = yield from self._get_status()
-        try:
-            json_body = json.loads(status.body.decode())
-        except json.JSONDecodeError:
-            return False
 
-        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = int(self.context.state.period.height)
-        return local_height == remote_height
+        for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
+            status = yield from self._get_status()
+            try:
+                json_body = json.loads(status.body.decode())
+                remote_height = int(
+                    json_body["result"]["sync_info"]["latest_block_height"]
+                )
+                local_height = int(self.context.state.period.height)
+                return local_height == remote_height
+            except json.JSONDecodeError:
+                continue
+
+        return False
 
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
