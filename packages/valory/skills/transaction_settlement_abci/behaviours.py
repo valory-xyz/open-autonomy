@@ -179,7 +179,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
             self.context.logger.error(
-                f"get_transmit_data unsuccessful! Received: {contract_api_msg}"
+                f"verify_tx unsuccessful! Received: {contract_api_msg}"
             )
             return False
         verified = cast(bool, contract_api_msg.state.body["verified"])
