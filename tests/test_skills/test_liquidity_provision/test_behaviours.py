@@ -80,6 +80,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SAFE_TX_GAS,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
+    parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
     ContractApiHandler,
@@ -1233,7 +1234,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                     most_voted_keeper_address="most_voted_keeper_address",
                     participant_to_signature=get_participant_to_signature(participants),
                     router_contract_address="router_contract_address",
-                    most_voted_lp_result="most_voted_lp_result",
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
@@ -1307,9 +1308,6 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                 kwargs=Kwargs(
                     dict(
                         tx_hash=period_state.final_tx_hash,
-                        token_address=strategy["pair"]["LP_token_address"],
-                        source_address="0x0000000000000000000000000000000000000000",
-                        destination_address=period_state.safe_contract_address,
                     )
                 ),
             ),
@@ -1318,7 +1316,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                 callable="verify_tx",
                 state=State(
                     ledger_id="ethereum",
-                    body={"amount": 1000},
+                    body={"logs": []},
                 ),
             ),
         )
@@ -1347,10 +1345,15 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_lp_result=1,
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
+
+        amount_base_sent = 0
+        amount_b_sent = 0
+        amount_liquidity_received = 0
+
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
@@ -1405,13 +1408,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
-                        liquidity=period_state.most_voted_lp_result,
-                        amount_token_min=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                        ),
-                        amount_ETH_min=int(
-                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                        ),
+                        liquidity=amount_liquidity_received,
+                        amount_token_min=int(amount_b_sent),
+                        amount_ETH_min=int(amount_base_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -1480,10 +1479,15 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_lp_result=1,
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
+
+        amount_a_sent = 0
+        amount_b_sent = 0
+        amount_liquidity_received = 0
+
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
@@ -1539,13 +1543,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
-                        liquidity=period_state.most_voted_lp_result,
-                        amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                        ),
-                        amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                        ),
+                        liquidity=amount_liquidity_received,
+                        amount_a_min=int(amount_a_sent),
+                        amount_b_min=int(amount_b_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -1943,3 +1943,33 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+
+
+def test_parse_tx_token_balance() -> None:
+    """Test test_parse_tx_token_balance"""
+
+    transfer_logs = [
+        {"from": "from", "to": "to", "token_address": "token_address", "value": 1},
+        {"from": "from", "to": "to", "token_address": "token_address", "value": 1},
+        {
+            "from": "from_2",
+            "to": "to_2",
+            "token_address": "token_address_2",
+            "value": 1,
+        },
+    ]
+
+    amount_1 = parse_tx_token_balance(  # nosec
+        transfer_logs=transfer_logs,
+        token_address="token_address",
+        source_address="from",
+        destination_address="to",
+    )
+    amount_2 = parse_tx_token_balance(  # nosec
+        transfer_logs=transfer_logs,
+        token_address="token_address_2",
+        source_address="from_2",
+        destination_address="to_2",
+    )
+    assert amount_1 == 2, "The transfered amount is not correct"
+    assert amount_2 == 1, "The transfered amount is not correct"
