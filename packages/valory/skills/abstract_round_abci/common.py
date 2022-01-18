@@ -181,8 +181,7 @@ class SelectKeeperBehaviour(BaseState):
             random.Random(self.period_state.keeper_randomness).shuffle(relevant_set)
 
             # If the keeper is not set yet, pick the first address
-            if not self.period_state.is_keeper_set:
-                keeper_address = relevant_set[0]
+            keeper_address = relevant_set[0]
 
             # If the keeper has been already set, select the next.
             if (
