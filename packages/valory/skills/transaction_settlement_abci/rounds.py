@@ -380,7 +380,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
+            Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
             Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
