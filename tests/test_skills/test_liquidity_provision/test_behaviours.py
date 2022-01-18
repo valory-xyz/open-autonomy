@@ -103,12 +103,12 @@ def get_default_strategy(is_native: bool = True) -> Dict:
     return {
         "action": StrategyType.GO.value,
         "safe_nonce": 0,
-        "chain": "Fantom",
+        "chain": "Ethereum",
         "safe_tx_gas": SAFE_TX_GAS,
         "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
         "base": {
             "ticker": "WETH",
-            "address": "0xUSDT_ADDRESS",
+            "address": "0xWETH_ADDRESS",
             "amount_in_max_a": int(1e4),
             "amount_min_after_swap_back_a": int(1e2),
             "amount_in_max_b": int(1e4),
@@ -117,20 +117,18 @@ def get_default_strategy(is_native: bool = True) -> Dict:
         "pair": {
             "LP_token_address": LP_TOKEN_ADDRESS,
             "token_a": {
-                "ticker": "FTM",
-                "address": "0xFTM_ADDRESS",
+                "ticker": "TKA",
+                "address": "0xTKA_ADDRESS",
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": is_native,
             },
             "token_b": {
-                "ticker": "BOO",
-                "address": "0xBOO_ADDRESS",
+                "ticker": "TKB",
+                "address": "0xTKB_ADDRESS",
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
             },
         },
     }
@@ -1619,6 +1617,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
@@ -1671,6 +1670,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
         # Swap second token back (always non-native)
+        amount_b_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1683,7 +1683,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                            amount_b_received,
                         ),
                         amount_out_min=int(
                             strategy["base"]["amount_min_after_swap_back_b"]
@@ -1788,6 +1788,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
@@ -1806,6 +1807,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.liquidity_provision_behaviour.act_wrapper()
 
         # Swap first token back
+        amount_a_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1817,9 +1819,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(
-                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                        ),
+                        amount_in=int(amount_a_received),
                         amount_out_min=int(
                             strategy["base"]["amount_min_after_swap_back_a"]
                         ),
@@ -1843,6 +1843,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
         # Swap second token back (always non-native)
+        amount_b_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1854,9 +1855,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                        ),
+                        amount_in=int(amount_b_received),
                         amount_out_min=int(
                             strategy["base"]["amount_min_after_swap_back_b"]
                         ),
