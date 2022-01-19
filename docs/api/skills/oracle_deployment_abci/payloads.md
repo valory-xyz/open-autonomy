@@ -132,6 +132,54 @@ def data() -> Dict
 
 Get the data.
 
+<a id="packages.valory.skills.oracle_deployment_abci.payloads.ValidateOraclePayload"></a>
+
+## ValidateOraclePayload Objects
+
+```python
+class ValidateOraclePayload(BaseTxPayload)
+```
+
+Represent a transaction payload of type 'validate'.
+
+<a id="packages.valory.skills.oracle_deployment_abci.payloads.ValidateOraclePayload.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(sender: str, vote: Optional[bool] = None, id_: Optional[str] = None) -> None
+```
+
+Initialize an 'validate' transaction payload.
+
+**Arguments**:
+
+- `sender`: the sender (Ethereum) address
+- `vote`: the vote
+- `id_`: the id of the transaction
+
+<a id="packages.valory.skills.oracle_deployment_abci.payloads.ValidateOraclePayload.vote"></a>
+
+#### vote
+
+```python
+@property
+def vote() -> Optional[bool]
+```
+
+Get the vote.
+
+<a id="packages.valory.skills.oracle_deployment_abci.payloads.ValidateOraclePayload.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> Dict
+```
+
+Get the data.
+
 <a id="packages.valory.skills.oracle_deployment_abci.payloads.DeployOraclePayload"></a>
 
 ## DeployOraclePayload Objects
