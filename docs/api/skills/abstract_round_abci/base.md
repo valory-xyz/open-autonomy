@@ -1786,6 +1786,7 @@ Set `_syncing_up` flag to false.
 #### syncing`_`up
 
 ```python
+@property
 def syncing_up() -> bool
 ```
 
