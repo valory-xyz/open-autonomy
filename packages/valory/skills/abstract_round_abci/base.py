@@ -164,7 +164,7 @@ class _MetaPayload(ABCMeta):
     @staticmethod
     def _get_field(new_cls: Type, field_name: str) -> Any:
         """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(new_cls, field_name) or getattr(new_cls, field_name) is None:
+        if getattr(new_cls, field_name, None) is None:
             raise ValueError(f"class {new_cls} must set '{field_name}' class field")
         return getattr(new_cls, field_name)
 
@@ -231,6 +231,8 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
         return (
             self.id_ == other.id_
             and self.sender == other.sender
@@ -280,11 +282,9 @@ class Transaction(ABC):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return (
-            isinstance(other, Transaction)
-            and self.payload == other.payload
-            and self.signature == other.signature
-        )
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.payload == other.payload and self.signature == other.signature
 
 
 class Block:  # pylint: disable=too-few-public-methods
@@ -433,10 +433,9 @@ class ConsensusParams:
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return (
-            isinstance(other, ConsensusParams)
-            and self.max_participants == other.max_participants
-        )
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.max_participants == other.max_participants
 
 
 class StateDB:
