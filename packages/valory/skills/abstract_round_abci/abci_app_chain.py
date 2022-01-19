@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from ctypes import cast
 from typing import Dict, Set, Tuple, Type
 
 from aea.exceptions import enforce
@@ -30,7 +29,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventToTimeout,
     EventType,
 )
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 
 
 AbciAppTransitionMapping = Dict[AppState, AppState]
@@ -133,28 +131,3 @@ def chain(  # pylint: disable=too-many-locals
         event_to_timeout: EventToTimeout = new_events_to_timeout
 
     return ComposedAbciApp
-
-
-def chain_behaviours(
-    *chain_behaviours: Type[AbstractRoundBehaviour],
-    BaseBehaviour: Type[AbstractRoundBehaviour],
-    abci_app_transition_mapping: AbciAppTransitionMapping,
-) -> Type[AbstractRoundBehaviour]:
-    """Chain behaviours."""
-    chain_behaviours_set = set(chain_behaviours)
-    ChainedAbciApp = chain(
-        [base_behaviour.abci_app_cls for base_behaviour in chain_behaviours_set]
-        + [BaseBehaviour.abci_app_cls],
-        abci_app_transition_mapping,
-    )
-
-    chained_behaviour_states = list(BaseBehaviour.behaviour_states)
-    for behaviour in chain_behaviours:
-        chained_behaviour_states += list(behaviour.behaviour_states)  # type: ignore
-    class ComposedBehaviour(BaseBehaviour):
-        """Composed bahaviour."""
-
-        behaviour_states = set(chained_behaviour_states)
-        abci_app_cls = ChainedAbciApp  # type: ignore
-
-    return ComposedBehaviour

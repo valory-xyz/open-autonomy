@@ -52,12 +52,10 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-)
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
