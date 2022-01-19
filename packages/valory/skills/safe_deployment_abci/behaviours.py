@@ -35,7 +35,6 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
     RandomnessPayload,
     SelectKeeperPayload,
-    ValidatePayload,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
@@ -44,6 +43,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     SelectKeeperSafeRound,
     ValidateSafeRound,
 )
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 
 benchmark_tool = BenchmarkTool()

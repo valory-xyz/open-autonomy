@@ -132,54 +132,6 @@ def data() -> Dict
 
 Get the data.
 
-<a id="packages.valory.skills.safe_deployment_abci.payloads.ValidatePayload"></a>
-
-## ValidatePayload Objects
-
-```python
-class ValidatePayload(BaseTxPayload)
-```
-
-Represent a transaction payload of type 'validate'.
-
-<a id="packages.valory.skills.safe_deployment_abci.payloads.ValidatePayload.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(sender: str, vote: Optional[bool] = None, id_: Optional[str] = None) -> None
-```
-
-Initialize an 'validate' transaction payload.
-
-**Arguments**:
-
-- `sender`: the sender (Ethereum) address
-- `vote`: the vote
-- `id_`: the id of the transaction
-
-<a id="packages.valory.skills.safe_deployment_abci.payloads.ValidatePayload.vote"></a>
-
-#### vote
-
-```python
-@property
-def vote() -> Optional[bool]
-```
-
-Get the vote.
-
-<a id="packages.valory.skills.safe_deployment_abci.payloads.ValidatePayload.data"></a>
-
-#### data
-
-```python
-@property
-def data() -> Dict
-```
-
-Get the data.
-
 <a id="packages.valory.skills.safe_deployment_abci.payloads.DeploySafePayload"></a>
 
 ## DeploySafePayload Objects

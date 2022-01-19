@@ -37,8 +37,8 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
     RandomnessPayload,
     SelectKeeperPayload,
-    ValidatePayload,
 )
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 
 class Event(Enum):
