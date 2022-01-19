@@ -128,7 +128,7 @@ def get_participant_to_votes(
 ) -> Dict[str, ValidatePayload]:
     """participant_to_votes"""
     return {
-        participant: ValidatePayload(sender=participant, vote=vote)
+        participant: ValidatePayload(sender=participant, is_settled=vote)
         for participant in participants
     }
 

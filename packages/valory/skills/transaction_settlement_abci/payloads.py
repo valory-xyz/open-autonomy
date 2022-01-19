@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for common apps."""
+import json
 from enum import Enum
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -108,27 +109,48 @@ class ValidatePayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        vote: Optional[bool] = None,
+        is_settled: Optional[bool] = None,
+        transfers: Optional[List] = None,
+        tx_result: Optional[str] = None,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'validate' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param vote: the vote
+        :param is_settled: boolean to check whether the transaction is settled
+        :param transfers: the transfer events
+        :param tx_result: a stringified dict containing is_settled and transfers
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._vote = vote
+
+        if tx_result:
+            tx_data = json.loads(tx_result)
+            self._is_settled = tx_data["is_settled"]
+            self._transfers = tx_data["transfers"]
+        else:
+            self._is_settled = is_settled
+            self._transfers = transfers
 
     @property
     def vote(self) -> Optional[bool]:
         """Get the vote."""
-        return self._vote
+        return self._is_settled
+
+    @property
+    def transfers(self) -> Optional[List]:
+        """Get the transfers."""
+        return self._transfers
+
+    @property
+    def tx_result(self) -> Optional[str]:
+        """Get the tx result."""
+        return json.dumps(dict(is_settled=self.vote, transfers=self.transfers))
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(vote=self.vote) if self.vote is not None else {}
+        return dict(tx_result=self.tx_result)
 
 
 class SignaturePayload(BaseTxPayload):

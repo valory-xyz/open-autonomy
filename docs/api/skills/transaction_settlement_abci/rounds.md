@@ -146,6 +146,28 @@ def max_priority_fee_per_gas() -> Optional[int]
 
 Get the gas data.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_tx_result"></a>
+
+#### most`_`voted`_`tx`_`result
+
+```python
+@property
+def most_voted_tx_result() -> dict
+```
+
+Get the most_voted_tx_result.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.participant_to_tx_result"></a>
+
+#### participant`_`to`_`tx`_`result
+
+```python
+@property
+def participant_to_tx_result() -> Mapping[str, ValidatePayload]
+```
+
+Get the participant_to_lp_result.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
@@ -291,10 +313,31 @@ Process the end of the block.
 ## ValidateTransactionRound Objects
 
 ```python
-class ValidateTransactionRound(VotingRound)
+class ValidateTransactionRound(CollectSameUntilThresholdRound)
 ```
 
 A round in which agents validate the transaction
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Event]]
+```
+
+Process the end of the block.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound.period_state"></a>
+
+#### period`_`state
+
+```python
+@property
+def period_state() -> PeriodState
+```
+
+Return the period state.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

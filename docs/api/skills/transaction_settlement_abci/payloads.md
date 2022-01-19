@@ -147,7 +147,7 @@ Represent a transaction payload of type 'validate'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, vote: Optional[bool] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, is_settled: Optional[bool] = None, transfers: Optional[List] = None, tx_result: Optional[str] = None, id_: Optional[str] = None) -> None
 ```
 
 Initialize an 'validate' transaction payload.
@@ -155,7 +155,9 @@ Initialize an 'validate' transaction payload.
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address
-- `vote`: the vote
+- `is_settled`: boolean to check whether the transaction is settled
+- `transfers`: the transfer events
+- `tx_result`: a stringified dict containing is_settled and transfers
 - `id_`: the id of the transaction
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.vote"></a>
@@ -168,6 +170,28 @@ def vote() -> Optional[bool]
 ```
 
 Get the vote.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.transfers"></a>
+
+#### transfers
+
+```python
+@property
+def transfers() -> Optional[List]
+```
+
+Get the transfers.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.tx_result"></a>
+
+#### tx`_`result
+
+```python
+@property
+def tx_result() -> Optional[str]
+```
+
+Get the tx result.
 
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.ValidatePayload.data"></a>
 

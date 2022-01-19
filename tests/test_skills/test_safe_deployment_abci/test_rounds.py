@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ def get_participant_to_votes(
 ) -> Dict[str, ValidatePayload]:
     """participant_to_votes"""
     return {
-        participant: ValidatePayload(sender=participant, vote=vote)
+        participant: ValidatePayload(sender=participant, is_settled=vote)
         for participant in participants
     }
 

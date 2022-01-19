@@ -19,6 +19,7 @@
 
 """This module contains the data classes for the `transaction settlement` ABCI application."""
 from enum import Enum
+from types import MappingProxyType
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
 from web3.types import Nonce
@@ -33,7 +34,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
-    VotingRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
@@ -123,6 +123,19 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def max_priority_fee_per_gas(self) -> Optional[int]:
         """Get the gas data."""
         return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
+
+    @property
+    def most_voted_tx_result(self) -> dict:
+        """Get the most_voted_tx_result."""
+        return cast(dict, self.db.get_strict("most_voted_tx_result"))
+
+    @property
+    def participant_to_tx_result(self) -> Mapping[str, ValidatePayload]:
+        """Get the participant_to_lp_result."""
+        return cast(
+            Mapping[str, ValidatePayload],
+            self.db.get_strict("participant_to_tx_result"),
+        )
 
 
 class FinishedRegistrationRound(DegenerateRound):
@@ -288,18 +301,40 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
         return None
 
 
-class ValidateTransactionRound(VotingRound):
+class ValidateTransactionRound(CollectSameUntilThresholdRound):
     """A round in which agents validate the transaction"""
 
     round_id = "validate_transaction"
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    negative_event = Event.NEGATIVE
-    none_event = Event.NONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_votes"
+    payload_attribute = "tx_result"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_tx_result=MappingProxyType(self.collection),
+                most_voted_tx_resul=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+    @property
+    def period_state(self) -> PeriodState:
+        """Return the period state."""
+        return cast(PeriodState, self._state)
+
+    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+        """
+        Trigger the NO_MAJORITY event.
+
+        :return: a new period state and a NO_MAJORITY event
+        """
+        return self.period_state, Event.NO_MAJORITY
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
