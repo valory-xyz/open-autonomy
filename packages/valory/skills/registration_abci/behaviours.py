@@ -95,9 +95,8 @@ class TendermintHealthcheckBehaviour(BaseState):
                 "remote height > local height; Entering sync mode..."
             )
             self.context.state.period.start_sync()
-        elif remote_height == local_height:
-            self.context.logger.info("local height == remote height; done")
 
+        self.context.logger.info("local height == remote height; done")
         self.set_done()
 
 

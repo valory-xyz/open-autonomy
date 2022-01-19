@@ -688,10 +688,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 )
                 local_height = int(self.context.state.period.height)
                 return local_height == remote_height
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, KeyError):  # pragma: nocover
                 continue
 
-        return False
+        return False  # pragma: nocover
 
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
