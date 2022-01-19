@@ -161,12 +161,12 @@ class _MetaPayload(ABCMeta):
                     f"used by class {new_payload_cls} "
                 )
 
-    @classmethod
-    def _get_field(mcs, cls: Type, field_name: str) -> Any:
+    @staticmethod
+    def _get_field(new_cls: Type, field_name: str) -> Any:
         """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
-            raise ValueError(f"class {cls} must set '{field_name}' class field")
-        return getattr(cls, field_name)
+        if not hasattr(new_cls, field_name) or getattr(new_cls, field_name) is None:
+            raise ValueError(f"class {new_cls} must set '{field_name}' class field")
+        return getattr(new_cls, field_name)
 
 
 class BaseTxPayload(ABC, metaclass=_MetaPayload):
@@ -255,8 +255,8 @@ class Transaction(ABC):
         data = dict(payload=self.payload.json, signature=self.signature)
         return DictProtobufStructSerializer.encode(data)
 
-    @classmethod
-    def decode(cls, obj: bytes) -> "Transaction":
+    @staticmethod
+    def decode(obj: bytes) -> "Transaction":
         """Decode the transaction."""
         data = DictProtobufStructSerializer.decode(obj)
         signature = data["signature"]
@@ -429,7 +429,7 @@ class ConsensusParams:
             isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
-        return ConsensusParams(max_participants)
+        return cls(max_participants)
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
@@ -750,9 +750,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             votes_by_participant, nb_participants, exception_cls=exception_cls
         )
 
-    @classmethod
+    @staticmethod
     def check_majority_possible(
-        cls,
         votes_by_participant: Dict[Any, Any],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
@@ -791,9 +790,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if len(votes_by_participant) == 0:
             return
 
-        nb_votes_by_item = Counter(list(votes_by_participant.values()))
-        largest_nb_votes = max(nb_votes_by_item.values())
-        nb_votes_received = sum(nb_votes_by_item.values())
+        vote_count = Counter(votes_by_participant.values())
+        largest_nb_votes = max(vote_count.values())
+        nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
 
         threshold = consensus_threshold(nb_participants)
@@ -1248,7 +1247,7 @@ class Timeouts(Generic[EventType]):
         """Pop earliest cancelled timeouts."""
         if self.size == 0:
             return
-        entry = self._heap[0]
+        entry = self._heap[0]  # heap peak
         while entry.cancelled:
             self.pop_timeout()
             if self.size == 0:
@@ -1291,8 +1290,8 @@ class _MetaAbciApp(ABCMeta):
         mcs._check_initial_states_and_final_states(abci_app_cls)
         mcs._check_consistency_outgoing_transitions_from_non_final_states(abci_app_cls)
 
-    @classmethod
-    def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
+    @staticmethod
+    def _check_required_class_attributes(abci_app_cls: Type["AbciApp"]) -> None:
         """Check that required class attributes are set."""
         try:
             abci_app_cls.initial_round_cls
@@ -1303,9 +1302,8 @@ class _MetaAbciApp(ABCMeta):
         except AttributeError as exc:
             raise ABCIAppInternalError("'transition_function' field not set") from exc
 
-    @classmethod
+    @staticmethod
     def _check_initial_states_and_final_states(
-        mcs,
         abci_app_cls: Type["AbciApp"],
     ) -> None:
         """
@@ -1367,9 +1365,9 @@ class _MetaAbciApp(ABCMeta):
             "final states cannot have outgoing transitions",
         )
 
-    @classmethod
+    @staticmethod
     def _check_consistency_outgoing_transitions_from_non_final_states(
-        mcs, abci_app_cls: Type["AbciApp"]
+        abci_app_cls: Type["AbciApp"],
     ) -> None:
         """
         Check consistency of outgoing transitions from non-final states.
@@ -1452,16 +1450,13 @@ class AbciApp(
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
-        states = set()
-        for start_state, _ in cls.transition_function.items():
-            states.add(start_state)
-        return states
+        return set(cls.transition_function)
 
     @classmethod
     def get_all_events(cls) -> Set[EventType]:
         """Get all the events."""
         events: Set[EventType] = set()
-        for _start_state, transitions in cls.transition_function.items():
+        for _, transitions in cls.transition_function.items():
             events.update(transitions.keys())
         return events
 
@@ -1469,10 +1464,9 @@ class AbciApp(
     def get_all_round_classes(cls) -> Set[AppState]:
         """Get all round classes."""
         result: Set[AppState] = set()
-        for start, out_transitions in cls.transition_function.items():
+        for start, transitions in cls.transition_function.items():
             result.add(start)
-            for _event, end in out_transitions.items():
-                result.add(end)
+            result.update(transitions.values())
         return result
 
     @property

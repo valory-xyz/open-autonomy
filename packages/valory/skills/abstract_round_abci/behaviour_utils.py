@@ -166,9 +166,9 @@ class AsyncBehaviour(ABC):
         self.__notified = True
         self.__message = message
 
-    @classmethod
+    @staticmethod
     def wait_for_condition(
-        cls, condition: Callable[[], bool], timeout: Optional[float] = None
+        condition: Callable[[], bool], timeout: Optional[float] = None
     ) -> Generator[None, None, None]:
         """Wait for a condition to happen."""
         if timeout is not None:
@@ -446,8 +446,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """Log the exiting from the behaviour state."""
         self.context.logger.info(f"'{self.name}' behaviour state is done")
 
-    @classmethod
-    def _get_request_nonce_from_dialogue(cls, dialogue: Dialogue) -> str:
+    @staticmethod
+    def _get_request_nonce_from_dialogue(dialogue: Dialogue) -> str:
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
@@ -831,8 +831,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         return False
 
-    @classmethod
-    def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
+    @staticmethod
+    def _check_http_return_code_200(response: HttpMessage) -> bool:
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
 

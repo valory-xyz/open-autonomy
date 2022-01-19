@@ -58,8 +58,8 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.period_setup_params = kwargs.pop("period_setup", {})
         super().__init__(*args, **kwargs)
 
-    @classmethod
-    def _ensure(cls, key: str, kwargs: Dict) -> Any:
+    @staticmethod
+    def _ensure(key: str, kwargs: Dict) -> Any:
         """Get and ensure the configuration field is not None."""
         value = kwargs.pop(key, None)
         enforce(value is not None, f"'{key}' required, but it is not set")
@@ -97,8 +97,8 @@ class SharedState(Model):
             raise ValueError("period_state not available")
         return period_state
 
-    @classmethod
-    def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
+    @staticmethod
+    def _process_abci_app_cls(abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
         """Process the 'initial_round_cls' parameter."""
         if not inspect.isclass(abci_app_cls):
             raise ValueError(f"The object {abci_app_cls} is not a class")
