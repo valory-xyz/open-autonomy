@@ -305,6 +305,7 @@ class UniswapV2ERC20Contract(Contract):
         ledger_api: EthereumApi,
         contract_address: str,
         tx_hash: str,
+        target_address: Optional[str] = None,
     ) -> JSONLike:
         """
         Get all transfer events derived from a transaction.
@@ -312,6 +313,7 @@ class UniswapV2ERC20Contract(Contract):
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param tx_hash: the transaction hash
+        :param target_address: optional address to filter tranfer events to just those that affect it
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
@@ -330,17 +332,25 @@ class UniswapV2ERC20Contract(Contract):
 
         transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
 
-        return dict(
-            logs=[
-                {
-                    "from": log["args"]["from"],
-                    "to": log["args"]["to"],
-                    "value": log["args"]["value"],
-                    "token_address": log["address"],
-                }
-                for log in transfer_logs
-            ]
-        )
+        transfer_logs = [
+            {
+                "from": log["args"]["from"],
+                "to": log["args"]["to"],
+                "value": log["args"]["value"],
+                "token_address": log["address"],
+            }
+            for log in transfer_logs
+        ]
+
+        if target_address:
+            transfer_logs = list(
+                filter(
+                    lambda log: target_address in (log["from"], log["to"]),  # type: ignore
+                    transfer_logs,
+                )
+            )
+
+        return dict(logs=transfer_logs)
 
     @classmethod
     def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals

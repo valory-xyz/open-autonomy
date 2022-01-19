@@ -79,9 +79,9 @@ class PeriodState(
         return cast(dict, self.db.get_strict("most_voted_strategy"))
 
     @property
-    def most_voted_lp_result(self) -> dict:
-        """Get the most_voted_lp_result."""
-        return cast(dict, self.db.get_strict("most_voted_lp_result"))
+    def most_voted_transfers(self) -> dict:
+        """Get the most_voted_transfers."""
+        return cast(dict, self.db.get_strict("most_voted_transfers"))
 
     @property
     def participant_to_lp_result(self) -> Mapping[str, ValidatePayload]:
@@ -241,7 +241,7 @@ class TransactionValidationBaseRound(
     round_id = "transaction_valid_round"
     allowed_tx_type = ValidatePayload.transaction_type
     exit_event: Event = Event.EXIT
-    payload_attribute = "amount"
+    payload_attribute = "transfers"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -249,7 +249,7 @@ class TransactionValidationBaseRound(
         if self.threshold_reached:
             state = self.period_state.update(
                 participant_to_lp_result=MappingProxyType(self.collection),
-                most_voted_lp_result=self.most_voted_payload,
+                most_voted_transfers=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(

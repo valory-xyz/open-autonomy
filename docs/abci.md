@@ -15,6 +15,11 @@ Blockchains are systems for multi-master state machine replication.
 Using a socket protocol, a consensus engine running in one process can manage 
 an application state running in another.
 
+The ABCI standard was introduced contextually with the
+[Tendermint project](https://docs.tendermint.com/master/introduction/what-is-tendermint.html), 
+although an ABCI-based app can work with any consensus engine
+that is ABCI-compatible, e.g. see [Fantom](https://fantom.foundation/about/).
+In the following, we will consider Tendermint as our state-replication layer.
 
 !!! note
 
@@ -31,17 +36,10 @@ an application state running in another.
     ABCI-based systems.
 
 
-The ABCI standard was introduced contextually with the
-[Tendermint project](https://docs.tendermint.com/master/introduction/what-is-tendermint.html), 
-although an ABCI-based app can work with any consensus engine
-that is ABCI-compatible, e.g. see [Fantom](https://fantom.foundation/about/).
-In the following, we will consider Tendermint as our state-replication layer.
-
 ## What is Tendermint
 
-Tendermint is a software for securely and consistently replicating 
-an application on many machines.
-It is Byzantine fault tolerant (BFT),
+Tendermint is software for securely and consistently replicating 
+an application on many machines. It is Byzantine fault-tolerant (BFT),
 i.e. it has the ability to tolerate machines failing in arbitrary ways, 
 including becoming malicious.
 
@@ -53,7 +51,7 @@ a **blockchain consensus engine** and a **generic application interface**.
 - The application interface, called the **Application BlockChain Interface (ABCI)**, 
   enables the transactions to be processed in any programming language. 
   Unlike other blockchain and consensus solutions, which come pre-packaged with 
-  built in state machines, developers can use Tendermint for 
+  built-in state machines, developers can use Tendermint for 
   BFT state machine replication of applications written in whatever programming 
   language and development environment is right for them.
 
@@ -64,7 +62,7 @@ from the consensus and networking layer (the consensus engine)
 through the ABCI protocol:
 
 <div style="text-align: center;"> 
-  <img src="../abci-tendermint.jpg" alt="ABCI and Tendermint" />
+  <img src="../images/abci-tendermint.jpg" alt="ABCI and Tendermint" />
 </div>
 
 The interaction between the consensus node and the ABCI application
@@ -110,7 +108,7 @@ The transaction are submitted by a third entity,
 the _User_, that uses the ABCI app
 by interacting with a Tendermint node
 through the [Tendermint RPC protocol](https://docs.tendermint.com/master/rpc/).
-At [this link](https://github.com/tendermint/tendermint/blob/master/proto/tendermint/abci/types.proto), 
+At [this link](https://github.com/tendermint/abci/blob/master/types/types.proto), 
 you can see the Protobuf definitions of those messages.
 
 In the following, we will review the most important interactions
@@ -119,7 +117,7 @@ with a focus on how the ABCI protocol comes into play.
 
 A quick overview of the ABCI protocol is depicted in this diagram:
 
-![](abci-requests.png)
+![](./images/abci-requests.png)
 
 ### Send a transaction
 
