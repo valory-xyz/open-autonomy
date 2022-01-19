@@ -19,12 +19,12 @@
 
 """ETL related operations."""
 
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union, cast
 
 import pandas as pd
 
 
-ResponseItemType = List[Dict[str, str]]
+ResponseItemType = List[Dict[str, Union[str, Dict[str, str]]]]
 
 # Define a dictionary with the data types for each column of the historical data.
 HIST_DTYPES = {
@@ -55,7 +55,8 @@ HIST_DTYPES = {
 
 # Define a dictionary with the data types of the columns of the transformed historical data.
 TRANSFORMED_HIST_DTYPES = HIST_DTYPES.copy()
-for new_str_col in (
+
+NEW_STR_COLS = (
     "token0_id",
     "token0_name",
     "token0_symbol",
@@ -63,13 +64,19 @@ for new_str_col in (
     "token1_name",
     "token1_symbol",
     "pairName",
-):
+)
+
+NEW_FLOAT_COLS = ("updatedVolumeUSD", "updatedReserveUSD", "current_change", "APY")
+
+TOKEN_COL_NAMES = ("token0", "token1")
+
+for new_str_col in NEW_STR_COLS:
     TRANSFORMED_HIST_DTYPES[new_str_col] = str
 
-for new_float_col in ("updatedVolumeUSD", "updatedReserveUSD", "current_change", "APY"):
+for new_float_col in NEW_FLOAT_COLS:
     TRANSFORMED_HIST_DTYPES[new_float_col] = float
 
-for old_col in ("token0", "token1"):
+for old_col in TOKEN_COL_NAMES:
     del TRANSFORMED_HIST_DTYPES[old_col]
 
 
@@ -116,8 +123,7 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     pairs_hist = pd.DataFrame(pairs_hist_raw).astype(HIST_DTYPES)
 
     # Split the dictionary-like token cols.
-    token_cols = ["token0", "token1"]
-    for token_col in token_cols:
+    for token_col in TOKEN_COL_NAMES:
         pairs_hist[f"{token_col}_id"] = (
             pairs_hist[token_col].apply(lambda x: x["id"]).astype(str)
         )
@@ -128,7 +134,7 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
             pairs_hist[token_col].apply(lambda x: x["symbol"]).astype(str)
         )
     # Drop the original dictionary-like token cols.
-    pairs_hist.drop(columns=token_cols, inplace=True)
+    pairs_hist.drop(columns=list(TOKEN_COL_NAMES), inplace=True)
 
     # Create pair's name.
     pairs_hist["pairName"] = (
@@ -180,13 +186,65 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     return pairs_hist
 
 
+def apply_revert_token_cols_wrapper(
+    token_name: str,
+) -> Callable[[pd.Series], Dict[str, str]]:
+    """A wrapper to revert a token column as it was before the transformation.
+
+    :param token_name: the token name for which we want to revert.
+    :return: a dictionary of the initial representation.
+    """
+
+    def apply_revert_token_cols(x: pd.Series) -> Dict[str, str]:
+        """Revert the token column as it was before the transformation.
+
+        :param x: the input series row.
+        :return: a dictionary of the initial representation.
+        """
+        return {
+            "id": x[f"{token_name}_id"],
+            "name": x[f"{token_name}_name"],
+            "symbol": x[f"{token_name}_symbol"],
+        }
+
+    return apply_revert_token_cols
+
+
+def revert_transform_hist_data(pairs_hist: pd.DataFrame) -> ResponseItemType:
+    """Revert the transformation of pairs' history.
+
+    :param pairs_hist: the transformed pairs' historical data.
+    :return: the reverted historical data.
+    """
+    # Re-create the old data which have been dropped.
+    for token_name in TOKEN_COL_NAMES:
+        pairs_hist[token_name] = pairs_hist.apply(
+            apply_revert_token_cols_wrapper(token_name), axis=1
+        )
+
+    # Drop columns that occur after the transformation.
+    drop_cols = list(NEW_STR_COLS + NEW_FLOAT_COLS)
+    for token_name in TOKEN_COL_NAMES:
+        drop_cols.extend(
+            [f"{token_name}_id", f"{token_name}_name", f"{token_name}_symbol"]
+        )
+    pairs_hist.drop(columns=drop_cols)
+
+    # Convert timestamp to unix int.
+    pairs_hist["block_timestamp"] = pairs_hist["block_timestamp"].view(int) / 10 ** 9
+
+    # Convert history to a list of dicts.
+    reverted_pairs_hist = pairs_hist.to_dict("records")
+
+    return cast(ResponseItemType, reverted_pairs_hist)
+
+
 def load_hist(path: str) -> pd.DataFrame:
     """Load the already fetched and transformed historical data.
 
     :param path: the path to the historical data.
     :return: a dataframe with the historical data.
     """
-    # Read the already fetched data.
     pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
 
     # Convert the `block_timestamp` to a pandas datetime.

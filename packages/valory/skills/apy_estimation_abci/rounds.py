@@ -91,6 +91,11 @@ class PeriodState(BasePeriodState):
         return cast(str, self.db.get_strict("most_voted_transform"))
 
     @property
+    def latest_observation_hist_hash(self) -> str:
+        """Get the latest observation's history hash."""
+        return cast(str, self.db.get_strict("latest_observation_hist_hash"))
+
+    @property
     def train_hash(self) -> str:
         """Get the most voted train hash."""
         split = cast(str, self.db.get_strict("most_voted_split"))
@@ -239,7 +244,7 @@ class CollectLatestHistoryBatchRound(CollectHistoryRound):
     selection_key = "most_voted_batch"
 
 
-class TransformRound(CollectSameUntilThresholdRound):
+class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """
     This class represents the 'Transform' round.
 
@@ -251,12 +256,29 @@ class TransformRound(CollectSameUntilThresholdRound):
 
     round_id = "transform"
     allowed_tx_type = TransformationPayload.transaction_type
-    payload_attribute = "transformation"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_transform"
-    selection_key = "most_voted_transform"
+    payload_attribute = "transformed_history_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(
+                    participant_to_transform=self.collection,
+                    most_voted_transform=self.most_voted_payload,
+                    latest_observation_hist_hash=cast(
+                        TransformationPayload, list(self.collection.values())[0]
+                    ).latest_observation_hist_hash,
+                ),
+            )
+            return updated_state, Event.DONE
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+
+        return None
 
 
 class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -313,7 +335,7 @@ class PrepareBatchRound(CollectSameUntilThresholdRound):
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_batch_preparation"
-    selection_key = "most_voted_prepared_batch"
+    selection_key = "latest_observation_hist_hash"
 
 
 class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -513,6 +535,11 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
             if self.round_id in ("cycle_reset", "fresh_model_reset"):
                 kwargs["pair_name"] = self.period_state.pair_name
                 kwargs["most_voted_model"] = self.period_state.model_hash
+            if self.round_id == "cycle_reset":
+                kwargs[
+                    "latest_observation_hist_hash"
+                ] = self.period_state.latest_observation_hist_hash
+
             updated_state = self.period_state.update(**kwargs)
             return updated_state, Event.DONE
 

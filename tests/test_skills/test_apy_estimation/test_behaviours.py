@@ -85,6 +85,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     FetchBehaviour,
     FreshModelResetBehaviour,
     OptimizeBehaviour,
+    PrepareBatchBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
@@ -97,8 +98,10 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     TrainBehaviour,
     TransformBehaviour,
+    UpdateForecasterBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
+from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
@@ -770,13 +773,14 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test FetchBehaviour."""
+class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
+    """Test FetchBehaviour and FetchBatchBehaviour."""
 
     behaviour_class = FetchBehaviour
     next_behaviour_class = TransformBehaviour
 
-    def test_setup(self, monkeypatch: MonkeyPatch) -> None:
+    @pytest.mark.parametrize("batch_flag", (True, False))
+    def test_setup(self, monkeypatch: MonkeyPatch, batch_flag: bool) -> None:
         """Test behaviour setup."""
         self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
 
@@ -785,6 +789,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             self.period_state,
         )
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).batch = batch_flag
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         cast(
@@ -1505,6 +1512,73 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
         self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
+
+
+class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test `PrepareBatchBehaviour`."""
+
+    behaviour_class = PrepareBatchBehaviour
+    next_behaviour_class = UpdateForecasterBehaviour
+
+    def _pre_setup_patching(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data: pd.DataFrame,
+        batch: ResponseItemType,
+    ) -> None:
+        """Patching to be performed before setup."""
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        latest_observation_hist_hash="x0",
+                        most_voted_batch="x1",
+                        latest_observation_timestamp=0,
+                    ),
+                )
+            ),
+        )
+
+        self.apy_estimation_behaviour.current_state.get_and_read_hist = lambda *_: transformed_historical_data.iloc[  # type: ignore
+            [0]
+        ].reset_index(
+            drop=True
+        )
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: batch  # type: ignore
+
+    def test_prepare_batch_behaviour_setup(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data: pd.DataFrame,
+        batch: ResponseItemType,
+    ) -> None:
+        """Test behaviour setup."""
+        self._pre_setup_patching(tmp_path, transformed_historical_data, batch)
+        cast(PrepareBatchBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+    def test_prepare_batch_behaviour(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data: pd.DataFrame,
+        batch: ResponseItemType,
+    ) -> None:
+        """Run test for `preprocess_behaviour`."""
+        self._pre_setup_patching(tmp_path, transformed_historical_data, batch)
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -2422,6 +2496,91 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
         self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
+
+
+class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test `UpdateForecasterBehaviour`."""
+
+    behaviour_class = UpdateForecasterBehaviour
+    next_behaviour_class = EstimateBehaviour
+
+    def _pre_setup_patching(self, tmp_path: PosixPath) -> None:
+        """Patching to be performed before setup."""
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_model="x1", latest_observation_hist_hash="x3"
+                    ),
+                )
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame({"APY": [0, 1]})  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = (  # type: ignore
+            lambda *_: DummyPipeline
+        )
+
+    def test_update_forecaster_setup(
+        self,
+        tmp_path: PosixPath,
+    ) -> None:
+        """Run test for `UpdateForecasterBehaviour`'s setup method."""
+        self._pre_setup_patching(tmp_path)
+        cast(
+            UpdateForecasterBehaviour, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    @staticmethod
+    def _temporarily_save_dummy_forecaster(tmp_path: str) -> None:
+        """Save a dummy forecaster to te given `tmp_path`."""
+        # Store the results.
+        order = (1, 1, 1)
+
+        # The Pipeline is deterministic.
+        forecaster = Pipeline(
+            [
+                ("fourier", FourierFeaturizer(0)),
+                (
+                    "arima",
+                    ARIMA(order),
+                ),
+            ]
+        )
+
+        joblib.dump(forecaster, tmp_path)
+
+    def test_update_forecaster_behaviour(
+        self,
+        tmp_path: PosixPath,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Run test for `UpdateForecasterBehaviour`."""
+        self._pre_setup_patching(tmp_path)
+
+        forecaster_save_path = os.path.join(tmp_path, "fully_trained_forecaster.joblib")
+        self._temporarily_save_dummy_forecaster(forecaster_save_path)
+        monkeypatch.setattr(joblib, "dump", no_action)
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(
+            UpdateForecasterBehaviour, self.apy_estimation_behaviour.current_state
+        )
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):

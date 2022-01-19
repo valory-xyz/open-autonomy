@@ -36,6 +36,7 @@ from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import train_forecaster
 from packages.valory.skills.apy_estimation_abci.models import SharedState
+from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
 
 HeaderType = Dict[str, str]
@@ -235,7 +236,7 @@ def transform_task_result() -> pd.DataFrame:
 
     :return: a dummy `Task` Result.
     """
-    return pd.DataFrame()
+    return pd.DataFrame({"test": ["test1", "test2"]})
 
 
 @pytest.fixture
@@ -425,6 +426,48 @@ def transformed_historical_data(
     )
 
     return transformed_historical_data_no_datetime_conversion
+
+
+@pytest.fixture
+def batch() -> ResponseItemType:
+    """Create a dummy batch of data."""
+    return [
+        {
+            "createdAtBlockNumber": "1",
+            "createdAtTimestamp": "1",
+            "id": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c",
+            "liquidityProviderCount": "1",
+            "reserve0": "1.4",
+            "reserve1": "1.4",
+            "reserveETH": "1.4",
+            "reserveUSD": "1.4",
+            "token0Price": "1.4",
+            "token1Price": "1.4",
+            "totalSupply": "1.4",
+            "trackedReserveETH": "1.4",
+            "untrackedVolumeUSD": "1.4",
+            "txCount": "1",
+            "volumeToken0": "1.2",
+            "volumeToken1": "1.2",
+            "volumeUSD": "1.2",
+            "for_timestamp": "1",
+            "block_number": "1",
+            "block_timestamp": "100000000",
+            "eth_price": "1.2",
+            "token0_id": "x",
+            "token0_name": "x",
+            "token0_symbol": "x",
+            "token1_id": "y",
+            "token1_name": "y",
+            "token1_symbol": "y",
+            "pairName": "x - y",
+            "updatedVolumeUSD": "1.2",
+            "updatedReserveUSD": "1.68",
+            "APY": "0.1",
+            "token0": {"id": "x", "name": "x", "symbol": "x"},
+            "token1": {"id": "y", "name": "y", "symbol": "y"},
+        }
+    ]
 
 
 class DummyPipeline:

@@ -56,7 +56,6 @@ from packages.valory.skills.apy_estimation_abci.ml.io import (
     save_forecaster,
 )
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
-    filter_pair_data,
     prepare_pair_data,
 )
 from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
@@ -102,6 +101,7 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
     load_hist,
+    revert_transform_hist_data,
     transform_hist_data,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import (
@@ -201,7 +201,10 @@ class APYEstimationBaseState(BaseState, ABC):
             raise e
 
     def get_and_read_hist(
-        self, hash_: str, target_dir: str, filename: str
+        self,
+        hash_: str,
+        target_dir: str,
+        filename: str,
     ) -> pd.DataFrame:
         """Download a csv file with historical data from the IPFS node.
 
@@ -498,8 +501,7 @@ class FetchBehaviour(APYEstimationBaseState):
                             # Fix: exit round via fail event and move to right round
                             raise exc
 
-                        # Hash the file.
-
+                        # Send the file to IPFS and get its hash.
                         hist_hash = self.send_file_to_ipfs_node(self._save_path)
                         self.context.logger.info(
                             f"IPFS hash for fetched data is: {hist_hash}"
@@ -693,7 +695,7 @@ class TransformBehaviour(APYEstimationBaseState):
         # Store the transformed data.
         transformed_history.to_csv(self._transformed_history_save_path, index=False)
 
-        # Hash the file.
+        # Send the file to IPFS and get its hash.
         transformed_hist_hash = self.send_file_to_ipfs_node(
             self._transformed_history_save_path
         )
@@ -701,10 +703,30 @@ class TransformBehaviour(APYEstimationBaseState):
             f"IPFS hash for transformed data is: {transformed_hist_hash}"
         )
 
+        # Get and store the latest observation.
+        latest_observation_save_path = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+            "latest_observation.csv",
+        )
+        create_pathdirs(latest_observation_save_path)
+        latest_observation = transformed_history.iloc[[-1]]
+
+        latest_observation.to_csv(latest_observation_save_path)
+
+        # Send the file to IPFS and get its hash.
+        latest_observation_hist_hash = self.send_file_to_ipfs_node(
+            latest_observation_save_path
+        )
+        self.context.logger.info(
+            f"IPFS hash for latest observation is: {latest_observation_hist_hash}"
+        )
+
         # Pass the hash as a Payload.
         payload = TransformationPayload(
             self.context.agent_address,
             transformed_hist_hash,
+            latest_observation_hist_hash,
         )
 
         # Finish behaviour.
@@ -778,9 +800,27 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         super().__init__(**kwargs)
         self._batch: Optional[ResponseItemType] = None
         self._prepared_batch_save_path = ""
+        self._previous_batch: Optional[pd.DataFrame] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
+        path_to_pair = os.path.join(
+            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.params.pair_ids[0],
+        )
+
+        batch_path_args = path_to_pair, "latest_observation.csv"
+        self._prepared_batch_save_path = os.path.join(*batch_path_args)
+        create_pathdirs(self._prepared_batch_save_path)
+
+        self._previous_batch = cast(
+            pd.DataFrame,
+            self.get_and_read_hist(
+                self.period_state.latest_observation_hist_hash,
+                *batch_path_args,
+            ),
+        )
+
         self._batch = cast(
             ResponseItemType,
             self.get_and_read_json(
@@ -790,33 +830,26 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             ),
         )
 
-        self._prepared_batch_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            self.params.pair_ids[0],
-            f"prepared_batch_{self.period_state.latest_observation_timestamp}.csv",
-        )
-        create_pathdirs(self._prepared_batch_save_path)
-
     def async_act(self) -> Generator:
         """Do the action."""
+        # Revert transformation on the previous batch.
+        previous_batch = revert_transform_hist_data(
+            cast(pd.DataFrame, self._previous_batch)
+        )[0]
+        # Insert the latest batch as a row before transforming, in order to be able to calculate the APY.
+        cast(ResponseItemType, self._batch).insert(0, previous_batch)
+
         # Transform and filter data. We are not using a `Task` here, because preparing a single batch is not intense.
-        # TODO insert the latest batch as a row before transforming, in order to be able to calculate the APY.
         self.context.logger.info(f"Batch is:\n{self._batch}")
         transformed_batch = transform_hist_data(cast(ResponseItemType, self._batch))
         self.context.logger.info(
             f"Batch has been transformed:\n{transformed_batch.to_string()}"
         )
-        prepared_batch, _, _ = filter_pair_data(
-            transformed_batch, self.params.pair_ids[0]
-        )
-        self.context.logger.info(
-            f"Batch has been prepared:\n{prepared_batch.to_string()}"
-        )
 
         # Store the prepared batch.
-        prepared_batch.to_csv(self._prepared_batch_save_path, index=False)
+        transformed_batch.to_csv(self._prepared_batch_save_path, index=False)
 
-        # Hash the file.
+        # Send the file to IPFS and get its hash.
         prepared_batch_hash = self.send_file_to_ipfs_node(
             self._prepared_batch_save_path
         )
@@ -999,7 +1032,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             # Fix: exit round via fail event and move to right round
             raise e
 
-        # Hash the file.
+        # Send the file to IPFS and get its hash.
         best_params_hash = self.send_file_to_ipfs_node(best_params_save_path)
         self.context.logger.info(f"IPFS hash for best params is: {best_params_hash}")
 
@@ -1099,7 +1132,7 @@ class TrainBehaviour(APYEstimationBaseState):
         create_pathdirs(forecaster_save_path)
         save_forecaster(forecaster_save_path, forecaster)
 
-        # Hash the file.
+        # Send the file to IPFS and get its hash.
         model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
         self.context.logger.info(
             f"IPFS hash for {prefix}forecasting model is: {model_hash}"
@@ -1200,7 +1233,7 @@ class TestBehaviour(APYEstimationBaseState):
             # Fix: exit round via fail event and move to right round
             raise e
 
-        # Hash the file.
+        # Send the file to IPFS and get its hash.
         report_hash = self.send_file_to_ipfs_node(report_save_path)
         self.context.logger.info(f"IPFS hash for test report is: {report_hash}")
 
@@ -1237,15 +1270,17 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         )
 
         # Load data batch.
-        self._y = self.get_and_read_csv(
-            self.period_state.batch_hash,
+        transformed_batch = self.get_and_read_csv(
+            self.period_state.latest_observation_hist_hash,
             pair_path,
-            f"prepared_batch_{self.period_state.latest_observation_timestamp}.csv",
-        ).values.ravel()
+            "latest_observation.csv",
+        )
+
+        self._y = transformed_batch["APY"].values.ravel()
 
         # Load forecaster.
         self._forecaster = self.get_and_read_forecaster(
-            self.period_state.train_hash,
+            self.period_state.model_hash,
             pair_path,
             self._forecaster_filename,
         )
@@ -1263,7 +1298,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         )
         save_forecaster(forecaster_save_path, self._forecaster)
 
-        # Hash the file.
+        # Send the file to IPFS and get its hash.
         model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
         self.context.logger.info(
             f"IPFS hash for updated forecasting model is: {model_hash}"

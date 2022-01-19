@@ -102,7 +102,8 @@ class TestProcessing:
                 "symbol": "X",
             }
         with pytest.raises(
-            ValueError, match="APY cannot be calculated if there are not at least two observations for a pool!"
+            ValueError,
+            match="APY cannot be calculated if there are not at least two observations for a pool!",
         ):
             transform_hist_data([invalid_current_change])  # type: ignore
 

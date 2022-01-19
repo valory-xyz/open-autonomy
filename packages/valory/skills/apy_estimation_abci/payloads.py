@@ -144,26 +144,40 @@ class TransformationPayload(BaseAPYPayload):
     transaction_type = TransactionType.TRANSFORMATION
 
     def __init__(
-        self, sender: str, transformation: str, id_: Optional[str] = None
+        self,
+        sender: str,
+        transformed_history_hash: str,
+        latest_observation_hist_hash: str,
+        id_: Optional[str] = None,
     ) -> None:
         """Initialize a 'transformation' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param transformation: the transformation's hash.
+        :param transformed_history_hash: the transformation's history hash.
+        :param latest_observation_hist_hash: the latest observation's history hash.
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._transformation_hash = transformation
+        self._transformed_history_hash = transformed_history_hash
+        self._latest_observation_hist_hash = latest_observation_hist_hash
 
     @property
-    def transformation(self) -> str:
-        """Get the transformation's hash."""
-        return self._transformation_hash
+    def transformed_history_hash(self) -> str:
+        """Get the transformation's history hash."""
+        return self._transformed_history_hash
+
+    @property
+    def latest_observation_hist_hash(self) -> str:
+        """Get the latest observation's history hash."""
+        return self._latest_observation_hist_hash
 
     @property
     def data(self) -> Dict[str, str]:
         """Get the data."""
-        return {"transformation": self._transformation_hash}
+        return {
+            "transformed_history_hash": self.transformed_history_hash,
+            "latest_observation_hist_hash": self.latest_observation_hist_hash,
+        }
 
 
 class PreprocessPayload(BaseAPYPayload):

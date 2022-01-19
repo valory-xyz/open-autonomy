@@ -21,6 +21,7 @@
 import pytest
 
 from packages.valory.skills.apy_estimation_abci.payloads import (
+    BatchPreparationPayload,
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -35,6 +36,7 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransactionType,
     TransformationPayload,
+    UpdatePayload,
 )
 
 
@@ -65,12 +67,21 @@ class TestPayloads:
     @staticmethod
     def test_transformation_payload() -> None:
         """Test `TransformationPayload`"""
-        payload = TransformationPayload(sender="sender", transformation="x0", id_="id")
+        payload = TransformationPayload(
+            sender="sender",
+            transformed_history_hash="x0",
+            latest_observation_hist_hash="x1",
+            id_="id",
+        )
 
         assert payload.transaction_type == TransactionType.TRANSFORMATION
-        assert payload.transformation == "x0"
+        assert payload.transformed_history_hash == "x0"
+        assert payload.latest_observation_hist_hash == "x1"
         assert payload.id_ == "id"
-        assert payload.data == {"transformation": "x0"}
+        assert payload.data == {
+            "transformed_history_hash": "x0",
+            "latest_observation_hist_hash": "x1",
+        }
 
     @staticmethod
     def test_preprocess_payload() -> None:
@@ -115,6 +126,20 @@ class TestPayloads:
         assert payload.transaction_type == TransactionType.RANDOMNESS
 
     @staticmethod
+    def test_batch_preparation_payload() -> None:
+        """Test `BatchPreparationPayload`"""
+        payload = BatchPreparationPayload(
+            sender="sender",
+            prepared_batch="x0",
+            id_="id",
+        )
+
+        assert payload.transaction_type == TransactionType.BATCH_PREPARATION
+        assert payload.prepared_batch == "x0"
+        assert payload.id_ == "id"
+        assert payload.data == {"prepared_batch": "x0"}
+
+    @staticmethod
     def test_optimization_payload() -> None:
         """Test `OptimizationPayload`"""
         payload = OptimizationPayload(
@@ -147,6 +172,16 @@ class TestPayloads:
         assert payload.report_hash == "x0"
         assert payload.id_ == "id"
         assert payload.data == {"report_hash": "x0"}
+
+    @staticmethod
+    def test_update_payload() -> None:
+        """Test `UpdatePayload`"""
+        payload = UpdatePayload(sender="sender", updated_model_hash="x0", id_="id")
+
+        assert payload.transaction_type == TransactionType.UPDATE
+        assert payload.updated_model_hash == "x0"
+        assert payload.id_ == "id"
+        assert payload.data == {"updated_model_hash": "x0"}
 
     @staticmethod
     def test_estimate_payload() -> None:

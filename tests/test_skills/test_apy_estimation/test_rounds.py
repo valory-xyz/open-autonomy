@@ -122,7 +122,7 @@ def get_transformation_payload(
 ) -> Dict[str, TransformationPayload]:
     """Get transformation payloads."""
     return {
-        participant: TransformationPayload(participant, "transformation_hash")
+        participant: TransformationPayload(participant, "transformation_hash", "x1")
         for participant in participants
     }
 
@@ -627,6 +627,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                     pair_name="",
                     full_training=False,
                     n_estimations=1,
+                    latest_observation_hist_hash="x0",
                     participants=get_participants(),
                 ),
                 state_attr_checks=[],
