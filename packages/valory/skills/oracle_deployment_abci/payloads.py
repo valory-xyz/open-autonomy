@@ -99,34 +99,6 @@ class SelectKeeperPayload(BaseTxPayload):
         return dict(keeper=self.keeper)
 
 
-class ValidateOraclePayload(BaseTxPayload):
-    """Represent a transaction payload of type 'validate'."""
-
-    transaction_type = TransactionType.VALIDATE
-
-    def __init__(
-        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
-    ) -> None:
-        """Initialize an 'validate' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param vote: the vote
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._vote = vote
-
-    @property
-    def vote(self) -> Optional[bool]:
-        """Get the vote."""
-        return self._vote
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(vote=self.vote) if self.vote is not None else {}
-
-
 class DeployOraclePayload(BaseTxPayload):
     """Represent a transaction payload of type 'deploy_oracle'."""
 

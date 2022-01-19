@@ -37,8 +37,8 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
     DeployOraclePayload,
     RandomnessPayload,
     SelectKeeperPayload,
-    ValidateOraclePayload,
 )
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 
 class Event(Enum):
@@ -114,7 +114,7 @@ class ValidateOracleRound(VotingRound):
     """A round in a which the oracle address is validated"""
 
     round_id = "validate_oracle"
-    allowed_tx_type = ValidateOraclePayload.transaction_type
+    allowed_tx_type = ValidatePayload.transaction_type
     payload_attribute = "vote"
     period_state_class = PeriodState
     done_event = Event.DONE

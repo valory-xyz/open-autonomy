@@ -8,10 +8,10 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmbVLScdfkiBRd1HJ3j2hH9dAyooqeVmrMAe9zm4WboxyZ
   __init__.py: QmXWin5fsEAnCyYehninEjeP6diL3AwjNj6piBTxd2SQBA
-  behaviours.py: QmbrUTppDADWJ3M8aX6nBko9rQdb8JVS3BbaAPthFMera1
+  behaviours.py: QmT5EuM3qUBJnZqw1U1X2GvmaJyP72sJxqosHXPU3kDhRt
   models.py: QmWi4JYVHBXAj1ThCPvou9VDg1djeezfpMN9EYaWVr7ZdA
-  payloads.py: QmZE3Zj7sEd7QN9qFdRmaZENqp6HWzcPt5JqAV9VsrvXc1
-  rounds.py: QmTXuaWwFYLfrnaFWcCRmHE5GgspJ1LDtauaQKBw7urK7f
+  payloads.py: QmYcArAsPjA5quwfLoycuFqWkvK3wUWCTES6giGGmsxo7p
+  rounds.py: QmfLgsqcQdoWEWKWwdsppzQaMnbvsuawKYQ3C2cuq6dEje
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -20,6 +20,7 @@ protocols:
 - valory/contract_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
 behaviours: {}
 handlers: {}
 models: {}
