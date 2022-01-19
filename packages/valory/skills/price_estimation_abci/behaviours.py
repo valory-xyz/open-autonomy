@@ -318,7 +318,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         return payload_string
 
 
-class ObserverBehaviour(AbstractRoundBehaviour):
+class ObserveConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
@@ -346,7 +346,7 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         *AgentRegistrationConsensusBehaviour.behaviour_states,
         *SafeDeploymentConsensusBehaviour.behaviour_states,
         *TransactionSettlementConsensusBehaviour.behaviour_states,
-        *ObserverBehaviour.behaviour_states,
+        *ObserveConsensusBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:
