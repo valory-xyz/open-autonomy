@@ -523,11 +523,11 @@ class TransactionSettlementConsensusBehaviour(AbstractRoundBehaviour):
     abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        ValidateTransactionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        ValidateTransactionBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

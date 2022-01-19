@@ -118,7 +118,10 @@ class _MetaRoundBehaviour(ABCMeta):
 
         # check covering
         for round_cls, states in round_to_state.items():
-            if len(states) == 0:
+            if (
+                len(states) == 0
+                and round_cls not in behaviour_cls.abci_app_cls.final_states
+            ):
                 raise ABCIAppInternalError(
                     f"round {round_cls.round_id} is not a matching round of any state behaviour"
                 )
