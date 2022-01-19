@@ -432,7 +432,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             self._is_started = True
 
         try:
-            if self.context.state.period.syncing_up():
+            if self.context.state.period.syncing_up:
                 if self.matching_round is None:
                     yield from self.sleep(_SYNC_MODE_WAIT)
                 else:
@@ -440,7 +440,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             else:
                 yield from self.async_act()
         except (GeneratorExit, StopIteration):
-            if self.context.state.period.syncing_up():
+            if self.context.state.period.syncing_up:
                 has_synced_up = yield from self._has_synced_up()
                 if has_synced_up:
                     self.context.logger.info("local height == remote; Ending sync...")
@@ -448,6 +448,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             self.clean_up()
             self.set_done()
             self._log_end()
+            return
 
         if self._is_done:
             self._log_end()

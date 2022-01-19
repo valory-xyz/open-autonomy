@@ -1751,6 +1751,7 @@ class Period:
         """Set `_syncing_up` flag to false."""
         self._syncing_up = False
 
+    @property
     def syncing_up(
         self,
     ) -> bool:
