@@ -363,6 +363,7 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             contract_callable="get_tx_transfer_logs",
             tx_hash=self.period_state.final_tx_hash,
+            target_address=self.period_state.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return []  # pragma: nocover

@@ -1306,6 +1306,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                 kwargs=Kwargs(
                     dict(
                         tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
                     )
                 ),
             ),
