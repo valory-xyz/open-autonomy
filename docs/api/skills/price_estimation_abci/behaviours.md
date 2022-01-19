@@ -148,17 +148,17 @@ Steps:
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverBehaviour"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserveConsensusBehaviour"></a>
 
-## ObserverBehaviour Objects
+## ObserveConsensusBehaviour Objects
 
 ```python
-class ObserverBehaviour(AbstractRoundBehaviour)
+class ObserveConsensusBehaviour(AbstractRoundBehaviour)
 ```
 
 This behaviour manages the consensus stages for the observer behaviour.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverBehaviour.setup"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserveConsensusBehaviour.setup"></a>
 
 #### setup
 
