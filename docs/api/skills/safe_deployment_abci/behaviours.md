@@ -109,3 +109,23 @@ def has_correct_contract_been_deployed() -> Generator[None, None, bool]
 
 Contract deployment verification.
 
+<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentConsensusBehaviour"></a>
+
+## SafeDeploymentConsensusBehaviour Objects
+
+```python
+class SafeDeploymentConsensusBehaviour(AbstractRoundBehaviour)
+```
+
+This behaviour manages the consensus stages for the safe deployment.
+
+<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentConsensusBehaviour.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Set up the behaviour.
+
