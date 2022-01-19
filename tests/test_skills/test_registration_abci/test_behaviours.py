@@ -263,10 +263,11 @@ class TestTendermintHealthcheckBehaviour(RegistrationAbciBaseCase):
                 ),
             )
         mock_logger.assert_any_call(
-            logging.INFO, "local height != remote height; retrying..."
+            logging.INFO, "remote height > local height; Entering sync mode..."
         )
+        assert self.behaviour.context.state.period.syncing_up is True
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == TendermintHealthcheckBehaviour.state_id
+        assert state.state_id == RegistrationStartupBehaviour.state_id
         time.sleep(1)
         self.behaviour.act_wrapper()
 

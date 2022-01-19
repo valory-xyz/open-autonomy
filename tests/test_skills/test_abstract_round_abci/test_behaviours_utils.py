@@ -334,6 +334,7 @@ class TestBaseState:
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
         self.context_mock.state.period.current_round_id = "round_a"
+        self.context_mock.state.period.syncing_up = False
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
     def test_params_property(self) -> None:

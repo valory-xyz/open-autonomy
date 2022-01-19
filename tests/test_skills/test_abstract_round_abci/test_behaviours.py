@@ -145,6 +145,7 @@ class TestAbstractRoundBehaviour:
         self.period_mock = MagicMock()
         context_mock = MagicMock()
         context_mock.state.period = self.period_mock
+        context_mock.state.period.syncing_up = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:
