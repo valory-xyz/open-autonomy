@@ -132,6 +132,20 @@ def transfer_to_string(
     return json.dumps(result)
 
 
+def merge_transfer_strings(transfer_strings: List[str]) -> str:
+    """
+    Returns the merged version of stringified transfers.
+
+    :param transfer_strings: a list of stringified transfers.
+    :return: the transfered amounts
+    """
+    transfers = [
+        json.loads(transfer_string)["transfers"][0]
+        for transfer_string in transfer_strings
+    ]
+    return json.dumps(dict(transfers=transfers))
+
+
 class TestLiquidityProvisionHardhat(
     LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
 ):
@@ -663,7 +677,7 @@ class TestLiquidityProvisionHardhat(
         )
         assert (
             transfered_amount == 1000
-        ), f"Amount is not correct: {transfered_amount} != 1000"
+        ), f"Enter pool amount is not correct: {transfered_amount} != 1000"
 
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
@@ -797,7 +811,7 @@ class TestLiquidityProvisionHardhat(
         )
         assert (
             transfered_amount == 1000
-        ), f"Amount is not correct: {transfered_amount} != 1000"
+        ), f"Exit pool amount is not correct: {transfered_amount} != 1000"
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -924,7 +938,7 @@ class TestLiquidityProvisionHardhat(
         )
         assert (
             transfered_amount == 250
-        ), f"Amount is not correct: {transfered_amount} != 250"
+        ), f"Swap back amount is not correct: {transfered_amount} != 250"
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -1018,9 +1032,27 @@ class TestLiquidityProvisionHardhat(
         strategy = deepcopy(self.strategy)
         strategy["safe_nonce"] = 2
 
+        transfer_a = transfer_to_string(
+            source_address=self.router_contract_address,
+            destination_address=self.safe_contract_address,
+            token_address=strategy["pair"]["token_a"]["address"],
+            value=250,
+        )
+        transfer_b = transfer_to_string(
+            source_address=self.router_contract_address,
+            destination_address=self.safe_contract_address,
+            token_address=strategy["pair"]["token_b"]["address"],
+            value=250,
+        )
+
+        transfers = merge_transfer_strings([transfer_a, transfer_b])
+
         period_state = cast(
             PeriodState,
-            self.default_period_state_swap_back.update(most_voted_strategy=strategy),
+            self.default_period_state_swap_back.update(
+                most_voted_strategy=strategy,
+                most_voted_transfers=transfers,
+            ),
         )
 
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]

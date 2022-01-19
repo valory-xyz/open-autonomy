@@ -363,6 +363,7 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             contract_callable="get_tx_transfer_logs",
             tx_hash=self.period_state.final_tx_hash,
+            target_address=self.period_state.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
             return []  # pragma: nocover
@@ -399,7 +400,6 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_A_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
@@ -408,7 +408,6 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_B_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
             },
         },
     }
@@ -1019,6 +1018,22 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = self.period_state.most_voted_strategy
+            transfers = json.loads(cast(str, self.period_state.most_voted_transfers))[
+                "transfers"
+            ]
+
+            amount_a_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
+            amount_b_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -1060,9 +1075,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_tokens_for_tokens",
-                    amount_in=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    amount_in=int(amount_a_received),
                     amount_out_min=int(
                         strategy["base"]["amount_min_after_swap_back_a"]
                     ),
@@ -1090,7 +1103,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
-                amount_in=int(strategy["pair"]["token_b"]["amount_min_after_rem_liq"]),
+                amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
                 path=[
                     strategy["pair"]["token_b"]["address"],
