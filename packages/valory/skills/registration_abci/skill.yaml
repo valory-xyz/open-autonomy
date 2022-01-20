@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSohTt9XD9s4eJAXqb97dTmf627huMrPgmFCi87AB9FyP
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmdHcvY77ULRdpSBjLVNWuKcgTQuWc6FBrE5GD7yuLEYjT
+  behaviours.py: QmRg6P6irGF9hzTvN18V3RftcvecDVsSjtpB9U8yEkiZGm
   payloads.py: QmVVNDzw1jj8B4eabfbG47SzFK4uSH86WpNweKJhXvmigP
   rounds.py: QmPxcxMQi19NYE3QUtXzUUvXdjk7Y4RkynRaMZUE1xCk4S
 fingerprint_ignore_patterns: []
