@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -211,9 +211,6 @@ class AbstractRoundBehaviour(
         self._process_current_round()
 
         current_state = self.current_state
-        current_state.is_initial_behaviour = isinstance(
-            current_state, self.initial_state_cls
-        )
         if current_state is None:
             return
 

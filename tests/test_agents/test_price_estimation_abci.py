@@ -20,6 +20,8 @@
 """Integration tests for the valory/price_estimation_abci skill."""
 
 
+import pytest
+
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
@@ -135,6 +137,7 @@ class TestDelayedStart(BaseTestEnd2EndDelayedStart, UseGnosisSafeHardHatNet):
     check_strings = CHECK_STRINGS
 
 
+@pytest.mark.skip
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
@@ -143,11 +146,3 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 180
     check_strings = CHECK_STRINGS
-
-    def teardown(
-        self,
-    ):
-
-        for i, process in enumerate(self.processes):
-            with open(f"/root/logs/agent_{i}.txt", "w+") as fp:
-                fp.write(self.stdout[process.pid])
