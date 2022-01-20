@@ -128,6 +128,13 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         process = self.run_agent()
         self.processes.append(process)
 
+    def teardown(
+        self,
+    ):
+        for i, process in enumerate(self.processes):
+            with open(f"/root/logs/agent_{i}.txt", "w+") as fp:
+                fp.write(self.stdout[process.pid])
+
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
@@ -185,6 +192,44 @@ class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
 
         # now start last agent, and wait the catch up
         self._launch_agent_i(self.NB_AGENTS - 1)
+
+        # check that *each* AEA prints these messages
+        for process in self.processes:
+            missing_strings = self.missing_from_output(
+                process, self.check_strings, self.wait_to_finish
+            )
+            assert (
+                missing_strings == []
+            ), "Strings {} didn't appear in agent output.".format(missing_strings)
+
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
+
+
+class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
+    """Test that an agent that is launched later can synchronize with the rest of the network"""
+
+    def test_run(self) -> None:
+        """Run the test."""
+
+        for agent_id in range(self.NB_AGENTS):
+            self._launch_agent_i(agent_id)
+
+        logging.info("Waiting Tendermint nodes to be up")
+        self.health_check(
+            self.tendermint_net_builder,
+            max_retries=self.HEALTH_CHECK_MAX_RETRIES,
+            sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
+        )
+
+        time.sleep(45)
+
+        self.terminate_agents(self.processes[0])
+        self._launch_agent_i(0)
 
         # check that *each* AEA prints these messages
         for process in self.processes:
