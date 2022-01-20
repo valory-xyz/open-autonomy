@@ -119,13 +119,3 @@ class SafeDeploymentConsensusBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the safe deployment.
 
-<a id="packages.valory.skills.safe_deployment_abci.behaviours.SafeDeploymentConsensusBehaviour.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up the behaviour.
-

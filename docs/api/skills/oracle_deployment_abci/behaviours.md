@@ -130,13 +130,3 @@ class OracleDeploymentConsensusBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the oracle deployment.
 
-<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentConsensusBehaviour.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up the behaviour.
-

@@ -158,16 +158,6 @@ class ObserveConsensusBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the observer behaviour.
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserveConsensusBehaviour.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up the behaviour.
-
 <a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationConsensusBehaviour"></a>
 
 ## PriceEstimationConsensusBehaviour Objects

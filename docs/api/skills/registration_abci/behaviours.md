@@ -90,13 +90,3 @@ class AgentRegistrationConsensusBehaviour(AbstractRoundBehaviour)
 
 This behaviour manages the consensus stages for the registration.
 
-<a id="packages.valory.skills.registration_abci.behaviours.AgentRegistrationConsensusBehaviour.setup"></a>
-
-#### setup
-
-```python
-def setup() -> None
-```
-
-Set up the behaviour.
-
