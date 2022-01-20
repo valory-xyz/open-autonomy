@@ -94,7 +94,7 @@ an optional JSON-like object.
 
 ```python
 @classmethod
-def get_raw_safe_transaction_hash(cls, ledger_api: LedgerApi, contract_address: str, to_address: str, value: int, data: bytes, operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_nonce: Optional[int] = None, safe_version: Optional[str] = None, chain_id: Optional[int] = None) -> JSONLike
+def get_raw_safe_transaction_hash(cls, ledger_api: EthereumApi, contract_address: str, to_address: str, value: int, data: bytes, operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_nonce: Optional[int] = None, safe_version: Optional[str] = None, chain_id: Optional[int] = None) -> JSONLike
 ```
 
 Get the hash of the raw Safe transaction.
@@ -131,7 +131,7 @@ the hash of the raw Safe transaction
 
 ```python
 @classmethod
-def get_raw_safe_transaction(cls, ledger_api: LedgerApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_nonce: Optional[int] = None) -> JSONLike
+def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, old_tip: Optional[int] = None) -> JSONLike
 ```
 
 Get the raw Safe transaction
@@ -150,10 +150,14 @@ Get the raw Safe transaction
 - `operation`: Operation type of Safe transaction
 - `safe_tx_gas`: Gas that should be used for the Safe transaction
 - `base_gas`: Gas costs for that are independent of the transaction execution
-- `gas_price`: Gas price that should be used for the payment calculation
+- `safe_gas_price`: Gas price that should be used for the payment calculation
 - `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
-- `safe_nonce`: Current nonce of the Safe. If not provided, it will be retrieved from network
+- `gas_price`: gas price
+- `nonce`: the nonce
+- `max_fee_per_gas`: max
+- `max_priority_fee_per_gas`: max
+- `old_tip`: the old `maxPriorityFeePerGas` in case that we are trying to resubmit a transaction.
 
 **Returns**:
 
@@ -185,7 +189,7 @@ the verified status
 
 ```python
 @classmethod
-def verify_tx(cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_version: Optional[str] = None) -> JSONLike
+def verify_tx(cls, ledger_api: EthereumApi, contract_address: str, tx_hash: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_version: Optional[str] = None) -> JSONLike
 ```
 
 Verify a tx hash exists on the blockchain.

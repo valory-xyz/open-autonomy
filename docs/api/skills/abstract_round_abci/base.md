@@ -103,7 +103,7 @@ class _MetaPayload(ABCMeta)
 Payload metaclass.
 
 The purpose of this metaclass is to remember the association
-between the type of a payload and the payload class to build it.
+between the type of payload and the payload class to build it.
 This is necessary to recover the right payload class to instantiate
 at decoding time.
 
@@ -222,6 +222,16 @@ def __eq__(other: Any) -> bool
 ```
 
 Check equality.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__hash__"></a>
+
+#### `__`hash`__`
+
+```python
+def __hash__() -> int
+```
+
+Hash the payload.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Transaction"></a>
 
@@ -553,6 +563,97 @@ def __eq__(other: Any) -> bool
 
 Check equality.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB"></a>
+
+## StateDB Objects
+
+```python
+class StateDB()
+```
+
+Class to represent all state replicated across periods.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(initial_period: int, initial_data: Dict[str, Any]) -> None
+```
+
+Initialize a period state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_period_count"></a>
+
+#### current`_`period`_`count
+
+```python
+@property
+def current_period_count() -> int
+```
+
+Get the current period count.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get"></a>
+
+#### get
+
+```python
+def get(key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]
+```
+
+Get a value from the data dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_strict"></a>
+
+#### get`_`strict
+
+```python
+def get_strict(key: str) -> Any
+```
+
+Get a value from the data dictionary and raise if it is None.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.update_current_period"></a>
+
+#### update`_`current`_`period
+
+```python
+def update_current_period(**kwargs: Any) -> None
+```
+
+Update the current period's state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.add_new_period"></a>
+
+#### add`_`new`_`period
+
+```python
+def add_new_period(new_period: int, **kwargs: Any) -> None
+```
+
+Update the current period's state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_all"></a>
+
+#### get`_`all
+
+```python
+def get_all() -> Dict[str, Any]
+```
+
+Get all key-value pairs from the data dictionary for the current period.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__repr__"></a>
+
+#### `__`repr`__`
+
+```python
+def __repr__() -> str
+```
+
+Return a string representation of the state.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState"></a>
 
 ## BasePeriodState Objects
@@ -570,10 +671,32 @@ This is the relevant state constructed and replicated by the agents in a period.
 #### `__`init`__`
 
 ```python
-def __init__(participants: Optional[AbstractSet[str]] = None) -> None
+def __init__(db: StateDB) -> None
 ```
 
 Initialize a period state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.db"></a>
+
+#### db
+
+```python
+@property
+def db() -> StateDB
+```
+
+Get DB.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.period_count"></a>
+
+#### period`_`count
+
+```python
+@property
+def period_count() -> int
+```
+
+Get the period count.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participants"></a>
 
@@ -585,6 +708,26 @@ def participants() -> FrozenSet[str]
 ```
 
 Get the participants.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.sorted_participants"></a>
+
+#### sorted`_`participants
+
+```python
+@property
+def sorted_participants() -> Sequence[str]
+```
+
+Get the sorted participants' addresses.
+
+The addresses are sorted according to their hexadecimal value;
+this is the reason we use key=str.lower as comparator.
+
+This property is useful when interacting with the Safe contract.
+
+**Returns**:
+
+the sorted participants' addresses
 
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.nb_participants"></a>
 
@@ -602,7 +745,7 @@ Get the number of participants.
 #### update
 
 ```python
-def update(**kwargs: Any) -> "BasePeriodState"
+def update(period_state_class: Optional[Type] = None, period_count: Optional[int] = None, **kwargs: Any, ,) -> "BasePeriodState"
 ```
 
 Copy and update the state.
@@ -616,6 +759,83 @@ def __repr__() -> str
 ```
 
 Return a string representation of the state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.keeper_randomness"></a>
+
+#### keeper`_`randomness
+
+```python
+@property
+def keeper_randomness() -> float
+```
+
+Get the keeper's random number [0-1].
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.most_voted_randomness"></a>
+
+#### most`_`voted`_`randomness
+
+```python
+@property
+def most_voted_randomness() -> str
+```
+
+Get the most_voted_randomness.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.most_voted_keeper_address"></a>
+
+#### most`_`voted`_`keeper`_`address
+
+```python
+@property
+def most_voted_keeper_address() -> str
+```
+
+Get the most_voted_keeper_address.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.is_keeper_set"></a>
+
+#### is`_`keeper`_`set
+
+```python
+@property
+def is_keeper_set() -> bool
+```
+
+Check whether keeper is set.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_selection"></a>
+
+#### participant`_`to`_`selection
+
+```python
+@property
+def participant_to_selection() -> Mapping
+```
+
+Check whether keeper is set.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_randomness"></a>
+
+#### participant`_`to`_`randomness
+
+```python
+@property
+def participant_to_randomness() -> Mapping
+```
+
+Check whether keeper is set.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.participant_to_votes"></a>
+
+#### participant`_`to`_`votes
+
+```python
+@property
+def participant_to_votes() -> Mapping
+```
+
+Check whether keeper is set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound"></a>
 
@@ -693,7 +913,7 @@ of the class that is named '{payload_name}'.
 
 ```python
 @abstractmethod
-def end_block() -> Optional[Tuple[BasePeriodState, EventType]]
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
 ```
 
 Process the end of the block.
@@ -724,8 +944,8 @@ Check the transaction is of the allowed transaction type.
 
 **Arguments**:
 
-:raises:
-    TransactionTypeNotRecognizedError if the transaction can be applied to the current state.
+:raises: TransactionTypeNotRecognizedError if the transaction can be
+         applied to the current state.
 - `transaction`: the transaction
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_majority_possible_with_new_voter"></a>
@@ -737,16 +957,18 @@ Check the transaction is of the allowed transaction type.
 def check_majority_possible_with_new_voter(cls, votes_by_participant: Dict[Any, Any], new_voter: Any, new_vote: Any, nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
-Check that a Byzantine majority is still achievable, once a new vote is added.
+Check that a Byzantine majority is achievable, once a new vote is added.
 
 **Arguments**:
 
+        before the new vote is added
+                       check fails.
 :raises: exception_cls: in case the check does not pass.
-- `votes_by_participant`: a mapping from a participant to its vote, before the new vote is added
+- `votes_by_participant`: a mapping from a participant to its vote,
 - `new_voter`: the new voter
 - `new_vote`: the new vote
 - `nb_participants`: the total number of participants
-- `exception_cls`: the class of the exception to raise in case the check fails.
+- `exception_cls`: the class of the exception to raise in case the
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_majority_possible"></a>
 
@@ -769,17 +991,19 @@ The check fails iff:
     nb_remaining_votes + largest_nb_votes < quorum
 
 That is, if the number of remaining votes is not enough to make
-the most voted item so far to exceed the quorm.
+the most voted item so far to exceed the quorum.
 
 Preconditions on the input:
-- the size of votes_by_participant should not be greater than "nb_participants - 1" voters
+- the size of votes_by_participant should not be greater than
+"nb_participants - 1" voters
 - new voter must not be in the current votes_by_participant
 
 **Arguments**:
 
+                      check fails.
 - `votes_by_participant`: a mapping from a participant to its vote
 - `nb_participants`: the total number of participants
-- `exception_cls`: the class of the exception to raise in case the check fails.
+- `exception_cls`: the class of the exception to raise in case the
 
 **Raises**:
 
@@ -794,7 +1018,7 @@ Preconditions on the input:
 def is_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int) -> bool
 ```
 
-Return true if a Byzantine majority is still achievable, false otherwise.
+Return true if a Byzantine majority is achievable, false otherwise.
 
 **Arguments**:
 
@@ -827,6 +1051,48 @@ def process_payload(payload: BaseTxPayload) -> None
 
 Process payload.
 
+<a id="packages.valory.skills.abstract_round_abci.base.DegenerateRound"></a>
+
+## DegenerateRound Objects
+
+```python
+class DegenerateRound(AbstractRound)
+```
+
+This class represents the finished round during operation.
+
+It is a sink round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DegenerateRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check payload.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DegenerateRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DegenerateRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+End block.
+
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound"></a>
 
 ## CollectionRound Objects
@@ -839,7 +1105,7 @@ CollectionRound.
 
 This class represents abstract logic for collection based rounds where
 the round object needs to collect data from different agents. The data
-maybe same for a voting round or different like estimate round.
+might for example be from a voting round or estimation round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.__init__"></a>
 
@@ -960,6 +1226,16 @@ def most_voted_payload() -> Any
 
 Get the most voted payload.
 
+<a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
+
 <a id="packages.valory.skills.abstract_round_abci.base.OnlyKeeperSendsRound"></a>
 
 ## OnlyKeeperSendsRound Objects
@@ -1014,6 +1290,16 @@ def has_keeper_sent_payload() -> bool
 
 Check if keeper has sent the payload.
 
+<a id="packages.valory.skills.abstract_round_abci.base.OnlyKeeperSendsRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
+
 <a id="packages.valory.skills.abstract_round_abci.base.VotingRound"></a>
 
 ## VotingRound Objects
@@ -1049,6 +1335,27 @@ def negative_vote_threshold_reached() -> bool
 
 Check that the vote threshold has been reached.
 
+<a id="packages.valory.skills.abstract_round_abci.base.VotingRound.none_vote_threshold_reached"></a>
+
+#### none`_`vote`_`threshold`_`reached
+
+```python
+@property
+def none_vote_threshold_reached() -> bool
+```
+
+Check that the vote threshold has been reached.
+
+<a id="packages.valory.skills.abstract_round_abci.base.VotingRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
+
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilThresholdRound"></a>
 
 ## CollectDifferentUntilThresholdRound Objects
@@ -1072,6 +1379,16 @@ def collection_threshold_reached() -> bool
 ```
 
 Check if the threshold has been reached.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilThresholdRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.abstract_round_abci.base.TimeoutEvent"></a>
 
@@ -1170,18 +1487,38 @@ def pop_timeout() -> Tuple[datetime.datetime, Any]
 
 Remove and return the earliest timeout-event pair.
 
+<a id="packages.valory.skills.abstract_round_abci.base._MetaAbciApp"></a>
+
+## `_`MetaAbciApp Objects
+
+```python
+class _MetaAbciApp(ABCMeta)
+```
+
+A metaclass that validates AbciApp's attributes.
+
+<a id="packages.valory.skills.abstract_round_abci.base._MetaAbciApp.__new__"></a>
+
+#### `__`new`__`
+
+```python
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+```
+
+Initialize the class.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp"></a>
 
 ## AbciApp Objects
 
 ```python
-class AbciApp(Generic[EventType])
+class AbciApp(
+    Generic[EventType],  ABC, metaclass=_MetaAbciApp)
 ```
 
 Base class for ABCI apps.
 
 Concrete classes of this class implement the ABCI App.
-It requires to set
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.__init__"></a>
 
@@ -1192,6 +1529,50 @@ def __init__(state: BasePeriodState, consensus_params: ConsensusParams, logger: 
 ```
 
 Initialize the AbciApp.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.state"></a>
+
+#### state
+
+```python
+@property
+def state() -> BasePeriodState
+```
+
+Return the current state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
+
+#### get`_`all`_`rounds
+
+```python
+@classmethod
+def get_all_rounds(cls) -> Set[AppState]
+```
+
+Get all the round states.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_events"></a>
+
+#### get`_`all`_`events
+
+```python
+@classmethod
+def get_all_events(cls) -> Set[EventType]
+```
+
+Get all the events.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_round_classes"></a>
+
+#### get`_`all`_`round`_`classes
+
+```python
+@classmethod
+def get_all_round_classes(cls) -> Set[AppState]
+```
+
+Get all round classes.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp"></a>
 
@@ -1235,6 +1616,17 @@ def current_round_id() -> Optional[str]
 ```
 
 Get the current round id.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round_height"></a>
+
+#### current`_`round`_`height
+
+```python
+@property
+def current_round_height() -> int
+```
+
+Get the current round height.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.last_round_id"></a>
 
@@ -1377,6 +1769,17 @@ def abci_app() -> AbciApp
 
 Get the AbciApp.
 
+<a id="packages.valory.skills.abstract_round_abci.base.Period.height"></a>
+
+#### height
+
+```python
+@property
+def height() -> int
+```
+
+Get the height.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Period.is_finished"></a>
 
 #### is`_`finished
@@ -1420,6 +1823,17 @@ def current_round_id() -> Optional[str]
 
 Get the current round id.
 
+<a id="packages.valory.skills.abstract_round_abci.base.Period.current_round_height"></a>
+
+#### current`_`round`_`height
+
+```python
+@property
+def current_round_height() -> int
+```
+
+Get the current round height.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Period.last_round_id"></a>
 
 #### last`_`round`_`id
@@ -1437,7 +1851,7 @@ Get the last round id.
 
 ```python
 @property
-def last_timestamp() -> Optional[datetime.datetime]
+def last_timestamp() -> datetime.datetime
 ```
 
 Get the last timestamp.
@@ -1499,4 +1913,14 @@ def commit() -> None
 ```
 
 Process the 'commit' request.
+
+<a id="packages.valory.skills.abstract_round_abci.base.Period.reset_blockchain"></a>
+
+#### reset`_`blockchain
+
+```python
+def reset_blockchain() -> None
+```
+
+Reset blockchain after tendermint reset.
 

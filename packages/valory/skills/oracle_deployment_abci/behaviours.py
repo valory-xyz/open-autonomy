@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ benchmark_tool = BenchmarkTool()
 
 
 class OracleDeploymentBaseState(BaseState):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -67,7 +67,7 @@ class OracleDeploymentBaseState(BaseState):
 
 
 class RandomnessOracleBehaviour(RandomnessBehaviour):
-    """Retrive randomness for oracle deployment."""
+    """Retrieve randomness for oracle deployment."""
 
     state_id = "retrieve_randomness_oracle"
     matching_round = RandomnessOracleRound
@@ -93,7 +93,8 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         Do the action.
 
         Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - If the agent is the designated deployer, then prepare the deployment
+          transaction and send it.
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
@@ -121,6 +122,10 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
+                # The oracle_deployment_abci app should only be used in staging.
+                # If the oracle contract deployment fails we abort. Alternatively,
+                # we could send a None payload and then transition into an appropriate
+                # round to handle the deployment failure.
                 raise RuntimeError("Oracle deployment failed!")  # pragma: nocover
             payload = DeployOraclePayload(self.context.agent_address, contract_address)
 
@@ -183,8 +188,10 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         Do the action.
 
         Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the contract address provided by the keeper points to a
+          valid contract.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """

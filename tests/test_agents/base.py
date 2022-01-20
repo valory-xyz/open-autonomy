@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ from tests.helpers.tendermint_utils import (
 )
 
 
+@pytest.mark.e2e
 class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.

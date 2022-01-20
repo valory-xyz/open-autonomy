@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -202,7 +202,15 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                keeper_payloads=FinalizationTxPayload(sender=keeper, tx_hash="tx_hash"),
+                keeper_payloads=FinalizationTxPayload(
+                    sender=keeper,
+                    tx_data={
+                        "tx_digest": "hash",
+                        "nonce": 0,
+                        "max_fee_per_gas": 0,
+                        "max_priority_fee_per_gas": 0,
+                    },
+                ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     final_tx_hash=get_final_tx_hash()
                 ),
@@ -230,7 +238,15 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                keeper_payloads=FinalizationTxPayload(sender=keeper, tx_hash=None),
+                keeper_payloads=FinalizationTxPayload(
+                    sender=keeper,
+                    tx_data={
+                        "tx_digest": None,
+                        "nonce": 0,
+                        "max_fee_per_gas": 0,
+                        "max_priority_fee_per_gas": 0,
+                    },
+                ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     final_tx_hash=get_final_tx_hash()
                 ),

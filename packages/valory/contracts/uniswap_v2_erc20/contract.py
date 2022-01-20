@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea.crypto.base import LedgerApi
+from aea_ledger_ethereum import EthereumApi
+from hexbytes import HexBytes
+from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -32,6 +34,13 @@ PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
+
+
+def rebuild_receipt(tx_receipt: JSONLike) -> JSONLike:
+    """Convert all tx receipt's event topics to HexBytes"""
+    for i in range(len(tx_receipt["logs"])):  # type: ignore
+        tx_receipt["logs"][i]["topics"] = [HexBytes(topic) for topic in tx_receipt["logs"][i]["topics"]]  # type: ignore
+    return tx_receipt
 
 
 def snake_to_camel(string: str) -> str:
@@ -54,7 +63,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def get_method_data(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         **kwargs: Any,
@@ -87,7 +96,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def approve(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         spender_address: str,
@@ -108,7 +117,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def transfer(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         to_address: str,
@@ -129,7 +138,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def transfer_from(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         from_address: str,
@@ -152,7 +161,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def permit(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         owner_address: str,
@@ -183,7 +192,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def allowance(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         owner_address: str,
         spender_address: str,
@@ -199,7 +208,7 @@ class UniswapV2ERC20Contract(Contract):
 
     @classmethod
     def balance_of(
-        cls, ledger_api: LedgerApi, contract_address: str, owner_address: str
+        cls, ledger_api: EthereumApi, contract_address: str, owner_address: str
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
         return cls._call(
@@ -212,7 +221,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def _call(
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         method_name: str,
         *method_args: Any,
@@ -226,7 +235,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def _prepare_tx(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
         method_name: str,
@@ -256,7 +265,7 @@ class UniswapV2ERC20Contract(Contract):
     @classmethod
     def _build_transaction(  # pylint: disable=too-many-arguments
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         sender_address: str,
         tx: Any,
         eth_value: int = 0,
@@ -289,3 +298,106 @@ class UniswapV2ERC20Contract(Contract):
             tx_params.update(ledger_api.try_get_gas_pricing())  # pragma: nocover
         tx = tx.buildTransaction(tx_params)
         return tx
+
+    @classmethod
+    def get_tx_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+        target_address: Optional[str] = None,
+    ) -> JSONLike:
+        """
+        Get all transfer events derived from a transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :param target_address: optional address to filter tranfer events to just those that affect it
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+
+        try:
+            tx_receipt = ledger_api.get_transaction_receipt(tx_hash)
+            if tx_receipt is None:
+                raise ValueError  # pragma: nocover
+
+        except (TransactionNotFound, ValueError):  # pragma: nocover
+            return dict(logs=[])
+
+        # Due to serialization, event topics must be converted again to HexBytes or processReceipt will fail
+        tx_receipt = rebuild_receipt(tx_receipt)
+
+        transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
+
+        transfer_logs = [
+            {
+                "from": log["args"]["from"],
+                "to": log["args"]["to"],
+                "value": log["args"]["value"],
+                "token_address": log["address"],
+            }
+            for log in transfer_logs
+        ]
+
+        if target_address:
+            transfer_logs = list(
+                filter(
+                    lambda log: target_address in (log["from"], log["to"]),  # type: ignore
+                    transfer_logs,
+                )
+            )
+
+        return dict(logs=transfer_logs)
+
+    @classmethod
+    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+        token_address: str,
+        source_address: Optional[str] = None,
+        destination_address: Optional[str] = None,
+    ) -> JSONLike:
+        """
+        Get the amount of a token transferred as a result of a transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param tx_hash: the transaction hash
+        :param token_address: the token's address
+        :param source_address: the source address
+        :param destination_address: the destination address
+        :return: the incoming amount
+        """
+
+        transfer_logs: list = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]  # type: ignore
+
+        token_events = list(
+            filter(
+                lambda log: log["token_address"] == ledger_api.api.toChecksumAddress(token_address),  # type: ignore
+                transfer_logs,
+            )
+        )
+
+        if source_address:
+            token_events = list(
+                filter(
+                    lambda log: log["from"] == ledger_api.api.toChecksumAddress(source_address),  # type: ignore
+                    token_events,
+                )
+            )
+
+        if destination_address:
+            token_events = list(
+                filter(
+                    lambda log: log["to"] == ledger_api.api.toChecksumAddress(destination_address),  # type: ignore
+                    token_events,
+                )
+            )
+
+        amount = 0 if not token_events else sum([event["value"] for event in list(token_events)])  # type: ignore
+        return dict(amount=amount)

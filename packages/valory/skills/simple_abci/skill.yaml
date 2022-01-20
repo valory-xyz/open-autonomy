@@ -6,14 +6,14 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
-  __init__.py: QmQFTuPAiVxSZPmmQC6RnsWgztZRZfLPxs2u2vBojChjxV
-  behaviours.py: QmaCXxJag2y24zFv1gaQNepun8o7vTz2ipekoKEVRjSM4v
+  README.md: QmRKb5tusrnSS33kgGz93jALjTrkAArJu6tJFvm71bKx2M
+  __init__.py: Qme3M7NKyV7CstshfUBthu38q2UTFDctBc3Ar1aK3LRBDr
+  behaviours.py: QmZhq52sAtcDGGUP3ivMebu8t1w3zE8kDYWG8zZLwcGK24
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
   models.py: QmNV5fGgCswbE7zUBxW5xcRwBGjxCjNYEyFtafBGAE1Uh7
   payloads.py: QmXe2vVWq8UjkDQKisQY4qFU6nX5F5D2B1f3kbDkrFu2Da
-  rounds.py: QmcqzJLPuQYfHr5FwajaJCYBPtRKtnTiQRDtkAsUXtB41r
+  rounds.py: QmPA3RUrj2zkcorkRgo3j2e7jSpK4ZTkhV32nfLBVLesVB
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -73,6 +73,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
+      service_id: simple_abci
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657

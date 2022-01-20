@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ from tests.helpers.tendermint_utils import (
 )
 
 
+@pytest.mark.e2e
 class BaseTestABCICounterSkill:
     """Base test class."""
 
@@ -82,6 +83,7 @@ class BaseTestABCICounterSkill:
         assert counter_value == expected_value
 
 
+@pytest.mark.e2e
 @pytest.mark.integration
 class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
     """Test that the ABCI counter skill works together with Tendermint."""

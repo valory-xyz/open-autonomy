@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ from packages.valory.skills.simple_abci.behaviours import (
     RandomnessAtStartupBehaviour,
     RegistrationBehaviour,
     ResetAndPauseBehaviour,
-    SelectKeeperAAtStartupBehaviour,
+    SelectKeeperAtStartupBehaviour,
     SimpleAbciConsensusBehaviour,
     TendermintHealthcheckBehaviour,
 )
@@ -738,13 +738,13 @@ class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
 
     randomness_behaviour_class = RandomnessAtStartupBehaviour
-    next_behaviour_class = SelectKeeperAAtStartupBehaviour
+    next_behaviour_class = SelectKeeperAtStartupBehaviour
 
 
-class TestSelectKeeperAAtStartupBehaviour(BaseSelectKeeperBehaviourTest):
+class TestSelectKeeperAtStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
     next_behaviour_class = ResetAndPauseBehaviour
 
 

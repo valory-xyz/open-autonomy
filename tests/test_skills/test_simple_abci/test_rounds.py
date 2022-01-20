@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ from packages.valory.skills.simple_abci.rounds import (
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
-    SelectKeeperAStartupRound,
+    SelectKeeperAtStartupRound,
     rotate_list,
 )
 
@@ -199,15 +199,15 @@ class TestRandomnessStartupRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestSelectKeeperAStartupRound(BaseRoundTestClass):
-    """Tests for SelectKeeperAStartupRound."""
+class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
+    """Tests for SelectKeeperAtStartupRound."""
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        test_round = SelectKeeperAStartupRound(
+        test_round = SelectKeeperAtStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 

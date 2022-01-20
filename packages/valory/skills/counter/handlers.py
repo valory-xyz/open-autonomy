@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,11 @@ def decode_number(raw: bytes) -> int:
 
 
 class ABCICounterHandler(ABCIHandler):
-    """ABCI counter handler."""
+    """ABCI counter handler.
+
+    Handles ABCI messages from a Tendermint node and implements the ABCI
+    Counter app.
+    """
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 

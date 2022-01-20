@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -670,6 +670,33 @@ class TestBaseState:
         # second check attempt succeeds
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
+        )
+        try_send(gen, success_response)
+
+    @mock.patch.object(Transaction, "encode", return_value=MagicMock())
+    @mock.patch.object(
+        BaseState,
+        "_build_http_request_message",
+        return_value=(MagicMock(), MagicMock()),
+    )
+    @mock.patch.object(BaseState, "_check_http_return_code_200", return_value=True)
+    @mock.patch.object(BaseState, "sleep")
+    @mock.patch("json.loads")
+    def test_wait_until_transaction_delivered_failed(self, *_: Any) -> None:
+        """Test '_wait_until_transaction_delivered' method."""
+        gen = self.behaviour._wait_until_transaction_delivered(
+            MagicMock(), max_attempts=0
+        )
+        # trigger generator function
+        try_send(gen, obj=None)
+
+        # first check attempt fails
+        failure_response = MagicMock(status_code=500)
+        try_send(gen, failure_response)
+
+        # second check attempt succeeds
+        success_response = MagicMock(
+            status_code=200, body='{"result": {"tx_result": {"code": -1}}}'
         )
         try_send(gen, success_response)
 

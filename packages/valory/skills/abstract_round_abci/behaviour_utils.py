@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -82,14 +82,15 @@ from packages.valory.skills.abstract_round_abci.models import (
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_TX_TIMEOUT = 10.0
+_DEFAULT_TX_MAX_ATTEMPTS = 5
 
 
 class SendException(Exception):
-    """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
+    """Exception raised if the 'try_send' to an AsyncBehaviour failed."""
 
 
 class TimeoutException(Exception):
-    """This exception is raised if the 'try_send' to an AsyncBehaviour failed."""
+    """Exception raised when a timeout during AsyncBehaviour occurs."""
 
 
 class AsyncBehaviour(ABC):
@@ -148,8 +149,8 @@ class AsyncBehaviour(ABC):
         """
         Try to send a message to a waiting behaviour.
 
-        It will be send only if the behaviour is actually
-        waiting for a message and it was not already notified.
+        It will be sent only if the behaviour is actually waiting for a message,
+        and it was not already notified.
 
         :param message: a Python object.
         :raises: SendException if the behaviour was not waiting for a message,
@@ -331,11 +332,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return cast(BasePeriodState, cast(SharedState, self.context.state).period_state)
 
     def check_in_round(self, round_id: str) -> bool:
-        """Check that we entered in a specific round."""
+        """Check that we entered a specific round."""
         return cast(SharedState, self.context.state).period.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
-        """Check that we entered in a specific round."""
+        """Check that we entered a specific round."""
         return cast(SharedState, self.context.state).period.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
@@ -459,15 +460,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_timeout: float = _DEFAULT_TX_TIMEOUT,
     ) -> Generator:
         """
-        Send transaction and wait for the response, and repeat until not successful.
+        Send transaction and wait for the response, repeat until not successful.
 
         Steps:
         - Request the signature of the payload to the Decision Maker
-        - Send the transaction to the 'price-estimation' app via the Tendermint node,
-          and wait/repeat until the transaction is not mined.
+        - Send the transaction to the 'price-estimation' app via the Tendermint
+          node, and wait/repeat until the transaction is not mined.
 
         :param: payload: the payload to send
-        :param: stop_condition: the condition to be checked to interrupt the waiting loop.
+        :param: stop_condition: the condition to be checked to interrupt the
+                waiting loop.
         :param: request_timeout: the timeout for the requests
         :param: request_retry_delay: the delay to wait after failed requests
         :param: tx_timeout: the timeout to wait for tx delivery
@@ -787,6 +789,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_hash: str,
         timeout: Optional[float] = None,
         request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
+        max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
     ) -> Generator[None, None, bool]:
         """
         Wait until transaction is delivered.
@@ -794,6 +797,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
         :param: request_retry_delay: the delay to wait after failed requests
+        :param: max_attempts: the maximun number of attempts
         :yield: None
         :return: True if it is delivered successfully, False otherwise
         """
@@ -802,7 +806,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         else:
             deadline = datetime.datetime.max
 
-        while True:
+        for _ in range(max_attempts):
             request_timeout = (
                 (deadline - datetime.datetime.now()).total_seconds()
                 if timeout is not None
@@ -815,6 +819,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             if response.status_code != 200:
                 yield from self.sleep(request_retry_delay)
                 continue
+
             try:
                 json_body = json.loads(response.body)
             except json.JSONDecodeError as e:  # pragma: nocover
@@ -823,6 +828,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 ) from e
             tx_result = json_body["result"]["tx_result"]
             return tx_result["code"] == OK_CODE
+
+        return False
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
@@ -911,6 +918,46 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         tx_receipt = transaction_receipt_msg.transaction_receipt.receipt
         return tx_receipt
 
+    def get_ledger_api_response(
+        self,
+        performative: LedgerApiMessage.Performative,
+        ledger_callable: str,
+        **kwargs: Any,
+    ) -> Generator[None, None, LedgerApiMessage]:
+        """
+        Request contract safe transaction hash
+
+        :param performative: the message performative
+        :param ledger_callable: the callable to call on the contract
+        :param kwargs: keyword argument for the contract api request
+        :return: the contract api response
+        :yields: the contract api response
+        """
+        ledger_api_dialogues = cast(
+            LedgerApiDialogues, self.context.ledger_api_dialogues
+        )
+        kwargs = {
+            "performative": performative,
+            "counterparty": LEDGER_API_ADDRESS,
+            "ledger_id": self.context.default_ledger_id,
+            "callable": ledger_callable,
+            "kwargs": LedgerApiMessage.Kwargs(kwargs),
+            "args": tuple(),
+        }
+        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(**kwargs)
+        ledger_api_dialogue = cast(
+            LedgerApiDialogue,
+            ledger_api_dialogue,
+        )
+        ledger_api_dialogue.terms = self._get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
+        cast(Requests, self.context.requests).request_id_to_callback[
+            request_nonce
+        ] = self.default_callback_request
+        self.context.outbox.put_message(message=ledger_api_msg)
+        response = yield from self.wait_for_message()
+        return response
+
     def get_contract_api_response(
         self,
         performative: ContractApiMessage.Performative,
@@ -925,7 +972,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :param performative: the message performative
         :param contract_address: the contract address
         :param contract_id: the contract id
-        :param contract_callable: the collable to call on the contract
+        :param contract_callable: the callable to call on the contract
         :param kwargs: keyword argument for the contract api request
         :return: the contract api response
         :yields: the contract api response

@@ -6,10 +6,11 @@ description: ABCI application for common apps.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmNt5fz6jXkkDHapVUKKkBhhSsFNgEKT3ukY2F3CHToo3y
-  behaviours.py: QmYy7nkYHiJUD38FmKuYaQzE6imBp8z7DjGHyigaPsWTnY
+  README.md: QmSohTt9XD9s4eJAXqb97dTmf627huMrPgmFCi87AB9FyP
+  __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
+  behaviours.py: QmUtgKr7S2CdQ2jtPeb8jTDRXFsiGPuCfxCtdZhbnZCU4c
   payloads.py: QmVVNDzw1jj8B4eabfbG47SzFK4uSH86WpNweKJhXvmigP
-  rounds.py: QmPxppoUSezih1XnodGiDBHR2Q1KasLKeb6pjDsQNPvoZH
+  rounds.py: QmPxcxMQi19NYE3QUtXzUUvXdjk7Y4RkynRaMZUE1xCk4S
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []

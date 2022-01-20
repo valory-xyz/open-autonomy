@@ -46,6 +46,7 @@ Initialise an instance of AbciMessage.
 
 **Arguments**:
 
+:param **kwargs: extra options.
 - `message_id`: the message id.
 - `dialogue_reference`: the dialogue reference.
 - `target`: the message target.
@@ -271,6 +272,17 @@ def dummy_consensus_params() -> CustomConsensusParams
 
 Get the 'dummy_consensus_params' content from the message.
 
+<a id="packages.valory.protocols.abci.message.AbciMessage.error"></a>
+
+#### error
+
+```python
+@property
+def error() -> str
+```
+
+Get the 'error' content from the message.
+
 <a id="packages.valory.protocols.abci.message.AbciMessage.events"></a>
 
 #### events
@@ -457,6 +469,28 @@ def message() -> str
 ```
 
 Get the 'message' content from the message.
+
+<a id="packages.valory.protocols.abci.message.AbciMessage.option_key"></a>
+
+#### option`_`key
+
+```python
+@property
+def option_key() -> str
+```
+
+Get the 'option_key' content from the message.
+
+<a id="packages.valory.protocols.abci.message.AbciMessage.option_value"></a>
+
+#### option`_`value
+
+```python
+@property
+def option_value() -> str
+```
+
+Get the 'option_value' content from the message.
 
 <a id="packages.valory.protocols.abci.message.AbciMessage.p2p_version"></a>
 

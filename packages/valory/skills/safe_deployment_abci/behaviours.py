@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ benchmark_tool = BenchmarkTool()
 
 
 class SafeDeploymentBaseState(BaseState):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -59,7 +59,7 @@ class SafeDeploymentBaseState(BaseState):
 
 
 class RandomnessSafeBehaviour(RandomnessBehaviour):
-    """Retrive randomness for oracle deployment."""
+    """Retrieve randomness for oracle deployment."""
 
     state_id = "randomness_safe"
     matching_round = RandomnessSafeRound
@@ -85,7 +85,8 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         Do the action.
 
         Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - If the agent is the designated deployer, then prepare the deployment
+          transaction and send it.
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
@@ -113,6 +114,10 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
             )
             contract_address = yield from self._send_deploy_transaction()
             if contract_address is None:
+                # The safe_deployment_abci app should only be used in staging.
+                # If the safe contract deployment fails we abort. Alternatively,
+                # we could send a None payload and then transition into an appropriate
+                # round to handle the deployment failure.
                 raise RuntimeError("Safe deployment failed!")  # pragma: nocover
             payload = DeploySafePayload(self.context.agent_address, contract_address)
 
@@ -169,7 +174,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
 
 
 class ValidateSafeBehaviour(SafeDeploymentBaseState):
-    """ValidateSafe."""
+    """Validate Safe."""
 
     state_id = "validate_safe"
     matching_round = ValidateSafeRound
@@ -179,8 +184,10 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         Do the action.
 
         Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the contract address provided by the keeper points to a
+          valid contract.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """

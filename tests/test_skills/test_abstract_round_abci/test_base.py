@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
+    _MetaAbciApp,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.serializer import (
@@ -166,7 +167,7 @@ class AbciAppTest(AbciApp[str]):
     transition_function: Dict[Type[AbstractRound], Dict[str, Type[AbstractRound]]] = {
         ConcreteRoundA: {"a": ConcreteRoundA, "b": ConcreteRoundB, "c": ConcreteRoundC},
         ConcreteRoundB: {"b": ConcreteRoundB, "timeout": ConcreteRoundA},
-        ConcreteRoundC: {"timeout": ConcreteRoundC},
+        ConcreteRoundC: {"c": ConcreteRoundA, "timeout": ConcreteRoundC},
     }
     event_to_timeout: Dict[str, float] = {
         "timeout": TIMEOUT,
@@ -471,6 +472,16 @@ class TestBasePeriodState:
         actual_repr = repr(self.base_period_state)
         expected_repr_regex = r"BasePeriodState\(db=StateDB\({(.*)}\)\)"
         assert re.match(expected_repr_regex, actual_repr) is not None
+
+    def test_participants_list_is_empty(
+        self,
+    ) -> None:
+        """Tets when participants list is set to zero."""
+        base_period_state = BasePeriodState(
+            db=StateDB(initial_period=0, initial_data=dict(participants={}))
+        )
+        with pytest.raises(ValueError, match="List participants cannot be empty."):
+            _ = base_period_state.participants
 
 
 class TestAbstractRound:
@@ -815,28 +826,25 @@ class TestAbciApp:
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
 
-        class MyAbciApp(AbciApp):
-            # here 'initial_round_cls' should be defined.
-            # ...
-            transition_function: AbciAppTransitionFunction = {}
-
         with pytest.raises(
             ABCIAppInternalError, match="'initial_round_cls' field not set"
         ):
-            MyAbciApp(MagicMock(), MagicMock(), MagicMock())
+
+            class MyAbciApp(AbciApp):
+                # here 'initial_round_cls' should be defined.
+                # ...
+                transition_function: AbciAppTransitionFunction = {}
 
     def test_transition_function_not_set(self) -> None:
         """Test when 'transition_function' is not set."""
-
-        class MyAbciApp(AbciApp):
-            initial_round_cls = ConcreteRoundA
-            # here 'transition_function' should be defined.
-            # ...
-
         with pytest.raises(
             ABCIAppInternalError, match="'transition_function' field not set"
         ):
-            MyAbciApp(MagicMock(), MagicMock(), MagicMock())
+
+            class MyAbciApp(AbciApp):
+                initial_round_cls = ConcreteRoundA
+                # here 'transition_function' should be defined.
+                # ...
 
     def test_last_timestamp_negative(self) -> None:
         """Test the 'last_timestamp' property, negative case."""
@@ -1068,3 +1076,15 @@ class TestPeriod:
             self.period.commit()
         assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
         assert self.period.latest_result == round_result
+
+
+def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
+    """
+    Test instantiation of meta-class when instance not a subclass of AbciApp.
+
+    Since the class is not a subclass of AbciApp, the checks performed by
+    the meta-class should not apply.
+    """
+
+    class MyAbciApp(metaclass=_MetaAbciApp):
+        pass

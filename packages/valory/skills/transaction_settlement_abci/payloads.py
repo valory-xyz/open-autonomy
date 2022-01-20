@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for common apps."""
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -106,7 +106,10 @@ class ValidatePayload(BaseTxPayload):
     transaction_type = TransactionType.VALIDATE
 
     def __init__(
-        self, sender: str, vote: Optional[bool] = None, id_: Optional[str] = None
+        self,
+        sender: str,
+        vote: Optional[bool] = None,
+        id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'validate' transaction payload.
 
@@ -160,26 +163,29 @@ class FinalizationTxPayload(BaseTxPayload):
     transaction_type = TransactionType.FINALIZATION
 
     def __init__(
-        self, sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None
+        self,
+        sender: str,
+        tx_data: Optional[Dict[str, Union[str, int, None]]] = None,
+        id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'finalization' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param tx_hash: the 'safe' transaction hash
+        :param tx_data: the transaction data
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._tx_hash = tx_hash
+        self._tx_data = tx_data
 
     @property
-    def tx_hash(self) -> Optional[str]:
-        """Get the signature."""
-        return self._tx_hash
+    def tx_data(self) -> Optional[Dict[str, Union[str, int, None]]]:
+        """Get the tx_data."""
+        return self._tx_data
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> Dict[str, Dict[str, Union[str, int, None]]]:
         """Get the data."""
-        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
+        return dict(tx_data=self._tx_data) if self._tx_data is not None else {}
 
 
 class ResetPayload(BaseTxPayload):

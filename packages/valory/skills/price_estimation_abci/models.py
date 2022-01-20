@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -106,11 +106,11 @@ class SharedState(BaseSharedState):
 
 
 class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
+    """A model for randomness api specifications."""
 
 
 class PriceApi(ApiSpecs):
-    """A model that wraps ApiSpecs for various cryptocurrency price api specifications."""
+    """A model for various cryptocurrency price api specifications."""
 
     convert_id: str
     currency_id: str

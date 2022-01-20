@@ -42,7 +42,7 @@ lint:
 	isort aea_consensus_algorithms packages/valory scripts tests
 	flake8 aea_consensus_algorithms packages/valory scripts tests
 	vulture aea_consensus_algorithms scripts/whitelist.py
-	darglint aea_consensus_algorithms scripts packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills tests
+	darglint aea_consensus_algorithms scripts packages/valory/* tests
 
 .PHONY: pylint
 pylint:
@@ -68,6 +68,10 @@ package_checks:
 hashes:
 	python scripts/generate_ipfs_hashes.py --vendor valory
 
+.PHONY: api-docs
+api-docs:
+	python scripts/generate_api_documentation.py
+
 .PHONY: docs
 docs:
 	mkdocs build --clean
@@ -80,13 +84,21 @@ test:
 	pytest -rfE --doctest-modules aea_consensus_algorithms tests/ --cov=aea_consensus_algorithms --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
+.PHONY: copyright
+copyright:
+	tox -e check-copyright
+
 .PHONY: checks
 checks:
 	make clean \
 	&& make static \
 	&& make lint \
 	&& make pylint \
+	&& make copyright \
+	&& make docs \
+	&& make api-docs \
 	&& make hashes \
+	&& make security \
 	&& make test-sub-p tdir=skills/test_price_estimation_abci/ dir=skills.price_estimation_abci \
 	&& make test-sub-p tdir=skills/test_liquidity_provision/ dir=skills.liquidity_provision
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Optional, Set, Type, cast
+from typing import Dict, Generator, List, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
@@ -51,8 +51,10 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
+    FinalizationTxPayload,
     StrategyEvaluationPayload,
     StrategyType,
+    ValidatePayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
     EnterPoolRandomnessRound,
@@ -82,23 +84,48 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     ResetBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    FinalizationTxPayload,
-    SignaturePayload,
-    ValidatePayload,
-)
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
 
 ETHER_VALUE = 0  # TOFIX
 SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
-WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
 TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
-LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"  # nosec
+LP_TOKEN_ADDRESS = "0x50CD56fb094F8f06063066a619D898475dD3EedE"  # nosec
+DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
+AB_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
 
 benchmark_tool = BenchmarkTool()
+
+
+def parse_tx_token_balance(
+    transfer_logs: List[Dict],
+    token_address: str,
+    source_address: str,
+    destination_address: str,
+) -> int:
+    """
+    Returns the transfered token amount from one address to another given a list of transactions.
+
+    :param transfer_logs: a list of transactions.
+    :param token_address: the token address.
+    :param source_address: the source address.
+    :param destination_address: the destination address.
+    :return: the transfered amount
+    """
+
+    token_events = list(
+        filter(
+            lambda log: log["token_address"] == token_address
+            and log["from"] == source_address
+            and log["to"] == destination_address,
+            transfer_logs,
+        )
+    )
+    return sum([event["value"] for event in token_events])
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -248,15 +275,17 @@ class TransactionSendBaseBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
-    """ValidateTransaction."""
+    """Validate a transaction."""
 
     def async_act(self) -> Generator:
         """
         Do the action.
 
         Steps:
-        - Validate that the transaction hash provided by the keeper points to a valid transaction.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the transaction hash provided by the keeper points to a
+          valid transaction.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
@@ -265,7 +294,10 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            payload = ValidatePayload(self.context.agent_address, is_correct)
+            transfers: Optional[list] = None
+            if is_correct:
+                transfers = yield from self.get_tx_result()
+            payload = ValidatePayload(self.context.agent_address, json.dumps(transfers))
 
         with benchmark_tool.measure(
             self,
@@ -322,6 +354,28 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         self.context.logger.info(verified_log)
         return verified
 
+    def get_tx_result(self) -> Generator[None, None, Optional[list]]:
+        """Transaction transfer result."""
+        strategy = self.period_state.most_voted_strategy
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=strategy["pair"]["LP_token_address"],
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            contract_callable="get_tx_transfer_logs",
+            tx_hash=self.period_state.final_tx_hash,
+            target_address=self.period_state.safe_contract_address,
+        )
+        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            return []  # pragma: nocover
+        transfers = cast(list, contract_api_msg.state.body["logs"])
+
+        transfer_log_message = (
+            f"The tx with hash {self.period_state.final_tx_hash} ended with the following transfers.\n"
+            f"Transfers: {str(transfers)}\n"
+        )
+        self.context.logger.info(transfer_log_message)
+        return transfers
+
 
 def get_strategy_update() -> dict:
     """Get a strategy update."""
@@ -346,7 +400,6 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_A_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
                 # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
@@ -355,10 +408,8 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_B_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
             },
         },
-        "liquidity_to_remove": 1,  # TOFIX
     }
     return strategy
 
@@ -398,7 +449,17 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the 'enter pool' multisend tx."""
+    """Prepare the transaction hash for entering the liquidity pool
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-Base-pool : Base tokens
+    A-Base-pool  ->  Safe        : A tokens
+    Safe         ->  B-Base-pool : Base tokens
+    B-Base-pool  ->  Safe        : B tokens
+    Safe         ->  A-B-pool    : A tokens
+    Safe         ->  A-B-pool    : B tokens
+    A-B-pool Minter       ->  Safe        : AB_LP tokens
+    """
 
     state_id = "enter_pool_tx_hash"
     matching_round = EnterPoolTransactionHashRound
@@ -408,7 +469,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -571,12 +633,12 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     ),
                     amount_token_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    ),
                     amount_ETH_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    ),
                     to=self.period_state.safe_contract_address,
-                    deadline=strategy["deadline"],  # 5 min into the future
+                    deadline=strategy["deadline"],
                 )
                 liquidity_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
@@ -609,10 +671,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     ),
                     amount_a_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
+                    ),
                     amount_b_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
+                    ),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
                 )
@@ -672,21 +734,21 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class EnterPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Sign the 'enter pool' multisend tx."""
+    """Sign the transaction for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_signature"
     matching_round = EnterPoolTransactionSignatureRound
 
 
 class EnterPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Send the 'enter pool' multisend tx."""
+    """Send the transaction for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_send"
     matching_round = EnterPoolTransactionSendRound
 
 
 class EnterPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Validate the 'enter pool' multisend tx."""
+    """Validate the transaction for entering the liquidity pool"""
 
     state_id = "enter_pool_tx_validation"
     matching_round = EnterPoolTransactionValidationRound
@@ -707,7 +769,13 @@ class EnterPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Prepare the transaction hash for exiting the liquidity pool
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-B-pool    : AB_LP tokens
+    AB_LP        ->  Safe        : A tokens
+    AB_LP        ->  Safe        : B tokens
+    """
 
     state_id = "exit_pool_tx_hash"
     matching_round = ExitPoolTransactionHashRound
@@ -717,7 +785,8 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -728,6 +797,34 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = self.period_state.most_voted_strategy
+            transfers = json.loads(cast(str, self.period_state.most_voted_transfers))[
+                "transfers"
+            ]
+
+            amount_base_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["base"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_a_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_b_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_liquidity_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["LP_token_address"],
+                source_address=DEFAULT_MINTER,
+                destination_address=self.period_state.safe_contract_address,
+            )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -767,13 +864,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["liquidity_to_remove"],
-                    amount_token_min=int(
-                        strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                    ),  # FIX, get actual amount
-                    amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    liquidity=amount_liquidity_received,
+                    amount_token_min=int(amount_b_sent),
+                    amount_ETH_min=int(amount_base_sent),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -799,15 +892,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    liquidity=strategy["pair"]["token_a"][
-                        "amount_min_after_add_liq"
-                    ],  # TOFIX: get the correct value
-                    amount_a_min=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
-                    amount_b_min=int(
-                        strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                    ),
+                    liquidity=amount_liquidity_received,
+                    amount_a_min=int(amount_a_sent),
+                    amount_b_min=int(amount_b_sent),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -867,21 +954,21 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class ExitPoolTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Sign the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_signature"
     matching_round = ExitPoolTransactionSignatureRound
 
 
 class ExitPoolTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Send the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_send"
     matching_round = ExitPoolTransactionSendRound
 
 
 class ExitPoolTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Prepare the 'exit pool' multisend tx."""
+    """Validate the transaction hash for exiting the liquidity pool"""
 
     state_id = "exit_pool_tx_validation"
     matching_round = ExitPoolTransactionValidationRound
@@ -902,7 +989,14 @@ class ExitPoolSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
-    """Prepare the 'swap back' multisend tx."""
+    """Prepare the transaction hash for swapping back assets
+
+    The expected transfers derived from this behaviour are
+    Safe         ->  A-Base-pool    : A tokens
+    A-Base-pool  ->  Safe           : Base tokens
+    Safe         ->  B-Base-pool    : B tokens
+    B-Base-pool  ->  Safe           : Base tokens
+    """
 
     state_id = "swap_back_tx_hash"
     matching_round = SwapBackTransactionHashRound
@@ -912,7 +1006,8 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -923,6 +1018,22 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = self.period_state.most_voted_strategy
+            transfers = json.loads(cast(str, self.period_state.most_voted_transfers))[
+                "transfers"
+            ]
+
+            amount_a_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
+            amount_b_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -964,9 +1075,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_id=str(UniswapV2Router02Contract.contract_id),
                     contract_callable="get_method_data",
                     method_name="swap_exact_tokens_for_tokens",
-                    amount_in=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
+                    amount_in=int(amount_a_received),
                     amount_out_min=int(
                         strategy["base"]["amount_min_after_swap_back_a"]
                     ),
@@ -994,7 +1103,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(UniswapV2Router02Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="swap_exact_tokens_for_tokens",
-                amount_in=int(strategy["pair"]["token_b"]["amount_min_after_rem_liq"]),
+                amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
                 path=[
                     strategy["pair"]["token_b"]["address"],
@@ -1079,21 +1188,21 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class SwapBackTransactionSignatureBehaviour(TransactionSignatureBaseBehaviour):
-    """Prepare the 'swap' multisend tx."""
+    """Sign the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_signature"
     matching_round = SwapBackTransactionSignatureRound
 
 
 class SwapBackTransactionSendBehaviour(TransactionSendBaseBehaviour):
-    """Prepare the 'swap back' multisend tx."""
+    """Send the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_send"
     matching_round = SwapBackTransactionSendRound
 
 
 class SwapBackTransactionValidationBehaviour(TransactionValidationBaseBehaviour):
-    """Prepare the 'swap back' multisend tx."""
+    """Validate the transaction hash for swapping back assets"""
 
     state_id = "swap_back_tx_validation"
     matching_round = SwapBackTransactionValidationRound
@@ -1114,7 +1223,7 @@ class SwapBackSelectKeeperBehaviour(SelectKeeperBehaviour):
 
 
 class LiquidityProvisionConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the liquidity provision."""
+    """Managing of consensus stages for liquidity provision."""
 
     initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityProvisionAbciApp  # type: ignore
