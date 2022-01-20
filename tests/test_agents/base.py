@@ -164,11 +164,13 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
 class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
+    stop_string: str = "'registration_startup' round is done with event: Event.DONE"
+
     def test_run(self) -> None:
         """Run the test."""
 
-        # start all the agent but the last
-        for agent_id in range(self.NB_AGENTS - 1):
+        # start all the agents
+        for agent_id in range(self.NB_AGENTS):
             self._launch_agent_i(agent_id)
 
         logging.info("Waiting Tendermint nodes to be up (but the last)")
@@ -179,6 +181,17 @@ class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
                 sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
             ):
                 pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")
+
+        # stop the last agent as soon as the "stop string" is found in the output
+        process_to_stop = self.processes[-1]
+        logging.debug(f"Waiting for string {self.stop_string} in last agent output")
+        missing_strings = self.missing_from_output(
+            process_to_stop, [self.stop_string], 15
+        )
+        if missing_strings:
+            raise RuntimeError("cannot stop agent correctly")
+        logging.debug("Last agent stopped")
+        self.processes.pop(-1)
 
         # sleep so to make the consensus proceed without last agent
         time.sleep(60.0)

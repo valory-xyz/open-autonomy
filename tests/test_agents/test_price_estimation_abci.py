@@ -132,3 +132,4 @@ class TestDelayedStart(BaseTestEnd2EndDelayedStart, UseGnosisSafeHardHatNet):
     skill_package = "valory/price_estimation_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
+    stop_string = "'registration_startup' round is done with event: Event.DONE"
