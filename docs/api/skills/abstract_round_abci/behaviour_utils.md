@@ -127,8 +127,8 @@ and it was not already notified.
 #### wait`_`for`_`condition
 
 ```python
-@classmethod
-def wait_for_condition(cls, condition: Callable[[], bool], timeout: Optional[float] = None) -> Generator[None, None, None]
+@staticmethod
+def wait_for_condition(condition: Callable[[], bool], timeout: Optional[float] = None) -> Generator[None, None, None]
 ```
 
 Wait for a condition to happen.

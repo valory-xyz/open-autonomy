@@ -268,8 +268,8 @@ Encode the transaction.
 #### decode
 
 ```python
-@classmethod
-def decode(cls, obj: bytes) -> "Transaction"
+@staticmethod
+def decode(obj: bytes) -> "Transaction"
 ```
 
 Decode the transaction.
@@ -975,8 +975,8 @@ Check that a Byzantine majority is achievable, once a new vote is added.
 #### check`_`majority`_`possible
 
 ```python
-@classmethod
-def check_majority_possible(cls, votes_by_participant: Dict[Any, Any], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+@staticmethod
+def check_majority_possible(votes_by_participant: Dict[Any, Any], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is still achievable.

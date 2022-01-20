@@ -20,13 +20,18 @@ recursively conserving their dynamic type, using google.protobuf.Struct
 ValueType = PrimitiveType | DictType | List[ValueType]
 PrimitiveType = bool | int | float | str | bytes
 
+The following encoding is required and performed,
+and sentinel values are added for decoding:
+ - bytes to string
+ - integer to float
+
 <a id="packages.valory.skills.abstract_round_abci.serializer.DictProtobufStructSerializer.encode"></a>
 
 #### encode
 
 ```python
 @classmethod
-def encode(cls, dictionary: Dict[str, Any]) -> bytes
+def encode(cls, data: Dict[str, Any]) -> bytes
 ```
 
 Serialize compatible dictionary to bytes.
@@ -35,7 +40,7 @@ Copies entire dictionary in the process.
 
 **Arguments**:
 
-- `dictionary`: the dictionary to serialize
+- `data`: the dictionary to serialize
 
 **Returns**:
 
