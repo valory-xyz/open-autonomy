@@ -531,8 +531,3 @@ class TransactionSettlementConsensusBehaviour(AbstractRoundBehaviour):
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

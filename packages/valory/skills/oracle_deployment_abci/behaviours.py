@@ -240,8 +240,3 @@ class OracleDeploymentConsensusBehaviour(AbstractRoundBehaviour):
         DeployOracleBehaviour,  # type: ignore
         ValidateOracleBehaviour,  # type: ignore
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

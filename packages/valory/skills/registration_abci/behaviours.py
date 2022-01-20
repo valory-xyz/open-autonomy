@@ -154,8 +154,3 @@ class AgentRegistrationConsensusBehaviour(AbstractRoundBehaviour):
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger

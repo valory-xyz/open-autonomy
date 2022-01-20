@@ -236,8 +236,3 @@ class SafeDeploymentConsensusBehaviour(AbstractRoundBehaviour):
         DeploySafeBehaviour,  # type: ignore
         ValidateSafeBehaviour,  # type: ignore
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        benchmark_tool.logger = self.context.logger
