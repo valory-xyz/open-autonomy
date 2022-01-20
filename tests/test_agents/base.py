@@ -226,19 +226,19 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
 
-        time.sleep(45)
-
+        time.sleep(60)
         self.terminate_agents(self.processes[0])
         self._launch_agent_i(0)
+        time.sleep(30)
 
         # check that *each* AEA prints these messages
-        for process in self.processes:
+        for i, process in enumerate(self.processes):
             missing_strings = self.missing_from_output(
                 process, self.check_strings, self.wait_to_finish
             )
             assert (
                 missing_strings == []
-            ), "Strings {} didn't appear in agent output.".format(missing_strings)
+            ), "Strings {} didn't appear in agent_{} output.".format(missing_strings, i)
 
             if not self.is_successfully_terminated(process):
                 warnings.warn(
