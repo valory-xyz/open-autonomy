@@ -15,15 +15,15 @@ fingerprint:
   ml/forecasting.py: QmXCTBa4iAKvhAdsytRL3wHc6JmRqNntVWTBoUKniUShjE
   ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
   ml/optimization.py: QmRTBVU7C8wPujk2P9GqGya4dTC4MC1D9prC5kTcHgkYqy
-  ml/preprocessing.py: QmSzzcPayHBS93PuT8FzXMs5zgDWru3Lhd4otuTbFTkt7F
+  ml/preprocessing.py: QmbAh72gvYpVofJmzBSXP5eSuUbPtgGdW9D7jaqEF3eeeW
   models.py: QmVYKvDpiUq1Lr5XHT3BxeBPUTgwVgtQouPmxhGmsb3wxj
-  payloads.py: QmNT9aGHszAkBQqkVDcgJeVqZCPAmb8kbNyQXrcuEs1B7X
+  payloads.py: QmbTxk52r2xSsYNh9DtiKUPorH7ZF4dt5T7kUmwxXfRcat
   rounds.py: QmSEduW7YCtM9CmmJrgALTVYvpWHu6h1fyBK2Squy3yA43
   tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: QmU1cyLZ7HxsepWNrRcLfo4QLQYav8sXaKdDSnqxbRTYuV
+  tools/etl.py: QmTgdLfTKJLprorUWtpLA1Qk94oGcy95uXimGUo8dErmdU
   tools/general.py: QmSGU7zW7dkjoLcy6wivRdYCAAs92pH5f4MpqigBf7X27K
-  tools/queries.py: QmeSHrHMAZgY7D5Epru6btCr62eW3EMWojDXmGVbtxhTCW
+  tools/queries.py: QmTcVkfM7D42yphDNGsVAJN38EfBvwyUop96PPhNojBF2Q
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
