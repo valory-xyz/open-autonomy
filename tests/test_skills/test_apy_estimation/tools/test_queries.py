@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
     finalize_q,
+    latest_block,
     pairs_q,
     top_n_pairs_q,
 )
@@ -128,6 +129,29 @@ class TestQueries:
                            number
                        }
                        }
+                   """
+        assert actual.split() == expected.split()
+
+    @staticmethod
+    def test_latest_block(monkeypatch: MonkeyPatch) -> None:
+        """Test `latest_block`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
+        )
+        actual = latest_block()
+        expected = """
+                   {
+                        blocks(
+                            first: 1,
+                            orderBy: timestamp,
+                            orderDirection: desc
+                        )
+                        {
+                            timestamp
+                            number
+                        }
+                    }
                    """
         assert actual.split() == expected.split()
 

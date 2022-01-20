@@ -51,6 +51,7 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     CycleResetRound,
     EstimateRound,
     Event,
+    FreshModelResetRound,
     OptimizeRound,
     PeriodState,
     PreprocessRound,
@@ -81,7 +82,9 @@ def get_participant_to_fetching(
 ) -> Dict[str, FetchingPayload]:
     """participant_to_fetching"""
     return {
-        participant: FetchingPayload(sender=participant, history="x0")
+        participant: FetchingPayload(
+            sender=participant, history="x0", latest_observation_timestamp=0
+        )
         for participant in participants
     }
 
@@ -114,22 +117,12 @@ def get_participant_to_invalid_randomness(
     }
 
 
-def get_participant_to_fetching_payload(
-    participants: FrozenSet[str],
-) -> Dict[str, FetchingPayload]:
-    """Get participant_to_fetching payloads."""
-    return {
-        participant: FetchingPayload(participant, "historical_data_hash")
-        for participant in participants
-    }
-
-
 def get_transformation_payload(
     participants: FrozenSet[str],
 ) -> Dict[str, TransformationPayload]:
     """Get transformation payloads."""
     return {
-        participant: TransformationPayload(participant, "transformation_hash")
+        participant: TransformationPayload(participant, "transformation_hash", "x1")
         for participant in participants
     }
 
@@ -315,10 +308,10 @@ class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_fetching_payload(self.participants),
+                round_payloads=get_participant_to_fetching(self.participants),
                 state_update_fn=lambda _period_state, _: _period_state,
                 state_attr_checks=[],
-                most_voted_payload="historical_data_hash",
+                most_voted_payload="x0",
                 exit_event=Event.DONE,
             )
         )
@@ -634,6 +627,7 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
                     pair_name="",
                     full_training=False,
                     n_estimations=1,
+                    latest_observation_hist_hash="x0",
                     participants=get_participants(),
                 ),
                 state_attr_checks=[],
@@ -645,6 +639,42 @@ class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
         test_round = CycleResetRound(self.period_state, self.consensus_params)
+        self._test_no_majority_event(test_round)
+
+
+class TestFreshModelResetRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test `FreshModelResetRound`."""
+
+    _period_state_class = PeriodState
+    _event_class = Event
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests"""
+
+        test_round = FreshModelResetRound(self.period_state, self.consensus_params)
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_reset_payload(self.participants),
+                state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                    period_count=_test_round.most_voted_payload,
+                    most_voted_model="",
+                    pair_name="",
+                    full_training=False,
+                    n_estimations=1,
+                    participants=get_participants(),
+                ),
+                state_attr_checks=[],
+                most_voted_payload=1,
+                exit_event=Event.DONE,
+            )
+        )
+
+    def test_no_majority_event(self) -> None:
+        """Test the no-majority event."""
+        test_round = FreshModelResetRound(self.period_state, self.consensus_params)
         self._test_no_majority_event(test_round)
 
 
