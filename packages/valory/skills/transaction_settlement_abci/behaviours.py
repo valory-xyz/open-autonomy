@@ -60,16 +60,17 @@ benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
 
-def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:
+def hex_to_payload(payload: str) -> Tuple[str, int, int, int, str, bytes]:
     """Decode payload."""
     if len(payload) < 234:
         raise ValueError("cannot decode provided payload")  # pragma: nocover
     tx_hash = payload[:64]
-    ether_value = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
-    safe_tx_gas = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
-    to_address = payload[192:234]
-    data = bytes.fromhex(payload[234:])
-    return (tx_hash, ether_value, safe_tx_gas, to_address, data)
+    safe_nonce = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
+    ether_value = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
+    safe_tx_gas = int.from_bytes(bytes.fromhex(payload[192:256]), "big")
+    to_address = payload[256:298]
+    data = bytes.fromhex(payload[298:])
+    return tx_hash, safe_nonce, ether_value, safe_tx_gas, to_address, data
 
 
 class TransactionSettlementBaseState(BaseState, ABC):
@@ -156,7 +157,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.final_tx_hash} not settled!"
             )
             return False
-        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
+        _, _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
         contract_api_msg = yield from self.get_contract_api_response(
@@ -228,7 +229,9 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        safe_tx_hash, _, _, _, _ = hex_to_payload(self.period_state.most_voted_tx_hash)
+        safe_tx_hash, _, _, _, _, _ = hex_to_payload(
+            self.period_state.most_voted_tx_hash
+        )
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(safe_tx_hash)
@@ -305,7 +308,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Optional[Dict[str, Union[None, str, int]]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
+        _, _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
 

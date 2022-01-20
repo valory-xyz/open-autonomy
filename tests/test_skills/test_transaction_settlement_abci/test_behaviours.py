@@ -124,7 +124,7 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 StateDB(
                     initial_period=0,
                     initial_data=dict(
-                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff72156230653661646435393565303034373763663334376430393739376231353637313964633532333332383361633736653465666365326136373466653732643962306536616464353935653030343737636633343764303937393762313536373139646335323333323833616337366534656663653261363734666537326439"
                     ),
                 )
             ),
@@ -214,6 +214,7 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                         participant_to_signature={},
                         most_voted_tx_hash=payload_to_hex(
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            0,
                             1,
                             1,
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
@@ -301,6 +302,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                         participant_to_signature={},
                         most_voted_tx_hash=payload_to_hex(
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            0,
                             1,
                             1,
                             "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",

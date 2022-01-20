@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 #### hex`_`to`_`payload
 
 ```python
-def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]
+def hex_to_payload(payload: str) -> Tuple[str, int, int, int, str, bytes]
 ```
 
 Decode payload.

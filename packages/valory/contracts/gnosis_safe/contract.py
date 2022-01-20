@@ -280,7 +280,7 @@ class GnosisSafeContract(Contract):
         :param safe_nonce: Current nonce of the Safe. If not provided, it will be retrieved from network
         :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
         :param chain_id: Ethereum network chain_id is used in hash calculation for Safes >= 1.3.0. If not provided, it will be retrieved from the provided ethereum_client
-        :return: the hash of the raw Safe transaction
+        :return: the hash of the raw Safe transaction and the safe's nonce
         """
         safe_contract = cls.get_instance(ledger_api, contract_address)
         if safe_nonce is None:
@@ -342,7 +342,10 @@ class GnosisSafeContract(Contract):
             )
             structured_data["domain"]["chainId"] = chain_id  # type: ignore
 
-        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
+        return dict(
+            tx_hash=HexBytes(encode_typed_data(structured_data)).hex(),
+            safe_nonce=safe_nonce,
+        )
 
     @classmethod
     def _get_packed_signatures(

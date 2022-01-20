@@ -96,16 +96,24 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
 
 
 def payload_to_hex(
-    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
+    tx_hash: str,
+    safe_nonce: int,
+    ether_value: int,
+    safe_tx_gas: int,
+    to_address: str,
+    data: bytes,
 ) -> str:
     """Serialise to a hex string."""
     if len(tx_hash) != 64:  # should be exactly 32 bytes!
         raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+    safe_nonce_ = safe_nonce.to_bytes(32, "big").hex()
     ether_value_ = ether_value.to_bytes(32, "big").hex()
     safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
     if len(to_address) != 42:
         raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
-    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
+    concatenated = (
+        tx_hash + safe_nonce_ + ether_value_ + safe_tx_gas_ + to_address + data.hex()
+    )
     return concatenated
 
 
@@ -323,10 +331,11 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             return None
         safe_tx_hash = cast(str, contract_api_msg.raw_transaction.body["tx_hash"])
         safe_tx_hash = safe_tx_hash[2:]
+        safe_nonce = cast(int, contract_api_msg.raw_transaction.body["safe_nonce"])
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         # temp hack:
         payload_string = payload_to_hex(
-            safe_tx_hash, ether_value, safe_tx_gas, to_address, data
+            safe_tx_hash, safe_nonce, ether_value, safe_tx_gas, to_address, data
         )
         return payload_string
 

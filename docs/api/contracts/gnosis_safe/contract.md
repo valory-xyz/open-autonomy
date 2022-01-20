@@ -123,7 +123,7 @@ Note, because safe_nonce is included in the tx_hash the agents implicitly agree 
 
 **Returns**:
 
-the hash of the raw Safe transaction
+the hash of the raw Safe transaction and the safe's nonce
 
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_safe_transaction"></a>
 
