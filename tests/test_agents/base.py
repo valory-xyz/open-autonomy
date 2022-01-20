@@ -227,6 +227,8 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
       node can receive the responses
     """
 
+    restart_after: int = 60
+
     def test_run(self) -> None:
         """Run the test."""
 
@@ -240,7 +242,10 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
 
-        time.sleep(60)
+        # wait for some time before restarting
+        time.sleep(self.restart_after)
+
+        # restart agent
         self.terminate_agents(self.processes[-1])
         self.processes.pop(-1)
         self._launch_agent_i(-1)

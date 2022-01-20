@@ -144,5 +144,6 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     NB_AGENTS = 4
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
-    wait_to_finish = 180
+    wait_to_finish = 120
+    restart_after = 45
     check_strings = CHECK_STRINGS
