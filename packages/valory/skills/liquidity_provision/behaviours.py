@@ -172,30 +172,27 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             deadline=deadline,
         )
 
+        if (  # pylint: disable=too-many-boolean-expressions
+            (not is_a_native and exact_input and amount_in is None)
+            or (not is_a_native and not exact_input and amount_in_max is None)
+            or (exact_input and amount_out_min is None)
+            or (not exact_input and amount_out is None)
+        ):
+            return None
+
         # Input amounts for native tokens are read from the msg.value field.
         # We only need to specify them here for not native tokens.
-        if not is_a_native:
-            if exact_input:
-                if amount_in is not None:
-                    contract_api_kwargs["amount_in"] = int(amount_in)
-                else:
-                    return None
-            else:
-                if amount_in_max is not None:
-                    contract_api_kwargs["amount_in_max"] = int(amount_in_max)
-                else:
-                    return None
+        if not is_a_native and exact_input:
+            contract_api_kwargs["amount_in"] = int(amount_in)  # type: ignore
 
+        if not is_a_native and not exact_input:
+            contract_api_kwargs["amount_in_max"] = int(amount_in_max)  # type: ignore
+
+        # Output amounts
         if exact_input:
-            if amount_out_min is not None:
-                contract_api_kwargs["amount_out_min"] = int(amount_out_min)
-            else:
-                return None
+            contract_api_kwargs["amount_out_min"] = int(amount_out_min)  # type: ignore
         else:
-            if amount_out is not None:
-                contract_api_kwargs["amount_out"] = int(amount_out)
-            else:
-                return None
+            contract_api_kwargs["amount_out"] = int(amount_out)  # type: ignore
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
