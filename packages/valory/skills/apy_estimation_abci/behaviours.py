@@ -1373,8 +1373,6 @@ class BaseResetBehaviour(APYEstimationBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        # TODO if we are not in the `cycle_reset` state, should we clear all the data from IPFS?
-
         if (
             self.state_id == "cycle_reset"
             and self.period_state.is_most_voted_estimate_set
