@@ -314,6 +314,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     is_programmatically_defined = True
     state_id = ""
     matching_round: Optional[Type[AbstractRound]] = None
+    is_initial_behaviour: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -425,14 +426,14 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         stop_condition = self.is_round_ended(self.matching_round.round_id)
         yield from self._send_transaction(payload, stop_condition=stop_condition)
 
-    def async_act_wrapper(self) -> Generator:
+    def async_act_wrapper(self, initial_behaviour: bool = False) -> Generator:
         """Do the act, supporting asynchronous execution."""
         if not self._is_started:
             self._log_start()
             self._is_started = True
 
         try:
-            if self.context.state.period.syncing_up:
+            if self.context.state.period.syncing_up and not self.is_initial_behaviour:
                 if self.matching_round is None:
                     yield from self.sleep(_SYNC_MODE_WAIT)
                 else:

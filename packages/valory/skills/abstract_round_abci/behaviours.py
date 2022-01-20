@@ -211,6 +211,9 @@ class AbstractRoundBehaviour(
         self._process_current_round()
 
         current_state = self.current_state
+        current_state.is_initial_behaviour = isinstance(
+            current_state, self.initial_state_cls
+        )
         if current_state is None:
             return
 

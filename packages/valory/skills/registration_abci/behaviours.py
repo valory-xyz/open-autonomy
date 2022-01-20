@@ -101,6 +101,7 @@ class TendermintHealthcheckBehaviour(BaseState):
             self.context.state.period.start_sync()
 
         self.context.logger.info("local height == remote height; done")
+        self.context.state.period.end_sync()
         self.set_done()
 
 

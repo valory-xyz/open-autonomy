@@ -141,5 +141,13 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     NB_AGENTS = 4
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 180
     check_strings = CHECK_STRINGS
+
+    def teardown(
+        self,
+    ):
+
+        for i, process in enumerate(self.processes):
+            with open(f"/root/logs/agent_{i}.txt", "w+") as fp:
+                fp.write(self.stdout[process.pid])

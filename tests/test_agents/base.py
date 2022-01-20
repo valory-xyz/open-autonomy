@@ -108,6 +108,10 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 self.NB_AGENTS,
             )
             self.set_config(
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
+                5,
+            )
+            self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
                 self.KEEPER_TIMEOUT,
             )
@@ -204,7 +208,24 @@ class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
 
 
 class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
-    """Test that an agent that is launched later can synchronize with the rest of the network"""
+    """
+    Test that an agent that is launched later can synchronize with the rest of the network
+
+    - each agent starts, and sets up the ABCI connection, which in turn spawns both an ABCI
+      server and a local Tendermint node (using the configuration folders we set up previously).
+      The Tendermint node is unique for each agent
+    - when we will stop one agent, also the ABCI server created by the ABCI connection will
+      stop, and in turn the Tendermint node will stop. In particular, it does not keep polling
+      the endpoint until it is up again, it just stops.
+    - when we will restart the previously stopped agent, the ABCI connection will set up again
+      both the server and the Tendermint node. The node will automatically connect to the rest
+      of the Tendermint network, loads the entire blockchain bulit so far by the others, and
+      starts sending ABCI requests to the agent (begin_block; deliver_tx*; end_block), plus
+      other auxiliary requests like info , flush etc. The agent which is already processing
+      incoming messages, forwards the ABCI requests to the ABCIHandler, which produces ABCI
+      responses that are forwarded again via the ABCI connection such that the Tendermint
+      node can receive the responses
+    """
 
     def test_run(self) -> None:
         """Run the test."""
@@ -220,9 +241,9 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         )
 
         time.sleep(60)
-        self.terminate_agents(self.processes[0])
-        self._launch_agent_i(0)
-        time.sleep(30)
+        self.terminate_agents(self.processes[-1])
+        self.processes.pop(-1)
+        self._launch_agent_i(-1)
 
         # check that *each* AEA prints these messages
         for i, process in enumerate(self.processes):
