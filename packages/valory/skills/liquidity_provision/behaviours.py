@@ -156,7 +156,15 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     ) -> Generator[None, None, Optional[Dict]]:
         """Return the swap tx data."""
 
-        if (is_a_native and is_b_native) or (is_a_native and ETH_value is None):
+        if (  # pylint: disable=too-many-boolean-expressions
+            (is_a_native and is_b_native)
+            or (is_a_native and ETH_value is None)
+            or (not is_a_native and exact_input and amount_in is None)
+            or (not is_a_native and not exact_input and amount_in_max is None)
+            or (exact_input and amount_out_min is None)
+            or (not exact_input and amount_out is None)
+        ):
+            self.context.logger.error("Swap data is not correct.")
             return None
 
         method_name = (
@@ -171,14 +179,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             to=self.period_state.safe_contract_address,
             deadline=deadline,
         )
-
-        if (  # pylint: disable=too-many-boolean-expressions
-            (not is_a_native and exact_input and amount_in is None)
-            or (not is_a_native and not exact_input and amount_in_max is None)
-            or (exact_input and amount_out_min is None)
-            or (not exact_input and amount_out is None)
-        ):
-            return None
 
         # Input amounts for native tokens are read from the msg.value field.
         # We only need to specify them here for not native tokens.
@@ -601,8 +601,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 if swap_tx_data:
                     multi_send_txs.append(swap_tx_data)
-                else:
-                    self.context.logger.error("Swap data is not correct.")
 
             # Swap second token
             if strategy["pair"]["token_b"]["ticker"] != strategy["base"]["ticker"]:
@@ -625,8 +623,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
                 if swap_tx_data:
                     multi_send_txs.append(swap_tx_data)
-                else:
-                    self.context.logger.error("Swap data is not correct.")
 
             # Add allowance for token A (only if not native)
             if not strategy["pair"]["token_a"]["is_native"]:
@@ -1115,8 +1111,6 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
-            else:
-                self.context.logger.error("Swap data is not correct.")
 
             # Swap second token back
             swap_tx_data = yield from self.get_swap_tx_data(
@@ -1137,8 +1131,6 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
-            else:
-                self.context.logger.error("Swap data is not correct.")
 
             # Remove allowance for base token (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(
