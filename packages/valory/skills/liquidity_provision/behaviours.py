@@ -154,7 +154,22 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         amount_out_min: Optional[int] = None,
         ETH_value: Optional[int] = None,
     ) -> Generator[None, None, Optional[Dict]]:
-        """Return the swap tx data."""
+        """
+        Return the swap tx data.
+
+        :param is_a_native: flag to check if the first token is native
+        :param is_b_native: flag to check if the second token is native
+        :param exact_input: flag to check if the exact amount belongs to the input or the output
+        :param path: the swap path
+        :param deadline: the tx deadline
+        :param amount_in: the amount in
+        :param amount_out: the amount out
+        :param amount_in_max: the max amount in
+        :param amount_out_min: the min amount out
+        :param ETH_value: the tx value, also used as amount_or amount_in_max in for some cases
+        :return: None if required parameters are missing
+        :yield: the tx data
+        """
 
         if (  # pylint: disable=too-many-boolean-expressions
             (is_a_native and is_b_native)
