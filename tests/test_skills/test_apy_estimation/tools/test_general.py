@@ -98,11 +98,11 @@ class TestGeneral:
         # test non-existing path.
         path = os.path.join("non_existing_path", "file.json")
         with pytest.raises(FileNotFoundError):
-            to_json_file(path, test_list)
+            to_json_file(path, test_list)  # type: ignore
 
         # test existing path with serializable list.
         path = os.path.join(tmp_path, "file.json")
-        to_json_file(path, test_list)
+        to_json_file(path, test_list)  # type: ignore
         with open(path, "r", encoding="utf-8") as f:
             li = json.load(f)
             assert li == test_list

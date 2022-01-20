@@ -43,8 +43,8 @@ class TestPreprocessing:
             prepare_pair_data(transformed_historical_data, pair_id="x2", test_size=0.2)
 
         # test with correct data.
-        transformed_historical_data["block_timestamp"] = pd.to_datetime(
-            transformed_historical_data["block_timestamp"], unit="s"
+        transformed_historical_data["blockTimestamp"] = pd.to_datetime(
+            transformed_historical_data["blockTimestamp"], unit="s"
         )
         (y_train, y_test), pair_name = prepare_pair_data(
             transformed_historical_data,
@@ -57,8 +57,8 @@ class TestPreprocessing:
         assert pair_name == "x - y"
 
         # test with wrong block timestamp.
-        transformed_historical_data["block_timestamp"] = transformed_historical_data[
-            "block_timestamp"
+        transformed_historical_data["blockTimestamp"] = transformed_historical_data[
+            "blockTimestamp"
         ].view(int)
         with pytest.raises(
             AttributeError, match="'Int64Index' object has no attribute 'to_period'"
