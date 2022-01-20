@@ -128,13 +128,6 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
         process = self.run_agent()
         self.processes.append(process)
 
-    def teardown(
-        self,
-    ):
-        for i, process in enumerate(self.processes):
-            with open(f"/root/logs/agent_{i}.txt", "w+") as fp:
-                fp.write(self.stdout[process.pid])
-
 
 class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
     """Test that the ABCI simple skill works together with Tendermint under normal circumstances."""
