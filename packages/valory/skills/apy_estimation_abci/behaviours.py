@@ -601,10 +601,10 @@ class FetchBehaviour(APYEstimationBaseState):
 
             # Add extra fields to the pairs.
             for i in range(len(res["pairs"])):
-                res["pairs"][i]["for_timestamp"] = self._current_timestamp
-                res["pairs"][i]["block_number"] = fetched_block["number"]
-                res["pairs"][i]["block_timestamp"] = fetched_block["timestamp"]
-                res["pairs"][i]["eth_price"] = eth_price
+                res["pairs"][i]["forTimestamp"] = self._current_timestamp
+                res["pairs"][i]["blockNumber"] = fetched_block["number"]
+                res["pairs"][i]["blockTimestamp"] = fetched_block["timestamp"]
+                res["pairs"][i]["ethPrice"] = eth_price
 
             self._pairs_hist.extend(res["pairs"])
 

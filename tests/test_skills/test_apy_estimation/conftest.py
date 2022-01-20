@@ -373,16 +373,16 @@ def transformed_historical_data_no_datetime_conversion() -> pd.DataFrame:
             "volumeToken0": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
             "volumeToken1": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
             "volumeUSD": [1.2, 2.4, 3.0, 4.6, 5.8, 6.3, 7.5, 8.2, 9.1, 10.7],
-            "for_timestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "block_number": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "block_timestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            "eth_price": [1.2, 2.3, 3.4, 4.45634, 5.2, 6.0, 7.246, 8.26, 9.123, 10.56],
-            "token0_id": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
-            "token0_name": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
-            "token0_symbol": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
-            "token1_id": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
-            "token1_name": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
-            "token1_symbol": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
+            "forTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "blockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "blockTimestamp": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "ethPrice": [1.2, 2.3, 3.4, 4.45634, 5.2, 6.0, 7.246, 8.26, 9.123, 10.56],
+            "token0ID": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
+            "token0Name": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
+            "token0Symbol": ["x", "k", "l", "t", "v", "x", "x", "x", "x", "x"],
+            "token1ID": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
+            "token1Name": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
+            "token1Symbol": ["y", "m", "r", "y", "b", "y", "y", "y", "y", "y"],
             "pairName": [
                 "x - y",
                 "k - m",
@@ -408,7 +408,7 @@ def transformed_historical_data_no_datetime_conversion() -> pd.DataFrame:
                 85.75619999999999,
                 112.992,
             ],
-            "current_change": [None, None, None, None, None, 5.1, 1.2, 0.7, 0.9, 1.6],
+            "currentChange": [None, None, None, None, None, 5.1, 1.2, 0.7, 0.9, 1.6],
             "APY": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1],
         }
     )
@@ -420,9 +420,9 @@ def transformed_historical_data(
 ) -> pd.DataFrame:
     """Create dummy transformed historical data"""
     transformed_historical_data_no_datetime_conversion[
-        "block_timestamp"
+        "blockTimestamp"
     ] = pd.to_datetime(
-        transformed_historical_data_no_datetime_conversion["block_timestamp"], unit="s"
+        transformed_historical_data_no_datetime_conversion["blockTimestamp"], unit="s"
     )
 
     return transformed_historical_data_no_datetime_conversion
@@ -450,16 +450,16 @@ def batch() -> ResponseItemType:
             "volumeToken0": "1.2",
             "volumeToken1": "1.2",
             "volumeUSD": "1.2",
-            "for_timestamp": "1",
-            "block_number": "1",
-            "block_timestamp": "100000000",
-            "eth_price": "1.2",
-            "token0_id": "x",
-            "token0_name": "x",
-            "token0_symbol": "x",
-            "token1_id": "y",
-            "token1_name": "y",
-            "token1_symbol": "y",
+            "forTimestamp": "1",
+            "blockNumber": "1",
+            "blockTimestamp": "100000000",
+            "ethPrice": "1.2",
+            "token0ID": "x",
+            "token0Name": "x",
+            "token0Symbol": "x",
+            "token1ID": "y",
+            "token1Name": "y",
+            "token1Symbol": "y",
             "pairName": "x - y",
             "updatedVolumeUSD": "1.2",
             "updatedReserveUSD": "1.68",

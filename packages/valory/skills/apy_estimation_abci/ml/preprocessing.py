@@ -50,7 +50,7 @@ def filter_pair_data(
 
     # Get the pair's APY, set the block's timestamp as an index
     # and convert it to a pandas period to create the timeseries.
-    y = pairs_hist.loc[pair_m, ["block_timestamp", "APY"]].set_index("block_timestamp")
+    y = pairs_hist.loc[pair_m, ["blockTimestamp", "APY"]].set_index("blockTimestamp")
     y.index = y.index.to_period("D")
 
     return y, pair_name, n_pair_items

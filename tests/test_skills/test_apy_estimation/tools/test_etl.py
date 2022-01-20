@@ -67,7 +67,7 @@ class TestProcessing:
         """Test `calc_apy`."""
         test_series = pd.Series(
             [updated_reserve_usd, current_change, unrelated],
-            ["updatedReserveUSD", "current_change", "unrelated"],
+            ["updatedReserveUSD", "currentChange", "unrelated"],
         )
         actual = calc_apy(test_series)
 
@@ -124,13 +124,13 @@ class TestProcessing:
         monkeypatch.setattr(pd, "read_csv", lambda _: transformed_history)
         actual = load_hist("")
 
-        actual_timestamp = actual.loc[1, "block_timestamp"]
+        actual_timestamp = actual.loc[1, "blockTimestamp"]
         expected_timestamp = pd.Timestamp(
-            transformed_history.loc[1, "block_timestamp"], unit="s"
+            transformed_history.loc[1, "blockTimestamp"], unit="s"
         )
         assert expected_timestamp == actual_timestamp
 
         transformed_history = transformed_history.astype(TRANSFORMED_HIST_DTYPES)
         for df in (actual, transformed_history):
-            df.drop(columns="block_timestamp", inplace=True)
+            df.drop(columns="blockTimestamp", inplace=True)
         pd.testing.assert_frame_equal(actual, transformed_history)

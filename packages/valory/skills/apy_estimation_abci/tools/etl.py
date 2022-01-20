@@ -45,10 +45,10 @@ HIST_DTYPES = {
     "volumeToken0": float,
     "volumeToken1": float,
     "volumeUSD": float,
-    "for_timestamp": int,
-    "block_number": int,
-    "block_timestamp": int,
-    "eth_price": float,
+    "forTimestamp": int,
+    "blockNumber": int,
+    "blockTimestamp": int,
+    "ethPrice": float,
     "token0": object,
     "token1": object,
 }
@@ -57,16 +57,16 @@ HIST_DTYPES = {
 TRANSFORMED_HIST_DTYPES = HIST_DTYPES.copy()
 
 NEW_STR_COLS = (
-    "token0_id",
-    "token0_name",
-    "token0_symbol",
-    "token1_id",
-    "token1_name",
-    "token1_symbol",
+    "token0ID",
+    "token0Name",
+    "token0Symbol",
+    "token1ID",
+    "token1Name",
+    "token1Symbol",
     "pairName",
 )
 
-NEW_FLOAT_COLS = ("updatedVolumeUSD", "updatedReserveUSD", "current_change", "APY")
+NEW_FLOAT_COLS = ("updatedVolumeUSD", "updatedReserveUSD", "currentChange", "APY")
 
 TOKEN_COL_NAMES = ("token0", "token1")
 
@@ -98,7 +98,7 @@ def calc_apy(x: pd.Series) -> Optional[float]:
     res = None
 
     if x["updatedReserveUSD"]:
-        res = (x["current_change"] * 0.002 * 365 * 100) / x["updatedReserveUSD"]
+        res = (x["currentChange"] * 0.002 * 365 * 100) / x["updatedReserveUSD"]
 
     return res
 
@@ -108,8 +108,8 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
 
     :param pairs_hist_raw: the pairs historical data non-transformed.
     :return: a dataframe with the given historical data, containing extra fields. These are:
-         * [token0_id, token0_name, token0_symbol]: split from `token0`.
-         * [token1_id, token1_name, token1_symbol]: split from `token1`.
+         * [token0ID, token0Name, token0Symbol]: split from `token0`.
+         * [token1ID, token1Name, token1Symbol]: split from `token1`.
          * pairName: the current's pair's name, which is derived by: 'token0_name - token1_name'.
          * updatedVolumeUSD: the tracked volume USD, but if it is 0, then the untracked volume USD.
          * updatedReserveUSD: the tracked reserve USD, but if it is 0, then the untracked reserve USD.
@@ -124,27 +124,25 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
 
     # Split the dictionary-like token cols.
     for token_col in TOKEN_COL_NAMES:
-        pairs_hist[f"{token_col}_id"] = (
+        pairs_hist[f"{token_col}ID"] = (
             pairs_hist[token_col].apply(lambda x: x["id"]).astype(str)
         )
-        pairs_hist[f"{token_col}_name"] = (
+        pairs_hist[f"{token_col}Name"] = (
             pairs_hist[token_col].apply(lambda x: x["name"]).astype(str)
         )
-        pairs_hist[f"{token_col}_symbol"] = (
+        pairs_hist[f"{token_col}Symbol"] = (
             pairs_hist[token_col].apply(lambda x: x["symbol"]).astype(str)
         )
     # Drop the original dictionary-like token cols.
     pairs_hist.drop(columns=list(TOKEN_COL_NAMES), inplace=True)
 
     # Create pair's name.
-    pairs_hist["pairName"] = (
-        pairs_hist["token0_name"] + " - " + pairs_hist["token1_name"]
-    )
+    pairs_hist["pairName"] = pairs_hist["token0Name"] + " - " + pairs_hist["token1Name"]
 
     # Create a volume USD and a reserve USD taking the untracked amount into consideration as well.
     pairs_hist["updatedVolumeUSD"] = pairs_hist["volumeUSD"]
     pairs_hist["updatedReserveUSD"] = (
-        pairs_hist["trackedReserveETH"] * pairs_hist["eth_price"]
+        pairs_hist["trackedReserveETH"] * pairs_hist["ethPrice"]
     )
 
     # Create a mask for all the untracked cases.
@@ -159,12 +157,12 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
     ]
 
     # Calculate the current change of volume in USD.
-    pairs_hist["current_change"] = pairs_hist.groupby("id")[
+    pairs_hist["currentChange"] = pairs_hist.groupby("id")[
         "updatedVolumeUSD"
     ].transform(calc_change)
 
     # Drop NaN values (essentially, this is the first day's `current_change`, because we cannot calculate it).
-    pairs_hist.dropna(subset=["current_change"], inplace=True)
+    pairs_hist.dropna(subset=["currentChange"], inplace=True)
 
     if len(pairs_hist.index) == 0:
         raise ValueError(
@@ -178,7 +176,7 @@ def transform_hist_data(pairs_hist_raw: ResponseItemType) -> pd.DataFrame:
 
     # Sort the dictionary.
     pairs_hist.sort_values(
-        by=["block_timestamp", "token0_symbol", "token1_symbol"],
+        by=["blockTimestamp", "token0Symbol", "token1Symbol"],
         ascending=True,
         inplace=True,
     )
@@ -202,9 +200,9 @@ def apply_revert_token_cols_wrapper(
         :return: a dictionary of the initial representation.
         """
         return {
-            "id": x[f"{token_name}_id"],
-            "name": x[f"{token_name}_name"],
-            "symbol": x[f"{token_name}_symbol"],
+            "id": x[f"{token_name}ID"],
+            "name": x[f"{token_name}Name"],
+            "symbol": x[f"{token_name}Symbol"],
         }
 
     return apply_revert_token_cols
@@ -226,12 +224,12 @@ def revert_transform_hist_data(pairs_hist: pd.DataFrame) -> ResponseItemType:
     drop_cols = list(NEW_STR_COLS + NEW_FLOAT_COLS)
     for token_name in TOKEN_COL_NAMES:
         drop_cols.extend(
-            [f"{token_name}_id", f"{token_name}_name", f"{token_name}_symbol"]
+            [f"{token_name}ID", f"{token_name}Name", f"{token_name}Symbol"]
         )
     pairs_hist.drop(columns=drop_cols)
 
     # Convert timestamp to unix int.
-    pairs_hist["block_timestamp"] = pairs_hist["block_timestamp"].view(int) / 10 ** 9
+    pairs_hist["blockTimestamp"] = pairs_hist["blockTimestamp"].view(int) / 10 ** 9
 
     # Convert history to a list of dicts.
     reverted_pairs_hist = pairs_hist.to_dict("records")
@@ -247,9 +245,9 @@ def load_hist(path: str) -> pd.DataFrame:
     """
     pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
 
-    # Convert the `block_timestamp` to a pandas datetime.
-    pairs_hist["block_timestamp"] = pd.to_datetime(
-        pairs_hist["block_timestamp"], unit="s"
+    # Convert the `blockTimestamp` to a pandas datetime.
+    pairs_hist["blockTimestamp"] = pd.to_datetime(
+        pairs_hist["blockTimestamp"], unit="s"
     )
 
     return pairs_hist

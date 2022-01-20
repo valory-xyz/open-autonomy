@@ -452,8 +452,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).get_and_read_hist(hash_, download_folder, "save")
 
-        save_csv_data["block_timestamp"] = pd.to_datetime(
-            save_csv_data["block_timestamp"], unit="s"
+        save_csv_data["blockTimestamp"] = pd.to_datetime(
+            save_csv_data["blockTimestamp"], unit="s"
         )
 
         pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
