@@ -32,25 +32,29 @@ class DictProtobufStructSerializer:
 
     ValueType = PrimitiveType | DictType | List[ValueType]
     PrimitiveType = bool | int | float | str | bytes
+
+    The following encoding is required and performed,
+    and sentinel values are added for decoding:
+     - bytes to string
+     - integer to float
     """
 
-    NEED_PATCH = "_need_patch"
+    NEED_PATCH = "_need_patch"  # sentinel value
+    ENCODING = "utf-8"
 
     @classmethod
-    def encode(cls, dictionary: Dict[str, Any]) -> bytes:
+    def encode(cls, data: Dict[str, Any]) -> bytes:
         """
         Serialize compatible dictionary to bytes.
 
         Copies entire dictionary in the process.
 
-        :param dictionary: the dictionary to serialize
+        :param data: the dictionary to serialize
         :return: serialized bytes string
         """
-        if not isinstance(dictionary, dict):
-            raise TypeError(  # pragma: nocover
-                "dictionary must be of dict type, got type {}".format(type(dictionary))
-            )
-        patched_dict = copy.deepcopy(dictionary)
+        if not isinstance(data, dict):
+            raise TypeError(f"Only encode dict (not {type(data)})")  # pragma: nocover
+        patched_dict = copy.deepcopy(data)
         cls._patch_dict(patched_dict)
         pstruct = Struct()
         pstruct.update(patched_dict)  # pylint: disable=no-member
@@ -66,72 +70,42 @@ class DictProtobufStructSerializer:
         return dictionary
 
     @classmethod
-    def _bytes_to_str(cls, value: bytes) -> str:
-        return value.decode("utf-8")
-
-    @classmethod
-    def _str_to_bytes(cls, value: str) -> bytes:
-        return value.encode("utf-8")
-
-    @classmethod
-    def _patch_dict(cls, dictionnary: Dict[str, Any]) -> None:
-        need_patch: Dict[str, bool] = {}
-        for key, value in dictionnary.items():
-            if isinstance(value, bytes):
-                # convert bytes values to string, as protobuf.Struct does support byte fields
-                dictionnary[key] = cls._bytes_to_str(value)
-                if cls.NEED_PATCH in dictionnary:
-                    dictionnary[cls.NEED_PATCH][key] = True
-                else:
-                    need_patch[key] = True
-            elif isinstance(value, int) and not isinstance(value, bool):
-                # protobuf Struct store int as float under numeric_value type
-                if cls.NEED_PATCH in dictionnary:
-                    dictionnary[cls.NEED_PATCH][key] = True
-                else:
-                    need_patch[key] = True
-            elif isinstance(value, dict):
-                cls._patch_dict(value)  # pylint: disable=protected-access
-            elif (
-                not isinstance(value, bool)
-                and not isinstance(value, float)
-                and not isinstance(value, str)
-                and not isinstance(value, Struct)
-            ):  # pragma: nocover
-                raise NotImplementedError(
-                    "DictProtobufStructSerializer doesn't support dict value type {}".format(
-                        type(value)
-                    )
-                )
-        if len(need_patch) > 0:
-            dictionnary[cls.NEED_PATCH] = need_patch
-
-    @classmethod
-    def _patch_dict_restore(cls, dictionary: Dict[str, Any]) -> None:
-        # protobuf Struct doesn't recursively convert Struct to dict
-        need_patch = dictionary.get(cls.NEED_PATCH, {})
-        if len(need_patch) > 0:
-            dictionary[cls.NEED_PATCH] = dict(need_patch)
-
-        for key, value in dictionary.items():
-            if key == cls.NEED_PATCH:
-                continue
-
-            # protobuf struct doesn't recursively convert Struct to dict
-            if isinstance(value, Struct):
-                if value != Struct():
-                    value = dict(value)
-                dictionary[key] = value
+    def _patch_dict(cls, data: Dict[str, Any]) -> None:
+        # Struct stores int as float under numeric_value type
+        needs_patching: Dict[str, bool] = {}
+        for key, value in data.items():
+            if isinstance(value, (bool, float, str, Struct)):
+                # what use case possibly requires Struct to be accepted here?
+                continue  # these cases protobuf can deal with
 
             if isinstance(value, dict):
-                cls._patch_dict_restore(value)
-            elif isinstance(value, str) and dictionary.get(cls.NEED_PATCH, {}).get(
-                key, False
-            ):
-                dictionary[key] = cls._str_to_bytes(value)
-            elif isinstance(value, float) and dictionary.get(cls.NEED_PATCH, {}).get(
-                key, False
-            ):
-                dictionary[key] = int(value)
+                cls._patch_dict(value)  # pylint: disable=protected-access
+            elif isinstance(value, bytes):
+                data[key] = value.decode(cls.ENCODING)
+                needs_patching[key] = True
+            elif isinstance(value, int):
+                data[key] = float(value)
+                needs_patching[key] = True
+            else:  # pragma: nocover
+                raise TypeError(f"Encoding of {type(data)} not supported")
 
-        dictionary.pop(cls.NEED_PATCH, None)
+        if len(needs_patching) > 0:
+            data[cls.NEED_PATCH] = needs_patching
+
+    @classmethod
+    def _patch_dict_restore(cls, data: Dict[str, Any]) -> None:
+        # protobuf Struct doesn't recursively convert Struct to dict
+        needs_patching = dict(data.pop(cls.NEED_PATCH, Struct()))
+        for key, value in data.items():
+            if isinstance(value, Struct):
+                # why should we not convert an empty Struct?
+                data[key] = dict(value) if value != Struct() else value
+                cls._patch_dict_restore(dict(value))
+            elif isinstance(value, str) and needs_patching.pop(key, False):
+                data[key] = value.encode(cls.ENCODING)
+            elif isinstance(value, float) and needs_patching.pop(key, False):
+                data[key] = int(value)
+            elif isinstance(value, (bool, float, str, int)):
+                continue  # values that don't need patching
+            else:  # pragma: nocover
+                raise TypeError(f"Encoding of {type(value)} not supported")
