@@ -516,7 +516,7 @@ class ResetAndPauseBehaviour(BaseResetBehaviour):
     pause = True
 
 
-class TransactionSettlementConsensusBehaviour(AbstractRoundBehaviour):
+class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the transaction settlement."""
 
     initial_state_cls = RandomnessTransactionSubmissionBehaviour

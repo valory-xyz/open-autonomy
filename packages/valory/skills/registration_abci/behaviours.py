@@ -144,7 +144,7 @@ class RegistrationBehaviour(RegistrationBaseBehaviour):
     matching_round = RegistrationRound
 
 
-class AgentRegistrationConsensusBehaviour(AbstractRoundBehaviour):
+class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the registration."""
 
     initial_state_cls = TendermintHealthcheckBehaviour

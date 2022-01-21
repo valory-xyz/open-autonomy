@@ -229,7 +229,7 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         return verified
 
 
-class OracleDeploymentConsensusBehaviour(AbstractRoundBehaviour):
+class OracleDeploymentRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the oracle deployment."""
 
     initial_state_cls = RandomnessOracleBehaviour

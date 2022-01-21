@@ -225,7 +225,7 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         return verified
 
 
-class SafeDeploymentConsensusBehaviour(AbstractRoundBehaviour):
+class SafeDeploymentRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the safe deployment."""
 
     initial_state_cls = RandomnessSafeBehaviour

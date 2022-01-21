@@ -34,7 +34,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    OracleDeploymentConsensusBehaviour,
+    OracleDeploymentRoundBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
@@ -53,14 +53,14 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     TxHashRound,
 )
 from packages.valory.skills.registration_abci.behaviours import (
-    AgentRegistrationConsensusBehaviour,
+    AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
-    SafeDeploymentConsensusBehaviour,
+    SafeDeploymentRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    TransactionSettlementConsensusBehaviour,
+    TransactionSettlementRoundBehaviour,
 )
 
 
@@ -318,7 +318,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         return payload_string
 
 
-class ObserveConsensusBehaviour(AbstractRoundBehaviour):
+class ObserverRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
@@ -337,11 +337,11 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {
-        *OracleDeploymentConsensusBehaviour.behaviour_states,
-        *AgentRegistrationConsensusBehaviour.behaviour_states,
-        *SafeDeploymentConsensusBehaviour.behaviour_states,
-        *TransactionSettlementConsensusBehaviour.behaviour_states,
-        *ObserveConsensusBehaviour.behaviour_states,
+        *OracleDeploymentRoundBehaviour.behaviour_states,
+        *AgentRegistrationRoundBehaviour.behaviour_states,
+        *SafeDeploymentRoundBehaviour.behaviour_states,
+        *TransactionSettlementRoundBehaviour.behaviour_states,
+        *ObserverRoundBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:
