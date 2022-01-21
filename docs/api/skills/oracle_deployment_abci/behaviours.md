@@ -120,12 +120,12 @@ def has_correct_contract_been_deployed() -> Generator[None, None, bool]
 
 Contract deployment verification.
 
-<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentConsensusBehaviour"></a>
+<a id="packages.valory.skills.oracle_deployment_abci.behaviours.OracleDeploymentRoundBehaviour"></a>
 
-## OracleDeploymentConsensusBehaviour Objects
+## OracleDeploymentRoundBehaviour Objects
 
 ```python
-class OracleDeploymentConsensusBehaviour(AbstractRoundBehaviour)
+class OracleDeploymentRoundBehaviour(AbstractRoundBehaviour)
 ```
 
 This behaviour manages the consensus stages for the oracle deployment.

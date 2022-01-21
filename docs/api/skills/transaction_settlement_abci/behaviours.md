@@ -222,12 +222,12 @@ class ResetAndPauseBehaviour(BaseResetBehaviour)
 
 Reset and pause state.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementConsensusBehaviour"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementRoundBehaviour"></a>
 
-## TransactionSettlementConsensusBehaviour Objects
+## TransactionSettlementRoundBehaviour Objects
 
 ```python
-class TransactionSettlementConsensusBehaviour(AbstractRoundBehaviour)
+class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour)
 ```
 
 This behaviour manages the consensus stages for the transaction settlement.
