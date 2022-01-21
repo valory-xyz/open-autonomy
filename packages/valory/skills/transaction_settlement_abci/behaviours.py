@@ -150,12 +150,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
-        is_settled = EthereumApi.is_transaction_settled(response)
-        if not is_settled:  # pragma: nocover
-            self.context.logger.info(
-                f"tx {self.period_state.final_tx_hash} not settled!"
-            )
-            return False
         _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
