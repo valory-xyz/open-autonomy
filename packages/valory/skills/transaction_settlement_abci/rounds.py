@@ -313,6 +313,20 @@ class ValidateTransactionRound(VotingRound):
     collection_key = "participant_to_votes"
 
 
+class CheckTransactionHistoryRound(VotingRound):
+    """A round in which agents check the transaction history to see if any previous tx has been validated"""
+
+    round_id = "check_transaction_history"
+    allowed_tx_type = ValidatePayload.transaction_type
+    payload_attribute = "vote"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    negative_event = Event.NEGATIVE
+    none_event = Event.NONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_check"
+
+
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """TransactionSubmissionAbciApp
 
@@ -386,15 +400,22 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
+            Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: FinalizationRound,
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
+        },
+        CheckTransactionHistoryRound: {
+            Event.DONE: FinishedTransactionSubmissionRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,
