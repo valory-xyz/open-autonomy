@@ -127,6 +127,7 @@ class TestABCIPriceEstimationFourAgents(
     check_strings = CHECK_STRINGS
 
 
+@pytest.mark.skip
 class TestDelayedStart(BaseTestEnd2EndDelayedStart, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
