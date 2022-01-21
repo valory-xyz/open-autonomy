@@ -108,6 +108,10 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 self.NB_AGENTS,
             )
             self.set_config(
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
+                5,
+            )
+            self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
                 self.KEEPER_TIMEOUT,
             )
@@ -194,6 +198,66 @@ class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
             assert (
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
+
+            if not self.is_successfully_terminated(process):
+                warnings.warn(
+                    UserWarning(
+                        f"ABCI agent with process {process} wasn't successfully terminated."
+                    )
+                )
+
+
+class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
+    """
+    Test that an agent that is launched later can synchronize with the rest of the network
+
+    - each agent starts, and sets up the ABCI connection, which in turn spawns both an ABCI
+      server and a local Tendermint node (using the configuration folders we set up previously).
+      The Tendermint node is unique for each agent
+    - when we will stop one agent, also the ABCI server created by the ABCI connection will
+      stop, and in turn the Tendermint node will stop. In particular, it does not keep polling
+      the endpoint until it is up again, it just stops.
+    - when we will restart the previously stopped agent, the ABCI connection will set up again
+      both the server and the Tendermint node. The node will automatically connect to the rest
+      of the Tendermint network, loads the entire blockchain bulit so far by the others, and
+      starts sending ABCI requests to the agent (begin_block; deliver_tx*; end_block), plus
+      other auxiliary requests like info , flush etc. The agent which is already processing
+      incoming messages, forwards the ABCI requests to the ABCIHandler, which produces ABCI
+      responses that are forwarded again via the ABCI connection such that the Tendermint
+      node can receive the responses
+    """
+
+    restart_after: int = 60
+
+    def test_run(self) -> None:
+        """Run the test."""
+
+        for agent_id in range(self.NB_AGENTS):
+            self._launch_agent_i(agent_id)
+
+        logging.info("Waiting Tendermint nodes to be up")
+        self.health_check(
+            self.tendermint_net_builder,
+            max_retries=self.HEALTH_CHECK_MAX_RETRIES,
+            sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
+        )
+
+        # wait for some time before restarting
+        time.sleep(self.restart_after)
+
+        # restart agent
+        self.terminate_agents(self.processes[-1])
+        self.processes.pop(-1)
+        self._launch_agent_i(-1)
+
+        # check that *each* AEA prints these messages
+        for i, process in enumerate(self.processes):
+            missing_strings = self.missing_from_output(
+                process, self.check_strings, self.wait_to_finish
+            )
+            assert (
+                missing_strings == []
+            ), "Strings {} didn't appear in agent_{} output.".format(missing_strings, i)
 
             if not self.is_successfully_terminated(process):
                 warnings.warn(

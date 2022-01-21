@@ -94,11 +94,19 @@ class TendermintHealthcheckBehaviour(BaseState):
         self.context.logger.info(
             "local-height = %s, remote-height=%s", local_height, remote_height
         )
-        if local_height != remote_height:
-            self.context.logger.info("local height != remote height; retrying...")
-            yield from self.sleep(self.params.sleep_time)
-            return
-        self.context.logger.info("local height == remote height; done")
+        if remote_height > local_height:
+            # if remote height > local height it means the agent is behind in
+            # consensus. This block will put current agent in sync mode and
+            # continue execution. For more information on refer to:
+            # https://github.com/valory-xyz/consensus-algorithms/pull/399
+            self.context.logger.info(
+                "remote height > local height; Entering sync mode..."
+            )
+            self.context.state.period.start_sync()
+        else:
+            self.context.state.period.end_sync()
+            self.context.logger.info("local height == remote height; done")
+
         self.set_done()
 
 
