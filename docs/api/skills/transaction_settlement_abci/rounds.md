@@ -69,6 +69,17 @@ def participant_to_signature() -> Mapping[str, SignaturePayload]
 
 Get the participant_to_signature.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.tx_hashes_history"></a>
+
+#### tx`_`hashes`_`history
+
+```python
+@property
+def tx_hashes_history() -> Optional[List[str]]
+```
+
+Get the tx hashes history.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_tx_hash"></a>
 
 #### final`_`tx`_`hash
