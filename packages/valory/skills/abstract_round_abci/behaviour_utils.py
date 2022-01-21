@@ -84,6 +84,8 @@ _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_TX_TIMEOUT = 10.0
 _DEFAULT_TX_MAX_ATTEMPTS = 5
 
+_SYNC_MODE_WAIT = 3
+
 
 class SendException(Exception):
     """Exception raised if the 'try_send' to an AsyncBehaviour failed."""
@@ -428,13 +430,26 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         if not self._is_started:
             self._log_start()
             self._is_started = True
+
         try:
-            yield from self.async_act()
+            if self.context.state.period.syncing_up:
+                if self.matching_round is None:
+                    yield from self.sleep(_SYNC_MODE_WAIT)
+                else:
+                    yield from self.wait_until_round_end()
+            else:
+                yield from self.async_act()
         except (GeneratorExit, StopIteration):
+            if self.context.state.period.syncing_up:
+                has_synced_up = yield from self._has_synced_up()
+                if has_synced_up:
+                    self.context.logger.info("local height == remote; Ending sync...")
+                    self.context.state.period.end_sync()
             self.clean_up()
             self.set_done()
             self._log_end()
             return
+
         if self._is_done:
             self._log_end()
 
@@ -658,6 +673,25 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         )
         result = yield from self._do_request(request_message, http_dialogue)
         return result
+
+    def _has_synced_up(
+        self,
+    ) -> Generator[None, None, bool]:
+        """Check if agent has completed sync."""
+
+        for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
+            status = yield from self._get_status()
+            try:
+                json_body = json.loads(status.body.decode())
+                remote_height = int(
+                    json_body["result"]["sync_info"]["latest_block_height"]
+                )
+                local_height = int(self.context.state.period.height)
+                return local_height == remote_height
+            except (json.JSONDecodeError, KeyError):  # pragma: nocover
+                continue
+
+        return False  # pragma: nocover
 
     def default_callback_request(self, message: Message) -> None:
         """Implement default callback request."""
