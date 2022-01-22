@@ -103,6 +103,26 @@ def has_transaction_been_sent() -> Generator[None, None, Optional[bool]]
 
 Transaction verification.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour"></a>
+
+## CheckTransactionHistoryBehaviour Objects
+
+```python
+class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState)
+```
+
+Check the transaction history.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
 ## SignatureBehaviour Objects

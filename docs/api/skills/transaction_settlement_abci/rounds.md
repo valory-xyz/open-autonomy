@@ -307,6 +307,16 @@ class ValidateTransactionRound(VotingRound)
 
 A round in which agents validate the transaction
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckTransactionHistoryRound"></a>
+
+## CheckTransactionHistoryRound Objects
+
+```python
+class CheckTransactionHistoryRound(VotingRound)
+```
+
+A round in which agents check the transaction history to see if any previous tx has been validated
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 
 ## TransactionSubmissionAbciApp Objects
