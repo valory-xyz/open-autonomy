@@ -25,8 +25,6 @@ import pprint
 from abc import ABC
 from typing import Dict, Generator, Optional, Tuple, Union, cast
 
-from aea_ledger_ethereum import EthereumApi
-
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import BaseState
@@ -44,18 +42,16 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
-    CancelTransactionRound,
+    CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
     PeriodState,
     RandomnessTransactionSubmissionRound,
     ResetAndPauseRound,
     ResetRound,
-    SelectKeeperCancelTransactionRoundB,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
     ValidateTransactionRound,
-    VerifyCancelledTransactionRound,
 )
 
 
@@ -83,6 +79,31 @@ class TransactionSettlementBaseState(BaseState, ABC):
         """Return the period state."""
         return cast(PeriodState, super().period_state)
 
+    def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
+        """Verify a transaction."""
+        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
+            self.period_state.most_voted_tx_hash
+        )
+
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="verify_tx",
+            tx_hash=tx_hash,
+            owners=tuple(self.period_state.participants),
+            to_address=to_address,
+            value=ether_value,
+            data=data,
+            safe_tx_gas=safe_tx_gas,
+            signatures_by_owner={
+                key: payload.signature
+                for key, payload in self.period_state.participant_to_signature.items()
+            },
+        )
+
+        return contract_api_msg
+
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
@@ -105,14 +126,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
-    payload_class = SelectKeeperPayload
-
-
-class SelectKeeperCancelTransactionBehaviourB(SelectKeeperBehaviour):
-    """Select the keeper agent."""
-
-    state_id = "select_keeper_transaction_cancelling_b"
-    matching_round = SelectKeeperCancelTransactionRoundB
     payload_class = SelectKeeperPayload
 
 
@@ -161,43 +174,15 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
-        is_settled = EthereumApi.is_transaction_settled(response)
-        if not is_settled:  # pragma: nocover
-            self.context.logger.info(
-                f"tx {self.period_state.final_tx_hash} not settled!"
-            )
-            return False
-        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
-            self.period_state.most_voted_tx_hash
-        )
-        contract_api_msg = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
-            contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="verify_tx",
-            tx_hash=self.period_state.final_tx_hash,
-            owners=tuple(self.period_state.participants),
-            to_address=to_address,
-            value=ether_value,
-            data=data,
-            safe_tx_gas=safe_tx_gas,
-            signatures_by_owner={
-                key: payload.signature
-                for key, payload in self.period_state.participant_to_signature.items()
-            },
-        )
+        contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
             self.context.logger.error(
-                f"get_transmit_data unsuccessful! Received: {contract_api_msg}"
+                f"verify_tx unsuccessful! Received: {contract_api_msg}"
             )
             return False
         verified = cast(bool, contract_api_msg.state.body["verified"])
-
-        if self.state_id == "verify_cancelled_transaction":
-            verified = not verified if verified is not None else None
-
         verified_log = (
             f"Verified result: {verified}"
             if verified
@@ -207,11 +192,88 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         return verified
 
 
-class VerifyCancelledTransaction(ValidateTransactionBehaviour):
-    """Verify that a transaction has been cancelled."""
+class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
+    """Check the transaction history."""
 
-    state_id = "verify_cancelled_transaction"
-    matching_round = VerifyCancelledTransactionRound  # type: ignore
+    state_id = "check_transaction_history"
+    matching_round = CheckTransactionHistoryRound
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            is_any_verified = yield from self._check_tx_history()
+
+            if is_any_verified is not None:
+                if is_any_verified:
+                    self.context.logger.info(
+                        f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
+                    )
+                else:
+                    self.context.logger.info(
+                        "No previous transaction has been verified, but the safe's nonce has been reused!"
+                    )
+
+            payload = ValidatePayload(self.context.agent_address, is_any_verified)
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _check_tx_history(self) -> Generator[None, None, Optional[bool]]:
+        """Check the transaction history."""
+        if self.period_state.tx_hashes_history is None:
+            return None
+
+        for tx_hash in self.period_state.tx_hashes_history[::-1]:
+            contract_api_msg = yield from self._verify_tx(tx_hash)
+
+            if (
+                contract_api_msg.performative != ContractApiMessage.Performative.STATE
+            ):  # pragma: nocover
+                self.context.logger.error(
+                    f"verify_tx unsuccessful for {tx_hash}! Received: {contract_api_msg}"
+                )
+                verified = False
+
+            else:
+                verified = cast(bool, contract_api_msg.state.body["verified"])
+
+            verified_log = f"Verified result for {tx_hash}: {verified}"
+
+            if verified:
+                self.context.logger.info(verified_log)
+                return True
+
+            self.context.logger.info(
+                verified_log + f", all: {contract_api_msg.state.body}"
+            )
+
+            if self._payload_is_invalid():
+                self.context.logger.info(
+                    f"Payload is invalid for {tx_hash}! Cannot continue."
+                )
+                return None
+
+            if not self._safe_nonce_reused():
+                self.context.logger.info(
+                    f"Payload is correct and safe's nonce has not been reused for {tx_hash}. "
+                )
+                return None
+
+        return False
+
+    def _payload_is_invalid(self) -> Generator[None, None, bool]:
+        """TODO check if payload is invalid."""
+
+    def _safe_nonce_reused(self) -> Generator[None, None, bool]:
+        """TODO check for GS026."""
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -331,11 +393,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.period_state.most_voted_tx_hash
         )
 
-        if self.state == "cancel":
-            ether_value = 0
-            to_address = self.period_state.safe_contract_address
-            data = b""
-
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -376,13 +433,6 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         }
 
         return tx_data
-
-
-class CancelTransactionBehaviour(FinalizeBehaviour):
-    """Cancel transaction state."""
-
-    state_id = "cancel"
-    matching_round = CancelTransactionRound
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):

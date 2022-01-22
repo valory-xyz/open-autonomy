@@ -66,17 +66,15 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
     ValidateSafeBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    CancelTransactionBehaviour,
+    CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     ResetAndPauseBehaviour,
     ResetBehaviour,
-    SelectKeeperCancelTransactionBehaviourB,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,
     ValidateTransactionBehaviour,
-    VerifyCancelledTransaction,
 )
 
 
@@ -357,10 +355,8 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
         TransactionHashBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
-        CancelTransactionBehaviour,  # type: ignore
-        VerifyCancelledTransaction,  # type: ignore
-        SelectKeeperCancelTransactionBehaviourB,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
+        CheckTransactionHistoryBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
         ResetBehaviour,  # type: ignore

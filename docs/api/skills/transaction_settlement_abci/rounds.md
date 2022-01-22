@@ -69,6 +69,17 @@ def participant_to_signature() -> Mapping[str, SignaturePayload]
 
 Get the participant_to_signature.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.tx_hashes_history"></a>
+
+#### tx`_`hashes`_`history
+
+```python
+@property
+def tx_hashes_history() -> Optional[List[str]]
+```
+
+Get the tx hashes history.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_tx_hash"></a>
 
 #### final`_`tx`_`hash
@@ -296,35 +307,15 @@ class ValidateTransactionRound(VotingRound)
 
 A round in which agents validate the transaction
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.CancelTransactionRound"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckTransactionHistoryRound"></a>
 
-## CancelTransactionRound Objects
-
-```python
-class CancelTransactionRound(FinalizationRound)
-```
-
-A round in which the keeper agent cancels the transaction
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.VerifyCancelledTransactionRound"></a>
-
-## VerifyCancelledTransactionRound Objects
+## CheckTransactionHistoryRound Objects
 
 ```python
-class VerifyCancelledTransactionRound(VotingRound)
+class CheckTransactionHistoryRound(VotingRound)
 ```
 
-A round in which agents validate that the transaction has been cancelled
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperCancelTransactionRoundB"></a>
-
-## SelectKeeperCancelTransactionRoundB Objects
-
-```python
-class SelectKeeperCancelTransactionRoundB(CollectSameUntilThresholdRound)
-```
-
-A round in which a new keeper is selected for cancelling a transaction
+A round in which agents check the transaction history to see if any previous tx has been validated
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 

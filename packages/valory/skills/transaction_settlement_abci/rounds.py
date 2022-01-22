@@ -90,9 +90,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
 
     @property
+    def tx_hashes_history(self) -> Optional[List[str]]:
+        """Get the tx hashes history."""
+        return cast(List[str], self.db.get("tx_hashes_history", None))
+
+    @property
     def final_tx_hash(self) -> str:
         """Get the final_tx_hash."""
-        return cast(str, self.db.get_strict("final_tx_hash"))
+        return cast(str, self.db.get_strict("tx_hashes_history")[-1])
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -102,7 +107,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self.db.get("final_tx_hash", None) is not None
+        return self.tx_hashes_history is not None
 
     @property
     def most_voted_estimate(self) -> float:
@@ -180,9 +185,15 @@ class FinalizationRound(OnlyKeeperSendsRound):
             and self.keeper_payload is not None
             and self.keeper_payload["tx_digest"] is not None
         ):
+            hashes = cast(PeriodState, self.period_state).tx_hashes_history
+            if hashes is None:
+                hashes = []
+            if self.keeper_payload["tx_digest"] not in hashes:
+                hashes.append(self.keeper_payload["tx_digest"])
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                final_tx_hash=self.keeper_payload["tx_digest"],
+                tx_hashes_history=hashes,
                 nonce=self.keeper_payload["nonce"],
                 max_priority_fee_per_gas=self.keeper_payload[
                     "max_priority_fee_per_gas"
@@ -246,7 +257,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
-            state_data["final_tx_hash"] = None
+            state_data["tx_hashes_history"] = None
             state_data["max_priority_fee_per_gas"] = None
             state_data["nonce"] = None
             state = self.period_state.update(
@@ -302,21 +313,10 @@ class ValidateTransactionRound(VotingRound):
     collection_key = "participant_to_votes"
 
 
-class CancelTransactionRound(FinalizationRound):
-    """A round in which the keeper agent cancels the transaction"""
+class CheckTransactionHistoryRound(VotingRound):
+    """A round in which agents check the transaction history to see if any previous tx has been validated"""
 
-    round_id = "cancel_transaction"
-    allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "tx_data"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    fail_event = Event.FAILED
-
-
-class VerifyCancelledTransactionRound(VotingRound):
-    """A round in which agents validate that the transaction has been cancelled"""
-
-    round_id = "verify_cancelled_transaction"
+    round_id = "check_transaction_history"
     allowed_tx_type = ValidatePayload.transaction_type
     payload_attribute = "vote"
     period_state_class = PeriodState
@@ -324,20 +324,7 @@ class VerifyCancelledTransactionRound(VotingRound):
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_votes"
-
-
-class SelectKeeperCancelTransactionRoundB(CollectSameUntilThresholdRound):
-    """A round in which a new keeper is selected for cancelling a transaction"""
-
-    round_id = "select_keeper_transaction_cancelling_b"
-    allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keeper"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_selection"
-    selection_key = "most_voted_keeper_address"
+    collection_key = "participant_to_check"
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
@@ -418,30 +405,20 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
-            Event.NONE: CancelTransactionRound,
+            Event.NEGATIVE: CheckTransactionHistoryRound,
+            Event.NONE: FinalizationRound,
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
-        SelectKeeperTransactionSubmissionRoundB: {
-            Event.DONE: FinalizationRound,
+        CheckTransactionHistoryRound: {
+            Event.DONE: FinishedTransactionSubmissionRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },
-        CancelTransactionRound: {
-            Event.DONE: VerifyCancelledTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperCancelTransactionRoundB,
-            Event.FAILED: SelectKeeperCancelTransactionRoundB,
-        },
-        VerifyCancelledTransactionRound: {
-            Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: SelectKeeperCancelTransactionRoundB,
-            Event.NONE: SelectKeeperCancelTransactionRoundB,
-            Event.VALIDATE_TIMEOUT: CancelTransactionRound,
-            Event.NO_MAJORITY: VerifyCancelledTransactionRound,
-        },
-        SelectKeeperCancelTransactionRoundB: {
-            Event.DONE: CancelTransactionRound,
+        SelectKeeperTransactionSubmissionRoundB: {
+            Event.DONE: FinalizationRound,
             Event.ROUND_TIMEOUT: ResetRound,
             Event.NO_MAJORITY: ResetRound,
         },

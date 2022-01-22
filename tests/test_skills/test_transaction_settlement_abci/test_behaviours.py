@@ -295,7 +295,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
                         oracle_contract_address="oracle_contract_address",
-                        final_tx_hash="final_tx_hash",
+                        tx_hashes_history=["final_tx_hash"],
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
                         participant_to_signature={},
@@ -396,7 +396,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=0,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        final_tx_hash="68656c6c6f776f726c64",
+                        tx_hashes_history=["68656c6c6f776f726c64"],
                     ),
                 )
             ),
@@ -435,7 +435,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        final_tx_hash="68656c6c6f776f726c64",
+                        tx_hashes_history=["68656c6c6f776f726c64"],
                     ),
                 )
             ),
@@ -583,7 +583,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        final_tx_hash="68656c6c6f776f726c64",
+                        tx_hashes_history=["68656c6c6f776f726c64"],
                     ),
                 )
             ),
