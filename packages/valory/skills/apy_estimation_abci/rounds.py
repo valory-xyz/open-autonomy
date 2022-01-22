@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionType,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
+    BatchPreparationPayload,
     EstimatePayload,
     FetchingPayload,
     OptimizationPayload,
@@ -46,6 +47,7 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
 from packages.valory.skills.apy_estimation_abci.payloads import (
     TrainingPayload,
     TransformationPayload,
+    UpdatePayload,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import filter_out_numbers
 
@@ -66,7 +68,10 @@ class Event(Enum):
 
 
 class PeriodState(BasePeriodState):
-    """Class to represent a period state. This state is replicated by the tendermint application."""
+    """Class to represent a period state.
+
+    This state is replicated by the tendermint application.
+    """
 
     @property
     def history_hash(self) -> str:
@@ -74,9 +79,24 @@ class PeriodState(BasePeriodState):
         return cast(str, self.db.get_strict("most_voted_history"))
 
     @property
+    def latest_observation_timestamp(self) -> str:
+        """Get the latest observation's timestamp."""
+        return cast(str, self.db.get_strict("latest_observation_timestamp"))
+
+    @property
+    def batch_hash(self) -> str:
+        """Get the most voted batch hash."""
+        return cast(str, self.db.get_strict("most_voted_batch"))
+
+    @property
     def transformed_history_hash(self) -> str:
         """Get the most voted transformed history hash."""
         return cast(str, self.db.get_strict("most_voted_transform"))
+
+    @property
+    def latest_observation_hist_hash(self) -> str:
+        """Get the latest observation's history hash."""
+        return cast(str, self.db.get_strict("latest_observation_hist_hash"))
 
     @property
     def train_hash(self) -> str:
@@ -144,14 +164,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
 
 
 class RegistrationRound(CollectDifferentUntilAllRound):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
+    """A round in which the agents get registered"""
 
     round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
@@ -171,55 +184,80 @@ class RegistrationRound(CollectDifferentUntilAllRound):
         return None
 
 
-class CollectHistoryRound(CollectSameUntilThresholdRound):
-    """
-    This class represents the 'collect-history' round.
-
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for the historical data.
-
-    It schedules the TransformRound.
-    """
+class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """A round in which agents collect historical data"""
 
     round_id = "collect_history"
     allowed_tx_type = FetchingPayload.transaction_type
     payload_attribute = "history"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_history"
     selection_key = "most_voted_history"
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            update_kwargs = {
+                self.collection_key: self.collection,
+                self.selection_key: self.most_voted_payload,
+                "latest_observation_timestamp": cast(
+                    FetchingPayload, list(self.collection.values())[0]
+                ).latest_observation_timestamp,
+            }
 
-class TransformRound(CollectSameUntilThresholdRound):
-    """
-    This class represents the 'Transform' round.
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(**update_kwargs),
+            )
+            return updated_state, Event.DONE
 
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for the transformed data.
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
 
-    It schedules the PreprocessRound.
-    """
+        return None
+
+
+class CollectLatestHistoryBatchRound(CollectHistoryRound):
+    """A round in which agents collect the latest data batch"""
+
+    round_id = "collect_batch"
+    collection_key = "participant_to_batch"
+    selection_key = "most_voted_batch"
+
+
+class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+    """A round in which agents transform data"""
 
     round_id = "transform"
     allowed_tx_type = TransformationPayload.transaction_type
-    payload_attribute = "transformation"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_transform"
-    selection_key = "most_voted_transform"
+    payload_attribute = "transformed_history_hash"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            updated_state = cast(
+                PeriodState,
+                self.period_state.update(
+                    participant_to_transform=self.collection,
+                    most_voted_transform=self.most_voted_payload,
+                    latest_observation_hist_hash=cast(
+                        TransformationPayload, list(self.collection.values())[0]
+                    ).latest_observation_hist_hash,
+                ),
+            )
+            return updated_state, Event.DONE
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+
+        return None
 
 
 class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
-    """
-    This class represents the 'Preprocess' round.
-
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for the preprocessed data.
-
-    It schedules the RandomnessRound.
-    """
+    """A round in which the agents preprocess the data"""
 
     round_id = "preprocess"
     allowed_tx_type = PreprocessPayload.transaction_type
@@ -248,14 +286,25 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
         return None
 
 
+class PrepareBatchRound(CollectSameUntilThresholdRound):
+    """A round in which agents prepare a batch of data"""
+
+    round_id = "prepare_batch"
+    allowed_tx_type = BatchPreparationPayload.transaction_type
+    payload_attribute = "prepared_batch"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_batch_preparation"
+    selection_key = "latest_observation_hist_hash"
+
+
 class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
-    """
-    This class represents the randomness round.
+    """A round in which a random number is retrieved
 
-    Input: a set of participants (addresses).
-    Output: a set of participants (addresses) and randomness.
-
-    It schedules the OptimizeRound.
+    This number is obtained from a distributed randomness beacon. The agents
+    need to reach consensus on this number and subsequently use it to seed
+    any random number generators.
     """
 
     round_id = "randomness"
@@ -288,14 +337,7 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
 
 class OptimizeRound(CollectSameUntilThresholdRound):
-    """
-    This class represents the 'Optimize' round.
-
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for the hyperparameters.
-
-    It schedules the TrainRound.
-    """
+    """A round in which agents agree on the optimal hyperparameters"""
 
     round_id = "optimize"
     allowed_tx_type = OptimizationPayload.transaction_type
@@ -308,14 +350,7 @@ class OptimizeRound(CollectSameUntilThresholdRound):
 
 
 class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
-    """
-    This class represents the 'Train' round.
-
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for the model.
-
-    It schedules the TestRound.
-    """
+    """A round in which agents train a model"""
 
     round_id = "train"
     allowed_tx_type = TrainingPayload.transaction_type
@@ -347,14 +382,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
 
 class TestRound(CollectSameUntilThresholdRound):
-    """
-    This class represents the 'Test' round.
-
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for the results.
-
-    It schedules the EstimateConsensusRound.
-    """
+    """A round in which agents test a model"""
 
     round_id = "test"
     allowed_tx_type = _TestingPayload.transaction_type
@@ -366,15 +394,21 @@ class TestRound(CollectSameUntilThresholdRound):
     selection_key = "full_training"
 
 
+class UpdateForecasterRound(CollectSameUntilThresholdRound):
+    """A round in which agents update the forecasting model"""
+
+    round_id = "update_forecaster"
+    allowed_tx_type = UpdatePayload.transaction_type
+    payload_attribute = "updated_model_hash"
+    period_state_class = PeriodState
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_update"
+    selection_key = "most_voted_model"
+
+
 class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
-    """
-    This class represents the 'estimate' round.
-
-    Input: a period state with the prior round data.
-    Output: a new period state with the prior round data and the votes for each estimate.
-
-    It schedules the `ResetRound` or the `CycleResetRound`.
-    """
+    """A round in which agents make predictions using a model"""
 
     round_id = "estimate"
     allowed_tx_type = EstimatePayload.transaction_type
@@ -407,7 +441,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
 
 class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
-    """This class represents the base reset round."""
+    """A round that represents the reset of a period"""
 
     round_id = "reset"
     allowed_tx_type = ResetPayload.transaction_type
@@ -422,9 +456,14 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
             )
-            if self.round_id == "cycle_reset":
+            if self.round_id in ("cycle_reset", "fresh_model_reset"):
                 kwargs["pair_name"] = self.period_state.pair_name
                 kwargs["most_voted_model"] = self.period_state.model_hash
+            if self.round_id == "cycle_reset":
+                kwargs[
+                    "latest_observation_hist_hash"
+                ] = self.period_state.latest_observation_hist_hash
+
             updated_state = self.period_state.update(**kwargs)
             return updated_state, Event.DONE
 
@@ -436,14 +475,78 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         return None
 
 
+class FreshModelResetRound(ResetRound):
+    """A round that represents that consensus is reached and `N_ESTIMATIONS_BEFORE_RETRAIN` has been reached."""
+
+    round_id = "fresh_model_reset"
+
+
 class CycleResetRound(ResetRound):
-    """This class represents the 'consensus-reached' round (the final round)."""
+    """A round that represents that consensus is reached and `N_ESTIMATIONS_BEFORE_RETRAIN` is not yet reached."""
 
     round_id = "cycle_reset"
 
 
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
-    """APY estimation ABCI application."""
+    """APYEstimationAbciApp
+
+    Initial round: RegistrationRound
+
+    Initial states: {RegistrationRound}
+
+    Transition states:
+    0. RegistrationRound
+        - done: 1.
+    1. CollectHistoryRound
+        - done: 2.
+        - no majority: 9.
+        - round timeout: 9.
+    2. TransformRound
+        - done: 3.
+        - no majority: 9.
+        - round timeout: 9.
+    3. PreprocessRound
+        - done: 4.
+        - no majority: 9.
+        - round timeout: 9.
+    4. RandomnessRound
+        - done: 5.
+        - randomness invalid: 4.
+        - no majority: 4.
+        - round timeout: 9.
+    5. OptimizeRound
+        - done: 6.
+        - no majority: 9.
+        - round timeout: 9.
+    6. TrainRound
+        - fully trained: 8.
+        - done: 7.
+        - no majority: 9.
+        - round timeout: 9.
+    7. TestRound
+        - done: 6.
+        - no majority: 9.
+        - round timeout: 9.
+    8. EstimateRound
+        - done: 9.
+        - estimation cycle: 10.
+        - round timeout: 9.
+        - no majority: 9.
+    9. ResetRound
+        - done: 1.
+        - reset timeout: 0.
+        - no majority: 0.
+    10. CycleResetRound
+        - done: 8.
+        - reset timeout: 9.
+        - no majority: 9.
+
+    Final states: {}
+
+    Timeouts:
+        round timeout: 30.0
+        reset timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
@@ -452,56 +555,76 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
         },
         CollectHistoryRound: {
             Event.DONE: TransformRound,
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         TransformRound: {
             Event.DONE: PreprocessRound,
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         PreprocessRound: {
             Event.DONE: RandomnessRound,
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         RandomnessRound: {
             Event.DONE: OptimizeRound,
             Event.RANDOMNESS_INVALID: RandomnessRound,
-            Event.NO_MAJORITY: RandomnessRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: RandomnessRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         OptimizeRound: {
             Event.DONE: TrainRound,
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         TrainRound: {
             Event.FULLY_TRAINED: EstimateRound,
             Event.DONE: TestRound,
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         TestRound: {
             Event.DONE: TrainRound,
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
+            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: ResetRound,
         },
         EstimateRound: {
-            Event.DONE: ResetRound,
+            Event.DONE: FreshModelResetRound,
             Event.ESTIMATION_CYCLE: CycleResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,  # if the round times out we reset the period
-            Event.NO_MAJORITY: ResetRound,  # if there is no majority we reset the period
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
-        ResetRound: {
+        FreshModelResetRound: {
             Event.DONE: CollectHistoryRound,
-            Event.RESET_TIMEOUT: RegistrationRound,  # if the round times out we try to assemble a new group of agents
-            Event.NO_MAJORITY: RegistrationRound,  # if we cannot agree we try to assemble a new group of agents
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
         },
         CycleResetRound: {
+            Event.DONE: CollectLatestHistoryBatchRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        CollectLatestHistoryBatchRound: {
+            Event.DONE: PrepareBatchRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        PrepareBatchRound: {
+            Event.DONE: UpdateForecasterRound,
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        UpdateForecasterRound: {
             Event.DONE: EstimateRound,
-            Event.RESET_TIMEOUT: ResetRound,  # if the round times out we try to assemble a new group of agents
-            Event.NO_MAJORITY: ResetRound,  # if we cannot agree we try to assemble a new group of agents
+            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: ResetRound,
+        },
+        ResetRound: {
+            Event.DONE: RegistrationRound,
+            Event.RESET_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {

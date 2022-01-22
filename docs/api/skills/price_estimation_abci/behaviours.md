@@ -4,6 +4,26 @@
 
 This module contains the behaviours for the 'abci' skill.
 
+<a id="packages.valory.skills.price_estimation_abci.behaviours.to_int"></a>
+
+#### to`_`int
+
+```python
+def to_int(most_voted_estimate: float, decimals: int) -> int
+```
+
+Convert to int.
+
+<a id="packages.valory.skills.price_estimation_abci.behaviours.payload_to_hex"></a>
+
+#### payload`_`to`_`hex
+
+```python
+def payload_to_hex(tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes) -> str
+```
+
+Serialise to a hex string.
+
 <a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState"></a>
 
 ## PriceEstimationBaseState Objects
@@ -12,7 +32,7 @@ This module contains the behaviours for the 'abci' skill.
 class PriceEstimationBaseState(BaseState,  ABC)
 ```
 
-Base state behaviour for the price estimation skill.
+Base state behaviour for the common apps' skill.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseState.period_state"></a>
 
@@ -35,189 +55,6 @@ def params() -> Params
 ```
 
 Return the params.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.TendermintHealthcheckBehaviour"></a>
-
-## TendermintHealthcheckBehaviour Objects
-
-```python
-class TendermintHealthcheckBehaviour(PriceEstimationBaseState)
-```
-
-Check whether Tendermint nodes are running.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.TendermintHealthcheckBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Check whether tendermint is running or not.
-
-Steps:
-- Do a http request to the tendermint health check endpoint
-- Retry until healthcheck passes or timeout is hit. Raise if timed out.
-- If healthcheck passes set done event.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.RegistrationBehaviour"></a>
-
-## RegistrationBehaviour Objects
-
-```python
-class RegistrationBehaviour(PriceEstimationBaseState)
-```
-
-Register to the next round.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.RegistrationBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- Build a registration transaction.
-- Send the transaction and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.RandomnessBehaviour"></a>
-
-## RandomnessBehaviour Objects
-
-```python
-class RandomnessBehaviour(PriceEstimationBaseState)
-```
-
-Check whether Tendermint nodes are running.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.RandomnessBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Check whether tendermint is running or not.
-
-Steps:
-- Do a http request to the tendermint health check endpoint
-- Retry until healthcheck passes or timeout is hit.
-- If healthcheck passes set done event.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.SelectKeeperBehaviour"></a>
-
-## SelectKeeperBehaviour Objects
-
-```python
-class SelectKeeperBehaviour(PriceEstimationBaseState,  ABC)
-```
-
-Select the keeper agent.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.SelectKeeperBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- Select a keeper randomly.
-- Send the transaction with the keeper and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.SelectKeeperABehaviour"></a>
-
-## SelectKeeperABehaviour Objects
-
-```python
-class SelectKeeperABehaviour(SelectKeeperBehaviour)
-```
-
-Select the keeper agent.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.SelectKeeperBBehaviour"></a>
-
-## SelectKeeperBBehaviour Objects
-
-```python
-class SelectKeeperBBehaviour(SelectKeeperBehaviour)
-```
-
-Select the keeper agent.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.DeploySafeBehaviour"></a>
-
-## DeploySafeBehaviour Objects
-
-```python
-class DeploySafeBehaviour(PriceEstimationBaseState)
-```
-
-Deploy Safe.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.DeploySafeBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- If the agent is the designated deployer, then prepare the deployment transaction and send it.
-- Otherwise, wait until the next round.
-- If a timeout is hit, set exit A event, otherwise set done event.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ValidateSafeBehaviour"></a>
-
-## ValidateSafeBehaviour Objects
-
-```python
-class ValidateSafeBehaviour(PriceEstimationBaseState)
-```
-
-ValidateSafe.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ValidateSafeBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- Validate that the contract address provided by the keeper points to a valid contract.
-- Send the transaction with the validation result and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ValidateSafeBehaviour.has_correct_contract_been_deployed"></a>
-
-#### has`_`correct`_`contract`_`been`_`deployed
-
-```python
-def has_correct_contract_been_deployed() -> Generator[None, None, bool]
-```
-
-Contract deployment verification.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserveBehaviour"></a>
 
@@ -245,6 +82,18 @@ Steps:
 - Send an observation transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
+
+<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserveBehaviour.clean_up"></a>
+
+#### clean`_`up
+
+```python
+def clean_up() -> None
+```
+
+Clean up the resources due to a 'stop' event.
+
+It can be optionally implemented by the concrete classes.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.EstimateBehaviour"></a>
 
@@ -293,120 +142,21 @@ def async_act() -> Generator
 Do the action.
 
 Steps:
-- Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+- Request the transaction hash for the safe transaction. This is the
+  hash that needs to be signed by a threshold of agents.
 - Send the transaction hash as a transaction and wait for it to be mined.
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
 
-<a id="packages.valory.skills.price_estimation_abci.behaviours.SignatureBehaviour"></a>
+<a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverRoundBehaviour"></a>
 
-## SignatureBehaviour Objects
-
-```python
-class SignatureBehaviour(PriceEstimationBaseState)
-```
-
-Signature state.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.SignatureBehaviour.async_act"></a>
-
-#### async`_`act
+## ObserverRoundBehaviour Objects
 
 ```python
-def async_act() -> Generator
+class ObserverRoundBehaviour(AbstractRoundBehaviour)
 ```
 
-Do the action.
-
-Steps:
-- Request the signature of the transaction hash.
-- Send the signature as a transaction and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.FinalizeBehaviour"></a>
-
-## FinalizeBehaviour Objects
-
-```python
-class FinalizeBehaviour(PriceEstimationBaseState)
-```
-
-Finalize state.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.FinalizeBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator[None, None, None]
-```
-
-Do the action.
-
-Steps:
-- If the agent is the keeper, then prepare the transaction and send it.
-- Otherwise, wait until the next round.
-- If a timeout is hit, set exit A event, otherwise set done event.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ValidateTransactionBehaviour"></a>
-
-## ValidateTransactionBehaviour Objects
-
-```python
-class ValidateTransactionBehaviour(PriceEstimationBaseState)
-```
-
-ValidateTransaction.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ValidateTransactionBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- Validate that the transaction hash provided by the keeper points to a valid transaction.
-- Send the transaction with the validation result and wait for it to be mined.
-- Wait until ABCI application transitions to the next round.
-- Go to the next behaviour state (set done event).
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.ValidateTransactionBehaviour.has_transaction_been_sent"></a>
-
-#### has`_`transaction`_`been`_`sent
-
-```python
-def has_transaction_been_sent() -> Generator[None, None, bool]
-```
-
-Contract deployment verification.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.EndBehaviour"></a>
-
-## EndBehaviour Objects
-
-```python
-class EndBehaviour(PriceEstimationBaseState)
-```
-
-Final state.
-
-<a id="packages.valory.skills.price_estimation_abci.behaviours.EndBehaviour.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Do the action.
-
-Steps:
-- Trivially log the state.
+This behaviour manages the consensus stages for the observer behaviour.
 
 <a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationConsensusBehaviour"></a>
 
@@ -417,4 +167,14 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour)
 ```
 
 This behaviour manages the consensus stages for the price estimation.
+
+<a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationConsensusBehaviour.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Set up the behaviour.
 

@@ -20,6 +20,7 @@
 """This module contains the behaviours, round and payloads for the 'abstract_round_abci' skill."""
 
 import hashlib
+import random
 from math import floor
 from typing import Dict, Generator, List, Optional, Type, Union, cast
 
@@ -67,6 +68,12 @@ class RandomnessBehaviour(BaseState):
             block_identifier="latest",
         )
 
+        if (
+            ledger_api_response.performative == LedgerApiMessage.Performative.ERROR
+            or "hash" not in ledger_api_response.state.body
+        ):
+            return None
+
         randomness = hashlib.sha256(
             cast(str, ledger_api_response.state.body.get("hash")).encode()
             + str(self.params.service_id).encode()
@@ -109,6 +116,11 @@ class RandomnessBehaviour(BaseState):
                 self.context.logger.info("Cannot retrieve randomness from api.")
                 self.context.logger.info("Generating randomness from chain.")
                 observation = yield from self.failsafe_randomness()
+                if observation is None:
+                    self.context.logger.error(
+                        "Could not generate randomness from chain."
+                    )
+                    return
             else:
                 self.context.logger.info("Retrieving DRAND values from api.")
                 observation = yield from self.get_randomness_from_api()
@@ -162,20 +174,26 @@ class SelectKeeperBehaviour(BaseState):
         with benchmark_tool.measure(
             self,
         ).local():
+            # Sorted list of participants
+            relevant_set = sorted(list(self.period_state.participants))
+
+            # Random shuffling of the set
+            random.Random(self.period_state.keeper_randomness).shuffle(relevant_set)
+
+            # If the keeper is not set yet, pick the first address
+            keeper_address = relevant_set[0]
+
+            # If the keeper has been already set, select the next.
             if (
                 self.period_state.is_keeper_set
                 and len(self.period_state.participants) > 1
             ):
-                # if a keeper is already set we remove it from the potential selection.
-                potential_keepers = list(self.period_state.participants)
-                potential_keepers.remove(self.period_state.most_voted_keeper_address)
-                relevant_set = sorted(potential_keepers)
-            else:
-                relevant_set = sorted(self.period_state.participants)
-            keeper_address = random_selection(
-                relevant_set,
-                self.period_state.keeper_randomness,
-            )
+                old_keeper_index = relevant_set.index(
+                    self.period_state.most_voted_keeper_address
+                )
+                keeper_address = relevant_set[
+                    (old_keeper_index + 1) % len(relevant_set)
+                ]
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = self.payload_class(self.context.agent_address, keeper_address)

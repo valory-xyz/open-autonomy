@@ -11,16 +11,15 @@ strict: true
 nav:
   - Home: 'index.md'
   - Preliminaries:
+    - AEA: 'aea.md'
     - ABCI: 'abci.md'
     - AsyncBehaviour: 'async_behaviour.md'
+    - Finite State Machine: 'fsm.md'
+    - ABCIApp: 'abci_app.md'
   - Price Estimation:
     - Demo: 'price_estimation_demo.md'
     - How it works: 'price_estimation.md'
-    - System: 'poc-diagram.md'
-    - FSM Diagram: 'fsm.md'
-    - POC FSM Diagram: 'poc-fsm.md'
-    - FSM vs ABCI app: 'fsm_vs_abci_app.md'
-    - Abstract Round ABCI: 'abstract_round_abci.md'
+    - FSM Diagram: 'fsm_diagram.md'
   - Ethereum:
     - Miscellaneous: 'ethereum_specifics.md'
   - API:
@@ -48,24 +47,41 @@ nav:
         - Dialogues: 'api/skills/abstract_abci/dialogues.md'
         - Handlers: 'api/skills/abstract_abci/handlers.md'
       - Abstract Round ABCI:
+        - Abci App Chain: 'api/skills/abstract_round_abci/abci_app_chain.md'
         - Base: 'api/skills/abstract_round_abci/base.md'
         - Behaviour Utils: 'api/skills/abstract_round_abci/behaviour_utils.md'
         - Behaviour: 'api/skills/abstract_round_abci/behaviours.md'
+        - Common: 'api/skills/abstract_round_abci/common.md'
         - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
         - Handlers: 'api/skills/abstract_round_abci/handlers.md'
         - Models: 'api/skills/abstract_round_abci/models.md'
         - Serializer: 'api/skills/abstract_round_abci/serializer.md'
         - Utils: 'api/skills/abstract_round_abci/utils.md'
+      - Oracle Deployment ABCI:
+        - Behaviours: 'api/skills/oracle_deployment_abci/behaviours.md'
+        - Models: 'api/skills/oracle_deployment_abci/models.md'
+        - Payloads: 'api/skills/oracle_deployment_abci/payloads.md'
+        - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
       - Price Estimation ABCI:
         - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
+        - Composition: 'api/skills/price_estimation_abci/composition.md'
         - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
         - Handlers: 'api/skills/price_estimation_abci/handlers.md'
         - Models: 'api/skills/price_estimation_abci/models.md'
         - Payloads: 'api/skills/price_estimation_abci/payloads.md'
-        - PriceAPI: 'api/skills/price_estimation_abci/price_api.md'
-        - RandomnessAPI: 'api/skills/price_estimation_abci/randomness_api.md'
         - Rounds: 'api/skills/price_estimation_abci/rounds.md'
-        - Tools: 'api/skills/price_estimation_abci/tools.md'
+      - Registration ABCI:
+        - Behaviours: 'api/skills/registration_abci/behaviours.md'
+        - Payloads: 'api/skills/registration_abci/payloads.md'
+        - Rounds: 'api/skills/registration_abci/rounds.md'
+      - Safe Deployment ABCI:
+        - Behaviours: 'api/skills/safe_deployment_abci/behaviours.md'
+        - Payloads: 'api/skills/safe_deployment_abci/payloads.md'
+        - Rounds: 'api/skills/safe_deployment_abci/rounds.md'
+      - Transaction Settlement ABCI:
+        - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
+        - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
+        - Rounds: 'api/skills/transaction_settlement_abci/rounds.md'
     - Exceptions: exceptions.md
   - Deployment: deployment_description.md
 

@@ -52,7 +52,7 @@ Initialize a dialogue.
 - `dialogue_label`: the identifier of the dialogue
 - `self_address`: the address of the entity for whom this dialogue is maintained
 - `role`: the role of the agent this dialogue is maintained for
-- `message_class`: the message class
+- `message_class`: the message class used
 
 <a id="packages.valory.protocols.abci.dialogues.AbciDialogues"></a>
 
@@ -77,6 +77,6 @@ Initialize dialogues.
 **Arguments**:
 
 - `self_address`: the address of the entity for whom dialogues are maintained
-- `role_from_first_message`: a callable that returns the role from first message.
-- `dialogue_class`: the class to instantiate the dialogue.
+- `dialogue_class`: the dialogue class used
+- `role_from_first_message`: the callable determining role from first message
 

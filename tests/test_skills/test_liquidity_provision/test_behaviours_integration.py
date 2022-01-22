@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 """Tests for valory/liquidity_provision skill behaviours with Hardhat."""
 import asyncio
 import binascii
+import json
 import os
 import tempfile
 from copy import deepcopy
@@ -52,6 +53,8 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
+    AB_POOL_ADDRESS,
+    DEFAULT_MINTER,
     EnterPoolTransactionHashBehaviour,
     EnterPoolTransactionSendBehaviour,
     EnterPoolTransactionSignatureBehaviour,
@@ -60,13 +63,17 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     ExitPoolTransactionSendBehaviour,
     ExitPoolTransactionSignatureBehaviour,
     ExitPoolTransactionValidationBehaviour,
+    LP_TOKEN_ADDRESS,
     SwapBackTransactionHashBehaviour,
     SwapBackTransactionSendBehaviour,
     SwapBackTransactionSignatureBehaviour,
     SwapBackTransactionValidationBehaviour,
+    TOKEN_A_ADDRESS,
     get_strategy_update,
+    parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
+from packages.valory.skills.liquidity_provision.payloads import ValidatePayload
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
@@ -97,6 +104,46 @@ EXPECTED_TYPES = List[
         ]
     ]
 ]
+
+
+def transfer_to_string(
+    source_address: str, destination_address: str, token_address: str, value: int
+) -> str:
+    """
+    Returns the string representation of a transfer according to the validation payload.
+
+    :param source_address: the source address.
+    :param destination_address: the destination address.
+    :param token_address: the token address.
+    :param value: the transfered value.
+    :return: the transfered amount
+    """
+
+    result = dict(
+        transfers=[
+            {
+                "from": source_address,
+                "to": destination_address,
+                "token_address": token_address,
+                "value": value,
+            }
+        ]
+    )
+    return json.dumps(result)
+
+
+def merge_transfer_strings(transfer_strings: List[str]) -> str:
+    """
+    Returns the merged version of stringified transfers.
+
+    :param transfer_strings: a list of stringified transfers.
+    :return: the transfered amounts
+    """
+    transfers = [
+        json.loads(transfer_string)["transfers"][0]
+        for transfer_string in transfer_strings
+    ]
+    return json.dumps(dict(transfers=transfers))
 
 
 class TestLiquidityProvisionHardhat(
@@ -231,14 +278,14 @@ class TestLiquidityProvisionHardhat(
             "decision_maker"
         )
         cls.multisend_data_enter = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000005d600dc64a140aa3e981100a9beca4e685f962f0cf6c900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001048803dbee00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c90000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd8200a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001048803dbee00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c90000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104e8e337000000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000001f400000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000"
-        cls.multisend_data_exit = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001d20050cd56fb094f8f06063066a619d898475dd3eede00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4baa2abde0000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000000fa00000000000000000000000000000000000000000000000000000000000000fa00000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000"
+        cls.multisend_data_exit = "8d80ff0a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001d20050cd56fb094f8f06063066a619d898475dd3eede00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4baa2abde0000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd820000000000000000000000009a676e781a523b5d0c0e43731313a708cb60750800000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef0000000000000000000000000000"
         cls.multisend_data_swap_back = "8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000034b00a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed173900000000000000000000000000000000000000000000000000000000000000fa000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000dcd1bf9a1b36ce34237eeafef220932846bcd82000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c900a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010438ed173900000000000000000000000000000000000000000000000000000000000000fa000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000068fcdf52066cce5612827e872c45767e5a1f65510000000000000000000000000000000000000000000000000000000063b0beef00000000000000000000000000000000000000000000000000000000000000020000000000000000000000009a676e781a523b5d0c0e43731313a708cb607508000000000000000000000000dc64a140aa3e981100a9beca4e685f962f0cf6c9000dcd1bf9a1b36ce34237eeafef220932846bcd8200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
         cls.most_voted_tx_hash_enter = (
             "109709ac6f55b4023671b90aca07391d15f922c1f4c47e85990edaff826e8c35"
         )
         cls.most_voted_tx_hash_exit = (
-            "68645602edac4b5f12ce78c8d18226e9b3556478e0b7f3a8a96dc172bc110d8f"
+            "97229dddd0c2d0585a67d9810572a01a2ec6f43f2b441236a7ad566e0e815337"
         )
         cls.most_voted_tx_hash_swap_back = (
             "58d8c8e1376e3a2aaf937a9b17a9ac809ba91e79ca780324ea937ba9909571af"
@@ -569,23 +616,32 @@ class TestLiquidityProvisionHardhat(
         tx_digest = msg.transaction_digest.body
 
         # validate
+        participant_to_lp_result = {
+            address: ValidatePayload(
+                sender=address,
+            )
+            for address, _ in self.safe_owners.items()
+        }
+
         period_state = cast(
             PeriodState,
             self.default_period_state_enter.update(
                 final_tx_hash=tx_digest,
                 most_voted_tx_hash=self.most_voted_tx_hash_enter,
                 most_voted_tx_data=self.multisend_data_enter,
-                participant_to_signature=participant_to_signature,
+                participant_to_lp_result=participant_to_lp_result,
             ),
         )
         handlers = [
             self.ledger_handler,
+            self.contract_handler,
             self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -595,17 +651,34 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
+            {
+                "state": State,
+            },
         ]
-        _, msg = self.process_n_messsages(
+        _, verif_msg, transfers_msg = self.process_n_messsages(
             EnterPoolTransactionValidationBehaviour.state_id,
-            2,
+            3,
             period_state,
             handlers,
             expected_content,
             expected_types,
         )
-        assert msg is not None and isinstance(msg, ContractApiMessage)
-        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+        assert verif_msg.state.body[
+            "verified"
+        ], f"Message not verified: {verif_msg.state.body}"
+
+        transfers = cast(ContractApiMessage, transfers_msg).state.body["logs"]
+        transfered_amount = parse_tx_token_balance(
+            cast(list, transfers),
+            LP_TOKEN_ADDRESS,
+            DEFAULT_MINTER,
+            self.safe_contract_address,
+        )
+        assert (
+            transfered_amount == 1000
+        ), f"Enter pool amount is not correct: {transfered_amount} != 1000"
+
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -643,6 +716,7 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
                 most_voted_strategy=strategy,
+                most_voted_lp_result=1,
             ),
         )
         handlers = [
@@ -696,11 +770,13 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
+            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -710,17 +786,32 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
+            {
+                "state": State,
+            },
         ]
-        _, msg = self.process_n_messsages(
+        _, verif_msg, transfers_msg = self.process_n_messsages(
             ExitPoolTransactionValidationBehaviour.state_id,
-            2,
+            3,
             period_state,
             handlers,
             expected_content,
             expected_types,
         )
-        assert msg is not None and isinstance(msg, ContractApiMessage)
-        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+        assert verif_msg.state.body[
+            "verified"
+        ], f"Message not verified: {verif_msg.state.body}"
+        transfers = cast(ContractApiMessage, transfers_msg).state.body["logs"]
+        transfered_amount = parse_tx_token_balance(
+            cast(list, transfers),
+            LP_TOKEN_ADDRESS,
+            self.safe_contract_address,
+            LP_TOKEN_ADDRESS,
+        )
+        assert (
+            transfered_amount == 1000
+        ), f"Exit pool amount is not correct: {transfered_amount} != 1000"
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -806,11 +897,13 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
+            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -820,17 +913,32 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
+            {
+                "state": State,
+            },
         ]
-        _, msg = self.process_n_messsages(
+        _, verif_msg, transfers_msg = self.process_n_messsages(
             SwapBackTransactionValidationBehaviour.state_id,
-            2,
+            3,
             period_state,
             handlers,
             expected_content,
             expected_types,
         )
-        assert msg is not None and isinstance(msg, ContractApiMessage)
-        assert msg.state.body["verified"], f"Message not verified: {msg.state.body}"
+        assert verif_msg is not None and isinstance(verif_msg, ContractApiMessage)
+        assert verif_msg.state.body[
+            "verified"
+        ], f"Message not verified: {verif_msg.state.body}"
+        transfers = cast(ContractApiMessage, transfers_msg).state.body["logs"]
+        transfered_amount = parse_tx_token_balance(
+            cast(list, transfers),
+            TOKEN_A_ADDRESS,
+            self.safe_contract_address,
+            AB_POOL_ADDRESS,
+        )
+        assert (
+            transfered_amount == 250
+        ), f"Swap back amount is not correct: {transfered_amount} != 250"
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -848,7 +956,15 @@ class TestLiquidityProvisionHardhat(
 
         period_state = cast(
             PeriodState,
-            self.default_period_state_exit.update(most_voted_strategy=strategy),
+            self.default_period_state_exit.update(
+                most_voted_strategy=strategy,
+                most_voted_transfers=transfer_to_string(
+                    source_address=DEFAULT_MINTER,
+                    destination_address=self.safe_contract_address,
+                    token_address=LP_TOKEN_ADDRESS,
+                    value=1000,
+                ),
+            ),
         )
 
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]
@@ -916,9 +1032,27 @@ class TestLiquidityProvisionHardhat(
         strategy = deepcopy(self.strategy)
         strategy["safe_nonce"] = 2
 
+        transfer_a = transfer_to_string(
+            source_address=self.router_contract_address,
+            destination_address=self.safe_contract_address,
+            token_address=strategy["pair"]["token_a"]["address"],
+            value=250,
+        )
+        transfer_b = transfer_to_string(
+            source_address=self.router_contract_address,
+            destination_address=self.safe_contract_address,
+            token_address=strategy["pair"]["token_b"]["address"],
+            value=250,
+        )
+
+        transfers = merge_transfer_strings([transfer_a, transfer_b])
+
         period_state = cast(
             PeriodState,
-            self.default_period_state_swap_back.update(most_voted_strategy=strategy),
+            self.default_period_state_swap_back.update(
+                most_voted_strategy=strategy,
+                most_voted_transfers=transfers,
+            ),
         )
 
         timestamp = self.ethereum_api.api.eth.get_block("latest")["timestamp"]

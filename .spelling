@@ -48,6 +48,30 @@ backend
 kubeconfig
 poc
 Valory
+linters
+linter
+docstrings
+docstring
+PRs
+replicability
+godaddy
+freenom
+nameservers
+yamls
+EIP-1559
+tx
+delegatecall
+healthcheck
+Ropsten
+abci
+metaclass
+api
+apy
+dataframe
+Pipenv
+nameserver
  - docs/index.md
 README.md
 
+ - docs/deployment_description.md
+center

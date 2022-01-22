@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -107,10 +107,24 @@ def test_transaction_hash_payload() -> None:
 def test_finalization_tx_payload() -> None:
     """Test `FinalizationTxPayload`."""
 
-    payload = FinalizationTxPayload(sender="sender", tx_hash="hash")
+    payload = FinalizationTxPayload(
+        sender="sender",
+        tx_data={
+            "tx_digest": "hash",
+            "nonce": 0,
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        },
+    )
 
-    assert payload.tx_hash == "hash"
-    assert payload.data == {"tx_hash": "hash"}
+    assert payload.data == {
+        "tx_data": {
+            "tx_digest": "hash",
+            "nonce": 0,
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        }
+    }
     assert payload.transaction_type == TSTransactionType.FINALIZATION
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,11 @@ DEFAULT_PACKAGES = {
     (ComponentType.PROTOCOL, "valory/abci:latest"),
     (ComponentType.SKILL, "valory/abstract_abci:latest"),
     (ComponentType.SKILL, "valory/abstract_round_abci:latest"),
+    (ComponentType.SKILL, "valory/oracle_deployment_abci:latest"),
     (ComponentType.SKILL, "valory/price_estimation_abci:latest"),
+    (ComponentType.SKILL, "valory/registration_abci:latest"),
+    (ComponentType.SKILL, "valory/safe_deployment_abci:latest"),
+    (ComponentType.SKILL, "valory/transaction_settlement_abci:latest"),
 }
 
 IGNORE_NAMES = {r"^__init__\.py$", r"^__version__\.py$", r"^py\.typed$", r"^.*_pb2.py$"}

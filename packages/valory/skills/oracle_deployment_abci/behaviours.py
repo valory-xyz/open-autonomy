@@ -19,7 +19,7 @@
 
 """This module contains the data classes for the oracle deployment ABCI application."""
 
-from typing import Generator, Optional, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -28,6 +28,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -42,6 +43,7 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
+    OracleDeploymentAbciApp,
     PeriodState,
     RandomnessOracleRound,
     SelectKeeperOracleRound,
@@ -53,7 +55,7 @@ benchmark_tool = BenchmarkTool()
 
 
 class OracleDeploymentBaseState(BaseState):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -67,7 +69,7 @@ class OracleDeploymentBaseState(BaseState):
 
 
 class RandomnessOracleBehaviour(RandomnessBehaviour):
-    """Retrive randomness for oracle deployment."""
+    """Retrieve randomness for oracle deployment."""
 
     state_id = "retrieve_randomness_oracle"
     matching_round = RandomnessOracleRound
@@ -93,7 +95,8 @@ class DeployOracleBehaviour(OracleDeploymentBaseState):
         Do the action.
 
         Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - If the agent is the designated deployer, then prepare the deployment
+          transaction and send it.
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
@@ -187,8 +190,10 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
         Do the action.
 
         Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the contract address provided by the keeper points to a
+          valid contract.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
@@ -222,3 +227,16 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
             return False
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified
+
+
+class OracleDeploymentRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the oracle deployment."""
+
+    initial_state_cls = RandomnessOracleBehaviour
+    abci_app_cls = OracleDeploymentAbciApp
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        RandomnessOracleBehaviour,  # type: ignore
+        SelectKeeperOracleBehaviour,  # type: ignore
+        DeployOracleBehaviour,  # type: ignore
+        ValidateOracleBehaviour,  # type: ignore
+    }

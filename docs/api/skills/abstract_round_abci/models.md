@@ -85,3 +85,83 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the state.
 
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
+
+## ApiSpecs Objects
+
+```python
+class ApiSpecs(Model)
+```
+
+A model that wraps APIs to get cryptocurrency prices.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize ApiSpecsModel.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.ensure"></a>
+
+#### ensure
+
+```python
+def ensure(keyword: str, kwargs: Dict) -> Any
+```
+
+Ensure a keyword argument.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.get_spec"></a>
+
+#### get`_`spec
+
+```python
+def get_spec() -> Dict
+```
+
+Returns dictionary containing api specifications.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.process_response"></a>
+
+#### process`_`response
+
+```python
+def process_response(response: HttpMessage) -> Any
+```
+
+Process response from api.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.increment_retries"></a>
+
+#### increment`_`retries
+
+```python
+def increment_retries() -> None
+```
+
+Increment the retries counter.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.reset_retries"></a>
+
+#### reset`_`retries
+
+```python
+def reset_retries() -> None
+```
+
+Reset the retries counter.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.is_retries_exceeded"></a>
+
+#### is`_`retries`_`exceeded
+
+```python
+def is_retries_exceeded() -> bool
+```
+
+Check if the retries amount has been exceeded.
+

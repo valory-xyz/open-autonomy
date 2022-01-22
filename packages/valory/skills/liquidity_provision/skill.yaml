@@ -7,14 +7,14 @@ description: This skill implements liquidity provision capacities to move into a
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmUghyvR1WTBy4uvQMXDeAKyrPrvUNrPCBGK7VM3BogGEe
+  README.md: QmR5sLQeLggNn5gZ1kDWrqpkz5NzMdUZuWNkaQDpaMC85C
   __init__.py: QmZi2zjuEfocSD4fJyHCRHKYPwRiMizJh5cG4r7q3Hcxuo
-  behaviours.py: QmbefN2S1oL7Usd5HmT2CV1DbWFyuA8dnoJ5QzP8wYXMK3
+  behaviours.py: Qmb9NsmmanY4ghBrckrb5EfBe4w3eUFYfxEoScmW7gKhgv
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmYNuneHUsxPfGricmSREyKom4fsAoE3NU7Xv8y3iYCDke
   models.py: Qmd2NZ9GFtzC7kHTHHspWS2zTYo81redF2uqCW4Anmyzu2
-  payloads.py: QmT8J8jELpeZaqMoDTtya5RaRym53KWAsbT6LviHt9NLbz
-  rounds.py: QmZWPWdvcLsvuP2h2LUHuCYTP4r8WX3Y8VBepftf274xWi
+  payloads.py: QmPcUrXhwXtqX6UguK3vdQWzYS2bSHcJSfFmDLJckZQi6N
+  rounds.py: QmaKmufH3prqawPxduCSrTS6YWy9hAor9k3jsjPzdtc5L1
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

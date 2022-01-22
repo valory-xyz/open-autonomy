@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Generator, cast
+from typing import Generator, Optional, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -42,28 +42,25 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
-from packages.valory.contracts.offchain_aggregator.contract import (
-    PUBLIC_ID as ORACLE_CONTRACT_ID,
-)
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    FinalizeBehaviour,
     ObserveBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-    SignatureBehaviour,
-    ValidateTransactionBehaviour,
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
+    SignatureBehaviour,
     TransactionSettlementBaseState,
+    ValidateTransactionBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
@@ -126,7 +123,9 @@ class TestSignatureBehaviour(PriceEstimationFSMBehaviourBaseCase):
             period_state=TransactionSettlementPeriodState(
                 StateDB(
                     initial_period=0,
-                    initial_data=dict(most_voted_tx_hash="68656c6c6f776f726c64"),
+                    initial_data=dict(
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                    ),
                 )
             ),
         )
@@ -190,10 +189,16 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
-    def test_sender_act(
-        self,
-    ) -> None:
+    @pytest.mark.parametrize("resubmitting", (True, False))
+    def test_sender_act(self, resubmitting: bool) -> None:
         """Test finalize behaviour."""
+        nonce: Optional[int] = None
+        max_priority_fee_per_gas: Optional[int] = None
+
+        if resubmitting:
+            nonce = 0
+            max_priority_fee_per_gas = 1
+
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -211,8 +216,11 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
-                            1,
+                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
+                        nonce=nonce,
+                        max_priority_fee_per_gas=max_priority_fee_per_gas,
                     ),
                 )
             ),
@@ -229,25 +237,18 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
-            contract_id=str(ORACLE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
-                ),
-            ),
-        )
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.RAW_TRANSACTION,
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"tx_hash": "0x3b"}
+                    ledger_id="ethereum",
+                    body={
+                        "tx_hash": "0x3b",
+                        "nonce": 0,
+                        "maxFeePerGas": int(10e10),
+                        "maxPriorityFeePerGas": int(10e10),
+                    },
                 ),
             ),
         )
@@ -302,8 +303,10 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                             "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                             1,
                             1,
-                            1,
+                            "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                         ),
+                        max_priority_fee_per_gas=int(10e10),
                     ),
                 )
             ),
@@ -330,19 +333,6 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
                 transaction_receipt=TransactionReceipt(
                     ledger_id="ethereum", receipt={"status": 1}, transaction={}
-                ),
-            ),
-        )
-        self.mock_contract_api_request(
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
-            ),
-            contract_id=str(ORACLE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum", body={"data": "data"}
                 ),
             ),
         )

@@ -47,7 +47,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests, SharedSt
 
 
 def exception_to_info_msg(exception: Exception) -> str:
-    """Trnasform an exception to an info string message."""
+    """Transform an exception to an info string message."""
     return f"{exception.__class__.__name__}: {str(exception)}"
 
 
@@ -242,16 +242,19 @@ class AbstractResponseHandler(Handler, ABC):
         Handle the response message.
 
         Steps:
-            1. Try to recover the 'dialogues' instance, for the protocol of this handler,
-                from the skill context. The attribute name used to read the attribute
-                is computed by '_get_dialogues_attribute_name()' method.
-                If no dialogues instance is found, log a message and return.
-            2. Try to recover the dialogue; if no dialogue is present, log a message and return.
-            3. Check whether the performative is in the set of allowed performative;
-                if not, log a message and return.
-            4. Try to recover the callback of the request associated to the response
-                from the 'Requests' model; if no callback is present, log a message and return.
-            5. If the above check have passed, then call the callback with the received message.
+        1. Try to recover the 'dialogues' instance, for the protocol
+           of this handler, from the skill context. The attribute name used to
+           read the attribute is computed by '_get_dialogues_attribute_name()'
+           method. If no dialogues instance is found, log a message and return.
+        2. Try to recover the dialogue; if no dialogue is present, log a message
+           and return.
+        3. Check whether the performative is in the set of allowed performative;
+           if not, log a message and return.
+        4. Try to recover the callback of the request associated to the response
+           from the 'Requests' model; if no callback is present, log a message
+           and return.
+        5. If the above check have passed, then call the callback with the
+           received message.
 
         :param message: the message to handle.
         """

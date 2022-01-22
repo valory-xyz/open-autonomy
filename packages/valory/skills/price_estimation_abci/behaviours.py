@@ -34,10 +34,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    DeployOracleBehaviour,
-    RandomnessOracleBehaviour,
-    SelectKeeperOracleBehaviour,
-    ValidateOracleBehaviour,
+    OracleDeploymentRoundBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
@@ -52,28 +49,18 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
     PeriodState,
+    PriceAggregationAbciApp,
     TxHashRound,
 )
 from packages.valory.skills.registration_abci.behaviours import (
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
+    AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
-    DeploySafeBehaviour,
-    RandomnessSafeBehaviour,
-    SelectKeeperSafeBehaviour,
-    ValidateSafeBehaviour,
+    SafeDeploymentRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    FinalizeBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
-    SelectKeeperTransactionSubmissionBehaviourB,
-    SignatureBehaviour,
-    ValidateTransactionBehaviour,
+    TransactionSettlementRoundBehaviour,
 )
 
 
@@ -81,7 +68,7 @@ benchmark_tool = BenchmarkTool()
 
 
 SAFE_TX_GAS = 4000000  # TOFIX
-ETHER_VALUE = 0  # TOFIX
+ETHER_VALUE = 0
 
 
 def to_int(most_voted_estimate: float, decimals: int) -> int:
@@ -95,19 +82,22 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     return int_value
 
 
-def payload_to_hex(tx_hash: str, epoch_: int, round_: int, amount_: int) -> str:
+def payload_to_hex(
+    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
+) -> str:
     """Serialise to a hex string."""
     if len(tx_hash) != 64:  # should be exactly 32 bytes!
         raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
-    epoch_hex = epoch_.to_bytes(4, "big").hex()
-    round_hex = round_.to_bytes(1, "big").hex()
-    amount_hex = amount_.to_bytes(16, "big").hex()
-    concatenated = tx_hash + epoch_hex + round_hex + amount_hex
+    ether_value_ = ether_value.to_bytes(32, "big").hex()
+    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
+    if len(to_address) != 42:
+        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
+    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
     return concatenated
 
 
 class PriceEstimationBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -243,7 +233,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         Do the action.
 
         Steps:
-        - Request the transaction hash for the safe transaction. This is the hash that needs to be signed by a threshold of agents.
+        - Request the transaction hash for the safe transaction. This is the
+          hash that needs to be signed by a threshold of agents.
         - Send the transaction hash as a transaction and wait for it to be mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
@@ -297,16 +288,19 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         ):  # pragma: nocover
             self.context.logger.warning("get_transmit_data unsuccessful!")
             return None
-        data = contract_api_msg.raw_transaction.body["data"]
+        data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+        to_address = self.period_state.oracle_contract_address
+        ether_value = ETHER_VALUE
+        safe_tx_gas = SAFE_TX_GAS
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.period_state.oracle_contract_address,
-            value=ETHER_VALUE,
+            to_address=to_address,
+            value=ether_value,
             data=data,
-            safe_tx_gas=SAFE_TX_GAS,
+            safe_tx_gas=safe_tx_gas,
         )
         if (
             contract_api_msg.performative
@@ -318,8 +312,23 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         safe_tx_hash = safe_tx_hash[2:]
         self.context.logger.info(f"Hash of the Safe transaction: {safe_tx_hash}")
         # temp hack:
-        payload_string = payload_to_hex(safe_tx_hash, epoch_, round_, amount_)
+        payload_string = payload_to_hex(
+            safe_tx_hash, ether_value, safe_tx_gas, to_address, data
+        )
         return payload_string
+
+
+class ObserverRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the observer behaviour."""
+
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = PriceAggregationAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
+        ObserveBehaviour,  # type: ignore
+        EstimateBehaviour,  # type: ignore
+        TransactionHashBehaviour,  # type: ignore
+    }
 
 
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
@@ -327,29 +336,12 @@ class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        RegistrationStartupBehaviour,  # type: ignore
-        RandomnessSafeBehaviour,  # type: ignore
-        RandomnessOracleBehaviour,  # type: ignore
-        SelectKeeperSafeBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ValidateSafeBehaviour,  # type: ignore
-        SelectKeeperOracleBehaviour,  # type: ignore
-        DeployOracleBehaviour,  # type: ignore
-        ValidateOracleBehaviour,  # type: ignore
-        RandomnessTransactionSubmissionBehaviour,  # type: ignore
-        ObserveBehaviour,  # type: ignore
-        EstimateBehaviour,  # type: ignore
-        TransactionHashBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        ValidateTransactionBehaviour,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
-        ResetBehaviour,  # type: ignore
-        ResetAndPauseBehaviour,  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {
+        *OracleDeploymentRoundBehaviour.behaviour_states,
+        *AgentRegistrationRoundBehaviour.behaviour_states,
+        *SafeDeploymentRoundBehaviour.behaviour_states,
+        *TransactionSettlementRoundBehaviour.behaviour_states,
+        *ObserverRoundBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:

@@ -6,10 +6,10 @@ description: The ABCI Counter application example.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmWJQ3UTbXm6QD5qnHRezvAmp58ud4Tza8eMDPohSzqV4C
-  __init__.py: QmexWMZ1UVku2xLzUkFUnjPrjKdosaB9bGyTRALDL7Ew3L
+  README.md: QmNqAq3uzEBJCWEgDYSGrcA7MYnqBgLaYEJ3NVAusTwvsW
+  __init__.py: QmUg6B5d9U8RwQRYyACHZi882rv1ADXUhHggeuAw4udHYo
   dialogues.py: QmcD47X8huc7egekP12KPQuGnJvNygBmis1vr2aeZ3yqQT
-  handlers.py: QmcuqWHZWtMQ5N5MTR6G19XVmdkDty2yg41cGb2JuQfQ6M
+  handlers.py: QmQ4XxNxPMuqZr8LEpqBxVWCoyBTGSpN2DQ5sPmDWYLcyg
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

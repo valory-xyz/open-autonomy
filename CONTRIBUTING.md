@@ -2,7 +2,7 @@
 
 ### Making A PR
 - **naming convention:** Name of the branch should be in kebab case with not more than two or three words. for example `some-feature` or `feat/some-feature`.
-- **tag relevent ticket/issue:** Describe the purpose of the PR properly with relevent ticket/issue. Also attaching a tag such as enhancement/bug/test would help.
+- **tag relevant ticket/issue:** Describe the purpose of the PR properly with relevant ticket/issue. Also attaching a tag such as enhancement/bug/test would help.
 - **code reviews:** 2 reviewers will be assigned to a PR.
 - **linters:** Make sure every linter and checks pass before making a commit.
 - **tests:** The PR needs to contain tests for the newly added code or updated code. (If a commit is made for sole purpose of the review you can add tests later after review is done and PR is ready to merge)

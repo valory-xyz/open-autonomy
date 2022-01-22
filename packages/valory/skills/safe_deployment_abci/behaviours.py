@@ -19,13 +19,14 @@
 
 """This module contains the data classes for the safe deployment ABCI application."""
 
-from typing import Generator, Optional, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -41,6 +42,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     DeploySafeRound,
     PeriodState,
     RandomnessSafeRound,
+    SafeDeploymentAbciApp,
     SelectKeeperSafeRound,
     ValidateSafeRound,
 )
@@ -50,7 +52,7 @@ benchmark_tool = BenchmarkTool()
 
 
 class SafeDeploymentBaseState(BaseState):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -59,7 +61,7 @@ class SafeDeploymentBaseState(BaseState):
 
 
 class RandomnessSafeBehaviour(RandomnessBehaviour):
-    """Retrive randomness for oracle deployment."""
+    """Retrieve randomness for oracle deployment."""
 
     state_id = "randomness_safe"
     matching_round = RandomnessSafeRound
@@ -85,7 +87,8 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
         Do the action.
 
         Steps:
-        - If the agent is the designated deployer, then prepare the deployment transaction and send it.
+        - If the agent is the designated deployer, then prepare the deployment
+          transaction and send it.
         - Otherwise, wait until the next round.
         - If a timeout is hit, set exit A event, otherwise set done event.
         """
@@ -173,7 +176,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseState):
 
 
 class ValidateSafeBehaviour(SafeDeploymentBaseState):
-    """ValidateSafe."""
+    """Validate Safe."""
 
     state_id = "validate_safe"
     matching_round = ValidateSafeRound
@@ -183,8 +186,10 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
         Do the action.
 
         Steps:
-        - Validate that the contract address provided by the keeper points to a valid contract.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the contract address provided by the keeper points to a
+          valid contract.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
@@ -218,3 +223,16 @@ class ValidateSafeBehaviour(SafeDeploymentBaseState):
             return False
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified
+
+
+class SafeDeploymentRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the safe deployment."""
+
+    initial_state_cls = RandomnessSafeBehaviour
+    abci_app_cls = SafeDeploymentAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        RandomnessSafeBehaviour,  # type: ignore
+        SelectKeeperSafeBehaviour,  # type: ignore
+        DeploySafeBehaviour,  # type: ignore
+        ValidateSafeBehaviour,  # type: ignore
+    }
