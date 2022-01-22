@@ -132,9 +132,9 @@ class ABCIRoundHandler(ABCIHandler):
         # return commit success
         return super().commit(message, dialogue)
 
-    @staticmethod
+    @classmethod
     def _check_tx_failed(
-        message: AbciMessage, dialogue: AbciDialogue, info: str = ""
+        cls, message: AbciMessage, dialogue: AbciDialogue, info: str = ""
     ) -> AbciMessage:
         """Handle a failed check_tx request."""
         reply = dialogue.reply(
@@ -151,9 +151,9 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    @staticmethod
+    @classmethod
     def _deliver_tx_failed(
-        message: AbciMessage, dialogue: AbciDialogue, info: str = ""
+        cls, message: AbciMessage, dialogue: AbciDialogue, info: str = ""
     ) -> AbciMessage:
         """Handle a failed deliver_tx request."""
         reply = dialogue.reply(
@@ -230,7 +230,7 @@ class AbstractResponseHandler(Handler, ABC):
             return
 
         if message.performative not in self.allowed_response_performatives:
-            self._handle_disallowed_performative(message)
+            self._handle_unallowed_performative(message)
             return
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
@@ -285,9 +285,9 @@ class AbstractResponseHandler(Handler, ABC):
             "received invalid message: unidentified dialogue. message=%s", message
         )
 
-    def _handle_disallowed_performative(self, message: Message) -> None:
+    def _handle_unallowed_performative(self, message: Message) -> None:
         """
-        Handle a message with a disallowed response performative.
+        Handle a message with an unallowed response performative.
 
         Log an error message saying that the handler did not expect requests
         but only responses.
@@ -295,7 +295,7 @@ class AbstractResponseHandler(Handler, ABC):
         :param message: the message
         """
         self.context.logger.warning(
-            "received invalid message: disallowed performative. message=%s.", message
+            "received invalid message: unallowed performative. message=%s.", message
         )
 
     def _handle_no_callback(self, _message: Message, dialogue: Dialogue) -> None:

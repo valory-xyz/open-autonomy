@@ -126,6 +126,17 @@ class ConcreteRoundA(AbstractRound):
         """Process payloads of type 'payload_a'."""
 
 
+class ObjectImitator:
+    """For __eq__ operator testing"""
+    def __init__(self, other: Any):
+        """copying references to class attr, and instance attr"""
+        for attr, value in vars(other.__class__).items():
+            if not attr.startswith('__') and not attr.endswith('__'):
+                setattr(self.__class__, attr, value)
+        self.__dict__ = other.__dict__
+        self.__repr__ = other.__repr__
+
+
 class ConcreteRoundB(AbstractRound):
     """Dummy instantiation of the AbstractRound class."""
 
@@ -219,6 +230,17 @@ class TestTransactions:
         signature = crypto.sign_message(payload_bytes)
         transaction = Transaction(payload, signature)
         transaction.verify(crypto.identifier)
+
+    def test_payload_not_equal_lookalike(self) -> None:
+        payload = PayloadA(sender="sender")
+        lookalike = ObjectImitator(payload)
+        assert not payload == lookalike
+
+    def test_transaction_not_equal_lookalike(self) -> None:
+        payload = PayloadA(sender="sender")
+        transaction = Transaction(payload, signature="signature")
+        lookalike = ObjectImitator(transaction)
+        assert not transaction == lookalike
 
     def teardown(self) -> None:
         """Tear down the test."""
@@ -419,6 +441,10 @@ class TestConsensusParams:
         """Test threshold property getter."""
         params = ConsensusParams(nb_participants)
         assert params.consensus_threshold == expected
+
+    def test_consensus_params_not_equal_lookalike(self) -> None:
+        lookalike = ObjectImitator(self.consensus_params)
+        assert not self.consensus_params == lookalike
 
     def test_from_json(self) -> None:
         """Test 'from_json' method."""

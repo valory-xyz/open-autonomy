@@ -54,19 +54,20 @@ def locate(path: str) -> Any:
         spec_name = ".".join(parts[: i + 1])
         module_location = os.path.join(file_location, "__init__.py")
         spec = importlib.util.spec_from_file_location(spec_name, module_location)
-        next_module = _get_module(spec)  # type: ignore
-        if next_module is None:
+        nextmodule = _get_module(spec)  # type: ignore
+        if nextmodule is None:
             module_location = file_location + ".py"
             spec = importlib.util.spec_from_file_location(spec_name, module_location)
-            next_module = _get_module(spec)  # type: ignore
+            nextmodule = _get_module(spec)  # type: ignore
 
-        if os.path.exists(file_location) or next_module:
-            module, i = next_module, i + 1
+        if os.path.exists(file_location) or nextmodule:
+            module, i = nextmodule, i + 1
         else:  # pragma: nocover
             break
-
-    object_ = module if module else builtins
-
+    if module:
+        object_ = module
+    else:
+        object_ = builtins
     for part in parts[i:]:
         try:
             object_ = getattr(object_, part)
@@ -185,19 +186,36 @@ class BenchmarkTool:
         self,
     ) -> Dict:
         """Returns formatted data."""
-
-        behavioural_data = []
-        for behaviour in self.behaviours:
-            benchmark_blocks = self.benchmark_data[behaviour].local_data
-            data = {k: v.total_time for k, v in benchmark_blocks.items()}
-            data[BenchmarkBlockTypes.TOTAL] = sum(data.values())
-            data["behaviour"] = behaviour  # type: ignore
-            behavioural_data.append(data)
-
         return {
             "agent_address": self.agent_address,
             "agent": self.agent,
-            "data": behavioural_data,
+            "data": [
+                {
+                    "behaviour": behaviour,
+                    "data": dict(
+                        [
+                            (key, value.total_time)
+                            for key, value in self.benchmark_data[
+                                behaviour
+                            ].local_data.items()
+                        ]
+                        + [
+                            (
+                                BenchmarkBlockTypes.TOTAL,
+                                sum(
+                                    [
+                                        value.total_time
+                                        for value in self.benchmark_data[
+                                            behaviour
+                                        ].local_data.values()
+                                    ]
+                                ),
+                            )
+                        ]
+                    ),
+                }
+                for behaviour in self.behaviours
+            ],
         }
 
     def log(
@@ -214,9 +232,11 @@ class BenchmarkTool:
         """Save logs to a file."""
 
         try:
-            filename = f"{self.agent_address}.json"
-            filepath = os.path.join(os.getcwd(), "logs", filename)  # Issue #373
-            with open(filepath, "w+", encoding="utf-8") as outfile:
+            with open(
+                os.path.join(os.getcwd(), "logs", f"{self.agent_address}.json"),
+                "w+",
+                encoding="utf-8",
+            ) as outfile:
                 json.dump(self.data, outfile)
         except (PermissionError, FileNotFoundError):
             self.logger.info("Error saving benchmark data.")

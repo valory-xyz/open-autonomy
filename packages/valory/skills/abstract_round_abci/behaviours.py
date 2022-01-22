@@ -63,9 +63,9 @@ class _MetaRoundBehaviour(ABCMeta):
         mcs._check_initial_state_in_set_of_states(behaviour_cls)
         mcs._check_matching_round_consistency(behaviour_cls)
 
-    @staticmethod
+    @classmethod
     def _check_all_required_classattributes_are_set(
-        behaviour_cls: "AbstractRoundBehaviour",
+        mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
         """Check that all the required class attributes are set."""
         try:
@@ -75,8 +75,10 @@ class _MetaRoundBehaviour(ABCMeta):
         except AttributeError as e:
             raise ABCIAppInternalError(*e.args) from None
 
-    @staticmethod
-    def _check_state_id_uniqueness(behaviour_cls: "AbstractRoundBehaviour") -> None:
+    @classmethod
+    def _check_state_id_uniqueness(
+        mcs, behaviour_cls: "AbstractRoundBehaviour"
+    ) -> None:
         """Check that state behaviour ids are unique across behaviour states."""
         state_id_to_state = defaultdict(lambda: [])
         for state_class in behaviour_cls.behaviour_states:
@@ -90,9 +92,9 @@ class _MetaRoundBehaviour(ABCMeta):
                     f"states {state_classes_names} have the same state id '{state_class.state_id}'"
                 )
 
-    @staticmethod
+    @classmethod
     def _check_matching_round_consistency(
-        behaviour_cls: "AbstractRoundBehaviour",
+        mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
         """Check that matching rounds are: (1) unique across behaviour states, and (2) covering."""
         round_to_state: Dict[Type[AbstractRound], List[StateType]] = {
@@ -121,9 +123,9 @@ class _MetaRoundBehaviour(ABCMeta):
                     f"round {round_cls.round_id} is not a matching round of any state behaviour"
                 )
 
-    @staticmethod
+    @classmethod
     def _check_initial_state_in_set_of_states(
-        behaviour_cls: "AbstractRoundBehaviour",
+        mcs, behaviour_cls: "AbstractRoundBehaviour"
     ) -> None:
         """Check the initial state is in the set of states."""
         if behaviour_cls.initial_state_cls not in behaviour_cls.behaviour_states:
@@ -161,9 +163,9 @@ class AbstractRoundBehaviour(
         # because it has not a matching round.
         self._next_state_cls: Optional[StateType] = None
 
-    @staticmethod
+    @classmethod
     def _get_state_id_to_state_mapping(
-        behaviour_states: AbstractSet[StateType],
+        cls, behaviour_states: AbstractSet[StateType]
     ) -> Dict[str, StateType]:
         """Get state id to state mapping."""
         result: Dict[str, StateType] = {}
@@ -176,9 +178,9 @@ class AbstractRoundBehaviour(
             result[state_id] = state_behaviour_cls
         return result
 
-    @staticmethod
+    @classmethod
     def _get_round_to_state_mapping(
-        behaviour_states: AbstractSet[StateType],
+        cls, behaviour_states: AbstractSet[StateType]
     ) -> Dict[Type[AbstractRound], StateType]:
         """Get round-to-state mapping."""
         result: Dict[Type[AbstractRound], StateType] = {}

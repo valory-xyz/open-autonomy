@@ -161,12 +161,12 @@ class _MetaPayload(ABCMeta):
                     f"used by class {new_payload_cls} "
                 )
 
-    @staticmethod
-    def _get_field(new_cls: Type, field_name: str) -> Any:
+    @classmethod
+    def _get_field(mcs, cls: Type, field_name: str) -> Any:
         """Get a field from a class if present, otherwise raise error."""
-        if getattr(new_cls, field_name, None) is None:
-            raise ValueError(f"class {new_cls} must set '{field_name}' class field")
-        return getattr(new_cls, field_name)
+        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
+            raise ValueError(f"class {cls} must set '{field_name}' class field")
+        return getattr(cls, field_name)
 
 
 class BaseTxPayload(ABC, metaclass=_MetaPayload):
@@ -231,7 +231,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        if not isinstance(other, type(self)):
+        if not isinstance(other, BaseTxPayload):
             return NotImplemented
         return (
             self.id_ == other.id_
@@ -257,8 +257,8 @@ class Transaction(ABC):
         data = dict(payload=self.payload.json, signature=self.signature)
         return DictProtobufStructSerializer.encode(data)
 
-    @staticmethod
-    def decode(obj: bytes) -> "Transaction":
+    @classmethod
+    def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
         data = DictProtobufStructSerializer.decode(obj)
         signature = data["signature"]
@@ -282,7 +282,7 @@ class Transaction(ABC):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        if not isinstance(other, type(self)):
+        if not isinstance(other, Transaction):
             return NotImplemented
         return self.payload == other.payload and self.signature == other.signature
 
@@ -433,7 +433,7 @@ class ConsensusParams:
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        if not isinstance(other, type(self)):
+        if not isinstance(other, ConsensusParams):
             return NotImplemented
         return self.max_participants == other.max_participants
 
@@ -749,8 +749,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             votes_by_participant, nb_participants, exception_cls=exception_cls
         )
 
-    @staticmethod
+    @classmethod
     def check_majority_possible(
+        cls,
         votes_by_participant: Dict[Any, Any],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
@@ -1289,8 +1290,8 @@ class _MetaAbciApp(ABCMeta):
         mcs._check_initial_states_and_final_states(abci_app_cls)
         mcs._check_consistency_outgoing_transitions_from_non_final_states(abci_app_cls)
 
-    @staticmethod
-    def _check_required_class_attributes(abci_app_cls: Type["AbciApp"]) -> None:
+    @classmethod
+    def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
         """Check that required class attributes are set."""
         try:
             abci_app_cls.initial_round_cls
@@ -1301,8 +1302,9 @@ class _MetaAbciApp(ABCMeta):
         except AttributeError as exc:
             raise ABCIAppInternalError("'transition_function' field not set") from exc
 
-    @staticmethod
+    @classmethod
     def _check_initial_states_and_final_states(
+        mcs,
         abci_app_cls: Type["AbciApp"],
     ) -> None:
         """
@@ -1364,9 +1366,9 @@ class _MetaAbciApp(ABCMeta):
             "final states cannot have outgoing transitions",
         )
 
-    @staticmethod
+    @classmethod
     def _check_consistency_outgoing_transitions_from_non_final_states(
-        abci_app_cls: Type["AbciApp"],
+        mcs, abci_app_cls: Type["AbciApp"]
     ) -> None:
         """
         Check consistency of outgoing transitions from non-final states.

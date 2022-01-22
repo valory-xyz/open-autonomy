@@ -9,15 +9,15 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmY4CAjgeM3GdPRT5NCTfeDdEfyUkCJc8FZNKsyW4vQ6oB
-  base.py: Qmds4TS5hw2eRfQgahh9Ze3gjboucdq2Aoda1KN8rNYtaG
-  behaviour_utils.py: QmTuWYyq9RWivVBLUAjyzGTPsdsbkZtk78p4rwMLvgBXUQ
-  behaviours.py: QmPdcTMKQ4ri8todac7wAS2UcL52L81RHRRN3b3BjyvP6k
+  base.py: QmQeEKR9aL2aoZKL1JPSVd8WJ2of16oyGmVp6oK94w57C9
+  behaviour_utils.py: QmcXKWhAw3sscmEoJZ5WxCYhFfzzjSQKM5onQvGrNbSEYy
+  behaviours.py: Qmckx7n7bNMWpbQ8FKBp4Ee2LhNKkxiFoENK1TSnp7zihJ
   common.py: QmdoSkkkCRqoHX9T2rnPLpii5KVvEmibktKDik3pe2mNB7
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
-  handlers.py: QmY3iEs3A5XNgUyc6UrurgqYYBfBPZwf6b2dJV4LtXWNpv
-  models.py: QmWiGx5FwdFwQapoFrrVHVmLvRYQFRqoWkVxxKGZWTCXXq
-  serializer.py: QmTzgWAsNUuDKA4y1Gc2WUmdZzyT2FQmsz8sJ7XYhUTxCe
-  utils.py: QmdYWzuZNwmiscvoT384VSdXCx75RzxA8sMjwR3bVnLLmo
+  handlers.py: QmQsAq5hty7L4wa4jLWqNjpeetT7GM28rL125PUZ2dKrzc
+  models.py: QmPMvNmQ1fYt2mw4s8JTs2Q64ng6aw3Hff5vwqQogiAA35
+  serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
+  utils.py: QmThxHpnFD13vsDEx6P8F8K8QFLB4CQF7RrCBqYgNg6QWu
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
