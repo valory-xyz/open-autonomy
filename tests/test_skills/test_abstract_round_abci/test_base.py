@@ -127,14 +127,16 @@ class ConcreteRoundA(AbstractRound):
 
 
 class ObjectImitator:
-    """For __eq__ operator testing"""
+    """For custom __eq__ implementation testing"""
+
     def __init__(self, other: Any):
-        """copying references to class attr, and instance attr"""
+        """Copying references to class attr, and instance attr"""
+
         for attr, value in vars(other.__class__).items():
-            if not attr.startswith('__') and not attr.endswith('__'):
+            if not attr.startswith("__") and not attr.endswith("__"):
                 setattr(self.__class__, attr, value)
+
         self.__dict__ = other.__dict__
-        self.__repr__ = other.__repr__
 
 
 class ConcreteRoundB(AbstractRound):
@@ -232,11 +234,13 @@ class TestTransactions:
         transaction.verify(crypto.identifier)
 
     def test_payload_not_equal_lookalike(self) -> None:
+        """Test payload __eq__ reflection via NotImplemented"""
         payload = PayloadA(sender="sender")
         lookalike = ObjectImitator(payload)
         assert not payload == lookalike
 
     def test_transaction_not_equal_lookalike(self) -> None:
+        """Test transaction __eq__ reflection via NotImplemented"""
         payload = PayloadA(sender="sender")
         transaction = Transaction(payload, signature="signature")
         lookalike = ObjectImitator(transaction)
@@ -443,6 +447,7 @@ class TestConsensusParams:
         assert params.consensus_threshold == expected
 
     def test_consensus_params_not_equal_lookalike(self) -> None:
+        """Test consensus param __eq__ reflection via NotImplemented"""
         lookalike = ObjectImitator(self.consensus_params)
         assert not self.consensus_params == lookalike
 
