@@ -31,6 +31,7 @@ from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
+    OK_CODE,
     SignatureNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -103,7 +104,7 @@ class TestABCIRoundHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_CHECK_TX
-        assert response.code == ERROR_CODE
+        assert response.code == OK_CODE
 
     @mock.patch(
         "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
@@ -135,7 +136,7 @@ class TestABCIRoundHandler:
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
-        assert response.code == ERROR_CODE
+        assert response.code == OK_CODE
 
     @mock.patch(
         "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
