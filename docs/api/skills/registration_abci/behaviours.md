@@ -80,3 +80,13 @@ class RegistrationBehaviour(RegistrationBaseBehaviour)
 
 Register to the next periods.
 
+<a id="packages.valory.skills.registration_abci.behaviours.AgentRegistrationRoundBehaviour"></a>
+
+## AgentRegistrationRoundBehaviour Objects
+
+```python
+class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour)
+```
+
+This behaviour manages the consensus stages for the registration.
+

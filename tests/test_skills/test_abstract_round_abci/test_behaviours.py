@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -145,6 +145,7 @@ class TestAbstractRoundBehaviour:
         self.period_mock = MagicMock()
         context_mock = MagicMock()
         context_mock.state.period = self.period_mock
+        context_mock.state.period.syncing_up = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     def test_setup(self) -> None:
