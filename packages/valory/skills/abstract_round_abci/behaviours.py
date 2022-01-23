@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -118,6 +118,12 @@ class _MetaRoundBehaviour(ABCMeta):
 
         # check covering
         for round_cls, states in round_to_state.items():
+            if round_cls in behaviour_cls.abci_app_cls.final_states:
+                if len(states) != 0:
+                    raise ABCIAppInternalError(
+                        f"round {round_cls.round_id} is a final round it shouldn't have any matching behaviours."
+                    )
+                continue
             if len(states) == 0:
                 raise ABCIAppInternalError(
                     f"round {round_cls.round_id} is not a matching round of any state behaviour"

@@ -37,59 +37,88 @@ CHECK_STRINGS_LIST = [
 
 states_checks_config = {
     "registration": {
-        "state_name": "registration",
+        "round_name": "registration",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "collect_history": {
-        "state_name": "collect_history",
+        "round_name": "collect_history",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "transform": {
-        "state_name": "transform",
+        "round_name": "transform",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "preprocess": {
-        "state_name": "preprocess",
+        "round_name": "preprocess",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "randomness": {
-        "state_name": "randomness",
+        "round_name": "randomness",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "optimize": {
-        "state_name": "optimize",
+        "round_name": "optimize",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "train": {
-        "state_name": "train",
+        "round_name": "train",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "test": {
-        "state_name": "test",
+        "round_name": "test",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "full_train": {
-        "state_name": "train",
+        "round_name": "train",
         "extra_logs": (),
         "only_at_first_period": True,
+        "only_during_cycle": False,
     },
     "estimate": {
-        "state_name": "estimate",
+        "round_name": "estimate",
         "extra_logs": (),
         "only_at_first_period": False,
+        "only_during_cycle": False,
     },
     "cycle_reset": {
-        "state_name": "cycle_reset",
+        "round_name": "cycle_reset",
         "extra_logs": (),
         "only_at_first_period": False,
+        "only_during_cycle": False,
+    },
+    "collect_batch": {
+        "round_name": "collect_batch",
+        "extra_logs": (),
+        "only_at_first_period": False,
+        "only_during_cycle": True,
+    },
+    "prepare_batch": {
+        "round_name": "prepare_batch",
+        "extra_logs": (),
+        "only_at_first_period": False,
+        "only_during_cycle": True,
+    },
+    "update_forecaster": {
+        "round_name": "update_forecaster",
+        "extra_logs": (),
+        "only_at_first_period": False,
+        "only_during_cycle": True,
     },
 }
 
@@ -98,19 +127,19 @@ def build_check_strings() -> None:
     """Build check strings based on the `states_checks_config`."""
     for period in (0, 1):
         for _, config in states_checks_config.items():
-            if period == 0:
+            if period == 0 and not config["only_during_cycle"]:
                 CHECK_STRINGS_LIST.append(
-                    f"Entered in the '{config['state_name']}' round for period {period}"
+                    f"Entered in the '{config['round_name']}' round for period {period}"
                 )
 
                 for log in cast(Tuple[str], config["extra_logs"]):
                     CHECK_STRINGS_LIST.append(log)
 
-                CHECK_STRINGS_LIST.append(f"'{config['state_name']}' round is done")
+                CHECK_STRINGS_LIST.append(f"'{config['round_name']}' round is done")
 
-            elif not config["only_at_first_period"]:
+            elif period > 0 and not config["only_at_first_period"]:
                 CHECK_STRINGS_LIST.append(
-                    f"Entered in the '{config['state_name']}' round for period {period}"
+                    f"Entered in the '{config['round_name']}' round for period {period}"
                 )
 
 

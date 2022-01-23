@@ -20,12 +20,16 @@
 """This module contains the behaviours for the 'abci' skill."""
 import datetime
 import json
-from typing import Generator, Optional
+from typing import Generator, Optional, Set, Type
 
-from packages.valory.skills.abstract_round_abci.behaviours import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
+    AgentRegistrationAbciApp,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -91,12 +95,18 @@ class TendermintHealthcheckBehaviour(BaseState):
             "local-height = %s, remote-height=%s", local_height, remote_height
         )
         if remote_height > local_height:
+            # if remote height > local height it means the agent is behind in
+            # consensus. This block will put current agent in sync mode and
+            # continue execution. For more information on refer to:
+            # https://github.com/valory-xyz/consensus-algorithms/pull/399
             self.context.logger.info(
                 "remote height > local height; Entering sync mode..."
             )
             self.context.state.period.start_sync()
+        else:
+            self.context.state.period.end_sync()
+            self.context.logger.info("local height == remote height; done")
 
-        self.context.logger.info("local height == remote height; done")
         self.set_done()
 
 
@@ -140,3 +150,15 @@ class RegistrationBehaviour(RegistrationBaseBehaviour):
 
     state_id = "registration"
     matching_round = RegistrationRound
+
+
+class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the registration."""
+
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = AgentRegistrationAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        RegistrationStartupBehaviour,  # type: ignore
+    }
