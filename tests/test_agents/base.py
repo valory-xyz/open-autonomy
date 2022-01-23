@@ -188,6 +188,7 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
     stop_string: str
 
     restart_after: int = 60
+    wait_before_stop: int = 15
 
     def setup(self) -> None:
         """Set up the test."""
@@ -212,7 +213,7 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
         process_to_stop = self.processes[-1]
         logging.debug(f"Waiting for string {self.stop_string} in last agent output")
         missing_strings = self.missing_from_output(
-            process_to_stop, [self.stop_string], 15
+            process_to_stop, [self.stop_string], self.wait_before_stop
         )
         if missing_strings:
             raise RuntimeError("cannot stop agent correctly")
