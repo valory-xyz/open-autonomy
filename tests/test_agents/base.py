@@ -184,7 +184,16 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
       node can receive the responses
     """
 
+    # mandatory argument
+    stop_string: str
+
     restart_after: int = 60
+
+    def setup(self) -> None:
+        """Set up the test."""
+        if not hasattr(self, "stop_string"):
+            pytest.fail("'stop_string' is a mandatory argument.")
+        super().setup()
 
     def test_run(self) -> None:
         """Run the test."""
@@ -199,15 +208,29 @@ class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
 
+        # stop the last agent as soon as the "stop string" is found in the output
+        process_to_stop = self.processes[-1]
+        logging.debug(f"Waiting for string {self.stop_string} in last agent output")
+        missing_strings = self.missing_from_output(
+            process_to_stop, [self.stop_string], 15
+        )
+        if missing_strings:
+            raise RuntimeError("cannot stop agent correctly")
+        logging.debug("Last agent stopped")
+        self.processes.pop(-1)
+
         # wait for some time before restarting
+        logging.debug(
+            f"Waiting {self.restart_after} seconds before restarting the agent"
+        )
         time.sleep(self.restart_after)
 
         # restart agent
-        self.terminate_agents(self.processes[-1])
-        self.processes.pop(-1)
+        logging.debug("Restart the agent")
         self._launch_agent_i(-1)
 
         # check that *each* AEA prints these messages
+        logging.debug("Wait for messages from agents' stdout...")
         for i, process in enumerate(self.processes):
             missing_strings = self.missing_from_output(
                 process, self.check_strings, self.wait_to_finish
