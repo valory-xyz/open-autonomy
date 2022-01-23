@@ -25,7 +25,6 @@ import pytest
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_agents.base import (
     BaseTestEnd2EndAgentCatchup,
-    BaseTestEnd2EndDelayedStart,
     BaseTestEnd2EndNormalExecution,
 )
 
@@ -128,18 +127,6 @@ class TestABCIPriceEstimationFourAgents(
 
 
 @pytest.mark.skip
-class TestDelayedStart(BaseTestEnd2EndDelayedStart, UseGnosisSafeHardHatNet):
-    """Test that an agent that is launched later can synchronize with the rest of the network"""
-
-    NB_AGENTS = 4
-    agent_package = "valory/price_estimation:0.1.0"
-    skill_package = "valory/price_estimation_abci:0.1.0"
-    wait_to_finish = 120
-    check_strings = CHECK_STRINGS
-    stop_string = "'registration_startup' round is done with event: Event.DONE"
-
-
-@pytest.mark.skip
 class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     """Test that an agent that is launched later can synchronize with the rest of the network"""
 
@@ -149,3 +136,4 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     wait_to_finish = 120
     restart_after = 45
     check_strings = CHECK_STRINGS
+    stop_string = "'registration_startup' round is done with event: Event.DONE"

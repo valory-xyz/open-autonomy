@@ -29,7 +29,6 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.helpers.base import tendermint_health_check
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -147,61 +146,6 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-
-        # check that *each* AEA prints these messages
-        for process in self.processes:
-            missing_strings = self.missing_from_output(
-                process, self.check_strings, self.wait_to_finish
-            )
-            assert (
-                missing_strings == []
-            ), "Strings {} didn't appear in agent output.".format(missing_strings)
-
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
-
-
-class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
-    """Test that an agent that is launched later can synchronize with the rest of the network"""
-
-    stop_string: str = "'registration_startup' round is done with event: Event.DONE"
-
-    def test_run(self) -> None:
-        """Run the test."""
-
-        # start all the agents
-        for agent_id in range(self.NB_AGENTS):
-            self._launch_agent_i(agent_id)
-
-        logging.info("Waiting Tendermint nodes to be up (but the last)")
-        for rpc_addr in self.tendermint_net_builder.http_rpc_laddrs[:-1]:
-            if not tendermint_health_check(
-                rpc_addr,
-                max_retries=self.HEALTH_CHECK_MAX_RETRIES,
-                sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
-            ):
-                pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")
-
-        # stop the last agent as soon as the "stop string" is found in the output
-        process_to_stop = self.processes[-1]
-        logging.debug(f"Waiting for string {self.stop_string} in last agent output")
-        missing_strings = self.missing_from_output(
-            process_to_stop, [self.stop_string], 15
-        )
-        if missing_strings:
-            raise RuntimeError("cannot stop agent correctly")
-        logging.debug("Last agent stopped")
-        self.processes.pop(-1)
-
-        # sleep so to make the consensus proceed without last agent
-        time.sleep(60.0)
-
-        # now start last agent, and wait the catch up
-        self._launch_agent_i(self.NB_AGENTS - 1)
 
         # check that *each* AEA prints these messages
         for process in self.processes:
