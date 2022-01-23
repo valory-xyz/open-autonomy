@@ -439,7 +439,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     yield from self.wait_until_round_end()
             else:
                 yield from self.async_act()
-        except (GeneratorExit, StopIteration):
+        except StopIteration:
             if self.context.state.period.syncing_up:
                 has_synced_up = yield from self._has_synced_up()
                 if has_synced_up:

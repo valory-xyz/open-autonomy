@@ -50,7 +50,8 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     NB_AGENTS: int
     IS_LOCAL = True
     capture_log = True
-    KEEPER_TIMEOUT = 10
+    ROUND_TIMEOUT_SECONDS = 10.0
+    KEEPER_TIMEOUT = 30.0
     HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
     cli_log_options = ["-v", "DEBUG"]
@@ -112,11 +113,17 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             )
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
-                self.KEEPER_TIMEOUT,
+                self.ROUND_TIMEOUT_SECONDS,
+                type_="float",
             )
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
+            )
+            self.set_config(
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.keeper_timeout",
+                self.KEEPER_TIMEOUT,
+                type_="float",
             )
 
         # run 'aea install' in only one AEA project, to save time

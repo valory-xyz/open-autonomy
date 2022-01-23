@@ -72,7 +72,7 @@ models:
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
+      round_timeout_seconds: 30.0
       service_id: simple_abci
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
