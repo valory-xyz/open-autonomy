@@ -23,6 +23,8 @@ from copy import copy
 from pathlib import Path
 from typing import Any, Dict, Type, cast
 from unittest import mock
+import pytest
+from aea.exceptions import AEAActException
 
 from aea.helpers.transaction.base import (
     RawTransaction,
@@ -1025,6 +1027,67 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+
+    def test_transaction_hash_bad_swap_parameters(
+        self,
+    ) -> None:
+        """Test tx hash behaviour."""
+
+        strategy = get_default_strategy(
+            is_base_native=True, is_a_native=True, is_b_native=False
+        )
+        period_state = PeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
+        )
+        self.fast_forward_to_state(
+            behaviour=self.liquidity_provision_behaviour,
+            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.liquidity_provision_behaviour.current_state),
+            ).state_id
+            == EnterPoolTransactionHashBehaviour.state_id
+        )
+        self.liquidity_provision_behaviour.act_wrapper()
+
+        with pytest.raises(AEAActException):
+
+            # Add allowance for base token
+            self.mock_contract_api_request(
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["base"]["address"],
+                    kwargs=Kwargs(
+                        dict(
+                            method_name="approve",
+                            spender=period_state.router_contract_address,
+                            value=MAX_ALLOWANCE,
+                        )
+                    ),
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    callable="get_method_data",
+                    raw_transaction=RawTransaction(
+                        ledger_id="ethereum",
+                        body={"data": b"dummy_tx"},  # type: ignore
+                    ),
+                ),
+            )
 
 
 class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBaseCase):
