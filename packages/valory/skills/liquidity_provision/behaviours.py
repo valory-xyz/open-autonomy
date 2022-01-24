@@ -152,7 +152,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         amount_out: Optional[int] = None,
         amount_in_max: Optional[int] = None,
         amount_out_min: Optional[int] = None,
-        ETH_value: Optional[int] = None,
+        eth_value: Optional[int] = None,
     ) -> Generator[None, None, Optional[Dict]]:
         """
         Return the swap tx data.
@@ -166,14 +166,14 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         :param amount_out: the amount out
         :param amount_in_max: the max amount in
         :param amount_out_min: the min amount out
-        :param ETH_value: the tx value, also used as amount_or amount_in_max in for some cases
+        :param eth_value: the tx value, also used as amount_or amount_in_max in for some cases
         :return: None if required parameters are missing
         :yield: the tx data
         """
 
         if (  # pylint: disable=too-many-boolean-expressions
             (is_a_native and is_b_native)
-            or (is_a_native and ETH_value is None)
+            or (is_a_native and eth_value is None)
             or (not is_a_native and exact_input and amount_in is None)
             or (not is_a_native and not exact_input and amount_in_max is None)
             or (exact_input and amount_out_min is None)
@@ -221,7 +221,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         return {
             "operation": MultiSendOperation.CALL,
             "to": self.period_state.router_contract_address,
-            "value": ETH_value if is_a_native else 0,  # Input amount for native tokens
+            "value": eth_value if is_a_native else 0,  # Input amount for native tokens
             "data": HexBytes(swap_data.hex()),
         }
 
@@ -604,7 +604,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     exact_input=False,
                     amount_out=strategy["pair"]["token_a"]["amount_after_swap"],
                     amount_in_max=strategy["base"]["amount_in_max_a"],
-                    ETH_value=strategy["base"]["amount_in_max_a"]
+                    eth_value=strategy["base"]["amount_in_max_a"]
                     if strategy["base"]["is_native"]
                     else 0,
                     path=[
@@ -626,7 +626,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     exact_input=False,
                     amount_out=strategy["pair"]["token_b"]["amount_after_swap"],
                     amount_in_max=strategy["base"]["amount_in_max_b"],
-                    ETH_value=strategy["base"]["amount_in_max_b"]
+                    eth_value=strategy["base"]["amount_in_max_b"]
                     if strategy["base"]["is_native"]
                     else 0,
                     path=[
@@ -1114,7 +1114,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 exact_input=True,
                 amount_in=int(amount_a_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_a"]),
-                ETH_value=amount_a_received
+                eth_value=amount_a_received
                 if strategy["pair"]["token_a"]["is_native"]
                 else 0,
                 path=[
@@ -1134,7 +1134,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 exact_input=True,
                 amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
-                ETH_value=amount_b_received
+                eth_value=amount_b_received
                 if strategy["pair"]["token_b"]["is_native"]
                 else 0,
                 path=[
