@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, List, Optional, Set, Type, cast, Any
+from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
@@ -143,8 +143,8 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
     def get_swap_tx_data(  # pylint: disable=too-many-arguments
         self,
-        is_a_native: bool,
-        is_b_native: bool,
+        is_input_native: bool,
+        is_output_native: bool,
         exact_input: bool,
         path: List[str],
         deadline: int,
@@ -157,8 +157,8 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         """
         Return the swap tx data.
 
-        :param is_a_native: flag to check if the first token is native
-        :param is_b_native: flag to check if the second token is native
+        :param is_input_native: flag to check if the first token is native
+        :param is_output_native: flag to check if the second token is native
         :param exact_input: flag to check if the exact amount belongs to the input or the output
         :param path: the swap path
         :param deadline: the tx deadline
@@ -172,10 +172,10 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         """
 
         if (  # pylint: disable=too-many-boolean-expressions
-            (is_a_native and is_b_native)
-            or (is_a_native and eth_value is None)
-            or (not is_a_native and exact_input and amount_in is None)
-            or (not is_a_native and not exact_input and amount_in_max is None)
+            (is_input_native and is_output_native)
+            or (is_input_native and eth_value is None)
+            or (not is_input_native and exact_input and amount_in is None)
+            or (not is_input_native and not exact_input and amount_in_max is None)
             or (exact_input and amount_out_min is None)
             or (not exact_input and amount_out is None)
         ):
@@ -183,9 +183,9 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             return None
 
         method_name = (
-            f'swap_exact_{"ETH" if is_a_native else "tokens"}_for_{"ETH" if is_b_native else "tokens"}'
+            f'swap_exact_{"ETH" if is_input_native else "tokens"}_for_{"ETH" if is_output_native else "tokens"}'
             if exact_input
-            else f'swap_{"ETH" if is_a_native else "tokens"}_for_exact_{"ETH" if is_b_native else "tokens"}'
+            else f'swap_{"ETH" if is_input_native else "tokens"}_for_exact_{"ETH" if is_output_native else "tokens"}'
         )
 
         contract_api_kwargs: Dict[str, Any] = dict(
@@ -197,10 +197,10 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
         # Input amounts for native tokens are read from the msg.value field.
         # We only need to specify them here for not native tokens.
-        if not is_a_native and exact_input:
+        if not is_input_native and exact_input:
             contract_api_kwargs["amount_in"] = int(amount_in)  # type: ignore
 
-        if not is_a_native and not exact_input:
+        if not is_input_native and not exact_input:
             contract_api_kwargs["amount_in_max"] = int(amount_in_max)  # type: ignore
 
         # Output amounts
@@ -221,7 +221,9 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         return {
             "operation": MultiSendOperation.CALL,
             "to": self.period_state.router_contract_address,
-            "value": eth_value if is_a_native else 0,  # Input amount for native tokens
+            "value": eth_value
+            if is_input_native
+            else 0,  # Input amount for native tokens
             "data": HexBytes(swap_data.hex()),
         }
 
@@ -599,8 +601,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             if strategy["pair"]["token_a"]["ticker"] != strategy["base"]["ticker"]:
 
                 swap_tx_data = yield from self.get_swap_tx_data(
-                    is_a_native=strategy["base"]["is_native"],
-                    is_b_native=strategy["pair"]["token_a"]["is_native"],
+                    is_input_native=strategy["base"]["is_native"],
+                    is_output_native=strategy["pair"]["token_a"]["is_native"],
                     exact_input=False,
                     amount_out=strategy["pair"]["token_a"]["amount_after_swap"],
                     amount_in_max=strategy["base"]["amount_in_max_a"],
@@ -621,8 +623,8 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             if strategy["pair"]["token_b"]["ticker"] != strategy["base"]["ticker"]:
 
                 swap_tx_data = yield from self.get_swap_tx_data(
-                    is_a_native=strategy["base"]["is_native"],
-                    is_b_native=strategy["pair"]["token_b"]["is_native"],
+                    is_input_native=strategy["base"]["is_native"],
+                    is_output_native=strategy["pair"]["token_b"]["is_native"],
                     exact_input=False,
                     amount_out=strategy["pair"]["token_b"]["amount_after_swap"],
                     amount_in_max=strategy["base"]["amount_in_max_b"],
@@ -1109,8 +1111,8 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Swap first token back
             swap_tx_data = yield from self.get_swap_tx_data(
-                is_a_native=strategy["pair"]["token_a"]["is_native"],
-                is_b_native=strategy["base"]["is_native"],
+                is_input_native=strategy["pair"]["token_a"]["is_native"],
+                is_output_native=strategy["base"]["is_native"],
                 exact_input=True,
                 amount_in=int(amount_a_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_a"]),
@@ -1129,8 +1131,8 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Swap second token back
             swap_tx_data = yield from self.get_swap_tx_data(
-                is_a_native=strategy["pair"]["token_b"]["is_native"],
-                is_b_native=strategy["base"]["is_native"],
+                is_input_native=strategy["pair"]["token_b"]["is_native"],
+                is_output_native=strategy["base"]["is_native"],
                 exact_input=True,
                 amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
