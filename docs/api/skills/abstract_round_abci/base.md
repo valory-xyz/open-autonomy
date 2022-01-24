@@ -92,6 +92,16 @@ class TransactionNotValidError(ABCIAppException)
 
 Error raised when a transaction is not valid.
 
+<a id="packages.valory.skills.abstract_round_abci.base.LateArrivingTransaction"></a>
+
+## LateArrivingTransaction Objects
+
+```python
+class LateArrivingTransaction(ABCIAppException)
+```
+
+Error raised when the transaction belongs to previous round.
+
 <a id="packages.valory.skills.abstract_round_abci.base._MetaPayload"></a>
 
 ## `_`MetaPayload Objects
@@ -860,7 +870,7 @@ Concrete classes must set:
 #### `__`init`__`
 
 ```python
-def __init__(state: BasePeriodState, consensus_params: ConsensusParams) -> None
+def __init__(state: BasePeriodState, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
 ```
 
 Initialize the round.
