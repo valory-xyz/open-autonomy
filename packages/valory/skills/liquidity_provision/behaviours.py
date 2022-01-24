@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, List, Optional, Set, Type, cast
+from typing import Dict, Generator, List, Optional, Set, Type, cast, Any
 
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
@@ -79,11 +79,11 @@ from packages.valory.skills.liquidity_provision.rounds import (
     SwapBackTransactionSignatureRound,
     SwapBackTransactionValidationRound,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import (
+from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
     ResetAndPauseBehaviour,
     ResetBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
 

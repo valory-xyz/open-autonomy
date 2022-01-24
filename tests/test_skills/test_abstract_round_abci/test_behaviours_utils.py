@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours_utils.py module of the skill."""
+import json
+import logging
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -33,6 +35,7 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
+    Period,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -323,6 +326,19 @@ class StateATest(BaseState):
         yield
 
 
+def _get_status_patch(*args: Any, **kwargs: Any) -> Generator[None, None, MagicMock]:
+    """Patch `_get_status` method"""
+    return MagicMock(
+        body=json.dumps({"result": {"sync_info": {"latest_block_height": 0}}}).encode()
+    )
+    yield
+
+
+def _wait_until_round_ends_patch(*args: Any, **kwargs: Any) -> Generator:
+    """Patch `wait_until_round_ends` method"""
+    yield
+
+
 class TestBaseState:
     """Tests for the 'BaseState' class."""
 
@@ -334,6 +350,7 @@ class TestBaseState:
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.period_state = self.context_state_period_state_mock
         self.context_mock.state.period.current_round_id = "round_a"
+        self.context_mock.state.period.syncing_up = False
         self.behaviour = StateATest(name="", skill_context=self.context_mock)
 
     def test_params_property(self) -> None:
@@ -459,6 +476,37 @@ class TestBaseState:
                 gen = self.behaviour.async_act_wrapper()
                 try_send(gen)
                 clean_up_mock.assert_called()
+
+    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
+    @mock.patch.object(BaseState, "wait_until_round_end", _wait_until_round_ends_patch)
+    def test_async_act_wrapper_agent_sync_mode(self) -> None:
+        """Test 'async_act_wrapper' in sync mode."""
+        self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
+        self.behaviour.context.state.period.start_sync()
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)
+
+        with mock.patch.object(logging, "info") as log_mock:
+            gen = self.behaviour.async_act_wrapper()
+            gen.send(None)
+            log_mock.assert_called()
+
+        assert self.behaviour.context.state.period.syncing_up is True
+
+    @mock.patch.object(BaseState, "_get_status", _get_status_patch)
+    def test_async_act_wrapper_agent_sync_mode_with_round_none(self) -> None:
+        """Test 'async_act_wrapper' in sync mode."""
+        self.behaviour.context.state.period.syncing_up = True
+        self.behaviour.context.state.period.height = 0
+        self.behaviour.matching_round = None
+        matching_round = self.behaviour.matching_round
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)
+
+        with mock.patch.object(logging, "info") as log_mock:
+            gen = self.behaviour.async_act_wrapper()
+            gen.send(None)
+            log_mock.assert_called()
+
+        self.behaviour.matching_round = matching_round
 
     def test_get_request_nonce_from_dialogue(self) -> None:
         """Test '_get_request_nonce_from_dialogue' helper method."""

@@ -1714,6 +1714,7 @@ class Period:
     def __init__(self, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
         self._blockchain = Blockchain()
+        self._syncing_up = False
 
         self._block_construction_phase = (
             Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -1732,6 +1733,30 @@ class Period:
         """
         self._abci_app = self._abci_app_cls(*args, **kwargs)
         self._abci_app.setup()
+
+    def start_sync(
+        self,
+    ) -> None:  # pragma: nocover
+        """
+        Set `_syncing_up` flag to true.
+
+        if the _syncing_up flag is set to true, the `async_act` method won't be executed. For more details refer to
+        https://github.com/valory-xyz/consensus-algorithms/issues/247#issuecomment-1012268656
+        """
+        self._syncing_up = True
+
+    def end_sync(
+        self,
+    ) -> None:
+        """Set `_syncing_up` flag to false."""
+        self._syncing_up = False
+
+    @property
+    def syncing_up(
+        self,
+    ) -> bool:
+        """Return if the app is in sync mode."""
+        return self._syncing_up
 
     @property
     def abci_app(self) -> AbciApp:
