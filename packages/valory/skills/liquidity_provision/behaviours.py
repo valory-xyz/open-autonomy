@@ -180,8 +180,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             or (not exact_input and amount_out is None)
         ):
             self.context.logger.error("Swap data is not correct.")
-            return None
-
+            raise RuntimeError("Swap has been called with incorrect/missing parameters")
         method_name = (
             f'swap_exact_{"ETH" if is_input_native else "tokens"}_for_{"ETH" if is_output_native else "tokens"}'
             if exact_input
