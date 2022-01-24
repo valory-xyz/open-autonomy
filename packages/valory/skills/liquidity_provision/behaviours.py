@@ -188,7 +188,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             else f'swap_{"ETH" if is_a_native else "tokens"}_for_exact_{"ETH" if is_b_native else "tokens"}'
         )
 
-        contract_api_kwargs = dict(
+        contract_api_kwargs: Dict[str, Any] = dict(
             method_name=method_name,
             path=path,
             to=self.period_state.safe_contract_address,
