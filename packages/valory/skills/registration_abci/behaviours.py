@@ -20,12 +20,16 @@
 """This module contains the behaviours for the 'abci' skill."""
 import datetime
 import json
-from typing import Generator, Optional
+from typing import Generator, Optional, Set, Type
 
-from packages.valory.skills.abstract_round_abci.behaviours import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
+    AgentRegistrationAbciApp,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -146,3 +150,15 @@ class RegistrationBehaviour(RegistrationBaseBehaviour):
 
     state_id = "registration"
     matching_round = RegistrationRound
+
+
+class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the registration."""
+
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = AgentRegistrationAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        RegistrationStartupBehaviour,  # type: ignore
+    }
