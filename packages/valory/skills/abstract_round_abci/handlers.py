@@ -97,15 +97,13 @@ class ABCIRoundHandler(ABCIHandler):
         except (
             SignatureNotValidError,
             TransactionNotValidError,
+            TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
-        except (
-            TransactionTypeNotRecognizedError,
-            LateArrivingTransaction,
-        ) as exception:  # pragma: nocover
+        except LateArrivingTransaction as exception:  # pragma: nocover
             self.context.logger.debug(exception_to_info_msg(exception))
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
@@ -137,15 +135,16 @@ class ABCIRoundHandler(ABCIHandler):
             transaction.verify(self.context.default_ledger_id)
             shared_state.period.check_is_finished()
             shared_state.period.deliver_tx(transaction)
-        except (SignatureNotValidError, TransactionNotValidError) as exception:
+        except (
+            SignatureNotValidError,
+            TransactionNotValidError,
+            TransactionTypeNotRecognizedError,
+        ) as exception:
             self._log_exception(exception)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
-        except (
-            TransactionTypeNotRecognizedError,
-            LateArrivingTransaction,
-        ) as exception:  # pragma: nocover
+        except LateArrivingTransaction as exception:  # pragma: nocover
             self.context.logger.debug(exception_to_info_msg(exception))
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
