@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, List, Optional, Set, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
@@ -140,6 +140,91 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, super().params)
+
+    def get_swap_tx_data(  # pylint: disable=too-many-arguments
+        self,
+        is_input_native: bool,
+        is_output_native: bool,
+        exact_input: bool,
+        path: List[str],
+        deadline: int,
+        amount_in: Optional[int] = None,
+        amount_out: Optional[int] = None,
+        amount_in_max: Optional[int] = None,
+        amount_out_min: Optional[int] = None,
+        eth_value: Optional[int] = None,
+    ) -> Generator[None, None, Optional[Dict]]:
+        """
+        Return the swap tx data.
+
+        :param is_input_native: flag to check if the first token is native
+        :param is_output_native: flag to check if the second token is native
+        :param exact_input: flag to check if the exact amount belongs to the input or the output
+        :param path: the swap path
+        :param deadline: the tx deadline
+        :param amount_in: the amount in
+        :param amount_out: the amount out
+        :param amount_in_max: the max amount in
+        :param amount_out_min: the min amount out
+        :param eth_value: the tx value, also used as amount_or amount_in_max in for some cases
+        :return: None if required parameters are missing
+        :yield: the tx data
+        """
+
+        if (  # pylint: disable=too-many-boolean-expressions
+            (is_input_native and is_output_native)
+            or (is_input_native and eth_value is None)
+            or (not is_input_native and exact_input and amount_in is None)
+            or (not is_input_native and not exact_input and amount_in_max is None)
+            or (exact_input and amount_out_min is None)
+            or (not exact_input and amount_out is None)
+        ):
+            self.context.logger.error("Swap data is not correct.")
+            raise RuntimeError("Swap has been called with incorrect/missing parameters")
+        method_name = (
+            f'swap_exact_{"ETH" if is_input_native else "tokens"}_for_{"ETH" if is_output_native else "tokens"}'
+            if exact_input
+            else f'swap_{"ETH" if is_input_native else "tokens"}_for_exact_{"ETH" if is_output_native else "tokens"}'
+        )
+
+        contract_api_kwargs: Dict[str, Any] = dict(
+            method_name=method_name,
+            path=path,
+            to=self.period_state.safe_contract_address,
+            deadline=deadline,
+        )
+
+        # Input amounts for native tokens are read from the msg.value field.
+        # We only need to specify them here for not native tokens.
+        if not is_input_native and exact_input:
+            contract_api_kwargs["amount_in"] = int(amount_in)  # type: ignore
+
+        if not is_input_native and not exact_input:
+            contract_api_kwargs["amount_in_max"] = int(amount_in_max)  # type: ignore
+
+        # Output amounts
+        if exact_input:
+            contract_api_kwargs["amount_out_min"] = int(amount_out_min)  # type: ignore
+        else:
+            contract_api_kwargs["amount_out"] = int(amount_out)  # type: ignore
+
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.router_contract_address,
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_callable="get_method_data",
+            **contract_api_kwargs,
+        )
+        swap_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+
+        return {
+            "operation": MultiSendOperation.CALL,
+            "to": self.period_state.router_contract_address,
+            "value": eth_value
+            if is_input_native
+            else 0,  # Input amount for native tokens
+            "data": HexBytes(swap_data.hex()),
+        }
 
 
 class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
@@ -392,6 +477,7 @@ def get_strategy_update() -> dict:
             "amount_min_after_swap_back_a": int(1e2),
             "amount_in_max_b": int(1e4),
             "amount_min_after_swap_back_b": int(1e2),
+            "is_native": False,
         },
         "pair": {
             "LP_token_address": LP_TOKEN_ADDRESS,
@@ -400,7 +486,6 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_A_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
             "token_b": {
@@ -408,6 +493,7 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_B_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
+                "is_native": False,
             },
         },
     }
@@ -510,67 +596,49 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 }
             )
 
-            # Swap first token (can be native or not)
+            # Swap first token
             if strategy["pair"]["token_a"]["ticker"] != strategy["base"]["ticker"]:
 
-                method_name = (
-                    "swap_tokens_for_exact_ETH"
-                    if strategy["pair"]["token_a"]["is_native"]
-                    else "swap_tokens_for_exact_tokens"
-                )
-
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name=method_name,
-                    amount_out=int(strategy["pair"]["token_a"]["amount_after_swap"]),
-                    amount_in_max=int(strategy["base"]["amount_in_max_a"]),
+                swap_tx_data = yield from self.get_swap_tx_data(
+                    is_input_native=strategy["base"]["is_native"],
+                    is_output_native=strategy["pair"]["token_a"]["is_native"],
+                    exact_input=False,
+                    amount_out=strategy["pair"]["token_a"]["amount_after_swap"],
+                    amount_in_max=strategy["base"]["amount_in_max_a"],
+                    eth_value=strategy["base"]["amount_in_max_a"]
+                    if strategy["base"]["is_native"]
+                    else 0,
                     path=[
                         strategy["base"]["address"],
                         strategy["pair"]["token_a"]["address"],
                     ],
-                    to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
-                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
-                    }
-                )
 
-            # Swap second token (always non-native)
+                if swap_tx_data:
+                    multi_send_txs.append(swap_tx_data)
+
+            # Swap second token
             if strategy["pair"]["token_b"]["ticker"] != strategy["base"]["ticker"]:
 
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="swap_tokens_for_exact_tokens",
-                    amount_out=int(strategy["pair"]["token_b"]["amount_after_swap"]),
-                    amount_in_max=int(strategy["base"]["amount_in_max_b"]),
+                swap_tx_data = yield from self.get_swap_tx_data(
+                    is_input_native=strategy["base"]["is_native"],
+                    is_output_native=strategy["pair"]["token_b"]["is_native"],
+                    exact_input=False,
+                    amount_out=strategy["pair"]["token_b"]["amount_after_swap"],
+                    amount_in_max=strategy["base"]["amount_in_max_b"],
+                    eth_value=strategy["base"]["amount_in_max_b"]
+                    if strategy["base"]["is_native"]
+                    else 0,
                     path=[
                         strategy["base"]["address"],
                         strategy["pair"]["token_b"]["address"],
                     ],
-                    to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
-                swap_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_b_data.hex()),
-                    }
-                )
+
+                if swap_tx_data:
+                    multi_send_txs.append(swap_tx_data)
 
             # Add allowance for token A (only if not native)
             if not strategy["pair"]["token_a"]["is_native"]:
@@ -1040,87 +1108,45 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # and always swap back to it.
             multi_send_txs = []
 
-            # Swap first token back (can be native or not)
-            if strategy["pair"]["token_a"]["is_native"]:
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="swap_exact_ETH_for_tokens",
-                    amount_out_min=int(
-                        strategy["base"]["amount_min_after_swap_back_a"]
-                    ),
-                    path=[
-                        strategy["pair"]["token_a"]["address"],
-                        strategy["base"]["address"],
-                    ],
-                    to=self.period_state.safe_contract_address,
-                    deadline=strategy["deadline"],
-                )
-                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
-                    }
-                )
+            # Swap first token back
+            swap_tx_data = yield from self.get_swap_tx_data(
+                is_input_native=strategy["pair"]["token_a"]["is_native"],
+                is_output_native=strategy["base"]["is_native"],
+                exact_input=True,
+                amount_in=int(amount_a_received),
+                amount_out_min=int(strategy["base"]["amount_min_after_swap_back_a"]),
+                eth_value=amount_a_received
+                if strategy["pair"]["token_a"]["is_native"]
+                else 0,
+                path=[
+                    strategy["pair"]["token_a"]["address"],
+                    strategy["base"]["address"],
+                ],
+                deadline=strategy["deadline"],
+            )
 
-            else:
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="swap_exact_tokens_for_tokens",
-                    amount_in=int(amount_a_received),
-                    amount_out_min=int(
-                        strategy["base"]["amount_min_after_swap_back_a"]
-                    ),
-                    path=[
-                        strategy["pair"]["token_a"]["address"],
-                        strategy["base"]["address"],
-                    ],
-                    to=self.period_state.safe_contract_address,
-                    deadline=strategy["deadline"],
-                )
-                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
-                    }
-                )
+            if swap_tx_data:
+                multi_send_txs.append(swap_tx_data)
 
-            # Swap second token back (always non-native)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.router_contract_address,
-                contract_id=str(UniswapV2Router02Contract.contract_id),
-                contract_callable="get_method_data",
-                method_name="swap_exact_tokens_for_tokens",
+            # Swap second token back
+            swap_tx_data = yield from self.get_swap_tx_data(
+                is_input_native=strategy["pair"]["token_b"]["is_native"],
+                is_output_native=strategy["base"]["is_native"],
+                exact_input=True,
                 amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
+                eth_value=amount_b_received
+                if strategy["pair"]["token_b"]["is_native"]
+                else 0,
                 path=[
                     strategy["pair"]["token_b"]["address"],
                     strategy["base"]["address"],
                 ],
-                to=self.period_state.safe_contract_address,
                 deadline=strategy["deadline"],
             )
-            swap_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.router_contract_address,
-                    "value": 0,
-                    "data": HexBytes(swap_b_data.hex()),
-                }
-            )
+
+            if swap_tx_data:
+                multi_send_txs.append(swap_tx_data)
 
             # Remove allowance for base token (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(

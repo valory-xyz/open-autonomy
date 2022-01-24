@@ -235,6 +235,8 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
+        if not isinstance(other, BaseTxPayload):
+            return NotImplemented
         return (
             self.id_ == other.id_
             and self.sender == other.sender
@@ -284,11 +286,9 @@ class Transaction(ABC):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return (
-            isinstance(other, Transaction)
-            and self.payload == other.payload
-            and self.signature == other.signature
-        )
+        if not isinstance(other, Transaction):
+            return NotImplemented
+        return self.payload == other.payload and self.signature == other.signature
 
 
 class Block:  # pylint: disable=too-few-public-methods
@@ -433,14 +433,13 @@ class ConsensusParams:
             isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
-        return ConsensusParams(max_participants)
+        return cls(max_participants)
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return (
-            isinstance(other, ConsensusParams)
-            and self.max_participants == other.max_participants
-        )
+        if not isinstance(other, ConsensusParams):
+            return NotImplemented
+        return self.max_participants == other.max_participants
 
 
 class StateDB:
@@ -809,9 +808,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if len(votes_by_participant) == 0:
             return
 
-        nb_votes_by_item = Counter(list(votes_by_participant.values()))
-        largest_nb_votes = max(nb_votes_by_item.values())
-        nb_votes_received = sum(nb_votes_by_item.values())
+        vote_count = Counter(votes_by_participant.values())
+        largest_nb_votes = max(vote_count.values())
+        nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
 
         threshold = consensus_threshold(nb_participants)
@@ -1266,7 +1265,7 @@ class Timeouts(Generic[EventType]):
         """Pop earliest cancelled timeouts."""
         if self.size == 0:
             return
-        entry = self._heap[0]
+        entry = self._heap[0]  # heap peak
         while entry.cancelled:
             self.pop_timeout()
             if self.size == 0:
@@ -1470,16 +1469,13 @@ class AbciApp(
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
-        states = set()
-        for start_state, _ in cls.transition_function.items():
-            states.add(start_state)
-        return states
+        return set(cls.transition_function)
 
     @classmethod
     def get_all_events(cls) -> Set[EventType]:
         """Get all the events."""
         events: Set[EventType] = set()
-        for _start_state, transitions in cls.transition_function.items():
+        for _, transitions in cls.transition_function.items():
             events.update(transitions.keys())
         return events
 
@@ -1487,10 +1483,9 @@ class AbciApp(
     def get_all_round_classes(cls) -> Set[AppState]:
         """Get all round classes."""
         result: Set[AppState] = set()
-        for start, out_transitions in cls.transition_function.items():
+        for start, transitions in cls.transition_function.items():
             result.add(start)
-            for _event, end in out_transitions.items():
-                result.add(end)
+            result.update(transitions.values())
         return result
 
     @property
