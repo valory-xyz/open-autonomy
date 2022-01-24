@@ -23,9 +23,9 @@ from copy import copy
 from pathlib import Path
 from typing import Any, Dict, Type, cast
 from unittest import mock
+
 import pytest
 from aea.exceptions import AEAActException
-
 from aea.helpers.transaction.base import (
     RawTransaction,
     SignedMessage,
