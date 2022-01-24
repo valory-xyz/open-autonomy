@@ -632,7 +632,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         self,
         state: BasePeriodState,
         consensus_params: ConsensusParams,
-        previous_round_tx_type: Optional[TransactionType],
+        previous_round_tx_type: Optional[TransactionType] = None,
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
@@ -713,7 +713,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             )
         tx_type = transaction.payload.transaction_type
 
-        if str(tx_type) == str(self._previous_round_tx_type):
+        if self._previous_round_tx_type is not None and str(tx_type) == str(
+            self._previous_round_tx_type
+        ):
             _logger.debug(f"request '{tx_type}' is from previous round; skipping")
             raise LateArrivingTransaction()
 
@@ -1559,7 +1561,13 @@ class AbciApp(
         self._last_round = self._current_round
         self._current_round_cls = round_cls
         self._current_round = round_cls(
-            last_result, self.consensus_params, self.current_round.allowed_tx_type
+            last_result,
+            self.consensus_params,
+            (
+                self._last_round.allowed_tx_type
+                if self._last_round is not None
+                else None
+            ),
         )
         self._log_start()
 
