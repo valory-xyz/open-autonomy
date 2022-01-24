@@ -46,14 +46,17 @@ from packages.valory.skills.abstract_round_abci.base import (
     Blockchain,
     ConsensusParams,
     EventType,
+    LateArrivingTransaction,
     Period,
     SignatureNotValidError,
     StateDB,
     Timeouts,
     Transaction,
+    TransactionType,
     TransactionTypeNotRecognizedError,
     _MetaAbciApp,
     _MetaPayload,
+    _logger as default_logger,
 )
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
@@ -542,6 +545,32 @@ class TestAbstractRound:
             ABCIAppInternalError, match="'allowed_tx_type' field not set"
         ):
             MyConcreteRound(MagicMock(), MagicMock())
+
+    def test_check_allowed_tx_type_with_previous_round_transaction(self) -> None:
+        """Test check 'allowed_tx_type'."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = ""
+            allowed_tx_type = "allowed_tx_type"
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(LateArrivingTransaction), mock.patch.object(
+            default_logger, "debug"
+        ) as mock_logger:
+            MyConcreteRound(
+                MagicMock(), MagicMock(), "previous_transaction"
+            ).check_allowed_tx_type(
+                MagicMock(payload=MagicMock(transaction_type="previous_transaction"))
+            )
+            assert mock_logger.assert_called()
 
     def test_check_allowed_tx_type(self) -> None:
         """Test check 'allowed_tx_type'."""
