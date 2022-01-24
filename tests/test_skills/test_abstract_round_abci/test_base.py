@@ -52,12 +52,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     StateDB,
     Timeouts,
     Transaction,
-    TransactionType,
     TransactionTypeNotRecognizedError,
     _MetaAbciApp,
     _MetaPayload,
-    _logger as default_logger,
 )
+from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
@@ -570,7 +569,7 @@ class TestAbstractRound:
             ).check_allowed_tx_type(
                 MagicMock(payload=MagicMock(transaction_type="previous_transaction"))
             )
-            assert mock_logger.assert_called()
+            mock_logger.assert_called()
 
     def test_check_allowed_tx_type(self) -> None:
         """Test check 'allowed_tx_type'."""

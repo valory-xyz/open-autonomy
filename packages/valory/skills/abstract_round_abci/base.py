@@ -716,8 +716,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if self._previous_round_tx_type is not None and str(tx_type) == str(
             self._previous_round_tx_type
         ):
-            _logger.debug(f"request '{tx_type}' is from previous round; skipping")
-            raise LateArrivingTransaction()
+            raise LateArrivingTransaction(
+                f"request '{tx_type}' is from previous round; skipping"
+            )
 
         if str(tx_type) != str(self.allowed_tx_type):
             raise TransactionTypeNotRecognizedError(

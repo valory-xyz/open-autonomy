@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
+    LateArrivingTransaction,
     OK_CODE,
     SignatureNotValidError,
     Transaction,
@@ -129,15 +130,20 @@ class ABCIRoundHandler(ABCIHandler):
             transaction.verify(self.context.default_ledger_id)
             shared_state.period.check_is_finished()
             shared_state.period.deliver_tx(transaction)
-        except (
-            SignatureNotValidError,
-            TransactionTypeNotRecognizedError,
-            TransactionNotValidError,
-        ) as exception:
+        except (SignatureNotValidError, TransactionNotValidError) as exception:
             self._log_exception(exception)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+        except (
+            TransactionTypeNotRecognizedError,
+            LateArrivingTransaction,
+        ) as exception:
+            self.context.logger.debug(exception_to_info_msg(exception))
+            return self._deliver_tx_failed(
+                message, dialogue, exception_to_info_msg(exception)
+            )
+
         # return deliver_tx success
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
