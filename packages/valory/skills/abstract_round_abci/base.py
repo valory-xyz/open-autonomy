@@ -108,6 +108,10 @@ class TransactionNotValidError(ABCIAppException):
     """Error raised when a transaction is not valid."""
 
 
+class LateArrivingTransaction(ABCIAppException):
+    """Error raised when the transaction belongs to previous round."""
+
+
 class _MetaPayload(ABCMeta):
     """
     Payload metaclass.
@@ -621,13 +625,19 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     allowed_tx_type: Optional[TransactionType]
     payload_attribute: str
 
+    _previous_round_tx_type: Optional[TransactionType]
+
     def __init__(
-        self, state: BasePeriodState, consensus_params: ConsensusParams
+        self,
+        state: BasePeriodState,
+        consensus_params: ConsensusParams,
+        previous_round_tx_type: Optional[TransactionType] = None,
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
         self._state = state
         self.block_confirmations = 0
+        self._previous_round_tx_type = previous_round_tx_type
 
         self._check_class_attributes()
 
@@ -701,6 +711,14 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
                 "current round does not allow transactions"
             )
         tx_type = transaction.payload.transaction_type
+
+        if self._previous_round_tx_type is not None and str(tx_type) == str(
+            self._previous_round_tx_type
+        ):
+            raise LateArrivingTransaction(
+                f"request '{tx_type}' is from previous round; skipping"
+            )
+
         if str(tx_type) != str(self.allowed_tx_type):
             raise TransactionTypeNotRecognizedError(
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
@@ -1538,7 +1556,15 @@ class AbciApp(
         )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
-        self._current_round = round_cls(last_result, self.consensus_params)
+        self._current_round = round_cls(
+            last_result,
+            self.consensus_params,
+            (
+                self._last_round.allowed_tx_type
+                if self._last_round is not None
+                else None
+            ),
+        )
         self._log_start()
 
     @property

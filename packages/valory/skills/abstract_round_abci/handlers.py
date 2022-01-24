@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
+    LateArrivingTransaction,
     OK_CODE,
     SignatureNotValidError,
     Transaction,
@@ -95,10 +96,15 @@ class ABCIRoundHandler(ABCIHandler):
             cast(SharedState, self.context.state).period.check_is_finished()
         except (
             SignatureNotValidError,
-            TransactionTypeNotRecognizedError,
             TransactionNotValidError,
+            TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
+            return self._check_tx_failed(
+                message, dialogue, exception_to_info_msg(exception)
+            )
+        except LateArrivingTransaction as exception:  # pragma: nocover
+            self.context.logger.debug(exception_to_info_msg(exception))
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -131,13 +137,19 @@ class ABCIRoundHandler(ABCIHandler):
             shared_state.period.deliver_tx(transaction)
         except (
             SignatureNotValidError,
-            TransactionTypeNotRecognizedError,
             TransactionNotValidError,
+            TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+        except LateArrivingTransaction as exception:  # pragma: nocover
+            self.context.logger.debug(exception_to_info_msg(exception))
+            return self._deliver_tx_failed(
+                message, dialogue, exception_to_info_msg(exception)
+            )
+
         # return deliver_tx success
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
