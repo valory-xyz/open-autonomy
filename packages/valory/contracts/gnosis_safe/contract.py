@@ -33,8 +33,8 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
-from web3.exceptions import TransactionNotFound
-from web3.types import Nonce, TxParams, Wei
+from web3.exceptions import SolidityError, TransactionNotFound
+from web3.types import Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
@@ -579,3 +579,39 @@ class GnosisSafeContract(Contract):
             expected=expected,
             diff=diff,
         )
+
+    @classmethod
+    def revert_reason(
+        cls,
+        ledger_api: EthereumApi,
+        tx: TxData,
+    ) -> JSONLike:
+        """Check the revert reason of a transaction.
+
+        :param ledger_api: the ledger API object.
+        :param tx: the transaction for which we want to get the revert reason.
+
+        :return: the revert reason message.
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+
+        # build a new transaction to replay:
+        replay_tx = {
+            "to": tx["to"],
+            "from": tx["from"],
+            "value": tx["value"],
+            "data": tx["input"],
+        }
+
+        try:
+            # replay the transaction locally:
+            ledger_api.api.eth.call(replay_tx, tx["blockNumber"] - 1)
+        except SolidityError as e:
+            # execution reverted exception
+            return dict(revert_reason=repr(e))
+        except Exception as e:
+            # other exception
+            raise e
+        else:
+            # given tx not reverted
+            raise ValueError(f"The given transaction has not been reverted!\ntx: {tx}")

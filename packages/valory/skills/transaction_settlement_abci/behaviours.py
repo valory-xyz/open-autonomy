@@ -25,6 +25,8 @@ import pprint
 from abc import ABC
 from typing import Dict, Generator, Optional, Tuple, Union, cast
 
+from web3.types import TxData
+
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import BaseState
@@ -255,25 +257,47 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 verified_log + f", all: {contract_api_msg.state.body}"
             )
 
-            if self._payload_is_invalid():
+            tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
+            revert_reason = yield from self._get_revert_reason(tx_data)
+
+            if revert_reason is not None:
+                if self._safe_nonce_reused(revert_reason):
+                    self.context.logger.info(
+                        f"The safe's nonce has been reused for {tx_hash}. The next tx check is expected to be verified!"
+                    )
+
                 self.context.logger.info(
                     f"Payload is invalid for {tx_hash}! Cannot continue."
                 )
-                return None
 
-            if not self._safe_nonce_reused():
-                self.context.logger.info(
-                    f"Payload is correct and safe's nonce has not been reused for {tx_hash}. "
-                )
-                return None
+            return None
 
         return False
 
-    def _payload_is_invalid(self) -> Generator[None, None, bool]:
-        """TODO check if payload is invalid."""
+    def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
+        """Get the revert reason of the given transaction."""
+        try:
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=self.period_state.safe_contract_address,
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="revert_reason",
+                tx=tx,
+            )
+        except Exception as e:  # pylint: disable=broad-except
+            self.context.logger.error(
+                f"An unexpected error occurred while checking {tx['hash'].hex()}: {e}"
+            )
+            return None
 
-    def _safe_nonce_reused(self) -> Generator[None, None, bool]:
-        """TODO check for GS026."""
+        return cast(str, contract_api_msg.state.body["revert_reason"])
+
+    @staticmethod
+    def _safe_nonce_reused(revert_reason: str) -> bool:
+        """Check for GS026."""
+        if "GS026" in revert_reason:
+            return True
+        return False
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
