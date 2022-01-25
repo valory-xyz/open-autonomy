@@ -19,7 +19,7 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Any, Optional
+from typing import Any, List, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -238,7 +238,9 @@ class UniswapV2ERC20Contract(Contract):
         :param target_address: optional address to filter tranfer events to just those that affect it
         :return: the verified status
         """
-        transfer_logs = cls.get_transaction_transfer_logs(ledger_api, tx_hash)["logs"]
+        transfer_logs: List = cast(
+            List, cls.get_transaction_transfer_logs(ledger_api, tx_hash)["logs"]
+        )
 
         transfer_logs = [
             {

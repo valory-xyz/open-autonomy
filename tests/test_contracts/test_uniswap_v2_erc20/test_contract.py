@@ -369,9 +369,8 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
 
     def test_get_tx_transfer_logs_no_tx(self) -> None:
         """Test get transfer logs."""
-        logs = self.contract.get_tx_transfer_logs(
+        logs = self.contract.get_transaction_transfer_logs(
             ledger_api=self.ledger_api,
-            contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
             tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
         )
         assert logs == dict(logs=[]), "The transfer logs do not have the correct format"
@@ -404,9 +403,8 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 "web3.contract.ContractEvent.processReceipt",
                 return_value=DUMMY_EVENTS,
             ):
-                logs = self.contract.get_tx_transfer_logs(
+                logs = self.contract.get_transaction_transfer_logs(
                     ledger_api=self.ledger_api,
-                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
                     tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
                     target_address="address",
                 )
@@ -443,7 +441,6 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
             ):
                 result = self.contract.get_tx_transfered_amount(  # nosec
                     ledger_api=self.ledger_api,
-                    contract_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
                     tx_hash="0xfc6d7c491688840e79ed7d8f0fc73494be305250f0d5f62d04c41bc4467e8603",
                     token_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
                     source_address="0x50cd56fb094f8f06063066a619d898475dd3eede",
