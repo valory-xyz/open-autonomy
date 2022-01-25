@@ -281,4 +281,5 @@ def test_base_params_model_initialization() -> None:
         tendermint_com_url="",
         reset_tendermint_after=1,
         service_id="abstract_round_abci",
+        keeper_timeout=1.0,
     )

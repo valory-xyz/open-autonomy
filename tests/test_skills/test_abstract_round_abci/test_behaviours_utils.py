@@ -468,7 +468,7 @@ class TestBaseState:
         self.behaviour.set_done()
         try_send(gen)
 
-    @pytest.mark.parametrize("exception_cls", [GeneratorExit, StopIteration])
+    @pytest.mark.parametrize("exception_cls", [StopIteration])
     def test_async_act_wrapper_exception(self, exception_cls: Exception) -> None:
         """Test 'async_act_wrapper'."""
         with mock.patch.object(self.behaviour, "async_act", side_effect=exception_cls):

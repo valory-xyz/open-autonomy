@@ -154,7 +154,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     agent_package = "valory/apy_estimation:0.1.0"
     skill_package = "valory/apy_estimation_abci:0.1.0"
     check_strings = CHECK_STRINGS
-    KEEPER_TIMEOUT = 120
+    ROUND_TIMEOUT_SECONDS = 120
     wait_to_finish = 240
 
 
