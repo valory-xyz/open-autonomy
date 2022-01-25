@@ -123,7 +123,7 @@ class _MetaRoundBehaviour(ABCMeta):
                     raise ABCIAppInternalError(
                         f"round {round_cls.round_id} is a final round it shouldn't have any matching behaviours."
                     )
-                continue
+                continue  # pragma: nocover
             if len(states) == 0:
                 raise ABCIAppInternalError(
                     f"round {round_cls.round_id} is not a matching round of any state behaviour"
