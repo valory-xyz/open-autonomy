@@ -25,6 +25,7 @@ import pprint
 from abc import ABC
 from typing import Dict, Generator, Optional, Tuple, Union, cast
 
+from requests import HTTPError
 from web3.types import TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -285,7 +286,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 contract_callable="revert_reason",
                 tx=tx,
             )
-        except Exception as e:  # pylint: disable=broad-except
+        except (HTTPError, ValueError) as e:
             self.context.logger.error(
                 f"An unexpected error occurred while checking {tx['hash'].hex()}: {e}"
             )

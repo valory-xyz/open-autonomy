@@ -33,6 +33,7 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
+from requests import HTTPError
 from web3.exceptions import SolidityError, TransactionNotFound
 from web3.types import Nonce, TxData, TxParams, Wei
 
@@ -609,8 +610,8 @@ class GnosisSafeContract(Contract):
         except SolidityError as e:
             # execution reverted exception
             return dict(revert_reason=repr(e))
-        except Exception as e:
-            # other exception
+        except HTTPError as e:
+            # http exception
             raise e
         else:
             # given tx not reverted
