@@ -1056,7 +1056,7 @@ class TestPeriod:
 
     def test_begin_block_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative case (wrong phase)."""
-        self.period._phase = MagicMock()
+        self.period._block_construction_phase = MagicMock()
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: cannot accept a 'begin_block' request.",
