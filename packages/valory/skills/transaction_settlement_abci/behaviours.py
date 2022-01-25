@@ -245,7 +245,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verified:
                 self.context.logger.info(verified_log)
-                return tx_hist_payload_to_hex(VerificationStatus.VERIFIED)
+                return tx_hist_payload_to_hex(VerificationStatus.VERIFIED, tx_hash)
 
             self.context.logger.info(
                 verified_log + f", all: {contract_api_msg.state.body}"
