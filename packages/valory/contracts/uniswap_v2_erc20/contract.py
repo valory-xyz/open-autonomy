@@ -19,14 +19,12 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
-from hexbytes import HexBytes
-from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -97,14 +95,17 @@ class UniswapV2ERC20Contract(Contract):
         **kwargs: int,
     ) -> Optional[JSONLike]:
         """Set the allowance for spender_address on behalf of sender_address."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
         return ledger_api.build_transaction(
-            ledger_api,
-            contract_address,
-            sender_address,
+            contract_instance,
             "approve",
-            spender_address,
-            value,
-            **kwargs,
+            method_args=dict(
+                sender_address=sender_address,
+                spender_address=spender_address,
+                value=value,
+            ),
+            tx_args=kwargs,
         )
 
     @classmethod
@@ -118,14 +119,17 @@ class UniswapV2ERC20Contract(Contract):
         **kwargs: int,
     ) -> Optional[JSONLike]:
         """Transfer funds from sender_address to to_address."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
         return ledger_api.build_transaction(
-            ledger_api,
-            contract_address,
-            sender_address,
+            contract_instance,
             "transfer",
-            to_address,
-            value,
-            **kwargs,
+            method_args=dict(
+                sender_address=sender_address,
+                to_address=to_address,
+                value=value,
+            ),
+            tx_args=kwargs,
         )
 
     @classmethod
@@ -140,15 +144,18 @@ class UniswapV2ERC20Contract(Contract):
         **kwargs: int,
     ) -> Optional[JSONLike]:
         """As sender_address (third-party) transfer funds from from_address to to_address."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
         return ledger_api.build_transaction(
-            cls.contract_interface,
-            contract_address,
-            sender_address,
+            contract_instance,
             "transferFrom",
-            from_address,
-            to_address,
-            value,
-            **kwargs,
+            method_args=dict(
+                sender_address=sender_address,
+                from_address=from_address,
+                to_address=to_address,
+                value=value,
+            ),
+            tx_args=kwargs,
         )
 
     @classmethod
@@ -167,19 +174,22 @@ class UniswapV2ERC20Contract(Contract):
         **kwargs: int,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender on behalf of owner where approval is granted via a signature. Sender can differ from owner."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
         return ledger_api.build_transaction(
-            ledger_api,
-            contract_address,
-            sender_address,
+            contract_instance,
             "permit",
-            owner_address,
-            spender_address,
-            value,
-            deadline,
-            v,
-            r,
-            s,
-            **kwargs,
+            method_args=dict(
+                sender_address=sender_address,
+                owner_address=owner_address,
+                spender_address=spender_address,
+                value=value,
+                deadline=deadline,
+                v=v,
+                r=r,
+                s=s,
+            ),
+            tx_args=kwargs,
         )
 
     @classmethod
@@ -191,9 +201,10 @@ class UniswapV2ERC20Contract(Contract):
         spender_address: str,
     ) -> Optional[JSONLike]:
         """Gets the allowance for a spender."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
         return ledger_api.contract_method_call(
-            ledger_api,
-            contract_address,
+            contract_instance,
             "allowance",
             owner_address,
             spender_address,
@@ -204,9 +215,10 @@ class UniswapV2ERC20Contract(Contract):
         cls, ledger_api: EthereumApi, contract_address: str, owner_address: str
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
         return ledger_api.contract_method_call(
-            ledger_api,
-            contract_address,
+            contract_instance,
             "balanceOf",
             owner_address,
         )
@@ -222,7 +234,6 @@ class UniswapV2ERC20Contract(Contract):
         Get all transfer events derived from a transaction.
 
         :param ledger_api: the ledger API object
-        :param contract_address: the contract address
         :param tx_hash: the transaction hash
         :param target_address: optional address to filter tranfer events to just those that affect it
         :return: the verified status
