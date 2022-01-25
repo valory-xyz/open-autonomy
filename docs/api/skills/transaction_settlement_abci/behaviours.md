@@ -4,16 +4,6 @@
 
 This module contains the behaviours for the 'abci' skill.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.hex_to_payload"></a>
-
-#### hex`_`to`_`payload
-
-```python
-def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]
-```
-
-Decode payload.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState"></a>
 
 ## TransactionSettlementBaseState Objects
