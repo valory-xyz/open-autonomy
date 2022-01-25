@@ -168,7 +168,6 @@ class BenchmarkTool:
     benchmark_data: Dict[str, BenchmarkBehaviour]
     agent: Optional[str]
     agent_address: Optional[str]
-    behaviours: List[str]
     logger: logging.Logger
 
     def __init__(
@@ -178,7 +177,6 @@ class BenchmarkTool:
         self.agent = None
         self.agent_address = None
         self.benchmark_data = {}
-        self.behaviours = []
         self.logger = logging.getLogger()
 
     @property
@@ -186,36 +184,17 @@ class BenchmarkTool:
         self,
     ) -> Dict:
         """Returns formatted data."""
+
+        behavioural_data = []
+        for behaviour, tool in self.benchmark_data.items():
+            data = {k: v.total_time for k, v in tool.local_data.items()}
+            data[BenchmarkBlockTypes.TOTAL] = sum(data.values())
+            behavioural_data.append({"behaviour": behaviour, "data": data})
+
         return {
             "agent_address": self.agent_address,
             "agent": self.agent,
-            "data": [
-                {
-                    "behaviour": behaviour,
-                    "data": dict(
-                        [
-                            (key, value.total_time)
-                            for key, value in self.benchmark_data[
-                                behaviour
-                            ].local_data.items()
-                        ]
-                        + [
-                            (
-                                BenchmarkBlockTypes.TOTAL,
-                                sum(
-                                    [
-                                        value.total_time
-                                        for value in self.benchmark_data[
-                                            behaviour
-                                        ].local_data.values()
-                                    ]
-                                ),
-                            )
-                        ]
-                    ),
-                }
-                for behaviour in self.behaviours
-            ],
+            "data": behavioural_data,
         }
 
     def log(
@@ -250,9 +229,6 @@ class BenchmarkTool:
 
         if behaviour.state_id not in self.benchmark_data:
             self.benchmark_data[behaviour.state_id] = BenchmarkBehaviour(behaviour)
-
-        if behaviour.state_id not in self.behaviours:
-            self.behaviours.append(behaviour.state_id)
 
         return self.benchmark_data[behaviour.state_id]
 
@@ -305,7 +281,7 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
             signature = data["signature"]
             round_value = int(data["round"])
         except KeyError as e:
-            return False, f"DRAND dict is missing value for {str(e)}"
+            return False, f"DRAND dict is missing value for {e}"
 
         previous_signature = data.pop("previous_signature", "")
         encoded_randomness = bytes.fromhex(randomness)
