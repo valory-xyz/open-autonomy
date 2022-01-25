@@ -130,7 +130,7 @@ class TestAgentCatchup(BaseTestEnd2EndAgentCatchup, UseGnosisSafeHardHatNet):
     agent_package = "valory/price_estimation:0.1.0"
     skill_package = "valory/price_estimation_abci:0.1.0"
     KEEPER_TIMEOUT = 10
-    wait_to_finish = 120
+    wait_to_finish = 160
     restart_after = 45
     check_strings = CHECK_STRINGS
     stop_string = "'registration_startup' round is done with event: Event.DONE"
