@@ -239,7 +239,7 @@ class UniswapV2ERC20Contract(Contract):
         :return: the verified status
         """
         transfer_logs: List = cast(
-            List, cls.get_transaction_transfer_logs(ledger_api, tx_hash)["logs"]
+            List, cls.get_transaction_transfer_logs(ledger_api, tx_hash, target_address)["logs"]
         )
 
         transfer_logs = [
