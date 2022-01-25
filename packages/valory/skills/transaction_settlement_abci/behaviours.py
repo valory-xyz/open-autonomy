@@ -265,6 +265,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                     self.context.logger.info(
                         f"The safe's nonce has been reused for {tx_hash}. The next tx check is expected to be verified!"
                     )
+                    continue
 
                 self.context.logger.info(
                     f"Payload is invalid for {tx_hash}! Cannot continue."
