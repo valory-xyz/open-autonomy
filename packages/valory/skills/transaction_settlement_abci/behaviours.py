@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Tuple, Union, cast
+from typing import Dict, Generator, Optional, Union, cast
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -33,6 +33,11 @@ from packages.valory.skills.abstract_round_abci.common import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+    skill_input_hex_to_payload,
+    tx_hist_payload_to_hex,
+)
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
@@ -60,18 +65,6 @@ benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
 
-def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:
-    """Decode payload."""
-    if len(payload) < 234:
-        raise ValueError("cannot decode provided payload")  # pragma: nocover
-    tx_hash = payload[:64]
-    ether_value = int.from_bytes(bytes.fromhex(payload[64:128]), "big")
-    safe_tx_gas = int.from_bytes(bytes.fromhex(payload[128:192]), "big")
-    to_address = payload[192:234]
-    data = bytes.fromhex(payload[234:])
-    return (tx_hash, ether_value, safe_tx_gas, to_address, data)
-
-
 class TransactionSettlementBaseState(BaseState, ABC):
     """Base state behaviour for the common apps' skill."""
 
@@ -82,7 +75,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
-        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
+        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
 
@@ -232,7 +225,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
     def _check_tx_history(self) -> Generator[None, None, str]:
         """Check the transaction history."""
         if self.period_state.tx_hashes_history is None:
-            return "NN"
+            return tx_hist_payload_to_hex(VerificationStatus.ERROR)
 
         for tx_hash in self.period_state.tx_hashes_history[::-1]:
             contract_api_msg = yield from self._verify_tx(tx_hash)
@@ -252,7 +245,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verified:
                 self.context.logger.info(verified_log)
-                return "T" + tx_hash
+                return tx_hist_payload_to_hex(VerificationStatus.VERIFIED, tx_hash)
 
             self.context.logger.info(
                 verified_log + f", all: {contract_api_msg.state.body}"
@@ -262,15 +255,17 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 self.context.logger.info(
                     f"Payload is invalid for {tx_hash}! Cannot continue."
                 )
-                return "N" + tx_hash
+                return tx_hist_payload_to_hex(
+                    VerificationStatus.INVALID_PAYLOAD, tx_hash
+                )
 
             if not self._safe_nonce_reused():
                 self.context.logger.info(
                     f"Payload is correct and safe's nonce has not been reused for {tx_hash}. "
                 )
-                return "N" + tx_hash
+                return tx_hist_payload_to_hex(VerificationStatus.CONFLICT, tx_hash)
 
-        return "FN"
+        return tx_hist_payload_to_hex(VerificationStatus.NOT_VERIFIED)
 
     def _payload_is_invalid(self) -> Generator[None, None, bool]:
         """TODO check if payload is invalid."""
@@ -315,7 +310,9 @@ class SignatureBehaviour(TransactionSettlementBaseState):
 
     def _get_safe_tx_signature(self) -> Generator[None, None, str]:
         """Get signature of safe transaction hash."""
-        safe_tx_hash, _, _, _, _ = hex_to_payload(self.period_state.most_voted_tx_hash)
+        safe_tx_hash, _, _, _, _ = skill_input_hex_to_payload(
+            self.period_state.most_voted_tx_hash
+        )
         # is_deprecated_mode=True because we want to call Account.signHash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(safe_tx_hash)
@@ -392,7 +389,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Optional[Dict[str, Union[None, str, int]]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
+        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
 

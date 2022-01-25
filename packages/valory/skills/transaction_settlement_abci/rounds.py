@@ -35,6 +35,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
     VotingRound,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+    tx_hist_hex_to_payload,
+)
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     CheckTransactionHistoryPayload,
     FinalizationTxPayload,
@@ -99,6 +103,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def final_tx_hash(self) -> str:
         """Get the final_tx_hash."""
         return cast(str, self.db.get_strict("tx_hashes_history")[-1])
+
+    @property
+    def final_verification_status(self) -> VerificationStatus:
+        """Get the final verification status."""
+        return cast(
+            VerificationStatus,
+            self.db.get("final_verification_status", VerificationStatus.NOT_VERIFIED),
+        )
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -313,6 +325,26 @@ class ValidateTransactionRound(VotingRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_votes"
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.positive_vote_threshold_reached:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_votes=self.collection,
+                final_verification_status=VerificationStatus.VERIFIED,
+            )  # type: ignore
+            return state, self.done_event
+        if self.negative_vote_threshold_reached:
+            return self.period_state, self.negative_event
+        if self.none_vote_threshold_reached:
+            return self.period_state, self.none_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, self.no_majority_event
+        return None
+
 
 class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     """A round in which agents check the transaction history to see if any previous tx has been validated"""
@@ -326,24 +358,24 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            return_tx_hash = self.most_voted_payload[1:]
-            if return_tx_hash == "N":
-                return_tx_hash = ""
+            return_status, return_tx_hash = tx_hist_hex_to_payload(
+                self.most_voted_payload
+            )
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_check=self.collection,
+                final_verification_status=return_status,
                 tx_hashes_history=[return_tx_hash],
             )
 
-            if self.most_voted_payload[0] == "T":
+            if return_status == VerificationStatus.VERIFIED:
                 return state, Event.DONE
 
-            if self.most_voted_payload[0] == "F":
+            if return_status == VerificationStatus.NOT_VERIFIED:
                 return state, Event.NEGATIVE
 
-            if self.most_voted_payload[0] == "N":
-                return state, Event.NONE
+            return state, Event.NONE
 
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
