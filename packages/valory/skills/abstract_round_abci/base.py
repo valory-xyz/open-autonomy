@@ -29,10 +29,8 @@ from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
-from operator import itemgetter
-from typing import Any
-from typing import Counter as CounterType
 from typing import (
+    Any,
     Dict,
     FrozenSet,
     Generic,
@@ -837,6 +835,11 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             return False
         return True
 
+    @property
+    def consensus_threshold(self) -> int:
+        """Consensus threshold"""
+        return self._consensus_params.consensus_threshold
+
     @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
@@ -889,6 +892,18 @@ class CollectionRound(AbstractRound):
         """Initialize the collection round."""
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
+
+    @property
+    def payloads(self) -> List[BaseTxPayload]:
+        """Get all agent payloads"""
+        return list(self.collection.values())
+
+    @property
+    def payloads_count(self) -> Counter:
+        """Get count of payload attributes"""
+        if not self.payload_attribute:
+            raise ABCIAppInternalError("No payload attribute set")
+        return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -980,29 +995,17 @@ class CollectSameUntilThresholdRound(CollectionRound):
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-
-        counter: CounterType = Counter()
-        counter.update(
-            getattr(payload, self.payload_attribute)
-            for payload in self.collection.values()
-        )
-        return any(
-            count >= self._consensus_params.consensus_threshold
-            for count in counter.values()
-        )
+        counts = self.payloads_count.values()
+        return any(count >= self.consensus_threshold for count in counts)
 
     @property
     def most_voted_payload(
         self,
     ) -> Any:
         """Get the most voted payload."""
-        counter = Counter()  # type: ignore
-        counter.update(
-            getattr(payload, self.payload_attribute)
-            for payload in self.collection.values()
-        )
-        most_voted_payload, max_votes = max(counter.items(), key=itemgetter(1))
-        if max_votes < self._consensus_params.consensus_threshold:
+
+        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
+        if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
         return most_voted_payload
 
@@ -1118,31 +1121,24 @@ class VotingRound(CollectionRound):
     period_state_class = BasePeriodState
 
     @property
+    def vote_count(self) -> Counter:
+        """Get agent payload vote count"""
+        return Counter(payload.vote for payload in self.collection.values())  # type: ignore
+
+    @property
     def positive_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        true_votes = sum(
-            [payload.vote is True for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "true" has at least the consensus # of votes
-        return true_votes >= self._consensus_params.consensus_threshold
+        return self.vote_count[True] >= self.consensus_threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        false_votes = sum(
-            [payload.vote is False for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "false" has at least the consensus # of votes
-        return false_votes >= self._consensus_params.consensus_threshold
+        return self.vote_count[False] >= self.consensus_threshold
 
     @property
     def none_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        none_votes = sum(
-            [payload.vote is None for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "None" has at least the consensus # of votes
-        return none_votes >= self._consensus_params.consensus_threshold
+        return self.vote_count[None] >= self.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
@@ -1181,7 +1177,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-        return len(self.collection) >= self._consensus_params.consensus_threshold
+        return len(self.collection) >= self.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
@@ -1311,14 +1307,10 @@ class _MetaAbciApp(ABCMeta):
     @classmethod
     def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
         """Check that required class attributes are set."""
-        try:
-            abci_app_cls.initial_round_cls
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'initial_round_cls' field not set") from exc
-        try:
-            abci_app_cls.transition_function
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'transition_function' field not set") from exc
+        if not hasattr(abci_app_cls, "initial_round_cls"):
+            raise ABCIAppInternalError("'initial_round_cls' field not set")
+        if not hasattr(abci_app_cls, "transition_function"):
+            raise ABCIAppInternalError("'transition_function' field not set")
 
     @classmethod
     def _check_initial_states_and_final_states(
@@ -1737,9 +1729,7 @@ class Period:
         self._blockchain = Blockchain()
         self._syncing_up = False
 
-        self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
-        )
+        self._phase = Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
 
         self._block_builder = BlockBuilder()
         self._abci_app_cls = abci_app_cls
@@ -1824,14 +1814,9 @@ class Period:
     @property
     def last_timestamp(self) -> datetime.datetime:
         """Get the last timestamp."""
-        last_timestamp = (
-            self._blockchain.blocks[-1].timestamp
-            if self._blockchain.length != 0
-            else None
-        )
-        if last_timestamp is None:
+        if self._blockchain.length == 0:
             raise ABCIAppInternalError("last timestamp is None")
-        return last_timestamp
+        return self._blockchain.blocks[-1].timestamp
 
     @property
     def latest_result(self) -> Optional[Any]:
@@ -1842,18 +1827,14 @@ class Period:
         """Begin block."""
         if self.is_finished:
             raise ABCIAppInternalError("period is finished, cannot accept new blocks")
-        if (
-            self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
-        ):
+
+        if self._phase != Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK:
             raise ABCIAppInternalError(
-                f"cannot accept a 'begin_block' request. Current phase={self._block_construction_phase}"
+                f"cannot accept a 'begin_block' request. Current phase={self._phase}"
             )
 
         # From now on, the ABCI app waits for 'deliver_tx' requests, until 'end_block' is received
-        self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
-        )
+        self._phase = Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
         self._block_builder.reset()
         self._block_builder.header = header
         self.abci_app.update_time(header.timestamp)
@@ -1867,12 +1848,9 @@ class Period:
         :param transaction: the transaction.
         :raises:  an Error otherwise.
         """
-        if (
-            self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
-        ):
+        if self._phase != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX:
             raise ABCIAppInternalError(
-                f"cannot accept a 'deliver_tx' request. Current phase={self._block_construction_phase}"
+                f"cannot accept a 'deliver_tx' request. Current phase={self._phase}"
             )
 
         self.abci_app.check_transaction(transaction)
@@ -1881,35 +1859,25 @@ class Period:
 
     def end_block(self) -> None:
         """Process the 'end_block' request."""
-        if (
-            self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX
-        ):
+        if self._phase != Period._BlockConstructionState.WAITING_FOR_DELIVER_TX:
             raise ABCIAppInternalError(
-                f"cannot accept a 'end_block' request. Current phase={self._block_construction_phase}"
+                f"cannot accept a 'end_block' request. Current phase={self._phase}"
             )
         # The ABCI app waits for the commit
-        self._block_construction_phase = (
-            Period._BlockConstructionState.WAITING_FOR_COMMIT
-        )
+        self._phase = Period._BlockConstructionState.WAITING_FOR_COMMIT
 
     def commit(self) -> None:
         """Process the 'commit' request."""
-        if (
-            self._block_construction_phase
-            != Period._BlockConstructionState.WAITING_FOR_COMMIT
-        ):
+        if self._phase != Period._BlockConstructionState.WAITING_FOR_COMMIT:
             raise ABCIAppInternalError(
-                f"cannot accept a 'commit' request. Current phase={self._block_construction_phase}"
+                f"cannot accept a 'commit' request. Current phase={self._phase}"
             )
         block = self._block_builder.get_block()
         try:
             self._blockchain.add_block(block)
             self._update_round()
             # The ABCI app now waits again for the next block
-            self._block_construction_phase = (
-                Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
-            )
+            self._phase = Period._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         except AddBlockError as exception:
             raise exception
 
