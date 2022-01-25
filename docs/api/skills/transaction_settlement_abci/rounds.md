@@ -312,10 +312,20 @@ A round in which agents validate the transaction
 ## CheckTransactionHistoryRound Objects
 
 ```python
-class CheckTransactionHistoryRound(VotingRound)
+class CheckTransactionHistoryRound(CollectSameUntilThresholdRound)
 ```
 
 A round in which agents check the transaction history to see if any previous tx has been validated
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckTransactionHistoryRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp"></a>
 
