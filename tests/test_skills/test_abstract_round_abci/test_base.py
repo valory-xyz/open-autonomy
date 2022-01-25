@@ -46,6 +46,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Blockchain,
     ConsensusParams,
     EventType,
+    LateArrivingTransaction,
     Period,
     SignatureNotValidError,
     StateDB,
@@ -55,6 +56,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaAbciApp,
     _MetaPayload,
 )
+from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
@@ -124,6 +126,19 @@ class ConcreteRoundA(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payloads of type 'payload_a'."""
+
+
+class ObjectImitator:
+    """For custom __eq__ implementation testing"""
+
+    def __init__(self, other: Any):
+        """Copying references to class attr, and instance attr"""
+
+        for attr, value in vars(other.__class__).items():
+            if not attr.startswith("__") and not attr.endswith("__"):
+                setattr(self.__class__, attr, value)
+
+        self.__dict__ = other.__dict__
 
 
 class ConcreteRoundB(AbstractRound):
@@ -219,6 +234,19 @@ class TestTransactions:
         signature = crypto.sign_message(payload_bytes)
         transaction = Transaction(payload, signature)
         transaction.verify(crypto.identifier)
+
+    def test_payload_not_equal_lookalike(self) -> None:
+        """Test payload __eq__ reflection via NotImplemented"""
+        payload = PayloadA(sender="sender")
+        lookalike = ObjectImitator(payload)
+        assert not payload == lookalike
+
+    def test_transaction_not_equal_lookalike(self) -> None:
+        """Test transaction __eq__ reflection via NotImplemented"""
+        payload = PayloadA(sender="sender")
+        transaction = Transaction(payload, signature="signature")
+        lookalike = ObjectImitator(transaction)
+        assert not transaction == lookalike
 
     def teardown(self) -> None:
         """Tear down the test."""
@@ -420,6 +448,11 @@ class TestConsensusParams:
         params = ConsensusParams(nb_participants)
         assert params.consensus_threshold == expected
 
+    def test_consensus_params_not_equal_lookalike(self) -> None:
+        """Test consensus param __eq__ reflection via NotImplemented"""
+        lookalike = ObjectImitator(self.consensus_params)
+        assert not self.consensus_params == lookalike
+
     def test_from_json(self) -> None:
         """Test 'from_json' method."""
         expected = ConsensusParams(self.max_participants)
@@ -542,6 +575,32 @@ class TestAbstractRound:
             ABCIAppInternalError, match="'allowed_tx_type' field not set"
         ):
             MyConcreteRound(MagicMock(), MagicMock())
+
+    def test_check_allowed_tx_type_with_previous_round_transaction(self) -> None:
+        """Test check 'allowed_tx_type'."""
+
+        class MyConcreteRound(AbstractRound):
+            round_id = ""
+            allowed_tx_type = "allowed_tx_type"
+
+            def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        with pytest.raises(LateArrivingTransaction), mock.patch.object(
+            default_logger, "debug"
+        ) as mock_logger:
+            MyConcreteRound(
+                MagicMock(), MagicMock(), "previous_transaction"
+            ).check_allowed_tx_type(
+                MagicMock(payload=MagicMock(transaction_type="previous_transaction"))
+            )
+            mock_logger.assert_called()
 
     def test_check_allowed_tx_type(self) -> None:
         """Test check 'allowed_tx_type'."""

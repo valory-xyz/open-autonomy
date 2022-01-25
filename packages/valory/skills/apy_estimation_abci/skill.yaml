@@ -8,22 +8,22 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmaQVmDR2casu1vcBsSrNf5eispadze3ZNRnLKWUpkuG6u
   __init__.py: Qmb163B19kEpc6PfbLnmQxPbeEWA2ubTghVwG2YUeNYusu
-  behaviours.py: QmVMHADGZC2i34Zh7npet7hPT2ehjvQiev4d7rcPjJ3w47
+  behaviours.py: QmYAgyXEHC3xDoPn3X2te8jRqbMSTPh1rm6FjBPeAJnur8
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmdxbcVLL3JU6onvxLrDmJX1r2vQPbzp1co1eaHGJkAwfD
   ml/__init__.py: QmQdxHMEM19JH1FzG9EKQC5mpngbBAz9hyX8XDwGX915BM
   ml/forecasting.py: QmXCTBa4iAKvhAdsytRL3wHc6JmRqNntVWTBoUKniUShjE
   ml/io.py: QmQSNWh5UWnY3RBG4ubLBxsKrEXnAqWGZmsdZ9a1zuuMV3
   ml/optimization.py: QmRTBVU7C8wPujk2P9GqGya4dTC4MC1D9prC5kTcHgkYqy
-  ml/preprocessing.py: QmXkbxwhz8qTrRHzn7oBsKRo56JSGtE48dLu9gYmKYuL2C
+  ml/preprocessing.py: QmeEJVKCVfJoBB7KL1C1AgEztWdjaN1tmSoSJecSjTsSCQ
   models.py: QmVYKvDpiUq1Lr5XHT3BxeBPUTgwVgtQouPmxhGmsb3wxj
-  payloads.py: QmZmowfFx6wNQfMjvCfuSuhcX8d4155EFXKyyfffFXxmMi
-  rounds.py: QmZFnvxozFPcWwrsVPwCuSqg9jTXXEtr7ECydcQx7qh1UF
+  payloads.py: QmbTxk52r2xSsYNh9DtiKUPorH7ZF4dt5T7kUmwxXfRcat
+  rounds.py: QmSEduW7YCtM9CmmJrgALTVYvpWHu6h1fyBK2Squy3yA43
   tasks.py: QmT9boDaUdP8fWAhoZ8HkU8qd6MR9PVTo6Vhyq8AFsWAD6
   tools/__init__.py: QmWr6iVwNzqYVqmxBwYC1myurM8AjxuzxwjM1brXSmnDTi
-  tools/etl.py: QmXYfXtpRGMbAVpm6n8dqWjiAc8Z3ne9YPbmuxPnJ6HQ5W
+  tools/etl.py: QmYsguj4oPAxF9M156KWeaGk3BKCbmsdjTrxkZwkcgD3Wd
   tools/general.py: QmSGU7zW7dkjoLcy6wivRdYCAAs92pH5f4MpqigBf7X27K
-  tools/queries.py: Qmcgnd1HGGBhSLpnAAJi5QsKfiijvEVcHHHtytsVd6jopj
+  tools/queries.py: QmTcVkfM7D42yphDNGsVAJN38EfBvwyUop96PPhNojBF2Q
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -92,6 +92,7 @@ models:
         steps_forward: 1
       history_duration: 1
       ipfs_domain_name: /dns/localhost/tcp/5001/http
+      keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
       optimizer:
@@ -108,7 +109,7 @@ models:
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 120
+      round_timeout_seconds: 120.0
       service_id: apy_estimation
       sleep_time: 5
       tendermint_com_url: http://localhost:8080

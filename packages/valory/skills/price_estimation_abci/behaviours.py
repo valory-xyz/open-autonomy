@@ -34,10 +34,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
-    DeployOracleBehaviour,
-    RandomnessOracleBehaviour,
-    SelectKeeperOracleBehaviour,
-    ValidateOracleBehaviour,
+    OracleDeploymentRoundBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
@@ -52,29 +49,18 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
     EstimateConsensusRound,
     PeriodState,
+    PriceAggregationAbciApp,
     TxHashRound,
 )
 from packages.valory.skills.registration_abci.behaviours import (
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
+    AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
-    DeploySafeBehaviour,
-    RandomnessSafeBehaviour,
-    SelectKeeperSafeBehaviour,
-    ValidateSafeBehaviour,
+    SafeDeploymentRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    CheckTransactionHistoryBehaviour,
-    FinalizeBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
-    SelectKeeperTransactionSubmissionBehaviourB,
-    SignatureBehaviour,
-    ValidateTransactionBehaviour,
+    TransactionSettlementRoundBehaviour,
 )
 
 
@@ -332,35 +318,30 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         return payload_string
 
 
+class ObserverRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the observer behaviour."""
+
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = PriceAggregationAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
+        ObserveBehaviour,  # type: ignore
+        EstimateBehaviour,  # type: ignore
+        TransactionHashBehaviour,  # type: ignore
+    }
+
+
 class PriceEstimationConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the price estimation."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceEstimationAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        RegistrationStartupBehaviour,  # type: ignore
-        RandomnessSafeBehaviour,  # type: ignore
-        RandomnessOracleBehaviour,  # type: ignore
-        SelectKeeperSafeBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ValidateSafeBehaviour,  # type: ignore
-        SelectKeeperOracleBehaviour,  # type: ignore
-        DeployOracleBehaviour,  # type: ignore
-        ValidateOracleBehaviour,  # type: ignore
-        RandomnessTransactionSubmissionBehaviour,  # type: ignore
-        ObserveBehaviour,  # type: ignore
-        EstimateBehaviour,  # type: ignore
-        TransactionHashBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        ValidateTransactionBehaviour,  # type: ignore
-        CheckTransactionHistoryBehaviour,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
-        ResetBehaviour,  # type: ignore
-        ResetAndPauseBehaviour,  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {
+        *OracleDeploymentRoundBehaviour.behaviour_states,
+        *AgentRegistrationRoundBehaviour.behaviour_states,
+        *SafeDeploymentRoundBehaviour.behaviour_states,
+        *TransactionSettlementRoundBehaviour.behaviour_states,
+        *ObserverRoundBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:

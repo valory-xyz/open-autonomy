@@ -19,7 +19,7 @@
 
 """This module contains the data classes for the oracle deployment ABCI application."""
 
-from typing import Generator, Optional, cast
+from typing import Generator, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 
@@ -28,6 +28,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -42,6 +43,7 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import (
     DeployOracleRound,
+    OracleDeploymentAbciApp,
     PeriodState,
     RandomnessOracleRound,
     SelectKeeperOracleRound,
@@ -225,3 +227,16 @@ class ValidateOracleBehaviour(OracleDeploymentBaseState):
             return False
         verified = cast(bool, contract_api_response.state.body["verified"])
         return verified
+
+
+class OracleDeploymentRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the oracle deployment."""
+
+    initial_state_cls = RandomnessOracleBehaviour
+    abci_app_cls = OracleDeploymentAbciApp
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        RandomnessOracleBehaviour,  # type: ignore
+        SelectKeeperOracleBehaviour,  # type: ignore
+        DeployOracleBehaviour,  # type: ignore
+        ValidateOracleBehaviour,  # type: ignore
+    }

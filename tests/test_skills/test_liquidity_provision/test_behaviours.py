@@ -24,6 +24,8 @@ from pathlib import Path
 from typing import Any, Dict, Type, cast
 from unittest import mock
 
+import pytest
+from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import (
     RawTransaction,
     SignedMessage,
@@ -80,6 +82,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SAFE_TX_GAS,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
+    parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
     ContractApiHandler,
@@ -97,39 +100,40 @@ from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
 )
 
 
-def get_default_strategy(is_native: bool = True) -> Dict:
+def get_default_strategy(
+    is_base_native: bool, is_a_native: bool, is_b_native: bool
+) -> Dict:
     """Returns default strategy."""
     return {
         "action": StrategyType.GO.value,
         "safe_nonce": 0,
-        "chain": "Fantom",
+        "chain": "Ethereum",
         "safe_tx_gas": SAFE_TX_GAS,
         "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
         "base": {
             "ticker": "WETH",
-            "address": "0xUSDT_ADDRESS",
+            "address": "0xWETH_ADDRESS",
             "amount_in_max_a": int(1e4),
             "amount_min_after_swap_back_a": int(1e2),
             "amount_in_max_b": int(1e4),
             "amount_min_after_swap_back_b": int(1e2),
+            "is_native": is_base_native,
         },
         "pair": {
             "LP_token_address": LP_TOKEN_ADDRESS,
             "token_a": {
-                "ticker": "FTM",
-                "address": "0xFTM_ADDRESS",
+                "ticker": "TKA",
+                "address": "0xTKA_ADDRESS",
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
-                # If any, only token_a can be the native one (ETH, FTM...)
-                "is_native": is_native,
+                "is_native": is_a_native,
             },
             "token_b": {
-                "ticker": "BOO",
-                "address": "0xBOO_ADDRESS",
+                "ticker": "TKB",
+                "address": "0xTKB_ADDRESS",
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
+                "is_native": is_b_native,
             },
         },
     }
@@ -455,7 +459,9 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -496,7 +502,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -524,7 +532,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         )
         self.liquidity_provision_behaviour.act_wrapper()
 
-        # Add allowance for base token (always non-native)
+        # Add allowance for base token
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -592,7 +600,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
-        # Swap second token (always non-native)
+        # Swap second token
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -627,8 +635,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
-        # Add allowance for token B (always non-native)
-        # strategy is native
+        # Add allowance for token B
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -656,7 +663,6 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         )
 
         # Add liquidity
-        # strategy is native
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -746,7 +752,9 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy(is_native=False)
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=False, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -774,7 +782,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         )
         self.liquidity_provision_behaviour.act_wrapper()
 
-        # Add allowance for base token (always non-native)
+        # Add allowance for base token
         method_name = (
             "swap_tokens_for_exact_ETH"
             if strategy["pair"]["token_a"]["is_native"]
@@ -842,7 +850,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
-        # Swap second token (always non-native)
+        # Swap second token
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -904,7 +912,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ),
         )
 
-        # Add allowance for token B (always non-native)
+        # Add allowance for token B
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -932,7 +940,6 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         )
 
         # Add liquidity
-        # strategy is native
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1021,6 +1028,67 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         self._test_done_flag_set()
         self.end_round()
 
+    def test_transaction_hash_bad_swap_parameters(
+        self,
+    ) -> None:
+        """Test tx hash behaviour."""
+
+        strategy = get_default_strategy(
+            is_base_native=True, is_a_native=True, is_b_native=False
+        )
+        period_state = PeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
+        )
+        self.fast_forward_to_state(
+            behaviour=self.liquidity_provision_behaviour,
+            state_id=EnterPoolTransactionHashBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.liquidity_provision_behaviour.current_state),
+            ).state_id
+            == EnterPoolTransactionHashBehaviour.state_id
+        )
+        self.liquidity_provision_behaviour.act_wrapper()
+
+        with pytest.raises(AEAActException):
+
+            # Add allowance for base token
+            self.mock_contract_api_request(
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["base"]["address"],
+                    kwargs=Kwargs(
+                        dict(
+                            method_name="approve",
+                            spender=period_state.router_contract_address,
+                            value=MAX_ALLOWANCE,
+                        )
+                    ),
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    callable="get_method_data",
+                    raw_transaction=RawTransaction(
+                        ledger_id="ethereum",
+                        body={"data": b"dummy_tx"},  # type: ignore
+                    ),
+                ),
+            )
+
 
 class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBaseCase):
     """Test EnterPoolTransactionSignatureBehaviour."""
@@ -1030,7 +1098,9 @@ class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBase
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -1082,7 +1152,9 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -1117,7 +1189,9 @@ class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase)
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         participants = get_participants()
         period_state = PeriodState(
             StateDB(
@@ -1217,7 +1291,9 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         participants = get_participants()
         period_state = PeriodState(
             StateDB(
@@ -1233,7 +1309,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                     most_voted_keeper_address="most_voted_keeper_address",
                     participant_to_signature=get_participant_to_signature(participants),
                     router_contract_address="router_contract_address",
-                    most_voted_lp_result="most_voted_lp_result",
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
@@ -1307,9 +1383,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                 kwargs=Kwargs(
                     dict(
                         tx_hash=period_state.final_tx_hash,
-                        token_address=strategy["pair"]["LP_token_address"],
-                        source_address="0x0000000000000000000000000000000000000000",
-                        destination_address=period_state.safe_contract_address,
+                        target_address=period_state.safe_contract_address,
                     )
                 ),
             ),
@@ -1318,7 +1392,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
                 callable="verify_tx",
                 state=State(
                     ledger_id="ethereum",
-                    body={"amount": 1000},
+                    body={"logs": []},
                 ),
             ),
         )
@@ -1336,7 +1410,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -1347,10 +1423,15 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_lp_result=1,
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
+
+        amount_base_sent = 0
+        amount_b_sent = 0
+        amount_liquidity_received = 0
+
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
@@ -1405,13 +1486,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token=strategy["pair"]["token_b"]["address"],
-                        liquidity=period_state.most_voted_lp_result,
-                        amount_token_min=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                        ),
-                        amount_ETH_min=int(
-                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                        ),
+                        liquidity=amount_liquidity_received,
+                        amount_token_min=int(amount_b_sent),
+                        amount_ETH_min=int(amount_base_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -1469,7 +1546,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy(is_native=False)
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=False, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -1480,10 +1559,15 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_lp_result=1,
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
+
+        amount_a_sent = 0
+        amount_b_sent = 0
+        amount_liquidity_received = 0
+
         self.fast_forward_to_state(
             behaviour=self.liquidity_provision_behaviour,
             state_id=ExitPoolTransactionHashBehaviour.state_id,
@@ -1539,13 +1623,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         token_a=strategy["pair"]["token_a"]["address"],
                         token_b=strategy["pair"]["token_b"]["address"],
-                        liquidity=period_state.most_voted_lp_result,
-                        amount_a_min=int(
-                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                        ),
-                        amount_b_min=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                        ),
+                        liquidity=amount_liquidity_received,
+                        amount_a_min=int(amount_a_sent),
+                        amount_b_min=int(amount_b_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
                     )
@@ -1608,7 +1688,9 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy()
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -1619,6 +1701,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
@@ -1670,7 +1753,8 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
-        # Swap second token back (always non-native)
+        # Swap second token back
+        amount_b_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1683,7 +1767,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         amount_in=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
+                            amount_b_received,
                         ),
                         amount_out_min=int(
                             strategy["base"]["amount_min_after_swap_back_b"]
@@ -1707,7 +1791,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
-        # Remove allowance for base token (always non-native)
+        # Remove allowance for base token
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -1777,7 +1861,9 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     ) -> None:
         """Test tx hash behaviour."""
 
-        strategy = get_default_strategy(is_native=False)
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=False, is_b_native=False
+        )
         period_state = PeriodState(
             StateDB(
                 initial_period=0,
@@ -1788,6 +1874,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
+                    most_voted_transfers='{"transfers":[]}',
                 ),
             )
         )
@@ -1806,6 +1893,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.liquidity_provision_behaviour.act_wrapper()
 
         # Swap first token back
+        amount_a_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1817,9 +1905,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(
-                            strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                        ),
+                        amount_in=int(amount_a_received),
                         amount_out_min=int(
                             strategy["base"]["amount_min_after_swap_back_a"]
                         ),
@@ -1842,7 +1928,8 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
-        # Swap second token back (always non-native)
+        # Swap second token back
+        amount_b_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1854,9 +1941,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # sender=period_state.safe_contract_address,  # noqa: E800
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
-                        amount_in=int(
-                            strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                        ),
+                        amount_in=int(amount_b_received),
                         amount_out_min=int(
                             strategy["base"]["amount_min_after_swap_back_b"]
                         ),
@@ -1879,7 +1964,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
-        # Remove allowance for base token (always non-native)
+        # Remove allowance for base token
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
@@ -1943,3 +2028,33 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+
+
+def test_parse_tx_token_balance() -> None:
+    """Test test_parse_tx_token_balance"""
+
+    transfer_logs = [
+        {"from": "from", "to": "to", "token_address": "token_address", "value": 1},
+        {"from": "from", "to": "to", "token_address": "token_address", "value": 1},
+        {
+            "from": "from_2",
+            "to": "to_2",
+            "token_address": "token_address_2",
+            "value": 1,
+        },
+    ]
+
+    amount_1 = parse_tx_token_balance(  # nosec
+        transfer_logs=transfer_logs,
+        token_address="token_address",
+        source_address="from",
+        destination_address="to",
+    )
+    amount_2 = parse_tx_token_balance(  # nosec
+        transfer_logs=transfer_logs,
+        token_address="token_address_2",
+        source_address="from_2",
+        destination_address="to_2",
+    )
+    assert amount_1 == 2, "The transfered amount is not correct"
+    assert amount_2 == 1, "The transfered amount is not correct"

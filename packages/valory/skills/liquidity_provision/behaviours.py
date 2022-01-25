@@ -22,7 +22,7 @@ import binascii
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Optional, Set, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea_ledger_ethereum import EthereumApi
 from hexbytes import HexBytes
@@ -79,11 +79,11 @@ from packages.valory.skills.liquidity_provision.rounds import (
     SwapBackTransactionSignatureRound,
     SwapBackTransactionValidationRound,
 )
-from packages.valory.skills.price_estimation_abci.behaviours import (
+from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
     ResetAndPauseBehaviour,
     ResetBehaviour,
 )
-from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
 
 
@@ -91,13 +91,41 @@ ETHER_VALUE = 0  # TOFIX
 SAFE_TX_GAS = 4000000  # TOFIX
 MAX_ALLOWANCE = 2 ** 256 - 1
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
-WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+WETH_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"  # nosec
 TOKEN_A_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"  # nosec
 TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
-LP_TOKEN_ADDRESS = "0x50cd56fb094f8f06063066a619d898475dd3eede"  # nosec
+LP_TOKEN_ADDRESS = "0x50CD56fb094F8f06063066a619D898475dD3EedE"  # nosec
 DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
+AB_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
 
 benchmark_tool = BenchmarkTool()
+
+
+def parse_tx_token_balance(
+    transfer_logs: List[Dict],
+    token_address: str,
+    source_address: str,
+    destination_address: str,
+) -> int:
+    """
+    Returns the transfered token amount from one address to another given a list of transactions.
+
+    :param transfer_logs: a list of transactions.
+    :param token_address: the token address.
+    :param source_address: the source address.
+    :param destination_address: the destination address.
+    :return: the transfered amount
+    """
+
+    token_events = list(
+        filter(
+            lambda log: log["token_address"] == token_address
+            and log["from"] == source_address
+            and log["to"] == destination_address,
+            transfer_logs,
+        )
+    )
+    return sum([event["value"] for event in token_events])
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -112,6 +140,91 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, super().params)
+
+    def get_swap_tx_data(  # pylint: disable=too-many-arguments
+        self,
+        is_input_native: bool,
+        is_output_native: bool,
+        exact_input: bool,
+        path: List[str],
+        deadline: int,
+        amount_in: Optional[int] = None,
+        amount_out: Optional[int] = None,
+        amount_in_max: Optional[int] = None,
+        amount_out_min: Optional[int] = None,
+        eth_value: Optional[int] = None,
+    ) -> Generator[None, None, Optional[Dict]]:
+        """
+        Return the swap tx data.
+
+        :param is_input_native: flag to check if the first token is native
+        :param is_output_native: flag to check if the second token is native
+        :param exact_input: flag to check if the exact amount belongs to the input or the output
+        :param path: the swap path
+        :param deadline: the tx deadline
+        :param amount_in: the amount in
+        :param amount_out: the amount out
+        :param amount_in_max: the max amount in
+        :param amount_out_min: the min amount out
+        :param eth_value: the tx value, also used as amount_or amount_in_max in for some cases
+        :return: None if required parameters are missing
+        :yield: the tx data
+        """
+
+        if (  # pylint: disable=too-many-boolean-expressions
+            (is_input_native and is_output_native)
+            or (is_input_native and eth_value is None)
+            or (not is_input_native and exact_input and amount_in is None)
+            or (not is_input_native and not exact_input and amount_in_max is None)
+            or (exact_input and amount_out_min is None)
+            or (not exact_input and amount_out is None)
+        ):
+            self.context.logger.error("Swap data is not correct.")
+            raise RuntimeError("Swap has been called with incorrect/missing parameters")
+        method_name = (
+            f'swap_exact_{"ETH" if is_input_native else "tokens"}_for_{"ETH" if is_output_native else "tokens"}'
+            if exact_input
+            else f'swap_{"ETH" if is_input_native else "tokens"}_for_exact_{"ETH" if is_output_native else "tokens"}'
+        )
+
+        contract_api_kwargs: Dict[str, Any] = dict(
+            method_name=method_name,
+            path=path,
+            to=self.period_state.safe_contract_address,
+            deadline=deadline,
+        )
+
+        # Input amounts for native tokens are read from the msg.value field.
+        # We only need to specify them here for not native tokens.
+        if not is_input_native and exact_input:
+            contract_api_kwargs["amount_in"] = int(amount_in)  # type: ignore
+
+        if not is_input_native and not exact_input:
+            contract_api_kwargs["amount_in_max"] = int(amount_in_max)  # type: ignore
+
+        # Output amounts
+        if exact_input:
+            contract_api_kwargs["amount_out_min"] = int(amount_out_min)  # type: ignore
+        else:
+            contract_api_kwargs["amount_out"] = int(amount_out)  # type: ignore
+
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.period_state.router_contract_address,
+            contract_id=str(UniswapV2Router02Contract.contract_id),
+            contract_callable="get_method_data",
+            **contract_api_kwargs,
+        )
+        swap_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
+
+        return {
+            "operation": MultiSendOperation.CALL,
+            "to": self.period_state.router_contract_address,
+            "value": eth_value
+            if is_input_native
+            else 0,  # Input amount for native tokens
+            "data": HexBytes(swap_data.hex()),
+        }
 
 
 class TransactionSignatureBaseBehaviour(LiquidityProvisionBaseBehaviour):
@@ -266,10 +379,10 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            amount: Optional[int] = None
+            transfers: Optional[list] = None
             if is_correct:
-                amount = yield from self.get_tx_result()
-            payload = ValidatePayload(self.context.agent_address, amount)
+                transfers = yield from self.get_tx_result()
+            payload = ValidatePayload(self.context.agent_address, json.dumps(transfers))
 
         with benchmark_tool.measure(
             self,
@@ -326,31 +439,27 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         self.context.logger.info(verified_log)
         return verified
 
-    def get_tx_result(self) -> Generator[None, None, Optional[int]]:
+    def get_tx_result(self) -> Generator[None, None, Optional[list]]:
         """Transaction transfer result."""
         strategy = self.period_state.most_voted_strategy
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["pair"]["LP_token_address"],
             contract_id=str(UniswapV2ERC20Contract.contract_id),
-            contract_callable="get_tx_transfered_amount",
+            contract_callable="get_tx_transfer_logs",
             tx_hash=self.period_state.final_tx_hash,
-            token_address=strategy["pair"]["LP_token_address"],
-            source_address=DEFAULT_MINTER,
-            destination_address=self.period_state.safe_contract_address,
+            target_address=self.period_state.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
-            return False  # pragma: nocover
-        amount = cast(int, contract_api_msg.state.body["amount"])
+            return []  # pragma: nocover
+        transfers = cast(list, contract_api_msg.state.body["logs"])
 
         transfer_log_message = (
-            f"The tx with hash {self.period_state.final_tx_hash} ended with a transfer of {amount} tokens.\n"
-            f"Token address: {strategy['pair']['LP_token_address']}\n"
-            f"Source: {DEFAULT_MINTER}\n"
-            f"Destination: {self.period_state.safe_contract_address}\n"
+            f"The tx with hash {self.period_state.final_tx_hash} ended with the following transfers.\n"
+            f"Transfers: {str(transfers)}\n"
         )
         self.context.logger.info(transfer_log_message)
-        return amount
+        return transfers
 
 
 def get_strategy_update() -> dict:
@@ -368,6 +477,7 @@ def get_strategy_update() -> dict:
             "amount_min_after_swap_back_a": int(1e2),
             "amount_in_max_b": int(1e4),
             "amount_min_after_swap_back_b": int(1e2),
+            "is_native": False,
         },
         "pair": {
             "LP_token_address": LP_TOKEN_ADDRESS,
@@ -376,8 +486,6 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_A_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
-                # If any, only token_a can be the native one (ETH, FTM...)
                 "is_native": False,
             },
             "token_b": {
@@ -385,7 +493,7 @@ def get_strategy_update() -> dict:
                 "address": TOKEN_B_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "amount_min_after_rem_liq": int(0.25e3),
+                "is_native": False,
             },
         },
     }
@@ -488,67 +596,49 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 }
             )
 
-            # Swap first token (can be native or not)
+            # Swap first token
             if strategy["pair"]["token_a"]["ticker"] != strategy["base"]["ticker"]:
 
-                method_name = (
-                    "swap_tokens_for_exact_ETH"
-                    if strategy["pair"]["token_a"]["is_native"]
-                    else "swap_tokens_for_exact_tokens"
-                )
-
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name=method_name,
-                    amount_out=int(strategy["pair"]["token_a"]["amount_after_swap"]),
-                    amount_in_max=int(strategy["base"]["amount_in_max_a"]),
+                swap_tx_data = yield from self.get_swap_tx_data(
+                    is_input_native=strategy["base"]["is_native"],
+                    is_output_native=strategy["pair"]["token_a"]["is_native"],
+                    exact_input=False,
+                    amount_out=strategy["pair"]["token_a"]["amount_after_swap"],
+                    amount_in_max=strategy["base"]["amount_in_max_a"],
+                    eth_value=strategy["base"]["amount_in_max_a"]
+                    if strategy["base"]["is_native"]
+                    else 0,
                     path=[
                         strategy["base"]["address"],
                         strategy["pair"]["token_a"]["address"],
                     ],
-                    to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
-                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
-                    }
-                )
 
-            # Swap second token (always non-native)
+                if swap_tx_data:
+                    multi_send_txs.append(swap_tx_data)
+
+            # Swap second token
             if strategy["pair"]["token_b"]["ticker"] != strategy["base"]["ticker"]:
 
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="swap_tokens_for_exact_tokens",
-                    amount_out=int(strategy["pair"]["token_b"]["amount_after_swap"]),
-                    amount_in_max=int(strategy["base"]["amount_in_max_b"]),
+                swap_tx_data = yield from self.get_swap_tx_data(
+                    is_input_native=strategy["base"]["is_native"],
+                    is_output_native=strategy["pair"]["token_b"]["is_native"],
+                    exact_input=False,
+                    amount_out=strategy["pair"]["token_b"]["amount_after_swap"],
+                    amount_in_max=strategy["base"]["amount_in_max_b"],
+                    eth_value=strategy["base"]["amount_in_max_b"]
+                    if strategy["base"]["is_native"]
+                    else 0,
                     path=[
                         strategy["base"]["address"],
                         strategy["pair"]["token_b"]["address"],
                     ],
-                    to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
-                swap_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_b_data.hex()),
-                    }
-                )
+
+                if swap_tx_data:
+                    multi_send_txs.append(swap_tx_data)
 
             # Add allowance for token A (only if not native)
             if not strategy["pair"]["token_a"]["is_native"]:
@@ -611,12 +701,12 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     ),
                     amount_token_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    ),
                     amount_ETH_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 1% here.
+                    ),
                     to=self.period_state.safe_contract_address,
-                    deadline=strategy["deadline"],  # 5 min into the future
+                    deadline=strategy["deadline"],
                 )
                 liquidity_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
@@ -649,10 +739,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     ),
                     amount_a_min=int(
                         strategy["pair"]["token_a"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
+                    ),
                     amount_b_min=int(
                         strategy["pair"]["token_b"]["amount_min_after_add_liq"]
-                    ),  # Review this factor. For now, we don't want to lose more than 10% here.
+                    ),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],  # 5 min into the future
                 )
@@ -775,6 +865,34 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = self.period_state.most_voted_strategy
+            transfers = json.loads(cast(str, self.period_state.most_voted_transfers))[
+                "transfers"
+            ]
+
+            amount_base_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["base"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_a_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_b_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_liquidity_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["LP_token_address"],
+                source_address=DEFAULT_MINTER,
+                destination_address=self.period_state.safe_contract_address,
+            )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -814,13 +932,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
-                    liquidity=self.period_state.most_voted_lp_result,
-                    amount_token_min=int(
-                        strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                    ),  # FIX, get actual amount
-                    amount_ETH_min=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),  # FIX, get actual amount
+                    liquidity=amount_liquidity_received,
+                    amount_token_min=int(amount_b_sent),
+                    amount_ETH_min=int(amount_base_sent),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -846,13 +960,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    liquidity=self.period_state.most_voted_lp_result,
-                    amount_a_min=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),  # FIX, get actual amount
-                    amount_b_min=int(
-                        strategy["pair"]["token_b"]["amount_min_after_rem_liq"]
-                    ),  # FIX, get actual amount
+                    liquidity=amount_liquidity_received,
+                    amount_a_min=int(amount_a_sent),
+                    amount_b_min=int(amount_b_sent),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -976,95 +1086,67 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             strategy = self.period_state.most_voted_strategy
+            transfers = json.loads(cast(str, self.period_state.most_voted_transfers))[
+                "transfers"
+            ]
+
+            amount_a_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
+            amount_b_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
             # and always swap back to it.
             multi_send_txs = []
 
-            # Swap first token back (can be native or not)
-            if strategy["pair"]["token_a"]["is_native"]:
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="swap_exact_ETH_for_tokens",
-                    amount_out_min=int(
-                        strategy["base"]["amount_min_after_swap_back_a"]
-                    ),
-                    path=[
-                        strategy["pair"]["token_a"]["address"],
-                        strategy["base"]["address"],
-                    ],
-                    to=self.period_state.safe_contract_address,
-                    deadline=strategy["deadline"],
-                )
-                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
-                    }
-                )
+            # Swap first token back
+            swap_tx_data = yield from self.get_swap_tx_data(
+                is_input_native=strategy["pair"]["token_a"]["is_native"],
+                is_output_native=strategy["base"]["is_native"],
+                exact_input=True,
+                amount_in=int(amount_a_received),
+                amount_out_min=int(strategy["base"]["amount_min_after_swap_back_a"]),
+                eth_value=amount_a_received
+                if strategy["pair"]["token_a"]["is_native"]
+                else 0,
+                path=[
+                    strategy["pair"]["token_a"]["address"],
+                    strategy["base"]["address"],
+                ],
+                deadline=strategy["deadline"],
+            )
 
-            else:
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=self.period_state.router_contract_address,
-                    contract_id=str(UniswapV2Router02Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="swap_exact_tokens_for_tokens",
-                    amount_in=int(
-                        strategy["pair"]["token_a"]["amount_min_after_rem_liq"]
-                    ),
-                    amount_out_min=int(
-                        strategy["base"]["amount_min_after_swap_back_a"]
-                    ),
-                    path=[
-                        strategy["pair"]["token_a"]["address"],
-                        strategy["base"]["address"],
-                    ],
-                    to=self.period_state.safe_contract_address,
-                    deadline=strategy["deadline"],
-                )
-                swap_a_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(swap_a_data.hex()),
-                    }
-                )
+            if swap_tx_data:
+                multi_send_txs.append(swap_tx_data)
 
-            # Swap second token back (always non-native)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=self.period_state.router_contract_address,
-                contract_id=str(UniswapV2Router02Contract.contract_id),
-                contract_callable="get_method_data",
-                method_name="swap_exact_tokens_for_tokens",
-                amount_in=int(strategy["pair"]["token_b"]["amount_min_after_rem_liq"]),
+            # Swap second token back
+            swap_tx_data = yield from self.get_swap_tx_data(
+                is_input_native=strategy["pair"]["token_b"]["is_native"],
+                is_output_native=strategy["base"]["is_native"],
+                exact_input=True,
+                amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
+                eth_value=amount_b_received
+                if strategy["pair"]["token_b"]["is_native"]
+                else 0,
                 path=[
                     strategy["pair"]["token_b"]["address"],
                     strategy["base"]["address"],
                 ],
-                to=self.period_state.safe_contract_address,
                 deadline=strategy["deadline"],
             )
-            swap_b_data = cast(bytes, contract_api_msg.raw_transaction.body["data"])
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": self.period_state.router_contract_address,
-                    "value": 0,
-                    "data": HexBytes(swap_b_data.hex()),
-                }
-            )
+
+            if swap_tx_data:
+                multi_send_txs.append(swap_tx_data)
 
             # Remove allowance for base token (always non-native)
             contract_api_msg = yield from self.get_contract_api_response(

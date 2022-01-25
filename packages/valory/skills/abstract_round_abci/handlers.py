@@ -36,6 +36,8 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
+    LateArrivingTransaction,
+    OK_CODE,
     SignatureNotValidError,
     Transaction,
     TransactionNotValidError,
@@ -59,7 +61,21 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'info' request."""
-        return super().info(message, dialogue)
+        info_data = ""
+        version = ""
+        app_version = 0
+        last_block_height = self.context.state.period.height
+        last_block_app_hash = b""
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_INFO,
+            target_message=message,
+            info_data=info_data,
+            version=version,
+            app_version=app_version,
+            last_block_height=last_block_height,
+            last_block_app_hash=last_block_app_hash,
+        )
+        return cast(AbciMessage, reply)
 
     def begin_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
@@ -80,15 +96,33 @@ class ABCIRoundHandler(ABCIHandler):
             cast(SharedState, self.context.state).period.check_is_finished()
         except (
             SignatureNotValidError,
-            TransactionTypeNotRecognizedError,
             TransactionNotValidError,
+            TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+        except LateArrivingTransaction as exception:  # pragma: nocover
+            self.context.logger.debug(exception_to_info_msg(exception))
+            return self._check_tx_failed(
+                message, dialogue, exception_to_info_msg(exception)
+            )
+
         # return check_tx success
-        return super().check_tx(message, dialogue)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            target_message=message,
+            code=OK_CODE,
+            data=b"",
+            log="",
+            info="check_tx succeeded",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([]),
+            codespace="",
+        )
+        return cast(AbciMessage, reply)
 
     def deliver_tx(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
@@ -103,15 +137,33 @@ class ABCIRoundHandler(ABCIHandler):
             shared_state.period.deliver_tx(transaction)
         except (
             SignatureNotValidError,
-            TransactionTypeNotRecognizedError,
             TransactionNotValidError,
+            TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+        except LateArrivingTransaction as exception:  # pragma: nocover
+            self.context.logger.debug(exception_to_info_msg(exception))
+            return self._deliver_tx_failed(
+                message, dialogue, exception_to_info_msg(exception)
+            )
+
         # return deliver_tx success
-        return super().deliver_tx(message, dialogue)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
+            target_message=message,
+            code=OK_CODE,
+            data=b"",
+            log="",
+            info="deliver_tx succeeded",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([]),
+            codespace="",
+        )
+        return cast(AbciMessage, reply)
 
     def end_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue

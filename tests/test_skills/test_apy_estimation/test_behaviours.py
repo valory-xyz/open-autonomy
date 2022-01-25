@@ -81,8 +81,11 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationConsensusBehaviour,
     CycleResetBehaviour,
     EstimateBehaviour,
+    FetchBatchBehaviour,
     FetchBehaviour,
+    FreshModelResetBehaviour,
     OptimizeBehaviour,
+    PrepareBatchBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
     RegistrationBehaviour,
@@ -95,8 +98,10 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     TrainBehaviour,
     TransformBehaviour,
+    UpdateForecasterBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
+from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
@@ -447,8 +452,8 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).get_and_read_hist(hash_, download_folder, "save")
 
-        save_csv_data["block_timestamp"] = pd.to_datetime(
-            save_csv_data["block_timestamp"], unit="s"
+        save_csv_data["blockTimestamp"] = pd.to_datetime(
+            save_csv_data["blockTimestamp"], unit="s"
         )
 
         pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
@@ -768,13 +773,14 @@ class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test FetchBehaviour."""
+class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
+    """Test FetchBehaviour and FetchBatchBehaviour."""
 
     behaviour_class = FetchBehaviour
     next_behaviour_class = TransformBehaviour
 
-    def test_setup(self, monkeypatch: MonkeyPatch) -> None:
+    @pytest.mark.parametrize("batch_flag", (True, False))
+    def test_setup(self, monkeypatch: MonkeyPatch, batch_flag: bool) -> None:
         """Test behaviour setup."""
         self.skill.skill_context.state.period.abci_app._last_timestamp = datetime.now()
 
@@ -783,6 +789,9 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour_class.state_id,
             self.period_state,
         )
+        cast(
+            FetchBehaviour, self.apy_estimation_behaviour.current_state
+        ).batch = batch_flag
 
         monkeypatch.setattr(os.path, "join", lambda *_: "")
         cast(
@@ -1114,6 +1123,7 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             FetchBehaviour, self.apy_estimation_behaviour.current_state
         )._pairs_hist = [{"test": "test"}]
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         self.apy_estimation_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -1138,6 +1148,8 @@ class TestFetchBehaviour(APYEstimationFSMBehaviourBaseCase):
             match="TypeError: Object of type bytes is not JSON serializable",
         ):
             self.apy_estimation_behaviour.act_wrapper()
+
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_clean_up(
         self,
@@ -1276,6 +1288,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     "enqueue_task",
                     return_value=3,
                 ):
+                    initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
                     self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
                     with open(
                         os.path.join(
@@ -1354,6 +1367,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                         self.mock_a2a_transaction()
                         self._test_done_flag_set()
                         self.end_round()
+                        self.apy_estimation_behaviour.context._agent_context._data_dir = (  # type: ignore
+                            initial_data_dir
+                        )
 
     def test_async_result_none(
         self,
@@ -1434,6 +1450,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     "enqueue_task",
                     return_value=3,
                 ):
+                    initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
                     self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
                     self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: {"test": "test"}  # type: ignore
                     with open(
@@ -1450,6 +1467,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
                     self.mock_a2a_transaction()
                     self._test_done_flag_set()
                     self.end_round()
+                    self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1464,6 +1482,7 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         tmp_path: PosixPath,
     ) -> None:
         """Run test for `preprocess_behaviour`."""
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
         # Increase the amount of dummy data for the train-test split.
         transformed_historical_data = pd.DataFrame(
@@ -1483,6 +1502,74 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.apy_estimation_behaviour.current_state.get_and_read_hist = (  # type: ignore
             lambda *_: transformed_historical_data
         )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
+
+
+class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test `PrepareBatchBehaviour`."""
+
+    behaviour_class = PrepareBatchBehaviour
+    next_behaviour_class = UpdateForecasterBehaviour
+
+    def _pre_setup_patching(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data: pd.DataFrame,
+        batch: ResponseItemType,
+    ) -> None:
+        """Patching to be performed before setup."""
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        latest_observation_hist_hash="x0",
+                        most_voted_batch="x1",
+                        latest_observation_timestamp=0,
+                    ),
+                )
+            ),
+        )
+
+        self.apy_estimation_behaviour.current_state.get_and_read_hist = lambda *_: transformed_historical_data.iloc[  # type: ignore
+            [0]
+        ].reset_index(
+            drop=True
+        )
+        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: batch  # type: ignore
+
+    def test_prepare_batch_behaviour_setup(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data: pd.DataFrame,
+        batch: ResponseItemType,
+    ) -> None:
+        """Test behaviour setup."""
+        self._pre_setup_patching(tmp_path, transformed_historical_data, batch)
+        cast(PrepareBatchBehaviour, self.apy_estimation_behaviour.current_state).setup()
+
+    def test_prepare_batch_behaviour(
+        self,
+        tmp_path: PosixPath,
+        transformed_historical_data: pd.DataFrame,
+        batch: ResponseItemType,
+    ) -> None:
+        """Run test for `preprocess_behaviour`."""
+        self._pre_setup_patching(tmp_path, transformed_historical_data, batch)
+
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.behaviour_class.state_id
 
@@ -1903,6 +1990,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         cast(
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
@@ -1928,6 +2016,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.apy_estimation_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1960,6 +2049,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -1977,6 +2067,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
         ).setup()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_task_not_ready(
         self,
@@ -2006,6 +2097,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             == self.behaviour_class.state_id
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2033,6 +2125,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).state_id
             == self.behaviour_class.state_id
         )
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_async_result_none(
         self,
@@ -2109,6 +2202,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         )
         # patching for setup.
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2133,6 +2227,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
 
 class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -2299,6 +2394,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             lambda *_: DummyAsyncResult(test_task_result_non_serializable),
         )
 
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2316,6 +2412,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             match=re.escape("Object of type bytes is not JSON serializable"),
         ):
             self.apy_estimation_behaviour.act_wrapper()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
 
     def test_async_result_none(
         self,
@@ -2385,6 +2482,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
 
         # changes for act.
+        initial_data_dir = self.apy_estimation_behaviour.context._agent_context._data_dir  # type: ignore
         self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
         importlib.reload(os.path)
         cast(
@@ -2397,13 +2495,99 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
+        self.apy_estimation_behaviour.context._agent_context._data_dir = initial_data_dir  # type: ignore
+
+
+class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test `UpdateForecasterBehaviour`."""
+
+    behaviour_class = UpdateForecasterBehaviour
+    next_behaviour_class = EstimateBehaviour
+
+    def _pre_setup_patching(self, tmp_path: PosixPath) -> None:
+        """Patching to be performed before setup."""
+        self.apy_estimation_behaviour.context._agent_context._data_dir = tmp_path.parts[0]  # type: ignore
+        cast(
+            OptimizeBehaviour, self.apy_estimation_behaviour.current_state
+        ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
+
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        most_voted_model="x1", latest_observation_hist_hash="x3"
+                    ),
+                )
+            ),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame({"APY": [0, 1]})  # type: ignore
+        self.apy_estimation_behaviour.current_state.get_and_read_forecaster = (  # type: ignore
+            lambda *_: DummyPipeline
+        )
+
+    def test_update_forecaster_setup(
+        self,
+        tmp_path: PosixPath,
+    ) -> None:
+        """Run test for `UpdateForecasterBehaviour`'s setup method."""
+        self._pre_setup_patching(tmp_path)
+        cast(
+            UpdateForecasterBehaviour, self.apy_estimation_behaviour.current_state
+        ).setup()
+
+    @staticmethod
+    def _temporarily_save_dummy_forecaster(tmp_path: str) -> None:
+        """Save a dummy forecaster to te given `tmp_path`."""
+        # Store the results.
+        order = (1, 1, 1)
+
+        # The Pipeline is deterministic.
+        forecaster = Pipeline(
+            [
+                ("fourier", FourierFeaturizer(0)),
+                (
+                    "arima",
+                    ARIMA(order),
+                ),
+            ]
+        )
+
+        joblib.dump(forecaster, tmp_path)
+
+    def test_update_forecaster_behaviour(
+        self,
+        tmp_path: PosixPath,
+        monkeypatch: MonkeyPatch,
+        no_action: Callable[[Any], None],
+    ) -> None:
+        """Run test for `UpdateForecasterBehaviour`."""
+        self._pre_setup_patching(tmp_path)
+
+        forecaster_save_path = os.path.join(tmp_path, "fully_trained_forecaster.joblib")
+        self._temporarily_save_dummy_forecaster(forecaster_save_path)
+        monkeypatch.setattr(joblib, "dump", no_action)
+
+        self.apy_estimation_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+        state = cast(
+            UpdateForecasterBehaviour, self.apy_estimation_behaviour.current_state
+        )
+        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test EstimateBehaviour."""
 
     behaviour_class = EstimateBehaviour
-    next_behaviour_class = ResetBehaviour
+    next_behaviour_class = FreshModelResetBehaviour
 
     def test_estimate_behaviour(
         self,
@@ -2441,7 +2625,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test CycleResetBehaviour."""
 
     behaviour_class = CycleResetBehaviour
-    next_behaviour_class = EstimateBehaviour
+    next_behaviour_class = FetchBatchBehaviour
 
     def test_reset_behaviour(
         self,
@@ -2463,10 +2647,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
         cast(
             CycleResetBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.observation_interval = 0.1
-        cast(
-            CycleResetBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
+        ).params.observation_interval = SLEEP_TIME_TWEAK
         self.apy_estimation_behaviour.act_wrapper()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.apy_estimation_behaviour.act_wrapper()
@@ -2528,11 +2709,50 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
+class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+    """Test FreshModelResetBehaviour."""
+
+    behaviour_class = FreshModelResetBehaviour
+    next_behaviour_class = FetchBehaviour
+
+    def test_fresh_model_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
+        """Run test for `ResetBehaviour`."""
+        self.fast_forward_to_state(
+            behaviour=self.apy_estimation_behaviour,
+            state_id=self.behaviour_class.state_id,
+            period_state=PeriodState(StateDB(initial_period=0, initial_data={})),
+        )
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.behaviour_class.state_id
+
+        with caplog.at_level(
+            logging.INFO,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            self.apy_estimation_behaviour.act_wrapper()
+
+        assert (
+            "[test_agent_name] Entered in the 'fresh_model_reset' behaviour state"
+            in caplog.text
+        )
+        assert (
+            "[test_agent_name] Resetting to create a fresh forecasting model!"
+            in caplog.text
+        )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
 class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test EstimateBehaviour."""
+    """Test ResetBehaviour."""
 
     behaviour_class = ResetBehaviour
-    next_behaviour_class = FetchBehaviour
+    next_behaviour_class = RegistrationBehaviour
 
     def test_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
         """Run test for `ResetBehaviour`."""

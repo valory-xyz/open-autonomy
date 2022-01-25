@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ from unittest import mock
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.skills.abstract_round_abci.utils import (
+    BenchmarkBehaviour,
+    BenchmarkBlock,
+    BenchmarkBlockTypes,
     BenchmarkTool,
     VerifyDrand,
     locate,
@@ -86,6 +89,39 @@ class TestLocate:
 
         result = locate("ThisClassDoesNotExist")
         assert result is None
+
+
+def setup_benchmark_tool() -> BenchmarkTool:
+    """Setup benchmark tool"""
+
+    tool = BenchmarkTool()
+    tool.agent, tool.agent_address = "name", "address"
+
+    for state_id in "ab":
+        benchmark = BenchmarkBehaviour(mock.Mock())
+        block_type = BenchmarkBlockTypes.LOCAL
+        block = BenchmarkBlock(block_type)
+        block.start, block.total_time = 0.0, 1.0
+        benchmark.local_data[block_type] = block
+        tool.benchmark_data[state_id] = benchmark
+
+    return tool
+
+
+def test_data() -> None:
+    """Test data format benchmark tool"""
+
+    expected = {
+        "agent_address": "address",
+        "agent": "name",
+        "data": [
+            {"behaviour": "a", "data": {"local": 1.0, "total": 1.0}},
+            {"behaviour": "b", "data": {"local": 1.0, "total": 1.0}},
+        ],
+    }
+
+    tool = setup_benchmark_tool()
+    assert tool.data == expected
 
 
 class TestBenchmark:

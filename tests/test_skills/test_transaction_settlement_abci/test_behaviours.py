@@ -49,13 +49,13 @@ from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.price_estimation_abci.behaviours import (
     ObserveBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
     SelectKeeperTransactionSubmissionBehaviourB,
     SignatureBehaviour,

@@ -122,7 +122,7 @@ class FinalizationTxPayload(BaseLiquidityProvisionPayload):
         return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
 
 
-class ValidatePayload(BaseTxPayload):
+class ValidatePayload(BaseLiquidityProvisionPayload):
     """Represent a transaction payload of type 'validate'."""
 
     transaction_type = TransactionType.VALIDATE
@@ -130,24 +130,24 @@ class ValidatePayload(BaseTxPayload):
     def __init__(
         self,
         sender: str,
-        amount: Optional[int] = None,
+        transfers: Optional[str] = None,
         id_: Optional[str] = None,
     ) -> None:
         """Initialize an 'validate' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param amount: the transfered amount
+        :param transfers: the transfers
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._amount = amount
+        self._transfers = transfers
 
     @property
-    def amount(self) -> Optional[int]:
-        """Get the amount."""
-        return self._amount
+    def transfers(self) -> Optional[str]:
+        """Get the tx result."""
+        return self._transfers
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(amount=self.amount) if self.amount is not None else {}
+        return dict(transfers=self.transfers) if self.transfers else {}

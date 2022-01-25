@@ -93,12 +93,10 @@ class SharedState(BaseSharedState):
             + MARGIN
         )
         PriceEstimationAbciApp.event_to_timeout[OracleEvent.DEPLOY_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
+            self.context.params.keeper_timeout + MARGIN
         )
         PriceEstimationAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
-            self.context.params.retry_timeout * self.context.params.retry_attempts
-            + MARGIN
+            self.context.params.keeper_timeout + MARGIN
         )
         PriceEstimationAbciApp.event_to_timeout[TSEvent.RESET_AND_PAUSE_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN

@@ -92,6 +92,16 @@ class TransactionNotValidError(ABCIAppException)
 
 Error raised when a transaction is not valid.
 
+<a id="packages.valory.skills.abstract_round_abci.base.LateArrivingTransaction"></a>
+
+## LateArrivingTransaction Objects
+
+```python
+class LateArrivingTransaction(ABCIAppException)
+```
+
+Error raised when the transaction belongs to previous round.
+
 <a id="packages.valory.skills.abstract_round_abci.base._MetaPayload"></a>
 
 ## `_`MetaPayload Objects
@@ -860,7 +870,7 @@ Concrete classes must set:
 #### `__`init`__`
 
 ```python
-def __init__(state: BasePeriodState, consensus_params: ConsensusParams) -> None
+def __init__(state: BasePeriodState, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
 ```
 
 Initialize the round.
@@ -1757,6 +1767,40 @@ Set up the period.
 
 - `args`: the arguments to pass to the round constructor.
 - `kwargs`: the keyword-arguments to pass to the round constructor.
+
+<a id="packages.valory.skills.abstract_round_abci.base.Period.start_sync"></a>
+
+#### start`_`sync
+
+```python
+def start_sync() -> None
+```
+
+Set `_syncing_up` flag to true.
+
+if the _syncing_up flag is set to true, the `async_act` method won't be executed. For more details refer to
+https://github.com/valory-xyz/consensus-algorithms/issues/247#issuecomment-1012268656
+
+<a id="packages.valory.skills.abstract_round_abci.base.Period.end_sync"></a>
+
+#### end`_`sync
+
+```python
+def end_sync() -> None
+```
+
+Set `_syncing_up` flag to false.
+
+<a id="packages.valory.skills.abstract_round_abci.base.Period.syncing_up"></a>
+
+#### syncing`_`up
+
+```python
+@property
+def syncing_up() -> bool
+```
+
+Return if the app is in sync mode.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Period.abci_app"></a>
 
