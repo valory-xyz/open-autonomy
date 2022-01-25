@@ -29,7 +29,6 @@ class VerificationStatus(Enum):
     VERIFIED = auto()
     NOT_VERIFIED = auto()
     INVALID_PAYLOAD = auto()
-    CONFLICT = auto()
     ERROR = auto()
 
 
