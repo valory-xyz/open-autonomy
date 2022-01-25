@@ -91,6 +91,17 @@ def final_tx_hash() -> str
 
 Get the final_tx_hash.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.final_verification_status"></a>
+
+#### final`_`verification`_`status
+
+```python
+@property
+def final_verification_status() -> VerificationStatus
+```
+
+Get the final verification status.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_tx_hash"></a>
 
 #### most`_`voted`_`tx`_`hash
@@ -306,6 +317,16 @@ class ValidateTransactionRound(VotingRound)
 ```
 
 A round in which agents validate the transaction
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.ValidateTransactionRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Optional[Tuple[BasePeriodState, Enum]]
+```
+
+Process the end of the block.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.CheckTransactionHistoryRound"></a>
 
