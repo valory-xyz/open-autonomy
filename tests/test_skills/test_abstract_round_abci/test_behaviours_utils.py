@@ -483,7 +483,7 @@ class TestBaseState:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
         self.behaviour.context.state.period.start_sync()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock:
             gen = self.behaviour.async_act_wrapper()
@@ -499,7 +499,7 @@ class TestBaseState:
         self.behaviour.context.state.period.height = 0
         self.behaviour.matching_round = None
         matching_round = self.behaviour.matching_round
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)
+        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock:
             gen = self.behaviour.async_act_wrapper()
