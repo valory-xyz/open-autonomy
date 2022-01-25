@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.transaction_settlement_abci.payloads import (
+    CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     RandomnessPayload,
     ResetPayload,
@@ -204,10 +205,10 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            is_any_verified = yield from self._check_tx_history()
+            verified_res = yield from self._check_tx_history()
 
-            if is_any_verified is not None:
-                if is_any_verified:
+            if verified_res[0] != "N":
+                if verified_res[0] == "T":
                     self.context.logger.info(
                         f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
                     )
@@ -216,7 +217,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                         "No previous transaction has been verified, but the safe's nonce has been reused!"
                     )
 
-            payload = ValidatePayload(self.context.agent_address, is_any_verified)
+            payload = CheckTransactionHistoryPayload(
+                self.context.agent_address, verified_res
+            )
 
         with benchmark_tool.measure(
             self,
@@ -226,10 +229,10 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def _check_tx_history(self) -> Generator[None, None, Optional[bool]]:
+    def _check_tx_history(self) -> Generator[None, None, str]:
         """Check the transaction history."""
         if self.period_state.tx_hashes_history is None:
-            return None
+            return "NN"
 
         for tx_hash in self.period_state.tx_hashes_history[::-1]:
             contract_api_msg = yield from self._verify_tx(tx_hash)
@@ -249,7 +252,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verified:
                 self.context.logger.info(verified_log)
-                return True
+                return "T" + tx_hash
 
             self.context.logger.info(
                 verified_log + f", all: {contract_api_msg.state.body}"
@@ -259,15 +262,15 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 self.context.logger.info(
                     f"Payload is invalid for {tx_hash}! Cannot continue."
                 )
-                return None
+                return "N" + tx_hash
 
             if not self._safe_nonce_reused():
                 self.context.logger.info(
                     f"Payload is correct and safe's nonce has not been reused for {tx_hash}. "
                 )
-                return None
+                return "N" + tx_hash
 
-        return False
+        return "FN"
 
     def _payload_is_invalid(self) -> Generator[None, None, bool]:
         """TODO check if payload is invalid."""

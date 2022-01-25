@@ -33,6 +33,7 @@ class TransactionType(Enum):
     RESET = "reset_transaction"
     RANDOMNESS = "randomness_transaction"
     SELECT_KEEPER = "select_keeper_transaction"
+    CHECK = "check"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -129,6 +130,37 @@ class ValidatePayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(vote=self.vote) if self.vote is not None else {}
+
+
+class CheckTransactionHistoryPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'check'."""
+
+    transaction_type = TransactionType.CHECK
+
+    def __init__(
+        self,
+        sender: str,
+        verified_res: str,
+        id_: Optional[str] = None,
+    ) -> None:
+        """Initialize an 'validate' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param verified_res: the vote
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._verified_res = verified_res
+
+    @property
+    def verified_res(self) -> str:
+        """Get the verified result."""
+        return self._verified_res
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(verified_res=self.verified_res)
 
 
 class SignaturePayload(BaseTxPayload):

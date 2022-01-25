@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
+    CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     RandomnessPayload,
     ResetPayload,
@@ -313,18 +314,42 @@ class ValidateTransactionRound(VotingRound):
     collection_key = "participant_to_votes"
 
 
-class CheckTransactionHistoryRound(VotingRound):
+class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     """A round in which agents check the transaction history to see if any previous tx has been validated"""
 
     round_id = "check_transaction_history"
-    allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
+    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
+    payload_attribute = "verified_res"
     period_state_class = PeriodState
-    done_event = Event.DONE
-    negative_event = Event.NEGATIVE
-    none_event = Event.NONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_check"
+    selection_key = "most_voted_check_result"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            return_tx_hash = self.most_voted_payload[1:]
+            if return_tx_hash == "N":
+                return_tx_hash = ""
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_check=self.collection,
+                tx_hashes_history=[return_tx_hash],
+            )
+
+            if self.most_voted_payload[0] == "T":
+                return state, Event.DONE
+
+            if self.most_voted_payload[0] == "F":
+                return state, Event.NEGATIVE
+
+            if self.most_voted_payload[0] == "N":
+                return state, Event.NONE
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+        return None
 
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
