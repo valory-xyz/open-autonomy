@@ -60,7 +60,7 @@ class TestAPYParams:
         """Test `__validate_params`."""
         args = "test", "test"
 
-        kwargs: Dict[str, Union[str, Dict[str, Union[str, int]]]] = {
+        kwargs: Dict[str, Union[str, int, float, Dict[str, Union[str, int]]]] = {
             "tendermint_url": "test",
             "tendermint_com_url": "test",
             "reset_tendermint_after": "test",
@@ -79,6 +79,7 @@ class TestAPYParams:
             "estimation": "test",
             "pair_ids": "test",
             "service_id": "apy_estimation",
+            "keeper_timeout": 30.0,
         }
 
         if param_value == "None":

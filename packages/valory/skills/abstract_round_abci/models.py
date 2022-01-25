@@ -50,6 +50,7 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.sleep_time = self._ensure("sleep_time", kwargs)
         self.retry_timeout = self._ensure("retry_timeout", kwargs)
         self.retry_attempts = self._ensure("retry_attempts", kwargs)
+        self.keeper_timeout = self._ensure("keeper_timeout", kwargs)
         self.observation_interval = self._ensure("observation_interval", kwargs)
         self.drand_public_key = self._ensure("drand_public_key", kwargs)
         self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
