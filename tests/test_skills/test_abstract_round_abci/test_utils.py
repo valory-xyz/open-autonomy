@@ -87,7 +87,7 @@ class TestLocate:
         result = locate("not.existing.path")
         assert result is None
 
-        result = locate("ThisClassDoesNotExist")
+        result = locate("fake.ThisClassDoesNotExist")
         assert result is None
 
 
