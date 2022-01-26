@@ -121,7 +121,7 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                     value,
                     sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -152,12 +152,12 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 result = self.contract.transfer_from(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     from_address,
                     to_address,
                     value,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
