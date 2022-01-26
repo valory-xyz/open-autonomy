@@ -85,7 +85,7 @@ class PayloadEnumB(Enum):
 
 
 class BasePayload(BaseTxPayload, ABC):
-    """Base payload class for testing.."""
+    """Base payload class for testing."""
 
 
 class PayloadA(BasePayload):
