@@ -394,40 +394,46 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 6.
+        - round timeout: 7.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 6.
-        - no majority: 6.
+        - round timeout: 7.
+        - no majority: 7.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 6.
-        - no majority: 6.
+        - round timeout: 7.
+        - no majority: 7.
     3. FinalizationRound
         - done: 4.
-        - round timeout: 5.
-        - failed: 5.
+        - round timeout: 6.
+        - failed: 6.
     4. ValidateTransactionRound
-        - done: 7.
-        - negative: 6.
-        - none: 6.
+        - done: 8.
+        - negative: 5.
+        - none: 3.
         - validate timeout: 3.
         - no majority: 4.
-    5. SelectKeeperTransactionSubmissionRoundB
+    5. CheckTransactionHistoryRound
+        - done: 9.
+        - negative: 10.
+        - none: 10.
+        - round timeout: 7.
+        - no majority: 7.
+    6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - round timeout: 6.
-        - no majority: 6.
-    6. ResetRound
+        - round timeout: 7.
+        - no majority: 7.
+    7. ResetRound
         - done: 0.
-        - reset timeout: 9.
-        - no majority: 9.
-    7. ResetAndPauseRound
-        - done: 8.
-        - reset and pause timeout: 9.
-        - no majority: 9.
-    8. FinishedTransactionSubmissionRound
-    9. FailedRound
+        - reset timeout: 10.
+        - no majority: 10.
+    8. ResetAndPauseRound
+        - done: 9.
+        - reset and pause timeout: 10.
+        - no majority: 10.
+    9. FinishedTransactionSubmissionRound
+    10. FailedRound
 
     Final states: {FinishedTransactionSubmissionRound, FailedRound}
 
