@@ -19,11 +19,10 @@
 
 """Test the utils.py module of the skill."""
 import os
-import tempfile
 from unittest import mock
 
 import pytest
-from aea.skills.base import SkillContext, AgentContext
+from aea.skills.base import AgentContext, SkillContext
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -145,7 +144,9 @@ class TestBenchmark:
             benchmark.save()
 
         benchmark._context = setup_mock_context()
-        agent_dir = os.path.join(benchmark.context._get_agent_context().data_dir)  # pylint: disable=W0212
+        agent_dir = os.path.join(
+            benchmark.context._get_agent_context().data_dir  # pylint: disable=W0212
+        )
         data_dir = os.path.join(agent_dir, "logs")
         filepath = os.path.join(data_dir, "benchmark.json")
 

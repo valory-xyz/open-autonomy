@@ -215,6 +215,8 @@ class BenchmarkTool:
             self.logger.info(f"Agent data appended to:\n{filepath}")
         except PermissionError as e:
             self.logger.info(f"Error saving benchmark data:\n{e}")
+        except AttributeError as e:
+            self.logger.info(f"No benchmark data to save:\n{e}")
 
     def measure(self, behaviour: BaseState) -> BenchmarkBehaviour:
         """Measure time to complete round."""

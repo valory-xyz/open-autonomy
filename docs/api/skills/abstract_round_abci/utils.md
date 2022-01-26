@@ -142,7 +142,7 @@ Benchmark tool for rounds behaviours.
 
 ```python
 @property
-def context() -> AgentContext
+def context() -> SkillContext
 ```
 
 Get skill context
