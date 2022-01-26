@@ -136,26 +136,27 @@ def __init__() -> None
 
 Benchmark tool for rounds behaviours.
 
+<a id="packages.valory.skills.abstract_round_abci.utils.BenchmarkTool.context"></a>
+
+#### context
+
+```python
+@property
+def context() -> SkillContext
+```
+
+Get skill context
+
 <a id="packages.valory.skills.abstract_round_abci.utils.BenchmarkTool.data"></a>
 
 #### data
 
 ```python
 @property
-def data() -> Dict
+def data() -> List
 ```
 
 Returns formatted data.
-
-<a id="packages.valory.skills.abstract_round_abci.utils.BenchmarkTool.log"></a>
-
-#### log
-
-```python
-def log() -> None
-```
-
-Output log.
 
 <a id="packages.valory.skills.abstract_round_abci.utils.BenchmarkTool.save"></a>
 

@@ -19,9 +19,10 @@
 
 """Test the utils.py module of the skill."""
 import os
-import tempfile
-from pathlib import Path
 from unittest import mock
+
+import pytest
+from aea.skills.base import AgentContext, SkillContext
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -91,11 +92,23 @@ class TestLocate:
         assert result is None
 
 
+def setup_mock_context() -> SkillContext:
+    """Setup mock skill context"""
+
+    agent_context = AgentContext(*(mock.Mock() for _ in range(13)))
+    agent_context._data_dir = os.getcwd()  # pylint: disable=W0212
+
+    skill_context = SkillContext()
+    skill_context.set_agent_context(agent_context)
+
+    return skill_context
+
+
 def setup_benchmark_tool() -> BenchmarkTool:
     """Setup benchmark tool"""
 
     tool = BenchmarkTool()
-    tool.agent, tool.agent_address = "name", "address"
+    tool._context = setup_mock_context()
 
     for state_id in "ab":
         benchmark = BenchmarkBehaviour(mock.Mock())
@@ -111,14 +124,10 @@ def setup_benchmark_tool() -> BenchmarkTool:
 def test_data() -> None:
     """Test data format benchmark tool"""
 
-    expected = {
-        "agent_address": "address",
-        "agent": "name",
-        "data": [
-            {"behaviour": "a", "data": {"local": 1.0, "total": 1.0}},
-            {"behaviour": "b", "data": {"local": 1.0, "total": 1.0}},
-        ],
-    }
+    expected = [
+        {"behaviour": "a", "data": {"local": 1.0, "total": 1.0}},
+        {"behaviour": "b", "data": {"local": 1.0, "total": 1.0}},
+    ]
 
     tool = setup_benchmark_tool()
     assert tool.data == expected
@@ -130,23 +139,23 @@ class TestBenchmark:
     def test_end_2_end(self) -> None:
         """Test end 2 end of the tool."""
         benchmark = BenchmarkTool()
-        assert type(benchmark.data) == dict
 
-        with mock.patch.object(benchmark.logger, "info") as mock_info:
-            benchmark.log()
-            mock_info.assert_called_with("Agent Address : None")
+        with pytest.raises(AttributeError):
+            benchmark.context
+
+        benchmark._context = setup_mock_context()
+        agent_dir = os.path.join(
+            benchmark.context._get_agent_context().data_dir  # pylint: disable=W0212
+        )
+        data_dir = os.path.join(agent_dir, "logs")
+        filepath = os.path.join(data_dir, "benchmark.json")
 
         benchmark.save()
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            path = Path(tempdir, "logs")
-            os.makedirs(path)
-            curdir = os.getcwd()
-            os.chdir(tempdir)
-            try:
-                benchmark.save()
-            finally:
-                os.chdir(curdir)
+        assert os.path.isdir(data_dir)
+        assert os.path.isfile(filepath)
+        os.remove(filepath)
+        os.rmdir(data_dir)
 
 
 class TestVerifyDrand:
