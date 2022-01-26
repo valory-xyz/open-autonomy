@@ -15,7 +15,7 @@ fingerprint:
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
   models.py: QmfZiT2N5eCEK3qscrrkbLp6smapTkk4snU59Lqwm93AiT
   payloads.py: QmdiwjgQpLKKFWA9sypsgFYAoiPRQqtxCiETekxFmi5tHM
-  rounds.py: Qmc6jHWApp1rkqG9vQoVgKMW4Gt9EMuDCquKHs5Vuqzxv9
+  rounds.py: QmaNWk3qnLpjsbktcPgVkNcMby6WZVVt1M9zjUAgmrNfzk
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -68,6 +68,7 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
       max_healthcheck: 120
       observation_aggregator_function: median
       observation_interval: 10
@@ -82,7 +83,7 @@ models:
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
+      round_timeout_seconds: 30.0
       service_id: price_estimation
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
