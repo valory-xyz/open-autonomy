@@ -141,7 +141,7 @@ class TestBenchmark:
         benchmark = BenchmarkTool()
 
         with pytest.raises(AttributeError):
-            benchmark.save()
+            benchmark.context
 
         benchmark._context = setup_mock_context()
         agent_dir = os.path.join(
