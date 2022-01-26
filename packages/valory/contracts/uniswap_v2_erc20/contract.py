@@ -113,10 +113,9 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         to_address: str,
         value: int,
-        **kwargs: int,
+        **tx_args: Any,
     ) -> Optional[JSONLike]:
         """Transfer funds from sender_address to to_address."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
@@ -125,11 +124,10 @@ class UniswapV2ERC20Contract(Contract):
             contract_instance,
             "transfer",
             method_args=dict(
-                sender_address=sender_address,
-                to_address=to_address,
+                to=to_address,
                 value=value,
             ),
-            tx_args=kwargs,
+            tx_args=tx_args,
         )
 
     @classmethod

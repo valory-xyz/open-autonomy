@@ -117,9 +117,9 @@ class TestUniswapV2ERC20Contract(BaseContractTestCase):
                 result = self.contract.transfer(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     spender_address,
                     value,
+                    sender_address=self.sender_address,
                     gas=gas,
                     gas_price=self.gas_price,
                 )
