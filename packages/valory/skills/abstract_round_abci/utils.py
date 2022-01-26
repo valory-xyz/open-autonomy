@@ -29,6 +29,7 @@ from importlib.machinery import ModuleSpec
 from time import time
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
+from aea.skills.base import SkillContext
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
 
@@ -166,23 +167,27 @@ class BenchmarkTool:
     """
 
     benchmark_data: Dict[str, BenchmarkBehaviour]
-    agent: Optional[str]
-    agent_address: Optional[str]
     logger: logging.Logger
 
     def __init__(
         self,
     ) -> None:
         """Benchmark tool for rounds behaviours."""
-        self.agent = None
-        self.agent_address = None
+        self._context: Optional[SkillContext] = None
         self.benchmark_data = {}
         self.logger = logging.getLogger()
 
     @property
+    def context(self) -> SkillContext:
+        """Get skill context"""
+        if not self._context:
+            raise AttributeError("Benchmark has not measured any behaviour yet")
+        return self._context
+
+    @property
     def data(
         self,
-    ) -> Dict:
+    ) -> List:
         """Returns formatted data."""
 
         behavioural_data = []
@@ -191,41 +196,31 @@ class BenchmarkTool:
             data[BenchmarkBlockTypes.TOTAL] = sum(data.values())
             behavioural_data.append({"behaviour": behaviour, "data": data})
 
-        return {
-            "agent_address": self.agent_address,
-            "agent": self.agent,
-            "data": behavioural_data,
-        }
-
-    def log(
-        self,
-    ) -> None:
-        """Output log."""
-
-        self.logger.info(f"Agent : {self.agent}")
-        self.logger.info(f"Agent Address : {self.agent_address}")
+        return behavioural_data
 
     def save(
         self,
     ) -> None:
         """Save logs to a file."""
 
+        agent_dir = self.context._get_agent_context().data_dir  # pylint: disable=W0212
+        data_dir = os.path.join(agent_dir, "logs")
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+
+        filepath = os.path.join(data_dir, "benchmark.json")
         try:
-            with open(
-                os.path.join(os.getcwd(), "logs", f"{self.agent_address}.json"),
-                "w+",
-                encoding="utf-8",
-            ) as outfile:
+            with open(filepath, "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
-        except (PermissionError, FileNotFoundError):
-            self.logger.info("Error saving benchmark data.")
+            self.logger.info(f"Agent data appended to:\n{filepath}")
+        except PermissionError as e:
+            self.logger.info(f"Error saving benchmark data:\n{e}")
 
     def measure(self, behaviour: BaseState) -> BenchmarkBehaviour:
         """Measure time to complete round."""
 
-        if self.agent is None:
-            self.agent_address = behaviour.context.agent_address
-            self.agent = behaviour.context.agent_name
+        if self._context is None:
+            self._context = behaviour.context
 
         if behaviour.state_id not in self.benchmark_data:
             self.benchmark_data[behaviour.state_id] = BenchmarkBehaviour(behaviour)
