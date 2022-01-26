@@ -901,8 +901,6 @@ class CollectionRound(AbstractRound):
     @property
     def payloads_count(self) -> Counter:
         """Get count of payload attributes"""
-        if not self.payload_attribute:
-            raise ABCIAppInternalError("No payload attribute set")
         return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
