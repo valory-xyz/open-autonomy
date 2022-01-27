@@ -25,8 +25,18 @@ import pytest
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     TransactionType,
-    SignaturePayload, ResetPayload, CheckTransactionHistoryPayload, ValidatePayload,
+    SignaturePayload, ResetPayload, CheckTransactionHistoryPayload, ValidatePayload, SelectKeeperPayload,
 )
+
+
+def test_select_keeper_payload() -> None:
+    """Test `SelectKeeperPayload`."""
+
+    payload = SelectKeeperPayload(sender="sender", keeper="test")
+
+    assert payload.keeper == "test"
+    assert payload.data == {"keeper": "test"}
+    assert payload.transaction_type == TransactionType.SELECT_KEEPER
 
 
 @pytest.mark.parametrize("vote", (None, True, False))
