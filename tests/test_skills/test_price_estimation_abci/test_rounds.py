@@ -58,7 +58,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     RandomnessTransactionSubmissionRound,
-    rotate_list,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
@@ -338,13 +337,6 @@ class TestTxHashRound(BaseCollectSameUntilThresholdRoundTest):
                 exit_event=self._event_class.NONE,
             )
         )
-
-
-def test_rotate_list_method() -> None:
-    """Test `rotate_list` method."""
-
-    ex_list = [1, 2, 3, 4, 5]
-    assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
 def test_period_states() -> None:
