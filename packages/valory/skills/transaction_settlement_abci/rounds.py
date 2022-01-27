@@ -61,7 +61,9 @@ class Event(Enum):
     VALIDATE_TIMEOUT = "validate_timeout"
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
+    KEEPER_A_CATCH_UP = "keeper_a_catch_up"
     FAILED = "failed"
+    FATAL = "fatal"
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -181,37 +183,63 @@ class FinalizationRound(OnlyKeeperSendsRound):
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
-    period_state_class = PeriodState
-    done_event = Event.DONE
-    fail_event = Event.FAILED
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the results
-        if (
-            self.has_keeper_sent_payload
-            and self.keeper_payload is not None
-            and self.keeper_payload["tx_digest"] is not None
-        ):
-            hashes = cast(PeriodState, self.period_state).tx_hashes_history
-            if hashes is None:
-                hashes = []
-            if self.keeper_payload["tx_digest"] not in hashes:
-                hashes.append(self.keeper_payload["tx_digest"])
+        if self.has_keeper_sent_payload:
+            # if reached participant threshold, set the results
+            if (
+                self.keeper_payload is not None
+                and self.keeper_payload["tx_digest"] is not None
+            ):
+                hashes = cast(PeriodState, self.period_state).tx_hashes_history
+                if hashes is None:
+                    hashes = []
+                if self.keeper_payload["tx_digest"] not in hashes:
+                    hashes.append(self.keeper_payload["tx_digest"])
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
-                tx_hashes_history=hashes,
-                nonce=self.keeper_payload["nonce"],
-                max_priority_fee_per_gas=self.keeper_payload[
-                    "max_priority_fee_per_gas"
-                ],
-            )
-            return state, self.done_event
-        if self.has_keeper_sent_payload and (
-            self.keeper_payload is None or self.keeper_payload["tx_digest"] is None
-        ):
-            return self.period_state, self.fail_event
+                state = self.period_state.update(
+                    period_state_class=PeriodState,
+                    tx_hashes_history=hashes,
+                    nonce=self.keeper_payload["nonce"],
+                    max_priority_fee_per_gas=self.keeper_payload[
+                        "max_priority_fee_per_gas"
+                    ],
+                    final_verification_status=VerificationStatus(
+                        self.keeper_payload["status"]
+                    ),
+                )
+                return state, Event.DONE
+
+            if (
+                self.keeper_payload is not None
+                and VerificationStatus(self.keeper_payload["status"])
+                == VerificationStatus.VERIFIED
+            ):
+                state = self.period_state.update(
+                    period_state_class=PeriodState,
+                    final_verification_status=VerificationStatus(
+                        self.keeper_payload["status"]
+                    ),
+                )
+                return state, Event.KEEPER_A_CATCH_UP
+
+            if (
+                self.keeper_payload is not None
+                and VerificationStatus(self.keeper_payload["status"])
+                == VerificationStatus.ERROR
+            ):
+                state = self.period_state.update(
+                    period_state_class=PeriodState,
+                    final_verification_status=VerificationStatus(
+                        self.keeper_payload["status"]
+                    ),
+                )
+                return state, Event.FATAL
+
+            if self.keeper_payload is None or self.keeper_payload["tx_digest"] is None:
+                return self.period_state, Event.FAILED
+
         return None
 
 
@@ -458,8 +486,10 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
+            Event.KEEPER_A_CATCH_UP: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
+            Event.FATAL: FailedRound,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,

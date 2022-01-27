@@ -34,7 +34,7 @@ from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
 from requests import HTTPError
-from web3.exceptions import SolidityError, TransactionNotFound
+from web3.exceptions import ContractLogicError, SolidityError, TransactionNotFound
 from web3.types import Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
@@ -441,7 +441,11 @@ class GnosisSafeContract(Contract):
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_tip=old_tip))
         # note, the next line makes an eth_estimateGas call!
-        transaction_dict = w3_tx.buildTransaction(tx_parameters)
+        try:
+            transaction_dict = w3_tx.buildTransaction(tx_parameters)
+        except ContractLogicError as e:  # pragma: nocover
+            return dict(error=str(e))
+
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
         )
