@@ -292,7 +292,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 contract_callable="revert_reason",
                 tx=tx,
             )
-        except (HTTPError, ValueError) as e:
+        except (HTTPError, ValueError) as e:  # pragma: nocover
             self.context.logger.error(
                 f"An unexpected error occurred while checking {tx['hash'].hex()}: {e}"
             )
