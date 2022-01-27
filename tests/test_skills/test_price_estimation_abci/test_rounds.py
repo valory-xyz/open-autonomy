@@ -49,10 +49,7 @@ from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
 from packages.valory.skills.registration_abci.rounds import (
     BasePeriodState as RegistrationPeriodState,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    ResetPayload,
-    ValidatePayload,
-)
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
 )
@@ -104,16 +101,6 @@ def get_participant_to_selection(
     """participant_to_selection"""
     return {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 
