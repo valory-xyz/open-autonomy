@@ -216,7 +216,7 @@ class UniswapV2ERC20Contract(Contract):
         )
 
     @classmethod
-    def get_transaction_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals,unused-argument
+    def get_transaction_transfer_logs(  # type: ignore  # pylint: disable=too-many-arguments,too-many-locals,unused-argument,arguments-differ
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -263,53 +263,3 @@ class UniswapV2ERC20Contract(Contract):
                 )
 
         return dict(logs=transfer_logs)
-
-    @classmethod
-    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals,unused-argument
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        tx_hash: str,
-        token_address: str,
-        source_address: Optional[str] = None,
-        destination_address: Optional[str] = None,
-    ) -> JSONLike:
-        """
-        Get the amount of a token transferred as a result of a transaction.
-
-        :param ledger_api: the ledger API object
-        :param contract_address: the address of the contract
-        :param tx_hash: the transaction hash
-        :param token_address: the token's address
-        :param source_address: the source address
-        :param destination_address: the destination address
-        :return: the incoming amount
-        """
-
-        transfer_logs: list = cls.get_transaction_transfer_logs(ledger_api, tx_hash)["logs"]  # type: ignore
-
-        token_events = list(
-            filter(
-                lambda log: log["token_address"] == ledger_api.api.toChecksumAddress(token_address),  # type: ignore
-                transfer_logs,
-            )
-        )
-
-        if source_address:
-            token_events = list(
-                filter(
-                    lambda log: log["from"] == ledger_api.api.toChecksumAddress(source_address),  # type: ignore
-                    token_events,
-                )
-            )
-
-        if destination_address:
-            token_events = list(
-                filter(
-                    lambda log: log["to"] == ledger_api.api.toChecksumAddress(destination_address),  # type: ignore
-                    token_events,
-                )
-            )
-
-        amount = 0 if not token_events else sum([event["value"] for event in list(token_events)])  # type: ignore
-        return dict(amount=amount)
