@@ -24,7 +24,9 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
     to_int,
 )
-from packages.valory.skills.transaction_settlement_abci.behaviours import hex_to_payload
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    skill_input_hex_to_payload,
+)
 
 
 def test_random_selection_function() -> None:
@@ -48,7 +50,7 @@ def test_payload_to_hex_and_back() -> None:
     to_address = "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215"
     data = b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
     intermediate = payload_to_hex(hex_str, ether_value, safe_tx_gas, to_address, data)
-    h_, e_, s_, a_, d_ = hex_to_payload(intermediate)
+    h_, e_, s_, a_, d_ = skill_input_hex_to_payload(intermediate)
     assert h_ == hex_str
     assert e_ == ether_value
     assert s_ == safe_tx_gas
