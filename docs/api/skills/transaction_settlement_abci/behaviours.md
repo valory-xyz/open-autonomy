@@ -103,16 +103,6 @@ def has_transaction_been_sent() -> Generator[None, None, Optional[bool]]
 
 Transaction verification.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour.get_tx_result"></a>
-
-#### get`_`tx`_`result
-
-```python
-def get_tx_result() -> Generator[None, None, Optional[list]]
-```
-
-Transaction transfer result.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
 ## SignatureBehaviour Objects

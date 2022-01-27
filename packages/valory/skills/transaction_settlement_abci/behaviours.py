@@ -23,12 +23,11 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
+from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -133,10 +132,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             self,
         ).local():
             is_correct = yield from self.has_transaction_been_sent()
-            transfers: Optional[List] = None
-            if is_correct:
-                transfers = yield from self.get_tx_result()
-            payload = ValidatePayload(self.context.agent_address, is_correct, transfers)
+            payload = ValidatePayload(self.context.agent_address, is_correct)
 
         with benchmark_tool.measure(
             self,
@@ -198,34 +194,6 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         )
         self.context.logger.info(verified_log)
         return verified
-
-    def get_tx_result(self) -> Generator[None, None, Optional[list]]:
-        """Transaction transfer result."""
-        if hasattr(self.period_state, "most_voted_strategy") and callable(
-            self.period_state.most_voted_strategy  # type: ignore
-        ):  # TOFIX: generalize
-            strategy = self.period_state.most_voted_strategy  # type: ignore
-
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="get_transaction_transfer_logs",
-                tx_hash=self.period_state.final_tx_hash,
-                target_address=self.period_state.safe_contract_address,
-            )
-            if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
-                return []  # pragma: nocover
-            transfers = cast(list, contract_api_msg.state.body["logs"])
-
-            transfer_log_message = (
-                f"The tx with hash {self.period_state.final_tx_hash} ended with the following transfers.\n"
-                f"Transfers: {str(transfers)}\n"
-            )
-            self.context.logger.info(transfer_log_message)
-            return transfers
-
-        return None
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):

@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: Qmes4T968eLYkfRc1o3oXMa3irSMo6CY95kaAGvM3LfzAF
   __init__.py: QmUJJPrwqyWYnqeYpGypjgsQoXiGFpjHogSrrDmAedpdzV
-  behaviours.py: QmcCBR4tQVXAJ57hNNt8f5SXTVruGTNTpQfV5Tpert9Tj7
+  behaviours.py: QmdDbsCPnJT61SRdLrV7c6k3oaS9SFi4tN3Fh51UfedyJZ
   payloads.py: QmeQc6noGZvVouZtBMKAiVDMHtZ7XWb73PypKamSYUNDLM
   rounds.py: QmcsJStp5BmKS72URvsMnXNzYzjNDxuwkYiSGLCgmjTzC5
 fingerprint_ignore_patterns: []
@@ -17,7 +17,6 @@ contracts:
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
 - valory/offchain_aggregator:0.1.0
-- valory/uniswap_v2_erc20:0.1.0
 protocols:
 - valory/contract_api:1.0.0
 skills:
