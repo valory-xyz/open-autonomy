@@ -9,7 +9,7 @@ RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.8 python3 && sudo ln -s
 RUN sudo apt-get install wait-for-it -y
 
 RUN python3.8 -m pip install --upgrade pip
-RUN python3.8 -m pip install "open-aea[all]>=1.3.0,<2.0.0"
+RUN python3.8 -m pip install "open-aea[all]>=1.4.0,<2.0.0"
 
 COPY packages /home/ubuntu/packages
 
