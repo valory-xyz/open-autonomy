@@ -418,7 +418,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         - done: 9.
         - negative: 10.
         - none: 10.
-        - round timeout: 7.
+        - round timeout: 5.
         - no majority: 7.
     6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
@@ -477,7 +477,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: FailedRound,
             Event.NONE: FailedRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: ResetRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
