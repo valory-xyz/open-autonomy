@@ -21,8 +21,18 @@
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     TransactionType,
-    SignaturePayload, ResetPayload,
+    SignaturePayload, ResetPayload, CheckTransactionHistoryPayload,
 )
+
+
+def test_tx_history_payload() -> None:
+    """Test `CheckTransactionHistoryPayload`."""
+
+    payload = CheckTransactionHistoryPayload(sender="sender", verified_res="test")
+
+    assert payload.verified_res == "test"
+    assert payload.data == {"verified_res": "test"}
+    assert payload.transaction_type == TransactionType.CHECK
 
 
 def test_signature_payload() -> None:
