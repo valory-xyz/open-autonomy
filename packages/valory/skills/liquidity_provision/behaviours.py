@@ -446,7 +446,7 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["pair"]["LP_token_address"],
             contract_id=str(UniswapV2ERC20Contract.contract_id),
-            contract_callable="get_tx_transfer_logs",
+            contract_callable="get_transaction_transfer_logs",
             tx_hash=self.period_state.final_tx_hash,
             target_address=self.period_state.safe_contract_address,
         )
