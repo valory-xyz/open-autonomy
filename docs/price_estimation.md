@@ -159,6 +159,15 @@ and subsequently stripped from unnecessary data structures and behaviours.
 
 ### The `PriceAggregationAbciApp`
 
+This `AbciApp` implements off-chain aggregation of observations by the agents.
+Once the majority of agents has submitted their observation these are shared 
+with all agents as they move to the price estimation round. In this next round  
+each of the agents performs off-chain a computation on the data set, which could
+be a simple summary statistic or an estimate derived from a complex model - 
+either way this is something that cannot be done on-chain. Once consensus is
+reached on this estimate, the aggregate value is submitted and recorded 
+on-chain in the next block that is mined.
+
 0. `CollectObservationRound` <br/>
    Observational data is collected by the AEAs on the target quantity to 
    estimate. Once the agents reach consensus over this data, that is to say at 

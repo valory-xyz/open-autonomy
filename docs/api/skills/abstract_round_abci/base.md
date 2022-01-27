@@ -1039,6 +1039,17 @@ Return true if a Byzantine majority is achievable, false otherwise.
 
 True if the majority is still possible, false otherwise.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.consensus_threshold"></a>
+
+#### consensus`_`threshold
+
+```python
+@property
+def consensus_threshold() -> int
+```
+
+Consensus threshold
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_payload"></a>
 
 #### check`_`payload
@@ -1126,6 +1137,28 @@ def __init__(*args: Any, **kwargs: Any)
 ```
 
 Initialize the collection round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.payloads"></a>
+
+#### payloads
+
+```python
+@property
+def payloads() -> List[BaseTxPayload]
+```
+
+Get all agent payloads
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.payloads_count"></a>
+
+#### payloads`_`count
+
+```python
+@property
+def payloads_count() -> Counter
+```
+
+Get count of payload attributes
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.process_payload"></a>
 
@@ -1322,6 +1355,17 @@ VotingRound
 
 This class represents logic for rounds where a round needs votes from
 agents, pass if k same votes of n agents
+
+<a id="packages.valory.skills.abstract_round_abci.base.VotingRound.vote_count"></a>
+
+#### vote`_`count
+
+```python
+@property
+def vote_count() -> Counter
+```
+
+Get agent payload vote count
 
 <a id="packages.valory.skills.abstract_round_abci.base.VotingRound.positive_vote_threshold_reached"></a>
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,16 @@
 
 """Test the utils.py module of the skill."""
 import os
-import tempfile
-from pathlib import Path
 from unittest import mock
+
+import pytest
+from aea.skills.base import AgentContext, SkillContext
 
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.skills.abstract_round_abci.utils import (
+    BenchmarkBehaviour,
+    BenchmarkBlock,
+    BenchmarkBlockTypes,
     BenchmarkTool,
     VerifyDrand,
     locate,
@@ -88,29 +92,70 @@ class TestLocate:
         assert result is None
 
 
+def setup_mock_context() -> SkillContext:
+    """Setup mock skill context"""
+
+    agent_context = AgentContext(*(mock.Mock() for _ in range(13)))
+    agent_context._data_dir = os.getcwd()  # pylint: disable=W0212
+
+    skill_context = SkillContext()
+    skill_context.set_agent_context(agent_context)
+
+    return skill_context
+
+
+def setup_benchmark_tool() -> BenchmarkTool:
+    """Setup benchmark tool"""
+
+    tool = BenchmarkTool()
+    tool._context = setup_mock_context()
+
+    for state_id in "ab":
+        benchmark = BenchmarkBehaviour(mock.Mock())
+        block_type = BenchmarkBlockTypes.LOCAL
+        block = BenchmarkBlock(block_type)
+        block.start, block.total_time = 0.0, 1.0
+        benchmark.local_data[block_type] = block
+        tool.benchmark_data[state_id] = benchmark
+
+    return tool
+
+
+def test_data() -> None:
+    """Test data format benchmark tool"""
+
+    expected = [
+        {"behaviour": "a", "data": {"local": 1.0, "total": 1.0}},
+        {"behaviour": "b", "data": {"local": 1.0, "total": 1.0}},
+    ]
+
+    tool = setup_benchmark_tool()
+    assert tool.data == expected
+
+
 class TestBenchmark:
     """Test the benchmark class."""
 
     def test_end_2_end(self) -> None:
         """Test end 2 end of the tool."""
         benchmark = BenchmarkTool()
-        assert type(benchmark.data) == dict
 
-        with mock.patch.object(benchmark.logger, "info") as mock_info:
-            benchmark.log()
-            mock_info.assert_called_with("Agent Address : None")
+        with pytest.raises(AttributeError):
+            benchmark.context
+
+        benchmark._context = setup_mock_context()
+        agent_dir = os.path.join(
+            benchmark.context._get_agent_context().data_dir  # pylint: disable=W0212
+        )
+        data_dir = os.path.join(agent_dir, "logs")
+        filepath = os.path.join(data_dir, "benchmark.json")
 
         benchmark.save()
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            path = Path(tempdir, "logs")
-            os.makedirs(path)
-            curdir = os.getcwd()
-            os.chdir(tempdir)
-            try:
-                benchmark.save()
-            finally:
-                os.chdir(curdir)
+        assert os.path.isdir(data_dir)
+        assert os.path.isfile(filepath)
+        os.remove(filepath)
+        os.rmdir(data_dir)
 
 
 class TestVerifyDrand:

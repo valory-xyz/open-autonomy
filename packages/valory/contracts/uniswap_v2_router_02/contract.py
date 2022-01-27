@@ -81,7 +81,14 @@ class UniswapV2Router02Contract(Contract):
             args = [kwargs[i] for i in input_names]
             # Encode and return the contract call
             data = instance.encodeABI(fn_name=method_name, args=args)
-        except KeyError:  # pragma: nocover # TOFIX catch other exceptions which can occur
+        except KeyError as e:  # pragma: nocover
+            _logger.warning(f"No such information in method ABI:\n{e}")
+            return None
+        except AttributeError as e:  # pragma: nocover
+            _logger.warning(f"No such attribute:\n{e}")
+            return None
+        except TypeError as e:  # pragma: nocover
+            _logger.warning(f"Method called with wrong arguments:\n{e}")
             return None
         return {"data": bytes.fromhex(data[2:])}  # type: ignore
 
