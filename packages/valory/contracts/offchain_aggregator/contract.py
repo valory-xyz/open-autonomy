@@ -137,9 +137,10 @@ class OffchainAggregatorContract(Contract):
         :param contract_address: the contract address.
         :return: the tx  # noqa: DAR202
         """
-        detail = cls._call(
-            ledger_api,
-            contract_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        detail = ledger_api.contract_method_call(
+            contract_instance,
             "latestTransmissionDetails",
         )
         if detail is None:
@@ -219,22 +220,9 @@ class OffchainAggregatorContract(Contract):
         :param contract_address: the contract address.
         :return: the data
         """
-        return cls._call(
-            ledger_api,
-            contract_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance,
             "latestRoundData",
         )
-
-    @classmethod
-    def _call(
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        method_name: str,
-        *method_args: Any,
-    ) -> Optional[Any]:
-        """Call method."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        method = getattr(contract.functions, method_name)
-        result = method(*method_args).call()
-        return result

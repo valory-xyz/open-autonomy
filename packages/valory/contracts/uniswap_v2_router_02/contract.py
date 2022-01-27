@@ -620,8 +620,14 @@ class UniswapV2Router02Contract(Contract):
         reserve_b: int,
     ) -> Optional[JSONLike]:
         """Quote."""
-        return cls._call(
-            ledger_api, contract_address, "quote", amount_a, reserve_a, reserve_b
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance,
+            "quote",
+            amountA=amount_a,
+            reserveA=reserve_a,
+            reserveB=reserve_b,
         )
 
     @classmethod
@@ -634,13 +640,14 @@ class UniswapV2Router02Contract(Contract):
         reserve_out: int,
     ) -> Optional[JSONLike]:
         """Get amount out."""
-        return cls._call(
-            ledger_api,
-            contract_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance,
             "getAmountOut",
-            amount_in,
-            reserve_in,
-            reserve_out,
+            amountIn=amount_in,
+            reserveIn=reserve_in,
+            reserveOut=reserve_out,
         )
 
     @classmethod
@@ -653,13 +660,14 @@ class UniswapV2Router02Contract(Contract):
         reserve_out: int,
     ) -> Optional[JSONLike]:
         """Get amount in."""
-        return cls._call(
-            ledger_api,
-            contract_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance,
             "getAmountIn",
-            amount_out,
-            reserve_in,
-            reserve_out,
+            amountOut=amount_out,
+            reserveIn=reserve_in,
+            reserveOut=reserve_out,
         )
 
     @classmethod
@@ -667,25 +675,19 @@ class UniswapV2Router02Contract(Contract):
         cls, ledger_api: EthereumApi, contract_address: str, amount_in: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts out."""
-        return cls._call(ledger_api, contract_address, "getAmountsOut", amount_in, path)
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance, "getAmountsOut", amountIn=amount_in, path=path
+        )
 
     @classmethod
     def get_amounts_in(
         cls, ledger_api: EthereumApi, contract_address: str, amount_out: int, path: list
     ) -> Optional[JSONLike]:
         """Get amounts in."""
-        return cls._call(ledger_api, contract_address, "getAmountsIn", amount_out, path)
+        contract_instance = cls.get_instance(ledger_api, contract_address)
 
-    @classmethod
-    def _call(
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        method_name: str,
-        *method_args: Any,
-    ) -> Optional[JSONLike]:
-        """Call method."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        method = getattr(contract.functions, method_name)
-        result = method(*method_args).call()
-        return result
+        return ledger_api.contract_method_call(
+            contract_instance, "getAmountsIn", amountOut=amount_out, path=path
+        )
