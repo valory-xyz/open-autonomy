@@ -216,9 +216,10 @@ class UniswapV2ERC20Contract(Contract):
         )
 
     @classmethod
-    def get_transaction_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_transaction_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals,unused-argument
         cls,
         ledger_api: EthereumApi,
+        contract_address: str,
         tx_hash: str,
         target_address: Optional[str] = None,
     ) -> JSONLike:
@@ -226,6 +227,7 @@ class UniswapV2ERC20Contract(Contract):
         Get all transfer events derived from a transaction.
 
         :param ledger_api: the ledger API object
+        :param contract_address: the address of the contract
         :param tx_hash: the transaction hash
         :param target_address: optional address to filter tranfer events to just those that affect it
         :return: the verified status
@@ -263,9 +265,10 @@ class UniswapV2ERC20Contract(Contract):
         return dict(logs=transfer_logs)
 
     @classmethod
-    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals,unused-argument
         cls,
         ledger_api: EthereumApi,
+        contract_address: str,
         tx_hash: str,
         token_address: str,
         source_address: Optional[str] = None,
@@ -275,6 +278,7 @@ class UniswapV2ERC20Contract(Contract):
         Get the amount of a token transferred as a result of a transaction.
 
         :param ledger_api: the ledger API object
+        :param contract_address: the address of the contract
         :param tx_hash: the transaction hash
         :param token_address: the token's address
         :param source_address: the source address
