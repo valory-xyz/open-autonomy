@@ -35,7 +35,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
     VotingRound,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+    tx_hist_hex_to_payload,
+)
 from packages.valory.skills.transaction_settlement_abci.payloads import (
+    CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     RandomnessPayload,
     ResetPayload,
@@ -57,11 +62,6 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     FAILED = "failed"
-
-
-def rotate_list(my_list: list, positions: int) -> List[str]:
-    """Rotate a list n positions."""
-    return my_list[positions:] + my_list[:positions]
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
@@ -90,9 +90,22 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         )
 
     @property
+    def tx_hashes_history(self) -> Optional[List[str]]:
+        """Get the tx hashes history."""
+        return cast(List[str], self.db.get("tx_hashes_history", None))
+
+    @property
     def final_tx_hash(self) -> str:
         """Get the final_tx_hash."""
-        return cast(str, self.db.get_strict("final_tx_hash"))
+        return cast(str, self.db.get_strict("tx_hashes_history")[-1])
+
+    @property
+    def final_verification_status(self) -> VerificationStatus:
+        """Get the final verification status."""
+        return cast(
+            VerificationStatus,
+            self.db.get("final_verification_status", VerificationStatus.NOT_VERIFIED),
+        )
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -102,7 +115,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def is_final_tx_hash_set(self) -> bool:
         """Check if most_voted_estimate is set."""
-        return self.db.get("final_tx_hash", None) is not None
+        return self.tx_hashes_history is not None
 
     @property
     def most_voted_estimate(self) -> float:
@@ -180,9 +193,15 @@ class FinalizationRound(OnlyKeeperSendsRound):
             and self.keeper_payload is not None
             and self.keeper_payload["tx_digest"] is not None
         ):
+            hashes = cast(PeriodState, self.period_state).tx_hashes_history
+            if hashes is None:
+                hashes = []
+            if self.keeper_payload["tx_digest"] not in hashes:
+                hashes.append(self.keeper_payload["tx_digest"])
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                final_tx_hash=self.keeper_payload["tx_digest"],
+                tx_hashes_history=hashes,
                 nonce=self.keeper_payload["nonce"],
                 max_priority_fee_per_gas=self.keeper_payload[
                     "max_priority_fee_per_gas"
@@ -246,7 +265,7 @@ class ResetRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
-            state_data["final_tx_hash"] = None
+            state_data["tx_hashes_history"] = None
             state_data["max_priority_fee_per_gas"] = None
             state_data["nonce"] = None
             state = self.period_state.update(
@@ -301,6 +320,64 @@ class ValidateTransactionRound(VotingRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_votes"
 
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        # if reached participant threshold, set the result
+        if self.positive_vote_threshold_reached:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_votes=self.collection,
+                final_verification_status=VerificationStatus.VERIFIED,
+            )  # type: ignore
+            return state, self.done_event
+        if self.negative_vote_threshold_reached:
+            return self.period_state, self.negative_event
+        if self.none_vote_threshold_reached:
+            return self.period_state, self.none_event
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, self.no_majority_event
+        return None
+
+
+class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
+    """A round in which agents check the transaction history to see if any previous tx has been validated"""
+
+    round_id = "check_transaction_history"
+    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
+    payload_attribute = "verified_res"
+    period_state_class = PeriodState
+    selection_key = "most_voted_check_result"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            return_status, return_tx_hash = tx_hist_hex_to_payload(
+                self.most_voted_payload
+            )
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_check=self.collection,
+                final_verification_status=return_status,
+                tx_hashes_history=[return_tx_hash],
+            )
+
+            if return_status == VerificationStatus.VERIFIED:
+                return state, Event.DONE
+
+            if return_status == VerificationStatus.NOT_VERIFIED:
+                return state, Event.NEGATIVE
+
+            return state, Event.NONE
+
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+        return None
+
 
 class TransactionSubmissionAbciApp(AbciApp[Event]):
     """TransactionSubmissionAbciApp
@@ -312,40 +389,46 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
-        - round timeout: 6.
+        - round timeout: 7.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionRoundA
         - done: 2.
-        - round timeout: 6.
-        - no majority: 6.
+        - round timeout: 7.
+        - no majority: 7.
     2. CollectSignatureRound
         - done: 3.
-        - round timeout: 6.
-        - no majority: 6.
+        - round timeout: 7.
+        - no majority: 7.
     3. FinalizationRound
         - done: 4.
-        - round timeout: 5.
-        - failed: 5.
+        - round timeout: 6.
+        - failed: 6.
     4. ValidateTransactionRound
-        - done: 7.
-        - negative: 6.
-        - none: 6.
+        - done: 8.
+        - negative: 5.
+        - none: 3.
         - validate timeout: 3.
         - no majority: 4.
-    5. SelectKeeperTransactionSubmissionRoundB
+    5. CheckTransactionHistoryRound
+        - done: 9.
+        - negative: 10.
+        - none: 10.
+        - round timeout: 5.
+        - no majority: 10.
+    6. SelectKeeperTransactionSubmissionRoundB
         - done: 3.
-        - round timeout: 6.
-        - no majority: 6.
-    6. ResetRound
+        - round timeout: 7.
+        - no majority: 7.
+    7. ResetRound
         - done: 0.
-        - reset timeout: 9.
-        - no majority: 9.
-    7. ResetAndPauseRound
-        - done: 8.
-        - reset and pause timeout: 9.
-        - no majority: 9.
-    8. FinishedTransactionSubmissionRound
-    9. FailedRound
+        - reset timeout: 10.
+        - no majority: 10.
+    8. ResetAndPauseRound
+        - done: 9.
+        - reset and pause timeout: 10.
+        - no majority: 10.
+    9. FinishedTransactionSubmissionRound
+    10. FailedRound
 
     Final states: {FinishedTransactionSubmissionRound, FailedRound}
 
@@ -375,15 +458,22 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,  # TODO: what if the keeper does send the tx but doesn't share the hash? need to check for this! simple round timeout won't do here, need an intermediate step.
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
         },
         ValidateTransactionRound: {
             Event.DONE: ResetAndPauseRound,
-            Event.NEGATIVE: ResetRound,  # TODO: introduce additional behaviour to resolve what's the issue (this is quite serious, a tx the agents disagree on has been included!)
-            Event.NONE: ResetRound,  # TODO: introduce additional logic to resolve the tx still not being confirmed; either we cancel it or we wait longer.
+            Event.NEGATIVE: CheckTransactionHistoryRound,
+            Event.NONE: FinalizationRound,
             Event.VALIDATE_TIMEOUT: FinalizationRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
+        },
+        CheckTransactionHistoryRound: {
+            Event.DONE: FinishedTransactionSubmissionRound,
+            Event.NEGATIVE: FailedRound,
+            Event.NONE: FailedRound,
+            Event.ROUND_TIMEOUT: CheckTransactionHistoryRound,
+            Event.NO_MAJORITY: FailedRound,
         },
         SelectKeeperTransactionSubmissionRoundB: {
             Event.DONE: FinalizationRound,

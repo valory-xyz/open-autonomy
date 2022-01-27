@@ -20,7 +20,10 @@
 """Tests for valory/registration_abci skill's rounds."""
 
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, Optional, Type, cast
+from types import MappingProxyType
+from typing import Dict, FrozenSet, List, Optional, Type, cast
+
+import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState as PeriodState,
@@ -33,13 +36,18 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+)
 from packages.valory.skills.transaction_settlement_abci.payloads import (
+    CheckTransactionHistoryPayload,
     FinalizationTxPayload,
     ResetPayload,
     SignaturePayload,
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    CheckTransactionHistoryRound,
     CollectSignatureRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -161,6 +169,21 @@ def get_final_tx_hash() -> str:
     return "tx_hash"
 
 
+def get_participant_to_check(
+    participants: FrozenSet[str],
+    status: str,
+    tx_hash: str,
+) -> Dict[str, CheckTransactionHistoryPayload]:
+    """Get participants to check"""
+    return {
+        participant: CheckTransactionHistoryPayload(
+            sender=participant,
+            verified_res=status + tx_hash,
+        )
+        for participant in participants
+    }
+
+
 class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     """Test SelectKeeperTransactionSubmissionRoundA"""
 
@@ -183,9 +206,8 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
 
-    def test_run_success(
-        self,
-    ) -> None:
+    @pytest.mark.parametrize("tx_hashes_history", (None, [get_final_tx_hash()]))
+    def test_run_success(self, tx_hashes_history: Optional[List[str]]) -> None:
         """Runs tests."""
 
         keeper = sorted(list(self.participants))[0]
@@ -212,7 +234,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    final_tx_hash=get_final_tx_hash()
+                    tx_hashes_history=tx_hashes_history
                 ),
                 state_attr_checks=[lambda state: state.final_tx_hash],
                 exit_event=self._event_class.DONE,
@@ -248,7 +270,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    final_tx_hash=get_final_tx_hash()
+                    tx_hashes_history=[get_final_tx_hash()]
                 ),
                 state_attr_checks=[],
                 exit_event=self._event_class.FAILED,
@@ -350,6 +372,67 @@ class TestValidateTransactionRound(BaseValidateRoundTest):
     _period_state_class = TransactionSettlementPeriodState
 
 
+class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
+    """Test CheckTransactionHistoryRound"""
+
+    _event_class = TransactionSettlementEvent
+    _period_state_class = TransactionSettlementPeriodState
+
+    @pytest.mark.parametrize(
+        "expected_status, expected_tx_hash, expected_event",
+        (
+            (
+                "0000000000000000000000000000000000000000000000000000000000000001",
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                TransactionSettlementEvent.DONE,
+            ),
+            (
+                "0000000000000000000000000000000000000000000000000000000000000002",
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                TransactionSettlementEvent.NEGATIVE,
+            ),
+            (
+                "0000000000000000000000000000000000000000000000000000000000000003",
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                TransactionSettlementEvent.NONE,
+            ),
+        ),
+    )
+    def test_run(
+        self,
+        expected_status: str,
+        expected_tx_hash: str,
+        expected_event: TransactionSettlementEvent,
+    ) -> None:
+        """Run tests."""
+        test_round = CheckTransactionHistoryRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=get_participant_to_check(
+                    self.participants, expected_status, expected_tx_hash
+                ),
+                state_update_fn=lambda period_state, _: period_state.update(
+                    participant_to_check=MappingProxyType(
+                        dict(
+                            get_participant_to_check(
+                                self.participants, expected_status, expected_tx_hash
+                            )
+                        )
+                    ),
+                    final_verification_status=VerificationStatus(int(expected_status)),
+                    tx_hashes_history=[expected_tx_hash],
+                ),
+                state_attr_checks=[lambda state: state.final_verification_status],
+                most_voted_payload=expected_status + expected_tx_hash,
+                exit_event=expected_event,
+            )
+        )
+
+
 def test_period_states() -> None:
     """Test PeriodState."""
 
@@ -380,7 +463,7 @@ def test_period_states() -> None:
                 oracle_contract_address=oracle_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
-                final_tx_hash=final_tx_hash,
+                tx_hashes_history=[final_tx_hash],
             ),
         )
     )
