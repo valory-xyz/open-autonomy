@@ -118,15 +118,23 @@ def get_default_strategy(
             "amount_in_max_b": int(1e4),
             "amount_min_after_swap_back_b": int(1e2),
             "is_native": is_base_native,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": True,
         },
         "pair": {
-            "LP_token_address": LP_TOKEN_ADDRESS,
+            "token_LP": {
+                "address": LP_TOKEN_ADDRESS,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": True,
+            },
             "token_a": {
                 "ticker": "TKA",
                 "address": "0xTKA_ADDRESS",
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": is_a_native,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": True,
             },
             "token_b": {
                 "ticker": "TKB",
@@ -134,6 +142,8 @@ def get_default_strategy(
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": is_b_native,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": True,
             },
         },
     }
@@ -1379,7 +1389,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
                         tx_hash=period_state.final_tx_hash,
@@ -1451,7 +1461,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
@@ -1587,7 +1597,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
