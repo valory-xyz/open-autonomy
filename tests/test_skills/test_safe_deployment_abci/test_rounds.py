@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -39,10 +39,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     SelectKeeperSafeRound,
     ValidateSafeRound,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    ResetPayload,
-    ValidatePayload,
-)
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
     BaseDeployTestClass,
@@ -87,16 +84,6 @@ def get_participant_to_selection(
     """participant_to_selection"""
     return {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 

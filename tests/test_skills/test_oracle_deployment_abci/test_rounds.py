@@ -53,10 +53,7 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     TransactionHashPayload,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    ResetPayload,
-    ValidatePayload,
-)
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
@@ -99,16 +96,6 @@ def get_participant_to_selection(
     """participant_to_selection"""
     return {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
         for participant in participants
     }
 
