@@ -18,11 +18,26 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads of the skill."""
+from typing import Optional
+
+import pytest
+
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     FinalizationTxPayload,
     TransactionType,
-    SignaturePayload, ResetPayload, CheckTransactionHistoryPayload,
+    SignaturePayload, ResetPayload, CheckTransactionHistoryPayload, ValidatePayload,
 )
+
+
+@pytest.mark.parametrize("vote", (None, True, False))
+def test_validate_payload(vote: Optional[bool]) -> None:
+    """Test `ValidatePayload`."""
+
+    payload = ValidatePayload(sender="sender", vote=vote)
+
+    assert payload.vote is vote
+    assert payload.data == {} if vote is None else {"vote": vote}
+    assert payload.transaction_type == TransactionType.VALIDATE
 
 
 def test_tx_history_payload() -> None:
