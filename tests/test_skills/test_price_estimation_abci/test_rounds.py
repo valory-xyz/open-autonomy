@@ -58,7 +58,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     RandomnessTransactionSubmissionRound,
-    rotate_list,
 )
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (

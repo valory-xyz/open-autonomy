@@ -14,16 +14,6 @@ class Event(Enum)
 
 Event enumeration for the price estimation demo.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.rotate_list"></a>
-
-#### rotate`_`list
-
-```python
-def rotate_list(my_list: list, positions: int) -> List[str]
-```
-
-Rotate a list n positions.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState"></a>
 
 ## PeriodState Objects
