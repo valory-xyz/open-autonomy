@@ -23,10 +23,26 @@ from typing import Optional
 import pytest
 
 from packages.valory.skills.transaction_settlement_abci.payloads import (
+    CheckTransactionHistoryPayload,
     FinalizationTxPayload,
+    RandomnessPayload,
+    ResetPayload,
+    SelectKeeperPayload,
+    SignaturePayload,
     TransactionType,
-    SignaturePayload, ResetPayload, CheckTransactionHistoryPayload, ValidatePayload, SelectKeeperPayload,
+    ValidatePayload,
 )
+
+
+def test_randomness_payload() -> None:
+    """Test `RandomnessPayload`."""
+
+    payload = RandomnessPayload(sender="sender", round_id=1, randomness="test")
+
+    assert payload.round_id == 1
+    assert payload.randomness == "test"
+    assert payload.data == {"round_id": 1, "randomness": "test"}
+    assert payload.transaction_type == TransactionType.RANDOMNESS
 
 
 def test_select_keeper_payload() -> None:
