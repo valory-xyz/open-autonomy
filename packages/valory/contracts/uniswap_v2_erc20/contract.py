@@ -230,30 +230,35 @@ class UniswapV2ERC20Contract(Contract):
         :param target_address: optional address to filter tranfer events to just those that affect it
         :return: the verified status
         """
-        transfer_logs: List = cast(
-            List,
-            cls.get_transaction_transfer_logs(ledger_api, tx_hash, target_address)[
-                "logs"
-            ],
-        )
+        transfer_logs_data: Optional[JSONLike] = super(
+            UniswapV2ERC20Contract, cls
+        ).get_transaction_transfer_logs(ledger_api, tx_hash, target_address)
+        transfer_logs: List = []
 
-        transfer_logs = [
-            {
-                "from": log["args"]["from"],
-                "to": log["args"]["to"],
-                "value": log["args"]["value"],
-                "token_address": log["address"],
-            }
-            for log in transfer_logs
-        ]
+        if transfer_logs_data:
 
-        if target_address:
-            transfer_logs = list(
-                filter(
-                    lambda log: target_address in (log["from"], log["to"]),  # type: ignore
-                    transfer_logs,
-                )
+            transfer_logs = cast(
+                List,
+                transfer_logs_data["logs"],
             )
+
+            transfer_logs = [
+                {
+                    "from": log["args"]["from"],
+                    "to": log["args"]["to"],
+                    "value": log["args"]["value"],
+                    "token_address": log["address"],
+                }
+                for log in transfer_logs
+            ]
+
+            if target_address:
+                transfer_logs = list(
+                    filter(
+                        lambda log: target_address in (log["from"], log["to"]),  # type: ignore
+                        transfer_logs,
+                    )
+                )
 
         return dict(logs=transfer_logs)
 
