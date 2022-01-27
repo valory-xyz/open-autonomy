@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Generator, Optional, cast
+from typing import Generator, List, Optional, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -52,6 +52,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     ResetAndPauseBehaviour,
@@ -376,6 +377,91 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             )
             final_tx_hash = state.period_state.final_tx_hash
             mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
+
+
+class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test CheckTransactionHistoryBehaviour."""
+
+    def _fast_forward(self, hashes_history: Optional[List[Optional[str]]]) -> None:
+        """Fast-forward to relevant state."""
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=CheckTransactionHistoryBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        safe_contract_address="safe_contract_address",
+                        participants=frozenset(
+                            {self.skill.skill_context.agent_address, "a_1", "a_2"}
+                        ),
+                        participant_to_signature={},
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                        tx_hashes_history=hashes_history,
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(BaseState, self.behaviour.current_state).state_id
+            == CheckTransactionHistoryBehaviour.state_id
+        )
+
+    @pytest.mark.parametrize(
+        "verified, hashes_history, revert_reason",
+        (
+            (0, None, "test"),
+            (0, [None], "test"),
+            (0, [None], "GS026"),
+            (1, [None], "test"),
+        ),
+    )
+    def test_check_tx_history_behaviour(
+        self,
+        verified: int,
+        hashes_history: Optional[List[Optional[str]]],
+        revert_reason: str,
+    ) -> None:
+        """Test CheckTransactionHistoryBehaviour."""
+        self._fast_forward(hashes_history)
+        self.behaviour.act_wrapper()
+
+        if hashes_history is not None:
+            self.mock_contract_api_request(
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE
+                ),
+                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    callable="verify_tx",
+                    state=TrState(
+                        ledger_id="ethereum",
+                        body={"verified": verified, "transaction": {}},
+                    ),
+                ),
+            )
+
+            if not bool(verified):
+                self.mock_contract_api_request(
+                    request_kwargs=dict(
+                        performative=ContractApiMessage.Performative.GET_STATE
+                    ),
+                    contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+                    response_kwargs=dict(
+                        performative=ContractApiMessage.Performative.STATE,
+                        callable="revert_reason",
+                        state=TrState(
+                            ledger_id="ethereum", body={"revert_reason": revert_reason}
+                        ),
+                    ),
+                )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == ObserveBehaviour.state_id
 
 
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
