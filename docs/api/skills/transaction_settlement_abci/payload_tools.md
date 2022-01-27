@@ -53,7 +53,7 @@ Serialise history payload to a hex string.
 #### tx`_`hist`_`hex`_`to`_`payload
 
 ```python
-def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, str]
+def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[str]]
 ```
 
 Decode history payload.
