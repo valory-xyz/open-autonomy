@@ -64,11 +64,6 @@ class Event(Enum):
     FAILED = "failed"
 
 
-def rotate_list(my_list: list, positions: int) -> List[str]:
-    """Rotate a list n positions."""
-    return my_list[positions:] + my_list[:positions]
-
-
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
     """
     Class to represent a period state.
