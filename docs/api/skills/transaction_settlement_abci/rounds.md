@@ -389,8 +389,8 @@ Transition states:
     - done: 9.
     - negative: 10.
     - none: 10.
-    - round timeout: 7.
-    - no majority: 7.
+    - round timeout: 5.
+    - no majority: 10.
 6. SelectKeeperTransactionSubmissionRoundB
     - done: 3.
     - round timeout: 7.
