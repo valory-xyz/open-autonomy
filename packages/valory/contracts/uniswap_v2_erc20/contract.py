@@ -89,10 +89,9 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         spender_address: str,
         value: int,
-        **kwargs: int,
+        **kwargs: Any,
     ) -> Optional[JSONLike]:
         """Set the allowance for spender_address on behalf of sender_address."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
@@ -101,8 +100,7 @@ class UniswapV2ERC20Contract(Contract):
             contract_instance,
             "approve",
             method_args=dict(
-                sender_address=sender_address,
-                spender_address=spender_address,
+                spender=spender_address,
                 value=value,
             ),
             tx_args=kwargs,
@@ -159,7 +157,6 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         owner_address: str,
         spender_address: str,
         value: int,
@@ -167,7 +164,7 @@ class UniswapV2ERC20Contract(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        **kwargs: int,
+        **kwargs: Any,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender on behalf of owner where approval is granted via a signature. Sender can differ from owner."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
@@ -176,9 +173,8 @@ class UniswapV2ERC20Contract(Contract):
             contract_instance,
             "permit",
             method_args=dict(
-                sender_address=sender_address,
-                owner_address=owner_address,
-                spender_address=spender_address,
+                owner=owner_address,
+                spender=spender_address,
                 value=value,
                 deadline=deadline,
                 v=v,
@@ -200,10 +196,10 @@ class UniswapV2ERC20Contract(Contract):
         contract_instance = cls.get_instance(ledger_api, contract_address)
 
         return ledger_api.contract_method_call(
-            contract_instance,
-            "allowance",
-            owner_address,
-            spender_address,
+            contract_instance=contract_instance,
+            method_name="allowance",
+            owner=owner_address,
+            spender=spender_address,
         )
 
     @classmethod
@@ -214,9 +210,9 @@ class UniswapV2ERC20Contract(Contract):
         contract_instance = cls.get_instance(ledger_api, contract_address)
 
         return ledger_api.contract_method_call(
-            contract_instance,
-            "balanceOf",
-            owner_address,
+            contract_instance=contract_instance,
+            method_name="balanceOf",
+            owner=owner_address,
         )
 
     @classmethod
