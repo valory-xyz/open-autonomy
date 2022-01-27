@@ -23,7 +23,7 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Set, Type, Union, cast
+from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from requests import HTTPError
 from web3.types import TxData
@@ -205,18 +205,18 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            verified_res = yield from self._check_tx_history()
+            verification_status, tx_hash = yield from self._check_tx_history()
 
-            if verified_res[0] != "N":
-                if verified_res[0] == "T":
-                    self.context.logger.info(
-                        f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
-                    )
-                else:
-                    self.context.logger.info(
-                        "No previous transaction has been verified, but the safe's nonce has been reused!"
-                    )
+            if verification_status == VerificationStatus.VERIFIED:
+                self.context.logger.info(
+                    f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
+                )
+            elif verification_status == VerificationStatus.NOT_VERIFIED:
+                self.context.logger.info(
+                    f"No previous transaction has been verified for {self.period_state.final_tx_hash}."
+                )
 
+            verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
             payload = CheckTransactionHistoryPayload(
                 self.context.agent_address, verified_res
             )
@@ -229,10 +229,16 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def _check_tx_history(self) -> Generator[None, None, str]:
+    def _check_tx_history(
+        self,
+    ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
         if self.period_state.tx_hashes_history is None:
-            return tx_hist_payload_to_hex(VerificationStatus.ERROR)
+            self.context.logger.error(
+                "An unexpected error occurred! The state's history does not contain any transaction hashes, "
+                "but entered the `CheckTransactionHistoryBehaviour`."
+            )
+            return VerificationStatus.ERROR, None
 
         for tx_hash in self.period_state.tx_hashes_history[::-1]:
             contract_api_msg = yield from self._verify_tx(tx_hash)
@@ -252,7 +258,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verified:
                 self.context.logger.info(verified_log)
-                return tx_hist_payload_to_hex(VerificationStatus.VERIFIED, tx_hash)
+                return VerificationStatus.VERIFIED, tx_hash
 
             self.context.logger.info(
                 verified_log + f", all: {contract_api_msg.state.body}"
@@ -272,9 +278,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                     f"Payload is invalid for {tx_hash}! Cannot continue."
                 )
 
-            return tx_hist_payload_to_hex(VerificationStatus.INVALID_PAYLOAD, tx_hash)
+            return VerificationStatus.INVALID_PAYLOAD, tx_hash
 
-        return tx_hist_payload_to_hex(VerificationStatus.NOT_VERIFIED)
+        return VerificationStatus.NOT_VERIFIED, None
 
     def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
