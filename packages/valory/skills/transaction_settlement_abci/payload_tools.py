@@ -54,7 +54,7 @@ def tx_hist_payload_to_hex(
     if tx_hash is None:
         tx_hash = ""
     elif len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("Cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+        raise ValueError("Cannot encode tx_hash of non-32 bytes")
     verification_ = verification.value.to_bytes(32, "big").hex()
     concatenated = verification_ + tx_hash
     return concatenated
@@ -63,14 +63,14 @@ def tx_hist_payload_to_hex(
 def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[str]]:
     """Decode history payload."""
     if len(payload) != 64 and len(payload) != 64 * 2:
-        raise PayloadDeserializationError()  # pragma: nocover
+        raise PayloadDeserializationError()
 
     verification_value = int.from_bytes(bytes.fromhex(payload[:64]), "big")
 
     try:
         verification_status = VerificationStatus(verification_value)
     except ValueError as e:
-        raise PayloadDeserializationError(str(e)) from e  # pragma: nocover
+        raise PayloadDeserializationError(str(e)) from e
 
     if len(payload) == 64:
         return verification_status, None
