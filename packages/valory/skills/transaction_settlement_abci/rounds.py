@@ -190,7 +190,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
             # if reached participant threshold, set the results
             if (
                 self.keeper_payload is not None
-                and self.keeper_payload["tx_digest"] is not None
+                and self.keeper_payload["tx_digest"] != ""
             ):
                 hashes = cast(PeriodState, self.period_state).tx_hashes_history
                 if hashes is None:
@@ -237,7 +237,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 )
                 return state, Event.FATAL
 
-            if self.keeper_payload is None or self.keeper_payload["tx_digest"] is None:
+            if self.keeper_payload is None or self.keeper_payload["tx_digest"] == "":
                 return self.period_state, Event.FAILED
 
         return None

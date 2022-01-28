@@ -398,7 +398,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             )
             tx_data = yield from self._send_safe_transaction()
             if (
-                tx_data["tx_digest"] is None
+                tx_data["tx_digest"] == ""
                 and tx_data["status"] == VerificationStatus.PENDING
             ) or tx_data["status"] == VerificationStatus.ERROR:
                 self.context.logger.error(
@@ -418,7 +418,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             tx_data["status"] = cast(VerificationStatus, tx_data["status"]).value
             payload = FinalizationTxPayload(
                 self.context.agent_address,
-                cast(Dict[str, Union[str, int, None]], tx_data),
+                cast(Dict[str, Union[str, int]], tx_data),
             )
 
         with benchmark_tool.measure(
@@ -431,7 +431,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _send_safe_transaction(
         self,
-    ) -> Generator[None, None, Dict[str, Union[None, VerificationStatus, str, int]]]:
+    ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
         _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
             self.period_state.most_voted_tx_hash
@@ -456,11 +456,11 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             old_tip=self.period_state.max_priority_fee_per_gas,
         )
 
-        tx_data: Dict[str, Union[None, VerificationStatus, str, int]] = {
+        tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
             "status": VerificationStatus.PENDING,
-            "tx_digest": None,
-            "nonce": None,
-            "max_priority_fee_per_gas": None,
+            "tx_digest": "",
+            "nonce": "",
+            "max_priority_fee_per_gas": "",
         }
 
         if (
@@ -479,9 +479,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 tx_data["status"] = VerificationStatus.ERROR
             return tx_data
 
-        tx_data["tx_digest"] = yield from self.send_raw_transaction(
+        tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
+        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
         tx_data["nonce"] = int(
             cast(str, contract_api_msg.raw_transaction.body["nonce"])
         )
