@@ -166,6 +166,37 @@ class TestAbstractRoundBehaviour:
         with mock.patch.object(self.behaviour, "_process_current_round"):
             self.behaviour.act()
 
+    def test_check_matching_round_consistency(self) -> None:
+        """Test classmethod '_get_state_id_to_state_mapping', negative case."""
+        rounds = [MagicMock(round_id=f"round_{i}") for i in range(3)]
+        states = [
+            MagicMock(matching_round=round, state_id=f"state_{i}")
+            for i, round in enumerate(rounds)
+        ]
+
+        with mock.patch(
+            "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_all_required_classattributes_are_set"
+        ), mock.patch(
+            "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_state_id_uniqueness"
+        ), mock.patch(
+            "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_initial_state_in_set_of_states"
+        ), pytest.raises(
+            ABCIAppInternalError,
+            match="internal error: round round_0 is a final round it shouldn't have any matching behaviours",
+        ):
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock(
+                    get_all_round_classes=lambda: rounds,
+                    final_states={
+                        rounds[0],
+                    },
+                )
+                behaviour_states = states  # type: ignore
+                initial_state_cls = MagicMock()
+
+            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
+
     def test_get_state_id_to_state_mapping_negative(self) -> None:
         """Test classmethod '_get_state_id_to_state_mapping', negative case."""
         state_id = "state_id"

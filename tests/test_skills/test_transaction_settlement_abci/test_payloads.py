@@ -17,20 +17,104 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the payloads.py module of the skill."""
+"""Test the payloads of the skill."""
+from typing import Optional
+
+import pytest
 
 from packages.valory.skills.transaction_settlement_abci.payloads import (
+    CheckTransactionHistoryPayload,
+    FinalizationTxPayload,
+    RandomnessPayload,
+    ResetPayload,
+    SelectKeeperPayload,
+    SignaturePayload,
     TransactionType,
     ValidatePayload,
 )
 
 
-def test_validate_payload() -> None:
-    """Test `StrategyEvaluationPayload`."""
+def test_randomness_payload() -> None:
+    """Test `RandomnessPayload`."""
 
-    payload = ValidatePayload(sender="sender", is_settled=True, transfers=[])
+    payload = RandomnessPayload(sender="sender", round_id=1, randomness="test")
 
-    assert payload.vote
-    assert payload.transfers == []
-    assert payload.tx_result == '{"is_settled": true, "transfers": []}'
+    assert payload.round_id == 1
+    assert payload.randomness == "test"
+    assert payload.data == {"round_id": 1, "randomness": "test"}
+    assert payload.transaction_type == TransactionType.RANDOMNESS
+
+
+def test_select_keeper_payload() -> None:
+    """Test `SelectKeeperPayload`."""
+
+    payload = SelectKeeperPayload(sender="sender", keeper="test")
+
+    assert payload.keeper == "test"
+    assert payload.data == {"keeper": "test"}
+    assert payload.transaction_type == TransactionType.SELECT_KEEPER
+
+
+@pytest.mark.parametrize("vote", (None, True, False))
+def test_validate_payload(vote: Optional[bool]) -> None:
+    """Test `ValidatePayload`."""
+
+    payload = ValidatePayload(sender="sender", vote=vote)
+
+    assert payload.vote is vote
+    assert payload.data == {} if vote is None else {"vote": vote}
     assert payload.transaction_type == TransactionType.VALIDATE
+
+
+def test_tx_history_payload() -> None:
+    """Test `CheckTransactionHistoryPayload`."""
+
+    payload = CheckTransactionHistoryPayload(sender="sender", verified_res="test")
+
+    assert payload.verified_res == "test"
+    assert payload.data == {"verified_res": "test"}
+    assert payload.transaction_type == TransactionType.CHECK
+
+
+def test_signature_payload() -> None:
+    """Test `SignaturePayload`."""
+
+    payload = SignaturePayload(sender="sender", signature="sign")
+
+    assert payload.signature == "sign"
+    assert payload.data == {"signature": "sign"}
+    assert payload.transaction_type == TransactionType.SIGNATURE
+
+
+def test_finalization_tx_payload() -> None:
+    """Test `FinalizationTxPayload`."""
+
+    payload = FinalizationTxPayload(
+        sender="sender",
+        tx_data={
+            "tx_digest": "hash",
+            "nonce": 0,
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        },
+    )
+
+    assert payload.data == {
+        "tx_data": {
+            "tx_digest": "hash",
+            "nonce": 0,
+            "max_fee_per_gas": 0,
+            "max_priority_fee_per_gas": 0,
+        }
+    }
+    assert payload.transaction_type == TransactionType.FINALIZATION
+
+
+def test_reset_payload() -> None:
+    """Test `ResetPayload`."""
+
+    payload = ResetPayload(sender="sender", period_count=1)
+
+    assert payload.period_count == 1
+    assert payload.data == {"period_count": 1}
+    assert payload.transaction_type == TransactionType.RESET

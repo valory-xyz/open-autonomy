@@ -35,13 +35,6 @@ from packages.valory.skills.safe_deployment_abci.payloads import (
 from packages.valory.skills.safe_deployment_abci.payloads import (
     TransactionType as DSTransactionType,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    FinalizationTxPayload,
-    SignaturePayload,
-)
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    TransactionType as TSTransactionType,
-)
 
 
 def test_select_keeper_payload() -> None:
@@ -84,16 +77,6 @@ def test_estimate_payload() -> None:
     assert payload.transaction_type == PETransactionType.ESTIMATE
 
 
-def test_signature_payload() -> None:
-    """Test `SignaturePayload`."""
-
-    payload = SignaturePayload(sender="sender", signature="sign")
-
-    assert payload.signature == "sign"
-    assert payload.data == {"signature": "sign"}
-    assert payload.transaction_type == TSTransactionType.SIGNATURE
-
-
 def test_transaction_hash_payload() -> None:
     """Test `TransactionHashPayload`."""
 
@@ -102,30 +85,6 @@ def test_transaction_hash_payload() -> None:
     assert payload.tx_hash == "hash"
     assert payload.data == {"tx_hash": "hash"}
     assert payload.transaction_type == PETransactionType.TX_HASH
-
-
-def test_finalization_tx_payload() -> None:
-    """Test `FinalizationTxPayload`."""
-
-    payload = FinalizationTxPayload(
-        sender="sender",
-        tx_data={
-            "tx_digest": "hash",
-            "nonce": 0,
-            "max_fee_per_gas": 0,
-            "max_priority_fee_per_gas": 0,
-        },
-    )
-
-    assert payload.data == {
-        "tx_data": {
-            "tx_digest": "hash",
-            "nonce": 0,
-            "max_fee_per_gas": 0,
-            "max_priority_fee_per_gas": 0,
-        }
-    }
-    assert payload.transaction_type == TSTransactionType.FINALIZATION
 
 
 def test_randomness_payload() -> None:
