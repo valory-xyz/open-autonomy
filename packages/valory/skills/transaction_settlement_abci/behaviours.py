@@ -108,9 +108,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
     @staticmethod
     def _safe_nonce_reused(revert_reason: str) -> bool:
         """Check for GS026."""
-        if "GS026" in revert_reason:
-            return True
-        return False
+        return "GS026" in revert_reason
 
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
