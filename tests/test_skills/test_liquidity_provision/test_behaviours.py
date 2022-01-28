@@ -119,13 +119,13 @@ def get_default_strategy(
             "amount_min_after_swap_back_b": int(1e2),
             "is_native": is_base_native,
             "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": True,
+            "remove_allowance": 0,
         },
         "pair": {
             "token_LP": {
                 "address": LP_TOKEN_ADDRESS,
                 "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": True,
+                "remove_allowance": 0,
             },
             "token_a": {
                 "ticker": "TKA",
@@ -134,7 +134,7 @@ def get_default_strategy(
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": is_a_native,
                 "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": True,
+                "remove_allowance": 0,
             },
             "token_b": {
                 "ticker": "TKB",
@@ -143,7 +143,7 @@ def get_default_strategy(
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": is_b_native,
                 "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": True,
+                "remove_allowance": 0,
             },
         },
     }
@@ -1470,7 +1470,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=period_state.router_contract_address,
-                        value=MAX_ALLOWANCE,
+                        value=strategy["pair"]["token_LP"]["set_allowance"],
                     )
                 ),
             ),

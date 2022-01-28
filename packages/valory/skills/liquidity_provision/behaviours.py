@@ -479,13 +479,13 @@ def get_strategy_update() -> dict:
             "amount_min_after_swap_back_b": int(1e2),
             "is_native": False,
             "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": True,
+            "remove_allowance": 0,
         },
         "pair": {
             "token_LP": {
                 "address": LP_TOKEN_ADDRESS,
                 "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": True,
+                "remove_allowance": 0,
             },
             "token_a": {
                 "ticker": "TKA",
@@ -494,7 +494,7 @@ def get_strategy_update() -> dict:
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": False,  # if one of the two tokens is native, A must be the one
                 "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": True,
+                "remove_allowance": 0,
             },
             "token_b": {
                 "ticker": "TKB",
@@ -503,7 +503,7 @@ def get_strategy_update() -> dict:
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": False,  # if one of the two tokens is native, A must be the one
                 "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": True,
+                "remove_allowance": 0,
             },
         },
     }
@@ -1173,7 +1173,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Remove allowance for base token
             if (
                 not strategy["base"]["is_native"]
-                and strategy["base"]["remove_allowance"]
+                and "remove_allowance" in strategy["base"]
             ):
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -1182,7 +1182,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="approve",
                     spender=self.period_state.router_contract_address,
-                    value=0,
+                    value=strategy["base"]["remove_allowance"],
                 )
                 allowance_base_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
@@ -1199,7 +1199,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Remove allowance for the first token
             if (
                 not strategy["pair"]["token_a"]["is_native"]
-                and strategy["pair"]["token_a"]["remove_allowance"]
+                and "remove_allowance" in strategy["pair"]["token_a"]
             ):
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -1208,7 +1208,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="approve",
                     spender=self.period_state.router_contract_address,
-                    value=0,
+                    value=strategy["pair"]["token_a"]["remove_allowance"],
                 )
                 allowance_base_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
@@ -1225,7 +1225,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Remove allowance for the second token
             if (
                 not strategy["pair"]["token_b"]["is_native"]
-                and strategy["pair"]["token_b"]["remove_allowance"]
+                and "remove_allowance" in strategy["pair"]["token_b"]
             ):
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -1243,7 +1243,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     {
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["pair"]["token_b"]["address"],
-                        "value": 0,
+                        "value": strategy["pair"]["token_b"]["remove_allowance"],
                         "data": HexBytes(allowance_base_data.hex()),
                     }
                 )
