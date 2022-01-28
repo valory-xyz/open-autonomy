@@ -290,10 +290,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             try:
                 strategy = self.period_state.most_voted_strategy
 
-                if strategy["action"] == StrategyType.WAIT:
-                    strategy["action"] = StrategyType.WAIT
-
-                elif strategy["action"] == StrategyType.ENTER:
+                if strategy["action"] == StrategyType.ENTER:
                     strategy["action"] = StrategyType.EXIT
 
                 elif strategy["action"] == StrategyType.EXIT:
