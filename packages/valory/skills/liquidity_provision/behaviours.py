@@ -584,7 +584,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs = []
 
             # Add allowance for base token
-            if "set_allowance" in strategy["base"]:
+            if (
+                not strategy["base"]["is_native"]
+                and "set_allowance" in strategy["base"]
+            ):
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                     contract_address=strategy["base"]["address"],
@@ -1168,7 +1171,10 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(swap_tx_data)
 
             # Remove allowance for base token
-            if strategy["base"]["remove_allowance"]:
+            if (
+                not strategy["base"]["is_native"]
+                and strategy["base"]["remove_allowance"]
+            ):
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                     contract_address=strategy["base"]["address"],
@@ -1184,7 +1190,59 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 multi_send_txs.append(
                     {
                         "operation": MultiSendOperation.CALL,
+                        "to": strategy["base"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_base_data.hex()),
+                    }
+                )
+
+            # Remove allowance for the first token
+            if (
+                not strategy["pair"]["token_a"]["is_native"]
+                and strategy["pair"]["token_a"]["remove_allowance"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_a"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=0,
+                )
+                allowance_base_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
                         "to": strategy["pair"]["token_a"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_base_data.hex()),
+                    }
+                )
+
+            # Remove allowance for the second token
+            if (
+                not strategy["pair"]["token_b"]["is_native"]
+                and strategy["pair"]["token_b"]["remove_allowance"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_b"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=0,
+                )
+                allowance_base_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["pair"]["token_b"]["address"],
                         "value": 0,
                         "data": HexBytes(allowance_base_data.hex()),
                     }
