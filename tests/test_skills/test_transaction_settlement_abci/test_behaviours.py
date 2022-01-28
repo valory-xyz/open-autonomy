@@ -190,8 +190,32 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
-    @pytest.mark.parametrize("resubmitting", (True, False))
-    def test_sender_act(self, resubmitting: bool) -> None:
+    @pytest.mark.parametrize(
+        "resubmitting, res_body",
+        (
+            (
+                True,
+                {
+                    "tx_hash": "0x3b",
+                    "nonce": 0,
+                    "maxFeePerGas": int(10e10),
+                    "maxPriorityFeePerGas": int(10e10),
+                },
+            ),
+            (
+                False,
+                {
+                    "tx_hash": "0x3b",
+                    "nonce": 0,
+                    "maxFeePerGas": int(10e10),
+                    "maxPriorityFeePerGas": int(10e10),
+                },
+            ),
+            (False, {"error": "GS026"}),
+            (False, {"error": "other error"}),
+        ),
+    )
+    def test_sender_act(self, resubmitting: bool, res_body: dict) -> None:
         """Test finalize behaviour."""
         nonce: Optional[int] = None
         max_priority_fee_per_gas: Optional[int] = None
@@ -226,14 +250,11 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == FinalizeBehaviour.state_id
-        )
+
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == FinalizeBehaviour.state_id
         self.behaviour.act_wrapper()
+
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -244,35 +265,33 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 callable="get_deploy_transaction",
                 raw_transaction=RawTransaction(
                     ledger_id="ethereum",
-                    body={
-                        "tx_hash": "0x3b",
-                        "nonce": 0,
-                        "maxFeePerGas": int(10e10),
-                        "maxPriorityFeePerGas": int(10e10),
-                    },
+                    body=res_body,
                 ),
             ),
         )
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
-            ),
-        )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                transaction_digest=TransactionDigest(
-                    ledger_id="ethereum", body="tx_hash"
+
+        if "error" not in res_body:
+            self.mock_signing_request(
+                request_kwargs=dict(
+                    performative=SigningMessage.Performative.SIGN_TRANSACTION
                 ),
-            ),
-        )
+                response_kwargs=dict(
+                    performative=SigningMessage.Performative.SIGNED_TRANSACTION,
+                    signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
+                ),
+            )
+            self.mock_ledger_api_request(
+                request_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
+                ),
+                response_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                    transaction_digest=TransactionDigest(
+                        ledger_id="ethereum", body="tx_hash"
+                    ),
+                ),
+            )
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
