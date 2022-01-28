@@ -921,28 +921,27 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs = []
 
             # Add allowance for LP token to be spent by the router
-            if "set_allowance" in strategy["pair"]["token_LP"]:
-                contract_api_msg = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                    contract_address=strategy["pair"]["token_LP"]["address"],
-                    contract_id=str(UniswapV2ERC20Contract.contract_id),
-                    contract_callable="get_method_data",
-                    method_name="approve",
-                    spender=self.period_state.router_contract_address,
-                    # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
-                    value=strategy["pair"]["token_LP"]["set_allowance"],
-                )
-                allowance_lp_data = cast(
-                    bytes, contract_api_msg.raw_transaction.body["data"]
-                )
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["pair"]["token_LP"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_lp_data.hex()),
-                    }
-                )
+            contract_api_msg = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                contract_id=str(UniswapV2ERC20Contract.contract_id),
+                contract_callable="get_method_data",
+                method_name="approve",
+                spender=self.period_state.router_contract_address,
+                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                value=strategy["pair"]["token_LP"]["set_allowance"],
+            )
+            allowance_lp_data = cast(
+                bytes, contract_api_msg.raw_transaction.body["data"]
+            )
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": strategy["pair"]["token_LP"]["address"],
+                    "value": 0,
+                    "data": HexBytes(allowance_lp_data.hex()),
+                }
+            )
 
             # Remove liquidity
             if strategy["pair"]["token_a"]["is_native"]:
@@ -997,6 +996,29 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "to": self.period_state.router_contract_address,
                         "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
+                    }
+                )
+
+            # Remove allowance for LP token
+            if "remove_allowance" in strategy["pair"]["token_LP"]:
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_LP"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=strategy["pair"]["token_LP"]["remove_allowance"],
+                )
+                allowance_lp_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["pair"]["token_LP"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_lp_data.hex()),
                     }
                 )
 

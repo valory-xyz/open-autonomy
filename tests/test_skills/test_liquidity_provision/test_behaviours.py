@@ -1515,6 +1515,33 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
+        # Remove allowance for LP token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=strategy["pair"]["token_LP"]["remove_allowance"],
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
         # Get the tx list data from multisend contract
         self.mock_contract_api_request(
             contract_id=str(MultiSendContract.contract_id),
@@ -1639,6 +1666,33 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_b_min=int(amount_b_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for LP token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=strategy["pair"]["token_LP"]["remove_allowance"],
                     )
                 ),
             ),
