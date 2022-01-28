@@ -464,19 +464,20 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         }
 
         if (
+            contract_api_msg.performative == ContractApiMessage.Performative.ERROR
+            and contract_api_msg.message is not None
+        ):
+            if self._safe_nonce_reused(contract_api_msg.message):
+                tx_data["status"] = VerificationStatus.VERIFIED
+            else:
+                tx_data["status"] = VerificationStatus.ERROR
+            return tx_data
+
+        if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
             self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
-            return tx_data
-
-        if "error" in contract_api_msg.raw_transaction.body:
-            if self._safe_nonce_reused(
-                cast(str, contract_api_msg.raw_transaction.body["error"])
-            ):
-                tx_data["status"] = VerificationStatus.VERIFIED
-            else:
-                tx_data["status"] = VerificationStatus.ERROR
             return tx_data
 
         tx_digest = yield from self.send_raw_transaction(

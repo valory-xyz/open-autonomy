@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Generator, List, Optional, cast
+from typing import Dict, Generator, List, Optional, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -191,31 +191,79 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
     @pytest.mark.parametrize(
-        "resubmitting, res_body",
+        "resubmitting, response_kwargs",
         (
             (
-                True,
-                {
-                    "tx_hash": "0x3b",
-                    "nonce": 0,
-                    "maxFeePerGas": int(10e10),
-                    "maxPriorityFeePerGas": int(10e10),
-                },
+                (
+                    True,
+                    dict(
+                        performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                        callable="get_deploy_transaction",
+                        raw_transaction=RawTransaction(
+                            ledger_id="ethereum",
+                            body={
+                                "tx_hash": "0x3b",
+                                "nonce": 0,
+                                "maxFeePerGas": int(10e10),
+                                "maxPriorityFeePerGas": int(10e10),
+                            },
+                        ),
+                    ),
+                )
             ),
             (
                 False,
-                {
-                    "tx_hash": "0x3b",
-                    "nonce": 0,
-                    "maxFeePerGas": int(10e10),
-                    "maxPriorityFeePerGas": int(10e10),
-                },
+                dict(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    callable="get_deploy_transaction",
+                    raw_transaction=RawTransaction(
+                        ledger_id="ethereum",
+                        body={
+                            "tx_hash": "0x3b",
+                            "nonce": 0,
+                            "maxFeePerGas": int(10e10),
+                            "maxPriorityFeePerGas": int(10e10),
+                        },
+                    ),
+                ),
             ),
-            (False, {"error": "GS026"}),
-            (False, {"error": "other error"}),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.ERROR,
+                    callable="get_deploy_transaction",
+                    code=500,
+                    message="GS026",
+                    data=b"",
+                ),
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.ERROR,
+                    callable="get_deploy_transaction",
+                    code=500,
+                    message="other error",
+                    data=b"",
+                ),
+            ),
         ),
     )
-    def test_sender_act(self, resubmitting: bool, res_body: dict) -> None:
+    def test_sender_act(
+        self,
+        resubmitting: bool,
+        response_kwargs: Dict[
+            str,
+            Union[
+                int,
+                str,
+                bytes,
+                Dict[str, Union[int, str]],
+                ContractApiMessage.Performative,
+                RawTransaction,
+            ],
+        ],
+    ) -> None:
         """Test finalize behaviour."""
         nonce: Optional[int] = None
         max_priority_fee_per_gas: Optional[int] = None
@@ -260,17 +308,13 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body=res_body,
-                ),
-            ),
+            response_kwargs=response_kwargs,
         )
 
-        if "error" not in res_body:
+        if (
+            response_kwargs["performative"]
+            == ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
             self.mock_signing_request(
                 request_kwargs=dict(
                     performative=SigningMessage.Performative.SIGN_TRANSACTION
