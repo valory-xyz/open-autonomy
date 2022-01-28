@@ -31,15 +31,8 @@ class TransactionType(Enum):
     STRATEGY_EVALUATION = "strategy_evaluation"
     WAIT = "wait"
     ALLOWANCE_CHECK = "allowance_check"
-    SELECT_KEEPER = "select_keeper"
     TRANSACTION_HASH = "tx_hash"
-    TRANSACTION_SIGNATURE = "tx_signature"
-    TRANSACTION_SEND = "tx_send"
-    TRANSACTION_VALIDATION = "tx_validation"
-    TX_HASH = "tx_hash"
-    FINALIZATION = "finalization"
     LP_RESULT = "lp_result"
-    VALIDATE = "validate_transaction"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -58,7 +51,9 @@ class StrategyType(Enum):
     """Enumeration of strategy types."""
 
     WAIT = "wait"
-    GO = "go"
+    ENTER = "enter"
+    EXIT = "exit"
+    SWAP_BACK = "swap_back"
 
     def __str__(self) -> str:  # pragma: nocover
         """Get the string value of the strategy type."""
@@ -89,65 +84,3 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
-
-
-class FinalizationTxPayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'finalization'."""
-
-    transaction_type = TransactionType.FINALIZATION
-
-    def __init__(
-        self,
-        sender: str,
-        tx_hash: Optional[str] = None,
-        id_: Optional[str] = None,
-    ) -> None:
-        """Initialize a 'finalization' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param tx_hash: the transaction hash
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._tx_hash = tx_hash
-
-    @property
-    def tx_hash(self) -> Optional[str]:
-        """Get the tx hash."""
-        return self._tx_hash
-
-    @property
-    def data(self) -> Dict[str, str]:
-        """Get the data."""
-        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
-
-
-class ValidatePayload(BaseLiquidityProvisionPayload):
-    """Represent a transaction payload of type 'validate'."""
-
-    transaction_type = TransactionType.VALIDATE
-
-    def __init__(
-        self,
-        sender: str,
-        transfers: Optional[str] = None,
-        id_: Optional[str] = None,
-    ) -> None:
-        """Initialize an 'validate' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param transfers: the transfers
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._transfers = transfers
-
-    @property
-    def transfers(self) -> Optional[str]:
-        """Get the tx result."""
-        return self._transfers
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(transfers=self.transfers) if self.transfers else {}
