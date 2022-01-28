@@ -212,14 +212,14 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             (
                 None,
                 "",
-                VerificationStatus.VERIFIED.value,
-                TransactionSettlementEvent.KEEPER_A_CATCH_UP,
-            ),
-            (
-                None,
-                "",
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.FATAL,
+            ),
+            (
+                [get_final_tx_hash()],
+                "",
+                VerificationStatus.VERIFIED.value,
+                TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
                 [get_final_tx_hash()],

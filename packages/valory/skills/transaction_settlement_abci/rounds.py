@@ -61,7 +61,6 @@ class Event(Enum):
     VALIDATE_TIMEOUT = "validate_timeout"
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
-    KEEPER_A_CATCH_UP = "keeper_a_catch_up"
     CHECK_HISTORY = "check_history"
     FAILED = "failed"
     FATAL = "fatal"
@@ -212,24 +211,9 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 )
                 return state, Event.DONE
 
-            if (
-                self.keeper_payload is not None
-                and VerificationStatus(self.keeper_payload["status"])
-                == VerificationStatus.VERIFIED
-            ):
-                state = self.period_state.update(
-                    period_state_class=PeriodState,
-                    final_verification_status=VerificationStatus(
-                        self.keeper_payload["status"]
-                    ),
-                )
-                return state, Event.KEEPER_A_CATCH_UP
-
-            if (
-                self.keeper_payload is not None
-                and VerificationStatus(self.keeper_payload["status"])
-                == VerificationStatus.ERROR
-            ):
+            if self.keeper_payload is not None and VerificationStatus(
+                self.keeper_payload["status"]
+            ) in (VerificationStatus.ERROR, VerificationStatus.VERIFIED):
                 state = self.period_state.update(
                     period_state_class=PeriodState,
                     final_verification_status=VerificationStatus(
@@ -489,7 +473,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         },
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
-            Event.KEEPER_A_CATCH_UP: ResetAndPauseRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
