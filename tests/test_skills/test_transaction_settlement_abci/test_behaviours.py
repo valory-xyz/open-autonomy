@@ -461,7 +461,7 @@ class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == ObserveBehaviour.state_id
+        assert state.state_id == ResetAndPauseBehaviour.state_id
 
 
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
