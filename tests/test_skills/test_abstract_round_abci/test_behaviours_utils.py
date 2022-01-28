@@ -484,13 +484,8 @@ class TestBaseState:
         self.behaviour.context.state.period = Period(MagicMock())  # type: ignore
         self.behaviour.context.state.period.start_sync()
         self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
-
-        with mock.patch.object(logging, "info") as log_mock:
-            gen = self.behaviour.async_act_wrapper()
-            gen.send(None)
-            log_mock.assert_called()
-
-        assert self.behaviour.context.state.period.syncing_up is True
+        gen = self.behaviour.async_act_wrapper()
+        gen.send(None)
 
     @mock.patch.object(BaseState, "_get_status", _get_status_patch)
     def test_async_act_wrapper_agent_sync_mode_with_round_none(self) -> None:

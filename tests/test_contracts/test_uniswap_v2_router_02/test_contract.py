@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -176,7 +176,6 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.add_liquidity(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token_a,
                     self.token_b,
                     self.amount_a_desired,
@@ -185,8 +184,9 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.amount_b_min,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -224,15 +224,15 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.add_liquidity_ETH(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token,
                     self.amount_token_desired,
                     self.amount_token_min,
                     self.amount_ETH_min,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -271,7 +271,6 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.remove_liquidity(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token_a,
                     self.token_b,
                     self.liquidity,
@@ -279,8 +278,9 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.amount_b_min,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -318,15 +318,15 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.remove_liquidity_ETH(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token,
                     self.liquidity,
                     self.amount_token_min,
                     self.amount_ETH_min,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -369,7 +369,6 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.remove_liquidity_with_permit(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token_a,
                     self.token_b,
                     self.liquidity,
@@ -381,8 +380,9 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.v,
                     self.r,
                     self.s,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -424,7 +424,6 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.remove_liquidity_ETH_with_permit(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token,
                     self.liquidity,
                     self.amount_token_min,
@@ -435,8 +434,9 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.v,
                     self.r,
                     self.s,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -474,15 +474,15 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.remove_liquidity_ETH_Supporting_fee_on_transfer_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token,
                     self.liquidity,
                     self.amount_token_min,
                     self.amount_ETH_min,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -526,7 +526,6 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.remove_liquidity_ETH_with_permit_supporting_fee_on_transfer_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.token,
                     self.liquidity,
                     self.amount_token_min,
@@ -537,8 +536,9 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                     self.v,
                     self.r,
                     self.s,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -575,14 +575,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_exact_tokens_for_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_in,
                     self.amount_out_min,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -619,14 +619,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_tokens_for_exact_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_out,
                     self.amount_in_max,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -657,13 +657,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_exact_ETH_for_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_out_min,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -700,14 +700,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_tokens_for_exact_ETH(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_out,
                     self.amount_in_max,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -744,14 +744,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_exact_tokens_for_ETH(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_in,
                     self.amount_out_min,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -782,13 +782,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_ETH_for_exact_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_out,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -827,14 +827,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_exact_tokens_for_tokens_supporting_fee_on_transfer_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_in,
                     self.amount_out_min,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -865,13 +865,13 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_exact_ETH_for_tokens_supporting_fee_on_transfer_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_out_min,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -908,14 +908,14 @@ class TestUniswapV2Router02Contract(BaseContractTestCase):
                 result = self.contract.swap_exact_tokens_for_ETH_supporting_fee_on_transfer_tokens(
                     self.ledger_api,
                     self.contract_address,
-                    self.sender_address,
                     self.amount_in,
                     self.amount_out_min,
                     self.path,
                     self.to_address,
                     self.deadline,
+                    sender_address=self.sender_address,
                     gas=gas,
-                    gas_price=self.gas_price,
+                    gasPrice=self.gas_price,
                 )
         assert result == {
             "chainId": CHAIN_ID,
@@ -1058,13 +1058,13 @@ class TestSwapHardhat(BaseContractTestHardHatAMMNet):
         result = self.contract.swap_exact_ETH_for_tokens(
             self.ledger_api,
             self.contract_address,
-            ADDRESS_ONE,
             self.amount_out_min,
             self.path,
             self.to_address,
             self.deadline,
+            sender_address=ADDRESS_ONE,
             gas=gas,
-            gas_price=DEFAULT_GAS_PRICE,
+            gasPrice=DEFAULT_GAS_PRICE,
         )
         assert result == {
             "chainId": CHAIN_ID,

@@ -160,11 +160,11 @@ class TestDeployTransaction(BaseContractTest):
         result = self.contract.transmit(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
-            sender_address=self.transmitters()[0],
-            gas=self.GAS,
             epoch_=epoch_,
             round_=round_,
             amount_=amount_,
+            sender_address=self.transmitters()[0],
+            gas=self.GAS,
         )
         assert result is not None, "Tx generation failed"
         assert len(result) == 8

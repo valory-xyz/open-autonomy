@@ -147,6 +147,8 @@ class DummyCollectSameUntilThresholdRound(CollectSameUntilThresholdRound, DummyR
 class DummyOnlyKeeperSendsRound(OnlyKeeperSendsRound, DummyRound):
     """Dummy Class for OnlyKeeperSendsRound"""
 
+    fail_event = "FAIL_EVENT"
+
 
 class DummyVotingRound(VotingRound, DummyRound):
     """Dummy Class for VotingRound"""
@@ -633,7 +635,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         assert test_round.most_voted_payload is None
 
 
-class TestOnlyKeeperSendsRound(_BaseRoundTestClass):
+class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest):
     """Test OnlyKeeperSendsRound."""
 
     def test_run(
@@ -686,6 +688,27 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass):
             TransactionNotValidError, match="agent_1 not elected as keeper."
         ):
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
+
+    def test_keeper_payload_is_none(
+        self,
+    ) -> None:
+        """Test keeper payload valur set to none."""
+
+        keeper = "agent_0"
+        self._complete_run(
+            self._test_round(
+                test_round=DummyOnlyKeeperSendsRound(
+                    state=self.period_state.update(
+                        most_voted_keeper_address=keeper,
+                    ),
+                    consensus_params=self.consensus_params,
+                ),
+                keeper_payloads=DummyTxPayload(keeper, None),
+                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_attr_checks=[],
+                exit_event="FAIL_EVENT",
+            )
+        )
 
 
 class TestVotingRound(_BaseRoundTestClass):
