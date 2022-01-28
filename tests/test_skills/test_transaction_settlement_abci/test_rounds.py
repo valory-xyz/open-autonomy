@@ -211,19 +211,19 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         (
             (
                 None,
-                None,
+                "",
                 VerificationStatus.VERIFIED.value,
                 TransactionSettlementEvent.KEEPER_A_CATCH_UP,
             ),
             (
                 None,
-                None,
+                "",
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.FATAL,
             ),
             (
                 None,
-                None,
+                "",
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.FAILED,
             ),
