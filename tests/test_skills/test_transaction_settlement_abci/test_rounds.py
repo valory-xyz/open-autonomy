@@ -222,6 +222,12 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                 TransactionSettlementEvent.FATAL,
             ),
             (
+                [get_final_tx_hash()],
+                "",
+                VerificationStatus.ERROR.value,
+                TransactionSettlementEvent.CHECK_HISTORY,
+            ),
+            (
                 None,
                 "",
                 VerificationStatus.PENDING.value,

@@ -62,6 +62,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     RESET_AND_PAUSE_TIMEOUT = "reset_and_pause_timeout"
     KEEPER_A_CATCH_UP = "keeper_a_catch_up"
+    CHECK_HISTORY = "check_history"
     FAILED = "failed"
     FATAL = "fatal"
 
@@ -235,6 +236,8 @@ class FinalizationRound(OnlyKeeperSendsRound):
                         self.keeper_payload["status"]
                     ),
                 )
+                if cast(PeriodState, self.period_state).tx_hashes_history is not None:
+                    return state, Event.CHECK_HISTORY
                 return state, Event.FATAL
 
             if self.keeper_payload is None or self.keeper_payload["tx_digest"] == "":
@@ -487,6 +490,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.KEEPER_A_CATCH_UP: ResetAndPauseRound,
+            Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
             Event.FAILED: SelectKeeperTransactionSubmissionRoundB,
             Event.FATAL: FailedRound,
