@@ -105,6 +105,11 @@ class TransactionSettlementBaseState(BaseState, ABC):
 
         return contract_api_msg
 
+    @staticmethod
+    def _safe_nonce_reused(revert_reason: str) -> bool:
+        """Check for GS026."""
+        return "GS026" in revert_reason
+
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
@@ -300,13 +305,6 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
         return cast(str, contract_api_msg.state.body["revert_reason"])
 
-    @staticmethod
-    def _safe_nonce_reused(revert_reason: str) -> bool:
-        """Check for GS026."""
-        if "GS026" in revert_reason:
-            return True
-        return False
-
 
 class SignatureBehaviour(TransactionSettlementBaseState):
     """Signature state."""
@@ -397,10 +395,16 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 "I am the designated sender, attempting to send the safe transaction..."
             )
             tx_data = yield from self._send_safe_transaction()
-            if tx_data is None or tx_data["tx_digest"] is None:
-                # if we enter here, then the event.FAILED will be raised from the round, and we will select a new keeper
-                self.context.logger.error(  # pragma: nocover
+            if (
+                tx_data["tx_digest"] == ""
+                and tx_data["status"] == VerificationStatus.PENDING
+            ) or tx_data["status"] == VerificationStatus.ERROR:
+                self.context.logger.error(
                     "Did not succeed with finalising the transaction!"
+                )
+            elif tx_data["status"] == VerificationStatus.VERIFIED:
+                self.context.logger.error(
+                    "Trying to finalize a transaction which has been verified already!"
                 )
             else:
                 self.context.logger.info(
@@ -409,7 +413,11 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_data)
+            tx_data["status"] = cast(VerificationStatus, tx_data["status"]).value
+            payload = FinalizationTxPayload(
+                self.context.agent_address,
+                cast(Dict[str, Union[str, int]], tx_data),
+            )
 
         with benchmark_tool.measure(
             self,
@@ -421,7 +429,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
     def _send_safe_transaction(
         self,
-    ) -> Generator[None, None, Optional[Dict[str, Union[None, str, int]]]]:
+    ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
         _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
             self.period_state.most_voted_tx_hash
@@ -445,26 +453,44 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             nonce=self.period_state.nonce,
             old_tip=self.period_state.max_priority_fee_per_gas,
         )
+
+        tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
+            "status": VerificationStatus.PENDING,
+            "tx_digest": "",
+            "nonce": "",
+            "max_priority_fee_per_gas": "",
+        }
+
+        if (
+            contract_api_msg.performative == ContractApiMessage.Performative.ERROR
+            and contract_api_msg.message is not None
+        ):
+            if self._safe_nonce_reused(contract_api_msg.message):
+                tx_data["status"] = VerificationStatus.VERIFIED
+            else:
+                tx_data["status"] = VerificationStatus.ERROR
+            return tx_data
+
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
             self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
-            return None
+            return tx_data
+
         tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
-
-        tx_data = {
-            "tx_digest": tx_digest,
-            "nonce": int(cast(str, contract_api_msg.raw_transaction.body["nonce"])),
-            "max_priority_fee_per_gas": int(
-                cast(
-                    str,
-                    contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
-                )
-            ),
-        }
+        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
+        tx_data["nonce"] = int(
+            cast(str, contract_api_msg.raw_transaction.body["nonce"])
+        )
+        tx_data["max_priority_fee_per_gas"] = int(
+            cast(
+                str,
+                contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
+            )
+        )
 
         return tx_data
 
