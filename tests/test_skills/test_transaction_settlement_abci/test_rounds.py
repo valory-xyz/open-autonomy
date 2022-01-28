@@ -206,43 +206,47 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
     _period_state_class = TransactionSettlementPeriodState
     _event_class = TransactionSettlementEvent
 
-    @pytest.mark.parametrize("tx_hashes_history", (None, [get_final_tx_hash()]))
-    def test_run_success(self, tx_hashes_history: Optional[List[str]]) -> None:
-        """Runs tests."""
-
-        keeper = sorted(list(self.participants))[0]
-        self.period_state = cast(
-            PeriodState,
-            self.period_state.update(most_voted_keeper_address=keeper),
-        )
-
-        test_round = FinalizationRound(
-            state=self.period_state,
-            consensus_params=self.consensus_params,
-        )
-
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                keeper_payloads=FinalizationTxPayload(
-                    sender=keeper,
-                    tx_data={
-                        "tx_digest": "hash",
-                        "nonce": 0,
-                        "max_fee_per_gas": 0,
-                        "max_priority_fee_per_gas": 0,
-                    },
-                ),
-                state_update_fn=lambda _period_state, _: _period_state.update(
-                    tx_hashes_history=tx_hashes_history
-                ),
-                state_attr_checks=[lambda state: state.final_tx_hash],
-                exit_event=self._event_class.DONE,
-            )
-        )
-
-    def test_run_failure(
+    @pytest.mark.parametrize(
+        "tx_hashes_history, tx_digest, status, exit_event",
+        (
+            (
+                None,
+                None,
+                VerificationStatus.VERIFIED.value,
+                TransactionSettlementEvent.KEEPER_A_CATCH_UP,
+            ),
+            (
+                None,
+                None,
+                VerificationStatus.ERROR.value,
+                TransactionSettlementEvent.FATAL,
+            ),
+            (
+                None,
+                None,
+                VerificationStatus.PENDING.value,
+                TransactionSettlementEvent.FAILED,
+            ),
+            (
+                None,
+                "tx_digest",
+                VerificationStatus.PENDING.value,
+                TransactionSettlementEvent.DONE,
+            ),
+            (
+                [get_final_tx_hash()],
+                "tx_digest",
+                VerificationStatus.PENDING.value,
+                TransactionSettlementEvent.DONE,
+            ),
+        ),
+    )
+    def test_finalization_round(
         self,
+        tx_hashes_history: Optional[List[str]],
+        tx_digest: str,
+        status: int,
+        exit_event: TransactionSettlementEvent,
     ) -> None:
         """Runs tests."""
 
@@ -257,23 +261,28 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             consensus_params=self.consensus_params,
         )
 
+        state_attr_checks = []
+        if exit_event == TransactionSettlementEvent.DONE:
+            state_attr_checks = [lambda state: state.final_tx_hash]
+
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 keeper_payloads=FinalizationTxPayload(
                     sender=keeper,
                     tx_data={
-                        "tx_digest": None,
+                        "status": status,
+                        "tx_digest": tx_digest,
                         "nonce": 0,
                         "max_fee_per_gas": 0,
                         "max_priority_fee_per_gas": 0,
                     },
                 ),
                 state_update_fn=lambda _period_state, _: _period_state.update(
-                    tx_hashes_history=[get_final_tx_hash()]
+                    tx_hashes_history=tx_hashes_history
                 ),
-                state_attr_checks=[],
-                exit_event=self._event_class.FAILED,
+                state_attr_checks=state_attr_checks,
+                exit_event=exit_event,
             )
         )
 
