@@ -114,7 +114,6 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round(Event.DONE)
 
 
 class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
