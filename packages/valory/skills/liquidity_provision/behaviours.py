@@ -324,7 +324,6 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                     f"Performing strategy update: swapping back {strategy['pair']['token_a']['ticker']}, {strategy['pair']['token_b']['ticker']}"
                 )
 
-            strategy["action"] = strategy["action"].value  # type: ignore
             payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
 
         with benchmark_tool.measure(
