@@ -35,6 +35,12 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
+    AMOUNT_A_RECEIVED,
+    AMOUNT_A_SENT,
+    AMOUNT_BASE_SENT,
+    AMOUNT_B_RECEIVED,
+    AMOUNT_B_SENT,
+    AMOUNT_LIQUIDITY_RECEIVED,
     CURRENT_BLOCK_TIMESTAMP,
     ETHER_VALUE,
     EnterPoolTransactionHashBehaviour,
@@ -45,12 +51,6 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
     parse_tx_token_balance,
-    AMOUNT_BASE_SENT,
-    AMOUNT_A_SENT,
-    AMOUNT_B_SENT,
-    AMOUNT_LIQUIDITY_RECEIVED,
-    AMOUNT_A_RECEIVED,
-    AMOUNT_B_RECEIVED,
 )
 from packages.valory.skills.liquidity_provision.rounds import Event
 from packages.valory.skills.liquidity_provision.rounds import (
