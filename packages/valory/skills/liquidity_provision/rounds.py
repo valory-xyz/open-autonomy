@@ -259,7 +259,7 @@ class FinishedSwapBackTransactionHashRound(DegenerateRound):
     round_id = "finished_swap_back_hash"
 
 
-class LiquidityStrategyAbciApp(AbciApp[Event]):
+class LiquidityRebalancingAbciApp(AbciApp[Event]):
     """LiquidtyStrategyAbciApp
 
     Initial round: ResetRound

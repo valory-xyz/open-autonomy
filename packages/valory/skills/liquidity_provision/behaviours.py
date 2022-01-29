@@ -54,7 +54,7 @@ from packages.valory.skills.liquidity_provision.payloads import (
 from packages.valory.skills.liquidity_provision.rounds import (
     EnterPoolTransactionHashRound,
     ExitPoolTransactionHashRound,
-    LiquidityStrategyAbciApp,
+    LiquidityRebalancingAbciApp,
     PeriodState,
     SleepRound,
     StrategyEvaluationRound,
@@ -1013,7 +1013,7 @@ class StrategyRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = LiquidityStrategyAbciApp  # type: ignore
+    abci_app_cls = LiquidityRebalancingAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore

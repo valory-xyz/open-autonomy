@@ -27,7 +27,7 @@ from packages.valory.skills.liquidity_provision.rounds import (
     FinishedEnterPoolTransactionHashRound,
     FinishedExitPoolTransactionHashRound,
     FinishedSwapBackTransactionHashRound,
-    LiquidityStrategyAbciApp,
+    LiquidityRebalancingAbciApp,
     StrategyEvaluationRound,
 )
 from packages.valory.skills.registration_abci.rounds import (
@@ -64,7 +64,7 @@ LiquidityProvisionAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
-        LiquidityStrategyAbciApp,
+        LiquidityRebalancingAbciApp,
         TransactionSubmissionAbciApp,
     ),
     abci_app_transition_mapping,
