@@ -390,7 +390,7 @@ class TestLiquidityProvisionHardhat(
         :param expected_types: the types to be expected
         :return: the incoming message
         """
-        self.liquidity_provision_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         if type(handler) == SigningHandler:
             self.assert_quantity_in_decision_making_queue(1)
@@ -470,14 +470,14 @@ class TestLiquidityProvisionHardhat(
         ), "Number of cycles, handlers, contents and types does not match"
 
         self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
+            behaviour=self.behaviour,
             state_id=state_id,
             period_state=period_state,
         )
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
+                cast(BaseState, self.behaviour.current_state),
             ).state_id
             == state_id
         )
@@ -489,7 +489,7 @@ class TestLiquidityProvisionHardhat(
             )
             incoming_messages.append(incoming_message)
 
-        self.liquidity_provision_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         return tuple(incoming_messages)
 
