@@ -45,6 +45,12 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
     parse_tx_token_balance,
+    AMOUNT_BASE_SENT,
+    AMOUNT_A_SENT,
+    AMOUNT_B_SENT,
+    AMOUNT_LIQUIDITY_RECEIVED,
+    AMOUNT_A_RECEIVED,
+    AMOUNT_B_RECEIVED,
 )
 from packages.valory.skills.liquidity_provision.rounds import Event
 from packages.valory.skills.liquidity_provision.rounds import (
@@ -739,9 +745,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             )
         )
 
-        amount_base_sent = 0
-        amount_b_sent = 0
-        amount_liquidity_received = 0
+        amount_base_sent = AMOUNT_BASE_SENT
+        amount_b_sent = AMOUNT_B_SENT
+        amount_liquidity_received = AMOUNT_LIQUIDITY_RECEIVED
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -902,9 +908,9 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             )
         )
 
-        amount_a_sent = 0
-        amount_b_sent = 0
-        amount_liquidity_received = 0
+        amount_a_sent = AMOUNT_A_SENT
+        amount_b_sent = AMOUNT_B_SENT
+        amount_liquidity_received = AMOUNT_LIQUIDITY_RECEIVED
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -1119,7 +1125,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
         # Swap second token back
-        amount_b_received = 0
+        amount_b_received = AMOUNT_B_RECEIVED
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1285,7 +1291,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.behaviour.act_wrapper()
 
         # Swap first token back
-        amount_a_received = 0
+        amount_a_received = AMOUNT_A_RECEIVED
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1321,7 +1327,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
         # Swap second token back
-        amount_b_received = 0
+        amount_b_received = AMOUNT_B_RECEIVED
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
