@@ -46,7 +46,10 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     get_dummy_strategy,
     parse_tx_token_balance,
 )
-from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
+from packages.valory.skills.liquidity_provision.rounds import Event
+from packages.valory.skills.liquidity_provision.rounds import (
+    PeriodState as LiquidityProvisionPeriodState,
+)
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
@@ -64,7 +67,7 @@ def get_default_strategy(
 
 
 class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
-    """Base case for testing PriceEstimation FSMBehaviour."""
+    """Base case for testing LiquidityProvision FSMBehaviour."""
 
     path_to_skill = Path(
         ROOT_DIR, "packages", "valory", "skills", "liquidity_provision"
@@ -77,12 +80,12 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
     def test_transaction_hash(
         self,
     ) -> None:
-        """Test tx hash behaviour."""
+        """Run tests."""
 
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -125,7 +128,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -375,7 +378,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -656,7 +659,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
         strategy = get_default_strategy(
             is_base_native=True, is_a_native=True, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -722,7 +725,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -885,7 +888,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1054,7 +1057,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -1254,7 +1257,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=False, is_b_native=False
         )
-        period_state = PeriodState(
+        period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
