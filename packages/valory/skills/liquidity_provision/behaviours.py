@@ -409,7 +409,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="approve",
                     spender=self.period_state.router_contract_address,
-                    # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                     value=strategy["base"]["set_allowance"],
                 )
                 allowance_base_data = cast(
@@ -480,7 +479,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="approve",
                     spender=self.period_state.router_contract_address,
-                    # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                     value=strategy["pair"]["token_a"]["set_allowance"],
                 )
                 allowance_a_data = cast(
@@ -507,7 +505,6 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="approve",
                     spender=self.period_state.router_contract_address,
-                    # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                     value=strategy["pair"]["token_b"]["set_allowance"],
                 )
                 allowance_b_data = cast(
@@ -679,7 +676,6 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_callable="get_method_data",
                 method_name="approve",
                 spender=self.period_state.router_contract_address,
-                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
                 value=strategy["pair"]["token_LP"]["set_allowance"],
             )
             allowance_lp_data = cast(
