@@ -40,14 +40,12 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
-    LP_TOKEN_ADDRESS,
     MAX_ALLOWANCE,
-    SAFE_TX_GAS,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
+    get_dummy_strategy,
     parse_tx_token_balance,
 )
-from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
@@ -58,49 +56,11 @@ def get_default_strategy(
     is_base_native: bool, is_a_native: bool, is_b_native: bool
 ) -> Dict:
     """Returns default strategy."""
-    return {
-        "action": StrategyType.ENTER.value,
-        "safe_nonce": 0,
-        "chain": "Ethereum",
-        "safe_tx_gas": SAFE_TX_GAS,
-        "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
-        "base": {
-            "ticker": "WETH",
-            "address": "0xWETH_ADDRESS",
-            "amount_in_max_a": int(1e4),
-            "amount_min_after_swap_back_a": int(1e2),
-            "amount_in_max_b": int(1e4),
-            "amount_min_after_swap_back_b": int(1e2),
-            "is_native": is_base_native,
-            "set_allowance": MAX_ALLOWANCE,
-            "remove_allowance": 0,
-        },
-        "pair": {
-            "token_LP": {
-                "address": LP_TOKEN_ADDRESS,
-                "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": 0,
-            },
-            "token_a": {
-                "ticker": "TKA",
-                "address": "0xTKA_ADDRESS",
-                "amount_after_swap": int(1e3),
-                "amount_min_after_add_liq": int(0.5e3),
-                "is_native": is_a_native,
-                "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": 0,
-            },
-            "token_b": {
-                "ticker": "TKB",
-                "address": "0xTKB_ADDRESS",
-                "amount_after_swap": int(1e3),
-                "amount_min_after_add_liq": int(0.5e3),
-                "is_native": is_b_native,
-                "set_allowance": MAX_ALLOWANCE,
-                "remove_allowance": 0,
-            },
-        },
-    }
+    strategy = get_dummy_strategy()
+    strategy["base"]["is_native"] = is_base_native
+    strategy["pair"]["token_a"]["is_native"] = is_a_native
+    strategy["pair"]["token_b"]["is_native"] = is_b_native
+    return strategy
 
 
 class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
