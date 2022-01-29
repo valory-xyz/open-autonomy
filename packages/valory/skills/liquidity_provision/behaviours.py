@@ -225,7 +225,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 def get_dummy_strategy() -> dict:
     """Get a dummy strategy."""
     strategy = {
-        "action": StrategyType.ENTER,
+        "action": StrategyType.ENTER.value,
         "safe_nonce": 0,
         "safe_tx_gas": SAFE_TX_GAS,
         "deadline": CURRENT_BLOCK_TIMESTAMP + 300,  # 5 min into future
@@ -304,22 +304,22 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                 strategy = get_dummy_strategy()
 
             # Log the new strategy
-            if strategy["action"] == StrategyType.WAIT:  # pragma: nocover
+            if strategy["action"] == StrategyType.WAIT.value:  # pragma: nocover
                 self.context.logger.info("Current strategy is still optimal. Waiting.")
 
-            if strategy["action"] == StrategyType.ENTER:
+            if strategy["action"] == StrategyType.ENTER.value:
                 self.context.logger.info(
                     "Performing strategy update: moving into "
                     + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {self.period_state.router_contract_address})"
                 )
 
-            if strategy["action"] == StrategyType.EXIT:  # pragma: nocover
+            if strategy["action"] == StrategyType.EXIT.value:  # pragma: nocover
                 self.context.logger.info(
                     "Performing strategy update: moving out of "
                     + f"{strategy['pair']['token_a']['ticker']}-{strategy['pair']['token_b']['ticker']} (pool {self.period_state.router_contract_address})"
                 )
 
-            if strategy["action"] == StrategyType.SWAP_BACK:  # pragma: nocover
+            if strategy["action"] == StrategyType.SWAP_BACK.value:  # pragma: nocover
                 self.context.logger.info(
                     f"Performing strategy update: swapping back {strategy['pair']['token_a']['ticker']}, {strategy['pair']['token_b']['ticker']}"
                 )
