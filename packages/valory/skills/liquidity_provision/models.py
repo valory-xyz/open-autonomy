@@ -26,8 +26,8 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.liquidity_provision.rounds import (
-    LiquidityRebalancingAbciApp,
+from packages.valory.skills.liquidity_provision.composition import (
+    LiquidityProvisionAbciApp,
 )
 
 
@@ -39,7 +39,7 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=LiquidityRebalancingAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=LiquidityProvisionAbciApp, **kwargs)
 
 
 class Params(BaseParams):
