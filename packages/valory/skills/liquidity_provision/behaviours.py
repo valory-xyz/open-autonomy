@@ -290,14 +290,14 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             try:
                 strategy = self.period_state.most_voted_strategy
 
-                if strategy["action"] == StrategyType.ENTER:
-                    strategy["action"] = StrategyType.EXIT
+                if strategy["action"] == StrategyType.ENTER.value:
+                    strategy["action"] = StrategyType.EXIT.value
 
-                elif strategy["action"] == StrategyType.EXIT:
-                    strategy["action"] = StrategyType.SWAP_BACK
+                elif strategy["action"] == StrategyType.EXIT.value:
+                    strategy["action"] = StrategyType.SWAP_BACK.value
 
-                elif strategy["action"] == StrategyType.SWAP_BACK:
-                    strategy["action"] = StrategyType.ENTER
+                elif strategy["action"] == StrategyType.SWAP_BACK.value:
+                    strategy["action"] = StrategyType.ENTER.value
 
             # An exception will occur during the first run as no strategy was set
             except ValueError:

@@ -196,13 +196,13 @@ class StrategyEvaluationRound(
                 most_voted_strategy=self.most_voted_payload,
             )
             event = Event.RESET_TIMEOUT
-            if self.most_voted_payload["action"] == StrategyType.WAIT:
+            if self.most_voted_payload["action"] == StrategyType.WAIT.value:
                 event = Event.DONE
-            elif self.most_voted_payload["action"] == StrategyType.ENTER:
+            elif self.most_voted_payload["action"] == StrategyType.ENTER.value:
                 event = Event.DONE_ENTER
-            elif self.most_voted_payload["action"] == StrategyType.EXIT:
+            elif self.most_voted_payload["action"] == StrategyType.EXIT.value:
                 event = Event.DONE_EXIT
-            elif self.most_voted_payload["action"] == StrategyType.SWAP_BACK:
+            elif self.most_voted_payload["action"] == StrategyType.SWAP_BACK.value:
                 event = Event.DONE_SWAP_BACK
             return state, event
         if not self.is_majority_possible(
