@@ -30,7 +30,7 @@ def test_strategy_evaluation_payload() -> None:
     """Test `StrategyEvaluationPayload`."""
 
     strategy = {
-        "action": StrategyType.GO,
+        "action": StrategyType.ENTER,
         "pair": ["FTM", "BOO"],
         "pool": "0x0000000000000000000000000000",
         "amountETH": 0.1,  # Be careful with floats and determinism here

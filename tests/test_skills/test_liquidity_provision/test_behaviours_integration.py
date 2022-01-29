@@ -56,26 +56,23 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     AB_POOL_ADDRESS,
     DEFAULT_MINTER,
     EnterPoolTransactionHashBehaviour,
-    EnterPoolTransactionSendBehaviour,
-    EnterPoolTransactionSignatureBehaviour,
-    EnterPoolTransactionValidationBehaviour,
     ExitPoolTransactionHashBehaviour,
-    ExitPoolTransactionSendBehaviour,
-    ExitPoolTransactionSignatureBehaviour,
-    ExitPoolTransactionValidationBehaviour,
     LP_TOKEN_ADDRESS,
     SwapBackTransactionHashBehaviour,
-    SwapBackTransactionSendBehaviour,
-    SwapBackTransactionSignatureBehaviour,
-    SwapBackTransactionValidationBehaviour,
     TOKEN_A_ADDRESS,
-    get_strategy_update,
+    get_dummy_strategy,
     parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import SigningHandler
-from packages.valory.skills.liquidity_provision.payloads import ValidatePayload
 from packages.valory.skills.liquidity_provision.rounds import PeriodState
-from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    FinalizeBehaviour,
+    ValidateTransactionBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    SignaturePayload,
+    ValidatePayload,
+)
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
 from tests.fixture_helpers import HardHatAMMBaseTest
@@ -292,7 +289,7 @@ class TestLiquidityProvisionHardhat(
         )
 
         # setup default objects
-        cls.strategy = get_strategy_update()
+        cls.strategy = get_dummy_strategy()
         cls.strategy[
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
@@ -529,31 +526,6 @@ class TestLiquidityProvisionHardhat(
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash == self.most_voted_tx_hash_enter
 
-    def test_enter_pool_tx_sign_behaviour(self) -> None:
-        """test_enter_pool_tx_sign_behaviour"""
-        # value taken from test_enter_pool_tx_hash_behaviour flow
-        period_state = cast(
-            PeriodState,
-            self.default_period_state_enter.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_enter
-            ),
-        )
-
-        cycles = 1
-        handlers: HANDLERS = [self.signing_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
-            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
-        ] * cycles
-        expected_types: EXPECTED_TYPES = [None] * cycles
-        self.process_n_messsages(
-            EnterPoolTransactionSignatureBehaviour.state_id,
-            cycles,
-            period_state,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-
     def test_enter_exit_swap_back_send_and_validate_behaviour(self) -> None:
         """test_enter_pool_tx_send_behaviour"""
 
@@ -605,7 +577,7 @@ class TestLiquidityProvisionHardhat(
             },
         ]
         _, _, msg = self.process_n_messsages(
-            EnterPoolTransactionSendBehaviour.state_id,
+            FinalizeBehaviour.state_id,
             3,
             period_state,
             handlers,
@@ -656,7 +628,7 @@ class TestLiquidityProvisionHardhat(
             },
         ]
         _, verif_msg, transfers_msg = self.process_n_messsages(
-            EnterPoolTransactionValidationBehaviour.state_id,
+            ValidateTransactionBehaviour.state_id,
             3,
             period_state,
             handlers,
@@ -747,7 +719,7 @@ class TestLiquidityProvisionHardhat(
             },
         ]
         _, _, msg = self.process_n_messsages(
-            ExitPoolTransactionSendBehaviour.state_id,
+            FinalizeBehaviour.state_id,
             3,
             period_state,
             handlers,
@@ -791,7 +763,7 @@ class TestLiquidityProvisionHardhat(
             },
         ]
         _, verif_msg, transfers_msg = self.process_n_messsages(
-            ExitPoolTransactionValidationBehaviour.state_id,
+            ValidateTransactionBehaviour.state_id,
             3,
             period_state,
             handlers,
@@ -874,7 +846,7 @@ class TestLiquidityProvisionHardhat(
             },
         ]
         _, _, msg = self.process_n_messsages(
-            SwapBackTransactionSendBehaviour.state_id,
+            FinalizeBehaviour.state_id,
             3,
             period_state,
             handlers,
@@ -918,7 +890,7 @@ class TestLiquidityProvisionHardhat(
             },
         ]
         _, verif_msg, transfers_msg = self.process_n_messsages(
-            SwapBackTransactionValidationBehaviour.state_id,
+            ValidateTransactionBehaviour.state_id,
             3,
             period_state,
             handlers,
@@ -996,35 +968,6 @@ class TestLiquidityProvisionHardhat(
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash == self.most_voted_tx_hash_exit
 
-    def test_exit_pool_tx_sign_behaviour(self) -> None:
-        """test_exit_pool_tx_sign_behaviour"""
-
-        strategy = deepcopy(self.strategy)
-        strategy["safe_nonce"] = 1
-
-        # values taken from test_exit_pool_tx_hash_behaviour flow
-        period_state = cast(
-            PeriodState,
-            self.default_period_state_exit.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_exit,
-                most_voted_strategy=strategy,
-            ),
-        )
-        cycles = 1
-        handlers: HANDLERS = [self.signing_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
-            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
-        ] * cycles
-        expected_types: EXPECTED_TYPES = [None] * cycles
-        self.process_n_messsages(
-            ExitPoolTransactionSignatureBehaviour.state_id,
-            cycles,
-            period_state,
-            handlers,
-            expected_content,
-            expected_types,
-        )
-
     # Swap back behaviours
 
     def test_swap_back_tx_hash_behaviour(self) -> None:
@@ -1083,32 +1026,3 @@ class TestLiquidityProvisionHardhat(
         assert msg_b is not None and isinstance(msg_b, ContractApiMessage)
         tx_hash = cast(str, msg_b.raw_transaction.body["tx_hash"])[2:]
         assert tx_hash == self.most_voted_tx_hash_swap_back
-
-    def test_swap_back_tx_sign_behaviour(self) -> None:
-        """test_swap_back_tx_sign_behaviour"""
-
-        strategy = deepcopy(self.strategy)
-        strategy["safe_nonce"] = 2
-
-        # values taken from test_swap_back_tx_hash_behaviour flow
-        period_state = cast(
-            PeriodState,
-            self.default_period_state_swap_back.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_swap_back,
-                most_voted_strategy=strategy,
-            ),
-        )
-        cycles = 1
-        handlers: HANDLERS = [self.signing_handler] * cycles
-        expected_content: EXPECTED_CONTENT = [
-            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}  # type: ignore
-        ] * cycles
-        expected_types: EXPECTED_TYPES = [None] * cycles
-        self.process_n_messsages(
-            SwapBackTransactionSignatureBehaviour.state_id,
-            cycles,
-            period_state,
-            handlers,
-            expected_content,
-            expected_types,
-        )

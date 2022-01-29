@@ -17,7 +17,6 @@
 #
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
-import binascii
 import json
 from copy import copy
 from pathlib import Path
@@ -26,16 +25,8 @@ from unittest import mock
 
 import pytest
 from aea.exceptions import AEAActException
-from aea.helpers.transaction.base import (
-    RawTransaction,
-    SignedMessage,
-    SignedTransaction,
-    State,
-    TransactionDigest,
-    TransactionReceipt,
-)
+from aea.helpers.transaction.base import RawTransaction, SignedMessage
 from aea.test_tools.test_skill import BaseSkillTestCase
-from aea_ledger_ethereum.ethereum import EthereumApi
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
@@ -71,9 +62,6 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     CURRENT_BLOCK_TIMESTAMP,
     ETHER_VALUE,
     EnterPoolTransactionHashBehaviour,
-    EnterPoolTransactionSendBehaviour,
-    EnterPoolTransactionSignatureBehaviour,
-    EnterPoolTransactionValidationBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
     LP_TOKEN_ADDRESS,
@@ -94,10 +82,6 @@ from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.test_liquidity_provision.test_rounds import get_participants
-from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
-    get_participant_to_signature,
-)
 
 
 def get_default_strategy(
@@ -105,7 +89,7 @@ def get_default_strategy(
 ) -> Dict:
     """Returns default strategy."""
     return {
-        "action": StrategyType.GO.value,
+        "action": StrategyType.ENTER.value,
         "safe_nonce": 0,
         "chain": "Ethereum",
         "safe_tx_gas": SAFE_TX_GAS,
@@ -1099,318 +1083,6 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                     ),
                 ),
             )
-
-
-class TestEnterPoolTransactionSignatureBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test EnterPoolTransactionSignatureBehaviour."""
-
-    def test_transaction_hash(
-        self,
-    ) -> None:
-        """Test tx hash behaviour."""
-
-        strategy = get_default_strategy(
-            is_base_native=False, is_a_native=True, is_b_native=False
-        )
-        period_state = PeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(
-                    most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
-                    multisend_contract_address="multisend_contract_address",
-                    router_contract_address="router_contract_address",
-                ),
-            )
-        )
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionSignatureBehaviour.state_id,
-            period_state=period_state,
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionSignatureBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_MESSAGE,
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_MESSAGE,
-                signed_message=SignedMessage(
-                    ledger_id="ethereum", body="stub_signature"
-                ),
-            ),
-        )
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-
-
-class TestEnterPoolTransactionSendBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test EnterPoolTransactionSendBehaviour."""
-
-    def test_not_sender_act(
-        self,
-    ) -> None:
-        """Test tx hash behaviour."""
-
-        strategy = get_default_strategy(
-            is_base_native=False, is_a_native=True, is_b_native=False
-        )
-        period_state = PeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(
-                    most_voted_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    most_voted_strategy=strategy,
-                    multisend_contract_address="multisend_contract_address",
-                    router_contract_address="router_contract_address",
-                ),
-            )
-        )
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionSendBehaviour.state_id,
-            period_state=period_state,
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionSendBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-        self._test_done_flag_set()
-        self.end_round()
-
-    def test_sender_act(
-        self,
-    ) -> None:
-        """Test tx hash behaviour."""
-
-        strategy = get_default_strategy(
-            is_base_native=False, is_a_native=True, is_b_native=False
-        )
-        participants = get_participants()
-        period_state = PeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(
-                    participants=participants,
-                    most_voted_tx_hash=b"dummy_tx".hex(),
-                    most_voted_tx_data=b"some_data".hex(),
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address=self.skill.skill_context.agent_address,
-                    most_voted_strategy=strategy,
-                    multisend_contract_address="multisend_contract_address",
-                    participant_to_signature=get_participant_to_signature(participants),
-                    router_contract_address="router_contract_address",
-                ),
-            )
-        )
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionSendBehaviour.state_id,
-            period_state=period_state,
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionSendBehaviour.state_id
-        )
-        self.liquidity_provision_behaviour.act_wrapper()
-
-        self.mock_contract_api_request(
-            contract_id=str(GnosisSafeContract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=period_state.safe_contract_address,
-                kwargs=Kwargs(
-                    dict(
-                        sender_address=self.skill.skill_context.agent_address,
-                        owners=tuple(period_state.participants),  # type: ignore
-                        to_address="multisend_contract_address",
-                        value=0,
-                        data=b"some_data",  # type: ignore
-                        operation=SafeOperation.DELEGATE_CALL.value,
-                        safe_tx_gas=4000000,
-                        signatures_by_owner={
-                            key: payload.signature
-                            for key, payload in period_state.participant_to_signature.items()
-                        },
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_raw_safe_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={"data": b"dummy_tx"},  # type: ignore
-                ),
-            ),
-        )
-
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_TRANSACTION,
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(
-                    ledger_id="ethereum", body={"body": "stub_signature"}
-                ),
-            ),
-        )
-
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                transaction_digest=TransactionDigest(
-                    ledger_id="ethereum", body="tx_hash"
-                ),
-            ),
-        )
-
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-
-
-class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBaseCase):
-    """Test EnterPoolTransactionValidationBehaviour."""
-
-    def test_transaction_hash(
-        self,
-    ) -> None:
-        """Test tx hash behaviour."""
-
-        strategy = get_default_strategy(
-            is_base_native=False, is_a_native=True, is_b_native=False
-        )
-        participants = get_participants()
-        period_state = PeriodState(
-            StateDB(
-                initial_period=0,
-                initial_data=dict(
-                    participants=participants,
-                    most_voted_tx_hash="0x",
-                    most_voted_tx_data=b"data".hex(),
-                    most_voted_strategy=strategy,
-                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
-                    multisend_contract_address="multisend_contract_address",
-                    safe_contract_address="safe_contract_address",
-                    most_voted_keeper_address="most_voted_keeper_address",
-                    participant_to_signature=get_participant_to_signature(participants),
-                    router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
-                ),
-            )
-        )
-        self.fast_forward_to_state(
-            behaviour=self.liquidity_provision_behaviour,
-            state_id=EnterPoolTransactionValidationBehaviour.state_id,
-            period_state=period_state,
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.liquidity_provision_behaviour.current_state),
-            ).state_id
-            == EnterPoolTransactionValidationBehaviour.state_id
-        )
-
-        self.liquidity_provision_behaviour.act_wrapper()
-        with mock.patch.object(
-            EthereumApi, "is_transaction_settled", return_value=True
-        ):
-            self.mock_ledger_api_request(
-                request_kwargs=dict(
-                    performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT
-                ),
-                response_kwargs=dict(
-                    performative=LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-                    transaction_receipt=TransactionReceipt(
-                        ledger_id="ethereum",
-                        transaction={"body": "tx_receipt"},
-                        receipt={"body": "tx_receipt"},
-                    ),
-                ),
-            )
-
-        self.mock_contract_api_request(
-            contract_id=str(GnosisSafeContract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=period_state.safe_contract_address,
-                kwargs=Kwargs(
-                    dict(
-                        tx_hash=period_state.final_tx_hash,
-                        owners=tuple(period_state.participants),  # type: ignore
-                        to_address="multisend_contract_address",
-                        value=0,
-                        data=b"data",  # type: ignore
-                        operation=SafeOperation.DELEGATE_CALL.value,
-                        safe_tx_gas=4000000,
-                        signatures_by_owner={
-                            key: payload.signature
-                            for key, payload in period_state.participant_to_signature.items()
-                        },
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.STATE,
-                callable="verify_tx",
-                state=State(
-                    ledger_id="ethereum",
-                    body={"verified": True},
-                ),
-            ),
-        )
-
-        self.mock_contract_api_request(
-            contract_id=str(UniswapV2ERC20Contract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=strategy["pair"]["token_LP"]["address"],
-                kwargs=Kwargs(
-                    dict(
-                        tx_hash=period_state.final_tx_hash,
-                        target_address=period_state.safe_contract_address,
-                    )
-                ),
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.STATE,
-                callable="verify_tx",
-                state=State(
-                    ledger_id="ethereum",
-                    body={"logs": []},
-                ),
-            ),
-        )
-
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
 
 
 class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
