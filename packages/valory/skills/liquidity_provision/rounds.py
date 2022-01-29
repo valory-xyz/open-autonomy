@@ -36,8 +36,8 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    TransactionHashPayload,
 )
-from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     SignaturePayload,
     TransactionType,
@@ -230,7 +230,7 @@ class EnterPoolTransactionHashRound(TransactionHashBaseRound):
 
 
 class FinishedEnterPoolTransactionHashRound(DegenerateRound):
-    """A round that represents price aggregation has finished"""
+    """A round that represents pool enter has finished"""
 
     round_id = "finished_enter_pool_hash"
 
@@ -242,7 +242,7 @@ class ExitPoolTransactionHashRound(TransactionHashBaseRound):
 
 
 class FinishedExitPoolTransactionHashRound(DegenerateRound):
-    """A round that represents price aggregation has finished"""
+    """A round that represents pool exit has finished"""
 
     round_id = "finished_exit_pool_hash"
 
@@ -254,7 +254,7 @@ class SwapBackTransactionHashRound(TransactionHashBaseRound):
 
 
 class FinishedSwapBackTransactionHashRound(DegenerateRound):
-    """A round that represents price aggregation has finished"""
+    """A round that represents swap back has finished"""
 
     round_id = "finished_swap_back_hash"
 

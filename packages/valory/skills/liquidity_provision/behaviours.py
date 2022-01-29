@@ -49,6 +49,7 @@ from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
+    TransactionHashPayload,
 )
 from packages.valory.skills.liquidity_provision.rounds import (
     EnterPoolTransactionHashRound,
@@ -59,7 +60,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
     StrategyEvaluationRound,
     SwapBackTransactionHashRound,
 )
-from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,

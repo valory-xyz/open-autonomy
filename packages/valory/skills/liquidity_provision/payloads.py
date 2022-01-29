@@ -33,6 +33,7 @@ class TransactionType(Enum):
     ALLOWANCE_CHECK = "allowance_check"
     TRANSACTION_HASH = "tx_hash"
     LP_RESULT = "lp_result"
+    TX_HASH = "tx_hash"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -84,3 +85,31 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(strategy=self.strategy)
+
+
+class TransactionHashPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'tx_hash'."""
+
+    transaction_type = TransactionType.TX_HASH
+
+    def __init__(
+        self, sender: str, tx_hash: Optional[str] = None, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'tx_hash' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param tx_hash: the tx_hash
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._tx_hash = tx_hash
+
+    @property
+    def tx_hash(self) -> Optional[str]:
+        """Get the tx_hash."""
+        return self._tx_hash
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
