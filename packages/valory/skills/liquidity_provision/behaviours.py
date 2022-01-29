@@ -1017,6 +1017,7 @@ class StrategyRoundBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         TendermintHealthcheckBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
+        SleepBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
         ExitPoolTransactionHashBehaviour,  # type: ignore
         SwapBackTransactionHashBehaviour,  # type: ignore
