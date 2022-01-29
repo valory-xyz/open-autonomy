@@ -42,10 +42,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SignaturePayload,
     TransactionType,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    ResetAndPauseRound,
-    ResetRound,
-)
 
 
 class Event(Enum):
@@ -59,7 +55,6 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
-    WAIT = "wait"
 
 
 class PeriodState(
@@ -262,9 +257,9 @@ class FinishedSwapBackTransactionHashRound(DegenerateRound):
 class LiquidityRebalancingAbciApp(AbciApp[Event]):
     """LiquidtyStrategyAbciApp
 
-    Initial round: ResetRound
+    Initial round: StrategyEvaluationRound
 
-    Initial states: {ResetRound}
+    Initial states: {StrategyEvaluationRound}
 
     0. StrategyEvaluationRound
         - done: 1.
@@ -312,31 +307,30 @@ class LiquidityRebalancingAbciApp(AbciApp[Event]):
             Event.DONE_ENTER: EnterPoolTransactionHashRound,
             Event.DONE_EXIT: ExitPoolTransactionHashRound,
             Event.DONE_SWAP_BACK: SwapBackTransactionHashRound,
-            Event.WAIT: ResetAndPauseRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
         SleepRound: {
             Event.DONE: StrategyEvaluationRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
         EnterPoolTransactionHashRound: {
             Event.DONE: FinishedEnterPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
         FinishedEnterPoolTransactionHashRound: {},
         ExitPoolTransactionHashRound: {
             Event.DONE: FinishedExitPoolTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
         FinishedExitPoolTransactionHashRound: {},
         SwapBackTransactionHashRound: {
             Event.DONE: FinishedSwapBackTransactionHashRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: StrategyEvaluationRound,
+            Event.NO_MAJORITY: StrategyEvaluationRound,
         },
         FinishedSwapBackTransactionHashRound: {},
     }
