@@ -507,7 +507,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             response = cast(HttpMessage, response)
             if not self._check_http_return_code_200(response):
                 self.context.logger.info(
-                    f"Received return code != 200. Retrying in {request_retry_delay} seconds..."
+                    f"Received return code != 200 with response {response} with body {str(response.body)}. Retrying in {request_retry_delay} seconds..."
                 )
                 yield from self.sleep(request_retry_delay)
                 continue
