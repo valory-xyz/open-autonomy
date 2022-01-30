@@ -1,5 +1,6 @@
 kubeconfig
 # Local .terraform directories
+deployments/Dockerfiles/open_aea/packages 
 aws_creds
 do_creds
 **/.terraform/*

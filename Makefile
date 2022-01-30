@@ -181,3 +181,13 @@ new_env: clean
 install-hooks:
 	@echo "Installing pre-push"
 	cp scripts/pre-push .git/hooks/pre-push
+
+.ONESHELL: build-images
+build-images:
+	if [ "$VERSION" = "" ];\
+	then\
+		echo "Ensure you have exported a version to build!";\
+		exit 1
+	fi
+	rsync -avu packages/ deployments/Dockerfiles/open_aea/packages
+	skaffold build --build-concurrency=0 --push=false

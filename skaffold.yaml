@@ -1,0 +1,18 @@
+apiVersion: skaffold/v2beta24
+kind: Config
+metadata:
+  name: consensus-algorithms
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.VERSION}}"
+  artifacts:
+  - image: valory/consensus-algorithms-tendermint
+    context: deployments/Dockerfiles/localnode/
+
+  - image: valory/consensus-algorithms-open-aea
+    context: deployments/Dockerfiles/open_aea/
+
+  - image: valory/consensus-algorithms-hardhat
+    docker:
+      dockerfile: deployments/Dockerfiles/hardhat/Dockerfile
