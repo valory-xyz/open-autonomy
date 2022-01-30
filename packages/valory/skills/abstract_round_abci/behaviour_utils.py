@@ -492,6 +492,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :yield: the responses
         """
         while not stop_condition():
+            self.context.logger.debug(
+                f"Trying to send payload: {pprint.pformat(payload.json)}"
+            )
             signature_bytes = yield from self.get_signature(payload.encode())
             transaction = Transaction(payload, signature_bytes)
             try:
@@ -502,6 +505,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info(
                     f"Timeout expired for submit tx. Retrying in {request_retry_delay} seconds..."
                 )
+                payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
@@ -509,6 +513,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info(
                     f"Received return code != 200 with response {response} with body {str(response.body)}. Retrying in {request_retry_delay} seconds..."
                 )
+                payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
             try:
@@ -528,6 +533,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info(
                     f"Timeout expired for wait until transaction delivered. Retrying in {request_retry_delay} seconds..."
                 )
+                payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
 
@@ -535,6 +541,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info("A2A transaction delivered!")
                 break
             # otherwise, repeat until done, or until stop condition is true
+            self.context.logger.info(
+                f"Tx sent but not delivered. Response = {response}"
+            )
+            payload = payload.with_new_id()
+        self.context.logger.info(
+            "Stop condition is true, no more attempts to send the transaction."
+        )
 
     def _send_signing_request(
         self, raw_message: bytes, is_deprecated_mode: bool = False

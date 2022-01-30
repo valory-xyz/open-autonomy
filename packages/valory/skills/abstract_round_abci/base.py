@@ -231,6 +231,10 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         """
         return {}
 
+    def with_new_id(self) -> "BaseTxPayload":
+        """Create a new payload with the same content but new id."""
+        return type(self)(self.sender, id_=uuid.uuid4(), **self.data)  # type: ignore
+
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
         if not isinstance(other, BaseTxPayload):
