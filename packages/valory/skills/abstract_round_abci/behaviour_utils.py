@@ -82,7 +82,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_TX_TIMEOUT = 10.0
-_DEFAULT_TX_MAX_ATTEMPTS = 5
+_DEFAULT_TX_MAX_ATTEMPTS = 10
 
 _SYNC_MODE_WAIT = 3
 
