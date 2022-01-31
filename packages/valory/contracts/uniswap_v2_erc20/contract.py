@@ -19,14 +19,12 @@
 
 """This module contains the class to connect to a ERC20 contract."""
 import logging
-from typing import Any, Optional, cast
+from typing import Any, List, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi
-from hexbytes import HexBytes
-from web3.exceptions import TransactionNotFound
 
 
 PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
@@ -34,13 +32,6 @@ PUBLIC_ID = PublicId.from_str("valory/uniswap_v2_erc20:0.1.0")
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
-
-
-def rebuild_receipt(tx_receipt: JSONLike) -> JSONLike:
-    """Convert all tx receipt's event topics to HexBytes"""
-    for i in range(len(tx_receipt["logs"])):  # type: ignore
-        tx_receipt["logs"][i]["topics"] = [HexBytes(topic) for topic in tx_receipt["logs"][i]["topics"]]  # type: ignore
-    return tx_receipt
 
 
 def snake_to_camel(string: str) -> str:
@@ -98,20 +89,21 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         spender_address: str,
         value: int,
-        **kwargs: int,
+        **kwargs: Any,
     ) -> Optional[JSONLike]:
         """Set the allowance for spender_address on behalf of sender_address."""
-        return cls._prepare_tx(
-            ledger_api,
-            contract_address,
-            sender_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.build_transaction(
+            contract_instance,
             "approve",
-            spender_address,
-            value,
-            **kwargs,
+            method_args=dict(
+                spender=spender_address,
+                value=value,
+            ),
+            tx_args=kwargs,
         )
 
     @classmethod
@@ -119,20 +111,21 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         to_address: str,
         value: int,
-        **kwargs: int,
+        **tx_args: Any,
     ) -> Optional[JSONLike]:
         """Transfer funds from sender_address to to_address."""
-        return cls._prepare_tx(
-            ledger_api,
-            contract_address,
-            sender_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.build_transaction(
+            contract_instance,
             "transfer",
-            to_address,
-            value,
-            **kwargs,
+            method_args={
+                "to": to_address,
+                "value": value,
+            },
+            tx_args=tx_args,
         )
 
     @classmethod
@@ -140,22 +133,23 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         from_address: str,
         to_address: str,
         value: int,
-        **kwargs: int,
+        **tx_args: Any,
     ) -> Optional[JSONLike]:
         """As sender_address (third-party) transfer funds from from_address to to_address."""
-        return cls._prepare_tx(
-            ledger_api,
-            contract_address,
-            sender_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.build_transaction(
+            contract_instance,
             "transferFrom",
-            from_address,
-            to_address,
-            value,
-            **kwargs,
+            method_args={
+                "from": from_address,
+                "to": to_address,
+                "value": value,
+            },
+            tx_args=tx_args,
         )
 
     @classmethod
@@ -163,7 +157,6 @@ class UniswapV2ERC20Contract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender_address: str,
         owner_address: str,
         spender_address: str,
         value: int,
@@ -171,22 +164,24 @@ class UniswapV2ERC20Contract(Contract):
         v: int,
         r: bytes,
         s: bytes,
-        **kwargs: int,
+        **kwargs: Any,
     ) -> Optional[JSONLike]:
         """Sets the allowance for a spender on behalf of owner where approval is granted via a signature. Sender can differ from owner."""
-        return cls._prepare_tx(
-            ledger_api,
-            contract_address,
-            sender_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.build_transaction(
+            contract_instance,
             "permit",
-            owner_address,
-            spender_address,
-            value,
-            deadline,
-            v,
-            r,
-            s,
-            **kwargs,
+            method_args=dict(
+                owner=owner_address,
+                spender=spender_address,
+                value=value,
+                deadline=deadline,
+                v=v,
+                r=r,
+                s=s,
+            ),
+            tx_args=kwargs,
         )
 
     @classmethod
@@ -198,12 +193,13 @@ class UniswapV2ERC20Contract(Contract):
         spender_address: str,
     ) -> Optional[JSONLike]:
         """Gets the allowance for a spender."""
-        return cls._call(
-            ledger_api,
-            contract_address,
-            "allowance",
-            owner_address,
-            spender_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance=contract_instance,
+            method_name="allowance",
+            owner=owner_address,
+            spender=spender_address,
         )
 
     @classmethod
@@ -211,96 +207,16 @@ class UniswapV2ERC20Contract(Contract):
         cls, ledger_api: EthereumApi, contract_address: str, owner_address: str
     ) -> Optional[JSONLike]:
         """Gets an account's balance."""
-        return cls._call(
-            ledger_api,
-            contract_address,
-            "balanceOf",
-            owner_address,
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        return ledger_api.contract_method_call(
+            contract_instance=contract_instance,
+            method_name="balanceOf",
+            owner=owner_address,
         )
 
     @classmethod
-    def _call(
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        method_name: str,
-        *method_args: Any,
-    ) -> Optional[JSONLike]:
-        """Call method."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        method = getattr(contract.functions, method_name)
-        result = method(*method_args).call()
-        return result
-
-    @classmethod
-    def _prepare_tx(  # pylint: disable=too-many-arguments
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        sender_address: str,
-        method_name: str,
-        *method_args: Any,
-        eth_value: int = 0,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
-    ) -> Optional[JSONLike]:
-        """Prepare tx method."""
-        contract = cls.get_instance(ledger_api, contract_address)
-        method = getattr(contract.functions, method_name)
-        tx = method(*method_args)
-        tx = cls._build_transaction(
-            ledger_api,
-            sender_address,
-            tx,
-            eth_value,
-            gas,
-            gas_price,
-            max_fee_per_gas,
-            max_priority_fee_per_gas,
-        )
-        return tx
-
-    @classmethod
-    def _build_transaction(  # pylint: disable=too-many-arguments
-        cls,
-        ledger_api: EthereumApi,
-        sender_address: str,
-        tx: Any,
-        eth_value: int = 0,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
-    ) -> Optional[JSONLike]:
-        """Build transaction method."""
-        nonce = ledger_api.api.eth.get_transaction_count(sender_address)
-        tx_params = {
-            "nonce": nonce,
-            "value": eth_value,
-        }
-        if gas is not None:
-            tx_params["gas"] = gas
-        if gas_price is not None:
-            tx_params["gasPrice"] = gas_price
-        if max_fee_per_gas is not None:
-            tx_params["maxFeePerGas"] = max_fee_per_gas  # pragma: nocover
-        if max_priority_fee_per_gas is not None:
-            tx_params[
-                "maxPriorityFeePerGas"
-            ] = max_priority_fee_per_gas  # pragma: nocover
-        if (
-            gas_price is None
-            and max_fee_per_gas is None
-            and max_priority_fee_per_gas is None
-        ):
-            tx_params.update(ledger_api.try_get_gas_pricing())  # pragma: nocover
-        tx = tx.buildTransaction(tx_params)
-        return tx
-
-    @classmethod
-    def get_tx_transfer_logs(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_transaction_transfer_logs(  # type: ignore  # pylint: disable=too-many-arguments,too-many-locals,unused-argument,arguments-differ
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -311,93 +227,39 @@ class UniswapV2ERC20Contract(Contract):
         Get all transfer events derived from a transaction.
 
         :param ledger_api: the ledger API object
-        :param contract_address: the contract address
+        :param contract_address: the address of the contract
         :param tx_hash: the transaction hash
         :param target_address: optional address to filter tranfer events to just those that affect it
         :return: the verified status
         """
-        ledger_api = cast(EthereumApi, ledger_api)
-        contract = cls.get_instance(ledger_api, contract_address)
+        transfer_logs_data: Optional[JSONLike] = super(
+            UniswapV2ERC20Contract, cls
+        ).get_transaction_transfer_logs(ledger_api, tx_hash, target_address)
+        transfer_logs: List = []
 
-        try:
-            tx_receipt = ledger_api.get_transaction_receipt(tx_hash)
-            if tx_receipt is None:
-                raise ValueError  # pragma: nocover
+        if transfer_logs_data:
 
-        except (TransactionNotFound, ValueError):  # pragma: nocover
-            return dict(logs=[])
-
-        # Due to serialization, event topics must be converted again to HexBytes or processReceipt will fail
-        tx_receipt = rebuild_receipt(tx_receipt)
-
-        transfer_logs = contract.events.Transfer().processReceipt(tx_receipt)
-
-        transfer_logs = [
-            {
-                "from": log["args"]["from"],
-                "to": log["args"]["to"],
-                "value": log["args"]["value"],
-                "token_address": log["address"],
-            }
-            for log in transfer_logs
-        ]
-
-        if target_address:
-            transfer_logs = list(
-                filter(
-                    lambda log: target_address in (log["from"], log["to"]),  # type: ignore
-                    transfer_logs,
-                )
+            transfer_logs = cast(
+                List,
+                transfer_logs_data["logs"],
             )
+
+            transfer_logs = [
+                {
+                    "from": log["args"]["from"],
+                    "to": log["args"]["to"],
+                    "value": log["args"]["value"],
+                    "token_address": log["address"],
+                }
+                for log in transfer_logs
+            ]
+
+            if target_address:
+                transfer_logs = list(
+                    filter(
+                        lambda log: target_address in (log["from"], log["to"]),  # type: ignore
+                        transfer_logs,
+                    )
+                )
 
         return dict(logs=transfer_logs)
-
-    @classmethod
-    def get_tx_transfered_amount(  # pylint: disable=too-many-arguments,too-many-locals
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        tx_hash: str,
-        token_address: str,
-        source_address: Optional[str] = None,
-        destination_address: Optional[str] = None,
-    ) -> JSONLike:
-        """
-        Get the amount of a token transferred as a result of a transaction.
-
-        :param ledger_api: the ledger API object
-        :param contract_address: the contract address
-        :param tx_hash: the transaction hash
-        :param token_address: the token's address
-        :param source_address: the source address
-        :param destination_address: the destination address
-        :return: the incoming amount
-        """
-
-        transfer_logs: list = cls.get_tx_transfer_logs(ledger_api, contract_address, tx_hash)["logs"]  # type: ignore
-
-        token_events = list(
-            filter(
-                lambda log: log["token_address"] == ledger_api.api.toChecksumAddress(token_address),  # type: ignore
-                transfer_logs,
-            )
-        )
-
-        if source_address:
-            token_events = list(
-                filter(
-                    lambda log: log["from"] == ledger_api.api.toChecksumAddress(source_address),  # type: ignore
-                    token_events,
-                )
-            )
-
-        if destination_address:
-            token_events = list(
-                filter(
-                    lambda log: log["to"] == ledger_api.api.toChecksumAddress(destination_address),  # type: ignore
-                    token_events,
-                )
-            )
-
-        amount = 0 if not token_events else sum([event["value"] for event in list(token_events)])  # type: ignore
-        return dict(amount=amount)

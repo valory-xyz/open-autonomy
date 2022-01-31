@@ -118,15 +118,23 @@ def get_default_strategy(
             "amount_in_max_b": int(1e4),
             "amount_min_after_swap_back_b": int(1e2),
             "is_native": is_base_native,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
         },
         "pair": {
-            "LP_token_address": LP_TOKEN_ADDRESS,
+            "token_LP": {
+                "address": LP_TOKEN_ADDRESS,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": 0,
+            },
             "token_a": {
                 "ticker": "TKA",
                 "address": "0xTKA_ADDRESS",
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": is_a_native,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": 0,
             },
             "token_b": {
                 "ticker": "TKB",
@@ -134,6 +142,8 @@ def get_default_strategy(
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
                 "is_native": is_b_native,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": 0,
             },
         },
     }
@@ -388,7 +398,9 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"result": {"hash": ""}}).encode("utf-8"),
+                body=json.dumps({"result": {"hash": "", "code": OK_CODE}}).encode(
+                    "utf-8"
+                ),
             ),
         )
         self.mock_http_request(
@@ -1061,9 +1073,10 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
             ).state_id
             == EnterPoolTransactionHashBehaviour.state_id
         )
-        self.liquidity_provision_behaviour.act_wrapper()
 
         with pytest.raises(AEAActException):
+
+            self.liquidity_provision_behaviour.act_wrapper()
 
             # Add allowance for base token
             self.mock_contract_api_request(
@@ -1379,7 +1392,7 @@ class TestEnterPoolTransactionValidationBehaviour(LiquidityProvisionBehaviourBas
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
                         tx_hash=period_state.final_tx_hash,
@@ -1451,7 +1464,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
@@ -1459,7 +1472,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         # gas=TEMP_GAS,  # noqa: E800
                         # gas_price=TEMP_GAS_PRICE,  # noqa: E800
                         spender=period_state.router_contract_address,
-                        value=MAX_ALLOWANCE,
+                        value=strategy["pair"]["token_LP"]["set_allowance"],
                     )
                 ),
             ),
@@ -1491,6 +1504,33 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_ETH_min=int(amount_base_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for LP token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=strategy["pair"]["token_LP"]["remove_allowance"],
                     )
                 ),
             ),
@@ -1587,7 +1627,7 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             contract_id=str(UniswapV2ERC20Contract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",
@@ -1628,6 +1668,33 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                         amount_b_min=int(amount_b_sent),
                         to=period_state.safe_contract_address,
                         deadline=CURRENT_BLOCK_TIMESTAMP + 300,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for LP token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=strategy["pair"]["token_LP"]["remove_allowance"],
                     )
                 ),
             ),
@@ -1818,6 +1885,33 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ),
         )
 
+        # Remove allowance for the second token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_b"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=0,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
         # Get the tx list data from multisend contract
         self.mock_contract_api_request(
             contract_id=str(MultiSendContract.contract_id),
@@ -1970,6 +2064,60 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                 contract_address=strategy["base"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=0,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for the first token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_a"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        method_name="approve",
+                        # sender=period_state.safe_contract_address,  # noqa: E800
+                        # gas=TEMP_GAS,  # noqa: E800
+                        # gas_price=TEMP_GAS_PRICE,  # noqa: E800
+                        spender=period_state.router_contract_address,
+                        value=0,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                callable="get_method_data",
+                raw_transaction=RawTransaction(
+                    ledger_id="ethereum",
+                    body={"data": b"dummy_tx"},  # type: ignore
+                ),
+            ),
+        )
+
+        # Remove allowance for the second token
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                contract_address=strategy["pair"]["token_b"]["address"],
                 kwargs=Kwargs(
                     dict(
                         method_name="approve",

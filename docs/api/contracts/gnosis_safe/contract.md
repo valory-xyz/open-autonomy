@@ -219,3 +219,24 @@ Currently, the implementation is an overkill as most of the verification is impl
 
 the verified status
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.revert_reason"></a>
+
+#### revert`_`reason
+
+```python
+@classmethod
+def revert_reason(cls, ledger_api: EthereumApi, tx: TxData) -> JSONLike
+```
+
+Check the revert reason of a transaction.
+
+**Arguments**:
+
+
+- `ledger_api`: the ledger API object.
+- `tx`: the transaction for which we want to get the revert reason.
+
+**Returns**:
+
+the revert reason message.
+

@@ -444,9 +444,9 @@ class TransactionValidationBaseBehaviour(LiquidityProvisionBaseBehaviour):
         strategy = self.period_state.most_voted_strategy
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=strategy["pair"]["LP_token_address"],
+            contract_address=strategy["pair"]["token_LP"]["address"],
             contract_id=str(UniswapV2ERC20Contract.contract_id),
-            contract_callable="get_tx_transfer_logs",
+            contract_callable="get_transaction_transfer_logs",
             tx_hash=self.period_state.final_tx_hash,
             target_address=self.period_state.safe_contract_address,
         )
@@ -478,22 +478,32 @@ def get_strategy_update() -> dict:
             "amount_in_max_b": int(1e4),
             "amount_min_after_swap_back_b": int(1e2),
             "is_native": False,
+            "set_allowance": MAX_ALLOWANCE,
+            "remove_allowance": 0,
         },
         "pair": {
-            "LP_token_address": LP_TOKEN_ADDRESS,
+            "token_LP": {
+                "address": LP_TOKEN_ADDRESS,
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": 0,
+            },
             "token_a": {
                 "ticker": "TKA",
                 "address": TOKEN_A_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "is_native": False,
+                "is_native": False,  # if one of the two tokens is native, A must be the one
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": 0,
             },
             "token_b": {
                 "ticker": "TKB",
                 "address": TOKEN_B_ADDRESS,
                 "amount_after_swap": int(1e3),
                 "amount_min_after_add_liq": int(0.5e3),
-                "is_native": False,
+                "is_native": False,  # if one of the two tokens is native, A must be the one
+                "set_allowance": MAX_ALLOWANCE,
+                "remove_allowance": 0,
             },
         },
     }
@@ -573,28 +583,32 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # and always swap back to it.
             multi_send_txs = []
 
-            # Add allowance for base token (always non-native)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["base"]["address"],
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="get_method_data",
-                method_name="approve",
-                spender=self.period_state.router_contract_address,
-                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
-                value=MAX_ALLOWANCE,
-            )
-            allowance_base_data = cast(
-                bytes, contract_api_msg.raw_transaction.body["data"]
-            )
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": strategy["base"]["address"],
-                    "value": 0,
-                    "data": HexBytes(allowance_base_data.hex()),
-                }
-            )
+            # Add allowance for base token
+            if (
+                not strategy["base"]["is_native"]
+                and "set_allowance" in strategy["base"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["base"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                    value=strategy["base"]["set_allowance"],
+                )
+                allowance_base_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["base"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_base_data.hex()),
+                    }
+                )
 
             # Swap first token
             if strategy["pair"]["token_a"]["ticker"] != strategy["base"]["ticker"]:
@@ -641,7 +655,10 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     multi_send_txs.append(swap_tx_data)
 
             # Add allowance for token A (only if not native)
-            if not strategy["pair"]["token_a"]["is_native"]:
+            if (
+                not strategy["pair"]["token_a"]["is_native"]
+                and "set_allowance" in strategy["pair"]["token_a"]
+            ):
                 contract_api_msg = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
                     contract_address=strategy["pair"]["token_a"]["address"],
@@ -650,7 +667,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="approve",
                     spender=self.period_state.router_contract_address,
                     # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
-                    value=MAX_ALLOWANCE,
+                    value=strategy["pair"]["token_a"]["set_allowance"],
                 )
                 allowance_a_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
@@ -664,28 +681,32 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     }
                 )
 
-            # Add allowance for token B (always non-native)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["token_b"]["address"],
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="get_method_data",
-                method_name="approve",
-                spender=self.period_state.router_contract_address,
-                # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
-                value=MAX_ALLOWANCE,
-            )
-            allowance_b_data = cast(
-                bytes, contract_api_msg.raw_transaction.body["data"]
-            )
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": strategy["pair"]["token_b"]["address"],
-                    "value": 0,
-                    "data": HexBytes(allowance_b_data.hex()),
-                }
-            )
+            # Add allowance for token B (only if not native)
+            if (
+                not strategy["pair"]["token_b"]["is_native"]
+                and "set_allowance" in strategy["pair"]["token_b"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_b"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
+                    value=strategy["pair"]["token_b"]["set_allowance"],
+                )
+                allowance_b_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["pair"]["token_b"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_b_data.hex()),
+                    }
+                )
 
             # Add liquidity
             if strategy["pair"]["token_a"]["is_native"]:
@@ -889,7 +910,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             )
             amount_liquidity_received: int = parse_tx_token_balance(
                 transfer_logs=transfers,
-                token_address=strategy["pair"]["LP_token_address"],
+                token_address=strategy["pair"]["token_LP"]["address"],
                 source_address=DEFAULT_MINTER,
                 destination_address=self.period_state.safe_contract_address,
             )
@@ -902,13 +923,13 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Add allowance for LP token to be spent by the router
             contract_api_msg = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["pair"]["LP_token_address"],
+                contract_address=strategy["pair"]["token_LP"]["address"],
                 contract_id=str(UniswapV2ERC20Contract.contract_id),
                 contract_callable="get_method_data",
                 method_name="approve",
                 spender=self.period_state.router_contract_address,
                 # We are setting the max (default) allowance here, but it would be better to calculate the minimum required value (but for that we might need some prices).
-                value=MAX_ALLOWANCE,
+                value=strategy["pair"]["token_LP"]["set_allowance"],
             )
             allowance_lp_data = cast(
                 bytes, contract_api_msg.raw_transaction.body["data"]
@@ -916,7 +937,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs.append(
                 {
                     "operation": MultiSendOperation.CALL,
-                    "to": strategy["pair"]["LP_token_address"],
+                    "to": strategy["pair"]["token_LP"]["address"],
                     "value": 0,
                     "data": HexBytes(allowance_lp_data.hex()),
                 }
@@ -975,6 +996,29 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "to": self.period_state.router_contract_address,
                         "value": 0,
                         "data": HexBytes(liquidity_data.hex()),
+                    }
+                )
+
+            # Remove allowance for LP token
+            if "remove_allowance" in strategy["pair"]["token_LP"]:
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_LP"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=strategy["pair"]["token_LP"]["remove_allowance"],
+                )
+                allowance_lp_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["pair"]["token_LP"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_lp_data.hex()),
                     }
                 )
 
@@ -1148,27 +1192,83 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
 
-            # Remove allowance for base token (always non-native)
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
-                contract_address=strategy["base"]["address"],
-                contract_id=str(UniswapV2ERC20Contract.contract_id),
-                contract_callable="get_method_data",
-                method_name="approve",
-                spender=self.period_state.router_contract_address,
-                value=0,
-            )
-            allowance_base_data = cast(
-                bytes, contract_api_msg.raw_transaction.body["data"]
-            )
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": strategy["pair"]["token_a"]["address"],
-                    "value": 0,
-                    "data": HexBytes(allowance_base_data.hex()),
-                }
-            )
+            # Remove allowance for base token
+            if (
+                not strategy["base"]["is_native"]
+                and "remove_allowance" in strategy["base"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["base"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=strategy["base"]["remove_allowance"],
+                )
+                allowance_base_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["base"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_base_data.hex()),
+                    }
+                )
+
+            # Remove allowance for the first token
+            if (
+                not strategy["pair"]["token_a"]["is_native"]
+                and "remove_allowance" in strategy["pair"]["token_a"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_a"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=strategy["pair"]["token_a"]["remove_allowance"],
+                )
+                allowance_base_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["pair"]["token_a"]["address"],
+                        "value": 0,
+                        "data": HexBytes(allowance_base_data.hex()),
+                    }
+                )
+
+            # Remove allowance for the second token
+            if (
+                not strategy["pair"]["token_b"]["is_native"]
+                and "remove_allowance" in strategy["pair"]["token_b"]
+            ):
+                contract_api_msg = yield from self.get_contract_api_response(
+                    performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                    contract_address=strategy["pair"]["token_b"]["address"],
+                    contract_id=str(UniswapV2ERC20Contract.contract_id),
+                    contract_callable="get_method_data",
+                    method_name="approve",
+                    spender=self.period_state.router_contract_address,
+                    value=0,
+                )
+                allowance_base_data = cast(
+                    bytes, contract_api_msg.raw_transaction.body["data"]
+                )
+                multi_send_txs.append(
+                    {
+                        "operation": MultiSendOperation.CALL,
+                        "to": strategy["pair"]["token_b"]["address"],
+                        "value": strategy["pair"]["token_b"]["remove_allowance"],
+                        "data": HexBytes(allowance_base_data.hex()),
+                    }
+                )
 
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -67,9 +67,9 @@ class DummyTxPayload(BaseTxPayload):
 
     transaction_type = "DummyPayload"
     _value: str
-    _vote: bool
+    _vote: Optional[bool]
 
-    def __init__(self, sender: str, value: Any, vote: bool = False) -> None:
+    def __init__(self, sender: str, value: Any, vote: Optional[bool] = False) -> None:
         """Initialize a dummy transaction payload."""
 
         super().__init__(sender, None)
@@ -82,7 +82,7 @@ class DummyTxPayload(BaseTxPayload):
         return self._value
 
     @property
-    def vote(self) -> bool:
+    def vote(self) -> Optional[bool]:
         """Get the vote value."""
         return self._vote
 
@@ -101,7 +101,7 @@ class DummyPeriodState(BasePeriodState):
 def get_dummy_tx_payloads(
     participants: FrozenSet[str],
     value: Any = None,
-    vote: bool = False,
+    vote: Optional[bool] = False,
     is_value_none: bool = False,
 ) -> List[DummyTxPayload]:
     """Returns a list of DummyTxPayload objects."""
@@ -146,6 +146,8 @@ class DummyCollectSameUntilThresholdRound(CollectSameUntilThresholdRound, DummyR
 
 class DummyOnlyKeeperSendsRound(OnlyKeeperSendsRound, DummyRound):
     """Dummy Class for OnlyKeeperSendsRound"""
+
+    fail_event = "FAIL_EVENT"
 
 
 class DummyVotingRound(VotingRound, DummyRound):
@@ -633,7 +635,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         assert test_round.most_voted_payload is None
 
 
-class TestOnlyKeeperSendsRound(_BaseRoundTestClass):
+class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest):
     """Test OnlyKeeperSendsRound."""
 
     def test_run(
@@ -687,19 +689,52 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass):
         ):
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
+    def test_keeper_payload_is_none(
+        self,
+    ) -> None:
+        """Test keeper payload valur set to none."""
+
+        keeper = "agent_0"
+        self._complete_run(
+            self._test_round(
+                test_round=DummyOnlyKeeperSendsRound(
+                    state=self.period_state.update(
+                        most_voted_keeper_address=keeper,
+                    ),
+                    consensus_params=self.consensus_params,
+                ),
+                keeper_payloads=DummyTxPayload(keeper, None),
+                state_update_fn=lambda _period_state, _test_round: _period_state,
+                state_attr_checks=[],
+                exit_event="FAIL_EVENT",
+            )
+        )
+
 
 class TestVotingRound(_BaseRoundTestClass):
     """Test VotingRound."""
+
+    def setup_test_voting_round(self) -> DummyVotingRound:
+        """Setup test voting round"""
+        return DummyVotingRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+    def test_vote_count(self) -> None:
+        """Testing agent vote count"""
+        test_round = self.setup_test_voting_round()
+        a, b, c, d = self.participants
+        for agents, vote in [((a, d), True), ((c,), False), ((b,), None)]:
+            for payload in get_dummy_tx_payloads(frozenset(agents), vote=vote):
+                test_round.process_payload(payload)
+        assert dict(test_round.vote_count) == {True: 2, False: 1, None: 1}
 
     def test_negative_threshold(
         self,
     ) -> None:
         """Runs test."""
 
-        test_round = DummyVotingRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
+        test_round = self.setup_test_voting_round()
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
         test_round.process_payload(first_payload)
 
@@ -714,10 +749,7 @@ class TestVotingRound(_BaseRoundTestClass):
     ) -> None:
         """Runs test."""
 
-        test_round = DummyVotingRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
+        test_round = self.setup_test_voting_round()
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=True)
         test_round.process_payload(first_payload)
 

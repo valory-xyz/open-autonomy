@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Generator, Optional, cast
+from typing import Dict, Generator, List, Optional, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -52,6 +52,7 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
     payload_to_hex,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
     RandomnessTransactionSubmissionBehaviour,
     ResetAndPauseBehaviour,
@@ -189,8 +190,80 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
-    @pytest.mark.parametrize("resubmitting", (True, False))
-    def test_sender_act(self, resubmitting: bool) -> None:
+    @pytest.mark.parametrize(
+        "resubmitting, response_kwargs",
+        (
+            (
+                (
+                    True,
+                    dict(
+                        performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                        callable="get_deploy_transaction",
+                        raw_transaction=RawTransaction(
+                            ledger_id="ethereum",
+                            body={
+                                "tx_hash": "0x3b",
+                                "nonce": 0,
+                                "maxFeePerGas": int(10e10),
+                                "maxPriorityFeePerGas": int(10e10),
+                            },
+                        ),
+                    ),
+                )
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    callable="get_deploy_transaction",
+                    raw_transaction=RawTransaction(
+                        ledger_id="ethereum",
+                        body={
+                            "tx_hash": "0x3b",
+                            "nonce": 0,
+                            "maxFeePerGas": int(10e10),
+                            "maxPriorityFeePerGas": int(10e10),
+                        },
+                    ),
+                ),
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.ERROR,
+                    callable="get_deploy_transaction",
+                    code=500,
+                    message="GS026",
+                    data=b"",
+                ),
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.ERROR,
+                    callable="get_deploy_transaction",
+                    code=500,
+                    message="other error",
+                    data=b"",
+                ),
+            ),
+        ),
+    )
+    def test_sender_act(
+        self,
+        resubmitting: bool,
+        response_kwargs: Dict[
+            str,
+            Union[
+                int,
+                str,
+                bytes,
+                Dict[str, Union[int, str]],
+                ContractApiMessage.Performative,
+                RawTransaction,
+            ],
+        ],
+    ) -> None:
         """Test finalize behaviour."""
         nonce: Optional[int] = None
         max_priority_fee_per_gas: Optional[int] = None
@@ -225,53 +298,44 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == FinalizeBehaviour.state_id
-        )
+
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == FinalizeBehaviour.state_id
         self.behaviour.act_wrapper()
+
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={
-                        "tx_hash": "0x3b",
-                        "nonce": 0,
-                        "maxFeePerGas": int(10e10),
-                        "maxPriorityFeePerGas": int(10e10),
-                    },
+            response_kwargs=response_kwargs,
+        )
+
+        if (
+            response_kwargs["performative"]
+            == ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            self.mock_signing_request(
+                request_kwargs=dict(
+                    performative=SigningMessage.Performative.SIGN_TRANSACTION
                 ),
-            ),
-        )
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
-            ),
-        )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                transaction_digest=TransactionDigest(
-                    ledger_id="ethereum", body="tx_hash"
+                response_kwargs=dict(
+                    performative=SigningMessage.Performative.SIGNED_TRANSACTION,
+                    signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
                 ),
-            ),
-        )
+            )
+            self.mock_ledger_api_request(
+                request_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
+                ),
+                response_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                    transaction_digest=TransactionDigest(
+                        ledger_id="ethereum", body="tx_hash"
+                    ),
+                ),
+            )
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
@@ -295,7 +359,7 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_data=dict(
                         safe_contract_address="safe_contract_address",
                         oracle_contract_address="oracle_contract_address",
-                        final_tx_hash="final_tx_hash",
+                        tx_hashes_history=["final_tx_hash"],
                         participants=participants,
                         most_voted_keeper_address=most_voted_keeper_address,
                         participant_to_signature={},
@@ -378,6 +442,91 @@ class TestValidateTransactionBehaviour(PriceEstimationFSMBehaviourBaseCase):
             mock_logger.assert_any_call(f"tx {final_tx_hash} receipt check timed out!")
 
 
+class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
+    """Test CheckTransactionHistoryBehaviour."""
+
+    def _fast_forward(self, hashes_history: Optional[List[Optional[str]]]) -> None:
+        """Fast-forward to relevant state."""
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=CheckTransactionHistoryBehaviour.state_id,
+            period_state=TransactionSettlementPeriodState(
+                StateDB(
+                    initial_period=0,
+                    initial_data=dict(
+                        safe_contract_address="safe_contract_address",
+                        participants=frozenset(
+                            {self.skill.skill_context.agent_address, "a_1", "a_2"}
+                        ),
+                        participant_to_signature={},
+                        most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                        tx_hashes_history=hashes_history,
+                    ),
+                )
+            ),
+        )
+        assert (
+            cast(BaseState, self.behaviour.current_state).state_id
+            == CheckTransactionHistoryBehaviour.state_id
+        )
+
+    @pytest.mark.parametrize(
+        "verified, hashes_history, revert_reason",
+        (
+            (0, None, "test"),
+            (0, [None], "test"),
+            (0, [None], "GS026"),
+            (1, [None], "test"),
+        ),
+    )
+    def test_check_tx_history_behaviour(
+        self,
+        verified: int,
+        hashes_history: Optional[List[Optional[str]]],
+        revert_reason: str,
+    ) -> None:
+        """Test CheckTransactionHistoryBehaviour."""
+        self._fast_forward(hashes_history)
+        self.behaviour.act_wrapper()
+
+        if hashes_history is not None:
+            self.mock_contract_api_request(
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE
+                ),
+                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    callable="verify_tx",
+                    state=TrState(
+                        ledger_id="ethereum",
+                        body={"verified": verified, "transaction": {}},
+                    ),
+                ),
+            )
+
+            if not bool(verified):
+                self.mock_contract_api_request(
+                    request_kwargs=dict(
+                        performative=ContractApiMessage.Performative.GET_STATE
+                    ),
+                    contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+                    response_kwargs=dict(
+                        performative=ContractApiMessage.Performative.STATE,
+                        callable="revert_reason",
+                        state=TrState(
+                            ledger_id="ethereum", body={"revert_reason": revert_reason}
+                        ),
+                    ),
+                )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == ResetAndPauseBehaviour.state_id
+
+
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
@@ -396,7 +545,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=0,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        final_tx_hash="68656c6c6f776f726c64",
+                        tx_hashes_history=["68656c6c6f776f726c64"],
                     ),
                 )
             ),
@@ -435,7 +584,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        final_tx_hash="68656c6c6f776f726c64",
+                        tx_hashes_history=["68656c6c6f776f726c64"],
                     ),
                 )
             ),
@@ -583,7 +732,7 @@ class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
                     initial_period=2,
                     initial_data=dict(
                         most_voted_estimate=0.1,
-                        final_tx_hash="68656c6c6f776f726c64",
+                        tx_hashes_history=["68656c6c6f776f726c64"],
                     ),
                 )
             ),

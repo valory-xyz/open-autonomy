@@ -180,6 +180,54 @@ def data() -> Dict
 
 Get the data.
 
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.CheckTransactionHistoryPayload"></a>
+
+## CheckTransactionHistoryPayload Objects
+
+```python
+class CheckTransactionHistoryPayload(BaseTxPayload)
+```
+
+Represent a transaction payload of type 'check'.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.CheckTransactionHistoryPayload.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(sender: str, verified_res: str, id_: Optional[str] = None) -> None
+```
+
+Initialize an 'validate' transaction payload.
+
+**Arguments**:
+
+- `sender`: the sender (Ethereum) address
+- `verified_res`: the vote
+- `id_`: the id of the transaction
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.CheckTransactionHistoryPayload.verified_res"></a>
+
+#### verified`_`res
+
+```python
+@property
+def verified_res() -> str
+```
+
+Get the verified result.
+
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.CheckTransactionHistoryPayload.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> Dict
+```
+
+Get the data.
+
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.SignaturePayload"></a>
 
 ## SignaturePayload Objects
@@ -243,7 +291,7 @@ Represent a transaction payload of type 'finalization'.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int, None]]] = None, id_: Optional[str] = None) -> None
+def __init__(sender: str, tx_data: Optional[Dict[str, Union[str, int]]] = None, id_: Optional[str] = None) -> None
 ```
 
 Initialize an 'finalization' transaction payload.
@@ -260,7 +308,7 @@ Initialize an 'finalization' transaction payload.
 
 ```python
 @property
-def tx_data() -> Optional[Dict[str, Union[str, int, None]]]
+def tx_data() -> Optional[Dict[str, Union[str, int]]]
 ```
 
 Get the tx_data.
@@ -271,7 +319,7 @@ Get the tx_data.
 
 ```python
 @property
-def data() -> Dict[str, Dict[str, Union[str, int, None]]]
+def data() -> Dict[str, Dict[str, Union[str, int]]]
 ```
 
 Get the data.

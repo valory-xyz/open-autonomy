@@ -4,16 +4,6 @@
 
 This module contains the behaviours for the 'abci' skill.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.hex_to_payload"></a>
-
-#### hex`_`to`_`payload
-
-```python
-def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]
-```
-
-Decode payload.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState"></a>
 
 ## TransactionSettlementBaseState Objects
@@ -102,6 +92,26 @@ def has_transaction_been_sent() -> Generator[None, None, Optional[bool]]
 ```
 
 Transaction verification.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour"></a>
+
+## CheckTransactionHistoryBehaviour Objects
+
+```python
+class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState)
+```
+
+Check the transaction history.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+Do the action.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SignatureBehaviour"></a>
 
