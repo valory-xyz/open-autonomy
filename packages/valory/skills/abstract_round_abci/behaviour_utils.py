@@ -532,7 +532,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 continue
 
             try:
-                is_delivered = yield from self._wait_until_transaction_delivered(
+                is_delivered, res = yield from self._wait_until_transaction_delivered(
                     tx_hash, timeout=tx_timeout
                 )
             except TimeoutException:
@@ -547,9 +547,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info("A2A transaction delivered!")
                 break
             # otherwise, repeat until done, or until stop condition is true
-            self.context.logger.info(
-                f"Tx sent but not delivered. Response = {response}"
-            )
+            self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
             payload = payload.with_new_id()
         self.context.logger.info(
             "Stop condition is true, no more attempts to send the transaction."
@@ -844,7 +842,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         timeout: Optional[float] = None,
         request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
         max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
-    ) -> Generator[None, None, bool]:
+    ) -> Generator[None, None, Tuple[bool, Optional[HttpMessage]]]:
         """
         Wait until transaction is delivered.
 
@@ -881,9 +879,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     f"Unable to decode response: {response} with body {str(response.body)}"
                 ) from e
             tx_result = json_body["result"]["tx_result"]
-            return tx_result["code"] == OK_CODE
+            return tx_result["code"] == OK_CODE, response
 
-        return False
+        return False, None
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
