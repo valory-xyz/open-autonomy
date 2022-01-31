@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-from typing import Dict
+from typing import Dict, Type
 
 from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 
@@ -77,7 +77,7 @@ def build_agent_config(node_id: int, number_of_agents: int, agent_vars: Dict) ->
 class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
-    def generate_config_tendermint(self, valory_application: BaseDeployment) -> str:
+    def generate_config_tendermint(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the command to configure tendermint testnet."""
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(
@@ -85,17 +85,22 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             ),
             validators=self.number_of_agents,
         )
-        self.config_cmd = " ".join([
-            f for f in run_cmd.replace("\n", "").replace("\\", "").split(" ") if f != ""
-        ])
+        self.config_cmd = " ".join(
+            [
+                f
+                for f in run_cmd.replace("\n", "").replace("\\", "").split(" ")
+                if f != ""
+            ]
+        )
         return self.config_cmd
 
     output_name = "docker-compose.yaml"
 
-    def __init__(self,
-                 number_of_agents: int,
-                 network: str,
-                 ) -> None:
+    def __init__(
+        self,
+        number_of_agents: int,
+        network: str,
+    ) -> None:
         """Initialise the deployment generator."""
         self.config_cmd = ""
         self.hardhat = ""
@@ -103,7 +108,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             self.hardhat = HARDHAT_NODE_TEMPLATE
         super().__init__(number_of_agents, network)
 
-    def generate(self, valory_deployment: BaseDeployment) -> str:
+    def generate(self, valory_deployment: Type[BaseDeployment]) -> str:
         """Generate the new configuration."""
 
         agent_vars = valory_deployment.generate_agents()

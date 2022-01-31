@@ -23,7 +23,7 @@ import abc
 import os
 from pathlib import Path
 from shutil import rmtree
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Type
 
 from deployments.constants import CONFIG_DIRECTORY, KEYS, PRICE_APIS, RANDOMNESS_APIS
 
@@ -146,10 +146,7 @@ class BaseDeploymentGenerator(abc.ABC):
         """Move back to original wd"""
 
     def __init__(
-        self,
-        number_of_agents: int,
-        network: str,
-        config_dir: str = CONFIG_DIRECTORY
+        self, number_of_agents: int, network: str, config_dir: str = str(CONFIG_DIRECTORY)
     ):
         """Initialise with only kwargs."""
         self.number_of_agents = number_of_agents
@@ -157,11 +154,11 @@ class BaseDeploymentGenerator(abc.ABC):
         self.config_dir = Path(config_dir)
 
     @abc.abstractmethod
-    def generate(self, valory_application: BaseDeployment) -> str:
+    def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
-    def generate_config_tendermint(self, valory_application: BaseDeployment) -> str:
+    def generate_config_tendermint(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment configuration."""
 
     def get_parameters(

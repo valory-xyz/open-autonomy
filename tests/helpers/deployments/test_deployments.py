@@ -44,21 +44,21 @@ class CleanDirectoryClass:
     working_dir = None
     deployment_path = Path(ROOT_DIR) / "deployments"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise the test."""
-        self.old_cwd = None
+        self.old_cwd = ""
 
-    def setup(self):
+    def setup(self) -> None:
         """Sets up the working directory for the test method."""
         self.old_cwd = os.getcwd()
         self.working_dir = Path(tempfile.TemporaryDirectory().name)
         shutil.copytree(self.deployment_path, self.working_dir)
         os.chdir(self.working_dir)
 
-    def teardown(self):
+    def teardown(self) -> None:
         """Removes the over-ride"""
-        shutil.rmtree(self.working_dir, ignore_errors=True)
-        os.chdir(self.old_cwd)
+        shutil.rmtree(str(self.working_dir), ignore_errors=True)
+        os.chdir(str(self.old_cwd))
 
 
 class BaseDeploymentTests(ABC):
@@ -76,20 +76,20 @@ class BaseDeploymentTests(ABC):
 class TestDockerComposeDeployment(BaseDeploymentTests):
     """Test class for DOcker-compose Deployment."""
 
-    def test_creates_ropsten_deploy(self):
+    def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
 
-    def test_creates_hardhat_deploy(self):
+    def test_creates_hardhat_deploy(self) -> None:
         """Required for deployment of hardhat."""
 
 
 class TestKubernetesDeployment(BaseDeploymentTests):
     """Test class for Kubernetes Deployment."""
 
-    def test_creates_ropsten_deploy(self):
+    def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
 
-    def test_creates_hardhat_deploy(self):
+    def test_creates_hardhat_deploy(self) -> None:
         """Required for deployment of hardhat."""
 
 
@@ -103,20 +103,23 @@ class TestDeploymentGenerators(BaseDeploymentTests):
 
     config = {"number_of_agents": 4, "network": "hardhat"}
 
-    def test_creates_hardhat_deploy(self):
+    def test_creates_hardhat_deploy(self) -> None:
         """Required for deployment of hardhat."""
 
-    def test_creates_ropsten_deploy(self):
+    def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
 
-    def test_generates_agent_for_all_valory_apps(self):
+    def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all valory apps."""
         for generator in valory_apps:
-            instance = generator(**self.config)
+            instance = generator(
+                number_of_agents=self.config["number_of_agents"],
+                network=self.config["network"]
+            )
             res = instance.generate_agent(0)
             assert len(res) >= 1
 
-    def test_generates_agents_for_all_valory_apps(self):
+    def test_generates_agents_for_all_valory_apps(self) -> None:
         """Test functionality of the valory deployment generators."""
         for generator in valory_apps:
             instance = generator(**self.config)
@@ -129,7 +132,7 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
 
     config = {"number_of_agents": 4, "network": "hardhat"}
 
-    def test_generates_agents_for_all_tendermint_configs(self):
+    def test_generates_agents_for_all_tendermint_configs(self) -> None:
         """Test functionality of the tendermint deployment generators."""
         for generator in deployment_generators:
             instance = generator(**self.config)
