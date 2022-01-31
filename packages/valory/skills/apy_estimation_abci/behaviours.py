@@ -1300,9 +1300,10 @@ class BaseResetBehaviour(APYEstimationBaseState):
             self.context.logger.info("Finalized estimate not available. Resetting!")
         elif self.state_id == "fresh_model_reset":
             self.context.logger.info("Resetting to create a fresh forecasting model!")
-        else:
-            self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
+        else:  # pragma: nocover
+            raise RuntimeError(
+                f"BaseResetBehaviour not used correctly. Got {self.state_id}. "
+                f"Allowed state ids are `cycle_reset` and `fresh_model_reset`."
             )
 
         payload = ResetPayload(

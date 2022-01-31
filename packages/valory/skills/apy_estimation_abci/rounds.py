@@ -605,7 +605,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
         UpdateForecasterRound: {
             Event.DONE: EstimateRound,
             Event.ROUND_TIMEOUT: UpdateForecasterRound,
-            Event.NO_MAJORITY: UpdateForecasterRound,
+            Event.NO_MAJORITY: FailedAPYRound,  # this is here only for the chaining to work. When a failure round will be used (for example if the Optimization fails) then replace this with `UpdateForecasterRound`
         },
         FinishedAPYEstimationRound: {},
         FailedAPYRound: {},
