@@ -28,7 +28,7 @@ from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 from requests import HTTPError
 from web3.types import TxData
 
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract, SafeOperation
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -435,6 +435,12 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.period_state.most_voted_tx_hash
         )
 
+        operation = SafeOperation.CALL.value
+        if self.period_state.safe_operation == "delegate":
+            operation = SafeOperation.DELEGATE_CALL.value
+        if self.period_state.safe_operation == "create":
+            operation = SafeOperation.CREATE.value
+
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -452,6 +458,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             },
             nonce=self.period_state.nonce,
             old_tip=self.period_state.max_priority_fee_per_gas,
+            operation=operation,
         )
 
         tx_data: Dict[str, Union[VerificationStatus, str, int]] = {

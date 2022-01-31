@@ -659,6 +659,8 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
+                    safe_operation="delegate",
+                    max_priority_fee_per_gas=10 ** 15,
                 ),
             )
         )
