@@ -112,6 +112,8 @@ def main() -> None:
     agent_generator = AGENTS[args.valory_application](
         number_of_agents=args.number_of_agents,
         network=args.network,
+        deploy_oracle_contract=args.deploy_oracle_contract,
+        deploy_safe_contract=args.deploy_safe_contract,
     )
 
     deployment.generate(agent_generator)
@@ -133,11 +135,11 @@ def main() -> None:
 
     print(report)
     if args.tendermint_configuration:
-        res = os.popen(" ".join(run_command))  # nosec:
+        res = os.popen(run_command)  # nosec:
         print(res.read())
     else:
         print(
-            f"To configure tendermint for specified Deployment please run: \n\n{' '.join(run_command)}"
+            f"To configure tendermint for specified Deployment please run: \n\n{run_command}"
         )
 
 

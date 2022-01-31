@@ -77,7 +77,9 @@ def build_agent_config(node_id: int, number_of_agents: int, agent_vars: Dict) ->
 class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
-    def generate_config_tendermint(self, valory_application: Type[BaseDeployment]) -> str:
+    def generate_config_tendermint(
+        self, valory_application: Type[BaseDeployment]
+    ) -> str:
         """Generate the command to configure tendermint testnet."""
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(

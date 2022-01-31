@@ -25,7 +25,13 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any, Dict, List, Type
 
-from deployments.constants import CONFIG_DIRECTORY, KEYS, PRICE_APIS, RANDOMNESS_APIS
+from deployments.constants import (
+    CONFIG_DIRECTORY,
+    DEPLOYED_CONTRACTS,
+    KEYS,
+    PRICE_APIS,
+    RANDOMNESS_APIS,
+)
 
 
 class BaseDeployment(abc.ABC):
@@ -35,10 +41,19 @@ class BaseDeployment(abc.ABC):
     network: str
     number_of_agents: int
 
-    def __init__(self, *, number_of_agents: int, network: str):
+    def __init__(
+        self,
+        *,
+        number_of_agents: int,
+        network: str,
+        deploy_safe_contract: bool,
+        deploy_oracle_contract: bool,
+    ):
         """Initialise the deployment."""
         self.network = network
         self.number_of_agents = number_of_agents
+        self.deploy_oracle_contract = deploy_oracle_contract
+        self.deploy_safe_contract = deploy_safe_contract
 
     @abc.abstractmethod
     def generate_agents(self) -> List[Dict]:
@@ -76,6 +91,30 @@ class PriceEstimationDeployment(BaseDeployment):
 
     valory_application = "valory/price_estimation_deployable:0.1.0"
 
+    def get_contracts(self):
+        """If configured, return deployed contracts as env vars."""
+
+        additional_vars = {}
+        if self.deploy_safe_contract:
+            contracts = DEPLOYED_CONTRACTS[self.network]
+            additional_vars.update(
+                {
+                    "PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS": contracts[
+                        "safe_contract_address"
+                    ]
+                }
+            )
+        if self.deploy_oracle_contract:
+            contracts = DEPLOYED_CONTRACTS[self.network]
+            additional_vars.update(
+                {
+                    "PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS": contracts[
+                        "oracle_contract_address"
+                    ]
+                }
+            )
+        return additional_vars
+
     def generate_agent(self, agent_n: int) -> Dict:
         """Generate next agent."""
         price_api = PRICE_APIS[len(PRICE_APIS) % self.number_of_agents]
@@ -99,6 +138,8 @@ class PriceEstimationDeployment(BaseDeployment):
                 for k, v in randomness_api
             }
         )
+        additional_vars = self.get_contracts()
+        environment.update(additional_vars)
         return environment
 
     def generate_agents(self) -> List:
@@ -146,7 +187,10 @@ class BaseDeploymentGenerator(abc.ABC):
         """Move back to original wd"""
 
     def __init__(
-        self, number_of_agents: int, network: str, config_dir: str = str(CONFIG_DIRECTORY)
+        self,
+        number_of_agents: int,
+        network: str,
+        config_dir: str = str(CONFIG_DIRECTORY),
     ):
         """Initialise with only kwargs."""
         self.number_of_agents = number_of_agents
@@ -158,7 +202,9 @@ class BaseDeploymentGenerator(abc.ABC):
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
-    def generate_config_tendermint(self, valory_application: Type[BaseDeployment]) -> str:
+    def generate_config_tendermint(
+        self, valory_application: Type[BaseDeployment]
+    ) -> str:
         """Generate the deployment configuration."""
 
     def get_parameters(

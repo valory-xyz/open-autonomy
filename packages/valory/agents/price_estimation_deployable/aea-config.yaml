@@ -82,6 +82,9 @@ models:
     args:
       consensus:
         max_participants: ${PRICE_ESTIMATION_PARAMS_MAX_PARTICIPANTS:int}
+      period_setup:
+        safe_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS:none}
+        oracle_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS:none}
       tendermint_url: ${PRICE_ESTIMATION_PARAMS_TENDERMINT_URL:str}
       tendermint_com_url: ${PRICE_ESTIMATION_PARAMS_TENDERMINT_COM_URL:str}
       reset_tendermint_after: ${PRICE_ESTIMATION_PARAMS_RESET_TENDERMINT_AFTER:int:2}

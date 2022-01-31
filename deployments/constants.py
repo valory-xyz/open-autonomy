@@ -109,6 +109,10 @@ NETWORKS = {
 
 
 DEPLOYED_CONTRACTS = {
+    "hardhat": {
+        "safe_contract_address": None,
+        "oracle_contract_address": None,
+    },
     "ropsten": {
         "safe_contract_address": "0x7AbCC2424811c342BC9A9B52B1621385d7406676",
         "oracle_contract_address": "0xB555E44648F6Ff759F64A5B451AB845B0450EA57",
