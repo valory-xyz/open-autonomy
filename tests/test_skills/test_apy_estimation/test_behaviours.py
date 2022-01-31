@@ -98,8 +98,10 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
+
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
+
 
 SLEEP_TIME_TWEAK = 0.01
 
