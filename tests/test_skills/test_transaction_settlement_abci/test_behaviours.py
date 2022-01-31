@@ -24,7 +24,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Generator, List, Optional, cast
+from typing import Dict, Generator, List, Optional, Union, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -190,8 +190,80 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
         state = cast(BaseState, self.behaviour.current_state)
         assert state.state_id == ValidateTransactionBehaviour.state_id
 
-    @pytest.mark.parametrize("resubmitting", (True, False))
-    def test_sender_act(self, resubmitting: bool) -> None:
+    @pytest.mark.parametrize(
+        "resubmitting, response_kwargs",
+        (
+            (
+                (
+                    True,
+                    dict(
+                        performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                        callable="get_deploy_transaction",
+                        raw_transaction=RawTransaction(
+                            ledger_id="ethereum",
+                            body={
+                                "tx_hash": "0x3b",
+                                "nonce": 0,
+                                "maxFeePerGas": int(10e10),
+                                "maxPriorityFeePerGas": int(10e10),
+                            },
+                        ),
+                    ),
+                )
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                    callable="get_deploy_transaction",
+                    raw_transaction=RawTransaction(
+                        ledger_id="ethereum",
+                        body={
+                            "tx_hash": "0x3b",
+                            "nonce": 0,
+                            "maxFeePerGas": int(10e10),
+                            "maxPriorityFeePerGas": int(10e10),
+                        },
+                    ),
+                ),
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.ERROR,
+                    callable="get_deploy_transaction",
+                    code=500,
+                    message="GS026",
+                    data=b"",
+                ),
+            ),
+            (
+                False,
+                dict(
+                    performative=ContractApiMessage.Performative.ERROR,
+                    callable="get_deploy_transaction",
+                    code=500,
+                    message="other error",
+                    data=b"",
+                ),
+            ),
+        ),
+    )
+    def test_sender_act(
+        self,
+        resubmitting: bool,
+        response_kwargs: Dict[
+            str,
+            Union[
+                int,
+                str,
+                bytes,
+                Dict[str, Union[int, str]],
+                ContractApiMessage.Performative,
+                RawTransaction,
+            ],
+        ],
+    ) -> None:
         """Test finalize behaviour."""
         nonce: Optional[int] = None
         max_priority_fee_per_gas: Optional[int] = None
@@ -226,53 +298,44 @@ class TestFinalizeBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 )
             ),
         )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.behaviour.current_state),
-            ).state_id
-            == FinalizeBehaviour.state_id
-        )
+
+        state = cast(BaseState, self.behaviour.current_state)
+        assert state.state_id == FinalizeBehaviour.state_id
         self.behaviour.act_wrapper()
+
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
             ),
             contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
-                callable="get_deploy_transaction",
-                raw_transaction=RawTransaction(
-                    ledger_id="ethereum",
-                    body={
-                        "tx_hash": "0x3b",
-                        "nonce": 0,
-                        "maxFeePerGas": int(10e10),
-                        "maxPriorityFeePerGas": int(10e10),
-                    },
+            response_kwargs=response_kwargs,
+        )
+
+        if (
+            response_kwargs["performative"]
+            == ContractApiMessage.Performative.RAW_TRANSACTION
+        ):
+            self.mock_signing_request(
+                request_kwargs=dict(
+                    performative=SigningMessage.Performative.SIGN_TRANSACTION
                 ),
-            ),
-        )
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_TRANSACTION,
-                signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
-            ),
-        )
-        self.mock_ledger_api_request(
-            request_kwargs=dict(
-                performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
-            ),
-            response_kwargs=dict(
-                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                transaction_digest=TransactionDigest(
-                    ledger_id="ethereum", body="tx_hash"
+                response_kwargs=dict(
+                    performative=SigningMessage.Performative.SIGNED_TRANSACTION,
+                    signed_transaction=SignedTransaction(ledger_id="ethereum", body={}),
                 ),
-            ),
-        )
+            )
+            self.mock_ledger_api_request(
+                request_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
+                ),
+                response_kwargs=dict(
+                    performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                    transaction_digest=TransactionDigest(
+                        ledger_id="ethereum", body="tx_hash"
+                    ),
+                ),
+            )
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
@@ -461,7 +524,7 @@ class TestCheckTransactionHistoryBehaviour(PriceEstimationFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         state = cast(BaseState, self.behaviour.current_state)
-        assert state.state_id == ObserveBehaviour.state_id
+        assert state.state_id == ResetAndPauseBehaviour.state_id
 
 
 class TestResetAndPauseBehaviour(PriceEstimationFSMBehaviourBaseCase):
