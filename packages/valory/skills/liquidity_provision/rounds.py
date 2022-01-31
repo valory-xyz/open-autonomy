@@ -42,6 +42,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SignaturePayload,
     TransactionType,
 )
+from web3.types import Nonce
 
 
 class Event(Enum):
@@ -134,6 +135,16 @@ class PeriodState(
     def final_tx_hash(self) -> str:
         """Get the final_enter_pool_tx_hash."""
         return cast(str, self.db.get_strict("final_tx_hash"))
+
+    @property
+    def nonce(self) -> Optional[Nonce]:
+        """Get the nonce."""
+        return cast(Optional[Nonce], self.db.get("nonce"))
+
+    @property
+    def max_priority_fee_per_gas(self) -> Optional[int]:
+        """Get the gas data."""
+        return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
 
 
 class LiquidityProvisionAbstractRound(AbstractRound[Event, TransactionType], ABC):

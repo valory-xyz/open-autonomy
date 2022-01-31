@@ -127,6 +127,20 @@ EXPECTED_TYPES = List[
 ]
 
 
+def payload_to_hex(
+    tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes
+) -> str:
+    """Serialise to a hex string."""
+    if len(tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError("cannot encode tx_hash of non-32 bytes")  # pragma: nocover
+    ether_value_ = ether_value.to_bytes(32, "big").hex()
+    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
+    if len(to_address) != 42:
+        raise ValueError("cannot encode to_address of non 42 length")  # pragma: nocover
+    concatenated = tx_hash + ether_value_ + safe_tx_gas_ + to_address + data.hex()
+    return concatenated
+
+
 def transfer_to_string(
     source_address: str, destination_address: str, token_address: str, value: int
 ) -> str:
@@ -624,6 +638,11 @@ class TestLiquidityProvisionHardhat(
             "a2ad41587443107f74e4dfb4a2b00d8a1f50ad42104cd1b61d4482704694e571"
         )
 
+        cls.safe_tx_gas = 4000000
+        cls.enter_nonce =  1
+        cls.exit_nonce = cls.enter_nonce + 1
+        cls.swap_back_nonce = cls.enter_nonce + 2
+
         # setup default objects
         cls.strategy = get_dummy_strategy()
         cls.strategy[
@@ -877,12 +896,20 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
         # values taken from test_enter_pool_tx_hash_behaviour flow
+        tx_hash_hex = payload_to_hex(
+            self.most_voted_tx_hash_enter,
+            ether_value=self.strategy["pair"]["token_a"]["amount_min_after_add_liq"],
+            safe_tx_gas=self.safe_tx_gas,
+            to_address=self.router_contract_address,
+            data=str.encode(self.multisend_data_enter),
+        )
         period_state = cast(
             PeriodState,
             self.default_period_state_enter.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_enter,
+                most_voted_tx_hash=tx_hash_hex,
                 most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
+                nonce=self.enter_nonce,
             ),
         )
         handlers: HANDLERS = [
