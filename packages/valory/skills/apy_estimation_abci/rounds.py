@@ -20,15 +20,16 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional, Tuple, Type, cast
+from typing import Dict, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
+    AppState,
     BasePeriodState,
-    CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
+    DegenerateRound,
     TransactionType,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -38,7 +39,6 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     OptimizationPayload,
     PreprocessPayload,
     RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -161,27 +161,6 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
         :return: a new period state and a NO_MAJORITY event
         """
         return self.period_state, Event.NO_MAJORITY
-
-
-class RegistrationRound(CollectDifferentUntilAllRound):
-    """A round in which the agents get registered"""
-
-    round_id = "registration"
-    allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.collection_threshold_reached:
-            updated_state = self.period_state.update(
-                participants=self.collection,
-                period_state_class=PeriodState,
-                full_training=False,
-                n_estimations=0,
-            )
-            return updated_state, Event.DONE
-
-        return None
 
 
 class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
@@ -440,10 +419,9 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         return None
 
 
-class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
+class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     """A round that represents the reset of a period"""
 
-    round_id = "reset"
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
 
@@ -455,10 +433,9 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
                 participants=self.period_state.participants,
                 full_training=False,
                 n_estimations=self.period_state.n_estimations,
+                pair_name=self.period_state.pair_name,
+                most_voted_model=self.period_state.model_hash,
             )
-            if self.round_id in ("cycle_reset", "fresh_model_reset"):
-                kwargs["pair_name"] = self.period_state.pair_name
-                kwargs["most_voted_model"] = self.period_state.model_hash
             if self.round_id == "cycle_reset":
                 kwargs[
                     "latest_observation_hist_hash"
@@ -475,16 +452,28 @@ class ResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         return None
 
 
-class FreshModelResetRound(ResetRound):
+class FreshModelResetRound(BaseResetRound):
     """A round that represents that consensus is reached and `N_ESTIMATIONS_BEFORE_RETRAIN` has been reached."""
 
     round_id = "fresh_model_reset"
 
 
-class CycleResetRound(ResetRound):
+class CycleResetRound(BaseResetRound):
     """A round that represents that consensus is reached and `N_ESTIMATIONS_BEFORE_RETRAIN` is not yet reached."""
 
     round_id = "cycle_reset"
+
+
+class FinishedAPYEstimationRound(DegenerateRound, ABC):
+    """A round that represents APY estimation has finished"""
+
+    round_id = "finished_apy_estimation"
+
+
+class FailedAPYRound(DegenerateRound, ABC):
+    """A round that represents that the period failed"""
+
+    round_id = "failed_apy"
 
 
 class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-methods
@@ -548,85 +537,80 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
         reset timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    initial_round_cls: Type[AbstractRound] = CollectHistoryRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {
-            Event.DONE: CollectHistoryRound,
-        },
         CollectHistoryRound: {
             Event.DONE: TransformRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: CollectHistoryRound,
+            Event.ROUND_TIMEOUT: CollectHistoryRound,
         },
         TransformRound: {
             Event.DONE: PreprocessRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: TransformRound,
+            Event.ROUND_TIMEOUT: TransformRound,
         },
         PreprocessRound: {
             Event.DONE: RandomnessRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: PreprocessRound,
+            Event.ROUND_TIMEOUT: PreprocessRound,
         },
         RandomnessRound: {
             Event.DONE: OptimizeRound,
             Event.RANDOMNESS_INVALID: RandomnessRound,
             Event.NO_MAJORITY: RandomnessRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.ROUND_TIMEOUT: RandomnessRound,
         },
         OptimizeRound: {
             Event.DONE: TrainRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: OptimizeRound,
+            Event.ROUND_TIMEOUT: OptimizeRound,
         },
         TrainRound: {
             Event.FULLY_TRAINED: EstimateRound,
             Event.DONE: TestRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: TrainRound,
+            Event.ROUND_TIMEOUT: TrainRound,
         },
         TestRound: {
             Event.DONE: TrainRound,
-            Event.NO_MAJORITY: ResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
+            Event.NO_MAJORITY: TestRound,
+            Event.ROUND_TIMEOUT: TestRound,
         },
         EstimateRound: {
             Event.DONE: FreshModelResetRound,
             Event.ESTIMATION_CYCLE: CycleResetRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: EstimateRound,
+            Event.NO_MAJORITY: EstimateRound,
         },
         FreshModelResetRound: {
             Event.DONE: CollectHistoryRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: FreshModelResetRound,
+            Event.NO_MAJORITY: FreshModelResetRound,
         },
         CycleResetRound: {
             Event.DONE: CollectLatestHistoryBatchRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: CycleResetRound,
+            Event.NO_MAJORITY: CycleResetRound,
         },
         CollectLatestHistoryBatchRound: {
             Event.DONE: PrepareBatchRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: CollectLatestHistoryBatchRound,
+            Event.NO_MAJORITY: CollectLatestHistoryBatchRound,
         },
         PrepareBatchRound: {
             Event.DONE: UpdateForecasterRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: PrepareBatchRound,
+            Event.NO_MAJORITY: PrepareBatchRound,
         },
         UpdateForecasterRound: {
             Event.DONE: EstimateRound,
-            Event.ROUND_TIMEOUT: ResetRound,
-            Event.NO_MAJORITY: ResetRound,
+            Event.ROUND_TIMEOUT: UpdateForecasterRound,
+            Event.NO_MAJORITY: UpdateForecasterRound,
         },
-        ResetRound: {
-            Event.DONE: RegistrationRound,
-            Event.RESET_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
+        FinishedAPYEstimationRound: {},
+        FailedAPYRound: {},
     }
+    final_states: Set[AppState] = {FinishedAPYEstimationRound, FailedAPYRound}
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
