@@ -223,6 +223,16 @@ should have the same effect:
 
 a dictionary which contains the payload data
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.with_new_id"></a>
+
+#### with`_`new`_`id
+
+```python
+def with_new_id() -> "BaseTxPayload"
+```
+
+Create a new payload with the same content but new id.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__eq__"></a>
 
 #### `__`eq`__`
