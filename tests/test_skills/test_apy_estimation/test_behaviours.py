@@ -380,8 +380,15 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
     ipfs_tool = IPFSTool()
 
+    def fast_forward(self) -> None:
+        """Fast-forward to the first (any would work) behaviour of the APY skill."""
+        self.fast_forward_to_state(
+            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
+        )
+
     def test_send_file_to_ipfs_node(self, tmp_path: PosixPath) -> None:
         """Test `send_file_to_ipfs_node`."""
+        self.fast_forward()
         filepath = os.path.join(tmp_path, "test")
 
         with open(filepath, "w") as f:
@@ -395,6 +402,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
     def test_download_from_ipfs_node(self, tmp_path: PosixPath) -> None:
         """Test `download_from_ipfs_node`."""
+        self.fast_forward()
         filename = "test"
         filepath = os.path.join(tmp_path, filename)
 
@@ -413,6 +421,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
     def test_get_and_read_json(self, tmp_path: PosixPath) -> None:
         """Test `get_and_read_json`"""
+        self.fast_forward()
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -436,6 +445,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         transformed_historical_data_no_datetime_conversion: pd.DataFrame,
     ) -> None:
         """Test `get_and_read_hist`."""
+        self.fast_forward()
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -456,6 +466,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
     def test_get_and_read_csv(self, tmp_path: PosixPath) -> None:
         """Test `get_and_read_csv`."""
+        self.fast_forward()
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
@@ -472,6 +483,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
     def test_get_and_read_forecaster(self, tmp_path: PosixPath) -> None:
         """Test `get_and_read_forecaster`."""
+        self.fast_forward()
         save_filepath = os.path.join(tmp_path, "save")
         download_folder = os.path.join(tmp_path, "download")
         os.makedirs(download_folder, exist_ok=True)
