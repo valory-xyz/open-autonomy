@@ -31,7 +31,6 @@ from multiprocessing.pool import AsyncResult
 from pathlib import Path, PosixPath
 from typing import Any, Callable, Dict, FrozenSet, Tuple, Type, Union, cast
 from unittest import mock
-from unittest.mock import patch
 from uuid import uuid4
 
 import joblib
@@ -88,9 +87,6 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     PrepareBatchBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
-    RegistrationBehaviour,
-    ResetBehaviour,
-    TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     TestBehaviour as _TestBehaviour,
@@ -102,10 +98,8 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
-
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
-
 
 SLEEP_TIME_TWEAK = 0.01
 
@@ -507,270 +501,6 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
         assert fourier_saved == fourier_downloaded
         assert arima_saved == arima_downloaded
-
-
-class TestTendermintHealthcheckBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test case to test TendermintHealthcheckBehaviour."""
-
-    def test_tendermint_healthcheck_not_live(self) -> None:
-        """Test the tendermint health check does not finish if not healthy."""
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.apy_estimation_behaviour.current_state),
-            ).state_id
-            == TendermintHealthcheckBehaviour.state_id
-        )
-
-        cast(
-            TendermintHealthcheckBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
-
-        self.apy_estimation_behaviour.act_wrapper()
-
-        with patch.object(
-            self.apy_estimation_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.mock_http_request(
-                request_kwargs=dict(
-                    method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/health",
-                    headers="",
-                    version="",
-                    body=b"",
-                ),
-                response_kwargs=dict(
-                    version="",
-                    status_code=500,
-                    status_text="",
-                    headers="",
-                    body=b"",
-                ),
-            )
-        mock_logger.assert_any_call(
-            logging.ERROR,
-            "Tendermint not running yet, trying again!",
-        )
-        time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.apy_estimation_behaviour.act_wrapper()
-
-    def test_tendermint_healthcheck_not_live_raises(self) -> None:
-        """Test the tendermint health check raises if not healthy for too long."""
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.apy_estimation_behaviour.current_state),
-            ).state_id
-            == TendermintHealthcheckBehaviour.state_id
-        )
-        with mock.patch.object(
-            self.apy_estimation_behaviour.current_state,
-            "_is_timeout_expired",
-            return_value=True,
-        ):
-            with pytest.raises(
-                AEAActException, match="Tendermint node did not come live!"
-            ):
-                self.apy_estimation_behaviour.act_wrapper()
-
-    def test_tendermint_healthcheck_live_and_no_status(self) -> None:
-        """Test the tendermint health check does finish if healthy."""
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.apy_estimation_behaviour.current_state),
-            ).state_id
-            == TendermintHealthcheckBehaviour.state_id
-        )
-
-        cast(
-            TendermintHealthcheckBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
-
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                url=self.skill.skill_context.params.tendermint_url + "/health",
-                headers="",
-                version="",
-                body=b"",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=200,
-                status_text="",
-                headers="",
-                body=json.dumps({"status": 1}).encode("utf-8"),
-            ),
-        )
-        with patch.object(
-            self.apy_estimation_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.mock_http_request(
-                request_kwargs=dict(
-                    method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/status",
-                    headers="",
-                    version="",
-                    body=b"",
-                ),
-                response_kwargs=dict(
-                    version="", status_code=500, status_text="", headers="", body=b""
-                ),
-            )
-        mock_logger.assert_any_call(
-            logging.ERROR, "Tendermint not accepting transactions yet, trying again!"
-        )
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == TendermintHealthcheckBehaviour.state_id
-        time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.apy_estimation_behaviour.act_wrapper()
-
-    def test_tendermint_healthcheck_live_and_status(self) -> None:
-        """Test the tendermint health check does finish if healthy."""
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.apy_estimation_behaviour.current_state),
-            ).state_id
-            == TendermintHealthcheckBehaviour.state_id
-        )
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                url=self.skill.skill_context.params.tendermint_url + "/health",
-                headers="",
-                version="",
-                body=b"",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=200,
-                status_text="",
-                headers="",
-                body=json.dumps({"status": 1}).encode("utf-8"),
-            ),
-        )
-        with patch.object(
-            self.apy_estimation_behaviour.context.logger, "log"
-        ) as mock_logger:
-            current_height = self.apy_estimation_behaviour.context.state.period.height
-            self.mock_http_request(
-                request_kwargs=dict(
-                    method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/status",
-                    headers="",
-                    version="",
-                    body=b"",
-                ),
-                response_kwargs=dict(
-                    version="",
-                    status_code=200,
-                    status_text="",
-                    headers="",
-                    body=json.dumps(
-                        {
-                            "result": {
-                                "sync_info": {"latest_block_height": current_height}
-                            }
-                        }
-                    ).encode("utf-8"),
-                ),
-            )
-        mock_logger.assert_any_call(logging.INFO, "local height == remote height; done")
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == RegistrationBehaviour.state_id
-
-    def test_tendermint_healthcheck_height_differs(self) -> None:
-        """Test the tendermint health check does finish if local-height != remote-height."""
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.apy_estimation_behaviour.current_state),
-            ).state_id
-            == TendermintHealthcheckBehaviour.state_id
-        )
-        cast(
-            TendermintHealthcheckBehaviour,
-            self.apy_estimation_behaviour.current_state,
-        )._check_started = datetime.now()
-        cast(
-            TendermintHealthcheckBehaviour,
-            self.apy_estimation_behaviour.current_state,
-        )._is_healthy = True
-
-        cast(
-            TendermintHealthcheckBehaviour, self.apy_estimation_behaviour.current_state
-        ).params.sleep_time = SLEEP_TIME_TWEAK
-
-        self.apy_estimation_behaviour.act_wrapper()
-        with patch.object(
-            self.apy_estimation_behaviour.context.logger, "log"
-        ) as mock_logger:
-            current_height = self.apy_estimation_behaviour.context.state.period.height
-            new_different_height = current_height + 1
-            self.mock_http_request(
-                request_kwargs=dict(
-                    method="GET",
-                    url=self.skill.skill_context.params.tendermint_url + "/status",
-                    headers="",
-                    version="",
-                    body=b"",
-                ),
-                response_kwargs=dict(
-                    version="",
-                    status_code=200,
-                    status_text="",
-                    headers="",
-                    body=json.dumps(
-                        {
-                            "result": {
-                                "sync_info": {
-                                    "latest_block_height": new_different_height
-                                }
-                            }
-                        }
-                    ).encode("utf-8"),
-                ),
-            )
-        mock_logger.assert_any_call(
-            logging.INFO, "local height != remote height; retrying..."
-        )
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == TendermintHealthcheckBehaviour.state_id
-        time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.apy_estimation_behaviour.act_wrapper()
-
-
-class TestRegistrationBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Base test case to test RegistrationBehaviour."""
-
-    behaviour_class = RegistrationBehaviour
-    next_behaviour_class = FetchBehaviour
-
-    def test_registration(self) -> None:
-        """Test registration."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour,
-            self.behaviour_class.state_id,
-            self.period_state,
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.apy_estimation_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.apy_estimation_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-
-        self.end_round()
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
 
 
 class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
@@ -2739,39 +2469,6 @@ class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             "[test_agent_name] Resetting to create a fresh forecasting model!"
             in caplog.text
         )
-
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-
-class TestResetBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test ResetBehaviour."""
-
-    behaviour_class = ResetBehaviour
-    next_behaviour_class = RegistrationBehaviour
-
-    def test_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
-        """Run test for `ResetBehaviour`."""
-        self.fast_forward_to_state(
-            behaviour=self.apy_estimation_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(StateDB(initial_period=0, initial_data={})),
-        )
-        state = cast(BaseState, self.apy_estimation_behaviour.current_state)
-        assert state.state_id == self.behaviour_class.state_id
-
-        with caplog.at_level(
-            logging.INFO,
-            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-        ):
-            self.apy_estimation_behaviour.act_wrapper()
-
-        assert "[test_agent_name] Entered in the 'reset' behaviour state" in caplog.text
-        assert "[test_agent_name] Period 0 was not finished. Resetting!" in caplog.text
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
