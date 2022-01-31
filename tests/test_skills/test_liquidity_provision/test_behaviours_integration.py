@@ -639,7 +639,7 @@ class TestLiquidityProvisionHardhat(
         )
 
         cls.safe_tx_gas = 4000000
-        cls.enter_nonce =  1
+        cls.enter_nonce =  8
         cls.exit_nonce = cls.enter_nonce + 1
         cls.swap_back_nonce = cls.enter_nonce + 2
 
