@@ -900,7 +900,7 @@ class TestLiquidityProvisionHardhat(
             self.most_voted_tx_hash_enter,
             ether_value=0,
             safe_tx_gas=self.safe_tx_gas,
-            to_address=self.router_contract_address,
+            to_address=self.multisend_contract_address,
             data=str.encode(self.multisend_data_enter),
         )
         period_state = cast(
