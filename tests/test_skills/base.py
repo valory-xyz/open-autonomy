@@ -302,7 +302,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
                 status_code=200,
                 status_text="",
                 headers="",
-                body=json.dumps({"result": {"hash": ""}}).encode("utf-8"),
+                body=json.dumps({"result": {"hash": "", "code": OK_CODE}}).encode(
+                    "utf-8"
+                ),
             ),
         )
         self.mock_http_request(

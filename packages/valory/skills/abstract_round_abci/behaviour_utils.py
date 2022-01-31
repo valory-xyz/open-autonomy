@@ -501,6 +501,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 response = yield from self._submit_tx(
                     transaction.encode(), timeout=request_timeout
                 )
+                # There is no guarantee that beyond this line will be executed for a given behaviour execution.
+                # The tx could lead to a round transition which exits us from the behaviour execution.
+                # It's unlikely to happen anywhere before line 538 but there it is very likely to not
+                # yield in time before the behaviour is finished. As a result logs below might not show
+                # up on the happy execution path.
             except TimeoutException:
                 self.context.logger.info(
                     f"Timeout expired for submit tx. Retrying in {request_retry_delay} seconds..."
