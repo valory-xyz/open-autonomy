@@ -1556,6 +1556,9 @@ class AbciApp(
             (
                 self._last_round.allowed_tx_type
                 if self._last_round is not None
+                and self._last_round.allowed_tx_type
+                != self._current_round_cls.allowed_tx_type
+                # when transitioning to a round with the same payload type we set None as otherwise it will allow no tx to be sumitted
                 else None
             ),
         )
