@@ -524,6 +524,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 ) from e
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             tx_hash = json_body["result"]["hash"]
+            if json_body["result"]["code"] != OK_CODE:
+                self.context.logger.info(
+                    f"Received tendermint code != 0. Retrying in {request_retry_delay} seconds..."
+                )
+                yield from self.sleep(request_retry_delay)
+                continue
 
             try:
                 is_delivered = yield from self._wait_until_transaction_delivered(
