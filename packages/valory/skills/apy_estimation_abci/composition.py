@@ -23,7 +23,10 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.apy_estimation_abci.rounds import CollectHistoryRound
+from packages.valory.skills.apy_estimation_abci.rounds import (
+    APYEstimationAbciApp,
+    CollectHistoryRound,
+)
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
     FinishedRegistrationRound,
@@ -31,7 +34,16 @@ from packages.valory.skills.registration_abci.rounds import (
 
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
-    FinishedRegistrationRound: CollectHistoryRound
+    FinishedRegistrationRound: CollectHistoryRound,
+    # FinishedRegistrationFFWRound: CollectHistoryRound,
+    # FinishedAPYEstimationRound: ,
+    # FailedAPYRound: RegistrationRound,
 }
 
-APYEstimationAbciApp = chain((AgentRegistrationAbciApp,), abci_app_transition_mapping)
+APYEstimationAbciAppChained = chain(
+    (
+        AgentRegistrationAbciApp,
+        APYEstimationAbciApp,
+    ),
+    abci_app_transition_mapping,
+)
