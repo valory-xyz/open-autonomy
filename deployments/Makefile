@@ -23,6 +23,7 @@ localnet-start: localnet-stop build-images
 # configures the build directory for tendermint
 # deploys oracle contract
 # deploys safe contract
+	sudo rm -r build/*
 	cd ../
 	python deployments/create_deployment.py \
 		-t docker-compose \
@@ -94,7 +95,7 @@ cluster-create-deployments:
 	sudo python3 configure_agents/create_env.py -n 4 -net hardhat -doc -dsc
 	python deployments/create_deployment.py \
 		-t docker-compose \
-		-net hardhat \
+		-net ropsten \
 		-app valory/price_estimation:0.1.0 \
 		-n 4 \
 		-c

@@ -33,8 +33,7 @@ required_ledgers:
 - ethereum
 default_routing: {}
 connection_private_key_paths: {}
-private_key_paths:
-  ethereum: ethereum_private_key.txt
+private_key_paths: {}
 logging_config:
   version: 1
   disable_existing_loggers: false
@@ -83,8 +82,9 @@ models:
       consensus:
         max_participants: ${PRICE_ESTIMATION_PARAMS_MAX_PARTICIPANTS:int}
       period_setup:
-        safe_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS:none}
-        oracle_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS:none}
+        safe_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS:str:none}
+        oracle_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS:str:none}
+      round_timeout_seconds: ${PRICE_ESTIMATION_PARAMS_ROUND_TIMEOUT_SECONDS:float:10.0}
       tendermint_url: ${PRICE_ESTIMATION_PARAMS_TENDERMINT_URL:str}
       tendermint_com_url: ${PRICE_ESTIMATION_PARAMS_TENDERMINT_COM_URL:str}
       reset_tendermint_after: ${PRICE_ESTIMATION_PARAMS_RESET_TENDERMINT_AFTER:int:2}

@@ -67,6 +67,7 @@ class BaseDeploymentTests(ABC):
     @classmethod
     def setup_class(cls) -> None:
         """Setup up the test class."""
+        cls.config = deepcopy(test_app_config)
 
     @classmethod
     def teardown_class(cls) -> None:
@@ -97,11 +98,23 @@ valory_apps = [CounterDeployment, PriceEstimationDeployment, APYEstimationDeploy
 
 deployment_generators = [DockerComposeGenerator]
 
+test_app_config = {
+    "number_of_agents": 4,
+    "network": "hardhat",
+    "deploy_safe_contract": False,
+    "deploy_oracle_contract": False
+}
+
+test_deploy_config = {
+    "number_of_agents": 4,
+    "network": "hardhat",
+}
+
+from copy import deepcopy
+
 
 class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
-
-    config = {"number_of_agents": 4, "network": "hardhat"}
 
     def test_creates_hardhat_deploy(self) -> None:
         """Required for deployment of hardhat."""
@@ -115,6 +128,8 @@ class TestDeploymentGenerators(BaseDeploymentTests):
             instance = generator(
                 number_of_agents=self.config["number_of_agents"],
                 network=self.config["network"],
+                deploy_safe_contract=self.config["deploy_safe_contract"],
+                deploy_oracle_contract=self.config["deploy_oracle_contract"]
             )
             res = instance.generate_agent(0)
             assert len(res) >= 1
@@ -130,12 +145,14 @@ class TestDeploymentGenerators(BaseDeploymentTests):
 class TestTendermintDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    config = {"number_of_agents": 4, "network": "hardhat"}
+    def setup(self):
+        """specify deployment configuration."""
+        self.config = test_deploy_config
 
     def test_generates_agents_for_all_tendermint_configs(self) -> None:
         """Test functionality of the tendermint deployment generators."""
-        for generator in deployment_generators:
-            instance = generator(**self.config)
+        for deployment_generator in deployment_generators:
+            instance = deployment_generator(**self.config)
             for app in valory_apps:
                 res = instance.generate_config_tendermint(app)
                 assert len(res) > 1, "Failed to generate Tendermint Config"
@@ -144,12 +161,15 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
 class TestCliTool(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    config = {"number_of_agents": 4, "network": "hardhat"}
+    def setup(self):
+        """specify deployment configuration."""
+        self.config = test_deploy_config
 
     def test_generates_agents_for_all_tendermint_configs(self) -> None:
         """Test functionality of the tendermint deployment generators."""
-        for generator in deployment_generators:
-            instance = generator(**self.config)
+
+        for deployment_generator in deployment_generators:
+            instance = deployment_generator(**self.config)
             for app in valory_apps:
                 res = instance.generate_config_tendermint(app)
                 assert len(res) > 1, "Failed to generate Tendermint Config"
