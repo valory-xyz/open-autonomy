@@ -91,7 +91,7 @@ class PriceEstimationDeployment(BaseDeployment):
 
     valory_application = "valory/price_estimation_deployable:0.1.0"
 
-    def get_contracts(self):
+    def get_contracts(self) -> Dict[str, Any]:
         """If configured, return deployed contracts as env vars."""
 
         additional_vars = {}
@@ -190,12 +190,11 @@ class BaseDeploymentGenerator(abc.ABC):
         self,
         number_of_agents: int,
         network: str,
-        config_dir: str = str(CONFIG_DIRECTORY),
     ):
         """Initialise with only kwargs."""
         self.number_of_agents = number_of_agents
         self.network = network
-        self.config_dir = Path(config_dir)
+        self.config_dir = Path(CONFIG_DIRECTORY)
 
     @abc.abstractmethod
     def generate(self, valory_application: Type[BaseDeployment]) -> str:

@@ -71,7 +71,7 @@ metadata:
   name: hardhat
 spec:
   ports:
-    - protocol: TCP 
+    - protocol: TCP
       port: 8545
       targetPort: 8545
   selector:

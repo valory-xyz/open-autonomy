@@ -22,6 +22,7 @@ import os
 import shutil
 import tempfile
 from abc import ABC
+from copy import deepcopy
 from pathlib import Path
 
 from deployments.base_deployments import (
@@ -64,6 +65,8 @@ class CleanDirectoryClass:
 class BaseDeploymentTests(ABC):
     """Base pytest class for setting up Docker images."""
 
+    config: dict
+
     @classmethod
     def setup_class(cls) -> None:
         """Setup up the test class."""
@@ -102,15 +105,13 @@ test_app_config = {
     "number_of_agents": 4,
     "network": "hardhat",
     "deploy_safe_contract": False,
-    "deploy_oracle_contract": False
+    "deploy_oracle_contract": False,
 }
 
 test_deploy_config = {
     "number_of_agents": 4,
     "network": "hardhat",
 }
-
-from copy import deepcopy
 
 
 class TestDeploymentGenerators(BaseDeploymentTests):
@@ -129,7 +130,7 @@ class TestDeploymentGenerators(BaseDeploymentTests):
                 number_of_agents=self.config["number_of_agents"],
                 network=self.config["network"],
                 deploy_safe_contract=self.config["deploy_safe_contract"],
-                deploy_oracle_contract=self.config["deploy_oracle_contract"]
+                deploy_oracle_contract=self.config["deploy_oracle_contract"],
             )
             res = instance.generate_agent(0)
             assert len(res) >= 1
@@ -145,8 +146,8 @@ class TestDeploymentGenerators(BaseDeploymentTests):
 class TestTendermintDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    def setup(self):
-        """specify deployment configuration."""
+    def setup(self) -> None:
+        """Specify deployment configuration."""
         self.config = test_deploy_config
 
     def test_generates_agents_for_all_tendermint_configs(self) -> None:
@@ -161,8 +162,8 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
 class TestCliTool(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    def setup(self):
-        """specify deployment configuration."""
+    def setup(self) -> None:
+        """Specify deployment configuration."""
         self.config = test_deploy_config
 
     def test_generates_agents_for_all_tendermint_configs(self) -> None:

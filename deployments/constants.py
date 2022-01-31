@@ -20,7 +20,7 @@
 """Constants for generating deployments environment."""
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 KEYS: List[str] = [
@@ -108,7 +108,7 @@ NETWORKS = {
 }
 
 
-DEPLOYED_CONTRACTS = {
+DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
     "hardhat": {
         "safe_contract_address": None,
         "oracle_contract_address": None,
@@ -116,7 +116,7 @@ DEPLOYED_CONTRACTS = {
     "ropsten": {
         "safe_contract_address": "0x7AbCC2424811c342BC9A9B52B1621385d7406676",
         "oracle_contract_address": "0xB555E44648F6Ff759F64A5B451AB845B0450EA57",
-    }
+    },
 }
 
 APPLICATIONS = {"valory/counter", "valory/price_estimation", "valory/apy_estimation"}

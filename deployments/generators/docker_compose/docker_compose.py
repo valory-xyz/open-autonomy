@@ -92,7 +92,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         super().__init__(number_of_agents, network)
 
     def generate_config_tendermint(
-            self, valory_application: Type[BaseDeployment]
+        self, valory_application: Type[BaseDeployment]
     ) -> str:
         """Generate the command to configure tendermint testnet."""
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
@@ -110,11 +110,10 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         )
         return self.config_cmd
 
-
-    def generate(self, valory_deployment: Type[BaseDeployment]) -> str:
+    def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the new configuration."""
 
-        agent_vars = valory_deployment.generate_agents()
+        agent_vars = valory_application.generate_agents()
 
         agents = "".join(
             [

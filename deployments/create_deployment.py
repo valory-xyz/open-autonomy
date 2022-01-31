@@ -23,14 +23,13 @@ from argparse import ArgumentParser
 from textwrap import dedent
 from typing import Any
 
-from constants import NETWORKS
-from generators.docker_compose.docker_compose import DockerComposeGenerator
-
 from deployments.base_deployments import (
     APYEstimationDeployment,
     CounterDeployment,
     PriceEstimationDeployment,
 )
+from deployments.constants import NETWORKS
+from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
 
