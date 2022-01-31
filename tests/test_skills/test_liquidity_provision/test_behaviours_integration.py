@@ -901,7 +901,7 @@ class TestLiquidityProvisionHardhat(
             ether_value=0,
             safe_tx_gas=self.safe_tx_gas,
             to_address=self.multisend_contract_address,
-            data=str.encode(self.multisend_data_enter),
+            data=bytes.fromhex(self.multisend_data_enter),
         )
         period_state = cast(
             PeriodState,
