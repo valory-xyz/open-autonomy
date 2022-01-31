@@ -60,7 +60,6 @@ TENDERMINT_NODE_TEMPLATE: str = """
   node{node_id}:
     container_name: node{node_id}
     image: "valory/consensus-algorithms-tendermint:0.1.0"
-    cpus: 0.1
     environment:
       - ID={node_id}
       - LOG=${{LOG:-tendermint.log}}
@@ -71,12 +70,10 @@ TENDERMINT_NODE_TEMPLATE: str = """
       - ./build:/tendermint:Z
     working_dir: /tendermint
     entrypoint: /bin/bash
-    command: wait-for-it.sh -t 120 hardhat:8545 -- wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci{node_id}:26658
+    command:  wrapper.sh node --consensus.create_empty_blocks=true --proxy_app=tcp://abci{node_id}:26658
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
-    depends_on:
-      - hardhat
 """
 
 ABCI_NODE_TEMPLATE: str = """
@@ -91,6 +88,5 @@ ABCI_NODE_TEMPLATE: str = """
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
     depends_on:
-      - hardhat
       - node{node_id}
 """
