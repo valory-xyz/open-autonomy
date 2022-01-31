@@ -896,9 +896,9 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
         # values taken from test_enter_pool_tx_hash_behaviour flow
-        tx_hash_hex = payload_to_hex(
+        payload_string = payload_to_hex(
             self.most_voted_tx_hash_enter,
-            ether_value=self.strategy["pair"]["token_a"]["amount_min_after_add_liq"],
+            ether_value=0,
             safe_tx_gas=self.safe_tx_gas,
             to_address=self.router_contract_address,
             data=str.encode(self.multisend_data_enter),
@@ -906,7 +906,7 @@ class TestLiquidityProvisionHardhat(
         period_state = cast(
             PeriodState,
             self.default_period_state_enter.update(
-                most_voted_tx_hash=tx_hash_hex,
+                most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
                 nonce=self.enter_nonce,
