@@ -23,7 +23,7 @@ import abc
 import os
 from pathlib import Path
 from shutil import rmtree
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from deployments.constants import CONFIG_DIRECTORY, KEYS, PRICE_APIS, RANDOMNESS_APIS
 
@@ -35,7 +35,7 @@ class BaseDeployment(abc.ABC):
     network: str
     number_of_agents: int
 
-    def __init__(self, *, number_of_agents, network):
+    def __init__(self, *, number_of_agents: int, network: str):
         """Initialise the deployment."""
         self.network = network
         self.number_of_agents = number_of_agents
@@ -45,7 +45,7 @@ class BaseDeployment(abc.ABC):
         """Generate next agent."""
 
     @abc.abstractmethod
-    def generate_agent(self) -> str:
+    def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
 
     @abc.abstractmethod
@@ -56,13 +56,16 @@ class BaseDeployment(abc.ABC):
 class CounterDeployment(BaseDeployment):
     """Simple counter deployment."""
 
-    def generate_agent(self) -> str:
-        """Generate next agent."""
-
     valory_application = "valory/counter:0.1.0"
 
-    def generate_agents(self) -> str:
-        """Generate multiple agents."""
+    def generate_agent(self, agent_n: int) -> Dict:
+        """Generate next agent."""
+        environment = dict(AEA_KEY=KEYS[agent_n])
+        return environment
+
+    def generate_agents(self) -> List:
+        """Generate multiple agent."""
+        return [self.generate_agent(i) for i in range(self.number_of_agents)]
 
     def setup(self) -> str:
         """Prepare agent generator."""
@@ -73,7 +76,7 @@ class PriceEstimationDeployment(BaseDeployment):
 
     valory_application = "valory/price_estimation_deployable:0.1.0"
 
-    def generate_agent(self, agent_n: int) -> str:
+    def generate_agent(self, agent_n: int) -> Dict:
         """Generate next agent."""
         price_api = PRICE_APIS[len(PRICE_APIS) % self.number_of_agents]
         randomness_api = RANDOMNESS_APIS[len(PRICE_APIS) % self.number_of_agents]
@@ -111,17 +114,17 @@ class APYEstimationDeployment(BaseDeployment):
 
     valory_application = "valory/apy_estimation:0.1.0"
 
-    def generate_agent(self) -> str:
+    def generate_agent(self, agent_n: int) -> Dict:
         """Generate next agent."""
-        raise NotImplementedError
+        environment = dict(AEA_KEY=KEYS[agent_n])
+        return environment
 
-    def generate_agents(self) -> str:
+    def generate_agents(self) -> List:
         """Generate multiple agent."""
-        raise NotImplementedError
+        return [self.generate_agent(i) for i in range(self.number_of_agents)]
 
     def setup(self) -> str:
         """Prepare agent generator."""
-        raise NotImplementedError
 
 
 class BaseDeploymentGenerator(abc.ABC):
@@ -132,34 +135,33 @@ class BaseDeploymentGenerator(abc.ABC):
     deployment: BaseDeployment
     output_name: str
 
-    def setup(self):
+    def setup(self) -> None:
         """Set up the directory for the configuration to written to."""
         self.old_wd = os.getcwd()
         if self.config_dir.is_dir():
             rmtree(str(self.config_dir))
         self.config_dir.mkdir()
 
-    def teardown(self):
+    def teardown(self) -> None:
         """Move back to original wd"""
 
     def __init__(
         self,
-        *,
         number_of_agents: int,
         network: str,
-        **kwargs,
+        config_dir: str = CONFIG_DIRECTORY
     ):
         """Initialise with only kwargs."""
         self.number_of_agents = number_of_agents
         self.network = network
-        self.config_dir = Path(kwargs.get("config_dir", CONFIG_DIRECTORY))
+        self.config_dir = Path(config_dir)
 
     @abc.abstractmethod
-    def generate(self, valory_application) -> str:
+    def generate(self, valory_application: BaseDeployment) -> str:
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
-    def generate_config_tendermint(self, valory_application) -> str:
+    def generate_config_tendermint(self, valory_application: BaseDeployment) -> str:
         """Generate the deployment configuration."""
 
     def get_parameters(
@@ -167,8 +169,11 @@ class BaseDeploymentGenerator(abc.ABC):
     ) -> Dict:
         """Retrieve the parameters for the deployment."""
 
-    def write_config(self):
+    def write_config(self) -> None:
         """Write output to build dir"""
+
+        if not self.config_dir.is_dir():
+            self.config_dir.mkdir()
 
         with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(self.output)

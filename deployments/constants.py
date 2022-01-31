@@ -20,7 +20,7 @@
 """Constants for generating deployments environment."""
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 
 KEYS: List[str] = [
@@ -65,7 +65,7 @@ RANDOMNESS_APIS: List[List[Tuple[str, str]]] = [
     ],
 ]
 
-PRICE_APIS: List[Dict[str, str]] = [
+PRICE_APIS: List[List[Tuple[str, str]]] = [
     [
         ("url", "https://api.coingecko.com/api/v3/simple/price"),
         ("api_id", "coingecko"),

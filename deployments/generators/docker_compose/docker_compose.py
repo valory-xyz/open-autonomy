@@ -77,25 +77,31 @@ def build_agent_config(node_id: int, number_of_agents: int, agent_vars: Dict) ->
 class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
-    def generate_config_tendermint(self, valory_application) -> str:
+    def generate_config_tendermint(self, valory_application: BaseDeployment) -> str:
         """Generate the command to configure tendermint testnet."""
-        self.config_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
+        run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(
                 [f"--hostname=node{k}" for k in range(self.number_of_agents)]
             ),
-            validators=valory_application.number_of_agents,
+            validators=self.number_of_agents,
         )
+        self.config_cmd = " ".join([
+            f for f in run_cmd.replace("\n", "").replace("\\", "").split(" ") if f != ""
+        ])
         return self.config_cmd
 
     output_name = "docker-compose.yaml"
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                 number_of_agents: int,
+                 network: str,
+                 ) -> None:
         """Initialise the deployment generator."""
-        self.config_cmd = None
+        self.config_cmd = ""
         self.hardhat = ""
-        if kwargs.get("network") == "hardhat":
+        if network == "hardhat":
             self.hardhat = HARDHAT_NODE_TEMPLATE
-        super().__init__(**kwargs)
+        super().__init__(number_of_agents, network)
 
     def generate(self, valory_deployment: BaseDeployment) -> str:
         """Generate the new configuration."""

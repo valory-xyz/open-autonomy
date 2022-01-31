@@ -26,7 +26,9 @@ from argparse import ArgumentParser, Namespace
 from ipaddress import IPv4Address
 from pathlib import Path
 from shutil import rmtree
-from typing import List, Tuple
+from typing import Any, List, Tuple
+
+from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 
 
 BASE_DIRECTORY = Path() / "kubernetes_configs"
@@ -352,7 +354,7 @@ def build_agent_deployment(
         file.write(agent_deployment_yaml)
 
 
-def get_args():
+def get_args() -> Any:
     """Parse cli Arguments"""
     parser = ArgumentParser()
 
@@ -404,8 +406,14 @@ def main() -> None:
         print(f"copied {number_of_agents} configs to build volume.")
 
 
-class KubernetesGenerator:
+class KubernetesGenerator(BaseDeploymentGenerator):
     """Kubernetes Deployment Generator."""
+
+    def generate(self, valory_application: BaseDeployment) -> str:
+        """Generate the deployment."""
+
+    def generate_config_tendermint(self, valory_application: BaseDeployment) -> str:
+        """Generate the tendermint config job."""
 
 
 if __name__ == "__main__":

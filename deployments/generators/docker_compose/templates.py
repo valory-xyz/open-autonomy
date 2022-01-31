@@ -19,15 +19,14 @@
 
 """Deployment Templates."""
 
-TENDERMINT_CONFIG_TEMPLATE: str = """
-    docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z \
-        --entrypoint=/usr/bin/tendermint \
-        valory/consensus-algorithms-tendermint:0.1.0 \
-            testnet \
-                --config /etc/tendermint/config-template.toml \
-                --v {validators} \
-                --o . \
-                {hosts}
+TENDERMINT_CONFIG_TEMPLATE: str = """docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z \
+--entrypoint=/usr/bin/tendermint \
+valory/consensus-algorithms-tendermint:0.1.0 \
+    testnet \
+        --config /etc/tendermint/config-template.toml \
+        --v {validators} \
+        --o . \
+        {hosts}
 """
 
 

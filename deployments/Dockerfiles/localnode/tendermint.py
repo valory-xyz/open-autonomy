@@ -22,7 +22,7 @@
 import logging
 import os
 import signal
-import subprocess
+import subprocess  # nosec:
 from logging import Logger
 from typing import List, Optional
 
@@ -105,8 +105,10 @@ class TendermintNode:
         if self._process is not None:  # pragma: nocover
             return
         cmd = self._build_node_command()
-        self._process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with
-            cmd, preexec_fn=os.setsid
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, preexec_fn=os.setsid
+            )
         )
 
     def stop(self) -> None:
@@ -118,4 +120,6 @@ class TendermintNode:
 
     def prune_blocks(self) -> None:
         """Prune blocks from the Tendermint state"""
-        subprocess.call(["tendermint", "--home", self.params.home, "unsafe-reset-all"])
+        subprocess.call(  # nosec:
+            ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
+        )

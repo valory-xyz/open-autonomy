@@ -101,6 +101,8 @@ deployment_generators = [DockerComposeGenerator]
 class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
+    config = {"number_of_agents": 4, "network": "hardhat"}
+
     def test_creates_hardhat_deploy(self):
         """Required for deployment of hardhat."""
 
@@ -110,13 +112,15 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     def test_generates_agent_for_all_valory_apps(self):
         """Test generator functions with all valory apps."""
         for generator in valory_apps:
-            res = generator.generate_agent()
-            assert len(res) > 1
+            instance = generator(**self.config)
+            res = instance.generate_agent(0)
+            assert len(res) >= 1
 
     def test_generates_agents_for_all_valory_apps(self):
         """Test functionality of the valory deployment generators."""
         for generator in valory_apps:
-            res = generator.generate_agents()
+            instance = generator(**self.config)
+            res = instance.generate_agents()
             assert len(res) > 1, "failed to generate agents"
 
 
@@ -130,5 +134,5 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
         for generator in deployment_generators:
             instance = generator(**self.config)
             for app in valory_apps:
-                res = instance.generate_config_tendermint(app.valory_application)
+                res = instance.generate_config_tendermint(app)
                 assert len(res) > 1, "Failed to generate Tendermint Config"
