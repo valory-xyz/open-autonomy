@@ -18,29 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utility functions for the 'abstract_round_abci' skill."""
-import builtins
-import importlib.util
 import json
 import logging
 import os
 from hashlib import sha256
 from time import time
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Optional, Tuple, Union, cast
 
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
 
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-
-
-def locate(path: str) -> Any:
-    """Locate an object by name or dotted save_path, importing as necessary."""
-    module_name, object_name = path.rsplit(".", 1)
-    try:
-        module = importlib.import_module(module_name)
-    except ModuleNotFoundError:
-        module = getattr(builtins, module_name, None)
-    return getattr(module, object_name, None)
 
 
 class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
