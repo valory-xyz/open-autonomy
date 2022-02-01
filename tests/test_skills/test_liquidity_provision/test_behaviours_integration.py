@@ -964,7 +964,7 @@ class TestLiquidityProvisionHardhat(
             PeriodState,
             self.default_period_state_enter.update(
                 final_tx_hash=tx_digest,
-                most_voted_tx_hash=self.most_voted_tx_hash_enter,
+                most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
                 participant_to_lp_result=participant_to_lp_result,
             ),
@@ -972,13 +972,11 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
-            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
-            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -988,13 +986,10 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
-            {
-                "state": State,
-            },
         ]
-        _, verif_msg, transfers_msg = self.process_n_messsages(
+        _, verif_msg = self.process_n_messsages(
             ValidateTransactionBehaviour.state_id,
-            3,
+            2,
             period_state,
             handlers,
             expected_content,
@@ -1004,17 +999,6 @@ class TestLiquidityProvisionHardhat(
         assert verif_msg.state.body[
             "verified"
         ], f"Message not verified: {verif_msg.state.body}"
-
-        transfers = cast(ContractApiMessage, transfers_msg).state.body["logs"]
-        transfered_amount = parse_tx_token_balance(
-            cast(list, transfers),
-            LP_TOKEN_ADDRESS,
-            DEFAULT_MINTER,
-            self.safe_contract_address,
-        )
-        assert (
-            transfered_amount == 1000
-        ), f"Enter pool amount is not correct: {transfered_amount} != 1000"
 
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
