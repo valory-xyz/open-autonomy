@@ -18,63 +18,19 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utility functions for the 'abstract_round_abci' skill."""
-import builtins
-import importlib.util
+
 import json
 import logging
 import os
-import types
 from hashlib import sha256
-from importlib.machinery import ModuleSpec
 from time import time
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Optional, Tuple, Union, cast
 
 from aea.skills.base import SkillContext
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
 
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-
-
-def _get_module(spec: ModuleSpec) -> Optional[types.ModuleType]:
-    """Try to execute a module. Return None if the attempt fail."""
-    try:
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)  # type: ignore
-        return module
-    except Exception:  # pylint: disable=broad-except
-        return None
-
-
-def locate(path: str) -> Any:
-    """Locate an object by name or dotted save_path, importing as necessary."""
-    parts = [part for part in path.split(".") if part]
-    module, i = None, 0
-    while i < len(parts):
-        file_location = os.path.join(*parts[: i + 1])
-        spec_name = ".".join(parts[: i + 1])
-        module_location = os.path.join(file_location, "__init__.py")
-        spec = importlib.util.spec_from_file_location(spec_name, module_location)
-        nextmodule = _get_module(spec)  # type: ignore
-        if nextmodule is None:
-            module_location = file_location + ".py"
-            spec = importlib.util.spec_from_file_location(spec_name, module_location)
-            nextmodule = _get_module(spec)  # type: ignore
-
-        if os.path.exists(file_location) or nextmodule:
-            module, i = nextmodule, i + 1
-        else:  # pragma: nocover
-            break
-    if module:
-        object_ = module
-    else:
-        object_ = builtins
-    for part in parts[i:]:
-        try:
-            object_ = getattr(object_, part)
-        except AttributeError:
-            return None
-    return object_
 
 
 class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
