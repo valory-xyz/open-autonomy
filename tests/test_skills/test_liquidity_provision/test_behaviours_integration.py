@@ -91,7 +91,8 @@ from packages.valory.skills.liquidity_provision.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.liquidity_provision.rounds import Event, PeriodState
+from packages.valory.skills.liquidity_provision.rounds import Event
+from packages.valory.skills.liquidity_provision.rounds import PeriodState as LiquidityProvisionPeriodState
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
     ValidateTransactionBehaviour,
@@ -194,7 +195,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: PeriodState
+    period_state: LiquidityProvisionPeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -234,7 +235,7 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.liquidity_provision_behaviour.current_state).state_id
             == cls.liquidity_provision_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
+        cls.period_state = LiquidityProvisionPeriodState(StateDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -505,9 +506,9 @@ class TestLiquidityProvisionHardhat(
     multiplexer: Multiplexer
     decision_maker: DecisionMaker
     strategy: Dict
-    default_period_state_enter: PeriodState
-    default_period_state_exit: PeriodState
-    default_period_state_swap_back: PeriodState
+    default_period_state_enter: LiquidityProvisionPeriodState
+    default_period_state_exit: LiquidityProvisionPeriodState
+    default_period_state_swap_back: LiquidityProvisionPeriodState
     safe_owners: Dict
     safe_contract_address: str
     multisend_contract_address: str
@@ -650,7 +651,7 @@ class TestLiquidityProvisionHardhat(
         cls.strategy[
             "deadline"
         ] = 1672527599  # corresponds to datetime.datetime(2022, 12, 31, 23, 59, 59) using  datetime.datetime.fromtimestamp(.)
-        cls.default_period_state_enter = PeriodState(
+        cls.default_period_state_enter = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -667,7 +668,7 @@ class TestLiquidityProvisionHardhat(
             )
         )
 
-        cls.default_period_state_exit = PeriodState(
+        cls.default_period_state_exit = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -684,7 +685,7 @@ class TestLiquidityProvisionHardhat(
             )
         )
 
-        cls.default_period_state_swap_back = PeriodState(
+        cls.default_period_state_swap_back = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
                 initial_data=dict(
@@ -805,7 +806,7 @@ class TestLiquidityProvisionHardhat(
         self,
         state_id: str,
         ncycles: int,
-        period_state: PeriodState,
+        period_state: LiquidityProvisionPeriodState,
         handlers: Optional[HANDLERS] = None,
         expected_content: Optional[EXPECTED_CONTENT] = None,
         expected_types: Optional[EXPECTED_TYPES] = None,
@@ -912,7 +913,7 @@ class TestLiquidityProvisionHardhat(
             data=bytes.fromhex(self.multisend_data_enter),
         )
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_enter.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
@@ -967,7 +968,7 @@ class TestLiquidityProvisionHardhat(
         }
 
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_enter.update(
                 final_tx_hash=tx_digest,
                 most_voted_tx_hash=payload_string,
@@ -1045,7 +1046,7 @@ class TestLiquidityProvisionHardhat(
         )
 
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_exit.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
@@ -1094,7 +1095,7 @@ class TestLiquidityProvisionHardhat(
 
         # validate
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_exit.update(
                 final_tx_hash=tx_digest,
                 most_voted_tx_hash=payload_string,
@@ -1167,7 +1168,7 @@ class TestLiquidityProvisionHardhat(
         )
 
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_swap_back.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
@@ -1215,7 +1216,7 @@ class TestLiquidityProvisionHardhat(
 
         # validate
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_swap_back.update(
                 final_tx_hash=tx_digest,
                 most_voted_tx_hash=payload_string,
@@ -1270,7 +1271,7 @@ class TestLiquidityProvisionHardhat(
         strategy["safe_nonce"] = 1
 
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_exit.update(
                 most_voted_strategy=strategy,
                 most_voted_transfers=transfer_to_string(
@@ -1334,7 +1335,7 @@ class TestLiquidityProvisionHardhat(
         transfers = merge_transfer_strings([transfer_a, transfer_b])
 
         period_state = cast(
-            PeriodState,
+            LiquidityProvisionPeriodState,
             self.default_period_state_swap_back.update(
                 most_voted_strategy=strategy,
                 most_voted_transfers=transfers,
