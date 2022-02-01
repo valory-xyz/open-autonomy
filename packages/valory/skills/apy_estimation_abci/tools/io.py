@@ -65,6 +65,7 @@ def save_forecaster(path: str, forecaster: Pipeline) -> None:
     :param path: path to store the forecaster.
     :param forecaster: the `pmdarima` forecasting model.
     """
+    create_pathdirs(path)
     joblib.dump(forecaster, path)
 
 
@@ -99,6 +100,7 @@ def to_json_file(path: str, obj: StoredJSONType) -> None:
     :param path: the path to store the json file.
     :param obj: the object to convert and store.
     """
+    create_pathdirs(path)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False, indent=4)
 

@@ -101,12 +101,12 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import (
-    create_pathdirs,
     load_forecaster,
     load_hist,
     read_json_file,
     save_forecaster,
-    to_json_file, to_csv_safely,
+    to_csv_safely,
+    to_json_file,
 )
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
@@ -118,6 +118,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
 )
+
 
 benchmark_tool = BenchmarkTool()
 
@@ -313,7 +314,6 @@ class FetchBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             f"{filename}.json",
         )
-        create_pathdirs(self._save_path)
 
         self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
         available_specs = set(self._spooky_api_specs.keys())
@@ -903,7 +903,6 @@ class OptimizeBehaviour(APYEstimationBaseState):
             self.params.pair_ids[0],
             "best_params.json",
         )
-        create_pathdirs(best_params_save_path)
 
         try:
             best_params = study.best_params
@@ -1030,7 +1029,6 @@ class TrainBehaviour(APYEstimationBaseState):
             self.params.pair_ids[0],
             f"{prefix}forecaster.joblib",
         )
-        create_pathdirs(forecaster_save_path)
         save_forecaster(forecaster_save_path, forecaster)
 
         # Send the file to IPFS and get its hash.
@@ -1119,7 +1117,6 @@ class TestBehaviour(APYEstimationBaseState):
             self.params.pair_ids[0],
             "test_report.json",
         )
-        create_pathdirs(report_save_path)
 
         try:
             to_json_file(report_save_path, report)
