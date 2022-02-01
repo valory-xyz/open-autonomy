@@ -97,11 +97,6 @@ class TestGeneral:
         """Test list to json file."""
         test_list = [{"key0": "1", "key1": "test"}, {"": "2"}, {"test": "test"}]
 
-        # test non-existing path.
-        path = os.path.join("non_existing_path", "file.json")
-        with pytest.raises(FileNotFoundError):
-            to_json_file(path, test_list)  # type: ignore
-
         # test existing path with serializable list.
         path = os.path.join(tmp_path, "file.json")
         to_json_file(path, test_list)  # type: ignore
