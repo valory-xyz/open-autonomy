@@ -133,7 +133,7 @@ class PeriodState(BasePeriodState):
     @property
     def full_training(self) -> bool:
         """Get the full_training flag."""
-        return cast(bool, self.db.get_strict("full_training"))
+        return cast(bool, self.db.get("full_training", False))
 
     @property
     def pair_name(self) -> str:
@@ -143,7 +143,7 @@ class PeriodState(BasePeriodState):
     @property
     def n_estimations(self) -> int:
         """Get the n_estimations."""
-        return cast(int, self.db.get_strict("n_estimations"))
+        return cast(int, self.db.get("n_estimations", 0))
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
