@@ -48,6 +48,17 @@ def create_pathdirs(path: str) -> None:
         os.makedirs(dirname, exist_ok=True)
 
 
+def to_csv_safely(df: pd.DataFrame, path: str, index: bool = False) -> None:
+    """Save a pandas dataframe to a csv file and create path if it does not exist.
+
+    :param df: the dataframe to save.
+    :param path: the path on which the df should be saved.
+    :param index: whether to write row names (index).
+    """
+    create_pathdirs(path)
+    df.to_csv(path, index=index)
+
+
 def save_forecaster(path: str, forecaster: Pipeline) -> None:
     """Save a `pmdarima` forecaster.
 

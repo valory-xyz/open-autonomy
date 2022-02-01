@@ -106,7 +106,7 @@ from packages.valory.skills.apy_estimation_abci.tools.io import (
     load_hist,
     read_json_file,
     save_forecaster,
-    to_json_file,
+    to_json_file, to_csv_safely,
 )
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
@@ -118,7 +118,6 @@ from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
 )
-
 
 benchmark_tool = BenchmarkTool()
 
@@ -561,7 +560,6 @@ class TransformBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "transformed_historical_data.csv",
         )
-        create_pathdirs(self._transformed_history_save_path)
 
         if pairs_hist is not None:
             transform_task = TransformTask()
@@ -599,7 +597,7 @@ class TransformBehaviour(APYEstimationBaseState):
         )
 
         # Store the transformed data.
-        transformed_history.to_csv(self._transformed_history_save_path, index=False)
+        to_csv_safely(transformed_history, self._transformed_history_save_path)
 
         # Send the file to IPFS and get its hash.
         transformed_hist_hash = self.send_file_to_ipfs_node(
@@ -615,10 +613,9 @@ class TransformBehaviour(APYEstimationBaseState):
             self.params.pair_ids[0],
             "latest_observation.csv",
         )
-        create_pathdirs(latest_observation_save_path)
         latest_observation = transformed_history.iloc[[-1]]
 
-        latest_observation.to_csv(latest_observation_save_path)
+        to_csv_safely(latest_observation, latest_observation_save_path, index=True)
 
         # Send the file to IPFS and get its hash.
         latest_observation_hist_hash = self.send_file_to_ipfs_node(
@@ -676,8 +673,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 self.params.pair_ids[0],
                 f"y_{filename}.csv",
             )
-            create_pathdirs(save_path)
-            split.to_csv(save_path, index=False)
+            to_csv_safely(split, save_path)
             split_hash = self.send_file_to_ipfs_node(save_path)
             self.context.logger.info(f"IPFS hash for {filename} data is: {split_hash}")
             hashes.append(split_hash)
@@ -717,7 +713,6 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         batch_path_args = path_to_pair, "latest_observation.csv"
         self._prepared_batch_save_path = os.path.join(*batch_path_args)
-        create_pathdirs(self._prepared_batch_save_path)
 
         self._previous_batch = cast(
             pd.DataFrame,
@@ -753,7 +748,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         )
 
         # Store the prepared batch.
-        transformed_batch.to_csv(self._prepared_batch_save_path, index=False)
+        to_csv_safely(transformed_batch, self._prepared_batch_save_path)
 
         # Send the file to IPFS and get its hash.
         prepared_batch_hash = self.send_file_to_ipfs_node(
