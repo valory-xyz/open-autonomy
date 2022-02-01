@@ -26,9 +26,11 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.general import (
-    create_pathdirs,
     filter_out_numbers,
     gen_unix_timestamps,
+)
+from packages.valory.skills.apy_estimation_abci.tools.io import (
+    create_pathdirs,
     read_json_file,
     to_json_file,
 )

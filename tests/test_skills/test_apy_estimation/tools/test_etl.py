@@ -26,11 +26,13 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     HIST_DTYPES,
-    TRANSFORMED_HIST_DTYPES,
     calc_apy,
     calc_change,
-    load_hist,
     transform_hist_data,
+)
+from packages.valory.skills.apy_estimation_abci.tools.io import (
+    TRANSFORMED_HIST_DTYPES,
+    load_hist,
 )
 
 

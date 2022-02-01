@@ -53,10 +53,7 @@ from packages.valory.skills.apy_estimation_abci.composition import (
     APYEstimationAbciAppChained,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation_abci.ml.io import (
-    load_forecaster,
-    save_forecaster,
-)
+from packages.valory.skills.apy_estimation_abci.ml.optimization import HyperParamsType
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
@@ -99,15 +96,16 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
-    load_hist,
     revert_transform_hist_data,
     transform_hist_data,
 )
-from packages.valory.skills.apy_estimation_abci.tools.general import (
-    HyperParamsType,
+from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
+from packages.valory.skills.apy_estimation_abci.tools.io import (
     create_pathdirs,
-    gen_unix_timestamps,
+    load_forecaster,
+    load_hist,
     read_json_file,
+    save_forecaster,
     to_json_file,
 )
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
