@@ -19,7 +19,7 @@
 
 """Optimization operations"""
 
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, Dict, Any
 
 import numpy as np
 import optuna
@@ -29,6 +29,7 @@ from sklearn.metrics import mean_pinball_loss
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import init_forecaster
 
 
+HyperParamsType = Dict[str, Any]
 ScoringFuncType = Callable[[np.ndarray, np.ndarray], float]
 ScoringType = Union[ScoringFuncType, str]
 

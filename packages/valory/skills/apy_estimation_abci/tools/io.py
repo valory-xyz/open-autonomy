@@ -18,12 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """IO operations for the APY skill."""
+import json
+from typing import Union
 
 import joblib
 import pandas as pd
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.apy_estimation_abci.tools.etl import TRANSFORMED_HIST_DTYPES
+from packages.valory.skills.apy_estimation_abci.ml.optimization import HyperParamsType
+from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation_abci.tools.etl import (
+    TRANSFORMED_HIST_DTYPES,
+    ResponseItemType,
+)
+
+StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
 
 
 def save_forecaster(path: str, forecaster: Pipeline) -> None:
@@ -58,3 +67,23 @@ def load_hist(path: str) -> pd.DataFrame:
     )
 
     return pairs_hist
+
+
+def to_json_file(path: str, obj: StoredJSONType) -> None:
+    """Dump a list to a json file.
+
+    :param path: the path to store the json file.
+    :param obj: the object to convert and store.
+    """
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=4)
+
+
+def read_json_file(path: str) -> StoredJSONType:
+    """Read a json file.
+
+    :param path: the path to retrieve the json file from.
+    :return: the deserialized json file's content.
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
