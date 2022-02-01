@@ -18,3 +18,24 @@
 # ------------------------------------------------------------------------------
 
 """IO operations for the APY skill."""
+
+import joblib
+from pmdarima.pipeline import Pipeline
+
+
+def save_forecaster(path: str, forecaster: Pipeline) -> None:
+    """Save a `pmdarima` forecaster.
+
+    :param path: path to store the forecaster.
+    :param forecaster: the `pmdarima` forecasting model.
+    """
+    joblib.dump(forecaster, path)
+
+
+def load_forecaster(path: str) -> Pipeline:
+    """Load a `pmdarima` forecaster.
+
+    :param path: path to store the forecaster.
+    :return: a `pmdarima.pipeline.Pipeline`.
+    """
+    return joblib.load(path)

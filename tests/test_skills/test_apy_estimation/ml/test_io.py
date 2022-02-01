@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,10 +30,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     init_forecaster,
     train_forecaster,
 )
-from packages.valory.skills.apy_estimation_abci.ml.io import (
-    load_forecaster,
-    save_forecaster,
-)
+from packages.valory.skills.apy_estimation_abci.tools.io import save_forecaster, load_forecaster
 
 
 class TestIO:
