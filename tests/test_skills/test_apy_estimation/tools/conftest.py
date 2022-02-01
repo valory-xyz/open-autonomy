@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ from typing import List, Union
 import pandas as pd
 import pytest
 
-from packages.valory.skills.apy_estimation_abci.tools.etl import TRANSFORMED_HIST_DTYPES
+from packages.valory.skills.apy_estimation_abci.tools.io import TRANSFORMED_HIST_DTYPES
 
 
 @pytest.fixture

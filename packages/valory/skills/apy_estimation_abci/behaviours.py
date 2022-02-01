@@ -53,7 +53,7 @@ from packages.valory.skills.apy_estimation_abci.composition import (
     APYEstimationAbciAppChained,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation_abci.tools.io import save_forecaster, load_forecaster
+from packages.valory.skills.apy_estimation_abci.tools.io import save_forecaster, load_forecaster, load_hist
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
@@ -96,7 +96,6 @@ from packages.valory.skills.apy_estimation_abci.tasks import (
 )
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     ResponseItemType,
-    load_hist,
     revert_transform_hist_data,
     transform_hist_data,
 )

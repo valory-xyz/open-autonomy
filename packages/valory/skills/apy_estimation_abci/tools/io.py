@@ -20,7 +20,10 @@
 """IO operations for the APY skill."""
 
 import joblib
+import pandas as pd
 from pmdarima.pipeline import Pipeline
+
+from packages.valory.skills.apy_estimation_abci.tools.etl import TRANSFORMED_HIST_DTYPES
 
 
 def save_forecaster(path: str, forecaster: Pipeline) -> None:
@@ -39,3 +42,19 @@ def load_forecaster(path: str) -> Pipeline:
     :return: a `pmdarima.pipeline.Pipeline`.
     """
     return joblib.load(path)
+
+
+def load_hist(path: str) -> pd.DataFrame:
+    """Load the already fetched and transformed historical data.
+
+    :param path: the path to the historical data.
+    :return: a dataframe with the historical data.
+    """
+    pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
+
+    # Convert the `blockTimestamp` to a pandas datetime.
+    pairs_hist["blockTimestamp"] = pd.to_datetime(
+        pairs_hist["blockTimestamp"], unit="s"
+    )
+
+    return pairs_hist
