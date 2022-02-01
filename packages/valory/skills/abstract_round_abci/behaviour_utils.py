@@ -82,7 +82,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_TX_TIMEOUT = 10.0
-_DEFAULT_TX_MAX_ATTEMPTS = 5
+_DEFAULT_TX_MAX_ATTEMPTS = 10
 
 _SYNC_MODE_WAIT = 3
 
@@ -492,16 +492,25 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         :yield: the responses
         """
         while not stop_condition():
+            self.context.logger.debug(
+                f"Trying to send payload: {pprint.pformat(payload.json)}"
+            )
             signature_bytes = yield from self.get_signature(payload.encode())
             transaction = Transaction(payload, signature_bytes)
             try:
                 response = yield from self._submit_tx(
                     transaction.encode(), timeout=request_timeout
                 )
+                # There is no guarantee that beyond this line will be executed for a given behaviour execution.
+                # The tx could lead to a round transition which exits us from the behaviour execution.
+                # It's unlikely to happen anywhere before line 538 but there it is very likely to not
+                # yield in time before the behaviour is finished. As a result logs below might not show
+                # up on the happy execution path.
             except TimeoutException:
                 self.context.logger.info(
                     f"Timeout expired for submit tx. Retrying in {request_retry_delay} seconds..."
                 )
+                payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
             response = cast(HttpMessage, response)
@@ -509,6 +518,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info(
                     f"Received return code != 200 with response {response} with body {str(response.body)}. Retrying in {request_retry_delay} seconds..."
                 )
+                payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
             try:
@@ -519,15 +529,22 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 ) from e
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             tx_hash = json_body["result"]["hash"]
+            if json_body["result"]["code"] != OK_CODE:
+                self.context.logger.info(
+                    f"Received tendermint code != 0. Retrying in {request_retry_delay} seconds..."
+                )
+                yield from self.sleep(request_retry_delay)
+                continue
 
             try:
-                is_delivered = yield from self._wait_until_transaction_delivered(
+                is_delivered, res = yield from self._wait_until_transaction_delivered(
                     tx_hash, timeout=tx_timeout
                 )
             except TimeoutException:
                 self.context.logger.info(
                     f"Timeout expired for wait until transaction delivered. Retrying in {request_retry_delay} seconds..."
                 )
+                payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue
 
@@ -535,6 +552,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 self.context.logger.info("A2A transaction delivered!")
                 break
             # otherwise, repeat until done, or until stop condition is true
+            self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
+            payload = payload.with_new_id()
+        self.context.logger.info(
+            "Stop condition is true, no more attempts to send the transaction."
+        )
 
     def _send_signing_request(
         self, raw_message: bytes, is_deprecated_mode: bool = False
@@ -825,7 +847,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         timeout: Optional[float] = None,
         request_retry_delay: float = _DEFAULT_REQUEST_RETRY_DELAY,
         max_attempts: int = _DEFAULT_TX_MAX_ATTEMPTS,
-    ) -> Generator[None, None, bool]:
+    ) -> Generator[None, None, Tuple[bool, Optional[HttpMessage]]]:
         """
         Wait until transaction is delivered.
 
@@ -862,9 +884,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     f"Unable to decode response: {response} with body {str(response.body)}"
                 ) from e
             tx_result = json_body["result"]["tx_result"]
-            return tx_result["code"] == OK_CODE
+            return tx_result["code"] == OK_CODE, response
 
-        return False
+        return False, None
 
     @classmethod
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
