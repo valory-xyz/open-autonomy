@@ -1010,12 +1010,11 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
 
 class StrategyRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the observer behaviour."""
+    """This behaviour manages the consensus stages for the rebalancing behaviour."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = StrategyEvaluationBehaviour
     abci_app_cls = LiquidityRebalancingAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
         StrategyEvaluationBehaviour,  # type: ignore
         SleepBehaviour,  # type: ignore
         EnterPoolTransactionHashBehaviour,  # type: ignore
