@@ -231,6 +231,10 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         """
         return {}
 
+    def with_new_id(self) -> "BaseTxPayload":
+        """Create a new payload with the same content but new id."""
+        return type(self)(self.sender, id_=uuid.uuid4().hex, **self.data)  # type: ignore
+
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
         if not isinstance(other, BaseTxPayload):
@@ -1552,6 +1556,9 @@ class AbciApp(
             (
                 self._last_round.allowed_tx_type
                 if self._last_round is not None
+                and self._last_round.allowed_tx_type
+                != self._current_round_cls.allowed_tx_type
+                # when transitioning to a round with the same payload type we set None as otherwise it will allow no tx to be sumitted
                 else None
             ),
         )
