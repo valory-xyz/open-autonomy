@@ -48,6 +48,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     GnosisSafeContract,
     MAX_ALLOWANCE,
     StrategyEvaluationBehaviour,
+    SleepBehaviour,
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
     parse_tx_token_balance,
@@ -59,6 +60,9 @@ from packages.valory.skills.liquidity_provision.rounds import (
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
+from packages.valory.skills.liquidity_provision.payloads import (
+    StrategyType,
+)
 
 
 def get_default_strategy(
@@ -83,7 +87,7 @@ class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
 class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
     """Test StrategyEvaluationBehaviour."""
 
-    def test_transaction_hash(
+    def test_transaction_hash_enter(
         self,
     ) -> None:
         """Run tests."""
@@ -91,6 +95,120 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
         strategy = get_default_strategy(
             is_base_native=False, is_a_native=True, is_b_native=False
         )
+        period_state = LiquidityProvisionPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
+        )
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=StrategyEvaluationBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == StrategyEvaluationBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+    def test_transaction_hash_exit(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
+        strategy["action"] = StrategyType.EXIT.value
+        period_state = LiquidityProvisionPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
+        )
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=StrategyEvaluationBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == StrategyEvaluationBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+
+    def test_no_strategy(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        period_state = LiquidityProvisionPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
+        )
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=StrategyEvaluationBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == StrategyEvaluationBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+
+    def test_transaction_hash_swap_back(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
+        strategy["action"] = StrategyType.SWAP_BACK.value
         period_state = LiquidityProvisionPeriodState(
             StateDB(
                 initial_period=0,
@@ -1510,3 +1628,38 @@ def test_parse_tx_token_balance() -> None:
     )
     assert amount_1 == 2, "The transfered amount is not correct"
     assert amount_2 == 1, "The transfered amount is not correct"
+
+
+class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
+    """Test SleepBehaviour."""
+
+    def test_sleep(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        period_state = LiquidityProvisionPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                ),
+            )
+        )
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=SleepBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == SleepBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
