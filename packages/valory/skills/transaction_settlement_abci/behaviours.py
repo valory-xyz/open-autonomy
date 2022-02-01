@@ -261,11 +261,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                 self.context.logger.error(
                     f"verify_tx unsuccessful for {tx_hash}! Received: {contract_api_msg}"
                 )
-                verified = False
+                return VerificationStatus.ERROR, tx_hash
 
-            else:
-                verified = cast(bool, contract_api_msg.state.body["verified"])
-
+            verified = cast(bool, contract_api_msg.state.body["verified"])
             verified_log = f"Verified result for {tx_hash}: {verified}"
 
             if verified:
