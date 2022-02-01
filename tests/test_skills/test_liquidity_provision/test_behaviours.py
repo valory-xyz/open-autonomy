@@ -47,12 +47,13 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
     MAX_ALLOWANCE,
-    StrategyEvaluationBehaviour,
     SleepBehaviour,
+    StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
     parse_tx_token_balance,
 )
+from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event
 from packages.valory.skills.liquidity_provision.rounds import (
     PeriodState as LiquidityProvisionPeriodState,
@@ -60,9 +61,6 @@ from packages.valory.skills.liquidity_provision.rounds import (
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.base import FSMBehaviourBaseCase
-from packages.valory.skills.liquidity_provision.payloads import (
-    StrategyType,
-)
 
 
 def get_default_strategy(
@@ -164,7 +162,6 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
 
-
     def test_no_strategy(
         self,
     ) -> None:
@@ -198,7 +195,6 @@ class TestStrategyEvaluationBehaviour(LiquidityProvisionBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-
 
     def test_transaction_hash_swap_back(
         self,

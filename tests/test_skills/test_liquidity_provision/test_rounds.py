@@ -191,7 +191,7 @@ def test_period_state() -> None:
                 participant_to_tx_hash=participant_to_tx_hash,
                 participant_to_signature=participant_to_signature,
                 participant_to_strategy=participant_to_strategy,
-                safe_operation=safe_operation
+                safe_operation=safe_operation,
             ),
         )
     )

@@ -89,11 +89,9 @@ class TransactionSettlementBaseState(BaseState, ABC):
             self.period_state.most_voted_tx_hash
         )
 
-        operation = SafeOperation.CALL.value
+        extra_kwargs = dict()
         if self.period_state.safe_operation == "delegate":
-            operation = SafeOperation.DELEGATE_CALL.value
-        if self.period_state.safe_operation == "create":
-            operation = SafeOperation.CREATE.value
+            extra_kwargs["operation"] = SafeOperation.DELEGATE_CALL.value
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -110,7 +108,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            operation=operation,
+            **extra_kwargs,
         )
 
         return contract_api_msg
@@ -443,11 +441,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.period_state.most_voted_tx_hash
         )
 
-        operation = SafeOperation.CALL.value
+        extra_kwargs = dict()
         if self.period_state.safe_operation == "delegate":
-            operation = SafeOperation.DELEGATE_CALL.value
-        if self.period_state.safe_operation == "create":
-            operation = SafeOperation.CREATE.value
+            extra_kwargs["operation"] = SafeOperation.DELEGATE_CALL.value
 
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -466,7 +462,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             },
             nonce=self.period_state.nonce,
             old_tip=self.period_state.max_priority_fee_per_gas,
-            operation=operation,
+            **extra_kwargs,
         )
 
         tx_data: Dict[str, Union[VerificationStatus, str, int]] = {

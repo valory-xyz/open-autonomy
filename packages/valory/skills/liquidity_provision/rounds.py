@@ -30,9 +30,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BasePeriodState,
+    BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
-    BaseTxPayload,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
@@ -227,10 +227,8 @@ class SleepRound(LiquidityProvisionAbstractRound):
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
 
-
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
