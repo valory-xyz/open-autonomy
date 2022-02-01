@@ -158,6 +158,17 @@ def max_priority_fee_per_gas() -> Optional[int]
 
 Get the gas data.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.safe_operation"></a>
+
+#### safe`_`operation
+
+```python
+@property
+def safe_operation() -> Optional[str]
+```
+
+Get the gas data.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects
