@@ -152,7 +152,7 @@ class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, self._state)
+        return cast(PeriodState, super().period_state)
 
     def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
         """
@@ -176,6 +176,7 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
         """Process the end of the block."""
         if self.threshold_reached:
             update_kwargs = {
+                "period_state_class": PeriodState,
                 self.collection_key: self.collection,
                 self.selection_key: self.most_voted_payload,
                 "latest_observation_timestamp": cast(
@@ -183,10 +184,7 @@ class CollectHistoryRound(CollectSameUntilThresholdRound, APYEstimationAbstractR
                 ).latest_observation_timestamp,
             }
 
-            updated_state = cast(
-                PeriodState,
-                self.period_state.update(**update_kwargs),
-            )
+            updated_state = self.period_state.update(**update_kwargs)
             return updated_state, Event.DONE
 
         if not self.is_majority_possible(
@@ -215,15 +213,13 @@ class TransformRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            updated_state = cast(
-                PeriodState,
-                self.period_state.update(
-                    participant_to_transform=self.collection,
-                    most_voted_transform=self.most_voted_payload,
-                    latest_observation_hist_hash=cast(
-                        TransformationPayload, list(self.collection.values())[0]
-                    ).latest_observation_hist_hash,
-                ),
+            updated_state = self.period_state.update(
+                period_state_class=PeriodState,
+                participant_to_transform=self.collection,
+                most_voted_transform=self.most_voted_payload,
+                latest_observation_hist_hash=cast(
+                    TransformationPayload, list(self.collection.values())[0]
+                ).latest_observation_hist_hash,
             )
             return updated_state, Event.DONE
 
@@ -245,15 +241,13 @@ class PreprocessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            updated_state = cast(
-                PeriodState,
-                self.period_state.update(
-                    participant_to_preprocessing=self.collection,
-                    most_voted_split=self.most_voted_payload,
-                    pair_name=cast(
-                        PreprocessPayload, list(self.collection.values())[0]
-                    ).pair_name,
-                ),
+            updated_state = self.period_state.update(
+                period_state_class=PeriodState,
+                participant_to_preprocessing=self.collection,
+                most_voted_split=self.most_voted_payload,
+                pair_name=cast(
+                    PreprocessPayload, list(self.collection.values())[0]
+                ).pair_name,
             )
             return updated_state, Event.DONE
 
@@ -298,12 +292,10 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
             if filtered_randomness is None:
                 return self.period_state, Event.RANDOMNESS_INVALID
 
-            updated_state = cast(
-                PeriodState,
-                self.period_state.update(
-                    participants_to_randomness=self.collection,
-                    most_voted_randomness=filtered_randomness,
-                ),
+            updated_state = self.period_state.update(
+                period_state_class=PeriodState,
+                participants_to_randomness=self.collection,
+                most_voted_randomness=filtered_randomness,
             )
             return updated_state, Event.DONE
 
@@ -338,18 +330,20 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            if self.period_state.full_training:
-                updated_state = self.period_state.update(
-                    participants_to_training=self.collection,
-                    full_training=True,
-                    most_voted_model=self.most_voted_payload,
-                )
-                return updated_state, Event.FULLY_TRAINED
-
-            updated_state = self.period_state.update(
+            update_params = dict(
+                period_state_class=PeriodState,
                 participants_to_training=self.collection,
                 most_voted_model=self.most_voted_payload,
             )
+
+            if self.period_state.full_training:
+                updated_state = self.period_state.update(
+                    full_training=True,
+                    **update_params,
+                )
+                return updated_state, Event.FULLY_TRAINED
+
+            updated_state = self.period_state.update(**update_params)
             return updated_state, Event.DONE
 
         if not self.is_majority_possible(
@@ -397,6 +391,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
         """Process the end of the block."""
         if self.threshold_reached:
             updated_state = self.period_state.update(
+                period_state_class=PeriodState,
                 participants_to_estimate=self.collection,
                 n_estimations=cast(PeriodState, self.period_state).n_estimations + 1,
                 most_voted_estimate=self.most_voted_payload,
@@ -429,6 +424,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound)
         """Process the end of the block."""
         if self.threshold_reached:
             kwargs = dict(
+                period_state_class=PeriodState,
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
                 full_training=False,

@@ -266,7 +266,7 @@ class APYEstimationBaseState(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(PeriodState, super().period_state)
 
     @property
     def params(self) -> APYParams:
