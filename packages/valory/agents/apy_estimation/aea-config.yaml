@@ -21,6 +21,7 @@ skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
 - valory/apy_estimation_abci:0.1.0
+- valory/registration_abci:0.1.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
