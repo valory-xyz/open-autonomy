@@ -60,6 +60,7 @@ from packages.valory.connections.ledger.base import (
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
 )
+from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -668,7 +669,7 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation="delegate",
+                    safe_operation=SafeOperation.DELEGATE_CALL,
                 ),
             )
         )
@@ -684,7 +685,7 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation="delegate",
+                    safe_operation=SafeOperation.DELEGATE_CALL,
                 ),
             )
         )
@@ -700,7 +701,7 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation="delegate",
+                    safe_operation=SafeOperation.DELEGATE_CALL.value,
                 ),
             )
         )
@@ -712,7 +713,7 @@ class TestLiquidityProvisionHardhat(
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
-                    safe_operation="delegate",
+                    safe_operation=SafeOperation.DELEGATE_CALL.value,
                 ),
             )
         )
