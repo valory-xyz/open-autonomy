@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2021 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Agent config."""
-
-from typing import List, Optional, Tuple
+"""Constants for generating deployments environment."""
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
 
 KEYS: List[str] = [
@@ -70,7 +71,7 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
         ("api_id", "coingecko"),
         (
             "parameters",
-            """'[["ids", "bitcoin"],["vs_currencies", "usd"]]'  --type list""",
+            """[["ids", "bitcoin"],["vs_currencies", "usd"]]""",
         ),
         ("response_key", "'bitcoin:usd'"),
     ],
@@ -79,9 +80,9 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
         ("api_id", "coinmarketcap"),
         (
             "headers",
-            """'[{"Accepts": "application/json"}, {"X-CMC_PRO_API_KEY": "27d2cd0d-80c3-4ec3-9305-4f3d9ad34e41"}]'  --type list  --type list""",
+            """[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list""",
         ),
-        ("parameters", """'[["symbol","BTC"], ["convert","USD"]]'  --type list"""),
+        ("parameters", """[["symbol","BTC"], ["convert","USD"]]"""),
         ("response_key", "'data:BTC:quote:USD:price'"),
     ],
     [
@@ -92,58 +93,32 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
     [
         ("url", "https://api.binance.com/api/v3/ticker/price"),
         ("api_id", "binance"),
-        ("parameters", """'[["symbol", "BTCUSDT"]]' --type list"""),
+        ("parameters", """'[["symbol", "BTCUSDT"]]'"""),
         ("response_key", "price"),
     ],
 ]
 
-COMON_CONFIG: List[Tuple[str, str, Optional[str]]] = [
-    ("agent.skill_exception_policy", "just_log", None),
-    ("agent.connection_exception_policy", "just_log", None),
-    ("vendor.valory.connections.abci.config.use_tendermint", "False", None),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.consensus.max_participants",
-        "{max_participants}",
-        None,
-    ),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.round_timeout_seconds",
-        "5",
-        None,
-    ),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_url",
-        "http://node{node_id}:26657",
-        None,
-    ),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.tendermint_com_url",
-        "http://node{node_id}:8080",
-        None,
-    ),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.reset_tendermint_after",
-        "10",
-        "int",
-    ),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.observation_interval",
-        "3",
-        "int",
-    ),
-    (
-        "vendor.valory.skills.price_estimation_abci.models.params.args.max_healthcheck",
-        "10",
-        "int",
-    ),
-    (
-        "vendor.valory.connections.ledger.config.ledger_apis.ethereum.address",
-        "http://hardhat:8545",
-        None,
-    ),
-    (
-        "vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id",
-        "31337",
-        "int",
-    ),
-]
+
+NETWORKS = {
+    "hardhat": {"network_endpoint": "http://hardhat:8545", "chain_id": 3},
+    "ropsten": {
+        "network_endpoint": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+        "chain_id": 3,
+    },
+}
+
+
+DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
+    "hardhat": {
+        "safe_contract_address": None,
+        "oracle_contract_address": None,
+    },
+    "ropsten": {
+        "safe_contract_address": "0x7AbCC2424811c342BC9A9B52B1621385d7406676",
+        "oracle_contract_address": "0xB555E44648F6Ff759F64A5B451AB845B0450EA57",
+    },
+}
+
+APPLICATIONS = {"valory/counter", "valory/price_estimation", "valory/apy_estimation"}
+
+CONFIG_DIRECTORY = Path(os.getcwd()) / "deployments" / "build"

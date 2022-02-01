@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@
 """Script to create environment for benchmarking n agents."""
 
 import sys
-from distutils.dir_util import copy_tree
-import os
 import shutil
 from ipaddress import IPv4Address
 from argparse import ArgumentParser, Namespace
@@ -325,7 +323,7 @@ def build_configuration_job(number_of_agents: int) -> None:
 
 def build_agent_deployment(agent_ix: int, ip_address: IPv4Address, number_of_agents: int) -> None:
 
-    
+
     host_names = ", ".join([f"\"--hostname=agent-node-{i}-service\"" for i in range(number_of_agents)])
 
     config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
