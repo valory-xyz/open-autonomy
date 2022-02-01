@@ -44,11 +44,6 @@ class TestIO:
         """Test `save_forecaster`."""
         to_save = init_forecaster(0, 0, 0, 0, 0)
 
-        # Test with non-existing path.
-        filepath = os.path.join("non-existing", "test.joblib")
-        with pytest.raises((NotADirectoryError, FileNotFoundError)):  # type: ignore
-            save_forecaster(filepath, to_save)
-
         # Test with normal path by comparing the hash of the saved file.
         actual_filepath = os.path.join(tmp_path, "actual.joblib")
         save_forecaster(actual_filepath, to_save)
