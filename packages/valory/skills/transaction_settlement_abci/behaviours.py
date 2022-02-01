@@ -86,6 +86,12 @@ class TransactionSettlementBaseState(BaseState, ABC):
             self.period_state.most_voted_tx_hash
         )
 
+        operation = SafeOperation.CALL.value
+        if self.period_state.safe_operation == "delegate":
+            operation = SafeOperation.DELEGATE_CALL.value
+        if self.period_state.safe_operation == "create":
+            operation = SafeOperation.CREATE.value
+
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -101,6 +107,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            operation=operation,
         )
 
         return contract_api_msg

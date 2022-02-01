@@ -676,6 +676,8 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
+                    safe_operation="delegate",
+                    max_priority_fee_per_gas=10 ** 15,
                 ),
             )
         )
@@ -691,6 +693,8 @@ class TestLiquidityProvisionHardhat(
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
+                    safe_operation="delegate",
+                    max_priority_fee_per_gas=10 ** 15,
                 ),
             )
         )
@@ -1030,10 +1034,18 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
         # values taken from test_exit_pool_tx_hash_behaviour flow
+        payload_string = payload_to_hex(
+            self.most_voted_tx_hash_exit,
+            ether_value=0,
+            safe_tx_gas=self.safe_tx_gas,
+            to_address=self.multisend_contract_address,
+            data=bytes.fromhex(self.multisend_data_exit),
+        )
+
         period_state = cast(
             PeriodState,
             self.default_period_state_exit.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_exit,
+                most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
                 most_voted_strategy=strategy,
@@ -1083,7 +1095,7 @@ class TestLiquidityProvisionHardhat(
             PeriodState,
             self.default_period_state_exit.update(
                 final_tx_hash=tx_digest,
-                most_voted_tx_hash=self.most_voted_tx_hash_exit,
+                most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
             ),
@@ -1091,13 +1103,11 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
-            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
-            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -1107,13 +1117,10 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
-            {
-                "state": State,
-            },
         ]
-        _, verif_msg, transfers_msg = self.process_n_messsages(
+        _, verif_msg = self.process_n_messsages(
             ValidateTransactionBehaviour.state_id,
-            3,
+            2,
             period_state,
             handlers,
             expected_content,
@@ -1123,16 +1130,7 @@ class TestLiquidityProvisionHardhat(
         assert verif_msg.state.body[
             "verified"
         ], f"Message not verified: {verif_msg.state.body}"
-        transfers = cast(ContractApiMessage, transfers_msg).state.body["logs"]
-        transfered_amount = parse_tx_token_balance(
-            cast(list, transfers),
-            LP_TOKEN_ADDRESS,
-            self.safe_contract_address,
-            LP_TOKEN_ADDRESS,
-        )
-        assert (
-            transfered_amount == 1000
-        ), f"Exit pool amount is not correct: {transfered_amount} != 1000"
+
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
@@ -1158,10 +1156,18 @@ class TestLiquidityProvisionHardhat(
             for address, crypto in self.safe_owners.items()
         }
         # values taken from test_swap_back_tx_hash_behaviour flow
+        payload_string = payload_to_hex(
+            self.most_voted_tx_hash_swap_back,
+            ether_value=0,
+            safe_tx_gas=self.safe_tx_gas,
+            to_address=self.multisend_contract_address,
+            data=bytes.fromhex(self.multisend_data_swap_back),
+        )
+
         period_state = cast(
             PeriodState,
             self.default_period_state_swap_back.update(
-                most_voted_tx_hash=self.most_voted_tx_hash_swap_back,
+                most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
                 participant_to_signature=participant_to_signature,
                 most_voted_strategy=strategy,
@@ -1210,7 +1216,7 @@ class TestLiquidityProvisionHardhat(
             PeriodState,
             self.default_period_state_swap_back.update(
                 final_tx_hash=tx_digest,
-                most_voted_tx_hash=self.most_voted_tx_hash_swap_back,
+                most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
                 participant_to_signature=participant_to_signature,
             ),
@@ -1218,13 +1224,11 @@ class TestLiquidityProvisionHardhat(
         handlers = [
             self.ledger_handler,
             self.contract_handler,
-            self.contract_handler,
         ]
         expected_content = [
             {
                 "performative": LedgerApiMessage.Performative.TRANSACTION_RECEIPT  # type: ignore
             },
-            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
         ]
         expected_types = [
@@ -1234,13 +1238,10 @@ class TestLiquidityProvisionHardhat(
             {
                 "state": State,
             },
-            {
-                "state": State,
-            },
         ]
-        _, verif_msg, transfers_msg = self.process_n_messsages(
+        _, verif_msg = self.process_n_messsages(
             ValidateTransactionBehaviour.state_id,
-            3,
+            2,
             period_state,
             handlers,
             expected_content,
@@ -1250,16 +1251,7 @@ class TestLiquidityProvisionHardhat(
         assert verif_msg.state.body[
             "verified"
         ], f"Message not verified: {verif_msg.state.body}"
-        transfers = cast(ContractApiMessage, transfers_msg).state.body["logs"]
-        transfered_amount = parse_tx_token_balance(
-            cast(list, transfers),
-            TOKEN_A_ADDRESS,
-            self.safe_contract_address,
-            AB_POOL_ADDRESS,
-        )
-        assert (
-            transfered_amount == 250
-        ), f"Swap back amount is not correct: {transfered_amount} != 250"
+
         # eventually replace with https://pypi.org/project/eth-event/
         receipt = self.ethereum_api.get_transaction_receipt(tx_digest)
         logs = self.get_decoded_logs(self.gnosis_instance, receipt)
