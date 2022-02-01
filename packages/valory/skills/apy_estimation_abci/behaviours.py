@@ -21,9 +21,11 @@
 import calendar
 import os
 from abc import ABC
+from enum import Enum, auto
 from multiprocessing.pool import AsyncResult
 from typing import (
     Any,
+    Callable,
     Dict,
     Generator,
     Iterator,
@@ -32,6 +34,7 @@ from typing import (
     Set,
     Tuple,
     Type,
+    TypeVar,
     Union,
     cast,
 )
@@ -52,7 +55,6 @@ from packages.valory.skills.apy_estimation_abci.composition import (
     APYEstimationAbciAppChained,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation_abci.ml.optimization import HyperParamsType
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     prepare_pair_data,
 )
@@ -100,6 +102,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import (
+    StoredJSONType,
     load_forecaster,
     load_hist,
     read_csv,
@@ -121,6 +124,45 @@ from packages.valory.skills.registration_abci.behaviours import (
 
 
 benchmark_tool = BenchmarkTool()
+
+
+CustomObjectType = TypeVar("CustomObjectType")
+NativelySupportedObjectType = Union[
+    StoredJSONType, Pipeline, pd.DataFrame
+]
+SupportedObjectType = Union[NativelySupportedObjectType, CustomObjectType]
+CustomLoaderType = Optional[Callable[[str], CustomObjectType]]
+SupportedLoaderType = Callable[[str], SupportedObjectType]
+
+
+class SupportedFiletype(Enum):
+    """Enum for the supported filetypes of the IPFS interacting methods."""
+
+    JSON = auto()
+    PM_PIPELINE = auto()
+    CSV = auto()
+
+
+FILETYPE_TO_LOADER: Dict[SupportedFiletype, SupportedLoaderType] = {
+    SupportedFiletype.JSON: read_json_file,
+    SupportedFiletype.PM_PIPELINE: load_forecaster,
+    SupportedFiletype.CSV: read_csv,
+}
+
+
+def _get_loader_from_filetype(
+    filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderType
+) -> SupportedLoaderType:
+    """Get a file loader from a given filetype or keep a custom loader."""
+    if filetype is not None:
+        return FILETYPE_TO_LOADER[filetype]
+
+    if custom_loader is not None:
+        return custom_loader
+
+    raise ValueError(
+        "Please provide either a supported filetype or a custom loader function."
+    )
 
 
 class APYEstimationBaseState(BaseState, ABC):
@@ -166,84 +208,25 @@ class APYEstimationBaseState(BaseState, ABC):
 
         return filepath
 
-    def get_and_read_json(
+    def get_and_read(
         self,
         hash_: str,
         target_dir: str,
         filename: str,
-    ) -> Union[ResponseItemType, HyperParamsType]:
-        """Download a json file from the IPFS node.
-
-        :param hash_: hash of file to download
-        :param target_dir: directory to place downloaded file
-        :param filename: the original name of the file to download
-        :return: the deserialized json file's content
-        """
+        filetype: SupportedFiletype = None,
+        custom_loader: SupportedLoaderType = None,
+    ) -> SupportedObjectType:
+        """Get and read a file from IPFS."""
         filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
+        loader = _get_loader_from_filetype(filetype, custom_loader)
 
         try:
-            # Load & return data from json file.
-            return read_json_file(filepath)
-        except IOError as e:  # pragma: nocover
+            obj = loader(filepath)
+        except IOError as e:
             self.context.logger.error(str(e))
             raise e
 
-    def get_and_read_hist(
-        self,
-        hash_: str,
-        target_dir: str,
-        filename: str,
-    ) -> pd.DataFrame:
-        """Download a csv file with historical data from the IPFS node.
-
-        :param hash_: hash of file to download
-        :param target_dir: directory to place downloaded file
-        :param filename: the original name of the file to download
-        :return: a pandas dataframe of the downloaded csv
-        """
-        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
-
-        try:
-            return load_hist(filepath)
-        except IOError as e:  # pragma: nocover
-            self.context.logger.error(str(e))
-            raise e
-
-    def get_and_read_csv(
-        self, hash_: str, target_dir: str, filename: str
-    ) -> pd.DataFrame:
-        """Download a csv file from the IPFS node.
-
-        :param hash_: hash of file to download
-        :param target_dir: directory to place downloaded file
-        :param filename: the original name of the file to download
-        :return: a pandas dataframe of the downloaded csv
-        """
-        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
-
-        try:
-            return read_csv(filepath)
-        except IOError as e:  # pragma: nocover
-            self.context.logger.error(str(e))
-            raise e
-
-    def get_and_read_forecaster(
-        self, hash_: str, target_dir: str, filename: str
-    ) -> Pipeline:
-        """Download a csv file from the IPFS node.
-
-        :param hash_: hash of file to download
-        :param target_dir: directory to place downloaded file
-        :param filename: the original name of the file to download
-        :return: a pandas dataframe of the downloaded csv
-        """
-        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
-
-        try:
-            return load_forecaster(filepath)
-        except IOError as e:  # pragma: nocover
-            self.context.logger.error(str(e))
-            raise e
+        return obj
 
     @property
     def period_state(self) -> PeriodState:
@@ -534,10 +517,11 @@ class TransformBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
-        pairs_hist = self.get_and_read_json(
+        pairs_hist = self.get_and_read(
             self.period_state.history_hash,
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             "historical_data.json",
+            SupportedFiletype.JSON,
         )
 
         self._transformed_history_save_path = os.path.join(
@@ -636,10 +620,14 @@ class PreprocessBehaviour(APYEstimationBaseState):
         #  Eventually, we will have to run this and all the following behaviours for all the available pools.
 
         # Get the historical data and preprocess them.
-        pairs_hist = self.get_and_read_hist(
-            self.period_state.transformed_history_hash,
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-            "transformed_historical_data.csv",
+        pairs_hist = cast(
+            pd.DataFrame,
+            self.get_and_read(
+                self.period_state.transformed_history_hash,
+                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                "transformed_historical_data.csv",
+                custom_loader=load_hist,
+            ),
         )
 
         (y_train, y_test), pair_name = prepare_pair_data(
@@ -700,18 +688,20 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         self._previous_batch = cast(
             pd.DataFrame,
-            self.get_and_read_hist(
+            self.get_and_read(
                 self.period_state.latest_observation_hist_hash,
                 *batch_path_args,
+                custom_loader=load_hist,
             ),
         )
 
         self._batch = cast(
             ResponseItemType,
-            self.get_and_read_json(
+            self.get_and_read(
                 self.period_state.batch_hash,
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
+                SupportedFiletype.JSON,
             ),
         )
 
@@ -843,8 +833,14 @@ class OptimizeBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        y = self.get_and_read_csv(
-            self.period_state.train_hash, training_data_path, "y_train.csv"
+        y = cast(
+            pd.DataFrame,
+            self.get_and_read(
+                self.period_state.train_hash,
+                training_data_path,
+                "y_train.csv",
+                SupportedFiletype.CSV,
+            ),
         )
 
         optimize_task = OptimizeTask()
@@ -953,8 +949,11 @@ class TrainBehaviour(APYEstimationBaseState):
         )
         best_params = cast(
             Dict[str, Any],
-            self.get_and_read_json(
-                self.period_state.params_hash, best_params_path, "best_params.json"
+            self.get_and_read(
+                self.period_state.params_hash,
+                best_params_path,
+                "best_params.json",
+                SupportedFiletype.JSON,
             ),
         )
 
@@ -965,8 +964,14 @@ class TrainBehaviour(APYEstimationBaseState):
                     self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                     self.params.pair_ids[0],
                 )
-                df = self.get_and_read_csv(
-                    getattr(self.period_state, f"{split}_hash"), path, f"y_{split}.csv"
+                df = cast(
+                    pd.DataFrame,
+                    self.get_and_read(
+                        getattr(self.period_state, f"{split}_hash"),
+                        path,
+                        f"y_{split}.csv",
+                        SupportedFiletype.CSV,
+                    ),
                 )
                 cast(List[np.ndarray], y).append(df.values.ravel())
 
@@ -977,8 +982,14 @@ class TrainBehaviour(APYEstimationBaseState):
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
-            y = self.get_and_read_csv(
-                self.period_state.train_hash, path, "y_train.csv"
+            y = cast(
+                pd.DataFrame,
+                self.get_and_read(
+                    self.period_state.train_hash,
+                    path,
+                    "y_train.csv",
+                    SupportedFiletype.CSV,
+                ),
             ).values.ravel()
 
         train_task = TrainTask()
@@ -1052,8 +1063,14 @@ class TestBehaviour(APYEstimationBaseState):
                 self.context._get_agent_context().data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
-            df = self.get_and_read_csv(
-                getattr(self.period_state, f"{split}_hash"), path, f"y_{split}.csv"
+            df = cast(
+                pd.DataFrame,
+                self.get_and_read(
+                    getattr(self.period_state, f"{split}_hash"),
+                    path,
+                    f"y_{split}.csv",
+                    SupportedFiletype.CSV,
+                ),
             )
             y[f"y_{split}"] = df.values.ravel()
 
@@ -1061,8 +1078,11 @@ class TestBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        forecaster = self.get_and_read_forecaster(
-            self.period_state.model_hash, model_path, "forecaster.joblib"
+        forecaster = self.get_and_read(
+            self.period_state.model_hash,
+            model_path,
+            "forecaster.joblib",
+            SupportedFiletype.PM_PIPELINE,
         )
 
         test_task = TestTask()
@@ -1152,19 +1172,24 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         )
 
         # Load data batch.
-        transformed_batch = self.get_and_read_csv(
-            self.period_state.latest_observation_hist_hash,
-            pair_path,
-            "latest_observation.csv",
+        transformed_batch = cast(
+            pd.DataFrame,
+            self.get_and_read(
+                self.period_state.latest_observation_hist_hash,
+                pair_path,
+                "latest_observation.csv",
+                SupportedFiletype.CSV,
+            ),
         )
 
         self._y = transformed_batch["APY"].values.ravel()
 
         # Load forecaster.
-        self._forecaster = self.get_and_read_forecaster(
+        self._forecaster = self.get_and_read(
             self.period_state.model_hash,
             pair_path,
             self._forecaster_filename,
+            SupportedFiletype.PM_PIPELINE,
         )
 
     def async_act(self) -> Generator:
@@ -1216,10 +1241,14 @@ class EstimateBehaviour(APYEstimationBaseState):
             self.context._get_agent_context().data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        forecaster = self.get_and_read_forecaster(
-            self.period_state.model_hash,
-            model_path,
-            "fully_trained_forecaster.joblib",
+        forecaster = cast(
+            Pipeline,
+            self.get_and_read(
+                self.period_state.model_hash,
+                model_path,
+                "fully_trained_forecaster.joblib",
+                SupportedFiletype.PM_PIPELINE,
+            ),
         )
 
         # currently, a `steps_forward != 1` will fail

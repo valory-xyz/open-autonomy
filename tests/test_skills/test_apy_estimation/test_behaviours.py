@@ -87,6 +87,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     PrepareBatchBehaviour,
     PreprocessBehaviour,
     RandomnessBehaviour,
+    SupportedFiletype,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     TestBehaviour as _TestBehaviour,
@@ -98,6 +99,7 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
 )
 from packages.valory.skills.apy_estimation_abci.rounds import Event, PeriodState
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
+from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 
 from tests.conftest import ROOT_DIR
 from tests.test_skills.test_apy_estimation.conftest import DummyPipeline
@@ -437,7 +439,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
 
         download_json_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_json(hash_, download_folder, "save")
+        ).get_and_read(hash_, download_folder, "save", SupportedFiletype.JSON)
 
         assert download_json_data == save_json_data
 
@@ -458,7 +460,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         os.remove(save_filepath)
         download_csv_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_hist(hash_, download_folder, "save")
+        ).get_and_read(hash_, download_folder, "save", custom_loader=load_hist)
 
         save_csv_data["blockTimestamp"] = pd.to_datetime(
             save_csv_data["blockTimestamp"], unit="s"
@@ -479,7 +481,7 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         os.remove(save_filepath)
         download_csv_data = cast(
             APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_csv(hash_, download_folder, "save")
+        ).get_and_read(hash_, download_folder, "save", SupportedFiletype.CSV)
 
         pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
 
@@ -508,8 +510,13 @@ class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
         _, hash_, _ = self.ipfs_tool.add(save_filepath)
         os.remove(save_filepath)
         downloaded_forecaster = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_forecaster(hash_, download_folder, "save")
+            Pipeline,
+            cast(
+                APYEstimationBaseState, self.apy_estimation_behaviour.current_state
+            ).get_and_read(
+                hash_, download_folder, "save", SupportedFiletype.PM_PIPELINE
+            ),
+        )
 
         pipeline_steps_downloaded = downloaded_forecaster.get_params()["steps"]
         fourier_downloaded = pipeline_steps_downloaded[0][1].get_params()
