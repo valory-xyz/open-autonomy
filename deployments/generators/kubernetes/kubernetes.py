@@ -22,7 +22,7 @@
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 import yaml
 
@@ -74,7 +74,7 @@ def build_agent_deployment(
         number_of_validators=number_of_agents,
         host_names=host_names,
     )
-    agent_deployment_yaml = yaml.load_all(agent_deployment)
+    agent_deployment_yaml = yaml.load_all(agent_deployment)  # type: ignore
     resources = []
     for resource in agent_deployment_yaml:
         if resource.get("kind") == "Deployment":
@@ -93,9 +93,19 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     """Kubernetes Deployment Generator."""
 
     output_name = "build.yaml"
-    output = ""
 
-    def generate_config_tendermint(self, valory_application: BaseDeployment) -> str:
+    def __init__(
+        self,
+        number_of_agents: int,
+        network: str,
+    ) -> None:
+        """Initialise the deployment generator."""
+        self.output = ""
+        super().__init__(number_of_agents, network)
+
+    def generate_config_tendermint(
+        self, valory_application: Type[BaseDeployment]
+    ) -> str:
         """Build configuration job."""
         host_names = ", ".join(
             [
@@ -110,14 +120,14 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         )
         return config_job_yaml
 
-    def generate(self, valory_application: BaseDeployment) -> str:
+    def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment."""
         self.output += self.generate_config_tendermint(valory_application)
 
         if self.network == "hardhat":
             self.output += HARDHAT_TEMPLATE
 
-        agent_vars = valory_application.generate_agents()
+        agent_vars = valory_application.generate_agents()  # type:ignore
         agents = "".join(
             [
                 build_agent_deployment(i, self.number_of_agents, agent_vars[i])

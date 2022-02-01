@@ -113,7 +113,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the new configuration."""
 
-        agent_vars = valory_application.generate_agents()
+        agent_vars = valory_application.generate_agents()  # type: ignore
 
         agents = "".join(
             [

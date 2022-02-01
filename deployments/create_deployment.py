@@ -115,9 +115,9 @@ def main() -> None:
         deploy_safe_contract=args.deploy_safe_contract,
     )
 
-    deployment.generate(agent_generator)
+    deployment.generate(agent_generator)  # type: ignore
 
-    run_command = deployment.generate_config_tendermint(agent_generator)
+    run_command = deployment.generate_config_tendermint(agent_generator)  # type: ignore
 
     deployment.write_config()
 

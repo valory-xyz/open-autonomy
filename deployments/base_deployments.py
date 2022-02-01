@@ -34,7 +34,7 @@ from deployments.constants import (
 )
 
 
-class BaseDeployment(abc.ABC):
+class BaseDeployment:
     """Base deployment class."""
 
     valory_application: str
@@ -54,16 +54,14 @@ class BaseDeployment(abc.ABC):
         self.number_of_agents = number_of_agents
         self.deploy_oracle_contract = deploy_oracle_contract
         self.deploy_safe_contract = deploy_safe_contract
+        self.output = ""
 
-    @abc.abstractmethod
     def generate_agents(self) -> List[Dict]:
         """Generate next agent."""
 
-    @abc.abstractmethod
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
 
-    @abc.abstractmethod
     def setup(self) -> str:
         """Prepare agent generator."""
 
@@ -168,7 +166,7 @@ class APYEstimationDeployment(BaseDeployment):
         """Prepare agent generator."""
 
 
-class BaseDeploymentGenerator(abc.ABC):
+class BaseDeploymentGenerator:
     """Base Deployment Class."""
 
     old_wd: str

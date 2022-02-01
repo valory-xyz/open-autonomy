@@ -95,14 +95,14 @@ def hard_reset() -> Tuple[Any, int]:
         )
 
 
-@app.errorhandler(404)
+@app.errorhandler(404)  # type: ignore
 def handle_notfound(e: NotFound) -> Response:
     """Handle server error."""
     logger.info(e)
     return Response("Not Found", status=404, mimetype="application/json")
 
 
-@app.errorhandler(500)
+@app.errorhandler(500)  # type: ignore
 def handle_server_error(e: InternalServerError) -> Response:
     """Handle server error."""
     logger.info(e)  # pylint: disable=E
