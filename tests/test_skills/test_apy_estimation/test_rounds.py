@@ -18,17 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-from typing import Dict, FrozenSet, Optional, cast
+from typing import Dict, FrozenSet
 from unittest import mock
 
-import pytest
-
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbstractRound,
     ConsensusParams,
     StateDB,
-    TransactionNotValidError,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
@@ -36,7 +32,6 @@ from packages.valory.skills.apy_estimation_abci.payloads import (
     OptimizationPayload,
     PreprocessPayload,
     RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
@@ -56,8 +51,6 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
     PeriodState,
     PreprocessRound,
     RandomnessRound,
-    RegistrationRound,
-    ResetRound,
 )
 from packages.valory.skills.apy_estimation_abci.rounds import TestRound as _TestRound
 from packages.valory.skills.apy_estimation_abci.rounds import TrainRound, TransformRound
@@ -220,78 +213,6 @@ class BaseRoundTestClass:
             assert result is not None
             state, event = result
             assert event == Event.NO_MAJORITY
-
-
-class TestRegistrationRound(BaseRoundTestClass):
-    """Test RegistrationRound."""
-
-    def test_run_default(
-        self,
-    ) -> None:
-        """Run test."""
-
-        test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        self._run_with_round(test_round, Event.DONE, 1)
-
-    def _run_with_round(
-        self,
-        test_round: RegistrationRound,
-        expected_event: Optional[Event] = None,
-        confirmations: Optional[int] = None,
-    ) -> None:
-        """Run with given round."""
-        registration_payloads = [
-            RegistrationPayload(sender=participant) for participant in self.participants
-        ]
-
-        first_participant = registration_payloads.pop(0)
-        test_round.process_payload(first_participant)
-        assert test_round.collection == {
-            first_participant.sender,
-        }
-        assert test_round.end_block() is None
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=f"payload attribute sender with value {first_participant.sender} "
-            "has already been added for round: registration",
-        ):
-            test_round.check_payload(first_participant)
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=f"payload attribute sender with value {first_participant.sender} "
-            "has already been added for round: registration",
-        ):
-            test_round.process_payload(first_participant)
-
-        for participant_payload in registration_payloads:
-            test_round.process_payload(participant_payload)
-        assert test_round.collection_threshold_reached
-
-        if confirmations is not None:
-            test_round.block_confirmations = confirmations
-
-        actual_next_state = PeriodState(
-            db=StateDB(
-                initial_period=0, initial_data=dict(participants=test_round.collection)
-            )
-        )
-
-        res = test_round.end_block()
-
-        if expected_event is None:
-            assert res is expected_event
-        else:
-            assert res is not None
-            state, event = res
-            assert (
-                cast(PeriodState, state).participants
-                == cast(PeriodState, actual_next_state).participants
-            )
-            assert event == expected_event
 
 
 class TestCollectHistoryRound(BaseCollectSameUntilThresholdRoundTest):
@@ -571,42 +492,8 @@ class TestEstimateRound(BaseCollectSameUntilThresholdRoundTest):
         self._test_no_majority_event(test_round)
 
 
-class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test `ResetRoundd`."""
-
-    _period_state_class = PeriodState
-    _event_class = Event
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests"""
-
-        test_round = ResetRound(self.period_state, self.consensus_params)
-        self._complete_run(
-            self._test_round(
-                test_round=test_round,
-                round_payloads=get_participant_to_reset_payload(self.participants),
-                state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    period_count=_test_round.most_voted_payload,
-                    participants=get_participants(),
-                    full_training=False,
-                    n_estimations=1,
-                ),
-                state_attr_checks=[],
-                most_voted_payload=1,
-                exit_event=Event.DONE,
-            )
-        )
-
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = ResetRound(self.period_state, self.consensus_params)
-        self._test_no_majority_event(test_round)
-
-
 class TestCycleResetRound(BaseCollectSameUntilThresholdRoundTest):
-    """Test `CycleResetRoundd`."""
+    """Test `CycleResetRound`."""
 
     _period_state_class = PeriodState
     _event_class = Event

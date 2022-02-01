@@ -22,15 +22,15 @@ from typing import Dict, Union
 
 import pytest
 
+from packages.valory.skills.apy_estimation_abci.composition import (
+    APYEstimationAbciAppChained,
+)
 from packages.valory.skills.apy_estimation_abci.models import (
     APYParams,
     MARGIN,
     SharedState,
 )
-from packages.valory.skills.apy_estimation_abci.rounds import (
-    APYEstimationAbciApp,
-    Event,
-)
+from packages.valory.skills.apy_estimation_abci.rounds import Event
 
 
 class TestSharedState:
@@ -43,11 +43,11 @@ class TestSharedState:
         """Test setup."""
         shared_state.setup()
         assert (
-            APYEstimationAbciApp.event_to_timeout[Event.ROUND_TIMEOUT]
+            APYEstimationAbciAppChained.event_to_timeout[Event.ROUND_TIMEOUT]
             == shared_state.context.params.round_timeout_seconds
         )
         assert (
-            APYEstimationAbciApp.event_to_timeout[Event.RESET_TIMEOUT]
+            APYEstimationAbciAppChained.event_to_timeout[Event.RESET_TIMEOUT]
             == shared_state.context.params.observation_interval + MARGIN
         )
 

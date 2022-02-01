@@ -55,12 +55,6 @@ class BaseAPYPayload(BaseTxPayload, ABC):
         return hash(tuple(sorted(self.data.items())))
 
 
-class RegistrationPayload(BaseAPYPayload):
-    """Represent a transaction payload of type 'registration'."""
-
-    transaction_type = TransactionType.REGISTRATION
-
-
 class RandomnessPayload(BaseAPYPayload):
     """Represent a transaction payload of type 'randomness'."""
 

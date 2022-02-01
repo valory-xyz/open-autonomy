@@ -36,12 +36,6 @@ CHECK_STRINGS_LIST = [
 ]
 
 states_checks_config = {
-    "registration": {
-        "round_name": "registration",
-        "extra_logs": (),
-        "only_at_first_period": True,
-        "only_during_cycle": False,
-    },
     "collect_history": {
         "round_name": "collect_history",
         "extra_logs": (),
@@ -167,6 +161,7 @@ class TestABCIAPYEstimationSingleAgent(
     NB_AGENTS = 1
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationTwoAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
