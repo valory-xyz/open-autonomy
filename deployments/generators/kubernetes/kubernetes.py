@@ -22,7 +22,7 @@
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 import yaml
 
@@ -86,7 +86,7 @@ def build_agent_deployment(
         resources.append(resource)
 
     res = "\n---\n".join([yaml.safe_dump(i) for i in resources])
-    return f"\n{res}\n---\n"
+    return res
 
 
 class KubernetesGenerator(BaseDeploymentGenerator):
@@ -101,6 +101,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> None:
         """Initialise the deployment generator."""
         self.output = ""
+        self.resources: List[str] = []
         super().__init__(number_of_agents, network)
 
     def generate_config_tendermint(
@@ -122,17 +123,18 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment."""
-        self.output += self.generate_config_tendermint(valory_application)
+        self.resources.append(self.generate_config_tendermint(valory_application))
 
         if self.network == "hardhat":
-            self.output += HARDHAT_TEMPLATE
+            self.resources.append(HARDHAT_TEMPLATE)
 
         agent_vars = valory_application.generate_agents()  # type:ignore
-        agents = "".join(
+        agents = "\n---\n".join(
             [
                 build_agent_deployment(i, self.number_of_agents, agent_vars[i])
                 for i in range(self.number_of_agents)
             ]
         )
-        self.output += agents
+        self.resources.append(agents)
+        self.output = "\n---\n".join(self.resources)
         return self.output
