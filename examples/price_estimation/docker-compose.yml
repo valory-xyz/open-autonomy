@@ -1,0 +1,213 @@
+version: '3'
+
+services:
+  hardhat:
+    container_name: hardhat
+    image: "node:16.7.0"
+    ports:
+      - "8545:8545"
+    volumes:
+      - ../../third_party/safe-contracts:/home/ubuntu/build
+    working_dir: /home/ubuntu/build
+    entrypoint: "/bin/bash"
+    command: [ "/usr/local/bin/yarn", "run", "hardhat", "node", "--port", "8545"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.2
+    restart: always
+
+  node0:
+    container_name: node0
+    hostname: node0
+    image: "tendermint/localnode"
+    cpus: 0.1
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=0
+      - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci0:26658
+      - TMHOME=/tendermint/node0
+      - CREATE_EMPTY_BLOCKS=true
+    volumes:
+      - ./build:/tendermint:Z
+    working_dir: /tendermint
+    entrypoint: /bin/bash
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.3
+    depends_on:
+    - hardhat
+    restart: always
+
+  node1:
+    container_name: node1
+    hostname: node1
+    image: "tendermint/localnode"
+    cpus: 0.1
+    ports:
+      - "26666-26667:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci1:26658
+      - TMHOME=/tendermint/node1
+      - CREATE_EMPTY_BLOCKS=true
+    volumes:
+      - ./build:/tendermint:Z
+    working_dir: /tendermint
+    entrypoint: /bin/bash
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.4
+    depends_on:
+      - hardhat
+    restart: always
+
+  node2:
+    hostname: node2
+    container_name: node2
+    image: "tendermint/localnode"
+    cpus: 0.1
+    environment:
+      - ID=2
+      - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci2:26658
+      - TMHOME=/tendermint/node2
+      - CREATE_EMPTY_BLOCKS=true
+    ports:
+      - "26676-26677:26656-26657"
+    volumes:
+      - ./build:/tendermint:Z
+    working_dir: /tendermint
+    entrypoint: /bin/bash
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.5
+    depends_on:
+      - hardhat
+    restart: always
+
+  node3:
+    hostname: node3
+    container_name: node3
+    image: "tendermint/localnode"
+    cpus: 0.1
+    environment:
+      - ID=3
+      - LOG=${LOG:-tendermint.log}
+      - FLASK_APP=/app/app.py
+      - PROXY_APP=tcp://abci3:26658
+      - TMHOME=/tendermint/node3
+      - CREATE_EMPTY_BLOCKS=true
+    ports:
+      - "26686-26687:26656-26657"
+    volumes:
+      - ./build:/tendermint:Z
+    working_dir: /tendermint
+    entrypoint: /bin/bash
+    command: wait-for-it.sh -t 120 hardhat:8545 -- flask run --no-reload --host="0.0.0.0" --port=8080
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.6
+    depends_on:
+      - hardhat
+    restart: always
+
+  abci0:
+    environment:
+      - ID=0
+    container_name: abci0
+    image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+    volumes:
+      - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci0"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.7
+    depends_on:
+      - hardhat
+      - node0
+    restart: always
+
+  abci1:
+    environment:
+      - ID=1
+    container_name: abci1
+    image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+    volumes:
+      - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci1"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.8
+    depends_on:
+      - hardhat
+      - node1
+    restart: always
+
+  abci2:
+    container_name: abci2
+    environment:
+      - ID=2
+    image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+    volumes:
+      - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci2"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.9
+    depends_on:
+      - hardhat
+      - node2
+    restart: always
+
+  abci3:
+    container_name: abci3
+    environment:
+      - ID=3
+    image: "valory/price_estimation:0.1.0"
+    build:
+      context: ../..
+      dockerfile: examples/price_estimation/DockerFiles/aea/Dockerfile
+    volumes:
+      - ./:/home/ubuntu/build
+      - ./build:/tendermint:Z
+    entrypoint: /bin/bash
+    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "../run.sh", "abci3"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.10
+    depends_on:
+      - hardhat
+      - node3
+    restart: always
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.167.11.0/16

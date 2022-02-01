@@ -23,22 +23,17 @@ COPY app.py /app/
 COPY requirements.txt /app/
 COPY tendermint.py /app/
 WORKDIR /app
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt 
 
 VOLUME /tendermint
-EXPOSE 26656 26657
-ENV FLASK_APP=/app/app.py
-ENV FLASK_ENV=production
-
-STOPSIGNAL SIGTERM
 WORKDIR /tendermint
+EXPOSE 26656 26657
+ENTRYPOINT ["/usr/bin/wrapper.sh"]
+CMD ["node", "--proxy_app", "kvstore"]
+STOPSIGNAL SIGTERM
 
 COPY wrapper.sh /usr/bin/wrapper.sh
 COPY config-template.toml /etc/tendermint/config-template.toml
 
 RUN chmod 777 -R /app
 RUN chmod 777 -R /tendermint
-
-
-ENTRYPOINT ["/usr/bin/flask"]
-CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080", ]
