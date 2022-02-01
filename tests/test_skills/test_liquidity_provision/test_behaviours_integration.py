@@ -25,7 +25,7 @@ import tempfile
 from copy import copy, deepcopy
 from pathlib import Path
 from threading import Thread
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 from unittest import mock
 
 from aea.crypto.registries import make_crypto, make_ledger_api
@@ -74,16 +74,13 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.liquidity_provision.behaviours import (
-    AB_POOL_ADDRESS,
     DEFAULT_MINTER,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     LP_TOKEN_ADDRESS,
     LiquidityProvisionConsensusBehaviour,
     SwapBackTransactionHashBehaviour,
-    TOKEN_A_ADDRESS,
     get_dummy_strategy,
-    parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
     ContractApiHandler,
@@ -92,14 +89,16 @@ from packages.valory.skills.liquidity_provision.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.liquidity_provision.rounds import Event
-from packages.valory.skills.liquidity_provision.rounds import PeriodState as LiquidityProvisionPeriodState
+from packages.valory.skills.liquidity_provision.rounds import (
+    PeriodState as LiquidityProvisionPeriodState,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
     ValidateTransactionBehaviour,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import (
-    SignaturePayload,
-    ValidatePayload,
+from packages.valory.skills.transaction_settlement_abci.payloads import SignaturePayload
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    PeriodState as TransactionSettlementPeriodState,
 )
 
 from tests.conftest import ROOT_DIR, make_ledger_api_connection
@@ -235,7 +234,9 @@ class LiquidityProvisionBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.liquidity_provision_behaviour.current_state).state_id
             == cls.liquidity_provision_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = LiquidityProvisionPeriodState(StateDB(initial_period=0, initial_data={}))
+        cls.period_state = LiquidityProvisionPeriodState(
+            StateDB(initial_period=0, initial_data={})
+        )
 
     def fast_forward_to_state(
         self,
@@ -509,6 +510,7 @@ class TestLiquidityProvisionHardhat(
     default_period_state_enter: LiquidityProvisionPeriodState
     default_period_state_exit: LiquidityProvisionPeriodState
     default_period_state_swap_back: LiquidityProvisionPeriodState
+    default_period_state_settlement: TransactionSettlementPeriodState
     safe_owners: Dict
     safe_contract_address: str
     multisend_contract_address: str
@@ -524,6 +526,10 @@ class TestLiquidityProvisionHardhat(
     gnosis_instance: Any
     multisend_instance: Any
     router_instance: Any
+    safe_tx_gas: int
+    enter_nonce: int
+    exit_nonce: int
+    swap_back_nonce: int
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -642,7 +648,7 @@ class TestLiquidityProvisionHardhat(
         )
 
         cls.safe_tx_gas = 4000000
-        cls.enter_nonce =  8
+        cls.enter_nonce = 8
         cls.exit_nonce = cls.enter_nonce + 1
         cls.swap_back_nonce = cls.enter_nonce + 2
 
@@ -663,7 +669,6 @@ class TestLiquidityProvisionHardhat(
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
                     safe_operation="delegate",
-                    max_priority_fee_per_gas=10 ** 15,
                 ),
             )
         )
@@ -680,7 +685,6 @@ class TestLiquidityProvisionHardhat(
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
                     safe_operation="delegate",
-                    max_priority_fee_per_gas=10 ** 15,
                 ),
             )
         )
@@ -697,7 +701,18 @@ class TestLiquidityProvisionHardhat(
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
                     safe_operation="delegate",
-                    max_priority_fee_per_gas=10 ** 15,
+                ),
+            )
+        )
+
+        cls.default_period_state_settlement = TransactionSettlementPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    safe_contract_address=cls.safe_contract_address,
+                    most_voted_keeper_address=cls.keeper_address,
+                    participants=frozenset(list(cls.safe_owners.keys())),
+                    safe_operation="delegate",
                 ),
             )
         )
@@ -806,7 +821,9 @@ class TestLiquidityProvisionHardhat(
         self,
         state_id: str,
         ncycles: int,
-        period_state: LiquidityProvisionPeriodState,
+        period_state: Union[
+            LiquidityProvisionPeriodState, TransactionSettlementPeriodState
+        ],
         handlers: Optional[HANDLERS] = None,
         expected_content: Optional[EXPECTED_CONTENT] = None,
         expected_types: Optional[EXPECTED_TYPES] = None,
@@ -912,15 +929,17 @@ class TestLiquidityProvisionHardhat(
             to_address=self.multisend_contract_address,
             data=bytes.fromhex(self.multisend_data_enter),
         )
+
         period_state = cast(
-            LiquidityProvisionPeriodState,
-            self.default_period_state_enter.update(
+            TransactionSettlementPeriodState,
+            self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
                 nonce=self.enter_nonce,
             ),
         )
+
         handlers: HANDLERS = [
             self.contract_handler,
             self.signing_handler,
@@ -960,22 +979,16 @@ class TestLiquidityProvisionHardhat(
         tx_digest = msg.transaction_digest.body
 
         # validate
-        participant_to_lp_result = {
-            address: ValidatePayload(
-                sender=address,
-            )
-            for address, _ in self.safe_owners.items()
-        }
-
         period_state = cast(
-            LiquidityProvisionPeriodState,
-            self.default_period_state_enter.update(
-                final_tx_hash=tx_digest,
+            TransactionSettlementPeriodState,
+            self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
-                participant_to_lp_result=participant_to_lp_result,
+                nonce=self.enter_nonce,
+                tx_hashes_history=[tx_digest],
             ),
         )
+
         handlers = [
             self.ledger_handler,
             self.contract_handler,
@@ -1046,15 +1059,15 @@ class TestLiquidityProvisionHardhat(
         )
 
         period_state = cast(
-            LiquidityProvisionPeriodState,
-            self.default_period_state_exit.update(
+            TransactionSettlementPeriodState,
+            self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
-                most_voted_strategy=strategy,
-                most_voted_lp_result=1,
+                nonce=self.exit_nonce,
             ),
         )
+
         handlers = [
             self.contract_handler,
             self.signing_handler,
@@ -1095,14 +1108,15 @@ class TestLiquidityProvisionHardhat(
 
         # validate
         period_state = cast(
-            LiquidityProvisionPeriodState,
-            self.default_period_state_exit.update(
-                final_tx_hash=tx_digest,
+            TransactionSettlementPeriodState,
+            self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
-                participant_to_signature=participant_to_signature,
+                nonce=self.exit_nonce,
+                tx_hashes_history=[tx_digest],
             ),
         )
+
         handlers = [
             self.ledger_handler,
             self.contract_handler,
@@ -1168,14 +1182,15 @@ class TestLiquidityProvisionHardhat(
         )
 
         period_state = cast(
-            LiquidityProvisionPeriodState,
-            self.default_period_state_swap_back.update(
+            TransactionSettlementPeriodState,
+            self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
                 participant_to_signature=participant_to_signature,
-                most_voted_strategy=strategy,
+                nonce=self.swap_back_nonce,
             ),
         )
+
         handlers = [
             self.contract_handler,
             self.signing_handler,
@@ -1216,14 +1231,15 @@ class TestLiquidityProvisionHardhat(
 
         # validate
         period_state = cast(
-            LiquidityProvisionPeriodState,
-            self.default_period_state_swap_back.update(
-                final_tx_hash=tx_digest,
+            TransactionSettlementPeriodState,
+            self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
-                participant_to_signature=participant_to_signature,
+                nonce=self.swap_back_nonce,
+                tx_hashes_history=[tx_digest],
             ),
         )
+
         handlers = [
             self.ledger_handler,
             self.contract_handler,

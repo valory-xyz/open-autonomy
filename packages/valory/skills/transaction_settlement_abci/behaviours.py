@@ -28,7 +28,10 @@ from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 from requests import HTTPError
 from web3.types import TxData
 
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract, SafeOperation
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SafeOperation,
+)
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
