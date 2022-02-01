@@ -24,6 +24,7 @@ from typing import Union
 
 import joblib
 import pandas as pd
+from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime  # pylint: disable=E0611
 from pmdarima.pipeline import Pipeline
 
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
@@ -46,6 +47,18 @@ def create_pathdirs(path: str) -> None:
 
     if dirname:
         os.makedirs(dirname, exist_ok=True)
+
+
+def read_csv(path: str) -> pd.DataFrame:
+    """Reads a pandas dataframe from a csv file.
+
+    :param path: the path of the csv.
+    :return: the pandas dataframe.
+    """
+    try:
+        return pd.read_csv(path)
+    except FileNotFoundError as e:  # pragma: nocover
+        raise IOError(f"File {path} was not found!") from e
 
 
 def to_csv_safely(df: pd.DataFrame, path: str, index: bool = False) -> None:
@@ -75,7 +88,10 @@ def load_forecaster(path: str) -> Pipeline:
     :param path: path to store the forecaster.
     :return: a `pmdarima.pipeline.Pipeline`.
     """
-    return joblib.load(path)
+    try:
+        return joblib.load(path)
+    except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
+        raise IOError(f"Could not detect {path}!") from e
 
 
 def load_hist(path: str) -> pd.DataFrame:
@@ -84,12 +100,15 @@ def load_hist(path: str) -> pd.DataFrame:
     :param path: the path to the historical data.
     :return: a dataframe with the historical data.
     """
-    pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
+    try:
+        pairs_hist = read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
 
-    # Convert the `blockTimestamp` to a pandas datetime.
-    pairs_hist["blockTimestamp"] = pd.to_datetime(
-        pairs_hist["blockTimestamp"], unit="s"
-    )
+        # Convert the `blockTimestamp` to a pandas datetime.
+        pairs_hist["blockTimestamp"] = pd.to_datetime(
+            pairs_hist["blockTimestamp"], unit="s"
+        )
+    except (IOError, OutOfBoundsDatetime) as e:
+        raise IOError(str(e)) from e
 
     return pairs_hist
 
@@ -111,5 +130,14 @@ def read_json_file(path: str) -> StoredJSONType:
     :param path: the path to retrieve the json file from.
     :return: the deserialized json file's content.
     """
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except OSError as e:  # pragma: nocover
+        raise IOError(f"Path '{path}' could not be found!") from e
+
+    except json.JSONDecodeError as e:  # pragma: nocover
+        raise IOError(f"File '{path}' has an invalid JSON encoding!") from e
+
+    except ValueError as e:  # pragma: nocover
+        raise IOError(f"There is an encoding error in the '{path}' file!") from e

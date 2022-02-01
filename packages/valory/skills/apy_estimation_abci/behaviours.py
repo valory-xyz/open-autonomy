@@ -19,7 +19,6 @@
 
 """This module contains the behaviours for the APY estimation skill."""
 import calendar
-import json
 import os
 from abc import ABC
 from multiprocessing.pool import AsyncResult
@@ -103,6 +102,7 @@ from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_ti
 from packages.valory.skills.apy_estimation_abci.tools.io import (
     load_forecaster,
     load_hist,
+    read_csv,
     read_json_file,
     save_forecaster,
     to_csv_safely,
@@ -184,21 +184,8 @@ class APYEstimationBaseState(BaseState, ABC):
         try:
             # Load & return data from json file.
             return read_json_file(filepath)
-
-        except OSError as e:  # pragma: nocover
-            self.context.logger.error(f"Path '{filepath}' could not be found!")
-            raise e
-
-        except json.JSONDecodeError as e:  # pragma: nocover
-            self.context.logger.error(
-                f"File '{filepath}' has an invalid JSON encoding!"
-            )
-            raise e
-
-        except ValueError as e:  # pragma: nocover
-            self.context.logger.error(
-                f"There is an encoding error in the '{filepath}' file!"
-            )
+        except IOError as e:  # pragma: nocover
+            self.context.logger.error(str(e))
             raise e
 
     def get_and_read_hist(
@@ -218,9 +205,8 @@ class APYEstimationBaseState(BaseState, ABC):
 
         try:
             return load_hist(filepath)
-
-        except FileNotFoundError as e:  # pragma: nocover
-            self.context.logger.error(f"File {filepath} was not found!")
+        except IOError as e:  # pragma: nocover
+            self.context.logger.error(str(e))
             raise e
 
     def get_and_read_csv(
@@ -236,10 +222,9 @@ class APYEstimationBaseState(BaseState, ABC):
         filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
 
         try:
-            return pd.read_csv(filepath)
-
-        except FileNotFoundError as e:  # pragma: nocover
-            self.context.logger.error(f"File {filepath} was not found!")
+            return read_csv(filepath)
+        except IOError as e:  # pragma: nocover
+            self.context.logger.error(str(e))
             raise e
 
     def get_and_read_forecaster(
@@ -256,9 +241,8 @@ class APYEstimationBaseState(BaseState, ABC):
 
         try:
             return load_forecaster(filepath)
-
-        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: nocover
-            self.context.logger.error(f"Could not detect {filepath}!")
+        except IOError as e:  # pragma: nocover
+            self.context.logger.error(str(e))
             raise e
 
     @property
