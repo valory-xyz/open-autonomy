@@ -19,7 +19,7 @@
 
 """Optimization operations"""
 
-from typing import Callable, Optional, Union, Dict, Any
+from typing import Any, Callable, Dict, Optional, Union
 
 import numpy as np
 import optuna

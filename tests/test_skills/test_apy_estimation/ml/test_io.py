@@ -30,7 +30,10 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     init_forecaster,
     train_forecaster,
 )
-from packages.valory.skills.apy_estimation_abci.tools.io import save_forecaster, load_forecaster
+from packages.valory.skills.apy_estimation_abci.tools.io import (
+    load_forecaster,
+    save_forecaster,
+)
 
 
 class TestIO:

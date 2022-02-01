@@ -25,12 +25,13 @@ import joblib
 import pandas as pd
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.apy_estimation_abci.ml.optimization import HyperParamsType
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
+from packages.valory.skills.apy_estimation_abci.ml.optimization import HyperParamsType
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
-    TRANSFORMED_HIST_DTYPES,
     ResponseItemType,
+    TRANSFORMED_HIST_DTYPES,
 )
+
 
 StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
 

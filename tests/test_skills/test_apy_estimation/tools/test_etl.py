@@ -30,7 +30,10 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     calc_change,
     transform_hist_data,
 )
-from packages.valory.skills.apy_estimation_abci.tools.io import load_hist, TRANSFORMED_HIST_DTYPES
+from packages.valory.skills.apy_estimation_abci.tools.io import (
+    TRANSFORMED_HIST_DTYPES,
+    load_hist,
+)
 
 
 class TestProcessing:
