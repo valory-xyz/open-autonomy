@@ -74,7 +74,7 @@ def build_agent_deployment(
         number_of_validators=number_of_agents,
         host_names=host_names,
     )
-    agent_deployment_yaml = yaml.load_all(agent_deployment)  # type: ignore
+    agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
     resources = []
     for resource in agent_deployment_yaml:
         if resource.get("kind") == "Deployment":

@@ -133,7 +133,7 @@ def main() -> None:
     )
 
     print(report)
-    if args.tendermint_configuration:
+    if args.tendermint_configuration and args.type_of_deployment == "docker-compose":
         res = os.popen(run_command)  # nosec:
         print(res.read())
     else:

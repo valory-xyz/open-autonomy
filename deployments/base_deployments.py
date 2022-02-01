@@ -40,6 +40,8 @@ class BaseDeployment:
     valory_application: str
     network: str
     number_of_agents: int
+    uses_oracle_contract: bool
+    uses_safe_contract: bool
 
     def __init__(
         self,
@@ -70,6 +72,8 @@ class CounterDeployment(BaseDeployment):
     """Simple counter deployment."""
 
     valory_application = "valory/counter:0.1.0"
+    uses_safe_contract = False
+    uses_oracle_contract = False
 
     def generate_agent(self, agent_n: int) -> Dict:
         """Generate next agent."""
@@ -88,12 +92,14 @@ class PriceEstimationDeployment(BaseDeployment):
     """Price Estimation deployment."""
 
     valory_application = "valory/price_estimation_deployable:0.1.0"
+    uses_safe_contract = True
+    uses_oracle_contract = True
 
     def get_contracts(self) -> Dict[str, Any]:
         """If configured, return deployed contracts as env vars."""
 
         additional_vars = {}
-        if self.deploy_safe_contract:
+        if not self.deploy_safe_contract:
             contracts = DEPLOYED_CONTRACTS[self.network]
             additional_vars.update(
                 {
@@ -102,7 +108,7 @@ class PriceEstimationDeployment(BaseDeployment):
                     ]
                 }
             )
-        if self.deploy_oracle_contract:
+        if not self.deploy_oracle_contract:
             contracts = DEPLOYED_CONTRACTS[self.network]
             additional_vars.update(
                 {
@@ -152,6 +158,8 @@ class APYEstimationDeployment(BaseDeployment):
     """APY Estimation application."""
 
     valory_application = "valory/apy_estimation:0.1.0"
+    uses_safe_contract = False
+    uses_oracle_contract = False
 
     def generate_agent(self, agent_n: int) -> Dict:
         """Generate next agent."""

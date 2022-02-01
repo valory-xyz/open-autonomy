@@ -35,6 +35,7 @@ from deployments.base_deployments import (
     CounterDeployment,
     PriceEstimationDeployment,
 )
+from deployments.constants import DEPLOYED_CONTRACTS
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
@@ -237,3 +238,39 @@ class TestCliTool(BaseDeploymentTests):
                 )
                 res = instance.generate_config_tendermint(app_instance)  # type: ignore
                 assert len(res) > 1, "Failed to generate Tendermint Config"
+
+    def test_generates_deploy_safe_contract(self) -> None:
+        """Test functionality of deploy safe contract."""
+        self.app_config["deploy_safe_contract"] = True
+        self.app_config["network"] = "ropsten"
+        for deployment_generator in deployment_generators:
+            for app in valory_apps:
+                instance, app_instance = self.load_deployer_and_app(
+                    app, deployment_generator  # type: ignore
+                )
+                agent = app_instance.generate_agent(0)
+                if app_instance.uses_safe_contract:
+                    assert (
+                        str(agent).find(
+                            DEPLOYED_CONTRACTS[self.app_config["network"]][
+                                "safe_contract_address"
+                            ]
+                        )
+                        <= 0
+                    )
+
+    def test_generates_deploy_oracle_contract(self) -> None:
+        """Test functionality of deploy safe contract."""
+        self.app_config["deploy_oracle_contract"] = True
+        self.app_config["network"] = "ropsten"
+        for deployment_generator in deployment_generators:
+            for app in valory_apps:
+                instance, app_instance = self.load_deployer_and_app(
+                    app, deployment_generator  # type: ignore
+                )
+                agent = app_instance.generate_agent(0)
+                if app_instance.uses_oracle_contract:
+                    contract_address = DEPLOYED_CONTRACTS[self.app_config["network"]][
+                        "oracle_contract_address"
+                    ]
+                    assert str(agent).find(contract_address) <= 0
