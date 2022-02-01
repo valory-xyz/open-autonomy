@@ -19,6 +19,7 @@
 
 """IO operations for the APY skill."""
 import json
+import os
 from typing import Union
 
 import joblib
@@ -34,6 +35,17 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
 
 
 StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
+
+
+def create_pathdirs(path: str) -> None:
+    """Create the non-existing directories of a given path.
+
+    :param path: the given path.
+    """
+    dirname = os.path.dirname(path)
+
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
 
 
 def save_forecaster(path: str, forecaster: Pipeline) -> None:

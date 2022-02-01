@@ -99,11 +99,9 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     revert_transform_hist_data,
     transform_hist_data,
 )
-from packages.valory.skills.apy_estimation_abci.tools.general import (
-    create_pathdirs,
-    gen_unix_timestamps,
-)
+from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
 from packages.valory.skills.apy_estimation_abci.tools.io import (
+    create_pathdirs,
     load_forecaster,
     load_hist,
     read_json_file,

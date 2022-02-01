@@ -19,7 +19,7 @@
 
 
 """Tools for the APY skill."""
-import os
+
 from typing import Iterator, Optional
 
 
@@ -36,17 +36,6 @@ def gen_unix_timestamps(synced_now: int, duration: int) -> Iterator[int]:
 
     for day in range(duration_before, synced_now, day_in_unix):
         yield day
-
-
-def create_pathdirs(path: str) -> None:
-    """Create the non-existing directories of a given path.
-
-    :param path: the given path.
-    """
-    dirname = os.path.dirname(path)
-
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
 
 
 def filter_out_numbers(string: str) -> Optional[int]:
