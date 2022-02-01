@@ -1334,20 +1334,20 @@ class EstimatorRoundBehaviour(AbstractRoundBehaviour):
     initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = APYEstimationAbciApp
     behaviour_states: Set[Type[BaseState]] = {
-        TendermintHealthcheckBehaviour,
+        TendermintHealthcheckBehaviour,  # type: ignore
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,
-        PreprocessBehaviour,
+        PreprocessBehaviour,  # type: ignore
         PrepareBatchBehaviour,
-        RandomnessBehaviour,
+        RandomnessBehaviour,  # type: ignore
         OptimizeBehaviour,
         TrainBehaviour,
         TestBehaviour,
         UpdateForecasterBehaviour,
-        EstimateBehaviour,
-        FreshModelResetBehaviour,
-        CycleResetBehaviour,
+        EstimateBehaviour,  # type: ignore
+        FreshModelResetBehaviour,  # type: ignore
+        CycleResetBehaviour,  # type: ignore
     }
 
 
