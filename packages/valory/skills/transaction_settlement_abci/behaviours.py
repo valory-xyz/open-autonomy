@@ -190,6 +190,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
                 f"tx {self.period_state.final_tx_hash} receipt check timed out!"
             )
             return None
+
+        # Reset nonce.
+        self.params.nonce = None
+
         contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
@@ -649,7 +653,6 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
             )
 
         # Reset nonce.
-        # This the only place we need to reset, because the same keeper always has to use the same nonce when retrying.
         self.params.nonce = None
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
