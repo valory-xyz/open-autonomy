@@ -649,6 +649,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
             )
 
         # Reset nonce.
+        # This the only place we need to reset, because the same keeper always has to use the same nonce when retrying.
         self.params.nonce = None
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
