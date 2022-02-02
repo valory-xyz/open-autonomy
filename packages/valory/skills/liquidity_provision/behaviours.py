@@ -84,15 +84,6 @@ DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
 AB_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
 SLEEP_SECONDS = 60
 
-# Dummy values taken from
-# https://github.com/valory-xyz/consensus-algorithms/pull/368
-AMOUNT_BASE_SENT = 1004
-AMOUNT_A_SENT = 1000
-AMOUNT_B_SENT = 1000
-AMOUNT_LIQUIDITY_RECEIVED = 1000
-AMOUNT_A_RECEIVED = 1000
-AMOUNT_B_RECEIVED = 1000
-
 benchmark_tool = BenchmarkTool()
 
 
@@ -220,6 +211,28 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             else 0,  # Input amount for native tokens
             "data": HexBytes(swap_data.hex()),
         }
+
+    def get_tx_result(self) -> Generator[None, None, Optional[list]]:
+        """Transaction transfer result."""
+        strategy = self.period_state.most_voted_strategy
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=strategy["pair"]["token_LP"]["address"],
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            contract_callable="get_transaction_transfer_logs",
+            tx_hash=self.period_state.final_tx_hash,
+            target_address=self.period_state.safe_contract_address,
+        )
+        if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            return []  # pragma: nocover
+        transfers = cast(list, contract_api_msg.state.body["logs"])
+
+        transfer_log_message = (
+            f"The tx with hash {self.period_state.final_tx_hash} ended with the following transfers.\n"
+            f"Transfers: {str(transfers)}\n"
+        )
+        self.context.logger.info(transfer_log_message)
+        return transfers
 
 
 def get_dummy_strategy() -> dict:
@@ -663,6 +676,29 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             strategy = self.period_state.most_voted_strategy
 
+            # Get previous transaction's results
+            transfers = yield from self.get_tx_result()
+            transfers = transfers if transfers else []
+
+            amount_a_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_b_sent: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.safe_contract_address,
+                destination_address=self.period_state.router_contract_address,
+            )
+            amount_liquidity_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_LP"]["address"],
+                source_address=DEFAULT_MINTER,
+                destination_address=self.period_state.safe_contract_address,
+            )
+
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
             # and always swap back to it.
@@ -700,9 +736,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     contract_callable="get_method_data",
                     method_name="remove_liquidity_ETH",
                     token=strategy["pair"]["token_b"]["address"],
-                    liquidity=AMOUNT_LIQUIDITY_RECEIVED,
-                    amount_token_min=int(AMOUNT_B_SENT),
-                    amount_ETH_min=int(AMOUNT_BASE_SENT),
+                    liquidity=amount_liquidity_received,
+                    amount_token_min=int(amount_b_sent),
+                    amount_ETH_min=int(amount_a_sent),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -728,9 +764,9 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     method_name="remove_liquidity",
                     token_a=strategy["pair"]["token_a"]["address"],
                     token_b=strategy["pair"]["token_b"]["address"],
-                    liquidity=AMOUNT_LIQUIDITY_RECEIVED,
-                    amount_a_min=int(AMOUNT_A_SENT),
-                    amount_b_min=int(AMOUNT_B_SENT),
+                    liquidity=amount_liquidity_received,
+                    amount_a_min=int(amount_a_sent),
+                    amount_b_min=int(amount_b_sent),
                     to=self.period_state.safe_contract_address,
                     deadline=strategy["deadline"],
                 )
@@ -843,6 +879,22 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             strategy = self.period_state.most_voted_strategy
 
+            transfers = yield from self.get_tx_result()
+            transfers = transfers if transfers else []
+
+            amount_a_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_a"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
+            amount_b_received: int = parse_tx_token_balance(
+                transfer_logs=transfers,
+                token_address=strategy["pair"]["token_b"]["address"],
+                source_address=self.period_state.router_contract_address,
+                destination_address=self.period_state.safe_contract_address,
+            )
+
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
             # and always swap back to it.
@@ -853,9 +905,9 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 is_input_native=strategy["pair"]["token_a"]["is_native"],
                 is_output_native=strategy["base"]["is_native"],
                 exact_input=True,
-                amount_in=int(AMOUNT_A_RECEIVED),
+                amount_in=int(amount_a_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_a"]),
-                eth_value=AMOUNT_A_RECEIVED
+                eth_value=amount_a_received
                 if strategy["pair"]["token_a"]["is_native"]
                 else 0,
                 path=[
@@ -873,9 +925,9 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 is_input_native=strategy["pair"]["token_b"]["is_native"],
                 is_output_native=strategy["base"]["is_native"],
                 exact_input=True,
-                amount_in=int(AMOUNT_B_RECEIVED),
+                amount_in=int(amount_b_received),
                 amount_out_min=int(strategy["base"]["amount_min_after_swap_back_b"]),
-                eth_value=AMOUNT_B_RECEIVED
+                eth_value=amount_b_received
                 if strategy["pair"]["token_b"]["is_native"]
                 else 0,
                 path=[
