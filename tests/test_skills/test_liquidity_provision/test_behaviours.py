@@ -17,12 +17,13 @@
 #
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
+import binascii
 from pathlib import Path
 from typing import Dict, cast
 
 import pytest
 from aea.exceptions import AEAActException
-from aea.helpers.transaction.base import RawTransaction
+from aea.helpers.transaction.base import RawTransaction, State
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.contracts.multisend.contract import MultiSendContract
@@ -35,12 +36,6 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    AMOUNT_A_RECEIVED,
-    AMOUNT_A_SENT,
-    AMOUNT_BASE_SENT,
-    AMOUNT_B_RECEIVED,
-    AMOUNT_B_SENT,
-    AMOUNT_LIQUIDITY_RECEIVED,
     CURRENT_BLOCK_TIMESTAMP,
     ETHER_VALUE,
     EnterPoolTransactionHashBehaviour,
@@ -855,13 +850,14 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                     most_voted_transfers='{"transfers":[]}',
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
         )
 
-        amount_base_sent = AMOUNT_BASE_SENT
-        amount_b_sent = AMOUNT_B_SENT
-        amount_liquidity_received = AMOUNT_LIQUIDITY_RECEIVED
+        amount_base_sent = 0
+        amount_b_sent = 0
+        amount_liquidity_received = 0
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -876,6 +872,29 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             == ExitPoolTransactionHashBehaviour.state_id
         )
         self.behaviour.act_wrapper()
+
+        # Get previous transaction's results
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"logs": []},
+                ),
+            ),
+        )
 
         # Add allowance for LP token to be spent by the router
         self.mock_contract_api_request(
@@ -1018,13 +1037,14 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                     most_voted_transfers='{"transfers":[]}',
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
         )
 
-        amount_a_sent = AMOUNT_A_SENT
-        amount_b_sent = AMOUNT_B_SENT
-        amount_liquidity_received = AMOUNT_LIQUIDITY_RECEIVED
+        amount_a_sent = 0
+        amount_b_sent = 0
+        amount_liquidity_received = 0
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -1039,6 +1059,29 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             == ExitPoolTransactionHashBehaviour.state_id
         )
         self.behaviour.act_wrapper()
+
+        # Get previous transaction's results
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"logs": []},
+                ),
+            ),
+        )
 
         # Add allowance for LP token to be spent by the router
         self.mock_contract_api_request(
@@ -1187,6 +1230,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                     most_voted_transfers='{"transfers":[]}',
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
         )
@@ -1203,6 +1247,29 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             == SwapBackTransactionHashBehaviour.state_id
         )
         self.behaviour.act_wrapper()
+
+        # Get previous transaction's results
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"logs": []},
+                ),
+            ),
+        )
 
         # Swap first token back
         self.mock_contract_api_request(
@@ -1239,7 +1306,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
         # Swap second token back
-        amount_b_received = AMOUNT_B_RECEIVED
+        amount_b_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1387,6 +1454,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
                     most_voted_transfers='{"transfers":[]}',
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
         )
@@ -1404,8 +1472,31 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
         self.behaviour.act_wrapper()
 
+        # Get previous transaction's results
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["pair"]["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"logs": []},
+                ),
+            ),
+        )
+
         # Swap first token back
-        amount_a_received = AMOUNT_A_RECEIVED
+        amount_a_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
@@ -1441,7 +1532,7 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
 
         # Swap second token back
-        amount_b_received = AMOUNT_B_RECEIVED
+        amount_b_received = 0
         self.mock_contract_api_request(
             contract_id=str(UniswapV2Router02Contract.contract_id),
             request_kwargs=dict(
