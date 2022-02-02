@@ -39,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.common import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     skill_input_hex_to_payload,
@@ -79,6 +80,11 @@ class TransactionSettlementBaseState(BaseState, ABC):
     def period_state(self) -> PeriodState:
         """Return the period state."""
         return cast(PeriodState, super().period_state)
+
+    @property
+    def params(self) -> TransactionParams:
+        """Return the params."""
+        return cast(TransactionParams, super().params)
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
@@ -448,7 +454,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
-            nonce=self.period_state.nonce,
+            nonce=self.params.nonce,
             old_tip=self.period_state.max_priority_fee_per_gas,
         )
 
@@ -489,6 +495,8 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
             )
         )
+        # Set nonce.
+        self.params.nonce = tx_data["nonce"]
 
         return tx_data
 
@@ -549,8 +557,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
         ):
             if (
                 self.period_state.period_count != 0
-                and self.period_state.period_count
-                % self.context.params.reset_tendermint_after
+                and self.period_state.period_count % self.params.reset_tendermint_after
                 == 0
             ):
                 yield from self.start_reset()
@@ -566,7 +573,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                     )
                     request_message, http_dialogue = self._build_http_request_message(
                         "GET",
-                        self.context.params.tendermint_com_url + "/hard_reset",
+                        self.params.tendermint_com_url + "/hard_reset",
                     )
                     result = yield from self._do_request(request_message, http_dialogue)
                     try:
@@ -630,6 +637,8 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
+        # Reset nonce.
+        self.params.nonce = None
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )
