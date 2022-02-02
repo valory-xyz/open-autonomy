@@ -127,9 +127,7 @@ benchmark_tool = BenchmarkTool()
 
 
 CustomObjectType = TypeVar("CustomObjectType")
-NativelySupportedObjectType = Union[
-    StoredJSONType, Pipeline, pd.DataFrame
-]
+NativelySupportedObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
 SupportedObjectType = Union[NativelySupportedObjectType, CustomObjectType]
 CustomLoaderType = Optional[Callable[[str], CustomObjectType]]
 SupportedLoaderType = Callable[[str], SupportedObjectType]

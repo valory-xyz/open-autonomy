@@ -18,4 +18,3 @@
 # ------------------------------------------------------------------------------
 
 """This module contains all the loading operations of the behaviours."""
-
