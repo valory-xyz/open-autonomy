@@ -100,10 +100,10 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
 
 
 NETWORKS = {
-    "hardhat": {"network_endpoint": "http://hardhat:8545", "chain_id": 3},
+    "hardhat": {"LEDGER_ADDRESS": "http://hardhat:8545", "LEDGER_CHAIN_ID": 3},
     "ropsten": {
-        "network_endpoint": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
-        "chain_id": 3,
+        "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
+        "LEDGER_CHAIN_ID": 3,
     },
 }
 
@@ -122,3 +122,4 @@ DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
 APPLICATIONS = {"valory/counter", "valory/price_estimation", "valory/apy_estimation"}
 
 CONFIG_DIRECTORY = Path(os.getcwd()) / "deployments" / "build"
+AEA_DIRECTORY = Path(os.getcwd()) / "packages"

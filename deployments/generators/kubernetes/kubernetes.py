@@ -96,13 +96,12 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def __init__(
         self,
-        number_of_agents: int,
-        network: str,
+        deployment_spec: BaseDeployment,
     ) -> None:
         """Initialise the deployment generator."""
+        super().__init__(deployment_spec)
         self.output = ""
         self.resources: List[str] = []
-        super().__init__(number_of_agents, network)
 
     def generate_config_tendermint(
         self, valory_application: Type[BaseDeployment]
@@ -125,14 +124,14 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Generate the deployment."""
         self.resources.append(self.generate_config_tendermint(valory_application))
 
-        if self.network == "hardhat":
+        if self.deployment_spec.network == "hardhat":
             self.resources.append(HARDHAT_TEMPLATE)
 
         agent_vars = valory_application.generate_agents()  # type:ignore
         agents = "\n---\n".join(
             [
-                build_agent_deployment(i, self.number_of_agents, agent_vars[i])
-                for i in range(self.number_of_agents)
+                build_agent_deployment(i, self.deployment_spec.number_of_agents, agent_vars[i])
+                for i in range(self.deployment_spec.number_of_agents)
             ]
         )
         self.resources.append(agents)
