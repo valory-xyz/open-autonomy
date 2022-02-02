@@ -92,6 +92,10 @@ class TransactionSettlementBaseState(BaseState, ABC):
             self.period_state.most_voted_tx_hash
         )
 
+        extra_kwargs = dict()
+        if self.period_state.safe_operation is not None:
+            extra_kwargs["operation"] = self.period_state.safe_operation
+
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -107,6 +111,7 @@ class TransactionSettlementBaseState(BaseState, ABC):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            **extra_kwargs,
         )
 
         return contract_api_msg
@@ -439,6 +444,10 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.period_state.most_voted_tx_hash
         )
 
+        extra_kwargs = dict()
+        if self.period_state.safe_operation is not None:
+            extra_kwargs["operation"] = self.period_state.safe_operation
+
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -456,6 +465,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             },
             nonce=self.params.nonce,
             old_tip=self.period_state.max_priority_fee_per_gas,
+            **extra_kwargs,
         )
 
         tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
