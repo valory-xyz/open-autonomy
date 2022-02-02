@@ -25,7 +25,6 @@ import pprint
 from abc import ABC
 from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
-from requests import HTTPError
 from web3.types import Nonce, TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -298,17 +297,19 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
     def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
-        try:
-            contract_api_msg = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-                contract_address=self.period_state.safe_contract_address,
-                contract_id=str(GnosisSafeContract.contract_id),
-                contract_callable="revert_reason",
-                tx=tx,
-            )
-        except (HTTPError, ValueError) as e:  # pragma: nocover
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="revert_reason",
+            tx=tx,
+        )
+
+        if (
+            contract_api_msg.performative != ContractApiMessage.Performative.STATE
+        ):  # pragma: nocover
             self.context.logger.error(
-                f"An unexpected error occurred while checking {tx['hash'].hex()}: {e}"
+                f"An unexpected error occurred while checking {tx['hash'].hex()}: {contract_api_msg}"
             )
             return None
 
