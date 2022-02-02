@@ -21,8 +21,6 @@
 from enum import Enum
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Type, cast
 
-from web3.types import Nonce
-
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -130,11 +128,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.db.get("most_voted_estimate", None) is not None
 
     @property
-    def nonce(self) -> Optional[Nonce]:
-        """Get the nonce."""
-        return cast(Optional[Nonce], self.db.get("nonce"))
-
-    @property
     def max_priority_fee_per_gas(self) -> Optional[int]:
         """Get the gas data."""
         return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
@@ -206,7 +199,6 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 state = self.period_state.update(
                     period_state_class=PeriodState,
                     tx_hashes_history=hashes,
-                    nonce=self.keeper_payload["nonce"],
                     max_priority_fee_per_gas=self.keeper_payload[
                         "max_priority_fee_per_gas"
                     ],
@@ -287,7 +279,6 @@ class ResetRound(CollectSameUntilThresholdRound):
             state_data = self.period_state.db.get_all()
             state_data["tx_hashes_history"] = None
             state_data["max_priority_fee_per_gas"] = None
-            state_data["nonce"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload, **state_data
             )

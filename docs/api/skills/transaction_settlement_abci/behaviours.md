@@ -25,6 +25,17 @@ def period_state() -> PeriodState
 
 Return the period state.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseState.params"></a>
+
+#### params
+
+```python
+@property
+def params() -> TransactionParams
+```
+
+Return the params.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects

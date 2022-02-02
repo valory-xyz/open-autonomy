@@ -937,7 +937,6 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
-                nonce=self.enter_nonce,
             ),
         )
 
@@ -985,7 +984,6 @@ class TestLiquidityProvisionHardhat(
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_enter,
-                nonce=self.enter_nonce,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -1065,7 +1063,6 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
-                nonce=self.exit_nonce,
             ),
         )
 
@@ -1113,7 +1110,6 @@ class TestLiquidityProvisionHardhat(
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_exit,
-                nonce=self.exit_nonce,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -1188,7 +1184,6 @@ class TestLiquidityProvisionHardhat(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
                 participant_to_signature=participant_to_signature,
-                nonce=self.swap_back_nonce,
             ),
         )
 
@@ -1236,7 +1231,6 @@ class TestLiquidityProvisionHardhat(
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
                 most_voted_tx_data=self.multisend_data_swap_back,
-                nonce=self.swap_back_nonce,
                 tx_hashes_history=[tx_digest],
             ),
         )
