@@ -68,6 +68,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
+ZERO_ETHER_VALUE = 0
+
 benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
 
@@ -445,7 +447,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Dict[str, Union[VerificationStatus, str, int]]]:
         """Send a Safe transaction using the participants' signatures."""
-        _, ether_value, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
+        _, _, safe_tx_gas, to_address, data = skill_input_hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
 
@@ -461,7 +463,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             sender_address=self.context.agent_address,
             owners=tuple(self.period_state.participants),
             to_address=to_address,
-            value=ether_value,
+            value=ZERO_ETHER_VALUE,  # Agents do not send ETH
             data=data,
             safe_tx_gas=safe_tx_gas,
             signatures_by_owner={
