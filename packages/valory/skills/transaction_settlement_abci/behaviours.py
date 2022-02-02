@@ -26,7 +26,7 @@ from abc import ABC
 from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from requests import HTTPError
-from web3.types import TxData
+from web3.types import Nonce, TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -506,7 +506,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             )
         )
         # Set nonce.
-        self.params.nonce = tx_data["nonce"]
+        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
 
         return tx_data
 
