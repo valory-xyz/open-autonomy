@@ -1305,14 +1305,23 @@ class TestLiquidityProvisionHardhat(
         cycles = 6
         handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
-            {"performative": ContractApiMessage.Performative.STATE}  # type: ignore
-        ] + [
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
-            }
-        ] * (
-            cycles - 1
-        )
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+        ]
         expected_types: EXPECTED_TYPES = [
             {"state": State},
             {"raw_transaction": RawTransaction},
@@ -1371,14 +1380,29 @@ class TestLiquidityProvisionHardhat(
         cycles = 8
         handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
-            {"performative": ContractApiMessage.Performative.STATE}  # type: ignore
-        ] + [
+            {"performative": ContractApiMessage.Performative.STATE},  # type: ignore
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
-            }
-        ] * (
-            cycles - 1
-        )
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+            {
+                "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
+            },
+        ]
         expected_types: EXPECTED_TYPES = [
             {"state": State},
             {"raw_transaction": RawTransaction},
