@@ -118,3 +118,7 @@ class PriceApi(ApiSpecs):
         self.convert_id = self.ensure("convert_id", kwargs)
         self.currency_id = self.ensure("currency_id", kwargs)
         super().__init__(*args, **kwargs)
+
+
+class ServerApi(ApiSpecs):
+    """A model for server api specs"""

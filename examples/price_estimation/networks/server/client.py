@@ -1,72 +1,54 @@
-# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2022 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
 
-# WS client example
+"""Client for testing"""
 
+import random
 import asyncio
 import websockets
-from packages.valory.skills.abstract_round_abci.serializer import DictProtobufStructSerializer
-# from typing import Generator
-# from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-# from packages.valory.skills.abstract_round_abci.base import DegenerateRound
-# from packages.valory.skills.abstract_round_abci.behaviours import (
-#     AbstractRoundBehaviour,
-#     BaseState,
-# )
-#
-# benchmark_tool = BenchmarkTool()
-#
-#
-# class BroadcastStateToServerRound(DegenerateRound):
-#     """Broadcast data to server"""
-#
-#
-# class BroadcastStateBehaviour(BaseState):
-#     """Broadcast period state data to server"""
-#
-#     state_id = "broadcast"
-#     matching_round = BroadcastStateToServerRound
-#
-#     def async_act(self) -> Generator:
-#         """
-#         Do the action.
-#
-#         Take the period state and broadcast it to the server
-#         """
-#
-#         with benchmark_tool.measure(self).local():
-#             period_count = self.current_period_count
-#             data = self.period_state.db.get_all()
-#             self.context.logger.info(f"Broadcasting data to server:\n{data}")
-#             yield from self.send_to_server(data)
-#             yield from self.wait_until_round_end()
-#
-#     async def send_to_server(self, data):
-#         """Send data to the server"""
-#
-#         url = "ws://127.0.0.1:9999/"
-#
-#         try:
-#             async with websockets.connect(url) as websocket:
-#                 await websocket.send(data)
-#         except ConnectionRefusedError as e:
-#             self.context.logger.warning(f'Could not send message:\n{e}')
-#         except websockets.exceptions.ConnectionClosed as e:
-#             self.context.logger.warning(f'Connection closed:\n{e}')
-#
-#         self.set_done()
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 
 
-async def message():
-    url = "ws://127.0.0.1:9999/"
-    data = {"green": "eggs", "1": 2}
+async def send_data() -> None:
+    """Send data"""
+    url = "ws://192.168.1.102:8080/"
+    period_count = random.randint(0, 10)
+    data = {
+        "period_count": period_count,
+        "db_content": {"nested": True, "value": 2, "recursive": {"value": True}},
+    }
     try:
         async with websockets.connect(url) as websocket:
             message = DictProtobufStructSerializer.encode(data)
             await websocket.send(message)
     except ConnectionRefusedError as e:
-        print(f'Could not send message:\n{e}')
+        print(f"Could not send message:\n{e}")
     except websockets.exceptions.ConnectionClosed as e:
-        print(f'Connection closed:\n{e}')
+        print(f"Connection closed:\n{e}")
 
 
-asyncio.get_event_loop().run_until_complete(message())
+def main():
+    """Main"""
+    asyncio.get_event_loop().run_until_complete(send_data())
+
+
+if __name__ == "__main__":
+    main()

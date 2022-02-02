@@ -9,11 +9,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmSinQfQbyxtxgCx6dSRDG3iLzMspsotw7xJwzq4CbdLMs
   __init__.py: QmexF3zcMh8ZETYFKv4od3HFXqMT3CYGfpMm8HXXa7oWa6
-  behaviours.py: QmWEJbmkYSdepTLSVASxdJHvFDgXXA9232APym6LFm9pnW
+  behaviours.py: QmX7eDjwLdfSGpLvTWVKvj8Y5cJLBgxG315hiuNcNiBghB
   composition.py: QmUU1YcGhFNuodMym8mg6LN8QQ3hcNXXjN4taEarxjq7Be
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmSLoyFCRkCW5iXpHzwfoUduANi9JU9BoRUghwBhbUnRcP
-  models.py: QmfZiT2N5eCEK3qscrrkbLp6smapTkk4snU59Lqwm93AiT
+  models.py: QmRbq8i4BBvFua4DWSh7DoDqJtbkeH4R3hu2kwvxgsLHPM
   payloads.py: QmdiwjgQpLKKFWA9sypsgFYAoiPRQqtxCiETekxFmi5tHM
   rounds.py: QmaNWk3qnLpjsbktcPgVkNcMby6WZVVt1M9zjUAgmrNfzk
 fingerprint_ignore_patterns: []
@@ -116,6 +116,17 @@ models:
   requests:
     args: {}
     class_name: Requests
+  server_api:
+    args:
+      api_id: simple_server
+      headers: []
+      method: POST
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: ws://0.0.0.0:8080/
+    class_name: ServerApi
   signing_dialogues:
     args: {}
     class_name: SigningDialogues

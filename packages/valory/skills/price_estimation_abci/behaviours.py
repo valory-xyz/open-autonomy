@@ -22,7 +22,6 @@
 from abc import ABC
 from decimal import Decimal
 from typing import Generator, Optional, Set, Type, cast
-import websockets
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.offchain_aggregator.contract import (
@@ -32,6 +31,9 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
+)
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
@@ -68,7 +70,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 benchmark_tool = BenchmarkTool()
 
 
-SERVER_URL = "ws://127.0.0.1:9999/"
 SAFE_TX_GAS = 4000000  # TOFIX
 ETHER_VALUE = 0
 
@@ -251,28 +252,60 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.send_data_to_server(payload)
-            yield from self.wait_until_round_end()
 
+            self.context.logger.info("TransactionHashBehaviour --- start")
+            try:
+                yield from self.send_data_to_server()
+            except Exception as e:
+                self.context.logger.info(e)
+                raise e
+
+            self.context.logger.info(
+                "TransactionHashBehaviour --- yielding from send_a2a_transaction"
+            )
+            yield from self.send_a2a_transaction(payload)
+            # yield from self.send_data_to_server()
+            yield from self.wait_until_round_end()
+            self.context.logger.info("TransactionHashBehaviour --- end")
+
+        self.context.logger.info("TransactionHashBehaviour --- done")
         self.set_done()
 
-    async def send_data_to_server(self, payload) -> None:
-        """Send data to the server"""
+    def send_data_to_server(self) -> Generator:
+        """Send data to server"""
+        self.context.logger.info("send_data_to_server -- entry")
 
-        # not sure what the payload exactly contains, but we simply pass the payload to the server first
-        # in case this is insufficient, we can pass data from the period state (+ period count to deduplicate)
         state_db = self.period_state.db
         period_count = state_db.current_period_count
-        # data = state_db.get_all()
-        self.context.logger.info(f"Broadcasting data to server for period: {period_count}")
-        try:
-            async with websockets.connect(SERVER_URL) as websocket:
-                await websocket.send(payload.encode())
-        except ConnectionRefusedError as e:
-            self.context.logger.warning(f'Could not send message:\n{e}')
-        except websockets.exceptions.ConnectionClosed as e:
-            self.context.logger.warning(f'Connection closed:\n{e}')
+        # still contains lots of more data we don't need, just pass a string now for testing
+        data = str({"period_count": period_count, "db_content": state_db.get_all()})
+        self.context.logger.info(f"string data -- {data}")
+        message = DictProtobufStructSerializer.encode({"string_data": data})
+
+        self.context.logger.info(
+            "send_data_to_server -- encoded data: {!r}".format(message)
+        )
+        api_specs = self.context.server_api.get_spec()  # use yaml file
+
+        self.context.logger.info(
+            f"Broadcasting data to server for period: {period_count}"
+        )
+        raw_response = yield from self.get_http_response(  # check code
+            method=api_specs["method"],
+            url=api_specs["url"],
+            content=message,
+        )
+        self.context.logger.info(f"Raw response obtained: {raw_response}")
+        response = self.context.server_api.process_response(raw_response)
+        self.context.logger.info(f"Processed response obtained: {response}")
+        if response is None:
+            self.context.server_api.increment_retries()
+        yield from self.sleep(1)
+
+    def clean_up(self) -> None:
+        """Clean up"""
+        self.context.logger.info("Cleaning up your mess now")
+        self.context.server_api.reset_retries()
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""
