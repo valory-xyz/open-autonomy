@@ -83,7 +83,6 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     LiquidityProvisionConsensusBehaviour,
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
-    parse_tx_token_balance,
 )
 from packages.valory.skills.liquidity_provision.handlers import (
     ContractApiHandler,
