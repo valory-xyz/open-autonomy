@@ -369,7 +369,6 @@ class GnosisSafeContract(Contract):
         sender_address: str,
         owners: Tuple[str],
         to_address: str,
-        value: int,
         data: bytes,
         signatures_by_owner: Dict[str, str],
         operation: int = SafeOperation.CALL.value,
@@ -392,7 +391,6 @@ class GnosisSafeContract(Contract):
         :param sender_address: the address of the sender
         :param owners: the sequence of owners
         :param to_address: Destination address of Safe transaction
-        :param value: Ether value of Safe transaction
         :param data: Data payload of Safe transaction
         :param signatures_by_owner: mapping from owners to signatures
         :param operation: Operation type of Safe transaction
@@ -415,9 +413,11 @@ class GnosisSafeContract(Contract):
         signatures = cls._get_packed_signatures(owners, signatures_by_owner)
         safe_contract = cls.get_instance(ledger_api, contract_address)
 
+        ZERO_ETHER_VALUE = 0  # Agents do not send ETH
+
         w3_tx = safe_contract.functions.execTransaction(
             to_address,
-            value,
+            ZERO_ETHER_VALUE,
             data,
             operation,
             safe_tx_gas,

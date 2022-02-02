@@ -301,7 +301,6 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             sender_address=sender.address,
             owners=(self.deployer_crypto.address.lower(),),
             to_address=receiver.address,
-            value=value,
             data=data,
             gas_price=DEFAULT_MAX_FEE_PER_GAS,
             signatures_by_owner={
@@ -332,7 +331,6 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             sender_address=sender.address,
             owners=(self.deployer_crypto.address.lower(),),
             to_address=receiver.address,
-            value=value,
             data=data,
             signatures_by_owner={
                 self.deployer_crypto.address.lower(): signatures_by_owners[

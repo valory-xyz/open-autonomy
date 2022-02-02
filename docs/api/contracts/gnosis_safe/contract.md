@@ -131,7 +131,7 @@ the hash of the raw Safe transaction
 
 ```python
 @classmethod
-def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, old_tip: Optional[int] = None) -> JSONLike
+def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, old_tip: Optional[int] = None) -> JSONLike
 ```
 
 Get the raw Safe transaction
@@ -144,7 +144,6 @@ Get the raw Safe transaction
 - `sender_address`: the address of the sender
 - `owners`: the sequence of owners
 - `to_address`: Destination address of Safe transaction
-- `value`: Ether value of Safe transaction
 - `data`: Data payload of Safe transaction
 - `signatures_by_owner`: mapping from owners to signatures
 - `operation`: Operation type of Safe transaction
