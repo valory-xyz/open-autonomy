@@ -678,7 +678,6 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Get previous transaction's results
             transfers = yield from self.get_tx_result()
-            transfers = transfers if transfers else []
 
             amount_a_sent: int = parse_tx_token_balance(
                 transfer_logs=transfers,
