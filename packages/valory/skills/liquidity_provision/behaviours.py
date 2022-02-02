@@ -212,7 +212,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             "data": HexBytes(swap_data.hex()),
         }
 
-    def get_tx_result(self) -> Generator[None, None, Optional[list]]:
+    def get_tx_result(self) -> Generator[None, None, list]:
         """Transaction transfer result."""
         strategy = self.period_state.most_voted_strategy
         contract_api_msg = yield from self.get_contract_api_response(
