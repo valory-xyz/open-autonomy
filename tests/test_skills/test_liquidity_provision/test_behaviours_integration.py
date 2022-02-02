@@ -1305,7 +1305,7 @@ class TestLiquidityProvisionHardhat(
         cycles = 6
         handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
-            {"performative": ContractApiMessage.Performative.STATE}
+            {"performative": ContractApiMessage.Performative.STATE}  # type: ignore
         ] + [
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
@@ -1371,7 +1371,7 @@ class TestLiquidityProvisionHardhat(
         cycles = 8
         handlers: List[Optional[Handler]] = [self.contract_handler] * cycles
         expected_content: EXPECTED_CONTENT = [
-            {"performative": ContractApiMessage.Performative.STATE}
+            {"performative": ContractApiMessage.Performative.STATE}  # type: ignore
         ] + [
             {
                 "performative": ContractApiMessage.Performative.RAW_TRANSACTION  # type: ignore
