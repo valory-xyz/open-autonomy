@@ -452,7 +452,7 @@ class StateDB:
         initial_period: int,
         initial_data: Dict[str, Any],
     ) -> None:
-        """Initialize a period state."""
+        """Initialize a period state database."""
         self._current_period_count = initial_period
         self._data = {self._current_period_count: initial_data}
 
@@ -461,18 +461,16 @@ class StateDB:
         """Get the current period count."""
         return self._current_period_count
 
-    def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
-        """Get a value from the data dictionary."""
-        if default != "NOT_PROVIDED":
-            return self._data.get(self._current_period_count, {}).get(key, default)
-        try:
-            return self._data.get(self._current_period_count, {}).get(key)
-        except KeyError as exception:  # pragma: no cover
-            raise ValueError(
-                f"'{key}' field is not set for period state."
-            ) from exception
+    @property
+    def current_data(self) -> Dict[str, Any]:
+        """Get current period state data"""
+        return self._data[self._current_period_count]
 
-    def get_strict(self, key: str) -> Any:
+    def get(self, key: str, default: Optional[Any] = None) -> Optional[Any]:
+        """Get a value from the data dictionary."""
+        return self.current_data.get(key, default)
+
+    def get_strict(self, key: str) -> Any:  # TODO: use __getitem__ now
         """Get a value from the data dictionary and raise if it is None."""
         value = self.get(key)
         if value is None:
@@ -484,20 +482,20 @@ class StateDB:
 
     def update_current_period(self, **kwargs: Any) -> None:
         """Update the current period's state."""
-        self._data[self._current_period_count].update(kwargs)
+        self.current_data.update(kwargs)
 
     def add_new_period(self, new_period: int, **kwargs: Any) -> None:
-        """Update the current period's state."""
-        # if new_period in self._data:
-        #     raise ValueError(
-        #         "Incorrect period count incrementation, period already exists"
-        #     )  # pragma: no cover
+        """Add a new period to the database"""
         self._current_period_count = new_period
-        self._data[self._current_period_count] = kwargs
+        self._data[new_period] = kwargs
 
-    def get_all(self) -> Dict[str, Any]:
-        """Get all key-value pairs from the data dictionary for the current period."""
-        return self._data[self._current_period_count]
+    def __getitem__(self, item: Any) -> Any:
+        """Get database value for item"""
+        return self.current_data[item]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Set database value for key"""
+        self.current_data[key] = value
 
     def __repr__(self) -> str:
         """Return a string representation of the state."""

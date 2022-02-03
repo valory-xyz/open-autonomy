@@ -601,7 +601,7 @@ Class to represent all state replicated across periods.
 def __init__(initial_period: int, initial_data: Dict[str, Any]) -> None
 ```
 
-Initialize a period state.
+Initialize a period state database.
 
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_period_count"></a>
 
@@ -614,12 +614,23 @@ def current_period_count() -> int
 
 Get the current period count.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_data"></a>
+
+#### current`_`data
+
+```python
+@property
+def current_data() -> Dict[str, Any]
+```
+
+Get current period state data
+
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.get"></a>
 
 #### get
 
 ```python
-def get(key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]
+def get(key: str, default: Optional[Any] = None) -> Optional[Any]
 ```
 
 Get a value from the data dictionary.
@@ -652,17 +663,27 @@ Update the current period's state.
 def add_new_period(new_period: int, **kwargs: Any) -> None
 ```
 
-Update the current period's state.
+Add a new period to the database
 
-<a id="packages.valory.skills.abstract_round_abci.base.StateDB.get_all"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__getitem__"></a>
 
-#### get`_`all
+#### `__`getitem`__`
 
 ```python
-def get_all() -> Dict[str, Any]
+def __getitem__(item: Any) -> Any
 ```
 
-Get all key-value pairs from the data dictionary for the current period.
+Get database value for item
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.__setitem__"></a>
+
+#### `__`setitem`__`
+
+```python
+def __setitem__(key: str, value: Any) -> None
+```
+
+Set database value for key
 
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.__repr__"></a>
 

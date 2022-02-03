@@ -276,7 +276,7 @@ class ResetRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state_data = self.period_state.db.get_all()
+            state_data = self.period_state.db.current_data
             state_data["tx_hashes_history"] = None
             state_data["max_priority_fee_per_gas"] = None
             state = self.period_state.update(
