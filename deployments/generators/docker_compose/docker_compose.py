@@ -25,7 +25,6 @@ from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 from .templates import (
     ABCI_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
-    HARDHAT_NODE_TEMPLATE,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
 )
