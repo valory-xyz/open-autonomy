@@ -148,11 +148,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(
     matching_round = SelectKeeperTransactionSubmissionRoundB
     payload_class = SelectKeeperPayload
 
-    def async_act(self) -> Generator:
-        """Call super and reset the tip."""
-        self.params.tip = None
-        yield from super().async_act()
-
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     """Validate a transaction."""
