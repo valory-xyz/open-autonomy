@@ -195,8 +195,8 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return None
 
-        # Reset nonce.
-        self.params.nonce = None
+        # Reset tx parameters.
+        self.params.reset_tx_params()
 
         contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
         if (
@@ -657,8 +657,8 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
-        # Reset nonce.
-        self.params.nonce = None
+        # Reset tx parameters.
+        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )

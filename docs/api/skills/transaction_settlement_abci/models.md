@@ -24,3 +24,13 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the parameters object.
 
+<a id="packages.valory.skills.transaction_settlement_abci.models.TransactionParams.reset_tx_params"></a>
+
+#### reset`_`tx`_`params
+
+```python
+def reset_tx_params()
+```
+
+Reset the transaction-related parameters.
+
