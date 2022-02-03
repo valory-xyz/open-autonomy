@@ -496,7 +496,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_base"]["address"],
                         "value": 0,
-                        "data": HexBytes(cast(bytes, allowance_base_data)).hex(),
+                        "data": HexBytes(allowance_base_data.hex()),
                     }
                 )
 
@@ -533,7 +533,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_a"]["address"],
                         "value": 0,
-                        "data": HexBytes(cast(bytes, allowance_a_data)).hex(),
+                        "data": HexBytes(allowance_a_data.hex()),
                     }
                 )
 
@@ -552,7 +552,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_b"]["address"],
                         "value": 0,
-                        "data": HexBytes(cast(bytes, allowance_b_data)).hex(),
+                        "data": HexBytes(allowance_b_data.hex()),
                     }
                 )
 
@@ -724,7 +724,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": strategy["token_LP"]["address"],
                     "value": 0,
-                    "data": HexBytes(cast(bytes, allowance_lp_data)).hex(),
+                    "data": HexBytes(allowance_lp_data.hex()),
                 }
             )
 
@@ -796,7 +796,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_LP"]["address"],
                         "value": 0,
-                        "data": HexBytes(cast(bytes, allowance_lp_data)).hex(),
+                        "data": HexBytes(allowance_lp_data.hex()),
                     }
                 )
 
@@ -924,7 +924,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_base"]["address"],
                         "value": 0,
-                        "data": HexBytes(cast(bytes, allowance_base_data)).hex(),
+                        "data": HexBytes(allowance_base_data.hex()),
                     }
                 )
 
@@ -943,7 +943,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_a"]["address"],
                         "value": 0,
-                        "data": HexBytes(cast(bytes, allowance_base_data)).hex(),
+                        "data": HexBytes(allowance_base_data.hex()),
                     }
                 )
 
@@ -962,7 +962,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                         "operation": MultiSendOperation.CALL,
                         "to": strategy["token_b"]["address"],
                         "value": strategy["token_b"]["remove_allowance"],
-                        "data": HexBytes(cast(bytes, allowance_b_data)).hex(),
+                        "data": HexBytes(allowance_b_data.hex()),
                     }
                 )
 
