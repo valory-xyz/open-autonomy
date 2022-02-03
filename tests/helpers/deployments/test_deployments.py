@@ -140,24 +140,6 @@ class TestKubernetesDeployment(BaseDeploymentTests):
                 resource_names.append(resource_yaml["metadata"]["name"])
             assert "hardhat" not in resource_names
 
-    def test_creates_hardhat_deploy(self) -> None:
-        """Required for deployment of hardhat."""
-        for (
-            test_case_name,
-            spec_path,
-        ) in test_deployment_spec_paths.items():
-            if test_case_name.find("hardhat") < 0:
-                continue
-            instance, app_instance = self.load_deployer_and_app(
-                spec_path, self.deployment_generator
-            )
-            output = instance.generate(app_instance)  # type: ignore
-            resource_names = []
-            for resource_yaml in yaml.safe_load_all(output):
-                resource_names.append(resource_yaml["metadata"]["name"])
-
-            assert "hardhat" in resource_names
-
 
 class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
