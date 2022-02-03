@@ -521,7 +521,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         )
         # Set nonce and tip.
         self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        self.params.tip = Nonce(int(cast(str, tx_data["max_priority_fee_per_gas"])))
+        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
 
         return tx_data
 
