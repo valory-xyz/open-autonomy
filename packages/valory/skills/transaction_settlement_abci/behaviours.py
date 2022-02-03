@@ -139,7 +139,9 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourB(
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_b"
@@ -193,8 +195,8 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
             )
             return None
 
-        # Reset nonce.
-        self.params.nonce = None
+        # Reset tx parameters.
+        self.params.reset_tx_params()
 
         contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
         if (
@@ -471,7 +473,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_tip=self.period_state.max_priority_fee_per_gas,
+            old_tip=self.params.tip,
             **extra_kwargs,
         )
 
@@ -512,8 +514,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
             )
         )
-        # Set nonce.
+        # Set nonce and tip.
         self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
 
         return tx_data
 
@@ -654,8 +657,8 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 f"Period {self.period_state.period_count} was not finished. Resetting!"
             )
 
-        # Reset nonce.
-        self.params.nonce = None
+        # Reset tx parameters.
+        self.params.reset_tx_params()
         payload = ResetPayload(
             self.context.agent_address, self.period_state.period_count + 1
         )

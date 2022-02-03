@@ -128,11 +128,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.db.get("most_voted_estimate", None) is not None
 
     @property
-    def max_priority_fee_per_gas(self) -> Optional[int]:
-        """Get the gas data."""
-        return cast(Optional[int], self.db.get("max_priority_fee_per_gas", None))
-
-    @property
     def safe_operation(self) -> Optional[str]:
         """Get the gas data."""
         return cast(Optional[str], self.db.get("safe_operation", None))
@@ -199,9 +194,6 @@ class FinalizationRound(OnlyKeeperSendsRound):
                 state = self.period_state.update(
                     period_state_class=PeriodState,
                     tx_hashes_history=hashes,
-                    max_priority_fee_per_gas=self.keeper_payload[
-                        "max_priority_fee_per_gas"
-                    ],
                     final_verification_status=VerificationStatus(
                         self.keeper_payload["status"]
                     ),
@@ -278,7 +270,6 @@ class ResetRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             state_data = self.period_state.db.get_all()
             state_data["tx_hashes_history"] = None
-            state_data["max_priority_fee_per_gas"] = None
             state = self.period_state.update(
                 period_count=self.most_voted_payload, **state_data
             )

@@ -61,7 +61,8 @@ Select the keeper agent.
 ## SelectKeeperTransactionSubmissionBehaviourB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour)
+class SelectKeeperTransactionSubmissionBehaviourB(
+    SelectKeeperBehaviour,  TransactionSettlementBaseState)
 ```
 
 Select the keeper agent.
