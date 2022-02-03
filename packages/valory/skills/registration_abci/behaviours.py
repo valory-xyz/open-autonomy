@@ -48,6 +48,9 @@ class TendermintHealthcheckBehaviour(BaseState):
     _timeout: float
     _is_healthy: bool
 
+    can_rejoin_in_this_round: bool = True
+    run_during_sync: bool = True
+
     def start(self) -> None:
         """Set up the behaviour."""
         if self._check_started is None:
