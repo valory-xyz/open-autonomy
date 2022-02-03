@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
-BUILDPATH="./build"
+BUILDPATH := $(shell ls -d ./build)
 NUMBER_OF_NODES := 4
 RESULT := ""
 PODS := $(shell kubectl get pods | grep agent | awk '{print $$1}')
