@@ -23,7 +23,7 @@ localnet-start: localnet-stop build-images
 # configures the build directory for tendermint
 # deploys oracle contract
 # deploys safe contract
-	sudo rm -r build/*
+	sudo rm -rf build/*
 	cd ../
 	python deployments/create_deployment.py \
 		-t docker-compose \
