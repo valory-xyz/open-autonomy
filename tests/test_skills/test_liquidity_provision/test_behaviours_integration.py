@@ -1355,13 +1355,13 @@ class TestLiquidityProvisionHardhat(
         transfer_a = transfer_to_string(
             source_address=self.router_contract_address,
             destination_address=self.safe_contract_address,
-            token_address=strategy["pair"]["token_a"]["address"],
+            token_address=strategy["token_a"]["address"],
             value=250,
         )
         transfer_b = transfer_to_string(
             source_address=self.router_contract_address,
             destination_address=self.safe_contract_address,
-            token_address=strategy["pair"]["token_b"]["address"],
+            token_address=strategy["token_b"]["address"],
             value=250,
         )
 
