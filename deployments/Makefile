@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
+BUILDPATH="./build"
 NUMBER_OF_NODES := 4
 RESULT := ""
 PODS := $(shell kubectl get pods | grep agent | awk '{print $$1}')
@@ -23,7 +24,6 @@ localnet-start: localnet-stop build-images
 # configures the build directory for tendermint
 # deploys oracle contract
 # deploys safe contract
-	sudo rm -rf build/*
 	cd ../
 	python deployments/create_deployment.py \
 		-t docker-compose \
@@ -36,13 +36,19 @@ cluster-create-deployments:
 	sudo python3 configure_agents/create_env.py -n 4 -net hardhat -doc -dsc
 .ONESHELL: cluster-create-deployment
 
+#
 # Stop testnet
 localnet-stop:
-	cd build
-	docker-compose down
-	cd ../
-	sudo rm -rf build
-.PHONY: localnet-stop
+	if [ -d "${BUILDPATH}" ]; then
+	    echo "Build dir exists. Stopping net and removing build." 
+		cd build
+		docker-compose down
+		cd ../
+		sudo rm -rf build
+	else
+	  echo "Error: ${BUILDPATH} not found. not cleaning."
+	fi
+.ONESHELL: localnet-stop
 
 
 cluster-setup:
