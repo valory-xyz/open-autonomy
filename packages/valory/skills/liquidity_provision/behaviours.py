@@ -495,7 +495,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Swap first token
             if strategy["token_a"]["ticker"] != strategy["token_base"]["ticker"]:
 
-                swap_tx_data = yield from self.get_swap_data(   # nosec
+                swap_tx_data = yield from self.get_swap_data(  # nosec
                     strategy=strategy, token="token_a", base_to_token=True
                 )
                 if swap_tx_data:
@@ -504,7 +504,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Swap second token
             if strategy["token_b"]["ticker"] != strategy["token_base"]["ticker"]:
 
-                swap_tx_data = yield from self.get_swap_data(   # nosec
+                swap_tx_data = yield from self.get_swap_data(  # nosec
                     strategy=strategy, token="token_b", base_to_token=True
                 )
                 if swap_tx_data:
@@ -916,14 +916,14 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs = []
 
             # Swap first token back
-            swap_tx_data = yield from self.get_swap_data(   # nosec
+            swap_tx_data = yield from self.get_swap_data(  # nosec
                 strategy=strategy, token="token_a", base_to_token=False
             )
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
 
             # Swap second token back
-            swap_tx_data = yield from self.get_swap_data(   # nosec
+            swap_tx_data = yield from self.get_swap_data(  # nosec
                 strategy=strategy, token="token_b", base_to_token=False
             )
             if swap_tx_data:
