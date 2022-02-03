@@ -100,7 +100,7 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
 
 
 NETWORKS = {
-    "hardhat": {"LEDGER_ADDRESS": "http://hardhat:8545", "LEDGER_CHAIN_ID": 3},
+    "hardhat": {"LEDGER_ADDRESS": "http://hardhat:8545", "LEDGER_CHAIN_ID": 31337},
     "ropsten": {
         "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
         "LEDGER_CHAIN_ID": 3,

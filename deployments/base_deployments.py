@@ -20,25 +20,27 @@
 """Base deployments module."""
 
 
-import yaml
-from aea.configurations.validation import ConfigValidator
 import abc
 import os
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Dict, List, Type
 
+import yaml
+from aea.configurations import validation
+from aea.configurations.validation import ConfigValidator
+
 from deployments.constants import (
-    CONFIG_DIRECTORY,
     AEA_DIRECTORY,
+    CONFIG_DIRECTORY,
     DEPLOYED_CONTRACTS,
     KEYS,
+    NETWORKS,
     PRICE_APIS,
     RANDOMNESS_APIS,
-    NETWORKS
 )
 
-from aea.configurations import validation
+
 validation._SCHEMAS_DIR = os.getcwd()
 
 
@@ -48,8 +50,12 @@ class BaseDeployment:
     number_of_agents: int
 
     def __init__(self, path_to_deployment_spec: str) -> None:
-        self.validator = ConfigValidator(schema_filename="deployments/deployment_specifications/deployment_schema.json")
-        self.deployment_spec = yaml.load(open(path_to_deployment_spec), Loader=yaml.SafeLoader)
+        self.validator = ConfigValidator(
+            schema_filename="deployments/deployment_specifications/deployment_schema.json"
+        )
+        self.deployment_spec = yaml.load(
+            open(path_to_deployment_spec), Loader=yaml.SafeLoader
+        )
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
 
@@ -65,33 +71,47 @@ class BaseDeployment:
 
     def generate_common_vars(self, agent_n: int):
         """Retrieve vars common for valory apps."""
-        return{
+        return {
             "AEA_KEY": KEYS[agent_n],
             "VALORY_APPLICATION": self.valory_application,
             "ABCI_HOST": f"abci{agent_n}" if self.network == "hardhat" else "",
-            "MAX_PARTICIPANTS": self.number_of_agents + 3,  # I believe that this is correct
+            "MAX_PARTICIPANTS": self.number_of_agents,  # I believe that this is correct
             "TENDERMINT_URL": f"http://node{agent_n}:26657",
             "TENDERMINT_COM_URL": f"http://node{agent_n}:8080",
         }
 
     def get_price_api(self, agent_n: int):
         """Gets the price api for the agent."""
-        return PRICE_APIS[agent_n % len(PRICE_APIS)]
+        price_api = PRICE_APIS[agent_n % len(PRICE_APIS)]
+        return {f"PRICE_API_{k.upper()}": v for k, v in price_api}
 
     def get_randomness_api(self, agent_n: int):
         """Gets the randomness api for the agent."""
-        return RANDOMNESS_APIS[agent_n % len(RANDOMNESS_APIS)]
+        randomness_api = RANDOMNESS_APIS[agent_n % len(RANDOMNESS_APIS)]
+        return {f"RANDOMNESS_{k.upper()}": v for k, v in randomness_api}
 
     def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
         agent_vars.update(NETWORKS[self.network])
 
-        for required_var in self.deployment_spec:
-            if required_var == "price_api":
-                agent_vars.update(self.get_price_api(agent_n))
-            elif required_var == "randomness":
-                agent_vars.update(self.get_randomness_api(agent_n))
+        for section in self.agent_spec:
+            if section.get("models", None):
+                if "price_api" in section["models"].keys():
+                    agent_vars.update(self.get_price_api(agent_n))
+                if "randomness_api" in section["models"].keys():
+                    agent_vars.update(self.get_randomness_api(agent_n))
+            # now we fill in consensus paramters
+
+#             params = section.get("params", None)
+#             if params is not None:
+#                 arguments = params.get("args", None)
+#                 if arguments is not None:
+#                     period_setup = arguments.get("period_setup", None)
+#
+#             if "params" in section["models"]:
+#                 # get consensus details.
+#                 if "period_setup" in section["params"]
 
         return agent_vars
 
@@ -107,7 +127,7 @@ class BaseDeployment:
         return aea_json
 
     def get_parameters(
-            self,
+        self,
     ) -> Dict:
         """Retrieve the parameters for the deployment."""
 
@@ -121,7 +141,9 @@ class BaseDeployment:
                     path = os.path.join(subdir, file)
                     agent_spec = yaml.safe_load_all(open(path))
                     for spec in agent_spec:
-                        agent_id = f"{spec['author']}/{spec['agent_name']}:{spec['version']}"
+                        agent_id = (
+                            f"{spec['author']}/{spec['agent_name']}:{spec['version']}"
+                        )
                         if agent_id != self.valory_application:
                             break
                         return os.path.join(subdir, file)
@@ -135,10 +157,7 @@ class BaseDeploymentGenerator:
     output_name: str
     old_wd: str
 
-    def __init__(
-            self,
-            deployment_spec: BaseDeployment
-    ):
+    def __init__(self, deployment_spec: BaseDeployment):
         """Initialise with only kwargs."""
         self.deployment_spec = deployment_spec
         self.config_dir = Path(CONFIG_DIRECTORY)
@@ -160,12 +179,12 @@ class BaseDeploymentGenerator:
 
     @abc.abstractmethod
     def generate_config_tendermint(
-            self, valory_application: Type[BaseDeployment]
+        self, valory_application: Type[BaseDeployment]
     ) -> str:
         """Generate the deployment configuration."""
 
     def get_parameters(
-            self,
+        self,
     ) -> Dict:
         """Retrieve the parameters for the deployment."""
 
@@ -177,6 +196,7 @@ class BaseDeploymentGenerator:
 
         with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
             f.write(self.output)
+
 
 # class BaseDeployment:
 #     """Base deployment class."""
@@ -305,8 +325,5 @@ class APYEstimationDeployment(BaseDeployment):
         environment = dict(AEA_KEY=KEYS[agent_n])
         return environment
 
-
     def setup(self) -> str:
         """Prepare agent generator."""
-
-

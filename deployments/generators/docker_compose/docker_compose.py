@@ -79,10 +79,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
     output_name = "docker-compose.yaml"
 
-    def __init__(
-        self,
-        deployment_spec: BaseDeployment
-    ) -> None:
+    def __init__(self, deployment_spec: BaseDeployment) -> None:
         """Initialise the deployment generator."""
         super().__init__(deployment_spec)
         self.output = ""
@@ -97,7 +94,10 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         """Generate the command to configure tendermint testnet."""
         run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
             hosts=" \\\n".join(
-                [f"--hostname=node{k}" for k in range(self.deployment_spec.number_of_agents)]
+                [
+                    f"--hostname=node{k}"
+                    for k in range(self.deployment_spec.number_of_agents)
+                ]
             ),
             validators=self.deployment_spec.number_of_agents,
         )
@@ -117,12 +117,17 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
         agents = "".join(
             [
-                build_agent_config(i, self.deployment_spec.number_of_agents, agent_vars[i])
+                build_agent_config(
+                    i, self.deployment_spec.number_of_agents, agent_vars[i]
+                )
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
-            [build_tendermint_node_config(i) for i in range(self.deployment_spec.number_of_agents)]
+            [
+                build_tendermint_node_config(i)
+                for i in range(self.deployment_spec.number_of_agents)
+            ]
         )
 
         self.output = DOCKER_COMPOSE_TEMPLATE.format(

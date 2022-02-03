@@ -130,7 +130,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_vars = valory_application.generate_agents()  # type:ignore
         agents = "\n---\n".join(
             [
-                build_agent_deployment(i, self.deployment_spec.number_of_agents, agent_vars[i])
+                build_agent_deployment(
+                    i, self.deployment_spec.number_of_agents, agent_vars[i]
+                )
                 for i in range(self.deployment_spec.number_of_agents)
             ]
         )

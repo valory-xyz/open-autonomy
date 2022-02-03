@@ -69,24 +69,24 @@ type: skill
 models:
   price_api:
     args:
-      url: ${PRICE_ESTIMATION_ABCI_PRICE_API_URL:str}
-      api_id: ${PRICE_ESTIMATION_ABCI_PRICE_API_API_ID:str}
-      parameters: ${PRICE_ESTIMATION_ABCI_PRICE_API_PARAMETERS:list}
-      response_key: ${PRICE_ESTIMATION_ABCI_PRICE_API_RESPONSE_KEY:str}
+      url: ${PRICE_API_URL:str}
+      api_id: ${PRICE_API_API_ID:str}
+      parameters: ${PRICE_API_PARAMETERS:list}
+      response_key: ${PRICE_API_RESPONSE_KEY:str}
   randomness_api:
     args:
-      url: ${PRICE_ESTIMATION_ABCI_RANDOMNESS_URL:str}
-      api_id: ${PRICE_ESTIMATION_ABCI_RANDOMNESS_API_ID:str}
+      url: ${RANDOMNESS_URL:str}
+      api_id: ${RANDOMNESS_API_ID:str}
   params:
     args:
       consensus:
-        max_participants: ${PRICE_ESTIMATION_PARAMS_MAX_PARTICIPANTS:int}
+        max_participants: ${MAX_PARTICIPANTS:int}
       period_setup:
-        safe_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_SAFE_CONTRACT_ADDRESS:str:none}
-        oracle_contract_address: ${PRICE_ESTIMATION_PARAMS_PERIOD_SETUP_ORACLE_CONTRACT_ADDRESS:str:none}
+        safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:none}
+        oracle_contract_address: ${ORACLE_CONTRACT_ADDRESS:str:none}
       round_timeout_seconds: ${PRICE_ESTIMATION_PARAMS_ROUND_TIMEOUT_SECONDS:float:10.0}
-      tendermint_url: ${PRICE_ESTIMATION_PARAMS_TENDERMINT_URL:str}
-      tendermint_com_url: ${PRICE_ESTIMATION_PARAMS_TENDERMINT_COM_URL:str}
+      tendermint_url: ${TENDERMINT_URL:str}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str}
       reset_tendermint_after: ${PRICE_ESTIMATION_PARAMS_RESET_TENDERMINT_AFTER:int:2}
       observation_interval: ${PRICE_ESTIMATION_PARAMS_OBSERVATION_INTERVAL:int:3}
       max_healthcheck: ${PRICE_ESTIMATION_PARAMS_MAX_HEALTHCHECK:int:1200}
