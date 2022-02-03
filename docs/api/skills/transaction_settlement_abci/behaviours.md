@@ -67,16 +67,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(
 
 Select the keeper agent.
 
-<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SelectKeeperTransactionSubmissionBehaviourB.async_act"></a>
-
-#### async`_`act
-
-```python
-def async_act() -> Generator
-```
-
-Call super and reset the tip.
-
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.ValidateTransactionBehaviour"></a>
 
 ## ValidateTransactionBehaviour Objects
