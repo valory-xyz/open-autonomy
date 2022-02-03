@@ -148,6 +148,26 @@ Steps:
 - Wait until ABCI application transitions to the next round.
 - Go to the next behaviour state (set done event).
 
+<a id="packages.valory.skills.price_estimation_abci.behaviours.TransactionHashBehaviour.send_data_to_server"></a>
+
+#### send`_`data`_`to`_`server
+
+```python
+def send_data_to_server(tx_hash: Optional[str]) -> Generator
+```
+
+Send data to server
+
+<a id="packages.valory.skills.price_estimation_abci.behaviours.TransactionHashBehaviour.clean_up"></a>
+
+#### clean`_`up
+
+```python
+def clean_up() -> None
+```
+
+Clean up
+
 <a id="packages.valory.skills.price_estimation_abci.behaviours.ObserverRoundBehaviour"></a>
 
 ## ObserverRoundBehaviour Objects

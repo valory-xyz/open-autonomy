@@ -32,6 +32,9 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     OracleDeploymentRoundBehaviour,
@@ -249,10 +252,69 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
+            yield from self.send_data_to_server(payload.tx_hash)
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def send_data_to_server(self, tx_hash: Optional[str]) -> Generator:
+        """Send data to server"""
+
+        state_db = self.period_state.db
+        state_data = state_db.get_all()
+        period_count = state_db.current_period_count
+
+        # select relevant data
+        price_api = self.context.price_api
+
+        agents = state_data.get("participants", {})
+        payloads = state_data.get("participant_to_observations", {})
+        estimate: Optional[float] = state_data.get("most_voted_estimate", None)
+
+        # DictToProtobuf does not support list at the moment (for dict vals)
+        observations = {
+            agent: getattr(payloads.get(agent), "observation", float("nan"))
+            for agent in agents
+        }
+
+        # adding timestamp on server side when received
+        data_for_server = {
+            "period_count": period_count,  # primary key
+            "estimate": estimate,
+            "signature": tx_hash,
+            "observations": observations,
+            "data_source": price_api.api_id,  # -> will vary for each agent!
+            "agent_name": self.context.agent_address,  # as well of course
+            "unit": f"{price_api.currency_id}:{price_api.convert_id}",
+        }
+
+        self.context.logger.info(f"selected data -- \n{data_for_server}\n")
+        message = DictProtobufStructSerializer.encode(data_for_server)
+
+        server_api_specs = self.context.server_api.get_spec()
+
+        self.context.logger.info(
+            f"Broadcasting data to server for period: {period_count}"
+        )
+
+        raw_response = yield from self.get_http_response(
+            method=server_api_specs["method"],
+            url=server_api_specs["url"],
+            content=message,
+        )
+
+        self.context.logger.info(f"Raw response obtained: {raw_response}")
+        response = self.context.server_api.process_response(raw_response)
+        self.context.logger.info(f"Processed response obtained: {response}")
+        if response is None:
+            self.context.server_api.increment_retries()
+        yield from self.sleep(1)
+
+    def clean_up(self) -> None:
+        """Clean up"""
+        self.context.logger.info("Cleaning up your mess now")
+        self.context.server_api.reset_retries()
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""

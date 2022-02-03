@@ -234,7 +234,9 @@ class UniswapV2ERC20Contract(Contract):
         """
         transfer_logs_data: Optional[JSONLike] = super(
             UniswapV2ERC20Contract, cls
-        ).get_transaction_transfer_logs(ledger_api, tx_hash, target_address)
+        ).get_transaction_transfer_logs(  # type: ignore
+            ledger_api, tx_hash, target_address
+        )
         transfer_logs: List = []
 
         if transfer_logs_data:
