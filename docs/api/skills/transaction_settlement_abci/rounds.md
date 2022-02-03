@@ -136,17 +136,6 @@ def is_most_voted_estimate_set() -> bool
 
 Check if most_voted_estimate is set.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.max_priority_fee_per_gas"></a>
-
-#### max`_`priority`_`fee`_`per`_`gas
-
-```python
-@property
-def max_priority_fee_per_gas() -> Optional[int]
-```
-
-Get the gas data.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.safe_operation"></a>
 
 #### safe`_`operation
