@@ -730,14 +730,6 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 liquidity_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
                 )
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
-                    }
-                )
 
             else:
 
@@ -758,14 +750,15 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 liquidity_data = cast(
                     bytes, contract_api_msg.raw_transaction.body["data"]
                 )
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": self.period_state.router_contract_address,
-                        "value": 0,
-                        "data": HexBytes(liquidity_data.hex()),
-                    }
-                )
+
+            multi_send_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": self.period_state.router_contract_address,
+                    "value": 0,
+                    "data": HexBytes(liquidity_data.hex()),
+                }
+            )
 
             # Remove allowance for LP token
             if "remove_allowance" in strategy["token_LP"]:
