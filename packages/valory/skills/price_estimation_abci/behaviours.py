@@ -262,15 +262,14 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         """Send data to server"""
 
         state_db = self.period_state.db
-        state_data = state_db.get_all()
         period_count = state_db.current_period_count
 
         # select relevant data
         price_api = self.context.price_api
 
-        agents = state_data.get("participants", {})
-        payloads = state_data.get("participant_to_observations", {})
-        estimate: Optional[float] = state_data.get("most_voted_estimate", None)
+        agents = state_db.get_strict("participants")
+        payloads = state_db.get_strict("participant_to_observations")
+        estimate: Optional[float] = state_db.get_strict("most_voted_estimate")
 
         # DictToProtobuf does not support list at the moment (for dict vals)
         observations = {
@@ -307,8 +306,6 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         self.context.logger.info(f"Raw response obtained: {raw_response}")
         response = self.context.server_api.process_response(raw_response)
         self.context.logger.info(f"Processed response obtained: {response}")
-        if response is None:
-            self.context.server_api.increment_retries()
         yield from self.sleep(1)
 
     def clean_up(self) -> None:

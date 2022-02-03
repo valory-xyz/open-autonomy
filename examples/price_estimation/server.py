@@ -19,6 +19,7 @@
 
 """Server for testing"""
 
+from http import HTTPStatus
 from datetime import datetime
 from flask import Flask, request, jsonify
 from packages.valory.skills.abstract_round_abci.serializer import (
@@ -27,7 +28,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 
 app = Flask(__name__)
 
-PORT = 9999
+PORT = 9999  # must match skill.yaml file specification
 period_data = {}
 data_sources = {}
 
@@ -43,7 +44,7 @@ dummy_period_data = {
                 "agent4": 20.0,
             },
             "signature": "tx_hash",
-            "timestamp": "2022-02-03T10:54:35.233373",
+            "time_stamp": "2022-02-03T10:54:35.233373",
             "unit": "BTC:USD",
         },
 }
@@ -68,8 +69,8 @@ def sources():
     return data_sources if data_sources else dummy_data_sources
 
 
-@app.route("/post", methods=['POST'])
-def post():
+@app.route("/deposit", methods=['POST'])
+def deposit() -> int:
     """Receive agent http POST request data from oracle service"""
     raw_data = request.get_data()
     oracle_data = DictProtobufStructSerializer.decode(raw_data)
@@ -82,8 +83,7 @@ def post():
         oracle_data['time_stamp'] = datetime.now().isoformat()
         period_data[period_count] = oracle_data
         print(f'added data for period {period_count}')
-
-    return jsonify(oracle_data)
+    return HTTPStatus.CREATED
 
 
 if __name__ == '__main__':
