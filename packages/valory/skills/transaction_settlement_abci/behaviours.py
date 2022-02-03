@@ -139,12 +139,17 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour, TransactionSettlementBaseState):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
     payload_class = SelectKeeperPayload
+
+    def async_act(self) -> Generator:
+        """Call super and reset the tip."""
+        super(SelectKeeperTransactionSubmissionBehaviourB, self).async_act()
+        self.params.tip = None
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
@@ -471,7 +476,7 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 for key, payload in self.period_state.participant_to_signature.items()
             },
             nonce=self.params.nonce,
-            old_tip=self.period_state.max_priority_fee_per_gas,
+            old_tip=self.params.tip,
             **extra_kwargs,
         )
 
@@ -512,8 +517,9 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
             )
         )
-        # Set nonce.
+        # Set nonce and tip.
         self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        self.params.tip = Nonce(int(cast(str, tx_data["max_priority_fee_per_gas"])))
 
         return tx_data
 
