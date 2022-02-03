@@ -40,7 +40,7 @@ cluster-create-deployments:
 # Stop testnet
 localnet-stop:
 	if [[ "${BUILDPATH}" != "" ]]; then \
-	    echo "Build dir exists. Stopping net and removing build." 
+		echo "Build dir exists. Stopping net and removing build." 
 		cd build
 		docker-compose down
 		cd ../
