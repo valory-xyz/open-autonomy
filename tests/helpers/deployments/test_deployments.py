@@ -23,7 +23,7 @@ import shutil
 import tempfile
 from abc import ABC
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
 import yaml
 
