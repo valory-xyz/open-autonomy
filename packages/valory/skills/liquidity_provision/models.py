@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,13 +21,21 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.liquidity_provision.rounds import LiquidityProvisionAbciApp
+from packages.valory.skills.liquidity_provision.composition import (
+    LiquidityProvisionAbciApp,
+)
+from packages.valory.skills.price_estimation_abci.rounds import Event
+from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
 
+
+MARGIN = 5
+MULTIPLIER = 2
 
 Requests = BaseRequests
 
@@ -39,8 +47,35 @@ class SharedState(BaseSharedState):
         """Initialize the state."""
         super().__init__(*args, abci_app_cls=LiquidityProvisionAbciApp, **kwargs)
 
+    def setup(self) -> None:
+        """Set up."""
+        super().setup()
+        LiquidityProvisionAbciApp.event_to_timeout[
+            Event.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        LiquidityProvisionAbciApp.event_to_timeout[
+            SafeEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        LiquidityProvisionAbciApp.event_to_timeout[
+            TSEvent.ROUND_TIMEOUT
+        ] = self.context.params.round_timeout_seconds
+        LiquidityProvisionAbciApp.event_to_timeout[TSEvent.RESET_TIMEOUT] = (
+            self.context.params.round_timeout_seconds * MULTIPLIER
+        )
+        LiquidityProvisionAbciApp.event_to_timeout[SafeEvent.VALIDATE_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        LiquidityProvisionAbciApp.event_to_timeout[TSEvent.VALIDATE_TIMEOUT] = (
+            self.context.params.retry_timeout * self.context.params.retry_attempts
+            + MARGIN
+        )
+        LiquidityProvisionAbciApp.event_to_timeout[SafeEvent.DEPLOY_TIMEOUT] = (
+            self.context.params.keeper_timeout + MARGIN
+        )
 
-class Params(BaseParams):
+
+class Params(TransactionParams):
     """Parameters."""
 
     observation_interval: float

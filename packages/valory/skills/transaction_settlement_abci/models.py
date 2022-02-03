@@ -17,26 +17,25 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the payloads.py module of the skill."""
+"""Custom objects for the transaction settlement ABCI application."""
 
-from packages.valory.skills.liquidity_provision.payloads import (
-    StrategyEvaluationPayload,
-    StrategyType,
-    TransactionType,
-)
+from typing import Any, Optional
+
+from web3.types import Nonce
+
+from packages.valory.skills.abstract_round_abci.models import BaseParams
 
 
-def test_strategy_evaluation_payload() -> None:
-    """Test `StrategyEvaluationPayload`."""
+class TransactionParams(BaseParams):
+    """Transaction settlement agent-specific parameters."""
 
-    strategy = {
-        "action": StrategyType.ENTER.value,
-        "pair": ["FTM", "BOO"],
-        "pool": "0x0000000000000000000000000000",
-        "amountETH": 0.1,  # Be careful with floats and determinism here
-    }
-    payload = StrategyEvaluationPayload(sender="sender", strategy=strategy)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters object."""
+        self.nonce: Optional[Nonce] = None
+        self.tip: Optional[int] = None
+        super().__init__(*args, **kwargs)
 
-    assert payload.sender == "sender"
-    assert payload.data == {"strategy": strategy}
-    assert payload.transaction_type == TransactionType.STRATEGY_EVALUATION
+    def reset_tx_params(self) -> None:
+        """Reset the transaction-related parameters."""
+        self.nonce = None
+        self.tip = None

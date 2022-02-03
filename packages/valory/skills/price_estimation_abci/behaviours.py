@@ -321,10 +321,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = ObserveBehaviour
     abci_app_cls = PriceAggregationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

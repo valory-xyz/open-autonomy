@@ -26,13 +26,14 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.oracle_deployment_abci.models import Params as BaseParams
+from packages.valory.skills.oracle_deployment_abci.models import Params as OracleParams
 from packages.valory.skills.oracle_deployment_abci.rounds import Event as OracleEvent
 from packages.valory.skills.price_estimation_abci.composition import (
     PriceEstimationAbciApp,
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
 
 
@@ -42,7 +43,7 @@ MULTIPLIER = 2
 Requests = BaseRequests
 
 
-class Params(BaseParams):
+class Params(OracleParams, TransactionParams):
     """Parameters."""
 
     observation_aggregator_function: str
