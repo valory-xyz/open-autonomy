@@ -84,9 +84,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         super().__init__(deployment_spec)
         self.output = ""
         self.config_cmd = ""
-        self.hardhat = ""
-        if self.deployment_spec.network == "hardhat":
-            self.hardhat = HARDHAT_NODE_TEMPLATE
 
     def generate_config_tendermint(
         self, valory_application: Type[BaseDeployment]
@@ -133,6 +130,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         self.output = DOCKER_COMPOSE_TEMPLATE.format(
             abci_nodes=agents,
             tendermint_nodes=tendermint_nodes,
-            hardhat_chain=self.hardhat,
         )
         return self.output
