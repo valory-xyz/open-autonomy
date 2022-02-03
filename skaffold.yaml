@@ -14,4 +14,4 @@ build:
     context: deployments/Dockerfiles/open_aea/
 
   - image: valory/consensus-algorithms-hardhat
-    context: third_party/safe-contracts
+    context: deployments/Dockerfiles/hardhat

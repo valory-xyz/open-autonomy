@@ -20,7 +20,7 @@ skaffold build --build-concurrency=0 --push=false
 Now we have our images, we need to build the deployment to use them
 
 
-```bash
+``` bash
 python deployments/create_deployment.py \
     -t docker-compose \
     -app oracle_hardhat
@@ -47,8 +47,11 @@ We have build our deployment docker-compose file.
 Next we need to go ahead and configure tendermint to setup the validators.
 We use the docker command generated in the previous step to do this; 
 
+``` bash
+docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 2 --o . --hostname=node0 --hostname=node1
 ```
-> docker run --rm -v $(pwd)/deployments/build/build:/tendermint:Z --entrypoint=/usr/bin/tendermint valory/consensus-algorithms-tendermint:0.1.0 testnet --config /etc/tendermint/config-template.toml --v 2 --o . --hostname=node0 --hostname=node1
+
+```output
 I[2022-02-03|12:56:52.911] Found private validator                      module=main keyFile=node0/config/priv_validator_key.json stateFile=node0/data/priv_validator_state.json
 I[2022-02-03|12:56:52.911] Found node key                               module=main path=node0/config/node_key.json
 I[2022-02-03|12:56:52.911] Found genesis file                           module=main path=node0/config/genesis.json
@@ -61,7 +64,7 @@ Successfully initialized 2 node directories
 
 Now that we have our deployment built, we can actually run it.
 
-```
+``` bash
 cd deployments/build
 docker-compose up --force-recreate
 ```
