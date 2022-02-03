@@ -35,7 +35,7 @@ class TransactionParams(BaseParams):
         self.tip: Optional[int] = None
         super().__init__(*args, **kwargs)
 
-    def reset_tx_params(self):
+    def reset_tx_params(self) -> None:
         """Reset the transaction-related parameters."""
         self.nonce = None
         self.tip = None

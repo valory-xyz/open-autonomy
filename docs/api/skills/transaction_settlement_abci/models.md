@@ -29,7 +29,7 @@ Initialize the parameters object.
 #### reset`_`tx`_`params
 
 ```python
-def reset_tx_params()
+def reset_tx_params() -> None
 ```
 
 Reset the transaction-related parameters.
