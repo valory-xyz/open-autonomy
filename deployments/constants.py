@@ -80,7 +80,7 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
         ("api_id", "coinmarketcap"),
         (
             "headers",
-            """[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]'  --type list""",
+            """[["Accepts","application/json"], ["X-CMC_PRO_API_KEY","2142662b-985c-4862-82d7-e91457850c2a"]]""",
         ),
         ("parameters", """[["symbol","BTC"], ["convert","USD"]]"""),
         ("response_key", "'data:BTC:quote:USD:price'"),
@@ -93,7 +93,7 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
     [
         ("url", "https://api.binance.com/api/v3/ticker/price"),
         ("api_id", "binance"),
-        ("parameters", """'[["symbol", "BTCUSDT"]]'"""),
+        ("parameters", """[["symbol", "BTCUSDT"]]"""),
         ("response_key", "price"),
     ],
 ]

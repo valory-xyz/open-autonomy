@@ -71,7 +71,7 @@ models:
     args:
       url: ${PRICE_API_URL:str}
       api_id: ${PRICE_API_API_ID:str}
-      parameters: ${PRICE_API_PARAMETERS:list}
+      parameters: ${PRICE_API_PARAMETERS:list:none}
       response_key: ${PRICE_API_RESPONSE_KEY:str}
   randomness_api:
     args:
