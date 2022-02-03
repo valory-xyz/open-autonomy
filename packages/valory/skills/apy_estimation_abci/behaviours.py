@@ -21,11 +21,9 @@
 import calendar
 import os
 from abc import ABC
-from enum import Enum, auto
 from multiprocessing.pool import AsyncResult
 from typing import (
     Any,
-    Callable,
     Dict,
     Generator,
     Iterator,
@@ -34,14 +32,12 @@ from typing import (
     Set,
     Tuple,
     Type,
-    TypeVar,
     Union,
     cast,
 )
 
 import numpy as np
 import pandas as pd
-from aea_cli_ipfs.ipfs_utils import IPFSTool
 from optuna import Study
 from pmdarima.pipeline import Pipeline
 
@@ -49,6 +45,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
+from packages.valory.skills.abstract_round_abci.io.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool, VerifyDrand
 from packages.valory.skills.apy_estimation_abci.composition import (
@@ -101,16 +98,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     transform_hist_data,
 )
 from packages.valory.skills.apy_estimation_abci.tools.general import gen_unix_timestamps
-from packages.valory.skills.apy_estimation_abci.tools.io import (
-    StoredJSONType,
-    load_forecaster,
-    load_hist,
-    read_csv,
-    read_json_file,
-    save_forecaster,
-    to_csv_safely,
-    to_json_file,
-)
+from packages.valory.skills.apy_estimation_abci.tools.io import load_hist
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_timestamp_q,
     eth_price_usd_q,
@@ -126,105 +114,8 @@ from packages.valory.skills.registration_abci.behaviours import (
 benchmark_tool = BenchmarkTool()
 
 
-CustomObjectType = TypeVar("CustomObjectType")
-NativelySupportedObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
-SupportedObjectType = Union[NativelySupportedObjectType, CustomObjectType]
-CustomLoaderType = Optional[Callable[[str], CustomObjectType]]
-SupportedLoaderType = Callable[[str], SupportedObjectType]
-
-
-class SupportedFiletype(Enum):
-    """Enum for the supported filetypes of the IPFS interacting methods."""
-
-    JSON = auto()
-    PM_PIPELINE = auto()
-    CSV = auto()
-
-
-FILETYPE_TO_LOADER: Dict[SupportedFiletype, SupportedLoaderType] = {
-    SupportedFiletype.JSON: read_json_file,
-    SupportedFiletype.PM_PIPELINE: load_forecaster,
-    SupportedFiletype.CSV: read_csv,
-}
-
-
-def _get_loader_from_filetype(
-    filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderType
-) -> SupportedLoaderType:
-    """Get a file loader from a given filetype or keep a custom loader."""
-    if filetype is not None:
-        return FILETYPE_TO_LOADER[filetype]
-
-    if custom_loader is not None:
-        return custom_loader
-
-    raise ValueError(
-        "Please provide either a supported filetype or a custom loader function."
-    )
-
-
 class APYEstimationBaseState(BaseState, ABC):
     """Base state behaviour for the APY estimation skill."""
-
-    def __init__(self, **kwargs: Any):
-        """Initialize an `APYEstimationBaseState` behaviour."""
-        super().__init__(**kwargs)
-        # Create an IPFS tool.
-        self.__ipfs_tool = IPFSTool({"addr": self.params.ipfs_domain_name})
-        # Check IPFS node.
-        self.__ipfs_tool.check_ipfs_node_running()
-
-    def send_file_to_ipfs_node(self, filepath: str) -> str:
-        """Send a file to the IPFS node.
-
-        :param filepath: the filepath of the file to send
-        :return: the file's hash
-        """
-        _, hist_hash, _ = self.__ipfs_tool.add(filepath)
-
-        return hist_hash
-
-    def _download_from_ipfs_node(
-        self,
-        hash_: str,
-        target_dir: str,
-        filename: str,
-    ) -> str:
-        """Download a file from the IPFS node.
-
-        :param hash_: hash of file to download
-        :param target_dir: directory to place downloaded file
-        :param filename: the original name of the file to download
-        :return: the filepath of the downloaded file
-        """
-        filepath = os.path.join(target_dir, filename)
-
-        if os.path.exists(filepath):  # pragma: nocover
-            os.remove(filepath)
-
-        self.__ipfs_tool.download(hash_, target_dir)
-
-        return filepath
-
-    def get_and_read(
-        self,
-        hash_: str,
-        target_dir: str,
-        filename: str,
-        filetype: SupportedFiletype = None,
-        custom_loader: SupportedLoaderType = None,
-    ) -> SupportedObjectType:
-        """Get and read a file from IPFS."""
-        filepath = self._download_from_ipfs_node(hash_, target_dir, filename)
-        loader = _get_loader_from_filetype(filetype, custom_loader)
-
-        try:
-            obj = loader(filepath)
-        except IOError as e:
-            self.context.logger.error(str(e))
-            raise e
-
-        return obj
 
     @property
     def period_state(self) -> PeriodState:
@@ -276,7 +167,7 @@ class FetchBehaviour(APYEstimationBaseState):
             )
 
         self._save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             f"{filename}.json",
         )
 
@@ -354,27 +245,9 @@ class FetchBehaviour(APYEstimationBaseState):
                 except StopIteration as e:
 
                     if len(self._pairs_hist) > 0:
-                        # Store historical data to a json file.
-                        try:
-                            to_json_file(self._save_path, self._pairs_hist)
-                        except OSError as exc:
-                            self.context.logger.error(
-                                f"Path '{self._save_path}' could not be found!"
-                            )
-                            # Fix: exit round via fail event and move to right round
-                            raise exc
-
-                        except TypeError as exc:
-                            self.context.logger.error(
-                                "Historical data cannot be JSON serialized!"
-                            )
-                            # Fix: exit round via fail event and move to right round
-                            raise exc
-
                         # Send the file to IPFS and get its hash.
-                        hist_hash = self.send_file_to_ipfs_node(self._save_path)
-                        self.context.logger.info(
-                            f"IPFS hash for fetched data is: {hist_hash}"
+                        hist_hash = self.send_to_ipfs(
+                            self._save_path, self._pairs_hist, SupportedFiletype.JSON
                         )
 
                         # Pass the hash as a Payload.
@@ -515,15 +388,15 @@ class TransformBehaviour(APYEstimationBaseState):
 
     def setup(self) -> None:
         """Setup behaviour."""
-        pairs_hist = self.get_and_read(
+        pairs_hist = self.get_from_ipfs(
             self.period_state.history_hash,
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             "historical_data.json",
             SupportedFiletype.JSON,
         )
 
         self._transformed_history_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             "transformed_historical_data.csv",
         )
 
@@ -562,33 +435,26 @@ class TransformBehaviour(APYEstimationBaseState):
             f"Data have been transformed:\n{transformed_history.to_string()}"
         )
 
-        # Store the transformed data.
-        to_csv_safely(transformed_history, self._transformed_history_save_path)
-
-        # Send the file to IPFS and get its hash.
-        transformed_hist_hash = self.send_file_to_ipfs_node(
-            self._transformed_history_save_path
-        )
-        self.context.logger.info(
-            f"IPFS hash for transformed data is: {transformed_hist_hash}"
+        # Send the transformed history to IPFS and get its hash.
+        transformed_hist_hash = self.send_to_ipfs(
+            self._transformed_history_save_path,
+            transformed_history,
+            SupportedFiletype.CSV,
         )
 
-        # Get and store the latest observation.
+        # Get the latest observation.
+        latest_observation = transformed_history.iloc[[-1]]
+        # Send the latest observation to IPFS and get its hash.
         latest_observation_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
             "latest_observation.csv",
         )
-        latest_observation = transformed_history.iloc[[-1]]
-
-        to_csv_safely(latest_observation, latest_observation_save_path, index=True)
-
-        # Send the file to IPFS and get its hash.
-        latest_observation_hist_hash = self.send_file_to_ipfs_node(
-            latest_observation_save_path
-        )
-        self.context.logger.info(
-            f"IPFS hash for latest observation is: {latest_observation_hist_hash}"
+        latest_observation_hist_hash = self.send_to_ipfs(
+            latest_observation_save_path,
+            latest_observation,
+            SupportedFiletype.CSV,
+            index=True,
         )
 
         # Pass the hash as a Payload.
@@ -618,14 +484,11 @@ class PreprocessBehaviour(APYEstimationBaseState):
         #  Eventually, we will have to run this and all the following behaviours for all the available pools.
 
         # Get the historical data and preprocess them.
-        pairs_hist = cast(
-            pd.DataFrame,
-            self.get_and_read(
-                self.period_state.transformed_history_hash,
-                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
-                "transformed_historical_data.csv",
-                custom_loader=load_hist,
-            ),
+        pairs_hist = self.get_from_ipfs(
+            self.period_state.transformed_history_hash,
+            self.context.data_dir,
+            "transformed_historical_data.csv",
+            custom_loader=load_hist,
         )
 
         (y_train, y_test), pair_name = prepare_pair_data(
@@ -639,13 +502,11 @@ class PreprocessBehaviour(APYEstimationBaseState):
         hashes = []
         for filename, split in {"train": y_train, "test": y_test}.items():
             save_path = os.path.join(
-                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.context.data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
                 f"y_{filename}.csv",
             )
-            to_csv_safely(split, save_path)
-            split_hash = self.send_file_to_ipfs_node(save_path)
-            self.context.logger.info(f"IPFS hash for {filename} data is: {split_hash}")
+            split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV)
             hashes.append(split_hash)
 
         # Pass the hash as a Payload.
@@ -677,7 +538,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         path_to_pair = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
 
@@ -686,7 +547,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         self._previous_batch = cast(
             pd.DataFrame,
-            self.get_and_read(
+            self.get_from_ipfs(
                 self.period_state.latest_observation_hist_hash,
                 *batch_path_args,
                 custom_loader=load_hist,
@@ -695,9 +556,9 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
         self._batch = cast(
             ResponseItemType,
-            self.get_and_read(
+            self.get_from_ipfs(
                 self.period_state.batch_hash,
-                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 f"historical_data_batch_{self.period_state.latest_observation_timestamp}.json",
                 SupportedFiletype.JSON,
             ),
@@ -719,15 +580,9 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
             f"Batch has been transformed:\n{transformed_batch.to_string()}"
         )
 
-        # Store the prepared batch.
-        to_csv_safely(transformed_batch, self._prepared_batch_save_path)
-
         # Send the file to IPFS and get its hash.
-        prepared_batch_hash = self.send_file_to_ipfs_node(
-            self._prepared_batch_save_path
-        )
-        self.context.logger.info(
-            f"IPFS hash for prepared data is: {prepared_batch_hash}"
+        prepared_batch_hash = self.send_to_ipfs(
+            self._prepared_batch_save_path, transformed_batch, SupportedFiletype.CSV
         )
 
         # Pass the hash as a Payload.
@@ -828,12 +683,12 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         training_data_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
         y = cast(
             pd.DataFrame,
-            self.get_and_read(
+            self.get_from_ipfs(
                 self.period_state.train_hash,
                 training_data_path,
                 "y_train.csv",
@@ -877,7 +732,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
         # Store the best params from the results.
         best_params_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
             "best_params.json",
         )
@@ -895,24 +750,9 @@ class OptimizeBehaviour(APYEstimationBaseState):
             )
             # Fix: exit round via fail event and move to right round
 
-        try:
-            to_json_file(best_params_save_path, best_params)
-
-        except OSError as e:  # pragma: nocover
-            self.context.logger.error(
-                f"Path '{best_params_save_path}' could not be found!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise e
-
-        except TypeError as e:  # pragma: nocover
-            self.context.logger.error("Params cannot be JSON serialized!")
-            # Fix: exit round via fail event and move to right round
-            raise e
-
-        # Send the file to IPFS and get its hash.
-        best_params_hash = self.send_file_to_ipfs_node(best_params_save_path)
-        self.context.logger.info(f"IPFS hash for best params is: {best_params_hash}")
+        best_params_hash = self.send_to_ipfs(
+            best_params_save_path, best_params, SupportedFiletype.JSON
+        )
 
         # Pass the best params hash as a Payload.
         payload = OptimizationPayload(self.context.agent_address, best_params_hash)
@@ -942,12 +782,12 @@ class TrainBehaviour(APYEstimationBaseState):
 
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
         best_params = cast(
             Dict[str, Any],
-            self.get_and_read(
+            self.get_from_ipfs(
                 self.period_state.params_hash,
                 best_params_path,
                 "best_params.json",
@@ -959,12 +799,12 @@ class TrainBehaviour(APYEstimationBaseState):
         if self.period_state.full_training:
             for split in ("train", "test"):
                 path = os.path.join(
-                    self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                    self.context.data_dir,  # pylint: disable=W0212
                     self.params.pair_ids[0],
                 )
                 df = cast(
                     pd.DataFrame,
-                    self.get_and_read(
+                    self.get_from_ipfs(
                         getattr(self.period_state, f"{split}_hash"),
                         path,
                         f"y_{split}.csv",
@@ -977,12 +817,12 @@ class TrainBehaviour(APYEstimationBaseState):
 
         else:
             path = os.path.join(
-                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.context.data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
             y = cast(
                 pd.DataFrame,
-                self.get_and_read(
+                self.get_from_ipfs(
                     self.period_state.train_hash,
                     path,
                     "y_train.csv",
@@ -1015,19 +855,16 @@ class TrainBehaviour(APYEstimationBaseState):
         forecaster = cast(Pipeline, completed_task)
         self.context.logger.info("Training has finished.")
 
-        # Store the results.
         prefix = "fully_trained_" if self.period_state.full_training else ""
         forecaster_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
             f"{prefix}forecaster.joblib",
         )
-        save_forecaster(forecaster_save_path, forecaster)
 
         # Send the file to IPFS and get its hash.
-        model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
-        self.context.logger.info(
-            f"IPFS hash for {prefix}forecasting model is: {model_hash}"
+        model_hash = self.send_to_ipfs(
+            forecaster_save_path, forecaster, SupportedFiletype.PM_PIPELINE
         )
 
         payload = TrainingPayload(self.context.agent_address, model_hash)
@@ -1058,12 +895,12 @@ class TestBehaviour(APYEstimationBaseState):
 
         for split in ("train", "test"):
             path = os.path.join(
-                self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+                self.context.data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
             df = cast(
                 pd.DataFrame,
-                self.get_and_read(
+                self.get_from_ipfs(
                     getattr(self.period_state, f"{split}_hash"),
                     path,
                     f"y_{split}.csv",
@@ -1073,10 +910,11 @@ class TestBehaviour(APYEstimationBaseState):
             y[f"y_{split}"] = df.values.ravel()
 
         model_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        forecaster = self.get_and_read(
+
+        forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             model_path,
             "forecaster.joblib",
@@ -1115,27 +953,14 @@ class TestBehaviour(APYEstimationBaseState):
 
         # Store the results.
         report_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
             "test_report.json",
         )
-
-        try:
-            to_json_file(report_save_path, report)
-
-        except OSError as e:  # pragma: nocover
-            self.context.logger.error(f"Path '{report_save_path}' could not be found!")
-            # Fix: exit round via fail event and move to right round
-            raise e
-
-        except TypeError as e:  # pragma: nocover
-            self.context.logger.error("Report cannot be JSON serialized!")
-            # Fix: exit round via fail event and move to right round
-            raise e
-
         # Send the file to IPFS and get its hash.
-        report_hash = self.send_file_to_ipfs_node(report_save_path)
-        self.context.logger.info(f"IPFS hash for test report is: {report_hash}")
+        report_hash = self.send_to_ipfs(
+            report_save_path, report, SupportedFiletype.JSON
+        )
 
         # Pass the hash and the best trial as a Payload.
         payload = TestingPayload(self.context.agent_address, report_hash)
@@ -1165,14 +990,14 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         self._forecaster_filename = "fully_trained_forecaster.joblib"
         pair_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
 
         # Load data batch.
         transformed_batch = cast(
             pd.DataFrame,
-            self.get_and_read(
+            self.get_from_ipfs(
                 self.period_state.latest_observation_hist_hash,
                 pair_path,
                 "latest_observation.csv",
@@ -1183,7 +1008,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._y = transformed_batch["APY"].values.ravel()
 
         # Load forecaster.
-        self._forecaster = self.get_and_read(
+        self._forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             pair_path,
             self._forecaster_filename,
@@ -1195,18 +1020,14 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         cast(Pipeline, self._forecaster).update(self._y)
         self.context.logger.info("Forecaster has been updated.")
 
-        # Store the results.
+        # Send the file to IPFS and get its hash.
         forecaster_save_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
             cast(str, self._forecaster_filename),
         )
-        save_forecaster(forecaster_save_path, self._forecaster)
-
-        # Send the file to IPFS and get its hash.
-        model_hash = self.send_file_to_ipfs_node(forecaster_save_path)
-        self.context.logger.info(
-            f"IPFS hash for updated forecasting model is: {model_hash}"
+        model_hash = self.send_to_ipfs(
+            forecaster_save_path, self._forecaster, SupportedFiletype.PM_PIPELINE
         )
 
         payload = UpdatePayload(self.context.agent_address, model_hash)
@@ -1236,12 +1057,12 @@ class EstimateBehaviour(APYEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         model_path = os.path.join(
-            self.context._get_agent_context().data_dir,  # pylint: disable=W0212
+            self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
         forecaster = cast(
             Pipeline,
-            self.get_and_read(
+            self.get_from_ipfs(
                 self.period_state.model_hash,
                 model_path,
                 "fully_trained_forecaster.joblib",
