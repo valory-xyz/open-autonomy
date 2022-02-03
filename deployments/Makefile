@@ -40,6 +40,7 @@ cluster-create-deployments:
 localnet-stop:
 	cd build
 	docker-compose down
+	cd ../
 	sudo rm -rf build
 .PHONY: localnet-stop
 
