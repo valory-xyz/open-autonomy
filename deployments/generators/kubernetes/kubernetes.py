@@ -31,7 +31,6 @@ from deployments.constants import KEYS
 from deployments.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
-    HARDHAT_TEMPLATE,
 )
 
 
