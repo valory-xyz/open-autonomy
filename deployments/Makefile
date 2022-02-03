@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
-BUILDPATH := $(shell ls ./build)
 NUMBER_OF_NODES := 4
 RESULT := ""
 PODS := $(shell kubectl get pods | grep agent | awk '{print $$1}')
@@ -16,7 +15,7 @@ build-images:
 .PHONY: build-images
 
 
-localnet-start: localnet-stop build-images
+localnet-start: build-images
 # creates a docker-compose
 # hardhat
 # price_estimation_deployment
@@ -39,15 +38,8 @@ cluster-create-deployments:
 #
 # Stop testnet
 localnet-stop:
-	if [[ "${BUILDPATH}" != "" ]]; then \
-		echo "Build dir exists. Stopping net and removing build." 
-		cd build
-		docker-compose down
-		cd ../
-		sudo rm -rf build
-	else
-	  echo "Error: ${BUILDPATH} not found. not cleaning."
-	fi
+	cd build
+	docker-compose down
 .ONESHELL: localnet-stop
 
 
