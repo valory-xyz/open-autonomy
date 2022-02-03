@@ -212,12 +212,32 @@ class AbstractRoundBehaviour(
     def teardown(self) -> None:
         """Tear down the behaviour"""
 
+    @property
+    def has_synced_up(
+        self,
+    ) -> bool:
+        """Check if sync has completed."""
+        return True
+
     def act(self) -> None:
         """Implement the behaviour."""
         self._process_current_round()
 
         current_state = self.current_state
         if current_state is None:
+            return
+
+        if self.context.period.syncing_up:
+            if (
+                self.has_synced_up
+                and cast(BaseState, self.current_state).can_rejoin_in_this_round
+            ):
+                self.context.period.end_sync()
+
+        if (
+            self.context.period.syncing_up
+            and not cast(BaseState, self.current_state).run_during_sync
+        ):
             return
 
         current_state.act_wrapper()

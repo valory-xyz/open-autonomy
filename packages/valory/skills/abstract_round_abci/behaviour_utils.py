@@ -314,6 +314,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     is_programmatically_defined = True
     state_id = ""
     matching_round: Optional[Type[AbstractRound]] = None
+    can_rejoin_in_this_round: bool = False
+    run_during_sync: bool = False
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
@@ -432,20 +434,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
             self._is_started = True
 
         try:
-            if self.context.state.period.syncing_up:
-                if self.matching_round is None:
-                    yield from self.sleep(_SYNC_MODE_WAIT)
-                else:
-                    yield from self.wait_until_round_end()
-            else:
-                yield from self.async_act()
+            yield from self.async_act()
         except StopIteration:
-            if self.context.state.period.syncing_up:  # pragma: nocover
-                # needs to be tested
-                has_synced_up = yield from self._has_synced_up()
-                if has_synced_up:
-                    self.context.logger.info("local height == remote; Ending sync...")
-                    self.context.state.period.end_sync()
             self.clean_up()
             self.set_done()
             self._log_end()
