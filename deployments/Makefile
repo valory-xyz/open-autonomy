@@ -27,12 +27,8 @@ localnet-start: localnet-stop build-images
 	cd ../
 	python deployments/create_deployment.py \
 		-t docker-compose \
-		-net hardhat \
-		-app valory/price_estimation_deployable:0.1.0 \
-		-n 4 \
 		-ct \
-		-doc \
-		-dsc
+		-app oracle_hardhat
 	cd deployments/build && docker-compose up --build --force-recreate
 .PHONY: localnet-start
 

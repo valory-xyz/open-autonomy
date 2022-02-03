@@ -103,15 +103,15 @@ class BaseDeployment:
                     agent_vars.update(self.get_randomness_api(agent_n))
             # now we fill in consensus paramters
 
-#             params = section.get("params", None)
-#             if params is not None:
-#                 arguments = params.get("args", None)
-#                 if arguments is not None:
-#                     period_setup = arguments.get("period_setup", None)
-#
-#             if "params" in section["models"]:
-#                 # get consensus details.
-#                 if "period_setup" in section["params"]
+        #             params = section.get("params", None)
+        #             if params is not None:
+        #                 arguments = params.get("args", None)
+        #                 if arguments is not None:
+        #                     period_setup = arguments.get("period_setup", None)
+        #
+        #             if "params" in section["models"]:
+        #                 # get consensus details.
+        #                 if "period_setup" in section["params"]
 
         return agent_vars
 

@@ -23,10 +23,11 @@ from argparse import ArgumentParser
 from textwrap import dedent
 from typing import Any, Dict
 
+from deployments.base_deployments import BaseDeployment
 from deployments.constants import NETWORKS
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
-from deployments.base_deployments import BaseDeployment
+
 
 AGENTS: Dict[str, str] = {
     "oracle_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
@@ -77,7 +78,9 @@ def main() -> None:
     args = parse_args()
     deployment_generator = DEPLOYMENT_OPTIONS[args.type_of_deployment]
 
-    app_instance = BaseDeployment(path_to_deployment_spec=AGENTS[args.valory_application])
+    app_instance = BaseDeployment(
+        path_to_deployment_spec=AGENTS[args.valory_application]
+    )
     deployment = deployment_generator(deployment_spec=app_instance)
 
     deployment.generate(app_instance)  # type: ignore
