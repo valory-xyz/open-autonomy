@@ -252,8 +252,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
-            yield from self.send_data_to_server(payload.tx_hash)
+            # might fail when no server is active: send payload first
             yield from self.send_a2a_transaction(payload)
+            yield from self.send_data_to_server(payload.tx_hash)
             yield from self.wait_until_round_end()
 
         self.set_done()
