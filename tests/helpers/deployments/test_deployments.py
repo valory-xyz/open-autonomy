@@ -23,7 +23,7 @@ import shutil
 import tempfile
 from abc import ABC
 from pathlib import Path
-from typing import Dict, List, Tuple, Type
+from typing import Dict, List, Tuple, Any
 
 import yaml
 
@@ -34,7 +34,7 @@ from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 from tests.helpers.constants import ROOT_DIR
 
 
-deployment_generators: List[BaseDeploymentGenerator] = [
+deployment_generators: List[Any] = [
     DockerComposeGenerator,
     KubernetesGenerator,
 ]
@@ -89,7 +89,7 @@ class BaseDeploymentTests(ABC):
 
     @staticmethod
     def load_deployer_and_app(
-        app: Type[str], deployer: Type[BaseDeploymentGenerator]
+        app: str, deployer: BaseDeploymentGenerator
     ) -> Tuple[BaseDeploymentGenerator, BaseDeployment]:
         """Handles loading the 2 required instances"""
         app_instance = BaseDeployment(path_to_deployment_spec=app)
@@ -111,7 +111,7 @@ class TestDockerComposeDeployment(BaseDeploymentTests):
             if test_case_name.find("ropsten") < 0:
                 continue
             instance, app_instance = self.load_deployer_and_app(
-                spec_path, self.deployment_generator
+                spec_path, self.deployment_generator  # type: ignore
             )
             output = instance.generate(app_instance)  # type: ignore
             containers = yaml.safe_load(output)["services"]
@@ -132,7 +132,7 @@ class TestKubernetesDeployment(BaseDeploymentTests):
             if test_case_name.find("ropsten") < 0:
                 continue
             instance, app_instance = self.load_deployer_and_app(
-                spec_path, self.deployment_generator
+                spec_path, self.deployment_generator  # type: ignore
             )
             output = instance.generate(app_instance)  # type: ignore
             resource_names = []
