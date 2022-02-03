@@ -1331,10 +1331,9 @@ class CycleResetBehaviour(BaseResetBehaviour):
 class EstimatorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the APY estimation behaviour."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = FetchBehaviour
     abci_app_cls = APYEstimationAbciApp
     behaviour_states: Set[Type[BaseState]] = {
-        TendermintHealthcheckBehaviour,  # type: ignore
         FetchBehaviour,
         FetchBatchBehaviour,
         TransformBehaviour,
