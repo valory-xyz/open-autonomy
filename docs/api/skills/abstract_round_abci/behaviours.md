@@ -75,6 +75,17 @@ def teardown() -> None
 
 Tear down the behaviour
 
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.has_synced_up"></a>
+
+#### has`_`synced`_`up
+
+```python
+@property
+def has_synced_up() -> bool
+```
+
+Check if sync has completed.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.act"></a>
 
 #### act
