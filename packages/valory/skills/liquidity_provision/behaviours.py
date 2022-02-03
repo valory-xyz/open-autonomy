@@ -111,7 +111,7 @@ def parse_tx_token_balance(
             transfer_logs,
         )
     )
-    return sum([event["value"] for event in token_events])
+    return sum(event["value"] for event in token_events)
 
 
 class LiquidityProvisionBaseBehaviour(BaseState, ABC):
@@ -272,6 +272,9 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             target_address=self.period_state.safe_contract_address,
         )
         if contract_api_msg.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.info(
+                f"Error retrieving the transaction logs for hash: {self.period_state.final_tx_hash}"
+            )
             return []  # pragma: nocover
         transfers = cast(list, contract_api_msg.state.body["logs"])
 
