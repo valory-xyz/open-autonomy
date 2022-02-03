@@ -225,15 +225,18 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         """
 
         token_letter = token[-1]  # a or b
+        input_token = token if is_swap_back else "token_base"
+        output_token = "token_base" if is_swap_back else token
 
         kwargs = dict(
             deadline=strategy["deadline"],
+            is_input_native=strategy[input_token]["is_native"],
+            is_output_native=strategy[output_token]["is_native"],
+            exact_input=is_swap_back,
+            path=[strategy[t]["address"] for t in (input_token, output_token)],
         )
 
         if not is_swap_back:
-            kwargs["is_input_native"] = strategy["token_base"]["is_native"]
-            kwargs["is_output_native"] = strategy[token]["is_native"]
-            kwargs["exact_input"] = False
             kwargs["amount_out"] = strategy[token]["amount_after_swap"]
             kwargs["amount_in_max"] = strategy["token_base"][
                 f"amount_in_max_{token_letter}"
@@ -243,15 +246,8 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
                 if strategy["token_base"]["is_native"]
                 else 0
             )
-            kwargs["path"] = [
-                strategy["token_base"]["address"],
-                strategy[token]["address"],
-            ]
 
         else:
-            kwargs["is_input_native"] = strategy[token]["is_native"]
-            kwargs["is_output_native"] = strategy["token_base"]["is_native"]
-            kwargs["exact_input"] = True
             kwargs["amount_in"] = strategy[token]["amount_received"]
             kwargs["amount_out_min"] = strategy["token_base"][
                 f"amount_min_after_swap_back_{token_letter}"
@@ -261,10 +257,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
                 if strategy[token]["is_native"]
                 else 0
             )
-            kwargs["path"] = [
-                strategy[token]["address"],
-                strategy["token_base"]["address"],
-            ]
 
         return self.get_swap_tx_data(**kwargs)
 
