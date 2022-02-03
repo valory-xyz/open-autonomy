@@ -212,6 +212,62 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             "data": HexBytes(swap_data.hex()),
         }
 
+    def get_swap_data(
+        self, strategy: dict, token: str, base_to_token: bool
+    ) -> Generator[None, None, Optional[Dict]]:
+        """
+        Return the swap tx data for swaps, particularized for swaps base->token and token->base.
+
+        :param strategy: the strategy
+        :param token: "token_a" or "token_b"
+        :param base_to_token: True for base -> token, False for token -> base
+        :return: the tx data
+        """
+
+        token_letter = token[-1]  # a or b
+
+        kwargs = dict(
+            deadline=strategy["deadline"],
+        )
+
+        if base_to_token:
+            kwargs["is_input_native"] = strategy["token_base"]["is_native"]
+            kwargs["is_output_native"] = strategy[token]["is_native"]
+            kwargs["exact_input"] = False
+            kwargs["amount_out"] = strategy[token]["amount_after_swap"]
+            kwargs["amount_in_max"] = strategy["token_base"][
+                f"amount_in_max_{token_letter}"
+            ]
+            kwargs["eth_value"] = (
+                strategy["token_base"][f"amount_in_max_{token_letter}"]
+                if strategy["token_base"]["is_native"]
+                else 0
+            )
+            kwargs["path"] = [
+                strategy["token_base"]["address"],
+                strategy[token]["address"],
+            ]
+
+        else:
+            kwargs["is_input_native"] = strategy[token]["is_native"]
+            kwargs["is_output_native"] = strategy["token_base"]["is_native"]
+            kwargs["exact_input"] = True
+            kwargs["amount_in"] = strategy[token]["amount_received"]
+            kwargs["amount_out_min"] = strategy["token_base"][
+                f"amount_min_after_swap_back_{token_letter}"
+            ]
+            kwargs["eth_value"] = (
+                strategy[token]["amount_received"]
+                if strategy[token]["is_native"]
+                else 0
+            )
+            kwargs["path"] = [
+                strategy[token]["address"],
+                strategy["token_base"]["address"],
+            ]
+
+        return self.get_swap_tx_data(**kwargs)
+
     def get_tx_result(self) -> Generator[None, None, list]:
         """Transaction transfer result."""
         strategy = self.period_state.most_voted_strategy
@@ -267,6 +323,7 @@ def get_dummy_strategy() -> dict:
             "is_native": False,  # if one of the two tokens is native, A must be the one
             "set_allowance": MAX_ALLOWANCE,
             "remove_allowance": 0,
+            "amount_received_after_exit": 0,
         },
         "token_b": {
             "ticker": "TKB",
@@ -276,6 +333,7 @@ def get_dummy_strategy() -> dict:
             "is_native": False,  # if one of the two tokens is native, A must be the one
             "set_allowance": MAX_ALLOWANCE,
             "remove_allowance": 0,
+            "amount_received_after_exit": 0,
         },
     }
     return strategy
@@ -437,44 +495,18 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             # Swap first token
             if strategy["token_a"]["ticker"] != strategy["token_base"]["ticker"]:
 
-                swap_tx_data = yield from self.get_swap_tx_data(
-                    is_input_native=strategy["token_base"]["is_native"],
-                    is_output_native=strategy["token_a"]["is_native"],
-                    exact_input=False,
-                    amount_out=strategy["token_a"]["amount_after_swap"],
-                    amount_in_max=strategy["token_base"]["amount_in_max_a"],
-                    eth_value=strategy["token_base"]["amount_in_max_a"]
-                    if strategy["token_base"]["is_native"]
-                    else 0,
-                    path=[
-                        strategy["token_base"]["address"],
-                        strategy["token_a"]["address"],
-                    ],
-                    deadline=strategy["deadline"],
+                swap_tx_data = yield from self.get_swap_data(
+                    strategy=strategy, token="token_a", base_to_token=True
                 )
-
                 if swap_tx_data:
                     multi_send_txs.append(swap_tx_data)
 
             # Swap second token
             if strategy["token_b"]["ticker"] != strategy["token_base"]["ticker"]:
 
-                swap_tx_data = yield from self.get_swap_tx_data(
-                    is_input_native=strategy["token_base"]["is_native"],
-                    is_output_native=strategy["token_b"]["is_native"],
-                    exact_input=False,
-                    amount_out=strategy["token_b"]["amount_after_swap"],
-                    amount_in_max=strategy["token_base"]["amount_in_max_b"],
-                    eth_value=strategy["token_base"]["amount_in_max_b"]
-                    if strategy["token_base"]["is_native"]
-                    else 0,
-                    path=[
-                        strategy["token_base"]["address"],
-                        strategy["token_b"]["address"],
-                    ],
-                    deadline=strategy["deadline"],
+                swap_tx_data = yield from self.get_swap_data(
+                    strategy=strategy, token="token_b", base_to_token=True
                 )
-
                 if swap_tx_data:
                     multi_send_txs.append(swap_tx_data)
 
@@ -865,13 +897,13 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             transfers = yield from self.get_tx_result()
             transfers = transfers if transfers else []
 
-            amount_a_received: int = parse_tx_token_balance(
+            strategy["token_a"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_a"]["address"],
                 source_address=self.period_state.router_contract_address,
                 destination_address=self.period_state.safe_contract_address,
             )
-            amount_b_received: int = parse_tx_token_balance(
+            strategy["token_b"]["amount_received"] = parse_tx_token_balance(
                 transfer_logs=transfers,
                 token_address=strategy["token_b"]["address"],
                 source_address=self.period_state.router_contract_address,
@@ -884,42 +916,16 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             multi_send_txs = []
 
             # Swap first token back
-            swap_tx_data = yield from self.get_swap_tx_data(
-                is_input_native=strategy["token_a"]["is_native"],
-                is_output_native=strategy["token_base"]["is_native"],
-                exact_input=True,
-                amount_in=int(amount_a_received),
-                amount_out_min=int(
-                    strategy["token_base"]["amount_min_after_swap_back_a"]
-                ),
-                eth_value=amount_a_received if strategy["token_a"]["is_native"] else 0,
-                path=[
-                    strategy["token_a"]["address"],
-                    strategy["token_base"]["address"],
-                ],
-                deadline=strategy["deadline"],
+            swap_tx_data = yield from self.get_swap_data(
+                strategy=strategy, token="token_a", base_to_token=False
             )
-
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
 
             # Swap second token back
-            swap_tx_data = yield from self.get_swap_tx_data(
-                is_input_native=strategy["token_b"]["is_native"],
-                is_output_native=strategy["token_base"]["is_native"],
-                exact_input=True,
-                amount_in=int(amount_b_received),
-                amount_out_min=int(
-                    strategy["token_base"]["amount_min_after_swap_back_b"]
-                ),
-                eth_value=amount_b_received if strategy["token_b"]["is_native"] else 0,
-                path=[
-                    strategy["token_b"]["address"],
-                    strategy["token_base"]["address"],
-                ],
-                deadline=strategy["deadline"],
+            swap_tx_data = yield from self.get_swap_data(
+                strategy=strategy, token="token_b", base_to_token=False
             )
-
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
 
