@@ -213,14 +213,14 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         }
 
     def get_swap_data(
-        self, strategy: dict, token: str, base_to_token: bool
+        self, strategy: dict, token: str, is_swap_back: bool
     ) -> Generator[None, None, Optional[Dict]]:
         """
         Return the swap tx data for swaps, particularized for swaps base->token and token->base.
 
         :param strategy: the strategy
         :param token: "token_a" or "token_b"
-        :param base_to_token: True for base -> token, False for token -> base
+        :param is_swap_back: True for token[a,b] -> token_base, False for token_base -> token[a,b]
         :return: the tx data
         """
 
@@ -230,7 +230,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             deadline=strategy["deadline"],
         )
 
-        if base_to_token:
+        if not is_swap_back:
             kwargs["is_input_native"] = strategy["token_base"]["is_native"]
             kwargs["is_output_native"] = strategy[token]["is_native"]
             kwargs["exact_input"] = False
@@ -496,7 +496,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             if strategy["token_a"]["ticker"] != strategy["token_base"]["ticker"]:
 
                 swap_tx_data = yield from self.get_swap_data(  # nosec
-                    strategy=strategy, token="token_a", base_to_token=True
+                    strategy=strategy, token="token_a", is_swap_back=False
                 )
                 if swap_tx_data:
                     multi_send_txs.append(swap_tx_data)
@@ -505,7 +505,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             if strategy["token_b"]["ticker"] != strategy["token_base"]["ticker"]:
 
                 swap_tx_data = yield from self.get_swap_data(  # nosec
-                    strategy=strategy, token="token_b", base_to_token=True
+                    strategy=strategy, token="token_b", is_swap_back=False
                 )
                 if swap_tx_data:
                     multi_send_txs.append(swap_tx_data)
@@ -917,14 +917,14 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
 
             # Swap first token back
             swap_tx_data = yield from self.get_swap_data(  # nosec
-                strategy=strategy, token="token_a", base_to_token=False
+                strategy=strategy, token="token_a", is_swap_back=True
             )
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
 
             # Swap second token back
             swap_tx_data = yield from self.get_swap_data(  # nosec
-                strategy=strategy, token="token_b", base_to_token=False
+                strategy=strategy, token="token_b", is_swap_back=True
             )
             if swap_tx_data:
                 multi_send_txs.append(swap_tx_data)
