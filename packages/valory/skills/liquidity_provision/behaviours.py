@@ -284,7 +284,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
     def get_allowance_data(
         self, token_address: str, value: int
-    ) -> Generator[None, None, bytes]:
+    ) -> Generator[None, None, dict]:
         """
         Return the swap tx data for swaps, particularized for swaps base->token and token->base.
 
@@ -303,7 +303,15 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
             spender=self.period_state.router_contract_address,
             value=value,
         )
-        return cast(bytes, contract_api_msg.raw_transaction.body["data"])
+
+        return {
+            "operation": MultiSendOperation.CALL,
+            "to": token_address,
+            "value": 0,
+            "data": HexBytes(
+                cast(bytes, contract_api_msg.raw_transaction.body["data"]).hex()
+            ),
+        }
 
 
 def get_dummy_strategy() -> dict:
@@ -491,14 +499,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_base"]["set_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_base"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_base_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_base_data)
 
             # Swap first token
             if strategy["token_a"]["ticker"] != strategy["token_base"]["ticker"]:
@@ -528,14 +529,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_a"]["set_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_a"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_a_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_a_data)
 
             # Add allowance for token B (only if not native)
             if (
@@ -547,14 +541,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_b"]["set_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_b"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_b_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_b_data)
 
             # Add liquidity
             if strategy["token_a"]["is_native"]:
@@ -719,14 +706,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 value=strategy["token_LP"]["set_allowance"],
             )
 
-            multi_send_txs.append(
-                {
-                    "operation": MultiSendOperation.CALL,
-                    "to": strategy["token_LP"]["address"],
-                    "value": 0,
-                    "data": HexBytes(allowance_lp_data.hex()),
-                }
-            )
+            multi_send_txs.append(allowance_lp_data)
 
             # Remove liquidity
             if strategy["token_a"]["is_native"]:
@@ -791,14 +771,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_LP"]["remove_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_LP"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_lp_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_lp_data)
 
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
@@ -919,14 +892,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_base"]["remove_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_base"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_base_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_base_data)
 
             # Remove allowance for the first token
             if (
@@ -938,14 +904,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_a"]["remove_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_a"]["address"],
-                        "value": 0,
-                        "data": HexBytes(allowance_base_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_base_data)
 
             # Remove allowance for the second token
             if (
@@ -957,14 +916,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                     value=strategy["token_b"]["remove_allowance"],
                 )
 
-                multi_send_txs.append(
-                    {
-                        "operation": MultiSendOperation.CALL,
-                        "to": strategy["token_b"]["address"],
-                        "value": strategy["token_b"]["remove_allowance"],
-                        "data": HexBytes(allowance_b_data.hex()),
-                    }
-                )
+                multi_send_txs.append(allowance_b_data)
 
             # Get the tx list data from multisend contract
             contract_api_msg = yield from self.get_contract_api_response(
