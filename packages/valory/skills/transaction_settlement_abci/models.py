@@ -32,4 +32,5 @@ class TransactionParams(BaseParams):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
         self.nonce: Optional[Nonce] = None
+        self.tip: Optional[int] = None
         super().__init__(*args, **kwargs)
