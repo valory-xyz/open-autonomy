@@ -256,7 +256,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_signing_message,
             message_type=SigningMessage,
-            to="dummy_decision_maker_address",
+            to=self.skill.skill_context.decision_maker_address,
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
@@ -267,7 +267,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             target=actual_signing_message.message_id,
             message_id=-1,
             to=str(self.skill.skill_context.skill_id),
-            sender="dummy_decision_maker_address",
+            sender=self.skill.skill_context.decision_maker_address,
             **response_kwargs,
         )
         self.signing_handler.handle(incoming_message)
