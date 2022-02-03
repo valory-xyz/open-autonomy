@@ -22,11 +22,10 @@ import binascii
 import json
 import os
 import tempfile
-from copy import copy, deepcopy
+from copy import deepcopy
 from pathlib import Path
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
-from unittest import mock
 
 import pytest
 from aea.crypto.registries import make_crypto, make_ledger_api
@@ -37,7 +36,6 @@ from aea.decision_maker.default import (
 )
 from aea.helpers.transaction.base import (
     RawTransaction,
-    SignedMessage,
     SignedTransaction,
     State,
     TransactionDigest,
@@ -47,34 +45,15 @@ from aea.identity.base import Identity
 from aea.mail.base import Envelope, Message
 from aea.multiplexer import Multiplexer
 from aea.skills.base import Handler
-from aea.test_tools.test_skill import BaseSkillTestCase
 from aea_ledger_ethereum import EthereumApi
 from web3 import Web3
 
 from packages.open_aea.protocols.signing import SigningMessage
-from packages.valory.connections.http_client.connection import (
-    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
-)
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
-)
-from packages.valory.contracts.gnosis_safe.contract import (
-    PUBLIC_ID as GNOSIS_SAFE_CONTRACT_ID,
-)
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    BasePeriodState,
-    BaseTxPayload,
-    OK_CODE,
-    StateDB,
-    _MetaPayload,
-)
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.liquidity_provision.behaviours import (
     DEFAULT_MINTER,
     EnterPoolTransactionHashBehaviour,
@@ -90,7 +69,6 @@ from packages.valory.skills.liquidity_provision.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.liquidity_provision.rounds import Event
 from packages.valory.skills.liquidity_provision.rounds import (
     PeriodState as LiquidityProvisionPeriodState,
 )
