@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CLUSTERS := $(shell kind get clusters)
 TOKENPATH := $(shell ls ~/.docker/config.json)
-BUILDPATH := $(shell ls -d ./build)
+BUILDPATH := $(shell ls ./build)
 NUMBER_OF_NODES := 4
 RESULT := ""
 PODS := $(shell kubectl get pods | grep agent | awk '{print $$1}')
@@ -39,7 +39,7 @@ cluster-create-deployments:
 #
 # Stop testnet
 localnet-stop:
-	if [ -d "${BUILDPATH}" ]; then
+	if [[ "${BUILDPATH}" != "" ]]; then \
 	    echo "Build dir exists. Stopping net and removing build." 
 		cd build
 		docker-compose down
