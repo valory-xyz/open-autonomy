@@ -177,31 +177,6 @@ class LiquidityProvisionBehaviourBaseCase(FSMBehaviourBaseCase):
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     period_state: LiquidityProvisionPeriodState
 
-    def mock_signing_request(self, request_kwargs: Dict, response_kwargs: Dict) -> None:
-        """Mock signing request."""
-        self.assert_quantity_in_decision_making_queue(1)
-        actual_signing_message = self.get_message_from_decision_maker_inbox()
-        assert actual_signing_message is not None, "No message in outbox."
-        has_attributes, error_str = self.message_has_attributes(
-            actual_message=actual_signing_message,
-            message_type=SigningMessage,
-            to=self.skill.skill_context.decision_maker_address,
-            sender=str(self.skill.skill_context.skill_id),
-            **request_kwargs,
-        )
-        assert has_attributes, error_str
-        incoming_message = self.build_incoming_message(
-            message_type=SigningMessage,
-            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
-            target=actual_signing_message.message_id,
-            message_id=-1,
-            to=str(self.skill.skill_context.skill_id),
-            sender=self.skill.skill_context.decision_maker_address,
-            **response_kwargs,
-        )
-        self.signing_handler.handle(incoming_message)
-        self.behaviour.act_wrapper()
-
 
 class TestLiquidityProvisionHardhat(
     LiquidityProvisionBehaviourBaseCase, HardHatAMMBaseTest
