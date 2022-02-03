@@ -139,7 +139,9 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour, TransactionSettlementBaseState):
+class SelectKeeperTransactionSubmissionBehaviourB(
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_b"
@@ -148,8 +150,8 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour, Transac
 
     def async_act(self) -> Generator:
         """Call super and reset the tip."""
-        super(SelectKeeperTransactionSubmissionBehaviourB, self).async_act()
         self.params.tip = None
+        yield from super().async_act()
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
