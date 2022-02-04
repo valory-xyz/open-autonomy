@@ -20,7 +20,7 @@
 import binascii
 from pathlib import Path
 from typing import Dict, cast
-
+import time
 import pytest
 from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import RawTransaction, State
@@ -47,6 +47,7 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
     parse_tx_token_balance,
+    SLEEP_SECONDS,
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event
@@ -1805,3 +1806,6 @@ class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
             == SleepBehaviour.state_id
         )
         self.behaviour.act_wrapper()
+        time.sleep(SLEEP_SECONDS)
+        self.behaviour.act_wrapper()
+        self._test_done_flag_set()
