@@ -77,21 +77,19 @@ def sources():
 @app.route("/deposit", methods=['POST'])
 def deposit() -> int:
     """Receive agent http POST request data from oracle service"""
-
     raw_data = request.get_data()
     oracle_data = DictProtobufStructSerializer.decode(raw_data)
-
     try:
         period_count = oracle_data.pop("period_count")
         agent_address = oracle_data.pop("agent_address")
         oracle_data['time_stamp'] = datetime.now().isoformat()
-        data.setdefault(period_count, {})[agent_address] = oracle_data
+        period_data.setdefault(period_count, {})[agent_address] = oracle_data
         return HTTPStatus.CREATED
-    except Exception:
+    except Exception as e:
+        print(e)
         return HTTPStatus.BAD_REQUEST
 
 
 if __name__ == '__main__':
-    """Main"""
     host = "0.0.0.0"
     app.run(host=host, port=PORT, debug=True)

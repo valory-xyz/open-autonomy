@@ -318,6 +318,17 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        db = self.behaviour.current_state.period_state.db  # type: ignore
+        period_data = db.get_all()
+        period_data.update(
+            {
+                "participants": {"agent1"},
+                "participant_to_observations": {"agent1": 1.0},
+                "most_voted_estimate": 1.0,
+            }
+        )
+
         self.mock_contract_api_request(
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -335,10 +346,9 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
 
-        # mock the message
         data = {
-            "observations": {},
-            "agent_name": "test_agent_address",
+            "observations": {"agent1": float("nan")},
+            "agent_address": "test_agent_address",
             "period_count": 0,
             "estimate": 1.0,
             "unit": "BTC:USD",
@@ -362,8 +372,7 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             body=b"",
         )
 
-        # mock the send_to_server
-        if self.behaviour.current_state.params.is_broadcasting_to_server:
+        if self.behaviour.current_state.params.is_broadcasting_to_server:  # type: ignore
             self.behaviour.act_wrapper()
             self.mock_http_request(request_kwargs, response_kwargs)
             self.behaviour.act_wrapper()

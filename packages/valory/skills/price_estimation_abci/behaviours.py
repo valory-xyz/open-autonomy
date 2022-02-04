@@ -278,13 +278,14 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         price_api = self.context.price_api
 
         # adding timestamp on server side when received
+        # period and agent_address are used as `primary key`
         data_for_server = {
             "period_count": period_count,
+            "agent_address": self.context.agent_address,
             "estimate": estimate,
             "signature": tx_hash,
             "observations": observations,
             "data_source": price_api.api_id,
-            "agent_name": self.context.agent_address,
             "unit": f"{price_api.currency_id}:{price_api.convert_id}",
         }
 
