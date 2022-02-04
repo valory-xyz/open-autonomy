@@ -28,7 +28,6 @@ from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.liquidity_provision.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
-    StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     Event,
