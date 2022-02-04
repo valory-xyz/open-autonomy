@@ -837,7 +837,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1024,7 +1023,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1214,7 +1212,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1289,7 +1286,6 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )
@@ -1513,7 +1509,6 @@ class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
                     most_voted_strategy=strategy,
                     multisend_contract_address="multisend_contract_address",
                     router_contract_address="router_contract_address",
-                    most_voted_transfers='{"transfers":[]}',
                     final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
                 ),
             )

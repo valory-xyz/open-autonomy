@@ -964,12 +964,6 @@ class TestLiquidityProvisionHardhat(
             LiquidityProvisionPeriodState,
             self.default_period_state_exit.update(
                 most_voted_strategy=strategy,
-                most_voted_transfers=transfer_to_string(
-                    source_address=DEFAULT_MINTER,
-                    destination_address=self.safe_contract_address,
-                    token_address=LP_TOKEN_ADDRESS,
-                    value=1000,
-                ),
             ),
         )
 
@@ -1044,7 +1038,6 @@ class TestLiquidityProvisionHardhat(
             LiquidityProvisionPeriodState,
             self.default_period_state_swap_back.update(
                 most_voted_strategy=strategy,
-                most_voted_transfers=transfers,
             ),
         )
 

@@ -73,11 +73,6 @@ class PeriodState(
         return cast(dict, self.db.get_strict("most_voted_strategy"))
 
     @property
-    def most_voted_transfers(self) -> dict:
-        """Get the most_voted_transfers."""
-        return cast(dict, self.db.get_strict("most_voted_transfers"))
-
-    @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
         """Get the participant_to_strategy."""
         return cast(
