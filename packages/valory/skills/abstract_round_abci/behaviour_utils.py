@@ -318,7 +318,7 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-def _check_enabled(fn: Callable) -> Callable:
+def _check_ipfs_enabled(fn: Callable) -> Callable:
     """Decorator that raises error if IPFS is not enabled."""
 
     @wraps(fn)
@@ -350,7 +350,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             self.ipfs_enabled = True
             self._ipfs_interact = IPFSInteract(domain)
 
-    @_check_enabled
+    @_check_ipfs_enabled
     def send_to_ipfs(
         self,
         filepath: str,
@@ -372,7 +372,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             )
             return None
 
-    @_check_enabled
+    @_check_ipfs_enabled
     def get_from_ipfs(
         self,
         hash_: str,

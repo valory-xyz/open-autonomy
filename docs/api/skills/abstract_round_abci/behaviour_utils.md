@@ -227,7 +227,7 @@ Initialize an `IPFSBehaviour`.
 #### send`_`to`_`ipfs
 
 ```python
-@_check_enabled
+@_check_ipfs_enabled
 def send_to_ipfs(filepath: str, obj: SupportedObjectType, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
 ```
 
@@ -238,7 +238,7 @@ Send a file to IPFS.
 #### get`_`from`_`ipfs
 
 ```python
-@_check_enabled
+@_check_ipfs_enabled
 def get_from_ipfs(hash_: str, target_dir: str, filename: str, filetype: Optional[SupportedFiletype] = None, custom_loader: SupportedLoaderType = None) -> Optional[SupportedObjectType]
 ```
 
