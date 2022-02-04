@@ -32,6 +32,9 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     OracleDeploymentRoundBehaviour,
@@ -249,10 +252,50 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
+            if self.params.is_broadcasting_to_server:
+                yield from self.send_to_server(payload.tx_hash)
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def send_to_server(self, tx_hash: Optional[str]) -> Generator:
+        """Send data to server"""
+
+        # select relevant data
+        state_db = self.period_state.db
+        period_count = state_db.current_period_count
+        agents = state_db.get_strict("participants")
+        payloads = state_db.get_strict("participant_to_observations")
+        estimate = state_db.get_strict("most_voted_estimate")
+
+        # DictToProtobuf does not support list at the moment (for dict vals)
+        observations = {
+            agent: getattr(payloads.get(agent), "observation", float("nan"))
+            for agent in agents
+        }
+
+        price_api = self.context.price_api
+
+        # adding timestamp on server side when received
+        data_for_server = {
+            "period_count": period_count,
+            "estimate": estimate,
+            "signature": tx_hash,
+            "observations": observations,
+            "data_source": price_api.api_id,
+            "agent_name": self.context.agent_address,
+            "unit": f"{price_api.currency_id}:{price_api.convert_id}",
+        }
+
+        message = DictProtobufStructSerializer.encode(data_for_server)
+        server_api_specs = self.context.server_api.get_spec()
+        raw_response = yield from self.get_http_response(
+            method=server_api_specs["method"],
+            url=server_api_specs["url"],
+            content=message,
+        )
+        self.context.server_api.process_response(raw_response)
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""
@@ -321,9 +364,10 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
-    initial_state_cls = ObserveBehaviour
+    initial_state_cls = TendermintHealthcheckBehaviour
     abci_app_cls = PriceAggregationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

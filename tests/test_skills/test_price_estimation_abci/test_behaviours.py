@@ -22,7 +22,7 @@
 import json
 import time
 from pathlib import Path
-from typing import cast
+from typing import Dict, Union, cast
 from unittest import mock
 
 from aea.helpers.transaction.base import RawTransaction
@@ -36,6 +36,9 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
+)
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     ObserveBehaviour,
@@ -331,6 +334,40 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        # mock the message
+        data = {
+            "observations": {},
+            "agent_name": "test_agent_address",
+            "period_count": 0,
+            "estimate": 1.0,
+            "unit": "BTC:USD",
+            "signature": "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003d09000x77E9b2EF921253A171Fa0CB9ba80558648Ff721564617461",
+            "data_source": "coinbase",
+        }
+
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
+            method="POST",
+            url="http://192.168.1.102:9999/deposit",
+            headers="",
+            version="",
+            body=DictProtobufStructSerializer.encode(data),
+        )
+
+        response_kwargs = dict(
+            version="",
+            status_code=201,
+            status_text="",
+            headers="",
+            body=b"",
+        )
+
+        # mock the send_to_server
+        if self.behaviour.current_state.params.is_broadcasting_to_server:
+            self.behaviour.act_wrapper()
+            self.mock_http_request(request_kwargs, response_kwargs)
+            self.behaviour.act_wrapper()
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)

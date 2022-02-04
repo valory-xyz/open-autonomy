@@ -57,6 +57,7 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
         self.period_setup_params = kwargs.pop("period_setup", {})
+        self.is_broadcasting_to_server = kwargs.pop("is_broadcasting_to_server", kwargs)
         super().__init__(*args, **kwargs)
 
     @classmethod
