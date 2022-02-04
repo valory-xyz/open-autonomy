@@ -168,9 +168,7 @@ class TestDeploymentGenerators(BaseDeploymentTests):
                     spec_path, deployment_generator
                 )
                 res = app_instance.generate_agents()
-                assert len(res) >= 1
-            res = app_instance.generate_agents()
-            assert len(res) > 1, "failed to generate agents"
+                assert len(res) >= 1, "failed to generate agents"
 
 
 class TestTendermintDeploymentGenerators(BaseDeploymentTests):
@@ -184,7 +182,7 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
                     spec_path, deployment_generator
                 )
                 res = deployer_instance.generate_config_tendermint(app_instance)  # type: ignore
-                assert len(res) > 1, "Failed to generate Tendermint Config"
+                assert len(res) >= 1, "Failed to generate Tendermint Config"
 
 
 class TestDeploymentLoadsAgent(BaseDeploymentTests):
@@ -194,7 +192,7 @@ class TestDeploymentLoadsAgent(BaseDeploymentTests):
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
             for _, spec_path in test_deployment_spec_paths.items():
-                deployer_instance, app_instance = self.load_deployer_and_app(
+                _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )
                 agent_json = app_instance.load_agent()
@@ -216,10 +214,7 @@ class TestCliTool(BaseDeploymentTests):
     def test_generates_deploy_oracle_contract(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
-            for (
-                _,
-                spec_path,
-            ) in test_deployment_spec_paths.items():
+            for _, spec_path in test_deployment_spec_paths.items():
                 _, app_instance = self.load_deployer_and_app(
                     spec_path, deployment_generator
                 )

@@ -40,9 +40,6 @@ from deployments.constants import (
 )
 
 
-validation._SCHEMAS_DIR = os.getcwd()  # pylint: disable=protected-access
-
-
 def get_price_api(agent_n: int) -> Dict:
     """Gets the price api for the agent."""
     price_api = PRICE_APIS[agent_n % len(PRICE_APIS)]
@@ -64,6 +61,8 @@ class BaseDeployment:
 
     def __init__(self, path_to_deployment_spec: str) -> None:
         """Initialize the Base Deployment."""
+        old_wd = os.getcwd()
+        validation._SCHEMAS_DIR = os.getcwd()  # pylint: disable=protected-access
         self.validator = ConfigValidator(
             schema_filename="deployments/deployment_specifications/deployment_schema.json"
         )
@@ -71,8 +70,8 @@ class BaseDeployment:
             self.deployment_spec = yaml.load(file, Loader=yaml.SafeLoader)
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
-
         self.agent_spec = self.load_agent()
+        os.chdir(old_wd)
 
     def get_network(self) -> Dict[str, Any]:
         """Returns the deployments network overrides"""
