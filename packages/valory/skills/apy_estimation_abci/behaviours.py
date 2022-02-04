@@ -167,7 +167,7 @@ class FetchBehaviour(APYEstimationBaseState):
             )
 
         self._save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             f"{filename}.json",
         )
 
@@ -399,7 +399,7 @@ class TransformBehaviour(APYEstimationBaseState):
         )
 
         self._transformed_history_save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             "transformed_historical_data.csv",
         )
 
@@ -437,7 +437,7 @@ class TransformBehaviour(APYEstimationBaseState):
             latest_observation = transformed_history.iloc[[-1]]
             # Send the latest observation to IPFS and get its hash.
             latest_observation_save_path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
                 "latest_observation.csv",
             )
@@ -498,7 +498,7 @@ class PreprocessBehaviour(APYEstimationBaseState):
                 {"train": y_train, "test": y_test}.items()
             ):
                 save_path = os.path.join(
-                    self.context.data_dir,  # pylint: disable=W0212
+                    self.context.data_dir,
                     self.params.pair_ids[0],
                     f"y_{filename}.csv",
                 )
@@ -535,7 +535,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
     def setup(self) -> None:
         """Setup behaviour."""
         path_to_pair = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             self.params.pair_ids[0],
         )
 
@@ -684,7 +684,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load training data.
         training_data_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             self.params.pair_ids[0],
         )
         self._y = cast(
@@ -729,7 +729,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
 
             # Store the best params from the results.
             best_params_save_path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
                 "best_params.json",
             )
@@ -782,7 +782,7 @@ class TrainBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             self.params.pair_ids[0],
         )
         self._best_params = cast(
@@ -800,7 +800,7 @@ class TrainBehaviour(APYEstimationBaseState):
         if self.period_state.full_training:
             for split in ("train", "test"):
                 path = os.path.join(
-                    self.context.data_dir,  # pylint: disable=W0212
+                    self.context.data_dir,
                     self.params.pair_ids[0],
                 )
                 df = cast(
@@ -818,7 +818,7 @@ class TrainBehaviour(APYEstimationBaseState):
 
         else:
             path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
             )
             self._y = cast(
@@ -854,7 +854,7 @@ class TrainBehaviour(APYEstimationBaseState):
 
             prefix = "fully_trained_" if self.period_state.full_training else ""
             forecaster_save_path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
                 f"{prefix}forecaster.joblib",
             )
@@ -894,7 +894,7 @@ class TestBehaviour(APYEstimationBaseState):
         # Load data.
         for split in ("train", "test"):
             path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
             )
             df = cast(
@@ -909,7 +909,7 @@ class TestBehaviour(APYEstimationBaseState):
             setattr(self, f"_y_{split}", df.values.ravel())
 
         model_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             self.params.pair_ids[0],
         )
 
@@ -952,7 +952,7 @@ class TestBehaviour(APYEstimationBaseState):
 
             # Store the results.
             report_save_path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
                 "test_report.json",
             )
@@ -990,7 +990,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         """Setup behaviour."""
         self._forecaster_filename = "fully_trained_forecaster.joblib"
         pair_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             self.params.pair_ids[0],
         )
 
@@ -1024,7 +1024,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
             # Send the file to IPFS and get its hash.
             forecaster_save_path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
+                self.context.data_dir,
                 self.params.pair_ids[0],
                 cast(str, self._forecaster_filename),
             )
@@ -1059,7 +1059,7 @@ class EstimateBehaviour(APYEstimationBaseState):
         - Go to the next behaviour state (set done event).
         """
         model_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
+            self.context.data_dir,
             self.params.pair_ids[0],
         )
         forecaster = cast(
