@@ -21,7 +21,7 @@
 import os
 import socket
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 hostname = socket.gethostname()
