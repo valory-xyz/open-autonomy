@@ -24,6 +24,7 @@ import time
 from pathlib import Path
 from typing import cast
 from unittest import mock
+from typing import Dict, Union
 
 from aea.helpers.transaction.base import RawTransaction
 
@@ -48,6 +49,9 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.serializer import (
+    DictProtobufStructSerializer,
 )
 
 from tests.conftest import ROOT_DIR
@@ -331,6 +335,41 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
                 ),
             ),
         )
+
+        # mock the message
+        # block request with None response.
+        data = {'observations': {}, 'agent_name': 'test_agent_address', 'period_count': 0, 'estimate': 1.0,
+                'unit': 'BTC:USD',
+                'signature': 'b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003d09000x77E9b2EF921253A171Fa0CB9ba80558648Ff721564617461',
+                'data_source': 'coinbase'}
+
+        request_kwargs: Dict[str, Union[str, bytes]] = dict(
+            method="POST",
+            url="http://192.168.1.102:9999/deposit",
+            headers="",  # '"Content-Type: application/json\r\n",
+            version="",
+            body=DictProtobufStructSerializer.encode(data),
+        )
+
+        response_kwargs = dict(
+            version="",
+            status_code=201,
+            status_text="",
+            headers="",
+            body=b"",
+        )
+
+        self.behaviour.act_wrapper()
+        self.mock_http_request(request_kwargs, response_kwargs)
+
+        # with caplog.at_level(
+        #     logging.ERROR,
+        #     logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        # ):
+        #     self.apy_estimation_behaviour.act_wrapper()
+        #     self.mock_http_request(request_kwargs, response_kwargs)
+        # assert "[test_agent_name] Could not get block from fantom" in caplog.text
+
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(Event.DONE)

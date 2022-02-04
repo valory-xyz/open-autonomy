@@ -252,9 +252,10 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         with benchmark_tool.measure(
             self,
         ).consensus():
+            # yield from self.send_to_server(payload.tx_hash)
             yield from self.send_a2a_transaction(payload)
-            if self.params.is_broadcasting_to_server:
-                yield from self.send_to_server(payload.tx_hash)
+            # if self.params.is_broadcasting_to_server:
+            yield from self.send_to_server(payload.tx_hash)
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -292,7 +293,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
         message = DictProtobufStructSerializer.encode(data_for_server)
 
         server_api_specs = self.context.server_api.get_spec()
-        # get stuck-up here during test
+
         raw_response = yield from self.get_http_response(
             method=server_api_specs["method"],
             url=server_api_specs["url"],
