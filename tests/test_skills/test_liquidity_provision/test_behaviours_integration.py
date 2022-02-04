@@ -343,7 +343,7 @@ class TestLiquidityProvisionHardhat(
                     most_voted_tx_hash=cls.most_voted_tx_hash_enter,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=cls.strategy,
+                    most_voted_strategy=json.dumps(cls.strategy),
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -359,7 +359,7 @@ class TestLiquidityProvisionHardhat(
                     most_voted_tx_hash=cls.most_voted_tx_hash_exit,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=cls.strategy,
+                    most_voted_strategy=json.dumps(cls.strategy),
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -376,7 +376,7 @@ class TestLiquidityProvisionHardhat(
                     most_voted_tx_hash=cls.most_voted_tx_hash_swap_back,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=cls.strategy,
+                    most_voted_strategy=json.dumps(cls.strategy),
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -961,7 +961,7 @@ class TestLiquidityProvisionHardhat(
         period_state = cast(
             LiquidityProvisionPeriodState,
             self.default_period_state_exit.update(
-                most_voted_strategy=strategy,
+                most_voted_strategy=json.dumps(strategy),
             ),
         )
 
@@ -1020,7 +1020,7 @@ class TestLiquidityProvisionHardhat(
         period_state = cast(
             LiquidityProvisionPeriodState,
             self.default_period_state_swap_back.update(
-                most_voted_strategy=strategy,
+                most_voted_strategy=json.dumps(strategy),
             ),
         )
 
