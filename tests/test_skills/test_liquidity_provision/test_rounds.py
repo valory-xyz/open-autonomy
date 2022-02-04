@@ -32,9 +32,9 @@ from packages.valory.skills.liquidity_provision.payloads import (
 from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     Event,
     PeriodState,
+    SleepRound,
     StrategyEvaluationRound,
     TransactionHashBaseRound,
-    SleepRound,
 )
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
@@ -178,17 +178,13 @@ class TestSleepRound(BaseCollectSameUntilThresholdRoundTest):
     ) -> None:
         """Run tests."""
         test_round = SleepRound(self.period_state, self.consensus_params)
-        with mock.patch.object(
-            SleepPayload, "sleep", return_value="sleep"
-        ):
+        with mock.patch.object(SleepPayload, "sleep", return_value="sleep"):
             self._complete_run(
                 self._test_round(
                     test_round=test_round,
                     round_payloads=get_participant_to_sleep(self.participants),
-                    state_update_fn=lambda _period_state, _test_round: _period_state.update(
-                    ),
-                    state_attr_checks=[
-                    ],
+                    state_update_fn=lambda _period_state, _test_round: _period_state.update(),
+                    state_attr_checks=[],
                     most_voted_payload=SleepPayload.sleep,
                     exit_event=Event.DONE,
                 )

@@ -55,10 +55,8 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    DEFAULT_MINTER,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
-    LP_TOKEN_ADDRESS,
     LiquidityProvisionConsensusBehaviour,
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
@@ -1018,21 +1016,6 @@ class TestLiquidityProvisionHardhat(
         """test_swap_back_tx_hash_behaviour"""
         strategy = deepcopy(self.strategy)
         strategy["safe_nonce"] = 2
-
-        transfer_a = transfer_to_string(
-            source_address=self.router_contract_address,
-            destination_address=self.safe_contract_address,
-            token_address=strategy["token_a"]["address"],
-            value=250,
-        )
-        transfer_b = transfer_to_string(
-            source_address=self.router_contract_address,
-            destination_address=self.safe_contract_address,
-            token_address=strategy["token_b"]["address"],
-            value=250,
-        )
-
-        transfers = merge_transfer_strings([transfer_a, transfer_b])
 
         period_state = cast(
             LiquidityProvisionPeriodState,

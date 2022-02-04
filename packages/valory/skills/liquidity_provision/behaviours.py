@@ -122,7 +122,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         """Return the period state."""
         return cast(PeriodState, super().period_state)
 
-
     def get_swap_tx_data(  # pylint: disable=too-many-arguments
         self,
         is_input_native: bool,

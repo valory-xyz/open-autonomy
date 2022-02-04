@@ -121,16 +121,6 @@ class SleepPayload(BaseTxPayload):
 
     transaction_type = TransactionType.SLEEP
 
-    def __init__(
-        self, sender: str, id_: Optional[str] = None
-    ) -> None:
-        """Initialize an 'tx_hash' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-
     @property
     def sleep(self) -> str:
         """Get the sleep dummy property."""

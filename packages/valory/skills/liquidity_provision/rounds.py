@@ -34,10 +34,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
+    SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
-    SleepPayload,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     SignaturePayload,

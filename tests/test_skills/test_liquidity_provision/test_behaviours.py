@@ -18,9 +18,10 @@
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_provision_behaviour skill's behaviours."""
 import binascii
+import time
 from pathlib import Path
 from typing import Dict, cast
-import time
+
 import pytest
 from aea.exceptions import AEAActException
 from aea.helpers.transaction.base import RawTransaction, State
@@ -42,12 +43,12 @@ from packages.valory.skills.liquidity_provision.behaviours import (
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
     MAX_ALLOWANCE,
+    SLEEP_SECONDS,
     SleepBehaviour,
     StrategyEvaluationBehaviour,
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
     parse_tx_token_balance,
-    SLEEP_SECONDS,
 )
 from packages.valory.skills.liquidity_provision.payloads import StrategyType
 from packages.valory.skills.liquidity_provision.rounds import Event
@@ -1194,7 +1195,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(Event.DONE)
 
-
     def test_log_no_tx_results(
         self,
     ) -> None:
@@ -1232,7 +1232,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         )
         self.behaviour.act_wrapper()
 
-
         # Get previous transaction's results
         self.mock_contract_api_request(
             contract_id=str(UniswapV2ERC20Contract.contract_id),
@@ -1263,7 +1262,6 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
             ).state_id
             == ExitPoolTransactionHashBehaviour.state_id
         )
-
 
 
 class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
