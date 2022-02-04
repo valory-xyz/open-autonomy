@@ -28,7 +28,6 @@ from typing import Any, Dict, List, Type
 
 import yaml
 from aea.configurations import validation
-from aea.configurations.validation import ConfigValidator
 
 from deployments.constants import (
     AEA_DIRECTORY,
@@ -61,17 +60,17 @@ class BaseDeployment:
 
     def __init__(self, path_to_deployment_spec: str) -> None:
         """Initialize the Base Deployment."""
-        old_wd = os.getcwd()
+        old_dir = validation._SCHEMAS_DIR
         validation._SCHEMAS_DIR = os.getcwd()  # pylint: disable=protected-access
-        self.validator = ConfigValidator(
+        self.validator = validation.ConfigValidator(
             schema_filename="deployments/deployment_specifications/deployment_schema.json"
         )
+        validation._SCHEMAS_DIR = old_dir
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
             self.deployment_spec = yaml.load(file, Loader=yaml.SafeLoader)
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
         self.agent_spec = self.load_agent()
-        os.chdir(old_wd)
 
     def get_network(self) -> Dict[str, Any]:
         """Returns the deployments network overrides"""
