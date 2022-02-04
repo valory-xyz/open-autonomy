@@ -37,14 +37,7 @@ from aea.configurations.validation import (
 )
 from aea.helpers.io import open_file
 
-from deployments.constants import (
-    CONFIG_DIRECTORY,
-    KEYS,
-    NETWORKS,
-    PACKAGES_DIRECTORY,
-    PRICE_APIS,
-    RANDOMNESS_APIS,
-)
+from deployments.constants import CONFIG_DIRECTORY, KEYS, NETWORKS, PACKAGES_DIRECTORY
 
 
 class DeploymentConfigValidator(ConfigValidator):
@@ -74,16 +67,15 @@ class DeploymentConfigValidator(ConfigValidator):
             self._validator = OwnDraft4Validator(self._schema, resolver=self._resolver)
 
 
-def get_price_api(agent_n: int) -> Dict:
-    """Gets the price api for the agent."""
-    price_api = PRICE_APIS[agent_n % len(PRICE_APIS)]
-    return {f"PRICE_API_{k.upper()}": v for k, v in price_api}
-
-
-def get_randomness_api(agent_n: int) -> Dict:
-    """Gets the randomness api for the agent."""
-    randomness_api = RANDOMNESS_APIS[agent_n % len(RANDOMNESS_APIS)]
-    return {f"RANDOMNESS_{k.upper()}": v for k, v in randomness_api}
+def _process_model_args_overrides(component: Dict, agent_n: int) -> Dict:
+    """Generates env vars based on model overrides."""
+    overrides = {}
+    for model_name, model_overrides in component["models"].items():
+        available_overrides = model_overrides["args"]
+        override = available_overrides[agent_n % len(available_overrides)]
+        for arg_key, arg_value in override.items():
+            overrides[f"{model_name}_{arg_key}".upper()] = arg_value
+    return overrides
 
 
 class BaseDeployment:
@@ -96,10 +88,12 @@ class BaseDeployment:
     def __init__(self, path_to_deployment_spec: str) -> None:
         """Initialize the Base Deployment."""
         self.validator = DeploymentConfigValidator(
-            schema_filename="deployment_schema.json"
+            schema_filename="deployments/deployment_schema.json"
         )
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
-            self.deployment_spec = yaml.load(file, Loader=yaml.SafeLoader)
+            self.deployment_spec, self.overrides = yaml.load_all(
+                file, Loader=yaml.SafeLoader
+            )
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
         self.agent_spec = self.load_agent()
@@ -127,13 +121,10 @@ class BaseDeployment:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
         agent_vars.update(NETWORKS[self.network])
-
-        for section in self.agent_spec:
-            if section.get("models", None):
-                if "price_api" in section["models"].keys():  # type: ignore
-                    agent_vars.update(get_price_api(agent_n))
-                if "randomness_api" in section["models"].keys():  # type: ignore
-                    agent_vars.update(get_randomness_api(agent_n))
+        if self.overrides is None:
+            return agent_vars
+        for component in self.overrides["model_configuration_overrides"]:
+            agent_vars.update(_process_model_args_overrides(component, agent_n))
         return agent_vars
 
     def load_agent(self) -> List[Dict[str, str]]:
@@ -143,11 +134,6 @@ class BaseDeployment:
         with open(aea_project_path, "r", encoding="utf8") as file:
             aea_json = list(yaml.safe_load_all(file))
         return aea_json
-
-    def get_parameters(
-        self,
-    ) -> Dict:
-        """Retrieve the parameters for the deployment."""
 
     def locate_agent_from_package_directory(self, local_registry: bool = True) -> str:
         """Using the deployment id, locate the registry and retrieve the path."""
@@ -200,11 +186,6 @@ class BaseDeploymentGenerator:
         self, valory_application: Type[BaseDeployment]
     ) -> str:
         """Generate the deployment configuration."""
-
-    def get_parameters(
-        self,
-    ) -> Dict:
-        """Retrieve the parameters for the deployment."""
 
     def write_config(self) -> None:
         """Write output to build dir"""

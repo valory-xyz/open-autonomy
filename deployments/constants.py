@@ -19,8 +19,13 @@
 
 """Constants for generating deployments environment."""
 import os
+import socket
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+
+
+hostname = socket.gethostname()
+host_ip_address = socket.gethostbyname(hostname + ".local")
 
 
 KEYS: List[str] = [
@@ -100,7 +105,10 @@ PRICE_APIS: List[List[Tuple[str, str]]] = [
 
 
 NETWORKS = {
-    "hardhat": {"LEDGER_ADDRESS": "http://hardhat:8545", "LEDGER_CHAIN_ID": 31337},
+    "hardhat": {
+        "LEDGER_ADDRESS": f"http://{host_ip_address}:8545",
+        "LEDGER_CHAIN_ID": 31337,
+    },
     "ropsten": {
         "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
         "LEDGER_CHAIN_ID": 3,

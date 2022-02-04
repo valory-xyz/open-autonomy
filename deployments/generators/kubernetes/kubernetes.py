@@ -26,11 +26,8 @@ from typing import Any, Dict, List, Type
 
 import yaml
 
+from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 from deployments.constants import KEYS
-from deployments.deployments.base_deployments import (
-    BaseDeployment,
-    BaseDeploymentGenerator,
-)
 from deployments.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
