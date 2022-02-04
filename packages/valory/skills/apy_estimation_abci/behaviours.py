@@ -385,10 +385,13 @@ class TransformBehaviour(APYEstimationBaseState):
         super().__init__(**kwargs)
         self._transformed_history_save_path = ""
         self._async_result: Optional[AsyncResult] = None
+        self._pairs_hist: Optional[ResponseItemType] = None
+        self._transformed_hist_hash: Optional[str] = None
+        self._latest_observation_hist_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        pairs_hist = self.get_from_ipfs(
+        self._pairs_hist = self.get_from_ipfs(
             self.period_state.history_hash,
             self.context.data_dir,
             "historical_data.json",
@@ -400,68 +403,56 @@ class TransformBehaviour(APYEstimationBaseState):
             "transformed_historical_data.csv",
         )
 
-        if pairs_hist is not None:
+        if self._pairs_hist is not None:
             transform_task = TransformTask()
             task_id = self.context.task_manager.enqueue_task(
-                transform_task, args=(pairs_hist,)
+                transform_task, args=(self._pairs_hist,)
             )
             self._async_result = self.context.task_manager.get_task_result(task_id)
 
-        else:
-            self.context.logger.error(
-                "Could not create the transform task! This will result in an error while running the round!"
-            )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TransformBehaviour.")
-
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is None:
-            self.context.logger.error(
-                "Undefined behaviour encountered with `TransformTask`."
+        if self._pairs_hist is not None:
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The transform task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the transformed data from the task.
+            completed_task = self._async_result.get()
+            transformed_history = cast(pd.DataFrame, completed_task)
+            self.context.logger.info(
+                f"Data have been transformed:\n{transformed_history.to_string()}"
             )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TransformBehaviour.")
 
-        if not self._async_result.ready():
-            self.context.logger.debug("The transform task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
-            return
+            # Send the transformed history to IPFS and get its hash.
+            self._transformed_hist_hash = self.send_to_ipfs(
+                self._transformed_history_save_path,
+                transformed_history,
+                SupportedFiletype.CSV,
+            )
 
-        # Get the transformed data from the task.
-        completed_task = self._async_result.get()
-        transformed_history = cast(pd.DataFrame, completed_task)
-        self.context.logger.info(
-            f"Data have been transformed:\n{transformed_history.to_string()}"
-        )
-
-        # Send the transformed history to IPFS and get its hash.
-        transformed_hist_hash = self.send_to_ipfs(
-            self._transformed_history_save_path,
-            transformed_history,
-            SupportedFiletype.CSV,
-        )
-
-        # Get the latest observation.
-        latest_observation = transformed_history.iloc[[-1]]
-        # Send the latest observation to IPFS and get its hash.
-        latest_observation_save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
-            self.params.pair_ids[0],
-            "latest_observation.csv",
-        )
-        latest_observation_hist_hash = self.send_to_ipfs(
-            latest_observation_save_path,
-            latest_observation,
-            SupportedFiletype.CSV,
-            index=True,
-        )
+            # Get the latest observation.
+            latest_observation = transformed_history.iloc[[-1]]
+            # Send the latest observation to IPFS and get its hash.
+            latest_observation_save_path = os.path.join(
+                self.context.data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                "latest_observation.csv",
+            )
+            self._latest_observation_hist_hash = self.send_to_ipfs(
+                latest_observation_save_path,
+                latest_observation,
+                SupportedFiletype.CSV,
+                index=True,
+            )
 
         # Pass the hash as a Payload.
         payload = TransformationPayload(
             self.context.agent_address,
-            transformed_hist_hash,
-            latest_observation_hist_hash,
+            self._transformed_hist_hash,
+            self._latest_observation_hist_hash,
         )
 
         # Finish behaviour.
@@ -491,23 +482,28 @@ class PreprocessBehaviour(APYEstimationBaseState):
             custom_loader=load_hist,
         )
 
-        (y_train, y_test), pair_name = prepare_pair_data(
-            pairs_hist, self.params.pair_ids[0]
-        )
-        self.context.logger.info("Data have been preprocessed.")
-        self.context.logger.info(f"y_train: {y_train.to_string()}")
-        self.context.logger.info(f"y_test: {y_test.to_string()}")
+        hashes = [None] * 2
+        pair_name = ""
 
-        # Store and hash the preprocessed data.
-        hashes = []
-        for filename, split in {"train": y_train, "test": y_test}.items():
-            save_path = os.path.join(
-                self.context.data_dir,  # pylint: disable=W0212
-                self.params.pair_ids[0],
-                f"y_{filename}.csv",
+        if pairs_hist is not None:
+            (y_train, y_test), pair_name = prepare_pair_data(
+                pairs_hist, self.params.pair_ids[0]
             )
-            split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV)
-            hashes.append(split_hash)
+            self.context.logger.info("Data have been preprocessed.")
+            self.context.logger.info(f"y_train: {y_train.to_string()}")
+            self.context.logger.info(f"y_test: {y_test.to_string()}")
+
+            # Store and hash the preprocessed data.
+            for i, (filename, split) in enumerate(
+                {"train": y_train, "test": y_test}.items()
+            ):
+                save_path = os.path.join(
+                    self.context.data_dir,  # pylint: disable=W0212
+                    self.params.pair_ids[0],
+                    f"y_{filename}.csv",
+                )
+                split_hash = self.send_to_ipfs(save_path, split, SupportedFiletype.CSV)
+                hashes[i] = split_hash
 
         # Pass the hash as a Payload.
         payload = PreprocessPayload(
@@ -534,6 +530,7 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
         self._batch: Optional[ResponseItemType] = None
         self._prepared_batch_save_path = ""
         self._previous_batch: Optional[pd.DataFrame] = None
+        self._prepared_batch_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -566,29 +563,31 @@ class PrepareBatchBehaviour(APYEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        # Revert transformation on the previous batch.
-        previous_batch = revert_transform_hist_data(
-            cast(pd.DataFrame, self._previous_batch)
-        )[0]
-        # Insert the latest batch as a row before transforming, in order to be able to calculate the APY.
-        cast(ResponseItemType, self._batch).insert(0, previous_batch)
+        if not any(batch is None for batch in (self._previous_batch, self._batch)):
+            # Revert transformation on the previous batch.
+            previous_batch = revert_transform_hist_data(
+                cast(pd.DataFrame, self._previous_batch)
+            )[0]
+            # Insert the latest batch as a row before transforming, in order to be able to calculate the APY.
+            cast(ResponseItemType, self._batch).insert(0, previous_batch)
 
-        # Transform and filter data. We are not using a `Task` here, because preparing a single batch is not intense.
-        self.context.logger.info(f"Batch is:\n{self._batch}")
-        transformed_batch = transform_hist_data(cast(ResponseItemType, self._batch))
-        self.context.logger.info(
-            f"Batch has been transformed:\n{transformed_batch.to_string()}"
-        )
+            # Transform and filter data.
+            # We are not using a `Task` here, because preparing a single batch is not intense.
+            self.context.logger.info(f"Batch is:\n{self._batch}")
+            transformed_batch = transform_hist_data(cast(ResponseItemType, self._batch))
+            self.context.logger.info(
+                f"Batch has been transformed:\n{transformed_batch.to_string()}"
+            )
 
-        # Send the file to IPFS and get its hash.
-        prepared_batch_hash = self.send_to_ipfs(
-            self._prepared_batch_save_path, transformed_batch, SupportedFiletype.CSV
-        )
+            # Send the file to IPFS and get its hash.
+            self._prepared_batch_hash = self.send_to_ipfs(
+                self._prepared_batch_save_path, transformed_batch, SupportedFiletype.CSV
+            )
 
         # Pass the hash as a Payload.
         payload = BatchPreparationPayload(
             self.context.agent_address,
-            prepared_batch_hash,
+            self._prepared_batch_hash,
         )
 
         # Finish behaviour.
@@ -678,6 +677,8 @@ class OptimizeBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
+        self._y: Optional[pd.DataFrame] = None
+        self._best_params_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -686,7 +687,7 @@ class OptimizeBehaviour(APYEstimationBaseState):
             self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        y = cast(
+        self._y = cast(
             pd.DataFrame,
             self.get_from_ipfs(
                 self.period_state.train_hash,
@@ -696,66 +697,64 @@ class OptimizeBehaviour(APYEstimationBaseState):
             ),
         )
 
-        optimize_task = OptimizeTask()
-        task_id = self.context.task_manager.enqueue_task(
-            optimize_task,
-            args=(
-                y.values.ravel(),
-                self.period_state.most_voted_randomness,
-            ),
-            kwargs=self.params.optimizer_params,
-        )
-        self._async_result = self.context.task_manager.get_task_result(task_id)
+        if self._y is not None:
+            optimize_task = OptimizeTask()
+            task_id = self.context.task_manager.enqueue_task(
+                optimize_task,
+                args=(
+                    self._y.values.ravel(),
+                    self.period_state.most_voted_randomness,
+                ),
+                kwargs=self.params.optimizer_params,
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is None:
-            self.context.logger.error(
-                "Undefined behaviour encountered with `OptimizationTask`."
+        if self._y is not None:
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The optimization task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the study's result.
+            completed_task = self._async_result.get()
+            study = cast(Study, completed_task)
+            study_results = study.trials_dataframe()
+            self.context.logger.info(
+                "Optimization has finished. Showing the results:\n"
+                f"{study_results.to_string()}"
             )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue OptimizationTask.")
 
-        if not self._async_result.ready():
-            self.context.logger.debug("The optimization task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
-            return
-
-        # Get the study's result.
-        completed_task = self._async_result.get()
-        study = cast(Study, completed_task)
-        study_results = study.trials_dataframe()
-        self.context.logger.info(
-            "Optimization has finished. Showing the results:\n"
-            f"{study_results.to_string()}"
-        )
-
-        # Store the best params from the results.
-        best_params_save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
-            self.params.pair_ids[0],
-            "best_params.json",
-        )
-
-        try:
-            best_params = study.best_params
-
-        except ValueError:
-            # If no trial finished, set random params as best.
-            best_params = study.trials[0].params
-            self.context.logger.warning(
-                "The optimization could not be done! "
-                "Please make sure that there is a sufficient number of data "
-                "for the optimization procedure. Setting best parameters randomly!"
+            # Store the best params from the results.
+            best_params_save_path = os.path.join(
+                self.context.data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                "best_params.json",
             )
-            # Fix: exit round via fail event and move to right round
 
-        best_params_hash = self.send_to_ipfs(
-            best_params_save_path, best_params, SupportedFiletype.JSON
-        )
+            try:
+                best_params = study.best_params
+
+            except ValueError:
+                # If no trial finished, set random params as best.
+                best_params = study.trials[0].params
+                self.context.logger.warning(
+                    "The optimization could not be done! "
+                    "Please make sure that there is a sufficient number of data "
+                    "for the optimization procedure. Setting best parameters randomly!"
+                )
+                # Fix: exit round via fail event and move to right round
+
+            self._best_params_hash = self.send_to_ipfs(
+                best_params_save_path, best_params, SupportedFiletype.JSON
+            )
 
         # Pass the best params hash as a Payload.
-        payload = OptimizationPayload(self.context.agent_address, best_params_hash)
+        payload = OptimizationPayload(
+            self.context.agent_address, self._best_params_hash
+        )
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -775,17 +774,18 @@ class TrainBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
+        self._best_params: Optional[Dict[str, Any]] = None
+        self._y: Optional[np.ndarray] = None
+        self._model_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        y: Union[np.ndarray, List[np.ndarray]] = []
-
         # Load the best params from the optimization results.
         best_params_path = os.path.join(
             self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
-        best_params = cast(
+        self._best_params = cast(
             Dict[str, Any],
             self.get_from_ipfs(
                 self.period_state.params_hash,
@@ -796,6 +796,7 @@ class TrainBehaviour(APYEstimationBaseState):
         )
 
         # Load training data.
+        splits: List[np.ndarray] = []
         if self.period_state.full_training:
             for split in ("train", "test"):
                 path = os.path.join(
@@ -811,16 +812,16 @@ class TrainBehaviour(APYEstimationBaseState):
                         SupportedFiletype.CSV,
                     ),
                 )
-                cast(List[np.ndarray], y).append(df.values.ravel())
+                cast(List[np.ndarray], splits).append(df.values.ravel())
 
-            y = np.concatenate(y)
+            self._y = np.concatenate(splits)
 
         else:
             path = os.path.join(
                 self.context.data_dir,  # pylint: disable=W0212
                 self.params.pair_ids[0],
             )
-            y = cast(
+            self._y = cast(
                 pd.DataFrame,
                 self.get_from_ipfs(
                     self.period_state.train_hash,
@@ -830,44 +831,40 @@ class TrainBehaviour(APYEstimationBaseState):
                 ),
             ).values.ravel()
 
-        train_task = TrainTask()
-        task_id = self.context.task_manager.enqueue_task(
-            train_task, args=(y,), kwargs=best_params
-        )
-        self._async_result = self.context.task_manager.get_task_result(task_id)
+        if not any(arg is None for arg in (self._y, self._best_params)):
+            train_task = TrainTask()
+            task_id = self.context.task_manager.enqueue_task(
+                train_task, args=(self._y,), kwargs=self._best_params
+            )
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is None:
-            self.context.logger.error(
-                "Undefined behaviour encountered with `TrainTask`."
+        if not any(arg is None for arg in (self._y, self._best_params)):
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The training task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the trained estimator.
+            completed_task = self._async_result.get()
+            forecaster = cast(Pipeline, completed_task)
+            self.context.logger.info("Training has finished.")
+
+            prefix = "fully_trained_" if self.period_state.full_training else ""
+            forecaster_save_path = os.path.join(
+                self.context.data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                f"{prefix}forecaster.joblib",
             )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TrainTask.")
 
-        if not self._async_result.ready():
-            self.context.logger.debug("The training task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
-            return
+            # Send the file to IPFS and get its hash.
+            self._model_hash = self.send_to_ipfs(
+                forecaster_save_path, forecaster, SupportedFiletype.PM_PIPELINE
+            )
 
-        # Get the trained estimator.
-        completed_task = self._async_result.get()
-        forecaster = cast(Pipeline, completed_task)
-        self.context.logger.info("Training has finished.")
-
-        prefix = "fully_trained_" if self.period_state.full_training else ""
-        forecaster_save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
-            self.params.pair_ids[0],
-            f"{prefix}forecaster.joblib",
-        )
-
-        # Send the file to IPFS and get its hash.
-        model_hash = self.send_to_ipfs(
-            forecaster_save_path, forecaster, SupportedFiletype.PM_PIPELINE
-        )
-
-        payload = TrainingPayload(self.context.agent_address, model_hash)
+        payload = TrainingPayload(self.context.agent_address, self._model_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -887,12 +884,14 @@ class TestBehaviour(APYEstimationBaseState):
         """Initialize Behaviour."""
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
+        self._y_train: Optional[np.ndarray] = None
+        self._y_test: Optional[np.ndarray] = None
+        self._forecaster: Optional[Pipeline] = None
+        self._report_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
-        # Load test data.
-        y: Dict[str, Optional[np.ndarray]] = {"y_train": None, "y_test": None}
-
+        # Load data.
         for split in ("train", "test"):
             path = os.path.join(
                 self.context.data_dir,  # pylint: disable=W0212
@@ -907,63 +906,63 @@ class TestBehaviour(APYEstimationBaseState):
                     SupportedFiletype.CSV,
                 ),
             )
-            y[f"y_{split}"] = df.values.ravel()
+            setattr(self, f"_y_{split}", df.values.ravel())
 
         model_path = os.path.join(
             self.context.data_dir,  # pylint: disable=W0212
             self.params.pair_ids[0],
         )
 
-        forecaster = self.get_from_ipfs(
+        self._forecaster = self.get_from_ipfs(
             self.period_state.model_hash,
             model_path,
             "forecaster.joblib",
             SupportedFiletype.PM_PIPELINE,
         )
 
-        test_task = TestTask()
-        task_args = (
-            forecaster,
-            y["y_train"],
-            y["y_test"],
-            self.period_state.pair_name,
-            self.params.testing["steps_forward"],
-        )
-        task_id = self.context.task_manager.enqueue_task(test_task, task_args)
-        self._async_result = self.context.task_manager.get_task_result(task_id)
+        if not any(
+            arg is None for arg in (self._y_train, self._y_test, self._forecaster)
+        ):
+            test_task = TestTask()
+            task_args = (
+                self._forecaster,
+                self._y_train,
+                self._y_test,
+                self.period_state.pair_name,
+                self.params.testing["steps_forward"],
+            )
+            task_id = self.context.task_manager.enqueue_task(test_task, task_args)
+            self._async_result = self.context.task_manager.get_task_result(task_id)
 
     def async_act(self) -> Generator:
         """Do the action."""
-        if self._async_result is None:
-            self.context.logger.error(
-                "Undefined behaviour encountered with `TestTask`."
+        if not any(
+            arg is None for arg in (self._y_train, self._y_test, self._forecaster)
+        ):
+            self._async_result = cast(AsyncResult, self._async_result)
+            if not self._async_result.ready():
+                self.context.logger.debug("The testing task is not finished yet.")
+                yield from self.sleep(self.params.sleep_time)
+                return
+
+            # Get the test report.
+            completed_task = self._async_result.get()
+            report = cast(TestReportType, completed_task)
+            self.context.logger.info(f"Testing has finished. Report follows:\n{report}")
+
+            # Store the results.
+            report_save_path = os.path.join(
+                self.context.data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                "test_report.json",
             )
-            # Fix: exit round via fail event and move to right round
-            raise RuntimeError("Cannot continue TestTask.")
-
-        if not self._async_result.ready():
-            self.context.logger.debug("The testing task is not finished yet.")
-            yield from self.sleep(self.params.sleep_time)
-            return
-
-        # Get the test report.
-        completed_task = self._async_result.get()
-        report = cast(TestReportType, completed_task)
-        self.context.logger.info(f"Testing has finished. Report follows:\n{report}")
-
-        # Store the results.
-        report_save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
-            self.params.pair_ids[0],
-            "test_report.json",
-        )
-        # Send the file to IPFS and get its hash.
-        report_hash = self.send_to_ipfs(
-            report_save_path, report, SupportedFiletype.JSON
-        )
+            # Send the file to IPFS and get its hash.
+            self._report_hash = self.send_to_ipfs(
+                report_save_path, report, SupportedFiletype.JSON
+            )
 
         # Pass the hash and the best trial as a Payload.
-        payload = TestingPayload(self.context.agent_address, report_hash)
+        payload = TestingPayload(self.context.agent_address, self._report_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -985,6 +984,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
         self._y: Optional[np.ndarray] = None
         self._forecaster_filename: Optional[str] = None
         self._forecaster: Optional[Pipeline] = None
+        self._model_hash: Optional[str] = None
 
     def setup(self) -> None:
         """Setup behaviour."""
@@ -1005,7 +1005,8 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
             ),
         )
 
-        self._y = transformed_batch["APY"].values.ravel()
+        if transformed_batch is not None:
+            self._y = transformed_batch["APY"].values.ravel()
 
         # Load forecaster.
         self._forecaster = self.get_from_ipfs(
@@ -1017,20 +1018,21 @@ class UpdateForecasterBehaviour(APYEstimationBaseState):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        cast(Pipeline, self._forecaster).update(self._y)
-        self.context.logger.info("Forecaster has been updated.")
+        if not any(arg is None for arg in (self._y, self._forecaster)):
+            cast(Pipeline, self._forecaster).update(self._y)
+            self.context.logger.info("Forecaster has been updated.")
 
-        # Send the file to IPFS and get its hash.
-        forecaster_save_path = os.path.join(
-            self.context.data_dir,  # pylint: disable=W0212
-            self.params.pair_ids[0],
-            cast(str, self._forecaster_filename),
-        )
-        model_hash = self.send_to_ipfs(
-            forecaster_save_path, self._forecaster, SupportedFiletype.PM_PIPELINE
-        )
+            # Send the file to IPFS and get its hash.
+            forecaster_save_path = os.path.join(
+                self.context.data_dir,  # pylint: disable=W0212
+                self.params.pair_ids[0],
+                cast(str, self._forecaster_filename),
+            )
+            self._model_hash = self.send_to_ipfs(
+                forecaster_save_path, self._forecaster, SupportedFiletype.PM_PIPELINE
+            )
 
-        payload = UpdatePayload(self.context.agent_address, model_hash)
+        payload = UpdatePayload(self.context.agent_address, self._model_hash)
 
         # Finish behaviour.
         with benchmark_tool.measure(self).consensus():
@@ -1070,14 +1072,16 @@ class EstimateBehaviour(APYEstimationBaseState):
             ),
         )
 
-        # currently, a `steps_forward != 1` will fail
-        estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
+        estimation = None
+        if forecaster is not None:
+            # currently, a `steps_forward != 1` will fail
+            estimation = forecaster.predict(self.params.estimation["steps_forward"])[0]
 
-        self.context.logger.info(
-            "Got estimate of APY for %s: %s",
-            self.period_state.pair_name,
-            estimation,
-        )
+            self.context.logger.info(
+                "Got estimate of APY for %s: %s",
+                self.period_state.pair_name,
+                estimation,
+            )
 
         payload = EstimatePayload(self.context.agent_address, estimation)
 

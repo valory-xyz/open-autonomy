@@ -375,7 +375,7 @@ class EstimatePayload(BaseAPYPayload):
     transaction_type = TransactionType.ESTIMATION
 
     def __init__(
-        self, sender: str, estimation: float, id_: Optional[str] = None
+        self, sender: str, estimation: Optional[float], id_: Optional[str] = None
     ) -> None:
         """Initialize an 'estimate' transaction payload.
 
@@ -387,12 +387,12 @@ class EstimatePayload(BaseAPYPayload):
         self._estimation = estimation
 
     @property
-    def estimation(self) -> float:
+    def estimation(self) -> Optional[float]:
         """Get the estimation."""
         return self._estimation
 
     @property
-    def data(self) -> Dict[str, float]:
+    def data(self) -> Dict[str, Optional[float]]:
         """Get the data."""
         return {"estimation": self._estimation}
 

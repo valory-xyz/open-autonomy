@@ -415,6 +415,9 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            if self.most_voted_payload is None:
+                return self._return_file_error()
+
             updated_state = self.period_state.update(
                 period_state_class=PeriodState,
                 participants_to_estimate=self.collection,
@@ -608,6 +611,7 @@ class APYEstimationAbciApp(AbciApp[Event]):  # pylint: disable=too-few-public-me
             Event.ESTIMATION_CYCLE: CycleResetRound,
             Event.ROUND_TIMEOUT: EstimateRound,
             Event.NO_MAJORITY: EstimateRound,
+            Event.FILE_ERROR: FailedAPYRound,
         },
         FreshModelResetRound: {
             Event.DONE: CollectHistoryRound,
