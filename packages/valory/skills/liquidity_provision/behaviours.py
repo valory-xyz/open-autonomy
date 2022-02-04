@@ -46,6 +46,7 @@ from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
+    SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
@@ -439,10 +440,12 @@ class SleepBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             yield from self.sleep(SLEEP_SECONDS)
+            payload = SleepPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
             self,
         ).consensus():
+            yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()

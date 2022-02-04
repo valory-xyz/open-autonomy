@@ -30,7 +30,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BasePeriodState,
-    BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -38,6 +37,7 @@ from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
+    SleepPayload,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     SignaturePayload,
@@ -207,21 +207,22 @@ class StrategyEvaluationRound(
         return None
 
 
-class SleepRound(LiquidityProvisionAbstractRound):
+class SleepRound(CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound):
     """A round in which agents wait for a predefined amount of time"""
 
     round_id = "sleep"
-    allowed_tx_type = None
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payload."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payload."""
+    allowed_tx_type = SleepPayload.transaction_type
+    payload_attribute = "sleep"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        return self.period_state, Event.DONE
+        if self.threshold_reached:
+            return self.period_state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class EnterPoolTransactionHashRound(TransactionHashBaseRound):

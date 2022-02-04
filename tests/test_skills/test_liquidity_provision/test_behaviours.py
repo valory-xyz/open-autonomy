@@ -1808,4 +1808,5 @@ class TestSleepBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.behaviour.act_wrapper()
         time.sleep(SLEEP_SECONDS)
         self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
         self._test_done_flag_set()
