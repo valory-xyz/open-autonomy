@@ -376,7 +376,13 @@ def send_a2a_transaction(payload: BaseTxPayload) -> Generator
 
 Send transaction and wait for the response, and repeat until not successful.
 
-Calls `_send_transaction` and uses the default stop condition (based on round id).
+Flow of the message
+
+0. send_a2a_transaction
+1. _send_transaction
+2. _submit_tx
+3. _do_request
+4. http client
 
 :param: payload: the payload to send
 :yield: the responses

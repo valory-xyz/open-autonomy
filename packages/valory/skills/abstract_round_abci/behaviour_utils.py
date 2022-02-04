@@ -415,7 +415,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send transaction and wait for the response, and repeat until not successful.
 
-        Calls `_send_transaction` and uses the default stop condition (based on round id).
+        Flow of the message
+
+        0. send_a2a_transaction
+        1. _send_transaction
+        2. _submit_tx
+        3. _do_request
+        4. http client
 
         :param: payload: the payload to send
         :yield: the responses
@@ -700,7 +706,14 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _has_synced_up(
         self,
     ) -> Generator[None, None, bool]:  # pragma: nocover
-        """Check if agent has completed sync."""
+        """
+        Check if agent has completed sync.
+
+        Flow of the message
+
+        0. _has_synced_up
+        1. _get_status
+        """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
             status = yield from self._get_status()
