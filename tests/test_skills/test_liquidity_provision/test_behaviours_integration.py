@@ -620,7 +620,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -668,7 +667,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_enter,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -746,7 +744,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -794,7 +791,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_exit,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -867,7 +863,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_swap_back,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -915,7 +910,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_swap_back,
                 tx_hashes_history=[tx_digest],
             ),
         )

@@ -127,11 +127,6 @@ class PeriodState(
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
-    def most_voted_tx_data(self) -> str:
-        """Get the most_voted_enter_pool_tx_data."""
-        return cast(str, self.db.get_strict("most_voted_tx_data"))
-
-    @property
     def final_tx_hash(self) -> str:
         """Get the final_enter_pool_tx_hash."""
         return cast(str, self.db.get_strict("final_tx_hash"))
@@ -175,7 +170,6 @@ class TransactionHashBaseRound(
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
-                most_voted_tx_data=dict_["tx_data"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(

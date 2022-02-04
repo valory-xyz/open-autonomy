@@ -110,9 +110,6 @@ class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
                     most_voted_tx_hash=json.loads(_test_round.most_voted_payload)[
                         "tx_hash"
                     ],
-                    most_voted_tx_data=json.loads(_test_round.most_voted_payload)[
-                        "tx_data"
-                    ],
                 ),
                 state_attr_checks=[
                     lambda state: state.participant_to_tx_hash.keys(),
