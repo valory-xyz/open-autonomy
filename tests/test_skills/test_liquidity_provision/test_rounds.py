@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.liquidity_provision.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
+    StrategyType,
 )
 from packages.valory.skills.liquidity_provision.rounds import (  # noqa: F401
     Event,
@@ -61,7 +62,7 @@ def get_participant_to_strategy(
     """Returns test value for participant_to_strategy"""
     return dict(
         [
-            (participant, StrategyEvaluationPayload(sender=participant, strategy={}))
+            (participant, StrategyEvaluationPayload(sender=participant, strategy="{}"))
             for participant in participants
         ]
     )
@@ -140,13 +141,18 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
     _period_state_class = PeriodState
     _event_class = Event
 
-    def test_run_enter(
+    def test_run_wait(
         self,
     ) -> None:
         """Run tests."""
         test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
+
+        strategy_mock = mock.PropertyMock(return_value=json.dumps(dict(action="wait")))
+
         with mock.patch.object(
-            StrategyEvaluationPayload, "strategy", return_value="strategy"
+            StrategyEvaluationPayload,
+            "strategy",
+            strategy_mock,
         ):
             self._complete_run(
                 self._test_round(
@@ -162,7 +168,100 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
                         lambda state: state.participant_to_strategy.keys(),
                     ],
                     most_voted_payload=StrategyEvaluationPayload.strategy,
-                    exit_event=Event.RESET_TIMEOUT,
+                    exit_event=Event.DONE,
+                )
+            )
+
+    def test_run_enter(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
+
+        strategy_mock = mock.PropertyMock(return_value=json.dumps(dict(action="enter")))
+
+        with mock.patch.object(
+            StrategyEvaluationPayload,
+            "strategy",
+            strategy_mock,
+        ):
+            self._complete_run(
+                self._test_round(
+                    test_round=test_round,
+                    round_payloads=get_participant_to_strategy(self.participants),
+                    state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                        participant_to_strategy=get_participant_to_strategy(
+                            self.participants
+                        ),
+                        most_voted_strategy=test_round.most_voted_payload,
+                    ),
+                    state_attr_checks=[
+                        lambda state: state.participant_to_strategy.keys(),
+                    ],
+                    most_voted_payload=StrategyEvaluationPayload.strategy,
+                    exit_event=Event.DONE_ENTER,
+                )
+            )
+
+    def test_run_exit(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
+
+        strategy_mock = mock.PropertyMock(return_value=json.dumps(dict(action="exit")))
+
+        with mock.patch.object(
+            StrategyEvaluationPayload,
+            "strategy",
+            strategy_mock,
+        ):
+            self._complete_run(
+                self._test_round(
+                    test_round=test_round,
+                    round_payloads=get_participant_to_strategy(self.participants),
+                    state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                        participant_to_strategy=get_participant_to_strategy(
+                            self.participants
+                        ),
+                        most_voted_strategy=test_round.most_voted_payload,
+                    ),
+                    state_attr_checks=[
+                        lambda state: state.participant_to_strategy.keys(),
+                    ],
+                    most_voted_payload=StrategyEvaluationPayload.strategy,
+                    exit_event=Event.DONE_EXIT,
+                )
+            )
+
+    def test_run_swap_back(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
+
+        strategy_mock = mock.PropertyMock(return_value=json.dumps(dict(action="swap_back")))
+
+        with mock.patch.object(
+            StrategyEvaluationPayload,
+            "strategy",
+            strategy_mock,
+        ):
+            self._complete_run(
+                self._test_round(
+                    test_round=test_round,
+                    round_payloads=get_participant_to_strategy(self.participants),
+                    state_update_fn=lambda _period_state, _test_round: _period_state.update(
+                        participant_to_strategy=get_participant_to_strategy(
+                            self.participants
+                        ),
+                        most_voted_strategy=test_round.most_voted_payload,
+                    ),
+                    state_attr_checks=[
+                        lambda state: state.participant_to_strategy.keys(),
+                    ],
+                    most_voted_payload=StrategyEvaluationPayload.strategy,
+                    exit_event=Event.DONE_SWAP_BACK,
                 )
             )
 
