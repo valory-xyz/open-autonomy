@@ -68,9 +68,9 @@ class PeriodState(
     """
 
     @property
-    def most_voted_strategy(self) -> dict:
+    def most_voted_strategy(self) -> str:
         """Get the most_voted_strategy."""
-        return cast(dict, self.db.get_strict("most_voted_strategy"))
+        return cast(str, self.db.get_strict("most_voted_strategy"))
 
     @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
@@ -190,14 +190,17 @@ class StrategyEvaluationRound(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )
+
+            strategy = json.loads(self.most_voted_payload)
+
             event = Event.RESET_TIMEOUT
-            if self.most_voted_payload["action"] == StrategyType.WAIT.value:
+            if strategy["action"] == StrategyType.WAIT.value:
                 event = Event.DONE
-            elif self.most_voted_payload["action"] == StrategyType.ENTER.value:
+            elif strategy["action"] == StrategyType.ENTER.value:
                 event = Event.DONE_ENTER
-            elif self.most_voted_payload["action"] == StrategyType.EXIT.value:
+            elif strategy["action"] == StrategyType.EXIT.value:
                 event = Event.DONE_EXIT
-            elif self.most_voted_payload["action"] == StrategyType.SWAP_BACK.value:
+            elif strategy["action"] == StrategyType.SWAP_BACK.value:
                 event = Event.DONE_SWAP_BACK
             return state, event
         if not self.is_majority_possible(

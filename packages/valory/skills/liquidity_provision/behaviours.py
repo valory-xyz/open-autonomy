@@ -257,7 +257,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
     def get_tx_result(self) -> Generator[None, None, list]:
         """Transaction transfer result."""
-        strategy = self.period_state.most_voted_strategy
+        strategy = json.loads(self.period_state.most_voted_strategy)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["token_LP"]["address"],
@@ -378,7 +378,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             # unless we start with WAIT. Then it will keep waiting.
             strategy: dict = {}
             try:
-                strategy = self.period_state.most_voted_strategy
+                strategy = json.loads(self.period_state.most_voted_strategy)
 
                 if strategy["action"] == StrategyType.ENTER.value:
                     strategy["action"] = StrategyType.EXIT.value
@@ -414,7 +414,9 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                     f"Performing strategy update: swapping back {strategy['token_a']['ticker']}, {strategy['token_b']['ticker']}"
                 )
 
-            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
+            payload = StrategyEvaluationPayload(
+                self.context.agent_address, json.dumps(strategy)
+            )
 
         with benchmark_tool.measure(
             self,
@@ -482,7 +484,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -671,7 +673,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             # Get previous transaction's results
             transfers = yield from self.get_tx_result()
@@ -838,7 +840,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             transfers = yield from self.get_tx_result()
             transfers = transfers if transfers else []

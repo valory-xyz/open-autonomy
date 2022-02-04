@@ -67,7 +67,7 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.STRATEGY_EVALUATION
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, strategy: str, id_: Optional[str] = None) -> None:
         """Initialize a 'strategy_evaluation' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -78,7 +78,7 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
         self._strategy = strategy
 
     @property
-    def strategy(self) -> dict:
+    def strategy(self) -> str:
         """Get the strategy."""
         return self._strategy
 
