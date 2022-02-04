@@ -1196,6 +1196,78 @@ class TestExitPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
         self.end_round(Event.DONE)
 
 
+    def test_log_no_tx_results(
+        self,
+    ) -> None:
+        """Test tx hash behaviour."""
+
+        strategy = get_default_strategy(
+            is_base_native=False, is_a_native=True, is_b_native=False
+        )
+        period_state = LiquidityProvisionPeriodState(
+            StateDB(
+                initial_period=0,
+                initial_data=dict(
+                    most_voted_tx_hash="0x",
+                    safe_contract_address="safe_contract_address",
+                    most_voted_keeper_address="most_voted_keeper_address",
+                    most_voted_strategy=strategy,
+                    multisend_contract_address="multisend_contract_address",
+                    router_contract_address="router_contract_address",
+                    most_voted_transfers='{"transfers":[]}',
+                    final_tx_hash=binascii.hexlify(b"dummy_tx").decode(),
+                ),
+            )
+        )
+
+        self.fast_forward_to_state(
+            behaviour=self.behaviour,
+            state_id=ExitPoolTransactionHashBehaviour.state_id,
+            period_state=period_state,
+        )
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == ExitPoolTransactionHashBehaviour.state_id
+        )
+        self.behaviour.act_wrapper()
+
+
+        # Get previous transaction's results
+        self.mock_contract_api_request(
+            contract_id=str(UniswapV2ERC20Contract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+                contract_address=strategy["token_LP"]["address"],
+                kwargs=Kwargs(
+                    dict(
+                        tx_hash=period_state.final_tx_hash,
+                        target_address=period_state.safe_contract_address,
+                    )
+                ),
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.ERROR,
+                callable="verify_tx",
+                state=State(
+                    ledger_id="ethereum",
+                    body={"logs": []},
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState,
+                cast(BaseState, self.behaviour.current_state),
+            ).state_id
+            == ExitPoolTransactionHashBehaviour.state_id
+        )
+
+
+
 class TestSwapBackTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase):
     """Test SwapBackTransactionHashBehaviour."""
 

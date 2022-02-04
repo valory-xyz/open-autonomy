@@ -45,7 +45,6 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
     StrategyEvaluationPayload,
     StrategyType,
@@ -122,10 +121,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
         """Return the period state."""
         return cast(PeriodState, super().period_state)
 
-    @property
-    def params(self) -> Params:
-        """Return the params."""
-        return cast(Params, super().params)
 
     def get_swap_tx_data(  # pylint: disable=too-many-arguments
         self,
