@@ -342,10 +342,12 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
 
     def __init__(self, **kwargs: Any):
         """Initialize an `IPFSBehaviour`."""
-        SimpleBehaviour.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.ipfs_enabled = False
-        # TODO do not hardcode domain. Pass it here somehow via the `skill.yaml`.
-        domain = "/dns/localhost/tcp/5001/http"
+        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
+        # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
+        # Therefore, `IPFSBehaviour` will be disabled.
+        domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
         if domain is not None:
             self.ipfs_enabled = True
             self._ipfs_interact = IPFSInteract(domain)
