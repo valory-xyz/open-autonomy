@@ -240,7 +240,9 @@ class TestStrategyEvaluationRound(BaseCollectSameUntilThresholdRoundTest):
         """Run tests."""
         test_round = StrategyEvaluationRound(self.period_state, self.consensus_params)
 
-        strategy_mock = mock.PropertyMock(return_value=json.dumps(dict(action="swap_back")))
+        strategy_mock = mock.PropertyMock(
+            return_value=json.dumps(dict(action="swap_back"))
+        )
 
         with mock.patch.object(
             StrategyEvaluationPayload,
