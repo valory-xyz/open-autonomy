@@ -24,7 +24,6 @@ from textwrap import dedent
 from typing import Any, Dict
 
 from deployments.base_deployments import BaseDeployment
-from deployments.constants import NETWORKS
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
