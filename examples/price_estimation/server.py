@@ -19,8 +19,12 @@
 
 """Server for testing"""
 
+from typing import Optional
 from http import HTTPStatus
 from datetime import datetime
+import json
+import asyncio
+import websockets
 from flask import Flask, request, jsonify
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
@@ -31,6 +35,7 @@ app = Flask(__name__)
 PORT = 9999  # must match skill.yaml file specification
 period_data = {}
 data_sources = {}
+last_period_count: Optional[int] = None
 
 
 dummy_period_data = {
@@ -72,18 +77,18 @@ def sources():
 @app.route("/deposit", methods=['POST'])
 def deposit() -> int:
     """Receive agent http POST request data from oracle service"""
+
     raw_data = request.get_data()
     oracle_data = DictProtobufStructSerializer.decode(raw_data)
 
-    # now updates each time, not necessary but works
-    data_sources[oracle_data.pop("agent_name")] = oracle_data.pop("data_source")
-
-    period_count = oracle_data.pop("period_count", None)
-    if period_count is not None and period_count not in period_data:
+    try:
+        period_count = oracle_data.pop("period_count")
+        agent_address = oracle_data.pop("agent_address")
         oracle_data['time_stamp'] = datetime.now().isoformat()
-        period_data[period_count] = oracle_data
-        print(f'added data for period {period_count}')
-    return HTTPStatus.CREATED
+        data.setdefault(period_count, {})[agent_address] = oracle_data
+        return HTTPStatus.CREATED
+    except Exception:
+        return HTTPStatus.BAD_REQUEST
 
 
 if __name__ == '__main__':
