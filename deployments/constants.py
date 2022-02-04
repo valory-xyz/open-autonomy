@@ -119,7 +119,6 @@ DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
     },
 }
 
-APPLICATIONS = {"valory/counter", "valory/price_estimation", "valory/apy_estimation"}
 
 CONFIG_DIRECTORY = Path(os.getcwd()) / "deployments" / "build"
-AEA_DIRECTORY = Path(os.getcwd()) / "packages"
+PACKAGES_DIRECTORY = Path(os.getcwd()) / "packages"

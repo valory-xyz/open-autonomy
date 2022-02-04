@@ -21,22 +21,57 @@
 
 
 import abc
+import json
 import os
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Dict, List, Type
 
+import jsonschema
 import yaml
-from aea.configurations import validation
+from aea.configurations.validation import (
+    ConfigValidator,
+    EnvVarsFriendlyDraft4Validator,
+    OwnDraft4Validator,
+    make_jsonschema_base_uri,
+)
+from aea.helpers.io import open_file
 
 from deployments.constants import (
-    AEA_DIRECTORY,
     CONFIG_DIRECTORY,
     KEYS,
     NETWORKS,
+    PACKAGES_DIRECTORY,
     PRICE_APIS,
     RANDOMNESS_APIS,
 )
+
+
+class DeploymentConfigValidator(ConfigValidator):
+    """Configuration validator implementation."""
+
+    def __init__(  # pylint: disable=super-init-not-called
+        self, schema_filename: str, env_vars_friendly: bool = False
+    ) -> None:
+        """
+        Initialize the parser for configuration files.
+
+        :param schema_filename: the path to the JSON-schema file in 'aea/configurations/schemas'.
+        :param env_vars_friendly: whether or not it is env var friendly.
+        """
+        base_uri = Path(__file__).parent
+        with open_file(base_uri / schema_filename) as fp:
+            self._schema = json.load(fp)
+        root_path = make_jsonschema_base_uri(base_uri)
+        self._resolver = jsonschema.RefResolver(root_path, self._schema)
+        self.env_vars_friendly = env_vars_friendly
+
+        if env_vars_friendly:
+            self._validator = EnvVarsFriendlyDraft4Validator(
+                self._schema, resolver=self._resolver
+            )
+        else:
+            self._validator = OwnDraft4Validator(self._schema, resolver=self._resolver)
 
 
 def get_price_api(agent_n: int) -> Dict:
@@ -60,12 +95,9 @@ class BaseDeployment:
 
     def __init__(self, path_to_deployment_spec: str) -> None:
         """Initialize the Base Deployment."""
-        old_dir = validation._SCHEMAS_DIR
-        validation._SCHEMAS_DIR = os.getcwd()  # pylint: disable=protected-access
-        self.validator = validation.ConfigValidator(
-            schema_filename="deployments/deployment_specifications/deployment_schema.json"
+        self.validator = DeploymentConfigValidator(
+            schema_filename="deployment_schema.json"
         )
-        validation._SCHEMAS_DIR = old_dir
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
             self.deployment_spec = yaml.load(file, Loader=yaml.SafeLoader)
         self.validator.validate(self.deployment_spec)
@@ -121,7 +153,7 @@ class BaseDeployment:
         """Using the deployment id, locate the registry and retrieve the path."""
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
-        for subdir, _, files in os.walk(AEA_DIRECTORY):
+        for subdir, _, files in os.walk(PACKAGES_DIRECTORY):
             for file in files:
                 if file == "aea-config.yaml":
                     path = os.path.join(subdir, file)

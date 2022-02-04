@@ -27,7 +27,10 @@ from typing import Any, Dict, List, Tuple
 
 import yaml
 
-from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
+from deployments.deployments.base_deployments import (
+    BaseDeployment,
+    BaseDeploymentGenerator,
+)
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
 from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
