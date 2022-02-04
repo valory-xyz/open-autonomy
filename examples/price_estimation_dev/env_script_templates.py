@@ -119,10 +119,11 @@ ABCI_NODE_TEMPLATE: str = """
       context: ./
       dockerfile: ./Dockerfile
     volumes:
+      - ./:/exc:Z
       - ./logs/:/logs:Z
       - ./configure_agents/:/configure_agents:Z
       - {root_dir}/packages:/packages:Z
-    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "python3", "-u", "/home/ubuntu/watcher.py"]
+    command: ["/usr/bin/wait-for-it", "-t", "120", "hardhat:8545", "--", "python3", "-u", "/exc/watcher.py"]
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}

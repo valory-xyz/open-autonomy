@@ -227,19 +227,6 @@ class AbstractRoundBehaviour(
         if current_state is None:
             return
 
-        if self.context.period.syncing_up:
-            if (
-                self.has_synced_up
-                and cast(BaseState, self.current_state).can_rejoin_in_this_round
-            ):
-                self.context.period.end_sync()
-
-        if (
-            self.context.period.syncing_up
-            and not cast(BaseState, self.current_state).run_during_sync
-        ):
-            return
-
         current_state.act_wrapper()
 
         if current_state.is_done():

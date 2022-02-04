@@ -90,10 +90,10 @@ class AEARunner:
         self.process = None
 
     @staticmethod
-    def restart_tendermint() -> None:
+    def restart_tendermint(reset_type: str = "hard") -> None:
         """Restart respective tendermint node."""
         write("Restarting Tendermint.")
-        response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
+        response = requests.get(TENDERMINT_COM_URL + f"/{reset_type}_reset")
         assert response.status_code == 200
 
     def start(
@@ -175,10 +175,19 @@ if __name__ == "__main__":
     event_handler = RestartAEA()
     observer = Observer()
     observer.schedule(event_handler, PACKAGES_PATH, recursive=True)
+
+    c = 0
+
     try:
         observer.start()
         while True:
             time.sleep(1)
+            c += 1
+            if (c % 120) == 0 and ID == "0":
+                event_handler.aea.stop()
+                event_handler.aea.restart_tendermint("gentle")
+                event_handler.aea.start()
+
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
