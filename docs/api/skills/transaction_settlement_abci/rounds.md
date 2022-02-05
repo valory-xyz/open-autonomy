@@ -37,17 +37,6 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.oracle_contract_address"></a>
-
-#### oracle`_`contract`_`address
-
-```python
-@property
-def oracle_contract_address() -> str
-```
-
-Get the oracle contract address.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.participant_to_signature"></a>
 
 #### participant`_`to`_`signature

@@ -691,7 +691,7 @@ This is the relevant state constructed and replicated by the agents in a period.
 #### `__`init`__`
 
 ```python
-def __init__(db: StateDB) -> None
+def __init__(db: StateDB, cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize a period state.
@@ -728,6 +728,17 @@ def participants() -> FrozenSet[str]
 ```
 
 Get the participants.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.cross_period_persisted_keys"></a>
+
+#### cross`_`period`_`persisted`_`keys
+
+```python
+@property
+def cross_period_persisted_keys() -> List[str]
+```
+
+Keys in the period state which are persistet across periods.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BasePeriodState.sorted_participants"></a>
 
