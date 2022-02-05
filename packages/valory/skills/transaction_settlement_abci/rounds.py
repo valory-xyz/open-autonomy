@@ -113,16 +113,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.tx_hashes_history is not None
 
     @property
-    def most_voted_estimate(self) -> float:
-        """Get the most_voted_estimate."""
-        return cast(float, self.db.get_strict("most_voted_estimate"))
-
-    @property
-    def is_most_voted_estimate_set(self) -> bool:
-        """Check if most_voted_estimate is set."""
-        return self.db.get("most_voted_estimate", None) is not None
-
-    @property
     def safe_operation(self) -> Optional[str]:
         """Get the gas data."""
         return cast(Optional[str], self.db.get("safe_operation", None))

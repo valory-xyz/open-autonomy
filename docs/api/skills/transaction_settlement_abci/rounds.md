@@ -103,28 +103,6 @@ def is_final_tx_hash_set() -> bool
 
 Check if most_voted_estimate is set.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_estimate"></a>
-
-#### most`_`voted`_`estimate
-
-```python
-@property
-def most_voted_estimate() -> float
-```
-
-Get the most_voted_estimate.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_most_voted_estimate_set"></a>
-
-#### is`_`most`_`voted`_`estimate`_`set
-
-```python
-@property
-def is_most_voted_estimate_set() -> bool
-```
-
-Check if most_voted_estimate is set.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.safe_operation"></a>
 
 #### safe`_`operation
