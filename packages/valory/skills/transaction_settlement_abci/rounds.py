@@ -287,7 +287,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             extra_kwargs = {}
-            for key in self.period_state.cross_period_persisted_keys:
+            for key in self.period_state.db.cross_period_persisted_keys:
                 extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
                 period_count=self.most_voted_payload,

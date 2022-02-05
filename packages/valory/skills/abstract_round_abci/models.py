@@ -84,8 +84,11 @@ class SharedState(Model):
         period_setup_params = cast(BaseParams, self.context.params).period_setup_params
         self.period.setup(
             BasePeriodState(
-                StateDB(initial_period=0, initial_data=period_setup_params),
-                cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
+                StateDB(
+                    initial_period=0,
+                    initial_data=period_setup_params,
+                    cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
+                )
             ),
             consensus_params,
             self.context.logger,
