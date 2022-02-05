@@ -22,7 +22,7 @@
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 import yaml
 
@@ -31,7 +31,6 @@ from deployments.constants import KEYS
 from deployments.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
-    HARDHAT_TEMPLATE,
 )
 
 
@@ -74,7 +73,7 @@ def build_agent_deployment(
         number_of_validators=number_of_agents,
         host_names=host_names,
     )
-    agent_deployment_yaml = yaml.load_all(agent_deployment)  # type: ignore
+    agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
     resources = []
     for resource in agent_deployment_yaml:
         if resource.get("kind") == "Deployment":
@@ -86,7 +85,7 @@ def build_agent_deployment(
         resources.append(resource)
 
     res = "\n---\n".join([yaml.safe_dump(i) for i in resources])
-    return f"\n{res}\n---\n"
+    return res
 
 
 class KubernetesGenerator(BaseDeploymentGenerator):
@@ -96,12 +95,12 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def __init__(
         self,
-        number_of_agents: int,
-        network: str,
+        deployment_spec: BaseDeployment,
     ) -> None:
         """Initialise the deployment generator."""
+        super().__init__(deployment_spec)
         self.output = ""
-        super().__init__(number_of_agents, network)
+        self.resources: List[str] = []
 
     def generate_config_tendermint(
         self, valory_application: Type[BaseDeployment]
@@ -122,17 +121,16 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment."""
-        self.output += self.generate_config_tendermint(valory_application)
-
-        if self.network == "hardhat":
-            self.output += HARDHAT_TEMPLATE
-
+        self.resources.append(self.generate_config_tendermint(valory_application))
         agent_vars = valory_application.generate_agents()  # type:ignore
-        agents = "".join(
+        agents = "\n---\n".join(
             [
-                build_agent_deployment(i, self.number_of_agents, agent_vars[i])
-                for i in range(self.number_of_agents)
+                build_agent_deployment(
+                    i, self.deployment_spec.number_of_agents, agent_vars[i]
+                )
+                for i in range(self.deployment_spec.number_of_agents)
             ]
         )
-        self.output += agents
+        self.resources.append(agents)
+        self.output = "\n---\n".join(self.resources)
         return self.output

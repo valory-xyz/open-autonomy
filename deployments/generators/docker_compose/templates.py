@@ -32,7 +32,6 @@ valory/consensus-algorithms-tendermint:0.1.0 \
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "3"
 services:
-{hardhat_chain}
 {tendermint_nodes}
 {abci_nodes}
 networks:

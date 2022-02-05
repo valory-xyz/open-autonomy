@@ -78,7 +78,6 @@ spec:
     io.kompose.service: hardhat
 status:
   loadBalancer: {}
----
 """
 
 
@@ -109,12 +108,10 @@ spec:
             claimName: 'build-vol'
       restartPolicy: Never
   backoffLimit: 4
----
 """
 
 
-AGENT_NODE_TEMPLATE: str = """
-apiVersion: v1
+AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
 metadata:
   name: agent-node-{validator_ix}-service

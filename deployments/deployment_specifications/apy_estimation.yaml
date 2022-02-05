@@ -1,0 +1,4 @@
+valory_application: "valory/apy_estimation:0.1.0"
+network: hardhat
+number_of_agents: 1
+
