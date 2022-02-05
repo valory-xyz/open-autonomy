@@ -603,6 +603,21 @@ def __init__(initial_period: int, initial_data: Dict[str, Any]) -> None
 
 Initialize a period state.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.initial_data"></a>
+
+#### initial`_`data
+
+```python
+@property
+def initial_data() -> Dict[str, Any]
+```
+
+Get the initial_data.
+
+**Returns**:
+
+the initial_data
+
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_period_count"></a>
 
 #### current`_`period`_`count
@@ -1195,43 +1210,13 @@ Check Payload
 ## CollectDifferentUntilAllRound Objects
 
 ```python
-class CollectDifferentUntilAllRound(AbstractRound)
+class CollectDifferentUntilAllRound(CollectionRound)
 ```
 
 CollectDifferentUntilAllRound
 
 This class represents logic for rounds where a round needs to collect
 different payloads from each agent.
-
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(*args: Any, **kwargs: Any) -> None
-```
-
-Initialize the registration round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.process_payload"></a>
-
-#### process`_`payload
-
-```python
-def process_payload(payload: BaseTxPayload) -> None
-```
-
-Process payload.
-
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.check_payload"></a>
-
-#### check`_`payload
-
-```python
-def check_payload(payload: BaseTxPayload) -> None
-```
-
-Check Payload.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.collection_threshold_reached"></a>
 
@@ -1243,6 +1228,17 @@ def collection_threshold_reached() -> bool
 ```
 
 Check that the collection threshold has been reached.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.most_voted_payload"></a>
+
+#### most`_`voted`_`payload
+
+```python
+@property
+def most_voted_payload() -> Any
+```
+
+Get the most voted payload.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound"></a>
 

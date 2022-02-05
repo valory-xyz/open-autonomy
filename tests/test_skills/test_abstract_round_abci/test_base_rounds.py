@@ -224,9 +224,8 @@ class BaseCollectDifferentUntilAllRoundTest(BaseRoundTestClass):
         first_payload = round_payloads.pop(0)
         test_round.process_payload(first_payload)
         yield test_round
-        assert test_round.collection == {
-            first_payload.sender,
-        }
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert not test_round.collection_threshold_reached
         assert test_round.end_block() is None
 
         for payload in round_payloads:
@@ -560,20 +559,17 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         first_payload, *payloads = self.tx_payloads
         test_round.process_payload(first_payload)
-        assert test_round.collection == {
-            first_payload.value,
-        }
         assert not test_round.collection_threshold_reached
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: payload attribute value with value agent_0 has already been added for round: round_id",
+            match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="payload attribute value with value agent_0 has already been added for round: round_id",
+            match="sender agent_0 has already sent value for round: round_id",
         ):
             test_round.check_payload(first_payload)
 

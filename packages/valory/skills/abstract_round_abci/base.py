@@ -454,7 +454,19 @@ class StateDB:
     ) -> None:
         """Initialize a period state."""
         self._current_period_count = initial_period
-        self._data = {self._current_period_count: initial_data}
+        self._initial_data = initial_data
+        self._data: Dict[int, Dict[str, Any]] = {
+            self._current_period_count: self._initial_data
+        }
+
+    @property
+    def initial_data(self) -> Dict[str, Any]:
+        """
+        Get the initial_data.
+
+        :return: the initial_data
+        """
+        return self._initial_data
 
     @property
     def current_period_count(self) -> int:
@@ -938,7 +950,7 @@ class CollectionRound(AbstractRound):
             )
 
 
-class CollectDifferentUntilAllRound(AbstractRound):
+class CollectDifferentUntilAllRound(CollectionRound):
     """
     CollectDifferentUntilAllRound
 
@@ -946,35 +958,25 @@ class CollectDifferentUntilAllRound(AbstractRound):
     different payloads from each agent.
     """
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the registration round."""
-        super().__init__(*args, **kwargs)
-
-        self.collection: Set[Any] = set()
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payload."""
-        payload_attribute = getattr(payload, self.payload_attribute)
-        if payload_attribute in self.collection:
-            raise ABCIAppInternalError(
-                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
-            )
-        self.collection.add(payload_attribute)
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check Payload."""
-        payload_attribute = getattr(payload, self.payload_attribute)
-        if payload_attribute in self.collection:
-            raise TransactionNotValidError(
-                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
-            )
-
     @property
     def collection_threshold_reached(
         self,
     ) -> bool:
         """Check that the collection threshold has been reached."""
         return len(self.collection) >= self._consensus_params.max_participants
+
+    @property
+    def most_voted_payload(
+        self,
+    ) -> Any:
+        """Get the most voted payload."""
+        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
+        import pdb
+
+        pdb.set_trace()
+        if max_votes < self._consensus_params.max_participants:
+            raise ABCIAppInternalError("not enough votes")
+        return most_voted_payload
 
 
 class CollectSameUntilThresholdRound(CollectionRound):
@@ -1005,7 +1007,6 @@ class CollectSameUntilThresholdRound(CollectionRound):
         self,
     ) -> Any:
         """Get the most voted payload."""
-
         most_voted_payload, max_votes = self.payloads_count.most_common()[0]
         if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")

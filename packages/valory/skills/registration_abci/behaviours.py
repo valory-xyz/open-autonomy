@@ -127,7 +127,14 @@ class RegistrationBaseBehaviour(BaseState):
         with benchmark_tool.measure(
             self,
         ).local():
-            payload = RegistrationPayload(self.context.agent_address)
+            initialisation = (
+                json.dumps(self.period_state.db.initial_data)
+                if self.period_state.db.initial_data
+                else None
+            )
+            payload = RegistrationPayload(
+                self.context.agent_address, initialisation=initialisation
+            )
 
         with benchmark_tool.measure(
             self,
