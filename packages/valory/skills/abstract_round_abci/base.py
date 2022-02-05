@@ -451,15 +451,24 @@ class StateDB:
         self,
         initial_period: int,
         initial_data: Dict[str, Any],
+        cross_period_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize a period state."""
         self._current_period_count = initial_period
+        self._cross_period_persisted_keys = (
+            [] if cross_period_persisted_keys is None else cross_period_persisted_keys
+        )
         self._data = {self._current_period_count: initial_data}
 
     @property
     def current_period_count(self) -> int:
         """Get the current period count."""
         return self._current_period_count
+
+    @property
+    def cross_period_persisted_keys(self) -> List[str]:
+        """Keys in the period state which are persistet across periods."""
+        return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = "NOT_PROVIDED") -> Optional[Any]:
         """Get a value from the data dictionary."""
@@ -1430,6 +1439,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
+    cross_period_persisted_keys: List[str] = []
 
     def __init__(
         self,

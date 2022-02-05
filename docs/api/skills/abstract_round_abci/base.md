@@ -598,7 +598,7 @@ Class to represent all state replicated across periods.
 #### `__`init`__`
 
 ```python
-def __init__(initial_period: int, initial_data: Dict[str, Any]) -> None
+def __init__(initial_period: int, initial_data: Dict[str, Any], cross_period_persisted_keys: Optional[List[str]] = None) -> None
 ```
 
 Initialize a period state.
@@ -613,6 +613,17 @@ def current_period_count() -> int
 ```
 
 Get the current period count.
+
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.cross_period_persisted_keys"></a>
+
+#### cross`_`period`_`persisted`_`keys
+
+```python
+@property
+def cross_period_persisted_keys() -> List[str]
+```
+
+Keys in the period state which are persistet across periods.
 
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.get"></a>
 

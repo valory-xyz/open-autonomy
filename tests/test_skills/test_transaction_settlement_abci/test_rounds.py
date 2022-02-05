@@ -134,11 +134,6 @@ def get_safe_contract_address() -> str:
     return "0x6f6ab56aca12"
 
 
-def get_oracle_contract_address() -> str:
-    """oracle_contract_address"""
-    return "0x6f6ab56aca12"
-
-
 def get_participant_to_votes(
     participants: FrozenSet[str], vote: Optional[bool] = True
 ) -> Dict[str, ValidatePayload]:
@@ -337,7 +332,6 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
         """Runs tests."""
 
         period_state = self.period_state.update(
-            oracle_contract_address=get_oracle_contract_address(),
             safe_contract_address=get_safe_contract_address(),
         )
         test_round = self.test_class(
@@ -353,7 +347,6 @@ class BaseResetRoundTest(BaseCollectSameUntilThresholdRoundTest):
                 state_update_fn=lambda _period_state, _: _period_state.update(
                     period_count=next_period_count,
                     participants=self.participants,
-                    oracle_contract_address=_period_state.oracle_contract_address,
                     safe_contract_address=_period_state.safe_contract_address,
                 ),
                 state_attr_checks=[],  # [lambda state: state.participants],
@@ -457,7 +450,6 @@ def test_period_states() -> None:
     participant_to_selection = get_participant_to_selection(participants)
     most_voted_keeper_address = get_most_voted_keeper_address()
     safe_contract_address = get_safe_contract_address()
-    oracle_contract_address = get_oracle_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
     final_tx_hash = get_final_tx_hash()
@@ -475,7 +467,6 @@ def test_period_states() -> None:
                 participant_to_selection=participant_to_selection,
                 most_voted_keeper_address=most_voted_keeper_address,
                 safe_contract_address=safe_contract_address,
-                oracle_contract_address=oracle_contract_address,
                 most_voted_tx_hash=most_voted_tx_hash,
                 participant_to_signature=participant_to_signature,
                 tx_hashes_history=[final_tx_hash],
@@ -486,7 +477,6 @@ def test_period_states() -> None:
     assert period_state_____.most_voted_randomness == most_voted_randomness
     assert period_state_____.most_voted_keeper_address == most_voted_keeper_address
     assert period_state_____.safe_contract_address == safe_contract_address
-    assert period_state_____.oracle_contract_address == oracle_contract_address
     assert period_state_____.most_voted_tx_hash == most_voted_tx_hash
     assert period_state_____.participant_to_signature == participant_to_signature
     assert period_state_____.final_tx_hash == final_tx_hash
