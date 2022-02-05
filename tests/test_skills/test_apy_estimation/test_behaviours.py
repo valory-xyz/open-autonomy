@@ -45,7 +45,6 @@ from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.helpers.transaction.base import SignedMessage
 from aea.skills.tasks import TaskManager
 from aea.test_tools.test_skill import BaseSkillTestCase
-from aea_cli_ipfs.ipfs_utils import IPFSTool
 from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
 from pmdarima.preprocessing import FourierFeaturizer
@@ -73,6 +72,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
+from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.apy_estimation_abci.behaviours import (
@@ -375,148 +375,6 @@ class APYEstimationFSMBehaviourBaseCase(BaseSkillTestCase):
     def teardown(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
-
-
-class TestAPYEstimationBaseState(APYEstimationFSMBehaviourBaseCase):
-    """Tests for `APYEstimationBaseState`."""
-
-    ipfs_tool = IPFSTool()
-
-    def fast_forward(self) -> None:
-        """Fast-forward to the first (any would work) behaviour of the APY skill."""
-        self.fast_forward_to_state(
-            self.apy_estimation_behaviour, FetchBehaviour.state_id, self.period_state
-        )
-
-    def test_send_file_to_ipfs_node(self, tmp_path: PosixPath) -> None:
-        """Test `send_file_to_ipfs_node`."""
-        self.fast_forward()
-        filepath = os.path.join(tmp_path, "test")
-
-        with open(filepath, "w") as f:
-            f.write("test")
-
-        hash_ = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).send_file_to_ipfs_node(filepath)
-        assert isinstance(hash_, str)
-        assert len(hash_) == 46
-
-    def test_download_from_ipfs_node(self, tmp_path: PosixPath) -> None:
-        """Test `download_from_ipfs_node`."""
-        self.fast_forward()
-        filename = "test"
-        filepath = os.path.join(tmp_path, filename)
-
-        with open(filepath, "w") as f:
-            f.write("test")
-
-        _, hash_, _ = self.ipfs_tool.add(filepath)
-        os.remove(filepath)
-
-        cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        )._download_from_ipfs_node(hash_, str(tmp_path), filename)
-
-        with open(filepath, "r") as f:
-            assert f.read() == "test"
-
-    def test_get_and_read_json(self, tmp_path: PosixPath) -> None:
-        """Test `get_and_read_json`"""
-        self.fast_forward()
-        save_filepath = os.path.join(tmp_path, "save")
-        download_folder = os.path.join(tmp_path, "download")
-        os.makedirs(download_folder, exist_ok=True)
-        save_json_data = {"test": "test"}
-
-        with open(save_filepath, "w") as f:
-            json.dump(save_json_data, f)
-
-        _, hash_, _ = self.ipfs_tool.add(save_filepath)
-        os.remove(save_filepath)
-
-        download_json_data = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_json(hash_, download_folder, "save")
-
-        assert download_json_data == save_json_data
-
-    def test_get_and_read_hist(
-        self,
-        tmp_path: PosixPath,
-        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
-    ) -> None:
-        """Test `get_and_read_hist`."""
-        self.fast_forward()
-        save_filepath = os.path.join(tmp_path, "save")
-        download_folder = os.path.join(tmp_path, "download")
-        os.makedirs(download_folder, exist_ok=True)
-        save_csv_data = transformed_historical_data_no_datetime_conversion
-        save_csv_data.to_csv(save_filepath, index=False)
-
-        _, hash_, _ = self.ipfs_tool.add(save_filepath)
-        os.remove(save_filepath)
-        download_csv_data = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_hist(hash_, download_folder, "save")
-
-        save_csv_data["blockTimestamp"] = pd.to_datetime(
-            save_csv_data["blockTimestamp"], unit="s"
-        )
-
-        pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
-
-    def test_get_and_read_csv(self, tmp_path: PosixPath) -> None:
-        """Test `get_and_read_csv`."""
-        self.fast_forward()
-        save_filepath = os.path.join(tmp_path, "save")
-        download_folder = os.path.join(tmp_path, "download")
-        os.makedirs(download_folder, exist_ok=True)
-        save_csv_data = pd.DataFrame({"test": ["test"]})
-        save_csv_data.to_csv(save_filepath, index=False)
-
-        _, hash_, _ = self.ipfs_tool.add(save_filepath)
-        os.remove(save_filepath)
-        download_csv_data = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_csv(hash_, download_folder, "save")
-
-        pd.testing.assert_frame_equal(download_csv_data, save_csv_data)
-
-    def test_get_and_read_forecaster(self, tmp_path: PosixPath) -> None:
-        """Test `get_and_read_forecaster`."""
-        self.fast_forward()
-        save_filepath = os.path.join(tmp_path, "save")
-        download_folder = os.path.join(tmp_path, "download")
-        os.makedirs(download_folder, exist_ok=True)
-
-        saved_forecaster = Pipeline(
-            [
-                ("fourier", FourierFeaturizer(0, 0)),
-                (
-                    "arima",
-                    ARIMA((1, 1, 1), suppress_warnings=True),
-                ),
-            ]
-        )
-        pipeline_steps_saved = saved_forecaster.get_params()["steps"]
-        fourier_saved = pipeline_steps_saved[0][1].get_params()
-        arima_saved = pipeline_steps_saved[1][1].get_params()
-
-        joblib.dump(saved_forecaster, save_filepath)
-
-        _, hash_, _ = self.ipfs_tool.add(save_filepath)
-        os.remove(save_filepath)
-        downloaded_forecaster = cast(
-            APYEstimationBaseState, self.apy_estimation_behaviour.current_state
-        ).get_and_read_forecaster(hash_, download_folder, "save")
-
-        pipeline_steps_downloaded = downloaded_forecaster.get_params()["steps"]
-        fourier_downloaded = pipeline_steps_downloaded[0][1].get_params()
-        arima_downloaded = pipeline_steps_downloaded[1][1].get_params()
-
-        assert fourier_saved == fourier_downloaded
-        assert arima_saved == arima_downloaded
 
 
 class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
@@ -1802,11 +1660,18 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             OptimizeBehaviour, self.apy_estimation_behaviour.current_state
         ).params.pair_ids[0] = os.path.join(*tmp_path.parts[1:])
 
-        best_params = {"p": 1, "q": 1, "d": 1, "m": 1}
-        self.apy_estimation_behaviour.current_state.get_and_read_json = lambda *_: best_params  # type: ignore
-        self.apy_estimation_behaviour.current_state.get_and_read_csv = lambda *_: pd.DataFrame(  # type: ignore
-            [i for i in range(5)]
+        cast(BaseState, self.apy_estimation_behaviour.current_state).send_to_ipfs(
+            os.path.join(tmp_path, "best_params.json"),
+            {"p": 1, "q": 1, "d": 1, "m": 1},
+            SupportedFiletype.JSON,
         )
+
+        for split in ("train", "test"):
+            cast(BaseState, self.apy_estimation_behaviour.current_state).send_to_ipfs(
+                os.path.join(tmp_path, f"{split}.csv"),
+                pd.DataFrame([i for i in range(5)]),
+                SupportedFiletype.CSV,
+            )
 
         monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(TaskManager, "get_task_result", lambda *_: no_action)

@@ -24,7 +24,7 @@ import json
 import pprint
 from abc import ABC, abstractmethod
 from enum import Enum
-from functools import partial
+from functools import partial, wraps
 from typing import (
     Any,
     Callable,
@@ -71,6 +71,16 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogues,
+)
+from packages.valory.skills.abstract_round_abci.io.ipfs import (
+    IPFSInteract,
+    IPFSInteractionError,
+)
+from packages.valory.skills.abstract_round_abci.io.load import SupportedLoaderType
+from packages.valory.skills.abstract_round_abci.io.store import (
+    CustomStorerType,
+    SupportedFiletype,
+    SupportedObjectType,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
@@ -308,7 +318,84 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
+def _check_ipfs_enabled(fn: Callable) -> Callable:
+    """Decorator that raises error if IPFS is not enabled."""
+
+    @wraps(fn)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        """The wrap that checks and raises the error."""
+        ipfs_enabled = args[0].ipfs_enabled
+
+        if not ipfs_enabled:
+            raise ValueError(
+                "Trying to perform an IPFS operation, but IPFS has not been enabled! "
+                "Please set `ipfs_domain_name` configuration."
+            )
+
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+class IPFSBehaviour(SimpleBehaviour, ABC):
+    """Behaviour for interactions with IPFS."""
+
+    def __init__(self, **kwargs: Any):
+        """Initialize an `IPFSBehaviour`."""
+        super().__init__(**kwargs)
+        self.ipfs_enabled = False
+        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
+        # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
+        # Therefore, `IPFSBehaviour` will be disabled.
+        domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
+        if domain is not None:
+            self.ipfs_enabled = True
+            self._ipfs_interact = IPFSInteract(domain)
+
+    @_check_ipfs_enabled
+    def send_to_ipfs(
+        self,
+        filepath: str,
+        obj: SupportedObjectType,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_storer: Optional[CustomStorerType] = None,
+        **kwargs: Any,
+    ) -> Optional[str]:
+        """Send a file to IPFS."""
+        try:
+            hash_ = self._ipfs_interact.store_and_send(
+                filepath, obj, filetype, custom_storer, **kwargs
+            )
+            self.context.logger.info(f"IPFS hash is: {hash_}")
+            return hash_
+        except IPFSInteractionError as e:
+            self.context.logger.error(
+                f"An error occurred while trying to send a file to IPFS: {str(e)}"
+            )
+            return None
+
+    @_check_ipfs_enabled
+    def get_from_ipfs(
+        self,
+        hash_: str,
+        target_dir: str,
+        filename: str,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_loader: SupportedLoaderType = None,
+    ) -> Optional[SupportedObjectType]:
+        """Get a file from IPFS."""
+        try:
+            return self._ipfs_interact.get_and_read(
+                hash_, target_dir, filename, filetype, custom_loader
+            )
+        except IPFSInteractionError as e:
+            self.context.logger.error(
+                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
+            )
+            return None
+
+
+class BaseState(AsyncBehaviour, IPFSBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -318,7 +405,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
         AsyncBehaviour.__init__(self)
-        SimpleBehaviour.__init__(self, **kwargs)
+        IPFSBehaviour.__init__(self, **kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")

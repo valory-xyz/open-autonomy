@@ -18,64 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """IO operations for the APY skill."""
-import json
-import os
-from typing import Union
 
-import joblib
 import pandas as pd
-from pmdarima.pipeline import Pipeline
+from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime  # pylint: disable=E0611
 
-from packages.valory.skills.apy_estimation_abci.ml.forecasting import TestReportType
-from packages.valory.skills.apy_estimation_abci.ml.optimization import HyperParamsType
-from packages.valory.skills.apy_estimation_abci.tools.etl import (
-    ResponseItemType,
-    TRANSFORMED_HIST_DTYPES,
-)
-
-
-StoredJSONType = Union[ResponseItemType, TestReportType, HyperParamsType]
-
-
-def create_pathdirs(path: str) -> None:
-    """Create the non-existing directories of a given path.
-
-    :param path: the given path.
-    """
-    dirname = os.path.dirname(path)
-
-    if dirname:
-        os.makedirs(dirname, exist_ok=True)
-
-
-def to_csv_safely(df: pd.DataFrame, path: str, index: bool = False) -> None:
-    """Save a pandas dataframe to a csv file and create path if it does not exist.
-
-    :param df: the dataframe to save.
-    :param path: the path on which the df should be saved.
-    :param index: whether to write row names (index).
-    """
-    create_pathdirs(path)
-    df.to_csv(path, index=index)
-
-
-def save_forecaster(path: str, forecaster: Pipeline) -> None:
-    """Save a `pmdarima` forecaster.
-
-    :param path: path to store the forecaster.
-    :param forecaster: the `pmdarima` forecasting model.
-    """
-    create_pathdirs(path)
-    joblib.dump(forecaster, path)
-
-
-def load_forecaster(path: str) -> Pipeline:
-    """Load a `pmdarima` forecaster.
-
-    :param path: path to store the forecaster.
-    :return: a `pmdarima.pipeline.Pipeline`.
-    """
-    return joblib.load(path)
+from packages.valory.skills.apy_estimation_abci.tools.etl import TRANSFORMED_HIST_DTYPES
 
 
 def load_hist(path: str) -> pd.DataFrame:
@@ -84,32 +31,14 @@ def load_hist(path: str) -> pd.DataFrame:
     :param path: the path to the historical data.
     :return: a dataframe with the historical data.
     """
-    pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
+    try:
+        pairs_hist = pd.read_csv(path).astype(TRANSFORMED_HIST_DTYPES)
 
-    # Convert the `blockTimestamp` to a pandas datetime.
-    pairs_hist["blockTimestamp"] = pd.to_datetime(
-        pairs_hist["blockTimestamp"], unit="s"
-    )
+        # Convert the `blockTimestamp` to a pandas datetime.
+        pairs_hist["blockTimestamp"] = pd.to_datetime(
+            pairs_hist["blockTimestamp"], unit="s"
+        )
+    except (FileNotFoundError, OutOfBoundsDatetime) as e:
+        raise IOError(str(e)) from e
 
     return pairs_hist
-
-
-def to_json_file(path: str, obj: StoredJSONType) -> None:
-    """Dump a list to a json file.
-
-    :param path: the path to store the json file.
-    :param obj: the object to convert and store.
-    """
-    create_pathdirs(path)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=4)
-
-
-def read_json_file(path: str) -> StoredJSONType:
-    """Read a json file.
-
-    :param path: the path to retrieve the json file from.
-    :return: the deserialized json file's content.
-    """
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
