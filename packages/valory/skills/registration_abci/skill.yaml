@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
   behaviours.py: QmYeF6nPpB46JfqZUmAAU49fx5QRhDyBnAmrzFw2Xe2F2D
   payloads.py: QmcTppCUheTEcsCQytM2f3nLzSoZmjt4XfYzHZtHJDzAQc
-  rounds.py: QmaoBajnesNRNnb8bo3HosLFdntGvyfrjnwiphoor2sZBa
+  rounds.py: QmV95XpYKR8LaZiczpurhmLZEC7hRm9kcj7JUngcXPrBcb
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []

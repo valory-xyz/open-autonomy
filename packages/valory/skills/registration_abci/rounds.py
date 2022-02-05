@@ -61,7 +61,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = "initialisation"
     required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -71,9 +71,9 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         if (  # fast forward at setup
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            and self.most_voted_payload.initialisation is not None
+            and self.most_voted_payload is not None
         ):
-            initialisation = json.loads(self.most_voted_payload.initialisation)
+            initialisation = json.loads(self.most_voted_payload)
             state = self.period_state.update(
                 participants=self.collection,
                 period_state_class=BasePeriodState,
