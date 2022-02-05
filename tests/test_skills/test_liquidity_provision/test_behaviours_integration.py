@@ -55,10 +55,8 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
-    DEFAULT_MINTER,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
-    LP_TOKEN_ADDRESS,
     LiquidityProvisionConsensusBehaviour,
     SwapBackTransactionHashBehaviour,
     get_dummy_strategy,
@@ -345,7 +343,7 @@ class TestLiquidityProvisionHardhat(
                     most_voted_tx_hash=cls.most_voted_tx_hash_enter,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=cls.strategy,
+                    most_voted_strategy=json.dumps(cls.strategy),
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -361,7 +359,7 @@ class TestLiquidityProvisionHardhat(
                     most_voted_tx_hash=cls.most_voted_tx_hash_exit,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=cls.strategy,
+                    most_voted_strategy=json.dumps(cls.strategy),
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -378,7 +376,7 @@ class TestLiquidityProvisionHardhat(
                     most_voted_tx_hash=cls.most_voted_tx_hash_swap_back,
                     safe_contract_address=cls.safe_contract_address,
                     most_voted_keeper_address=cls.keeper_address,
-                    most_voted_strategy=cls.strategy,
+                    most_voted_strategy=json.dumps(cls.strategy),
                     multisend_contract_address=cls.multisend_contract_address,
                     router_contract_address=cls.router_contract_address,
                     participants=frozenset(list(cls.safe_owners.keys())),
@@ -620,7 +618,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_enter,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -668,7 +665,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_enter,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -746,7 +742,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_exit,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -794,7 +789,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_exit,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -867,7 +861,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_swap_back,
                 participant_to_signature=participant_to_signature,
             ),
         )
@@ -915,7 +908,6 @@ class TestLiquidityProvisionHardhat(
             TransactionSettlementPeriodState,
             self.default_period_state_settlement.update(
                 most_voted_tx_hash=payload_string,
-                most_voted_tx_data=self.multisend_data_swap_back,
                 tx_hashes_history=[tx_digest],
             ),
         )
@@ -969,13 +961,7 @@ class TestLiquidityProvisionHardhat(
         period_state = cast(
             LiquidityProvisionPeriodState,
             self.default_period_state_exit.update(
-                most_voted_strategy=strategy,
-                most_voted_transfers=transfer_to_string(
-                    source_address=DEFAULT_MINTER,
-                    destination_address=self.safe_contract_address,
-                    token_address=LP_TOKEN_ADDRESS,
-                    value=1000,
-                ),
+                most_voted_strategy=json.dumps(strategy),
             ),
         )
 
@@ -1031,26 +1017,10 @@ class TestLiquidityProvisionHardhat(
         strategy = deepcopy(self.strategy)
         strategy["safe_nonce"] = 2
 
-        transfer_a = transfer_to_string(
-            source_address=self.router_contract_address,
-            destination_address=self.safe_contract_address,
-            token_address=strategy["token_a"]["address"],
-            value=250,
-        )
-        transfer_b = transfer_to_string(
-            source_address=self.router_contract_address,
-            destination_address=self.safe_contract_address,
-            token_address=strategy["token_b"]["address"],
-            value=250,
-        )
-
-        transfers = merge_transfer_strings([transfer_a, transfer_b])
-
         period_state = cast(
             LiquidityProvisionPeriodState,
             self.default_period_state_swap_back.update(
-                most_voted_strategy=strategy,
-                most_voted_transfers=transfers,
+                most_voted_strategy=json.dumps(strategy),
             ),
         )
 

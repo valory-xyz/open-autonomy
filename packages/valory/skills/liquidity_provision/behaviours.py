@@ -45,8 +45,8 @@ from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.liquidity_provision.composition import (
     LiquidityProvisionAbciApp,
 )
-from packages.valory.skills.liquidity_provision.models import Params
 from packages.valory.skills.liquidity_provision.payloads import (
+    SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
@@ -82,7 +82,7 @@ TOKEN_B_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"  # nosec
 LP_TOKEN_ADDRESS = "0x50CD56fb094F8f06063066a619D898475dD3EedE"  # nosec
 DEFAULT_MINTER = "0x0000000000000000000000000000000000000000"  # nosec
 AB_POOL_ADDRESS = "0x86A6C37D3E868580a65C723AAd7E0a945E170416"  # nosec
-SLEEP_SECONDS = 60
+SLEEP_SECONDS = 2
 
 benchmark_tool = BenchmarkTool()
 
@@ -121,11 +121,6 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
     def period_state(self) -> PeriodState:
         """Return the period state."""
         return cast(PeriodState, super().period_state)
-
-    @property
-    def params(self) -> Params:
-        """Return the params."""
-        return cast(Params, super().params)
 
     def get_swap_tx_data(  # pylint: disable=too-many-arguments
         self,
@@ -262,7 +257,7 @@ class LiquidityProvisionBaseBehaviour(BaseState, ABC):
 
     def get_tx_result(self) -> Generator[None, None, list]:
         """Transaction transfer result."""
-        strategy = self.period_state.most_voted_strategy
+        strategy = json.loads(self.period_state.most_voted_strategy)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=strategy["token_LP"]["address"],
@@ -383,7 +378,7 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
             # unless we start with WAIT. Then it will keep waiting.
             strategy: dict = {}
             try:
-                strategy = self.period_state.most_voted_strategy
+                strategy = json.loads(self.period_state.most_voted_strategy)
 
                 if strategy["action"] == StrategyType.ENTER.value:
                     strategy["action"] = StrategyType.EXIT.value
@@ -419,7 +414,9 @@ class StrategyEvaluationBehaviour(LiquidityProvisionBaseBehaviour):
                     f"Performing strategy update: swapping back {strategy['token_a']['ticker']}, {strategy['token_b']['ticker']}"
                 )
 
-            payload = StrategyEvaluationPayload(self.context.agent_address, strategy)
+            payload = StrategyEvaluationPayload(
+                self.context.agent_address, json.dumps(strategy)
+            )
 
         with benchmark_tool.measure(
             self,
@@ -444,10 +441,12 @@ class SleepBehaviour(LiquidityProvisionBaseBehaviour):
         ).local():
 
             yield from self.sleep(SLEEP_SECONDS)
+            payload = SleepPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
             self,
         ).consensus():
+            yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -485,7 +484,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             # Prepare a uniswap tx list. We should check what token balances we have at this point.
             # It is possible that we don't need to swap. For now let's assume we have just USDT
@@ -674,7 +673,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             # Get previous transaction's results
             transfers = yield from self.get_tx_result()
@@ -841,7 +840,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
             self,
         ).local():
 
-            strategy = self.period_state.most_voted_strategy
+            strategy = json.loads(self.period_state.most_voted_strategy)
 
             transfers = yield from self.get_tx_result()
             transfers = transfers if transfers else []
