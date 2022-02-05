@@ -21,34 +21,61 @@
 
 
 import abc
+import json
 import os
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Dict, List, Type
 
+import jsonschema
 import yaml
-from aea.configurations import validation
-
-from deployments.constants import (
-    AEA_DIRECTORY,
-    CONFIG_DIRECTORY,
-    KEYS,
-    NETWORKS,
-    PRICE_APIS,
-    RANDOMNESS_APIS,
+from aea.configurations.validation import (
+    ConfigValidator,
+    EnvVarsFriendlyDraft4Validator,
+    OwnDraft4Validator,
+    make_jsonschema_base_uri,
 )
+from aea.helpers.io import open_file
+
+from deployments.constants import CONFIG_DIRECTORY, KEYS, NETWORKS, PACKAGES_DIRECTORY
 
 
-def get_price_api(agent_n: int) -> Dict:
-    """Gets the price api for the agent."""
-    price_api = PRICE_APIS[agent_n % len(PRICE_APIS)]
-    return {f"PRICE_API_{k.upper()}": v for k, v in price_api}
+class DeploymentConfigValidator(ConfigValidator):
+    """Configuration validator implementation."""
+
+    def __init__(  # pylint: disable=super-init-not-called
+        self, schema_filename: str, env_vars_friendly: bool = False
+    ) -> None:
+        """
+        Initialize the parser for configuration files.
+
+        :param schema_filename: the path to the JSON-schema file in 'aea/configurations/schemas'.
+        :param env_vars_friendly: whether or not it is env var friendly.
+        """
+        base_uri = Path(__file__).parent
+        with open_file(base_uri / schema_filename) as fp:
+            self._schema = json.load(fp)
+        root_path = make_jsonschema_base_uri(base_uri)
+        self._resolver = jsonschema.RefResolver(root_path, self._schema)
+        self.env_vars_friendly = env_vars_friendly
+
+        if env_vars_friendly:
+            self._validator = EnvVarsFriendlyDraft4Validator(
+                self._schema, resolver=self._resolver
+            )
+        else:
+            self._validator = OwnDraft4Validator(self._schema, resolver=self._resolver)
 
 
-def get_randomness_api(agent_n: int) -> Dict:
-    """Gets the randomness api for the agent."""
-    randomness_api = RANDOMNESS_APIS[agent_n % len(RANDOMNESS_APIS)]
-    return {f"RANDOMNESS_{k.upper()}": v for k, v in randomness_api}
+def _process_model_args_overrides(component: Dict, agent_n: int) -> Dict:
+    """Generates env vars based on model overrides."""
+    overrides = {}
+    for model_name, model_overrides in component["models"].items():
+        available_overrides = model_overrides["args"]
+        override = available_overrides[agent_n % len(available_overrides)]
+        for arg_key, arg_value in override.items():
+            overrides[f"{model_name}_{arg_key}".upper()] = arg_value
+    return overrides
 
 
 class BaseDeployment:
@@ -60,14 +87,13 @@ class BaseDeployment:
 
     def __init__(self, path_to_deployment_spec: str) -> None:
         """Initialize the Base Deployment."""
-        old_dir = validation._SCHEMAS_DIR
-        validation._SCHEMAS_DIR = os.getcwd()  # pylint: disable=protected-access
-        self.validator = validation.ConfigValidator(
-            schema_filename="deployments/deployment_specifications/deployment_schema.json"
+        self.validator = DeploymentConfigValidator(
+            schema_filename="deployments/deployment_schema.json"
         )
-        validation._SCHEMAS_DIR = old_dir
         with open(path_to_deployment_spec, "r", encoding="utf8") as file:
-            self.deployment_spec = yaml.load(file, Loader=yaml.SafeLoader)
+            self.deployment_spec, self.overrides = yaml.load_all(
+                file, Loader=yaml.SafeLoader
+            )
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
         self.agent_spec = self.load_agent()
@@ -95,13 +121,10 @@ class BaseDeployment:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
         agent_vars.update(NETWORKS[self.network])
-
-        for section in self.agent_spec:
-            if section.get("models", None):
-                if "price_api" in section["models"].keys():  # type: ignore
-                    agent_vars.update(get_price_api(agent_n))
-                if "randomness_api" in section["models"].keys():  # type: ignore
-                    agent_vars.update(get_randomness_api(agent_n))
+        if self.overrides is None:
+            return agent_vars
+        for component in self.overrides["model_configuration_overrides"]:
+            agent_vars.update(_process_model_args_overrides(component, agent_n))
         return agent_vars
 
     def load_agent(self) -> List[Dict[str, str]]:
@@ -112,16 +135,11 @@ class BaseDeployment:
             aea_json = list(yaml.safe_load_all(file))
         return aea_json
 
-    def get_parameters(
-        self,
-    ) -> Dict:
-        """Retrieve the parameters for the deployment."""
-
     def locate_agent_from_package_directory(self, local_registry: bool = True) -> str:
         """Using the deployment id, locate the registry and retrieve the path."""
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
-        for subdir, _, files in os.walk(AEA_DIRECTORY):
+        for subdir, _, files in os.walk(PACKAGES_DIRECTORY):
             for file in files:
                 if file == "aea-config.yaml":
                     path = os.path.join(subdir, file)
@@ -168,11 +186,6 @@ class BaseDeploymentGenerator:
         self, valory_application: Type[BaseDeployment]
     ) -> str:
         """Generate the deployment configuration."""
-
-    def get_parameters(
-        self,
-    ) -> Dict:
-        """Retrieve the parameters for the deployment."""
 
     def write_config(self) -> None:
         """Write output to build dir"""

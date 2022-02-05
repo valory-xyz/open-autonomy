@@ -75,8 +75,8 @@ models:
       response_key: ${PRICE_API_RESPONSE_KEY:str}
   randomness_api:
     args:
-      url: ${RANDOMNESS_URL:str}
-      api_id: ${RANDOMNESS_API_ID:str}
+      url: ${RANDOMNESS_API_URL:str}
+      api_id: ${RANDOMNESS_API_API_ID:str}
   params:
     args:
       consensus:

@@ -20,7 +20,7 @@
 """Docker-compose Deployment Generator."""
 from typing import Dict, Type
 
-from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
+from deployments import BaseDeployment, BaseDeploymentGenerator
 
 from .templates import (
     ABCI_NODE_TEMPLATE,

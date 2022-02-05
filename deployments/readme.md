@@ -60,7 +60,17 @@ I[2022-02-03|12:56:52.911] Found node key                               module=m
 I[2022-02-03|12:56:52.911] Found genesis file                           module=main path=node1/config/genesis.json
 Successfully initialized 2 node directories
 ```
-# Step 4
+# Step 4 (only required for deployments with hardhat network)
+
+We now need to spin up a local hardhat node so that we have a chain to interact with.
+
+This is done in a seperate terminal via docker as so;
+```bash
+docker run -p 8545:8545 -it valory/consensus-algorithms-hardhat:0.1.0
+```
+
+
+# Step 5
 
 Now that we have our deployment built, we can actually run it.
 
