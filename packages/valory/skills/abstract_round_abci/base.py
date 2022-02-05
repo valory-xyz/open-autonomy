@@ -514,9 +514,15 @@ class BasePeriodState:
     def __init__(
         self,
         db: StateDB,
+        cross_period_persisted_keys: Optional[List[str]] = None,
     ) -> None:
         """Initialize a period state."""
         self._db = db
+        self._cross_period_persisted_keys = (
+            cross_period_persisted_keys
+            if cross_period_persisted_keys is not None
+            else []
+        )
 
     @property
     def db(self) -> StateDB:
@@ -535,6 +541,11 @@ class BasePeriodState:
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], participants)
+
+    @property
+    def cross_period_persisted_keys(self) -> List[str]:
+        """Keys in the period state which are persistet across periods."""
+        return self._cross_period_persisted_keys
 
     @property
     def sorted_participants(self) -> Sequence[str]:
@@ -1430,6 +1441,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
+    cross_period_persisted_keys: List[str] = []
 
     def __init__(
         self,

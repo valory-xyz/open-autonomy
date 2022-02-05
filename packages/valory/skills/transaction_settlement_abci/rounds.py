@@ -77,11 +77,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self.db.get_strict("safe_contract_address"))
 
     @property
-    def oracle_contract_address(self) -> str:
-        """Get the oracle contract address."""
-        return cast(str, self.db.get_strict("oracle_contract_address"))
-
-    @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
         return cast(
@@ -291,15 +286,13 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            extra_kwargs = {}
+            for key in self.period_state.cross_period_persisted_keys:
+                extra_kwargs[key] = self.period_state.db.get_strict(key)
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participants=self.period_state.participants,
-                oracle_contract_address=self.period_state.db.get_strict(
-                    "oracle_contract_address"
-                ),
-                safe_contract_address=self.period_state.db.get_strict(
-                    "safe_contract_address"
-                ),
+                **extra_kwargs,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
