@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
-from typing import Dict, Set, Tuple, Type
+from typing import Dict, List, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -121,6 +121,11 @@ def chain(  # pylint: disable=too-many-locals
         if event in used_events
     }
 
+    # Collect keys to persist across periods from all abcis
+    new_cross_period_persisted_keys = []
+    for app in abci_apps:
+        new_cross_period_persisted_keys.extend(app.cross_period_persisted_keys)
+
     # Return the composed result
     class ComposedAbciApp(AbciApp[EventType]):
         """Composed abci app class."""
@@ -129,5 +134,6 @@ def chain(  # pylint: disable=too-many-locals
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
         event_to_timeout: EventToTimeout = new_events_to_timeout
+        cross_period_persisted_keys: List[str] = new_cross_period_persisted_keys
 
     return ComposedAbciApp
