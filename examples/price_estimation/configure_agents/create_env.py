@@ -288,13 +288,11 @@ def build_config_script(
         ]
     )
 
-    if not parameters.deploy_safe_contract:
+    if not parameters.deploy_safe_contract and not parameters.deploy_oracle_contract:
         safe_contract_address = DEPLOYED_CONTRACTS[parameters.network]["safe_contract_address"]
-        extra_config += f'\naea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.safe_contract_address "{safe_contract_address}"'
-
-    if not parameters.deploy_oracle_contract:
         oracle_contract_address = DEPLOYED_CONTRACTS[parameters.network]["oracle_contract_address"]
-        extra_config += f'\naea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup.oracle_contract_address "{oracle_contract_address}"'
+        payload = {"safe_contract_address": safe_contract_address, "oracle_contract_address": oracle_contract_address}
+        extra_config += f"\naea config set vendor.valory.skills.price_estimation_abci.models.params.args.period_setup '{payload}' --type dict"
 
     network_endpoint, chain_id = NETWORKS[parameters.network].values()
 

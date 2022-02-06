@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Test the rounds.py module of the skill."""
 
+import json
 from typing import Optional, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -60,7 +61,12 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         test_round = RegistrationStartupRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
-        self._run_with_round(test_round, RegistrationEvent.FAST_FORWARD, 1)
+        self._run_with_round(
+            test_round,
+            RegistrationEvent.FAST_FORWARD,
+            1,
+            initialisation=json.dumps({"key": "value"}),
+        )
 
     def test_run_default(
         self,
@@ -87,13 +93,14 @@ class TestRegistrationStartupRound(BaseCollectDifferentUntilAllRoundTest):
         test_round: RegistrationStartupRound,
         expected_event: Optional[RegistrationEvent] = None,
         confirmations: Optional[int] = None,
+        initialisation: Optional[str] = None,
     ) -> None:
         """Run with given round."""
 
         test_runner = self._test_round(
             test_round=test_round,
             round_payloads=[
-                RegistrationPayload(sender=participant)
+                RegistrationPayload(sender=participant, initialisation=initialisation)
                 for participant in self.participants
             ],
             state_update_fn=lambda *x: PeriodState(

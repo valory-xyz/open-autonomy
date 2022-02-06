@@ -77,9 +77,7 @@ models:
         max_answer: 1000000000000000000000000
         decimals: 18
         description: BTC
-      period_setup:
-        safe_contract_address: null
-        oracle_contract_address: null
+      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

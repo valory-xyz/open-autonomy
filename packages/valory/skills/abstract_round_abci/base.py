@@ -455,10 +455,22 @@ class StateDB:
     ) -> None:
         """Initialize a period state."""
         self._current_period_count = initial_period
+        self._initial_data = initial_data
         self._cross_period_persisted_keys = (
             [] if cross_period_persisted_keys is None else cross_period_persisted_keys
         )
-        self._data = {self._current_period_count: initial_data}
+        self._data: Dict[int, Dict[str, Any]] = {
+            self._current_period_count: self._initial_data
+        }
+
+    @property
+    def initial_data(self) -> Dict[str, Any]:
+        """
+        Get the initial_data.
+
+        :return: the initial_data
+        """
+        return self._initial_data
 
     @property
     def current_period_count(self) -> int:
@@ -947,35 +959,32 @@ class CollectionRound(AbstractRound):
             )
 
 
-class CollectDifferentUntilAllRound(AbstractRound):
+class CollectDifferentUntilAllRound(CollectionRound):
     """
     CollectDifferentUntilAllRound
 
     This class represents logic for rounds where a round needs to collect
     different payloads from each agent.
+
+    This round should only be used for registration of new agents.
     """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the registration round."""
-        super().__init__(*args, **kwargs)
-
-        self.collection: Set[Any] = set()
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
-        payload_attribute = getattr(payload, self.payload_attribute)
-        if payload_attribute in self.collection:
+
+        if payload.sender in self.collection:
             raise ABCIAppInternalError(
-                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
-        self.collection.add(payload_attribute)
+
+        self.collection[payload.sender] = payload
 
     def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check Payload."""
-        payload_attribute = getattr(payload, self.payload_attribute)
-        if payload_attribute in self.collection:
+        """Check Payload"""
+
+        if payload.sender in self.collection:
             raise TransactionNotValidError(
-                f"payload attribute {self.payload_attribute} with value {payload_attribute} has already been added for round: {self.round_id}"
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
     @property
@@ -984,6 +993,16 @@ class CollectDifferentUntilAllRound(AbstractRound):
     ) -> bool:
         """Check that the collection threshold has been reached."""
         return len(self.collection) >= self._consensus_params.max_participants
+
+    @property
+    def most_voted_payload(
+        self,
+    ) -> Any:
+        """Get the most voted payload."""
+        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
+        if max_votes < self._consensus_params.max_participants:
+            raise ABCIAppInternalError("not enough votes")
+        return most_voted_payload
 
 
 class CollectSameUntilThresholdRound(CollectionRound):
@@ -1014,7 +1033,6 @@ class CollectSameUntilThresholdRound(CollectionRound):
         self,
     ) -> Any:
         """Get the most voted payload."""
-
         most_voted_payload, max_votes = self.payloads_count.most_common()[0]
         if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
@@ -1456,7 +1474,7 @@ class AbciApp(
         self._current_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
-        self._round_results: List[Any] = []
+        self._round_results: List[BasePeriodState] = []
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
@@ -1464,11 +1482,8 @@ class AbciApp(
     @property
     def state(self) -> BasePeriodState:
         """Return the current state."""
-        return (
-            self._round_results[-1]
-            if len(self._round_results) > 0
-            else self._initial_state
-        )
+        latest_result = self.latest_result
+        return latest_result if latest_result is not None else self._initial_state
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1602,7 +1617,7 @@ class AbciApp(
         return self._current_round is None
 
     @property
-    def latest_result(self) -> Optional[Any]:
+    def latest_result(self) -> Optional[BasePeriodState]:
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
@@ -1626,7 +1641,9 @@ class AbciApp(
         """
         self.current_round.process_transaction(transaction)
 
-    def process_event(self, event: EventType, result: Optional[Any] = None) -> None:
+    def process_event(
+        self, event: EventType, result: Optional[BasePeriodState] = None
+    ) -> None:
         """Process a round event."""
         if self._current_round_cls is None:
             self.logger.info(
@@ -1841,9 +1858,9 @@ class Period:
         return last_timestamp
 
     @property
-    def latest_result(self) -> Optional[Any]:
-        """Get the latest result of the round."""
-        return self.abci_app.latest_result
+    def latest_state(self) -> BasePeriodState:
+        """Get the latest state."""
+        return self.abci_app.state
 
     def begin_block(self, header: Header) -> None:
         """Begin block."""

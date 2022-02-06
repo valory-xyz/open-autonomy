@@ -346,7 +346,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         """Test that, when round ends, the 'done' flag is set."""
         current_state = cast(BaseState, self.behaviour.current_state)
         assert not current_state.is_done()
-        with mock.patch.object(self.behaviour.context.state, "period") as mock_period:
+        with mock.patch.object(self.behaviour.context.state, "_period") as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound, current_state.matching_round
             ).round_id
