@@ -582,14 +582,16 @@ class GnosisSafeContract(Contract):
         )
 
     @classmethod
-    def revert_reason(
+    def revert_reason(  # pylint: disable=unused-argument
         cls,
         ledger_api: EthereumApi,
+        contract_address: str,
         tx: TxData,
     ) -> JSONLike:
         """Check the revert reason of a transaction.
 
         :param ledger_api: the ledger API object.
+        :param contract_address: the contract address
         :param tx: the transaction for which we want to get the revert reason.
 
         :return: the revert reason message.
