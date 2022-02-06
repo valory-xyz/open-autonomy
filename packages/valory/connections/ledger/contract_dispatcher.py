@@ -375,7 +375,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
             for arg in ["ledger_api", "contract_address"]:  # pragma: nocover
                 if arg not in full_args_spec.args:
                     raise AEAException(
-                        f"Missing required argument {arg} in {method_to_call}"
+                        f"Missing required argument `{arg}` in {method_to_call}"
                     )
             return method_to_call(api, message.contract_address, **message.kwargs.body)
         if message.performative in [
@@ -387,7 +387,7 @@ class ContractApiRequestDispatcher(RequestDispatcher):
                 )
             if "ledger_api" not in full_args_spec.args:  # pragma: nocover
                 raise AEAException(
-                    f"Missing required argument {arg} in {method_to_call}"
+                    f"Missing required argument `ledger_api` in {method_to_call}"
                 )
             return method_to_call(api, **message.kwargs.body)
         raise AEAException(  # pragma: nocover
