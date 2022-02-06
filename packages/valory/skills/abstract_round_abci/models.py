@@ -56,7 +56,12 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
         self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
         self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
-        self.period_setup_params = kwargs.pop("period_setup", {})
+        period_setup_params = kwargs.pop("period_setup", {})
+        # we sanitize for null values as these are just kept for schema definitions
+        period_setup_params = {
+            key: val for key, val in period_setup_params.items() if val is not None
+        }
+        self.period_setup_params = period_setup_params
         super().__init__(*args, **kwargs)
 
     @classmethod
