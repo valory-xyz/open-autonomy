@@ -300,7 +300,7 @@ class TestContractDispatcher:
         ):
 
             def get_state(
-                ledger_api: Any, contract_api: Any, *args: Any, **kwargs: Any
+                ledger_api: Any, contract_address: str, *args: Any, **kwargs: Any
             ) -> Dict:
                 """Mock `get_state` method from GnosisSafeContract."""
                 return {}
