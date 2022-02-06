@@ -32,8 +32,7 @@ aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.optim
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.optimizer.alpha 0.25
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.pair_ids '["0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"]' --type list
 aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.sleep_time 10
-aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.period_setup.safe_contract_address "0x7AbCC2424811c342BC9A9B52B1621385d7406676"
-aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.period_setup.oracle_contract_address "0xB555E44648F6Ff759F64A5B451AB845B0450EA57"
+aea config set vendor.valory.skills.apy_estimation_abci.models.params.args.period_setup '{"safe_contract_address": "0x7AbCC2424811c342BC9A9B52B1621385d7406676", "oracle_contract_address": "0xB555E44648F6Ff759F64A5B451AB845B0450EA57"}' --type dict
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.address "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4"
 aea config set vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id 3 --type int
 aea build

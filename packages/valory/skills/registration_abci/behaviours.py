@@ -129,7 +129,7 @@ class RegistrationBaseBehaviour(BaseState):
         ).local():
             initialisation = (
                 json.dumps(self.period_state.db.initial_data)
-                if self.period_state.db.initial_data
+                if self.period_state.db.initial_data != {}
                 else None
             )
             payload = RegistrationPayload(
