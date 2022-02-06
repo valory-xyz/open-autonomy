@@ -253,6 +253,7 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             self,
         ).consensus():
             if self.params.is_broadcasting_to_server:
+                self.context.logger.info("Attempting broadcast")
                 yield from self.send_to_server(payload.tx_hash)
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -296,7 +297,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             url=server_api_specs["url"],
             content=message,
         )
-        self.context.server_api.process_response(raw_response)
+        response = self.context.server_api.process_response(raw_response)
+        self.context.logger.info(f"broadcast data to server response: {response}")
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""
@@ -365,10 +367,9 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 class ObserverRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the observer behaviour."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
+    initial_state_cls = ObserveBehaviour
     abci_app_cls = PriceAggregationAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
         ObserveBehaviour,  # type: ignore
         EstimateBehaviour,  # type: ignore
         TransactionHashBehaviour,  # type: ignore

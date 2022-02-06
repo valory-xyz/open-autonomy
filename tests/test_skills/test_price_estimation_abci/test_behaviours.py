@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Dict, Union, cast
 from unittest import mock
 
+import pytest
 from aea.helpers.transaction.base import RawTransaction
 
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -262,13 +263,56 @@ class TestEstimateBehaviour(PriceEstimationFSMBehaviourBaseCase):
         assert state.state_id == TransactionHashBehaviour.state_id
 
 
+def mock_to_server_message_flow(self: "TestTransactionHashBehaviour") -> None:
+    """Mock to server message flow"""
+
+    self.behaviour.context.logger.info("Mocking to server message flow")
+    data = {
+        "observations": {"agent1": float("nan")},
+        "agent_address": "test_agent_address",
+        "period_count": 0,
+        "estimate": 1.0,
+        "unit": "BTC:USD",
+        "signature": "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003d09000x77E9b2EF92125"
+        "3A171Fa0CB9ba80558648Ff721564617461",
+        "data_source": "coinbase",
+    }
+
+    request_kwargs: Dict[str, Union[str, bytes]] = dict(
+        method="POST",
+        url="http://192.168.1.102:9999/deposit",
+        headers="",
+        version="",
+        body=DictProtobufStructSerializer.encode(data),
+    )
+
+    response_kwargs = dict(
+        version="",
+        status_code=201,
+        status_text="",
+        headers="",
+        body=b"",
+    )
+
+    self.behaviour.act_wrapper()
+    self.mock_http_request(request_kwargs, response_kwargs)
+    self.behaviour.act_wrapper()
+
+
+@pytest.mark.parametrize("broadcast_to_server", (False, True))
 class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
     """Test TransactionHashBehaviour."""
 
     def test_estimate(
         self,
+        broadcast_to_server: bool,
     ) -> None:
         """Test estimate behaviour."""
+
+        # change setting, mock message flow with and without broadcast to server
+        state_params = self.behaviour.current_state.params  # type: ignore
+        state_params.is_broadcasting_to_server = broadcast_to_server
 
         self.fast_forward_to_state(
             behaviour=self.behaviour,
@@ -346,36 +390,8 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
             ),
         )
 
-        data = {
-            "observations": {"agent1": float("nan")},
-            "agent_address": "test_agent_address",
-            "period_count": 0,
-            "estimate": 1.0,
-            "unit": "BTC:USD",
-            "signature": "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003d09000x77E9b2EF921253A171Fa0CB9ba80558648Ff721564617461",
-            "data_source": "coinbase",
-        }
-
-        request_kwargs: Dict[str, Union[str, bytes]] = dict(
-            method="POST",
-            url="http://192.168.1.102:9999/deposit",
-            headers="",
-            version="",
-            body=DictProtobufStructSerializer.encode(data),
-        )
-
-        response_kwargs = dict(
-            version="",
-            status_code=201,
-            status_text="",
-            headers="",
-            body=b"",
-        )
-
-        if self.behaviour.current_state.params.is_broadcasting_to_server:  # type: ignore
-            self.behaviour.act_wrapper()
-            self.mock_http_request(request_kwargs, response_kwargs)
-            self.behaviour.act_wrapper()
+        if broadcast_to_server:
+            mock_to_server_message_flow(self)
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()

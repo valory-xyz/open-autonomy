@@ -43,10 +43,10 @@ dummy_period_data = {
         {
             "estimate": 6.66,
             "observations": {
-                "agent1": 0.0,
-                "agent2": 1.14,
-                "agent3": 5.5,
-                "agent4": 20.0,
+                "0x_address_agent1": 0.0,
+                "0x_address_agent2": 1.14,
+                "0x_address_agent3": 5.5,
+                "0x_address_agent4": 20.0,
             },
             "signature": "tx_hash",
             "time_stamp": "2022-02-03T10:54:35.233373",
@@ -55,10 +55,10 @@ dummy_period_data = {
 }
 
 dummy_data_sources = {
-    "agent1": "coingecko",
-    "agent2": "coinmarketcap",
-    "agent3": "coinbase",
-    "agent4": "binance",
+    "0x_address_agent1": "coingecko",
+    "0x_address_agent2": "coinmarketcap",
+    "0x_address_agent3": "coinbase",
+    "0x_address_agent4": "binance",
 }
 
 
