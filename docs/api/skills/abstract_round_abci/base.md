@@ -1229,6 +1229,28 @@ CollectDifferentUntilAllRound
 This class represents logic for rounds where a round needs to collect
 different payloads from each agent.
 
+This round should only be used for registration of new agents.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.collection_threshold_reached"></a>
 
 #### collection`_`threshold`_`reached
