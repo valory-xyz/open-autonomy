@@ -1,0 +1,7 @@
+name: "price_estimation_ropsten"
+author: "valory"
+version: 0.1.0
+valory_application: "valory/price_estimation_deployable:0.1.0"
+network: ropsten
+number_of_agents: 2
+---

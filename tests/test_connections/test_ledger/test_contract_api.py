@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -300,7 +300,7 @@ class TestContractDispatcher:
         ):
 
             def get_state(
-                ledger_api: Any, contract_api: Any, *args: Any, **kwargs: Any
+                ledger_api: Any, contract_address: str, *args: Any, **kwargs: Any
             ) -> Dict:
                 """Mock `get_state` method from GnosisSafeContract."""
                 return {}

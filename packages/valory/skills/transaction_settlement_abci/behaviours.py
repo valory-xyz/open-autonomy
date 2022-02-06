@@ -570,11 +570,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
-        if (
-            self.pause
-            and self.period_state.is_most_voted_estimate_set
-            and self.period_state.is_final_tx_hash_set
-        ):
+        if self.pause and self.period_state.is_final_tx_hash_set:
             if (
                 self.period_state.period_count != 0
                 and self.period_state.period_count % self.params.reset_tendermint_after
@@ -648,7 +644,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
                 self.params.observation_interval / 2
             )
             self.context.logger.info(
-                f"Finalized estimate: {self.period_state.most_voted_estimate} with transaction hash: {self.period_state.final_tx_hash}"
+                f"Finalized with transaction hash: {self.period_state.final_tx_hash}"
             )
             self.context.logger.info("Period end.")
             benchmark_tool.save()

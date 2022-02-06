@@ -22,17 +22,29 @@ import os
 import shutil
 import tempfile
 from abc import ABC
-from copy import deepcopy
 from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
-from deployments.base_deployments import (
-    APYEstimationDeployment,
-    CounterDeployment,
-    PriceEstimationDeployment,
-)
+import yaml
+
+from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
 from deployments.generators.docker_compose.docker_compose import DockerComposeGenerator
+from deployments.generators.kubernetes.kubernetes import KubernetesGenerator
 
 from tests.helpers.constants import ROOT_DIR
+
+
+deployment_generators: List[Any] = [
+    DockerComposeGenerator,
+    KubernetesGenerator,
+]
+
+test_deployment_spec_paths: Dict[str, str] = {
+    "case_hardhat": "./deployments/deployment_specifications/price_estimation_hardhat.yaml",
+    "case_ropsten": "./deployments/deployment_specifications/price_estimation_ropsten.yaml",
+}
+
+os.chdir(ROOT_DIR)
 
 
 class CleanDirectoryClass:
@@ -65,53 +77,68 @@ class CleanDirectoryClass:
 class BaseDeploymentTests(ABC):
     """Base pytest class for setting up Docker images."""
 
-    config: dict
+    deployment_spec_path: str
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup up the test class."""
-        cls.config = deepcopy(test_app_config)
 
     @classmethod
     def teardown_class(cls) -> None:
         """Setup up the test class."""
 
+    @staticmethod
+    def load_deployer_and_app(
+        app: str, deployer: BaseDeploymentGenerator
+    ) -> Tuple[BaseDeploymentGenerator, BaseDeployment]:
+        """Handles loading the 2 required instances"""
+        app_instance = BaseDeployment(path_to_deployment_spec=app)
+        instance = deployer(deployment_spec=app_instance)  # type: ignore
+        return instance, app_instance
+
 
 class TestDockerComposeDeployment(BaseDeploymentTests):
     """Test class for DOcker-compose Deployment."""
 
+    deployment_generator = DockerComposeGenerator
+
     def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
-
-    def test_creates_hardhat_deploy(self) -> None:
-        """Required for deployment of hardhat."""
+        for (
+            test_case_name,
+            spec_path,
+        ) in test_deployment_spec_paths.items():
+            if test_case_name.find("ropsten") < 0:
+                continue
+            instance, app_instance = self.load_deployer_and_app(
+                spec_path, self.deployment_generator  # type: ignore
+            )
+            output = instance.generate(app_instance)  # type: ignore
+            containers = yaml.safe_load(output)["services"]
+            assert "hardhat" not in containers.keys()
 
 
 class TestKubernetesDeployment(BaseDeploymentTests):
     """Test class for Kubernetes Deployment."""
 
+    deployment_generator = KubernetesGenerator
+
     def test_creates_ropsten_deploy(self) -> None:
         """Required for deployment of ropsten."""
-
-    def test_creates_hardhat_deploy(self) -> None:
-        """Required for deployment of hardhat."""
-
-
-valory_apps = [CounterDeployment, PriceEstimationDeployment, APYEstimationDeployment]
-
-deployment_generators = [DockerComposeGenerator]
-
-test_app_config = {
-    "number_of_agents": 4,
-    "network": "hardhat",
-    "deploy_safe_contract": False,
-    "deploy_oracle_contract": False,
-}
-
-test_deploy_config = {
-    "number_of_agents": 4,
-    "network": "hardhat",
-}
+        for (
+            test_case_name,
+            spec_path,
+        ) in test_deployment_spec_paths.items():
+            if test_case_name.find("ropsten") < 0:
+                continue
+            instance, app_instance = self.load_deployer_and_app(
+                spec_path, self.deployment_generator  # type: ignore
+            )
+            output = instance.generate(app_instance)  # type: ignore
+            resource_names = []
+            for resource_yaml in yaml.safe_load_all(output):
+                resource_names.append(resource_yaml["metadata"]["name"])
+            assert "hardhat" not in resource_names
 
 
 class TestDeploymentGenerators(BaseDeploymentTests):
@@ -125,52 +152,72 @@ class TestDeploymentGenerators(BaseDeploymentTests):
 
     def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all valory apps."""
-        for generator in valory_apps:
-            instance = generator(
-                number_of_agents=self.config["number_of_agents"],
-                network=self.config["network"],
-                deploy_safe_contract=self.config["deploy_safe_contract"],
-                deploy_oracle_contract=self.config["deploy_oracle_contract"],
-            )
-            res = instance.generate_agent(0)
-            assert len(res) >= 1
+        for deployment_generator in deployment_generators:
+            for _, spec_path in test_deployment_spec_paths.items():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                res = app_instance.generate_agent(0)
+                assert len(res) >= 1
 
     def test_generates_agents_for_all_valory_apps(self) -> None:
         """Test functionality of the valory deployment generators."""
-        for generator in valory_apps:
-            instance = generator(**self.config)
-            res = instance.generate_agents()
-            assert len(res) > 1, "failed to generate agents"
+        for deployment_generator in deployment_generators:
+            for _, spec_path in test_deployment_spec_paths.items():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                res = app_instance.generate_agents()
+                assert len(res) >= 1, "failed to generate agents"
 
 
 class TestTendermintDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    def setup(self) -> None:
-        """Specify deployment configuration."""
-        self.config = test_deploy_config
-
-    def test_generates_agents_for_all_tendermint_configs(self) -> None:
+    def test_generates_all_tendermint_configs(self) -> None:
         """Test functionality of the tendermint deployment generators."""
         for deployment_generator in deployment_generators:
-            instance = deployment_generator(**self.config)
-            for app in valory_apps:
-                res = instance.generate_config_tendermint(app)
-                assert len(res) > 1, "Failed to generate Tendermint Config"
+            for _, spec_path in test_deployment_spec_paths.items():
+                deployer_instance, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                res = deployer_instance.generate_config_tendermint(app_instance)  # type: ignore
+                assert len(res) >= 1, "Failed to generate Tendermint Config"
+
+
+class TestDeploymentLoadsAgent(BaseDeploymentTests):
+    """Test functionality of the deployment generators."""
+
+    def test_loads_agent_config(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            for _, spec_path in test_deployment_spec_paths.items():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                agent_json = app_instance.load_agent()
+                assert agent_json != {}
 
 
 class TestCliTool(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
-    def setup(self) -> None:
-        """Specify deployment configuration."""
-        self.config = test_deploy_config
-
-    def test_generates_agents_for_all_tendermint_configs(self) -> None:
-        """Test functionality of the tendermint deployment generators."""
-
+    def test_generates_deploy_safe_contract(self) -> None:
+        """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
-            instance = deployment_generator(**self.config)
-            for app in valory_apps:
-                res = instance.generate_config_tendermint(app)
-                assert len(res) > 1, "Failed to generate Tendermint Config"
+            for _, spec_path in test_deployment_spec_paths.items():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                app_instance.generate_agent(0)
+
+    def test_generates_deploy_oracle_contract(self) -> None:
+        """Test functionality of deploy safe contract."""
+        for deployment_generator in deployment_generators:
+            for _, spec_path in test_deployment_spec_paths.items():
+                _, app_instance = self.load_deployer_and_app(
+                    spec_path, deployment_generator
+                )
+                if app_instance.network != "ropsten":
+                    continue
+                app_instance.generate_agent(0)

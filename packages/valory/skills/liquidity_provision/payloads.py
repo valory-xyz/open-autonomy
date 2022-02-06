@@ -34,6 +34,7 @@ class TransactionType(Enum):
     TRANSACTION_HASH = "tx_hash"
     LP_RESULT = "lp_result"
     TX_HASH = "tx_hash"
+    SLEEP = "sleep"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -66,7 +67,7 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
 
     transaction_type = TransactionType.STRATEGY_EVALUATION
 
-    def __init__(self, sender: str, strategy: dict, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, strategy: str, id_: Optional[str] = None) -> None:
         """Initialize a 'strategy_evaluation' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -77,7 +78,7 @@ class StrategyEvaluationPayload(BaseLiquidityProvisionPayload):
         self._strategy = strategy
 
     @property
-    def strategy(self) -> dict:
+    def strategy(self) -> str:
         """Get the strategy."""
         return self._strategy
 
@@ -113,3 +114,19 @@ class TransactionHashPayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(tx_hash=self.tx_hash) if self.tx_hash is not None else {}
+
+
+class SleepPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'sleep'."""
+
+    transaction_type = TransactionType.SLEEP
+
+    @property
+    def sleep(self) -> str:
+        """Get the sleep dummy property."""
+        return "sleep"
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(sleep=self.sleep)

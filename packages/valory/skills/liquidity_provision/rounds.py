@@ -30,11 +30,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     AppState,
     BasePeriodState,
-    BaseTxPayload,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
 from packages.valory.skills.liquidity_provision.payloads import (
+    SleepPayload,
     StrategyEvaluationPayload,
     StrategyType,
     TransactionHashPayload,
@@ -68,14 +68,9 @@ class PeriodState(
     """
 
     @property
-    def most_voted_strategy(self) -> dict:
+    def most_voted_strategy(self) -> str:
         """Get the most_voted_strategy."""
-        return cast(dict, self.db.get_strict("most_voted_strategy"))
-
-    @property
-    def most_voted_transfers(self) -> dict:
-        """Get the most_voted_transfers."""
-        return cast(dict, self.db.get_strict("most_voted_transfers"))
+        return cast(str, self.db.get_strict("most_voted_strategy"))
 
     @property
     def participant_to_strategy(self) -> Mapping[str, StrategyEvaluationPayload]:
@@ -127,11 +122,6 @@ class PeriodState(
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
-    def most_voted_tx_data(self) -> str:
-        """Get the most_voted_enter_pool_tx_data."""
-        return cast(str, self.db.get_strict("most_voted_tx_data"))
-
-    @property
     def final_tx_hash(self) -> str:
         """Get the final_enter_pool_tx_hash."""
         return cast(str, self.db.get_strict("final_tx_hash"))
@@ -175,7 +165,6 @@ class TransactionHashBaseRound(
             state = self.period_state.update(
                 participant_to_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=dict_["tx_hash"],
-                most_voted_tx_data=dict_["tx_data"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -201,14 +190,17 @@ class StrategyEvaluationRound(
                 participant_to_strategy=MappingProxyType(self.collection),
                 most_voted_strategy=self.most_voted_payload,
             )
+
+            strategy = json.loads(self.most_voted_payload)
+
             event = Event.RESET_TIMEOUT
-            if self.most_voted_payload["action"] == StrategyType.WAIT.value:
+            if strategy["action"] == StrategyType.WAIT.value:
                 event = Event.DONE
-            elif self.most_voted_payload["action"] == StrategyType.ENTER.value:
+            elif strategy["action"] == StrategyType.ENTER.value:
                 event = Event.DONE_ENTER
-            elif self.most_voted_payload["action"] == StrategyType.EXIT.value:
+            elif strategy["action"] == StrategyType.EXIT.value:
                 event = Event.DONE_EXIT
-            elif self.most_voted_payload["action"] == StrategyType.SWAP_BACK.value:
+            elif strategy["action"] == StrategyType.SWAP_BACK.value:
                 event = Event.DONE_SWAP_BACK
             return state, event
         if not self.is_majority_possible(
@@ -218,21 +210,22 @@ class StrategyEvaluationRound(
         return None
 
 
-class SleepRound(LiquidityProvisionAbstractRound):
+class SleepRound(CollectSameUntilThresholdRound, LiquidityProvisionAbstractRound):
     """A round in which agents wait for a predefined amount of time"""
 
     round_id = "sleep"
-    allowed_tx_type = None
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payload."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payload."""
+    allowed_tx_type = SleepPayload.transaction_type
+    payload_attribute = "sleep"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        return self.period_state, Event.DONE
+        if self.threshold_reached:
+            return self.period_state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class EnterPoolTransactionHashRound(TransactionHashBaseRound):

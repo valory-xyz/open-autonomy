@@ -37,17 +37,6 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.oracle_contract_address"></a>
-
-#### oracle`_`contract`_`address
-
-```python
-@property
-def oracle_contract_address() -> str
-```
-
-Get the oracle contract address.
-
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.participant_to_signature"></a>
 
 #### participant`_`to`_`signature
@@ -110,28 +99,6 @@ Get the most_voted_tx_hash.
 ```python
 @property
 def is_final_tx_hash_set() -> bool
-```
-
-Check if most_voted_estimate is set.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.most_voted_estimate"></a>
-
-#### most`_`voted`_`estimate
-
-```python
-@property
-def most_voted_estimate() -> float
-```
-
-Get the most_voted_estimate.
-
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.PeriodState.is_most_voted_estimate_set"></a>
-
-#### is`_`most`_`voted`_`estimate`_`set
-
-```python
-@property
-def is_most_voted_estimate_set() -> bool
 ```
 
 Check if most_voted_estimate is set.

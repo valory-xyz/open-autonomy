@@ -35,8 +35,8 @@ def test_strategy_evaluation_payload() -> None:
         "pool": "0x0000000000000000000000000000",
         "amountETH": 0.1,  # Be careful with floats and determinism here
     }
-    payload = StrategyEvaluationPayload(sender="sender", strategy=strategy)
+    payload = StrategyEvaluationPayload(sender="sender", strategy=str(strategy))
 
     assert payload.sender == "sender"
-    assert payload.data == {"strategy": strategy}
+    assert payload.data == {"strategy": str(strategy)}
     assert payload.transaction_type == TransactionType.STRATEGY_EVALUATION
