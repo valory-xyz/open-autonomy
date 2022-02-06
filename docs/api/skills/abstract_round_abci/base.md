@@ -1727,7 +1727,7 @@ Check whether the AbciApp execution has finished.
 
 ```python
 @property
-def latest_result() -> Optional[Any]
+def latest_result() -> Optional[BasePeriodState]
 ```
 
 Get the latest result of the round.
@@ -1769,7 +1769,7 @@ Forward the call to the current round object.
 #### process`_`event
 
 ```python
-def process_event(event: EventType, result: Optional[Any] = None) -> None
+def process_event(event: EventType, result: Optional[BasePeriodState] = None) -> None
 ```
 
 Process a round event.
@@ -1961,16 +1961,16 @@ def last_timestamp() -> datetime.datetime
 
 Get the last timestamp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.latest_result"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.Period.latest_state"></a>
 
-#### latest`_`result
+#### latest`_`state
 
 ```python
 @property
-def latest_result() -> Optional[Any]
+def latest_state() -> BasePeriodState
 ```
 
-Get the latest result of the round.
+Get the latest state.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Period.begin_block"></a>
 
