@@ -74,7 +74,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 
 
 SAFE_TX_GAS = 4000000
-ETHER_VALUE = 0  # TOFIX
 CURRENT_BLOCK_TIMESTAMP = 0  # TOFIX
 
 benchmark_tool = BenchmarkTool()
@@ -618,7 +617,7 @@ class EnterPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=ETHER_VALUE,
+                value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
                 safe_tx_gas=strategy["safe_tx_gas"],
@@ -784,7 +783,7 @@ class ExitPoolTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=ETHER_VALUE,
+                value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
                 safe_tx_gas=strategy["safe_tx_gas"],
@@ -929,7 +928,7 @@ class SwapBackTransactionHashBehaviour(LiquidityProvisionBaseBehaviour):
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_raw_safe_transaction_hash",
                 to_address=self.period_state.multisend_contract_address,
-                value=ETHER_VALUE,
+                value=0,
                 data=bytes.fromhex(multisend_data),
                 operation=SafeOperation.DELEGATE_CALL.value,
                 safe_tx_gas=strategy["safe_tx_gas"],

@@ -39,7 +39,6 @@ from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
 from packages.valory.skills.liquidity_provision.behaviours import (
     CURRENT_BLOCK_TIMESTAMP,
-    ETHER_VALUE,
     EnterPoolTransactionHashBehaviour,
     ExitPoolTransactionHashBehaviour,
     GnosisSafeContract,
@@ -509,7 +508,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         to_address=period_state.multisend_contract_address,
-                        value=ETHER_VALUE,
+                        value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
@@ -782,7 +781,7 @@ class TestEnterPoolTransactionHashBehaviour(LiquidityProvisionBehaviourBaseCase)
                 kwargs=Kwargs(
                     dict(
                         to_address=period_state.multisend_contract_address,
-                        value=ETHER_VALUE,
+                        value=0,
                         data=b"ummy_tx",  # type: ignore
                         operation=SafeOperation.DELEGATE_CALL.value,
                         safe_tx_gas=4000000,
