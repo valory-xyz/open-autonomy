@@ -253,7 +253,6 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
             self,
         ).consensus():
             if self.params.is_broadcasting_to_server:
-                self.context.logger.info("Attempting broadcast")
                 yield from self.send_to_server(payload.tx_hash)
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -262,6 +261,8 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 
     def send_to_server(self, tx_hash: Optional[str]) -> Generator:
         """Send data to server"""
+
+        self.context.logger.info("Attempting broadcast")
 
         # select relevant data
         state_db = self.period_state.db
@@ -292,13 +293,15 @@ class TransactionHashBehaviour(PriceEstimationBaseState):
 
         message = DictProtobufStructSerializer.encode(data_for_server)
         server_api_specs = self.context.server_api.get_spec()
+
         raw_response = yield from self.get_http_response(
             method=server_api_specs["method"],
             url=server_api_specs["url"],
             content=message,
         )
+        self.context.logger.info(f"Broadcast raw response: {raw_response}")
         response = self.context.server_api.process_response(raw_response)
-        self.context.logger.info(f"broadcast data to server response: {response}")
+        self.context.logger.info(f"Broadcast response: {response}")
 
     def _get_safe_tx_hash(self) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash of the Safe tx."""

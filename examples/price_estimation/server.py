@@ -19,38 +19,37 @@
 
 """Server for testing"""
 
-from typing import Optional
 from http import HTTPStatus
 from datetime import datetime
-
-import random
-import time
+from queue import Queue
 
 from threading import Thread, Event
 
-from flask import Flask, request, jsonify, render_template
-from flask_socketio import SocketIO, emit, send
+from flask import Flask, request, render_template
+from flask_socketio import SocketIO
 from flask_cors import CORS
 
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
 
-# setup
+thread = Thread()
+thread_stop_event = Event()
+
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'private_key'
+app.config['SECRET_KEY'] = "💩"
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# constants and storage
 PORT = 9999  # must match skill.yaml file specification
 period_data = {}
 data_sources = {}
-last_period_count: Optional[int] = None
+last_period_count: int = 0
+queue = Queue()
 
 
 dummy_period_data = {
-    "-1": {
+    -1: {
         "0x_address_agent1": {
             "estimate": 6.66,
             "observations": {
@@ -80,47 +79,55 @@ def data():
 @app.route("/deposit", methods=['POST'])
 def deposit() -> int:
     """Receive agent http POST request data from oracle service"""
+    global last_period_count
+    global queue
     raw_data = request.get_data()
     oracle_data = DictProtobufStructSerializer.decode(raw_data)
     try:
         period_count = oracle_data.pop("period_count")
         agent_address = oracle_data.pop("agent_address")
+        if period_count > last_period_count:
+            queue.put(period_data[last_period_count], block=True, timeout=None)
+            last_period_count = period_count
         oracle_data['time_stamp'] = datetime.now().isoformat()
         period_data.setdefault(period_count, {})[agent_address] = oracle_data
-        return HTTPStatus.CREATED
+        return HTTPStatus.CREATED  # this is not correct yet
     except Exception as e:
         print(e)
         return HTTPStatus.BAD_REQUEST
 
 
-thread = Thread()
-thread_stop_event = Event()
-
-
-def generate_random_number():
-    while not thread_stop_event.is_set():
-        number = round(random.random(), 3)
-        socketio.emit('newnumber', {'number': number}, namespace='/test')
-        socketio.sleep(5)
-
-
 def generate_random_period_data():
+    global last_period_count
+    global queue
+    import time
+    import copy
+    time.sleep(2)
+    new_period_data = copy.deepcopy(dummy_period_data)
+    period_data[last_period_count] = new_period_data[-1]
+    queue.put(period_data[last_period_count], block=True, timeout=2)
+    last_period_count += 1
+
+
+def emit_last_period_data():
+    """Emit an event to the client"""
     while not thread_stop_event.is_set():
-        dummy_period_data["-1"]["0x_address_agent1"]["estimate"] = random.random()
-        socketio.emit('new_data', {'period': dummy_period_data}, namespace='/test')
-        socketio.sleep(5)
+        # generate_random_period_data()  # sleep, q.put, period_ctr += 1
+        if not queue.empty():
+            data_to_emit = queue.get(block=True, timeout=None)
+            socketio.emit('new_data', {'period': data_to_emit}, namespace='/test')
 
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html')  # async_mode=socketio.async_mode
 
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread  # need visibility of the global thread object
     if not thread.is_alive():
-        thread = socketio.start_background_task(generate_random_period_data)
+        thread = socketio.start_background_task(emit_last_period_data)
 
 
 @socketio.on('disconnect', namespace='/test')
@@ -128,146 +135,6 @@ def test_disconnect():
     print('Client disconnected')
 
 
-# @socketio.on('message')
-# def handle_message(message):
-#     send(message, broadcast=True)
-#
-#
-# @socketio.on('json')
-# def handle_json(json):
-#     send(json, json=True)
-
-# import random, time
-# thread = Thread()
-# thread_stop_event = Event()
-#
-#
-# def randomNumberGenerator():
-#     """
-#     Generate a random number every 1 second and emit to a socketio instance (broadcast)
-#     Ideally to be run in a separate thread?
-#     """
-#     #infinite loop of magical random numbers
-#     print("Making random numbers")
-#     while not thread_stop_event.isSet():
-#         number = round(random.random()*10, 3)
-#         print(number)
-#         socketio.emit('newnumber', {'number': number}, namespace='/test')
-#         socketio.sleep(5)
-#
-#
-# @app.route('/')
-# def index():
-#     #only by sending this page first will the client be connected to the socketio instance
-#     return render_template('index.html')
-#
-#
-# @socketio.on('connect', namespace='/test')
-# def test_connect():
-#     # need visibility of the global thread object
-#     global thread
-#     print('Client connected')
-#     if not thread.isAlive():
-#         print("Starting Thread")
-#         thread = socketio.start_background_task(randomNumberGenerator)
-#
-#
-# @socketio.on('disconnect', namespace='/test')
-# def test_disconnect():
-#     print('Client disconnected')
-
-
-# class RandomThread(Thread):
-#
-#     def __init__(self):
-#         super(RandomThread, self).__init__()
-#
-#     def randomNumberGenerator(self):
-#         """
-#         Generate a random number every 1 second and emit to a socketio instance (broadcast)
-#         Ideally to be run in a separate thread?
-#         """
-#         #infinite loop of magical random numbers
-#         print("Making random numbers")
-#         while not thread_stop_event.isSet():
-#             number = round(random.random()*10, 3)
-#             print(number)
-#             socketio.emit('newnumber', {'number': number}, namespace='/test')
-#             time.sleep(1)
-#
-#     def run(self):
-#         self.randomNumberGenerator()
-#
-#
-# @app.route('/')
-# def index():
-#     # only by sending this page first will the client be connected to the socketio instance
-#     import os
-#     return render_template('index.html')
-#
-#
-# @socketio.on('connect', namespace='/test')
-# def test_connect():
-#     # need visibility of the global thread object
-#     global thread
-#     print('Client connected')
-#     if not thread.is_alive():
-#         print("Starting Thread")
-#         thread = RandomThread()
-#         thread.start()
-#
-#
-# @socketio.on('disconnect', namespace='/test')
-# def test_disconnect():
-#     print('Client disconnected')
-
-
-
-
-# @socketio.on('connect')
-# def test_connect():
-#     emit('responseMessage', {'data': 'Connected! ayy'})
-    # need visibility of the global thread object
-    # global thread
-    # if not thread.isAlive():
-    #     print("Starting Thread")
-    #     thread = DataThread()
-    #     thread.start()
-
-# @socketio.on('message')
-# def handle_message(msg):
-#     pass
-
-
-
-# @app.route("/pulse", methods=['GET', 'POST'])
-# def pulse():
-#     """API endpoint for POST requests"""
-#
-#     import time
-#     import requests
-#
-#     url = 'https://1359-62-131-191-3.ngrok.io/test'
-#     headers = {'Content-type': 'text/html; charset=UTF-8'}
-#     response = requests.post(url, data=data, headers=headers)
-#     # wait for the response. it should not be higher
-#     # than keep alive time for TCP connection
-#
-#     # render template or redirect to some url:
-#     # return redirect("some_url")
-#     # return render_template("some_page.html", message=str(response.text)) # or response.json()
-#
-#     i = 0
-#     while True:
-#         i += 1
-#         time.sleep(3)
-#         return i
-#     # return "Content not supported"
-
-
-
-
 if __name__ == '__main__':
     host = "0.0.0.0"
     app.run(host=host, port=PORT, debug=True)
-
