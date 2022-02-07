@@ -30,7 +30,8 @@ from typing import Any, Dict, List, Type
 import jsonschema
 import yaml
 from aea.cli.utils.package_utils import try_get_item_source_path
-from aea.configurations.constants import AGENTS
+from aea.configurations.constants import AGENTS, DEFAULT_AEA_CONFIG_FILE
+from aea.configurations.data_types import PublicId
 from aea.configurations.validation import (
     ConfigValidator,
     EnvVarsFriendlyDraft4Validator,
@@ -98,8 +99,7 @@ class BaseDeployment:
             )
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
-        self.agent_author, self.agent_version = self.valory_application.split(":")
-        self.agent_author, self.agent_name = self.agent_author.split("/")
+        self.agent_public_id = PublicId.from_str(self.valory_application)
         self.agent_spec = self.load_agent()
 
     def get_network(self) -> Dict[str, Any]:
@@ -144,9 +144,12 @@ class BaseDeployment:
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
         source_path = try_get_item_source_path(
-            str(PACKAGES_DIRECTORY), self.agent_author, AGENTS, self.agent_name
+            str(PACKAGES_DIRECTORY),
+            self.agent_public_id.author,
+            AGENTS,
+            self.agent_public_id.name,
         )
-        return str(Path(source_path) / "aea-config.yaml")
+        return str(Path(source_path) / DEFAULT_AEA_CONFIG_FILE)
 
 
 class BaseDeploymentGenerator:

@@ -45,9 +45,7 @@ BUILD_DIR = Path("/build/configs")
 def build_configuration_job(number_of_agents: int) -> None:
     """Build configuration job."""
 
-    host_names = ", ".join(
-        [f'"--hostname=agent-node-{i}-service"' for i in range(number_of_agents)]
-    )
+    host_names = ", ".join([f'"--hostname=abci{i}"' for i in range(number_of_agents)])
 
     config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
     config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
@@ -63,9 +61,7 @@ def build_agent_deployment(
     agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]
 ) -> str:
     """Build agent deployment."""
-    host_names = ", ".join(
-        [f'"--hostname=agent-node-{i}-service"' for i in range(number_of_agents)]
-    )
+    host_names = ", ".join([f'"--hostname=abci{i}"' for i in range(number_of_agents)])
 
     agent_deployment = AGENT_NODE_TEMPLATE.format(
         validator_ix=agent_ix,
@@ -80,7 +76,7 @@ def build_agent_deployment(
             for container in resource["spec"]["template"]["spec"]["containers"]:
                 if container["name"] == "aea":
                     container["env"] += [
-                        {"name": k, "value": f"'{v}'"} for k, v in agent_vars.items()
+                        {"name": k, "value": f"{v}"} for k, v in agent_vars.items()
                     ]
         resources.append(resource)
 
@@ -108,7 +104,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Build configuration job."""
         host_names = ", ".join(
             [
-                f'"--hostname=agent-node-{i}-service"'
+                f'"--hostname=abci{i}"'
                 for i in range(valory_application.number_of_agents)
             ]
         )
@@ -119,10 +115,20 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         )
         return config_job_yaml
 
+    def _apply_cluster_specific_tendermint_params(  # pylint: disable= no-self-use
+        self, agent_params: List
+    ) -> List:
+        """Override the tendermint params to point at the localhost."""
+        for agent in agent_params:
+            agent["TENDERMINT_URL"] = "http://localhost:26657"
+            agent["TENDERMINT_COM_URL"] = "http://localhost:8080"
+        return agent_params
+
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
         """Generate the deployment."""
         self.resources.append(self.generate_config_tendermint(valory_application))
         agent_vars = valory_application.generate_agents()  # type:ignore
+        agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         agents = "\n---\n".join(
             [
                 build_agent_deployment(
@@ -134,3 +140,19 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         self.resources.append(agents)
         self.output = "\n---\n".join(self.resources)
         return self.output
+
+    def write_config(  # pylint: disable=arguments-differ
+        self, configure_tendermint_resource: str = ""
+    ) -> None:
+        """Write output to build dir"""
+
+        if configure_tendermint_resource == "":
+            output = self.output
+        else:
+            output = "---\n".join([self.output, configure_tendermint_resource])
+
+        if not self.config_dir.is_dir():
+            self.config_dir.mkdir()
+
+        with open(self.config_dir / self.output_name, "w", encoding="utf8") as f:
+            f.write(output)

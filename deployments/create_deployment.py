@@ -103,10 +103,15 @@ def main() -> None:
     if args.tendermint_configuration and args.type_of_deployment == "docker-compose":
         res = os.popen(run_command)  # nosec:
         print(res.read())
-    else:
+    elif (
+        not args.tendermint_configuration
+        and args.type_of_deployment == "docker-compose"
+    ):
         print(
             f"To configure tendermint for specified Deployment please run: \n\n{run_command}"
         )
+    elif args.tendermint_configuration and args.type_of_deployment == "kubernetes":
+        deployment.write_config(run_command)  # type:ignore
 
 
 if __name__ == "__main__":
