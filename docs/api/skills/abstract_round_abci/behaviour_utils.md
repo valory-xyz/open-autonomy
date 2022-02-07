@@ -202,12 +202,46 @@ def stop() -> None
 
 Stop the execution of the behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour"></a>
+
+## CleanUpBehaviour Objects
+
+```python
+class CleanUpBehaviour(ABC)
+```
+
+Class for clean-up related functionality of behaviours.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.clean_up"></a>
+
+#### clean`_`up
+
+```python
+def clean_up() -> None
+```
+
+Clean up the resources due to a 'stop' event.
+
+It can be optionally implemented by the concrete classes.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.post_clean_up"></a>
+
+#### post`_`clean`_`up
+
+```python
+def post_clean_up() -> None
+```
+
+Run from another behaviour, even if the behaviour implementing the method has been exited.
+
+It can be optionally implemented by the concrete classes.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
 
 ## BaseState Objects
 
 ```python
-class BaseState(AsyncBehaviour,  SimpleBehaviour,  ABC)
+class BaseState(AsyncBehaviour,  SimpleBehaviour,  CleanUpBehaviour,  ABC)
 ```
 
 Base class for FSM states.
@@ -498,16 +532,4 @@ Request contract safe transaction hash
 **Returns**:
 
 the contract api response
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.clean_up"></a>
-
-#### clean`_`up
-
-```python
-def clean_up() -> None
-```
-
-Clean up the resources due to a 'stop' event.
-
-It can be optionally implemented by the concrete classes.
 

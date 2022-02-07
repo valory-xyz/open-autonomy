@@ -308,7 +308,25 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
+class CleanUpBehaviour(ABC):
+    """Class for clean-up related functionality of behaviours."""
+
+    def clean_up(self) -> None:
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """
+
+    def post_clean_up(self) -> None:
+        """
+        Run from another behaviour, even if the behaviour implementing the method has been exited.
+
+        It can be optionally implemented by the concrete classes.
+        """
+
+
+class BaseState(AsyncBehaviour, SimpleBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -1062,10 +1080,3 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self.context.outbox.put_message(message=contract_api_msg)
         response = yield from self.wait_for_message()
         return response
-
-    def clean_up(self) -> None:
-        """
-        Clean up the resources due to a 'stop' event.
-
-        It can be optionally implemented by the concrete classes.
-        """
