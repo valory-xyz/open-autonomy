@@ -29,6 +29,8 @@ from typing import Any, Dict, List, Type
 
 import jsonschema
 import yaml
+from aea.cli.utils.package_utils import try_get_item_source_path
+from aea.configurations.constants import AGENTS
 from aea.configurations.validation import (
     ConfigValidator,
     EnvVarsFriendlyDraft4Validator,
@@ -96,6 +98,8 @@ class BaseDeployment:
             )
         self.validator.validate(self.deployment_spec)
         self.__dict__.update(self.deployment_spec)
+        self.agent_author, self.agent_version = self.valory_application.split(":")
+        self.agent_author, self.agent_name = self.agent_author.split("/")
         self.agent_spec = self.load_agent()
 
     def get_network(self) -> Dict[str, Any]:
@@ -139,18 +143,10 @@ class BaseDeployment:
         """Using the deployment id, locate the registry and retrieve the path."""
         if local_registry is False:
             raise ValueError("Remote registry not yet supported, use local!")
-        for subdir, _, files in os.walk(PACKAGES_DIRECTORY):
-            for file in files:
-                if file == "aea-config.yaml":
-                    path = os.path.join(subdir, file)
-                    with open(path, "r", encoding="utf-8") as aea_path:  # type: ignore
-                        agent_spec = yaml.safe_load_all(aea_path)
-                        for spec in agent_spec:
-                            agent_id = f"{spec['author']}/{spec['agent_name']}:{spec['version']}"
-                            if agent_id != self.valory_application:
-                                break
-                            return os.path.join(subdir, file)
-        raise ValueError("Agent to be deployed not located in packages.")
+        source_path = try_get_item_source_path(
+            str(PACKAGES_DIRECTORY), self.agent_author, AGENTS, self.agent_name
+        )
+        return str(Path(source_path) / "aea-config.yaml")
 
 
 class BaseDeploymentGenerator:

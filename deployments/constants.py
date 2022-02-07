@@ -76,5 +76,6 @@ DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
 }
 
 
-CONFIG_DIRECTORY = Path(os.getcwd()) / "deployments" / "build"
-PACKAGES_DIRECTORY = Path(os.getcwd()) / "packages"
+ROOT_DIR = Path(os.getcwd())
+CONFIG_DIRECTORY = ROOT_DIR / "deployments" / "build"
+PACKAGES_DIRECTORY = ROOT_DIR / "packages"
