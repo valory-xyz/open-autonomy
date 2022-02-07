@@ -131,6 +131,8 @@ class Requests(Model):
         """Initialize the state."""
         super().__init__(*args, **kwargs)
 
+        # a callback which is going to be called if no callback is found for the given request id.
+        self.backup_callback: Callable
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
 

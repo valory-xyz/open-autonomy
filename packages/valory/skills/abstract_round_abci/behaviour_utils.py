@@ -308,8 +308,11 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-class CleanUpBehaviour(ABC):
+class CleanUpBehaviour(SimpleBehaviour, ABC):
     """Class for clean-up related functionality of behaviours."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def clean_up(self) -> None:
         """
@@ -325,8 +328,12 @@ class CleanUpBehaviour(ABC):
         It can be optionally implemented by the concrete classes.
         """
 
+    def _set_default_callback_handler(self):
+        """Sets the post clean up method as the default callback."""
+        cast(Requests, self.context.requests).backup_callback = self.post_clean_up
 
-class BaseState(AsyncBehaviour, SimpleBehaviour, CleanUpBehaviour, ABC):
+
+class BaseState(AsyncBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM states."""
 
     is_programmatically_defined = True
@@ -335,11 +342,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, CleanUpBehaviour, ABC):
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base state behaviour."""
-        AsyncBehaviour.__init__(self)
-        SimpleBehaviour.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self._is_done: bool = False
         self._is_started: bool = False
         enforce(self.state_id != "", "State id not set.")
+        self._set_default_callback_handler()
 
     @property
     def params(self) -> BaseParams:
