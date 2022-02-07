@@ -25,7 +25,7 @@ import logging
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
@@ -460,7 +460,7 @@ class StateDB:
             [] if cross_period_persisted_keys is None else cross_period_persisted_keys
         )
         self._data: Dict[int, Dict[str, Any]] = {
-            self._current_period_count: self._initial_data
+            self._current_period_count: deepcopy(self._initial_data)
         }
 
     @property
