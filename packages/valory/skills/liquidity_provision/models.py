@@ -21,6 +21,7 @@
 
 from typing import Any
 
+from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -30,7 +31,6 @@ from packages.valory.skills.liquidity_provision.composition import (
 )
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
 
 
@@ -75,21 +75,12 @@ class SharedState(BaseSharedState):
         )
 
 
-class Params(TransactionParams):
+class Params(BaseParams):
     """Parameters."""
 
     observation_interval: float
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
+        self.rebalancing_params = self._ensure("rebalancing", kwargs)
         super().__init__(*args, **kwargs)
-        self._count_healthcheck = 0
-
-    def is_health_check_timed_out(self) -> bool:
-        """Check if the healthcheck has timed out."""
-        self._count_healthcheck += 1
-        return self._count_healthcheck > self.max_healthcheck
-
-    def increment_retries(self) -> None:
-        """Increment the retries counter."""
-        self._count_healthcheck += 1
