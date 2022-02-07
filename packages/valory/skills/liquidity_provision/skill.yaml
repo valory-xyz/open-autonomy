@@ -79,15 +79,15 @@ models:
       period_setup: {}
       rebalancing:
         chain: Ethereum
-        token_base_address: 1258222091183498019947225577994668400935317599945
+        token_base_address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
         token_base_ticker: WETH
-        token_a_address: 78790969763375549363955457421182855930496929154
+        token_a_address: '0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82'
         token_a_ticker: TKA
-        token_b_address: 881491178682643365322153541833682141349068961032
+        token_b_address: '0x9A676e781A523b5d0C0e43731313A708CB607508'
         token_b_ticker: TKB
-        lp_token_address: 461298491511446312495178486189032611135232405214
-        default_minter: 0
-        ab_pool_address: 768723716507513749325017044198618137109902853142
+        lp_token_address: '0x50CD56fb094F8f06063066a619D898475dD3EedE'
+        default_minter: '0x0000000000000000000000000000000000000000'
+        ab_pool_address: '0x86A6C37D3E868580a65C723AAd7E0a945E170416'
         max_allowance: 1.1579209e+77
         deadline: 300
         sleep_seconds: 1
