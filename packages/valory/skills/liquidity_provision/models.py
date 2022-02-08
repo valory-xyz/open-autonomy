@@ -21,7 +21,6 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
@@ -32,6 +31,7 @@ from packages.valory.skills.liquidity_provision.composition import (
 from packages.valory.skills.price_estimation_abci.rounds import Event
 from packages.valory.skills.safe_deployment_abci.rounds import Event as SafeEvent
 from packages.valory.skills.transaction_settlement_abci.rounds import Event as TSEvent
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 
 MARGIN = 5
@@ -75,7 +75,7 @@ class SharedState(BaseSharedState):
         )
 
 
-class Params(BaseParams):
+class Params(TransactionParams):
     """Parameters."""
 
     observation_interval: float
