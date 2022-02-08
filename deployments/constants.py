@@ -75,6 +75,12 @@ DEPLOYED_CONTRACTS: Dict[str, Dict[str, Any]] = {
     },
 }
 
+TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
+    "kubernetes": {
+        "TENDERMINT_URL": "http://localhost:26657",
+        "TENDERMINT_COM_URL": "http://localhost:8080",
+    }
+}
 
 ROOT_DIR = Path(os.getcwd())
 CONFIG_DIRECTORY = ROOT_DIR / "deployments" / "build"

@@ -20,41 +20,16 @@
 
 """Script to create environment for benchmarking n agents."""
 
-import sys
-from pathlib import Path
 from typing import Any, Dict, List, Type
 
 import yaml
 
 from deployments.base_deployments import BaseDeployment, BaseDeploymentGenerator
-from deployments.constants import KEYS
+from deployments.constants import KEYS, TENDERMINT_CONFIGURATION_OVERRIDES
 from deployments.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
 )
-
-
-BASE_DIRECTORY = Path() / "kubernetes_configs"
-CONFIG_DIRECTORY = BASE_DIRECTORY / "build"
-AEA_DIR = CONFIG_DIRECTORY / "abci_build"
-AEA_KEY_DIR = AEA_DIR / "keys"
-
-BUILD_DIR = Path("/build/configs")
-
-
-def build_configuration_job(number_of_agents: int) -> None:
-    """Build configuration job."""
-
-    host_names = ", ".join([f'"--hostname=abci{i}"' for i in range(number_of_agents)])
-
-    config_command = ["../configure_agents/create_env.py", "-b"] + sys.argv[1:]
-    config_job_yaml = CLUSTER_CONFIGURATION_TEMPLATE.format(
-        number_of_validators=number_of_agents,
-        host_names=host_names,
-        config_command=config_command,
-    )
-    with open(CONFIG_DIRECTORY / "config_job.yaml", "w+", encoding="utf-8") as file:
-        file.write(config_job_yaml)
 
 
 def build_agent_deployment(
@@ -88,6 +63,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     """Kubernetes Deployment Generator."""
 
     output_name = "build.yaml"
+    deployment_type = "kubernetes"
 
     def __init__(
         self,
@@ -120,8 +96,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> List:
         """Override the tendermint params to point at the localhost."""
         for agent in agent_params:
-            agent["TENDERMINT_URL"] = "http://localhost:26657"
-            agent["TENDERMINT_COM_URL"] = "http://localhost:8080"
+            agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
         return agent_params
 
     def generate(self, valory_application: Type[BaseDeployment]) -> str:
