@@ -295,8 +295,8 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
                     )
                     continue
 
-                self.context.logger.info(
-                    f"Payload is invalid for {tx_hash}! Cannot continue."
+                self.context.logger.warning(
+                    f"Payload is invalid for {tx_hash}! Cannot continue. Received: {revert_reason}"
                 )
 
             return VerificationStatus.INVALID_PAYLOAD, tx_hash
@@ -492,13 +492,18 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 tx_data["status"] = VerificationStatus.VERIFIED
             else:
                 tx_data["status"] = VerificationStatus.ERROR
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {contract_api_msg}"
+            )
             return tx_data
 
         if (
             contract_api_msg.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
         ):  # pragma: nocover
-            self.context.logger.warning("get_raw_safe_transaction unsuccessful!")
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {contract_api_msg}"
+            )
             return tx_data
 
         tx_digest = yield from self.send_raw_transaction(
