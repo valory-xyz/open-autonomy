@@ -79,8 +79,8 @@ models:
         decimals: 18
         description: BTC
       period_setup:
-        safe_contract_address: null
         oracle_contract_address: null
+        safe_contract_address: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

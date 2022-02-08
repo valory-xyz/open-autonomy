@@ -259,6 +259,14 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         )["verified"]
         assert not verified, "Not verified"
 
+    def test_get_safe_nonce(self) -> None:
+        """Run get_safe_nonce test."""
+        safe_nonce = self.contract.get_safe_nonce(
+            ledger_api=self.ledger_api,
+            contract_address=cast(str, self.contract_address),
+        )["safe_nonce"]
+        assert safe_nonce == 0
+
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""

@@ -1043,7 +1043,7 @@ class TestPeriod:
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
-        assert self.period.latest_result is None
+        assert self.period.latest_state
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (period is finished)."""
@@ -1134,7 +1134,7 @@ class TestPeriod:
         ):
             self.period.commit()
         assert not isinstance(self.period.abci_app._current_round, ConcreteRoundA)
-        assert self.period.latest_result == round_result
+        assert self.period.latest_state == round_result
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:

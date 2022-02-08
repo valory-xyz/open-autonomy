@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
+import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
@@ -60,7 +61,7 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
 
     round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = "initialisation"
     required_block_confirmations = 1
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -70,24 +71,19 @@ class RegistrationStartupRound(CollectDifferentUntilAllRound):
         if (  # fast forward at setup
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            and self.period_state.db.get("safe_contract_address", None) is not None
-            and self.period_state.db.get("oracle_contract_address", None) is not None
+            and self.most_voted_payload is not None
         ):
+            initialisation = json.loads(self.most_voted_payload)
             state = self.period_state.update(
                 participants=self.collection,
-                safe_contract_address=self.period_state.db.get_strict(
-                    "safe_contract_address"
-                ),
-                oracle_contract_address=self.period_state.db.get_strict(
-                    "oracle_contract_address"
-                ),
                 period_state_class=BasePeriodState,
+                **initialisation,
             )
             return state, Event.FAST_FORWARD
         if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-        ):  # initial deployment round
+        ):
             state = self.period_state.update(
                 participants=self.collection,
                 period_state_class=BasePeriodState,

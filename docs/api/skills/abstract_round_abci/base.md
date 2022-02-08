@@ -603,6 +603,21 @@ def __init__(initial_period: int, initial_data: Dict[str, Any], cross_period_per
 
 Initialize a period state.
 
+<a id="packages.valory.skills.abstract_round_abci.base.StateDB.initial_data"></a>
+
+#### initial`_`data
+
+```python
+@property
+def initial_data() -> Dict[str, Any]
+```
+
+Get the initial_data.
+
+**Returns**:
+
+the initial_data
+
 <a id="packages.valory.skills.abstract_round_abci.base.StateDB.current_period_count"></a>
 
 #### current`_`period`_`count
@@ -1206,7 +1221,7 @@ Check Payload
 ## CollectDifferentUntilAllRound Objects
 
 ```python
-class CollectDifferentUntilAllRound(AbstractRound)
+class CollectDifferentUntilAllRound(CollectionRound)
 ```
 
 CollectDifferentUntilAllRound
@@ -1214,15 +1229,7 @@ CollectDifferentUntilAllRound
 This class represents logic for rounds where a round needs to collect
 different payloads from each agent.
 
-<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(*args: Any, **kwargs: Any) -> None
-```
-
-Initialize the registration round.
+This round should only be used for registration of new agents.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.process_payload"></a>
 
@@ -1242,7 +1249,7 @@ Process payload.
 def check_payload(payload: BaseTxPayload) -> None
 ```
 
-Check Payload.
+Check Payload
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.collection_threshold_reached"></a>
 
@@ -1254,6 +1261,17 @@ def collection_threshold_reached() -> bool
 ```
 
 Check that the collection threshold has been reached.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilAllRound.most_voted_payload"></a>
+
+#### most`_`voted`_`payload
+
+```python
+@property
+def most_voted_payload() -> Any
+```
+
+Get the most voted payload.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound"></a>
 
@@ -1731,7 +1749,7 @@ Check whether the AbciApp execution has finished.
 
 ```python
 @property
-def latest_result() -> Optional[Any]
+def latest_result() -> Optional[BasePeriodState]
 ```
 
 Get the latest result of the round.
@@ -1773,7 +1791,7 @@ Forward the call to the current round object.
 #### process`_`event
 
 ```python
-def process_event(event: EventType, result: Optional[Any] = None) -> None
+def process_event(event: EventType, result: Optional[BasePeriodState] = None) -> None
 ```
 
 Process a round event.
@@ -1965,16 +1983,16 @@ def last_timestamp() -> datetime.datetime
 
 Get the last timestamp.
 
-<a id="packages.valory.skills.abstract_round_abci.base.Period.latest_result"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.Period.latest_state"></a>
 
-#### latest`_`result
+#### latest`_`state
 
 ```python
 @property
-def latest_result() -> Optional[Any]
+def latest_state() -> BasePeriodState
 ```
 
-Get the latest result of the round.
+Get the latest state.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Period.begin_block"></a>
 

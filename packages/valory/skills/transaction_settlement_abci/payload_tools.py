@@ -19,18 +19,18 @@
 
 """Tools for payload serialization and deserialization."""
 
-from enum import Enum, auto
+from enum import Enum
 from typing import Any, Optional, Tuple
 
 
 class VerificationStatus(Enum):
     """Tx verification status enumeration."""
 
-    VERIFIED = auto()
-    NOT_VERIFIED = auto()
-    INVALID_PAYLOAD = auto()
-    PENDING = auto()
-    ERROR = auto()
+    VERIFIED = 1
+    NOT_VERIFIED = 2
+    INVALID_PAYLOAD = 3
+    PENDING = 4
+    ERROR = 5
 
 
 class PayloadDeserializationError(Exception):
@@ -54,8 +54,10 @@ def tx_hist_payload_to_hex(
     """Serialise history payload to a hex string."""
     if tx_hash is None:
         tx_hash = ""
-    elif len(tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError("Cannot encode tx_hash of non-32 bytes")
+    else:
+        tx_hash = tx_hash[2:] if tx_hash.startswith("0x") else tx_hash
+        if len(tx_hash) != 64:
+            raise ValueError("Cannot encode tx_hash of non-32 bytes")
     verification_ = verification.value.to_bytes(32, "big").hex()
     concatenated = verification_ + tx_hash
     return concatenated
@@ -76,7 +78,7 @@ def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[s
     if len(payload) == 64:
         return verification_status, None
 
-    return verification_status, payload[64:]
+    return verification_status, "0x" + payload[64:]
 
 
 def skill_input_hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:

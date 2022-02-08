@@ -152,6 +152,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndNormalExecuti
     wait_to_finish = 240
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationSingleAgent(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -171,6 +172,7 @@ class TestABCIAPYEstimationTwoAgents(
     NB_AGENTS = 2
 
 
+@pytest.mark.skip
 class TestABCIAPYEstimationFourAgents(
     BaseTestABCIAPYEstimationSkillNormalExecution,
     UseGnosisSafeHardHatNet,
