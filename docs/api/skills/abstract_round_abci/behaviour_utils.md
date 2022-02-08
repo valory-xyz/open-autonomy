@@ -376,13 +376,9 @@ def send_a2a_transaction(payload: BaseTxPayload) -> Generator
 
 Send transaction and wait for the response, and repeat until not successful.
 
-Flow of the message
+Flow of the message.
 
-0. send_a2a_transaction
-1. _send_transaction
-2. _submit_tx
-3. _do_request
-4. http client
+AbstractRoundAbci -> (BaseTxPayload) -> ABCI connection
 
 :param: payload: the payload to send
 :yield: the responses
@@ -420,9 +416,9 @@ Send an http request message from the skill context.
 This method is skill-specific, and therefore
 should not be used elsewhere.
 
-0. get_http_response
-1. _do_request
-2. http client
+Flow of the message.
+
+AbstractRoundAbci -> (HttpMessage) -> Http client connection
 
 **Arguments**:
 
@@ -449,8 +445,7 @@ Get signature for message.
 
 Flow of the message.
 
-0. get_signature
-1. signing client
+AbstractRoundAbci -> (SigningMessage) -> Signing client
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
 
@@ -464,8 +459,7 @@ Send raw transactions to the ledger for mining.
 
 Flow of the message.
 
-0. send_raw_transaction
-1. ledger client
+AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
 
 **Arguments**:
 
@@ -487,9 +481,7 @@ Get transaction receipt.
 
 Flow of the message.
 
-0. get_transaction_receipt
-1. _send_transaction_receipt_request
-2. ledger client
+AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
 
 **Arguments**:
 
@@ -513,8 +505,7 @@ Request data from ledger api
 
 Flow of the message.
 
-0. get_ledger_api_response
-1. ledger client
+AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
 
 **Arguments**:
 
@@ -538,8 +529,7 @@ Request contract safe transaction hash
 
 Flow of the message.
 
-0. get_contract_api_response
-1. ledger client (contract dispatcher)
+AbstractRoundAbci -> (ContractApiMessage) -> Ledger connection (contract dispatcher)
 
 **Arguments**:
 

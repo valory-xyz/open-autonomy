@@ -415,13 +415,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Send transaction and wait for the response, and repeat until not successful.
 
-        Flow of the message
+        Flow of the message.
 
-        0. send_a2a_transaction
-        1. _send_transaction
-        2. _submit_tx
-        3. _do_request
-        4. http client
+        AbstractRoundAbci -> (BaseTxPayload) -> ABCI connection
 
         :param: payload: the payload to send
         :yield: the responses
@@ -700,9 +696,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. _get_status
-        1. _do_request
-        2. http client
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
         """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
@@ -717,11 +711,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Check if agent has completed sync.
 
-        Flow of the message
+        Flow of the message.
 
-        0. _has_synced_up
-        1. _get_status
-        2. http client
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
         """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
@@ -765,9 +757,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         This method is skill-specific, and therefore
         should not be used elsewhere.
 
-        0. get_http_response
-        1. _do_request
-        2. http client
+        Flow of the message.
+
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
 
         :param method: the http request method (i.e. 'GET' or 'POST').
         :param url: the url to send the message to.
@@ -798,8 +790,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message
 
-        0. _do_request
-        1. http client
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
 
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
@@ -884,10 +875,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. _wait_until_transaction_delivered
-        1. _get_tx_info
-        2. _do_request
-        3. http client
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
 
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
@@ -955,8 +943,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. get_signature
-        1. signing client
+        AbstractRoundAbci -> (SigningMessage) -> Signing client
         """
         self._send_signing_request(message, is_deprecated_mode)
         signature_response = yield from self.wait_for_message()
@@ -975,8 +962,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. send_raw_transaction
-        1. ledger client
+        AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
 
         :param transaction: transaction data
         :return: transaction hash
@@ -1022,9 +1008,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. get_transaction_receipt
-        1. _send_transaction_receipt_request
-        2. ledger client
+        AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
 
         :param tx_digest: transaction digest received from raw transaction.
         :param retry_timeout: retry timeout.
@@ -1054,8 +1038,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. get_ledger_api_response
-        1. ledger client
+        AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
 
         :param performative: the message performative
         :param ledger_callable: the callable to call on the contract
@@ -1101,8 +1084,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
-        0. get_contract_api_response
-        1. ledger client (contract dispatcher)
+        AbstractRoundAbci -> (ContractApiMessage) -> Ledger connection (contract dispatcher)
 
         :param performative: the message performative
         :param contract_address: the contract address
