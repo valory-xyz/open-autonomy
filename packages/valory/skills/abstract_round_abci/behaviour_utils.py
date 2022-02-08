@@ -695,7 +695,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return result
 
     def _get_status(self) -> Generator[None, None, HttpMessage]:
-        """Get Tendermint node's status."""
+        """
+        Get Tendermint node's status.
+
+        Flow of the message.
+
+        0. _get_status
+        1. _do_request
+        2. http client
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + "/status",
@@ -713,6 +721,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         0. _has_synced_up
         1. _get_status
+        2. http client
         """
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
@@ -756,6 +765,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         This method is skill-specific, and therefore
         should not be used elsewhere.
 
+        0. get_http_response
+        1. _do_request
+        2. http client
+
         :param method: the http request method (i.e. 'GET' or 'POST').
         :param url: the url to send the message to.
         :param content: the payload.
@@ -782,6 +795,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     ) -> Generator[None, None, HttpMessage]:
         """
         Do a request and wait the response, asynchronously.
+
+        Flow of the message
+
+        0. _do_request
+        1. http client
 
         :param request_message: The request message
         :param http_dialogue: the HTTP dialogue associated to the request
@@ -864,6 +882,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         """
         Wait until transaction is delivered.
 
+        Flow of the message.
+
+        0. _wait_until_transaction_delivered
+        1. _get_tx_info
+        2. _do_request
+        3. http client
+
         :param tx_hash: the transaction hash to check.
         :param timeout: timeout
         :param: request_retry_delay: the delay to wait after failed requests
@@ -925,7 +950,14 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def get_signature(
         self, message: bytes, is_deprecated_mode: bool = False
     ) -> Generator[None, None, str]:
-        """Get signature for message."""
+        """
+        Get signature for message.
+
+        Flow of the message.
+
+        0. get_signature
+        1. signing client
+        """
         self._send_signing_request(message, is_deprecated_mode)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
@@ -938,7 +970,17 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def send_raw_transaction(
         self, transaction: RawTransaction
     ) -> Generator[None, None, Optional[str]]:
-        """Send raw transactions to the ledger for mining."""
+        """
+        Send raw transactions to the ledger for mining.
+
+        Flow of the message.
+
+        0. send_raw_transaction
+        1. ledger client
+
+        :param transaction: transaction data
+        :return: transaction hash
+        """
         terms = Terms(
             self.context.default_ledger_id,
             self.context.agent_address,
@@ -975,7 +1017,20 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         retry_timeout: Optional[int] = None,
         retry_attempts: Optional[int] = None,
     ) -> Generator[None, None, Optional[Dict]]:
-        """Get transaction receipt."""
+        """
+        Get transaction receipt.
+
+        Flow of the message.
+
+        0. get_transaction_receipt
+        1. _send_transaction_receipt_request
+        2. ledger client
+
+        :param tx_digest: transaction digest received from raw transaction.
+        :param retry_timeout: retry timeout.
+        :param retry_attempts: number of retry attempts allowed.
+        :return: transaction receipt data
+        """
         self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
         transaction_receipt_msg = yield from self.wait_for_message()
         if (
@@ -995,7 +1050,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         **kwargs: Any,
     ) -> Generator[None, None, LedgerApiMessage]:
         """
-        Request contract safe transaction hash
+        Request data from ledger api
+
+        Flow of the message.
+
+        0. get_ledger_api_response
+        1. ledger client
 
         :param performative: the message performative
         :param ledger_callable: the callable to call on the contract
@@ -1038,6 +1098,11 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     ) -> Generator[None, None, ContractApiMessage]:
         """
         Request contract safe transaction hash
+
+        Flow of the message.
+
+        0. get_contract_api_response
+        1. ledger client (contract dispatcher)
 
         :param performative: the message performative
         :param contract_address: the contract address
