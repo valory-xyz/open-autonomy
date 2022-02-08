@@ -37,9 +37,6 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import StateDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     ObserveBehaviour,
@@ -267,24 +264,23 @@ def mock_to_server_message_flow(self: "TestTransactionHashBehaviour") -> None:
     """Mock to server message flow"""
 
     self.behaviour.context.logger.info("Mocking to server message flow")
+    # note that although this is a dict, order matters for the test
     data = {
-        "observations": {"agent1": float("nan")},
-        "agent_address": "test_agent_address",
         "period_count": 0,
+        "agent_address": "test_agent_address",
         "estimate": 1.0,
-        "unit": "BTC:USD",
-        "signature": "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9000000000000000000000000000000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003d09000x77E9b2EF92125"
-        "3A171Fa0CB9ba80558648Ff721564617461",
+        "signature": "such_rich_history",
+        "observations": {"agent1": float("nan")},
         "data_source": "coinbase",
+        "unit": "BTC:USD",
     }
 
     request_kwargs: Dict[str, Union[str, bytes]] = dict(
         method="POST",
-        url="http://192.168.1.102:9999/deposit",
+        url="http://192.168.2.17:9999/deposit",
         headers="",
         version="",
-        body=DictProtobufStructSerializer.encode(data),
+        body=str(data).encode("utf-8"),
     )
 
     response_kwargs = dict(
@@ -364,12 +360,16 @@ class TestTransactionHashBehaviour(PriceEstimationFSMBehaviourBaseCase):
         )
 
         db = self.behaviour.current_state.period_state.db  # type: ignore
-        period_data = db.get_all()
-        period_data.update(
+        db._current_period_count += 1  # pylint: disable=protected-access
+        prev_period_count = db.current_period_count - 1
+        db._data.setdefault(
+            prev_period_count, {}
+        ).update(  # pylint: disable=protected-access
             {
                 "participants": {"agent1"},
                 "participant_to_observations": {"agent1": 1.0},
                 "most_voted_estimate": 1.0,
+                "tx_hashes_history": ["such_rich_history"],
             }
         )
 
