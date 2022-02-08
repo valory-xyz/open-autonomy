@@ -844,15 +844,12 @@ class BaseState(AsyncBehaviour, CleanUpBehaviour, SimpleBehaviour, ABC):
             cast(Requests, self.context.requests).request_id_to_backup_callback[
                 request_nonce
             ] = self.get_callback_request(unhandled=True)
-            try:
-                late_response = yield from self.wait_for_message(unhandled=True)
-                # stop the execution of the behaviour after a late response has been received,
-                # because this is the final thing a behaviour can do, and we do not want it to remain in the
-                # `WAITING_UNHANDLED_MESSAGE` state.
-                self.stop()
-                return late_response
-            except TimeoutException:
-                raise
+            late_response = yield from self.wait_for_message(unhandled=True)
+            # stop the execution of the behaviour after a late response has been received,
+            # because this is the final thing a behaviour can do, and we do not want it to remain in the
+            # `WAITING_UNHANDLED_MESSAGE` state.
+            self.stop()
+            return late_response
         finally:
             # remove request id in case already timed out and set backup request,
             # but notify caller by propagating exception if the `wait_for_message`
