@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import FrozenSet, Optional, cast
+from typing import FrozenSet, Optional, cast, Callable
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -288,14 +288,11 @@ class AbstractResponseHandler(Handler, ABC):
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
         ctx_requests = cast(Requests, self.context.requests)
         backup_callback = ctx_requests.request_id_to_backup_callback.pop(
-            request_nonce, None
+            request_nonce
         )
-        callback = ctx_requests.request_id_to_callback.pop(
+        callback = cast(Callable, ctx_requests.request_id_to_callback.pop(
             request_nonce, backup_callback
-        )
-        if callback is None:
-            self._handle_no_callback(message, protocol_dialogue)
-            return
+        ))
 
         self._log_message_handling(message)
         callback(message)
@@ -352,18 +349,6 @@ class AbstractResponseHandler(Handler, ABC):
         """
         self.context.logger.warning(
             "received invalid message: unallowed performative. message=%s.", message
-        )
-
-    def _handle_no_callback(self, _message: Message, dialogue: Dialogue) -> None:
-        """
-        Handle no callback found.
-
-        :param _message: the message to be handled
-        :param dialogue: the http dialogue
-        """
-        request_nonce = dialogue.dialogue_label.dialogue_reference[0]
-        self.context.logger.warning(
-            f"callback not specified for request with nonce {request_nonce}"
         )
 
     def _log_message_handling(self, message: Message) -> None:
