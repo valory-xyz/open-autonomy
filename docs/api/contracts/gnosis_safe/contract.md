@@ -250,7 +250,7 @@ the revert reason message.
 def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
 ```
 
-Retrieve the account's nonce
+Retrieve the safe's nonce
 
 **Arguments**:
 
@@ -259,5 +259,5 @@ Retrieve the account's nonce
 
 **Returns**:
 
-the nonce
+the safe nonce
 

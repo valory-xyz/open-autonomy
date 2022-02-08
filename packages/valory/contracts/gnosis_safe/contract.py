@@ -622,11 +622,11 @@ class GnosisSafeContract(Contract):
     @classmethod
     def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
         """
-        Retrieve the account's nonce
+        Retrieve the safe's nonce
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
-        :return: the nonce
+        :return: the safe nonce
         """
         safe_contract = cls.get_instance(ledger_api, contract_address)
         safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
