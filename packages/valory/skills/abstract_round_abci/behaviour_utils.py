@@ -417,7 +417,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
         Flow of the message.
 
+        AbstractRoundAbci -> (SigningMessage) -> Signing client
         AbstractRoundAbci -> (BaseTxPayload) -> ABCI connection
+        AbstractRoundAbci -> (HttpMessage) -> Http connection
 
         :param: payload: the payload to send
         :yield: the responses
@@ -484,6 +486,12 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         - Request the signature of the payload to the Decision Maker
         - Send the transaction to the 'price-estimation' app via the Tendermint
           node, and wait/repeat until the transaction is not mined.
+
+        Flow of the messages.
+
+        AbstractRoundAbci -> (SigningMessage) -> Signing client
+        AbstractRoundAbci -> (BaseTxPayload) -> ABCI connection
+        AbstractRoundAbci -> (HttpMessage) -> Http connection
 
         :param: payload: the payload to send
         :param: stop_condition: the condition to be checked to interrupt the
@@ -563,7 +571,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _send_signing_request(
         self, raw_message: bytes, is_deprecated_mode: bool = False
     ) -> None:
-        """Send a signing request."""
+        """
+        Send a signing request.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (SigningMessage) -> Signing client
+
+        :param raw_message: raw message bytes
+        :param is_deprecated_mode: is deprecated flag.
+        """
         signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
         signing_msg, signing_dialogue = signing_dialogues.create(
             counterparty=self.context.decision_maker_address,
@@ -591,7 +608,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _send_transaction_signing_request(
         self, raw_transaction: RawTransaction, terms: Terms
     ) -> None:
-        """Send a transaction signing request."""
+        """
+        Send a transaction signing request.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (SigningMessage) -> Signing client
+
+        :param raw_transaction: raw transaction data
+        :param terms: signing terms
+        """
         signing_dialogues = cast(SigningDialogues, self.context.signing_dialogues)
         signing_msg, signing_dialogue = signing_dialogues.create(
             counterparty=self.context.decision_maker_address,
@@ -606,6 +632,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
     def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
+        """
+        Send transaction request.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
+
+        :param signing_msg: signing message
+        """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
@@ -628,6 +663,17 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         retry_timeout: Optional[int] = None,
         retry_attempts: Optional[int] = None,
     ) -> None:
+        """
+        Send transaction receipt request.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (LedgerApiMessage) -> Ledger connection
+
+        :param tx_digest: transaction digest string
+        :param retry_timeout: retry timeout in seconds
+        :param retry_attempts: number of retry attempts
+        """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
@@ -657,7 +703,16 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _submit_tx(
         self, tx_bytes: bytes, timeout: Optional[float] = None
     ) -> Generator[None, None, HttpMessage]:
-        """Send a broadcast_tx_sync request."""
+        """Send a broadcast_tx_sync request.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
+
+        :param tx_bytes: transaction bytes
+        :param timeout: timeout seconds
+        :return: http response
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url
@@ -671,7 +726,17 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _get_tx_info(
         self, tx_hash: str, timeout: Optional[float] = None
     ) -> Generator[None, None, HttpMessage]:
-        """Get transaction info from tx hash."""
+        """
+        Get transaction info from tx hash.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (HttpMessage) -> Http client connection
+
+        :param tx_hash: transaction hash
+        :param timeout: timeout in seconds
+        :return: http response
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + f"/tx?hash=0x{tx_hash}",
@@ -682,7 +747,15 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         return result
 
     def _get_health(self) -> Generator[None, None, HttpMessage]:
-        """Get Tendermint node's health."""
+        """
+        Get Tendermint node's health.
+
+        Flow of the message.
+
+        AbstractRoundAbci -> (SigningMessage) -> Http client connection
+
+        :return: http response from tendermint
+        """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.context.params.tendermint_url + "/health",
@@ -697,6 +770,8 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         Flow of the message.
 
         AbstractRoundAbci -> (HttpMessage) -> Http client connection
+
+        :return: http response from tendermint
         """
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
@@ -944,6 +1019,10 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
         Flow of the message.
 
         AbstractRoundAbci -> (SigningMessage) -> Signing client
+
+        :param message: message bytes
+        :param is_deprecated_mode: is deprecated mode flag
+        :return: message signature
         """
         self._send_signing_request(message, is_deprecated_mode)
         signature_response = yield from self.wait_for_message()

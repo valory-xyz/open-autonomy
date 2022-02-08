@@ -378,7 +378,9 @@ Send transaction and wait for the response, and repeat until not successful.
 
 Flow of the message.
 
+AbstractRoundAbci -> (SigningMessage) -> Signing client
 AbstractRoundAbci -> (BaseTxPayload) -> ABCI connection
+AbstractRoundAbci -> (HttpMessage) -> Http connection
 
 :param: payload: the payload to send
 :yield: the responses
@@ -446,6 +448,15 @@ Get signature for message.
 Flow of the message.
 
 AbstractRoundAbci -> (SigningMessage) -> Signing client
+
+**Arguments**:
+
+- `message`: message bytes
+- `is_deprecated_mode`: is deprecated mode flag
+
+**Returns**:
+
+message signature
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.send_raw_transaction"></a>
 
