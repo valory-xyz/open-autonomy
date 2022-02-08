@@ -333,11 +333,14 @@ class CleanUpBehaviour(ABC):
         It can be optionally implemented by the concrete classes.
         """
 
-    def post_clean_up(self) -> None:
+    def handle_late_messages(self, message: Message) -> None:
         """
-        Run from another behaviour, even if the behaviour implementing the method has been exited.
+        Handle late arriving messages.
 
+        Runs from another behaviour, even if the behaviour implementing the method has been exited.
         It can be optionally implemented by the concrete classes.
+
+        :param message: the late arriving message to handle.
         """
 
 
