@@ -10,11 +10,11 @@ fingerprint:
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
   base.py: QmPHSPVATjepadjtKf2oWposf27Bv6kJsGYGdXxZZLa3Us
-  behaviour_utils.py: QmZWeDxcXvNRQZd3qtYwSMMePzVSrpo3NhE57JwsYZKnF1
+  behaviour_utils.py: QmWWHS624Kq2eZWHMhqciQU6vzjLziLkNWjW97MhjLCTr8
   behaviours.py: QmNZiFSYdw7jes51c8Go4jykSSjoQWHtYt1DcLShrfHHCg
   common.py: QmdoSkkkCRqoHX9T2rnPLpii5KVvEmibktKDik3pe2mNB7
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
-  handlers.py: QmWvQ3QM3X52nGgxeVerWfUp1DrhxC62r4g6Aj2PsJdhCw
+  handlers.py: Qmauk4RvPeZ2Aroj6xHnzahGNcSQY7pHxBDjcyrCiTYTnU
   models.py: QmfXDTpnX8B79wqDrpnJkG7a9VjoDvH18wNYCEbRasQGuR
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmVAoFuecjncKZFCQ7gW8L3BXxtsSrpwrxaZUTm9w1P18m

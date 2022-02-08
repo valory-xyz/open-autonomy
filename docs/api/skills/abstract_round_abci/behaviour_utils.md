@@ -155,7 +155,7 @@ The argument may be a floating point number for subsecond precision.
 #### wait`_`for`_`message
 
 ```python
-def wait_for_message(condition: Callable = lambda message: True, timeout: Optional[float] = None) -> Any
+def wait_for_message(condition: Callable = lambda message: True, timeout: Optional[float] = None, unhandled: bool = False) -> Any
 ```
 
 Wait for message.
@@ -167,6 +167,7 @@ Use directly after a request is being sent.
 
 - `condition`: a callable
 - `timeout`: max time to wait (in seconds)
+- `unhandled`: if the message is unhandled by the behaviour.
 
 **Returns**:
 
@@ -224,17 +225,22 @@ Clean up the resources due to a 'stop' event.
 
 It can be optionally implemented by the concrete classes.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.post_clean_up"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour.handle_late_messages"></a>
 
-#### post`_`clean`_`up
+#### handle`_`late`_`messages
 
 ```python
-def post_clean_up() -> None
+def handle_late_messages(message: Message) -> None
 ```
 
-Run from another behaviour, even if the behaviour implementing the method has been exited.
+Handle late arriving messages.
 
+Runs from another behaviour, even if the behaviour implementing the method has been exited.
 It can be optionally implemented by the concrete classes.
+
+**Arguments**:
+
+- `message`: the late arriving message to handle.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState"></a>
 
@@ -425,15 +431,23 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.default_callback_request"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_callback_request"></a>
 
-#### default`_`callback`_`request
+#### get`_`callback`_`request
 
 ```python
-def default_callback_request(message: Message) -> None
+def get_callback_request(unhandled: bool = False) -> Callable[[Message], None]
 ```
 
-Implement default callback request.
+Wrapper for callback request which depends on whether the message has not been handled on time.
+
+**Arguments**:
+
+- `unhandled`: whether the message has not been handled on time.
+
+**Returns**:
+
+the request callback.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseState.get_http_response"></a>
 

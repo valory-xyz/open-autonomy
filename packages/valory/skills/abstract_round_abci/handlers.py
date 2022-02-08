@@ -19,7 +19,7 @@
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
 from abc import ABC
-from typing import FrozenSet, Optional, cast, Callable
+from typing import Callable, FrozenSet, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -287,12 +287,11 @@ class AbstractResponseHandler(Handler, ABC):
 
         request_nonce = protocol_dialogue.dialogue_label.dialogue_reference[0]
         ctx_requests = cast(Requests, self.context.requests)
-        backup_callback = ctx_requests.request_id_to_backup_callback.pop(
-            request_nonce
+        backup_callback = ctx_requests.request_id_to_backup_callback.pop(request_nonce)
+        callback = cast(
+            Callable,
+            ctx_requests.request_id_to_callback.pop(request_nonce, backup_callback),
         )
-        callback = cast(Callable, ctx_requests.request_id_to_callback.pop(
-            request_nonce, backup_callback
-        ))
 
         self._log_message_handling(message)
         callback(message)
